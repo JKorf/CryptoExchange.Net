@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>CryptoExchange.Net</PackageId>
+	<Authors>JKorf</Authors>
+    <PackageVersion>0.0.1</PackageVersion>
+	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
+	<PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
+	<NeutralLanguage>en</NeutralLanguage>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+  </ItemGroup>
+
+</Project>
