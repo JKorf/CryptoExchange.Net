@@ -23,7 +23,7 @@ namespace CryptoExchange.Net
         protected ApiProxy apiProxy;
 
         private AuthenticationProvider authProvider;
-        private readonly List<IRateLimiter> rateLimiters = new List<IRateLimiter>();
+        private List<IRateLimiter> rateLimiters;
         
         protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authentictationProvider)
         {
@@ -38,9 +38,13 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(ExchangeOptions exchangeOptions)
         {
+            if (exchangeOptions.LogWriter != null)
+                log.TextWriter = exchangeOptions.LogWriter;
+
             log.Level = exchangeOptions.LogVerbosity;
             apiProxy = exchangeOptions.Proxy;
 
+            rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
         }
