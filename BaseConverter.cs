@@ -25,7 +25,15 @@ namespace CryptoExchange.Net
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return Mapping.Single(v => v.Value.ToLower() == reader.Value.ToString().ToLower()).Key;
+            var val = Mapping.Single(v => v.Value == reader.Value.ToString()).Key;
+            if (val != null)
+                return val;
+            return Mapping.Single(v => v.Value.ToLower() == reader.Value.ToString().ToLower());
+        }
+
+        public T ReadString(string data)
+        {
+            return Mapping.Single(v => v.Value == data).Key;
         }
 
         public override bool CanConvert(Type objectType)

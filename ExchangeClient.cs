@@ -89,18 +89,16 @@ namespace CryptoExchange.Net
 
                 uriString += $"{string.Join("&", parameters.Select(s => $"{s.Key}={s.Value}"))}";
             }
-
-            if (signed)
-                uriString = authProvider.AddAuthenticationToUriString(uriString);
+            
+            uriString = authProvider.AddAuthenticationToUriString(uriString, signed);
 
             var request = RequestFactory.Create(uriString);
             request.Method = method;
 
             if (apiProxy != null)
                 request.SetProxy(apiProxy.Host, apiProxy.Port);
-
-            if (signed)
-                request = authProvider.AddAuthenticationToRequest(request);
+            
+            request = authProvider.AddAuthenticationToRequest(request, signed);
 
             foreach (var limiter in rateLimiters)
             {
@@ -132,8 +130,25 @@ namespace CryptoExchange.Net
             catch (WebException we)
             {
                 var response = (HttpWebResponse)we.Response;
-                string infoMessage = response == null ? "No response from server" : $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
-                return new CallResult<string>(null, new WebError(infoMessage));
+                string responseData = null;
+                try
+                {
+                    var reader = new StreamReader(response.GetResponseStream());
+                    responseData = reader.ReadToEnd();
+                }
+                catch (Exception e)
+                {
+                }
+
+                string infoMessage = "No response from server";
+                if (response == null)
+                    return new CallResult<string>(null, new WebError(infoMessage));
+
+                if (responseData != null)
+                    infoMessage = "Server returned error: " + responseData;
+                else
+                    infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
+                return new CallResult<string>(null, new ServerError(infoMessage));
             }
             catch (Exception e)
             {
@@ -151,7 +166,11 @@ namespace CryptoExchange.Net
                     if (obj is JObject o)
                         CheckObject(typeof(T), o);
                     else
-                        CheckObject(typeof(T), (JObject) ((JArray) obj)[0]);
+                    {
+                        var ary = (JArray) obj;
+                        if (ary.HasValues && ary[0] is JObject jObject)
+                            CheckObject(typeof(T).GetElementType(), jObject);
+                    }
                 }
 
                 return new CallResult<T>(obj.ToObject<T>(), null);
@@ -177,27 +196,31 @@ namespace CryptoExchange.Net
                 if (ignore != null)
                     continue;
 
-                properties.Add(attr == null ? prop.Name.ToLower() : ((JsonPropertyAttribute) attr).PropertyName.ToLower());
+                properties.Add(attr == null ? prop.Name : ((JsonPropertyAttribute) attr).PropertyName);
             }
             foreach (var token in obj)
             {
-                var d = properties.SingleOrDefault(p => p == token.Key.ToLower());
+                var d = properties.SingleOrDefault(p => p == token.Key);
                 if (d == null)
-                    log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
-                else
                 {
-                    properties.Remove(d);
-
-                    var propType = GetProperty(d, props)?.PropertyType;
-                    if (propType == null)
-                        continue;
-                    if (!IsSimple(propType) && propType != typeof(DateTime))
+                    d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
+                    if (d == null)
                     {
-                        if(propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
-                            CheckObject(propType.GetElementType(), (JObject)token.Value[0]);
-                        else if(token.Value is JObject)
-                            CheckObject(propType, (JObject)token.Value);
+                        log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
+                        continue;
                     }
+                }
+                properties.Remove(d);
+
+                var propType = GetProperty(d, props)?.PropertyType;
+                if (propType == null)
+                    continue;
+                if (!IsSimple(propType) && propType != typeof(DateTime))
+                {
+                    if(propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
+                        CheckObject(propType.GetElementType(), (JObject)token.Value[0]);
+                    else if(token.Value is JObject)
+                        CheckObject(propType, (JObject)token.Value);
                 }
             }
 
@@ -217,7 +240,7 @@ namespace CryptoExchange.Net
                 }
                 else
                 {
-                    if (((JsonPropertyAttribute) attr).PropertyName.ToLower() == name)
+                    if (((JsonPropertyAttribute) attr).PropertyName == name)
                         return prop;
                 }
             }

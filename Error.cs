@@ -46,4 +46,9 @@
     {
         public UnknownError(string message) : base(5, "Unknown error occured " + message) { }
     }
+
+    public class ArgumentError : Error
+    {
+        public ArgumentError(string message) : base(5, "Invalid parameter: " + message) { }
+    }
 }
