@@ -15,11 +15,11 @@ namespace CryptoExchange.Net.RateLimiter
             Times = new List<DateTime>();
         }
 
-        public double GetWaitTime(DateTime time, int limit, TimeSpan perTimePeriod)
+        public int GetWaitTime(DateTime time, int limit, TimeSpan perTimePeriod)
         {
             Times.RemoveAll(d => d < time - perTimePeriod);
             if (Times.Count >= limit)
-                return (Times.First() - (time - perTimePeriod)).TotalMilliseconds;
+                return (int)Math.Round((Times.First() - (time - perTimePeriod)).TotalMilliseconds);
             return 0;
         }
 

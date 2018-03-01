@@ -102,22 +102,19 @@ namespace CryptoExchange.Net
 
             foreach (var limiter in rateLimiters)
             {
-                double limitedBy = limiter.LimitRequest(uri.AbsolutePath);
+                var limitedBy = limiter.LimitRequest(uri.AbsolutePath);
                 if (limitedBy > 0)
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
             }
 
             log.Write(LogVerbosity.Debug, $"Sending request to {uriString}");
             var result = await ExecuteRequest(request);
-            if (result.Error != null)
-                return new CallResult<T>(null, result.Error);
-
-            return Deserialize<T>(result.Data);
+            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
         }
 
         private async Task<CallResult<string>> ExecuteRequest(IRequest request)
         {
-            string returnedData = "";
+            var returnedData = "";
             try
             {
                 var response = request.GetResponse();
@@ -136,11 +133,11 @@ namespace CryptoExchange.Net
                     var reader = new StreamReader(response.GetResponseStream());
                     responseData = reader.ReadToEnd();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
 
-                string infoMessage = "No response from server";
+                var infoMessage = "No response from server";
                 if (response == null)
                     return new CallResult<string>(null, new WebError(infoMessage));
 

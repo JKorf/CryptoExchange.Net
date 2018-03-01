@@ -13,9 +13,9 @@ namespace CryptoExchange.Net.RateLimiter
     {
         internal List<DateTime> history = new List<DateTime>();
 
-        private int limit;
-        private TimeSpan perTimePeriod;
-        private object requestLock = new object();
+        private readonly int limit;
+        private readonly TimeSpan perTimePeriod;
+        private readonly object requestLock = new object();
 
         /// <summary>
         /// Create a new RateLimiterTotal. This rate limiter limits the amount of requests per time period to a certain limit, counts the total amount of requests.

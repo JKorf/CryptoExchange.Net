@@ -12,9 +12,9 @@ namespace CryptoExchange.Net.RateLimiter
     {
         internal Dictionary<string, RateLimitObject> history = new Dictionary<string, RateLimitObject>();
 
-        private int limitPerEndpoint;
-        private TimeSpan perTimePeriod;
-        private object historyLock = new object();
+        private readonly int limitPerEndpoint;
+        private readonly TimeSpan perTimePeriod;
+        private readonly object historyLock = new object();
 
         /// <summary>
         /// Create a new RateLimiterPerEndpoint. This rate limiter limits the amount of requests per time period to a certain limit, counts the request per endpoint.
@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.RateLimiter
 
         public double LimitRequest(string url)
         {
-            double waitTime;
+            int waitTime;
             RateLimitObject rlo;
             lock (historyLock)
             {
@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.RateLimiter
                 if (waitTime != 0)
                 {
                     Thread.Sleep(Convert.ToInt32(waitTime));
-                    waitTime += sw.ElapsedMilliseconds;
+                    waitTime += (int)sw.ElapsedMilliseconds;
                 }
 
                 rlo.Add(DateTime.UtcNow);

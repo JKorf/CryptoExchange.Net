@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Authentication
         protected string ByteToString(byte[] buff)
         {
             var sbinary = "";
-            foreach (byte t in buff)
+            foreach (var t in buff)
                 sbinary += t.ToString("X2"); /* hex format */
             return sbinary;
         }

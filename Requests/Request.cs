@@ -23,14 +23,11 @@ namespace CryptoExchange.Net.Requests
             get => request.Method;
             set => request.Method = value;
         }
-        public Uri Uri
-        {
-            get => request.RequestUri;
-        }
+        public Uri Uri => request.RequestUri;
 
         public void SetProxy(string host, int port)
         {
-            request.Proxy = new WebProxy(host, port); ;
+            request.Proxy = new WebProxy(host, port);
         }
 
         public IResponse GetResponse()

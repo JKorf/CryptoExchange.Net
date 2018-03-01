@@ -1,5 +1,4 @@
-﻿
-namespace CryptoExchange.Net.Interfaces
+﻿namespace CryptoExchange.Net.Interfaces
 {
     public interface IRequestFactory
     {

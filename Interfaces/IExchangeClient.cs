@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CryptoExchange.Net.RateLimiter;
+﻿using CryptoExchange.Net.RateLimiter;
 
 namespace CryptoExchange.Net.Interfaces
 {
