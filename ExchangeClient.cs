@@ -90,7 +90,8 @@ namespace CryptoExchange.Net
                 uriString += $"{string.Join("&", parameters.Select(s => $"{s.Key}={s.Value}"))}";
             }
             
-            uriString = authProvider.AddAuthenticationToUriString(uriString, signed);
+            if(authProvider != null)
+                uriString = authProvider.AddAuthenticationToUriString(uriString, signed);
 
             var request = RequestFactory.Create(uriString);
             request.Method = method;
@@ -98,7 +99,8 @@ namespace CryptoExchange.Net
             if (apiProxy != null)
                 request.SetProxy(apiProxy.Host, apiProxy.Port);
             
-            request = authProvider.AddAuthenticationToRequest(request, signed);
+            if(authProvider != null)
+                request = authProvider.AddAuthenticationToRequest(request, signed);
 
             foreach (var limiter in rateLimiters)
             {
