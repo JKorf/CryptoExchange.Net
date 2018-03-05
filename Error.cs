@@ -30,6 +30,10 @@
     public class ServerError: Error
     {
         public ServerError(string message) : base(3, "Server error: " + message) { }
+
+        public ServerError(int code, string message) : base(code, message)
+        {
+        }
     }
 
     public class WebError : Error

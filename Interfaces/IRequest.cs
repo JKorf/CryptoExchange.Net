@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -10,6 +12,12 @@ namespace CryptoExchange.Net.Interfaces
         string Method { get; set; }
 
         void SetProxy(string host, int port);
-        IResponse GetResponse();
+
+        string ContentType { get; set; }
+        string Accept { get; set; }
+        long ContentLength { get; set; }
+
+        Task<Stream> GetRequestStream();
+        Task<IResponse> GetResponse();
     }
 }

@@ -22,13 +22,13 @@ namespace CryptoExchange.Net
         protected Log log;
         protected ApiProxy apiProxy;
 
-        private AuthenticationProvider authProvider;
+        protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
         
-        protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authentictationProvider)
+        protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authenticationProvider)
         {
             log = new Log();
-            authProvider = authentictationProvider;
+            authProvider = authenticationProvider;
             Configure(exchangeOptions);
         }
 
@@ -80,6 +80,25 @@ namespace CryptoExchange.Net
             if(signed && authProvider == null)
                 return new CallResult<T>(null, new NoApiCredentialsError());
 
+            var request = ConstructRequest(uri, method, parameters, signed);
+
+            if (apiProxy != null)
+                request.SetProxy(apiProxy.Host, apiProxy.Port);
+
+            foreach (var limiter in rateLimiters)
+            {
+                var limitedBy = limiter.LimitRequest(uri.AbsolutePath);
+                if (limitedBy > 0)
+                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
+            }
+
+            log.Write(LogVerbosity.Debug, $"Sending request to {request.Uri}");
+            var result = await ExecuteRequest(request).ConfigureAwait(false);
+            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
+        }
+
+        protected virtual IRequest ConstructRequest(Uri uri, string method, Dictionary<string, object> parameters, bool signed)
+        {
             var uriString = uri.ToString();
 
             if (parameters != null)
@@ -89,29 +108,17 @@ namespace CryptoExchange.Net
 
                 uriString += $"{string.Join("&", parameters.Select(s => $"{s.Key}={s.Value}"))}";
             }
-            
-            if(authProvider != null)
+
+            if (authProvider != null)
                 uriString = authProvider.AddAuthenticationToUriString(uriString, signed);
 
             var request = RequestFactory.Create(uriString);
             request.Method = method;
 
-            if (apiProxy != null)
-                request.SetProxy(apiProxy.Host, apiProxy.Port);
-            
-            if(authProvider != null)
+            if (authProvider != null)
                 request = authProvider.AddAuthenticationToRequest(request, signed);
 
-            foreach (var limiter in rateLimiters)
-            {
-                var limitedBy = limiter.LimitRequest(uri.AbsolutePath);
-                if (limitedBy > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
-            }
-
-            log.Write(LogVerbosity.Debug, $"Sending request to {uriString}");
-            var result = await ExecuteRequest(request);
-            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
+            return request;
         }
 
         private async Task<CallResult<string>> ExecuteRequest(IRequest request)
@@ -119,7 +126,7 @@ namespace CryptoExchange.Net
             var returnedData = "";
             try
             {
-                var response = request.GetResponse();
+                var response = await request.GetResponse().ConfigureAwait(false);
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
                     returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -129,11 +136,11 @@ namespace CryptoExchange.Net
             catch (WebException we)
             {
                 var response = (HttpWebResponse)we.Response;
-                string responseData = null;
                 try
                 {
                     var reader = new StreamReader(response.GetResponseStream());
-                    responseData = reader.ReadToEnd();
+                    var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    return new CallResult<string>(null, ParseErrorResponse(responseData));
                 }
                 catch (Exception)
                 {
@@ -142,17 +149,19 @@ namespace CryptoExchange.Net
                 var infoMessage = "No response from server";
                 if (response == null)
                     return new CallResult<string>(null, new WebError(infoMessage));
-
-                if (responseData != null)
-                    infoMessage = "Server returned error: " + responseData;
-                else
-                    infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
+                
+                infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
                 return new CallResult<string>(null, new ServerError(infoMessage));
             }
             catch (Exception e)
             {
                 return new CallResult<string>(null, new UnknownError(e.Message + ", data: " + returnedData));
             }
+        }
+
+        protected virtual Error ParseErrorResponse(string error)
+        {
+            return new ServerError(error);
         }
 
         private CallResult<T> Deserialize<T>(string data) where T: class
