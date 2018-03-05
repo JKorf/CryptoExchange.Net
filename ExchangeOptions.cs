@@ -25,7 +25,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The log verbosity
         /// </summary>
-        public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Warning;
+        public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Info;
 
         /// <summary>
         /// The log writer
