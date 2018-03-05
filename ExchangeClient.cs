@@ -43,6 +43,8 @@ namespace CryptoExchange.Net
 
             log.Level = exchangeOptions.LogVerbosity;
             apiProxy = exchangeOptions.Proxy;
+            if(apiProxy != null)
+                log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
 
             rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -72,6 +74,7 @@ namespace CryptoExchange.Net
         /// <param name="authentictationProvider"></param>
         protected void SetAuthenticationProvider(AuthenticationProvider authentictationProvider)
         {
+            log.Write(LogVerbosity.Debug, "Setting api credentials");
             authProvider = authentictationProvider;
         }
 
@@ -92,7 +95,7 @@ namespace CryptoExchange.Net
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
             }
 
-            log.Write(LogVerbosity.Debug, $"Sending request to {request.Uri}");
+            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed": "")} request to {request.Uri}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
         }
@@ -140,6 +143,7 @@ namespace CryptoExchange.Net
                 {
                     var reader = new StreamReader(response.GetResponseStream());
                     var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Warning, "Server returned an error: " + responseData);
                     return new CallResult<string>(null, ParseErrorResponse(responseData));
                 }
                 catch (Exception)
@@ -148,13 +152,18 @@ namespace CryptoExchange.Net
 
                 var infoMessage = "No response from server";
                 if (response == null)
+                {
+                    log.Write(LogVerbosity.Warning, infoMessage);
                     return new CallResult<string>(null, new WebError(infoMessage));
-                
+                }
+
                 infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
+                log.Write(LogVerbosity.Warning, infoMessage);
                 return new CallResult<string>(null, new ServerError(infoMessage));
             }
             catch (Exception e)
             {
+                log.Write(LogVerbosity.Error, $"Unkown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
                 return new CallResult<string>(null, new UnknownError(e.Message + ", data: " + returnedData));
             }
         }
@@ -185,11 +194,15 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                return new CallResult<T>(null, new DeserializeError($"Error occured at Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {data}"));
+                var info = $"{jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(null, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
-                return new CallResult<T>(null, new DeserializeError($"Message: {jse.Message}. Received data: {data}"));
+                var info = $"{jse.Message}. Received data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(null, new DeserializeError(info));
             }
         }
 

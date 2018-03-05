@@ -6,7 +6,20 @@ namespace CryptoExchange.Net.Logging
     public class Log
     {
         public TextWriter TextWriter { get; internal set; } = new DebugTextWriter();
-        public LogVerbosity Level { get; internal set; } = LogVerbosity.Warning;
+        private LogVerbosity level = LogVerbosity.Info;
+
+        public LogVerbosity Level
+        {
+            get => level;
+            set
+            {
+                if (level != value)
+                {
+                    Write(LogVerbosity.Info, "Loglevel set to " + value);
+                    level = value;
+                }
+            }
+        }
 
         public void Write(LogVerbosity logType, string message)
         {
@@ -18,6 +31,7 @@ namespace CryptoExchange.Net.Logging
     public enum LogVerbosity
     {
         Debug,
+        Info,
         Warning,
         Error,
         None
