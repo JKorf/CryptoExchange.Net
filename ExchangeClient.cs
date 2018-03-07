@@ -173,12 +173,12 @@ namespace CryptoExchange.Net
             return new ServerError(error);
         }
 
-        private CallResult<T> Deserialize<T>(string data) where T: class
+        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true) where T: class
         {
             try
             {
                 var obj = JToken.Parse(data);
-                if (log.Level == LogVerbosity.Debug)
+                if (checkObject && log.Level == LogVerbosity.Debug)
                 {
                     if (obj is JObject o)
                         CheckObject(typeof(T), o);
@@ -208,6 +208,7 @@ namespace CryptoExchange.Net
 
         private void CheckObject(Type type, JObject obj)
         {
+            bool isDif = false;
             var properties = new List<string>();
             var props = type.GetProperties();
             foreach (var prop in props)
@@ -225,9 +226,10 @@ namespace CryptoExchange.Net
                 if (d == null)
                 {
                     d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
-                    if (d == null)
+                    if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                     {
                         log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
+                        isDif = true;
                         continue;
                     }
                 }
@@ -245,8 +247,14 @@ namespace CryptoExchange.Net
                 }
             }
 
-            foreach(var prop in properties) 
+            foreach (var prop in properties)
+            {
+                isDif = true;
                 log.Write(LogVerbosity.Warning, $"Didn't find key `{prop}` in returned data object of type `{type.Name}`");
+            }
+
+            if(isDif)
+                log.Write(LogVerbosity.Debug, "Returned data: " + obj);
         }
 
         private PropertyInfo GetProperty(string name, PropertyInfo[] props)
