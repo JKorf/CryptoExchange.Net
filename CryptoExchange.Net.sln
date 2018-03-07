@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2008
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoExchange.Net", "CryptoExchange.Net\CryptoExchange.Net.csproj", "{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoExchange.Net.UnitTests", "CryptoExchange.Net.UnitTests\CryptoExchange.Net.UnitTests.csproj", "{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D1B9CE9-E0B7-4B8B-88BF-6EA2CC8CA3D7}
+	EndGlobalSection
+EndGlobal

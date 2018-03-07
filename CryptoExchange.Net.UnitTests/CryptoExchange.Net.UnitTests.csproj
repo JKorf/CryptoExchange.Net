@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <packagereference Include="Microsoft.NET.Test.Sdk" Version="15.0.0"></packagereference>
+    <PackageReference Include="Moq" Version="4.7.145" />
+    <packagereference Include="NUnit" Version="3.6.1"></packagereference>
+    <packagereference Include="NUnit3TestAdapter" Version="3.8.0-alpha1"></packagereference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CryptoExchange.Net\CryptoExchange.Net.csproj" />
+  </ItemGroup>
+
+</Project>
