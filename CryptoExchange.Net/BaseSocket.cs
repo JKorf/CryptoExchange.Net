@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using SuperSocket.ClientEngine.Proxy;
@@ -80,7 +81,15 @@ namespace CryptoExchange.Net
 
         public async Task<bool> Connect()
         {
-            return await socket.OpenAsync().ConfigureAwait(false);
+            return await Task.Run(() =>
+            {
+                ManualResetEvent evnt = new ManualResetEvent(false);
+                socket.Opened += (o, s) => evnt.Set();
+                socket.Closed += (o, s) => evnt.Set();
+                socket.Open();
+                evnt.WaitOne();
+                return socket.State == WebSocketState.Open;
+            });
         }
 
         public void SetEnabledSslProtocols(SslProtocols protocols)
