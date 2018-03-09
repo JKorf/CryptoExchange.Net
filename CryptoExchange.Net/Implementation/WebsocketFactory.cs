@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Implementation
 {
     public class WebsocketFactory : IWebsocketFactory
     {

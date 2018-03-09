@@ -9,7 +9,7 @@ using CryptoExchange.Net.Interfaces;
 using SuperSocket.ClientEngine.Proxy;
 using WebSocket4Net;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Implementation
 {
     public class BaseSocket: IWebsocket
     {
@@ -69,9 +69,17 @@ namespace CryptoExchange.Net
                 handle(data);
         }
 
-        public void Close()
+        public async Task Close()
         {
-            socket.Close();
+            await Task.Run(() =>
+            {
+                ManualResetEvent evnt = new ManualResetEvent(false);
+                var handler = new EventHandler((o, a) => evnt.Set());
+                socket.Closed += handler;
+                socket.Close();
+                evnt.WaitOne();
+                socket.Closed -= handler;
+            });
         }
 
         public void Send(string data)
@@ -84,10 +92,13 @@ namespace CryptoExchange.Net
             return await Task.Run(() =>
             {
                 ManualResetEvent evnt = new ManualResetEvent(false);
-                socket.Opened += (o, s) => evnt.Set();
-                socket.Closed += (o, s) => evnt.Set();
+                var handler = new EventHandler((o, a) => evnt.Set());
+                socket.Opened += handler;
+                socket.Closed += handler;
                 socket.Open();
                 evnt.WaitOne();
+                socket.Opened -= handler;
+                socket.Closed -= handler;
                 return socket.State == WebSocketState.Open;
             });
         }
