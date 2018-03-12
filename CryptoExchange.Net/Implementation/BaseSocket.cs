@@ -30,6 +30,8 @@ namespace CryptoExchange.Net.Implementation
         public BaseSocket(string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
             socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList());
+            socket.EnableAutoSendPing = true;
+            socket.AutoSendPingInterval = 10;
             socket.Opened += (o, s) => Handle(openhandlers);
             socket.Closed += (o, s) => Handle(closehandlers);
             socket.Error += (o, s) => Handle(errorhandlers, s.Exception);
@@ -79,7 +81,7 @@ namespace CryptoExchange.Net.Implementation
                 socket.Close();
                 evnt.WaitOne();
                 socket.Closed -= handler;
-            });
+            }).ConfigureAwait(false);
         }
 
         public void Send(string data)
@@ -100,7 +102,7 @@ namespace CryptoExchange.Net.Implementation
                 socket.Opened -= handler;
                 socket.Closed -= handler;
                 return socket.State == WebSocketState.Open;
-            });
+            }).ConfigureAwait(false);
         }
 
         public void SetEnabledSslProtocols(SslProtocols protocols)
