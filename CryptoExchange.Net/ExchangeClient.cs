@@ -133,6 +133,7 @@ namespace CryptoExchange.Net
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
                     returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Debug, "Data returned: " + returnedData);
                     return new CallResult<string>(returnedData, null);
                 }
             }
