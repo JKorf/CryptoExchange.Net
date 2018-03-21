@@ -23,6 +23,18 @@ namespace CryptoExchange.Net.Implementation
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
 
+        public bool PingConnection
+        {
+            get => socket.EnableAutoSendPing;
+            set => socket.EnableAutoSendPing = value;
+        }
+
+        public TimeSpan PingInterval
+        {
+            get => TimeSpan.FromSeconds(socket.AutoSendPingInterval);
+            set => socket.AutoSendPingInterval = (int) Math.Round(value.TotalSeconds);
+        }
+
         public BaseSocket(string url):this(url, new Dictionary<string, string>(), new Dictionary<string, string>())
         {
         }
@@ -36,6 +48,8 @@ namespace CryptoExchange.Net.Implementation
             socket.Closed += (o, s) => Handle(closehandlers);
             socket.Error += (o, s) => Handle(errorhandlers, s.Exception);
             socket.MessageReceived += (o, s) => Handle(messagehandlers, s.Message);
+            socket.EnableAutoSendPing = true;
+            socket.AutoSendPingInterval = 10;
         }
 
         public event Action OnClose

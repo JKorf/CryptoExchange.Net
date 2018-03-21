@@ -28,9 +28,9 @@ namespace CryptoExchange.Net
         public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Info;
 
         /// <summary>
-        /// The log writer
+        /// The log writers
         /// </summary>
-        public TextWriter LogWriter { get; set; } = new DebugTextWriter();
+        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() {new DebugTextWriter()};
 
         /// <summary>
         /// List of ratelimiters to use

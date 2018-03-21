@@ -177,7 +177,7 @@ namespace CryptoExchange.Net.UnitTests
                 {
                     ApiCredentials = new ApiCredentials("Test", "Test2"),
                     LogVerbosity = verbosity,
-                    LogWriter = tw
+                    LogWriters = new List<TextWriter>() { tw }
                 });
             }
             else

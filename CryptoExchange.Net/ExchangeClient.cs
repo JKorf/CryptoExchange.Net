@@ -38,10 +38,9 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(ExchangeOptions exchangeOptions)
         {
-            if (exchangeOptions.LogWriter != null)
-                log.TextWriter = exchangeOptions.LogWriter;
-
+            log.UpdateWriters(exchangeOptions.LogWriters);
             log.Level = exchangeOptions.LogVerbosity;
+
             apiProxy = exchangeOptions.Proxy;
             if(apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
@@ -292,6 +291,7 @@ namespace CryptoExchange.Net
 
         public virtual void Dispose()
         {
+            log.Write(LogVerbosity.Debug, "Disposing exchange client");
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace CryptoExchange.Net.Logging
 {
     public class Log
     {
-        public TextWriter TextWriter { get; internal set; } = new DebugTextWriter();
+        private List<TextWriter> writers;
         private LogVerbosity level = LogVerbosity.Info;
 
         public LogVerbosity Level
@@ -21,10 +24,30 @@ namespace CryptoExchange.Net.Logging
             }
         }
 
+        public Log()
+        {
+            writers = new List<TextWriter>();
+        }
+
+        public void UpdateWriters(List<TextWriter> textWriters)
+        {
+            writers = textWriters;
+        }
+
         public void Write(LogVerbosity logType, string message)
         {
-            if ((int)logType >= (int)Level)
-                TextWriter.WriteLine($"{DateTime.Now:hh:mm:ss:fff} | {logType} | {message}");
+            foreach (var writer in writers)
+            {
+                try
+                {
+                    if ((int) logType >= (int) Level)
+                        writer.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss:fff} | {logType} | {message}");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Failed to write log: " + e.Message);
+                }
+            }
         }
     }
 
