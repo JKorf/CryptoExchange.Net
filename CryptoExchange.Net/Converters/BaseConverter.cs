@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Converters
 {
     public abstract class BaseConverter<T>: JsonConverter
     {

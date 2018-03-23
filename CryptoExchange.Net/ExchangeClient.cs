@@ -180,13 +180,20 @@ namespace CryptoExchange.Net
                 var obj = JToken.Parse(data);
                 if (checkObject && log.Level == LogVerbosity.Debug)
                 {
-                    if (obj is JObject o)
-                        CheckObject(typeof(T), o);
-                    else
+                    try
                     {
-                        var ary = (JArray) obj;
-                        if (ary.HasValues && ary[0] is JObject jObject)
-                            CheckObject(typeof(T).GetElementType(), jObject);
+                        if (obj is JObject o)
+                            CheckObject(typeof(T), o);
+                        else
+                        {
+                            var ary = (JArray) obj;
+                            if (ary.HasValues && ary[0] is JObject jObject)
+                                CheckObject(typeof(T).GetElementType(), jObject);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        log.Write(LogVerbosity.Debug, "Failed to check response data: " + e.Message);
                     }
                 }
 

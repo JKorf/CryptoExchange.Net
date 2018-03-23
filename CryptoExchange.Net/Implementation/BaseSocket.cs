@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -76,13 +77,13 @@ namespace CryptoExchange.Net.Implementation
         protected static void Handle(List<Action> handlers)
         {
             foreach (var handle in new List<Action>(handlers))
-                handle();
+                handle?.Invoke();
         }
 
         protected void Handle<T>(List<Action<T>> handlers, T data)
         {
             foreach (var handle in new List<Action<T>>(handlers))
-                handle(data);
+                handle?.Invoke(data);
         }
 
         public async Task Close()
@@ -130,6 +131,16 @@ namespace CryptoExchange.Net.Implementation
             socket.Proxy = IPAddress.TryParse(host, out address)
                 ? new HttpConnectProxy(new IPEndPoint(address, port))
                 : new HttpConnectProxy(new DnsEndPoint(host, port));
+        }
+
+        public void Dispose()
+        {
+            socket?.Dispose();
+
+            errorhandlers.Clear();
+            openhandlers.Clear();
+            closehandlers.Clear();
+            messagehandlers.Clear();
         }
     }
 }

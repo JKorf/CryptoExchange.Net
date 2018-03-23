@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
-    public interface IWebsocket
+    public interface IWebsocket: IDisposable
     {
         void SetEnabledSslProtocols(SslProtocols protocols);
 
