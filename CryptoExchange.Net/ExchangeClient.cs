@@ -153,6 +153,7 @@ namespace CryptoExchange.Net
                 var infoMessage = "No response from server";
                 if (response == null)
                 {
+                    infoMessage += $" | {we.Status} - {we.Message}";
                     log.Write(LogVerbosity.Warning, infoMessage);
                     return new CallResult<string>(null, new WebError(infoMessage));
                 }
