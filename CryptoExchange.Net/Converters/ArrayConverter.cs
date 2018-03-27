@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.Converters
     {
         public override bool CanConvert(Type objectType)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)

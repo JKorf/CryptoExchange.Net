@@ -13,6 +13,11 @@ namespace CryptoExchange.Net
         /// </summary>
         public int Port { get; }
 
+        /// <summary>
+        /// Create new settings for a proxy
+        /// </summary>
+        /// <param name="host">The proxy hostname/ip</param>
+        /// <param name="port">The proxy port</param>
         public ApiProxy(string host, int port)
         {
             if(string.IsNullOrEmpty(host) || port <=  0)

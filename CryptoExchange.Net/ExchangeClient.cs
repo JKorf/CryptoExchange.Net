@@ -77,7 +77,7 @@ namespace CryptoExchange.Net
             authProvider = authentictationProvider;
         }
 
-        protected async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class
+        protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class
         {
             if(signed && authProvider == null)
                 return new CallResult<T>(null, new NoApiCredentialsError());
