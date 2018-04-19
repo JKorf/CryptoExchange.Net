@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Newtonsoft.Json;
 
 namespace CryptoExchange.Net.Converters
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var t = double.Parse(reader.Value.ToString());
+            var t = double.Parse((string)reader.Value, CultureInfo.InvariantCulture);
             return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(t);
         }
 
