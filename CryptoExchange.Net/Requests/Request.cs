@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.Requests
 
         public async Task<Stream> GetRequestStream()
         {
-            return await request.GetRequestStreamAsync();
+            return await request.GetRequestStreamAsync().ConfigureAwait(false);
         }
 
         public async Task<IResponse> GetResponse()

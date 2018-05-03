@@ -79,13 +79,17 @@ namespace CryptoExchange.Net
 
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class
         {
-            if(signed && authProvider == null)
+            log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
+            if (signed && authProvider == null)
                 return new CallResult<T>(null, new NoApiCredentialsError());
 
             var request = ConstructRequest(uri, method, parameters, signed);
 
             if (apiProxy != null)
+            {
+                log.Write(LogVerbosity.Debug, "Setting proxy");
                 request.SetProxy(apiProxy.Host, apiProxy.Port);
+            }
 
             foreach (var limiter in rateLimiters)
             {
