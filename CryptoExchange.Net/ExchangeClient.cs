@@ -206,13 +206,19 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"{jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {data}";
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {data}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"{jse.Message}. Received data: {data}";
+                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(null, new DeserializeError(info));
+            }
+            catch(Exception ex)
+            {
+                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {data}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
