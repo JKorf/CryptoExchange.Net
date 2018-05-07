@@ -37,6 +37,9 @@ namespace CryptoExchange.Net.Logging
 
         public void Write(LogVerbosity logType, string message)
         {
+            if ((int)logType < (int)Level)
+                return;
+
             string logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logType} | {message}";
             foreach (var writer in writers.ToList())
             {
