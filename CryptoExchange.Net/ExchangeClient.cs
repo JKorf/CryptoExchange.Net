@@ -98,7 +98,13 @@ namespace CryptoExchange.Net
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
             }
 
-            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed": "")} request to {request.Uri}");
+            string paramString = null;
+            if (parameters != null) {
+                paramString = "with parameters ";
+                foreach (var param in parameters)
+                    paramString += $"{param.Key}={param.Value}, ";
+            }
+            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed": "")} request to {request.Uri} {(paramString ?? "")}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
         }

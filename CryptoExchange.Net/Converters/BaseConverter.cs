@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.Converters
 
             var lowerResult = Mapping.SingleOrDefault(m => m.Value.ToLower() == value.ToLower());
             if (!lowerResult.Equals(default(KeyValuePair<T, string>)))
-                return lowerResult.Value;
+                return lowerResult.Key;
 
             Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {value}");
             return null;
