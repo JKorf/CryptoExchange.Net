@@ -15,7 +15,13 @@ namespace CryptoExchange.Net.Converters
             if (reader.Value == null)
                 return null;
 
-            return DateTime.SpecifyKind((DateTime)reader.Value, DateTimeKind.Utc);
+            DateTime value;
+            if (reader.Value is string)
+                value = (DateTime)JsonConvert.DeserializeObject((string)reader.Value);
+            else
+                value = (DateTime) reader.Value;
+
+            return DateTime.SpecifyKind(value, DateTimeKind.Utc);
         }
 
         public override bool CanConvert(Type objectType)
