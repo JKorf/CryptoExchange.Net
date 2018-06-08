@@ -24,6 +24,11 @@ namespace CryptoExchange.Net
 
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
+
+        private static JsonSerializer serializer = JsonSerializer.Create(new JsonSerializerSettings()
+        {
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc
+        });
         
         protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authenticationProvider)
         {
@@ -208,7 +213,7 @@ namespace CryptoExchange.Net
                     }
                 }
 
-                return new CallResult<T>(obj.ToObject<T>(), null);
+                return new CallResult<T>(obj.ToObject<T>(serializer), null);
             }
             catch (JsonReaderException jre)
             {
