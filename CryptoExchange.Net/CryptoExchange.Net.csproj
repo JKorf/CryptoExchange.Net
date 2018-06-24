@@ -13,6 +13,8 @@
 	<PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
 	<NeutralLanguage>en</NeutralLanguage>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>signkey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   
   <ItemGroup>
