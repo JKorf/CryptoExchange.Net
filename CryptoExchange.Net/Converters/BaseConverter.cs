@@ -48,7 +48,8 @@ namespace CryptoExchange.Net.Converters
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(T);
+            // Check if it is type, or nullable of type
+            return objectType == typeof(T) || Nullable.GetUnderlyingType(objectType) == typeof(T);
         }
     }
 }
