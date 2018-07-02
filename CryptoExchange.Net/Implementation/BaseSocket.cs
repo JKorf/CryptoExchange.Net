@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.Implementation
         public event Action OnOpen
         {
             add => openhandlers.Add(value);
-            remove => closehandlers.Remove(value);
+            remove => openhandlers.Remove(value);
         }
 
         protected static void Handle(List<Action> handlers)

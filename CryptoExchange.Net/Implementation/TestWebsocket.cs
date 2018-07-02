@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Implementation
         public event Action<Exception> OnError;
         public event Action OnOpen;
 
-        public bool IsClosed { get; private set; }
+        public bool IsClosed { get; private set; } = true;
         public bool IsOpen { get; private set; }
         public bool PingConnection { get; set; }
         public TimeSpan PingInterval { get; set; }
@@ -62,18 +62,18 @@ namespace CryptoExchange.Net.Implementation
             MessagesSend.Add(data);
         }
         
-        public void EnqueueMessage(string data)
+        public async Task EnqueueMessage(string data, int wait)
         {
-            Thread.Sleep(10);
+            await Task.Delay(wait);
             OnMessage?.Invoke(data);
         }
 
-        public void InvokeError(Exception ex, bool closeConnection)
+        public async Task InvokeError(Exception ex, bool closeConnection)
         {
-            Thread.Sleep(10);
+            await Task.Delay(10);
             OnError?.Invoke(ex);
             if (closeConnection)
-                Close();
+                await Close();
         }
 
         public Task Close()
