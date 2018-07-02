@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ namespace CryptoExchange.Net.Implementation
 {
     public class TestWebsocket: IWebsocket
     {
+        public List<string> MessagesSend = new List<string>();
+
         public void Dispose()
         {
         }
@@ -30,8 +33,16 @@ namespace CryptoExchange.Net.Implementation
         public bool PingConnection { get; set; }
         public TimeSpan PingInterval { get; set; }
 
+        public bool HasConnection = true;
+
         public Task<bool> Connect()
         {
+            if (!HasConnection)
+            {
+                OnError(new Exception("No connection"));
+                return Task.FromResult(false);
+            }
+
             IsClosed = false;
             IsOpen = true;
             OnOpen?.Invoke();
@@ -41,6 +52,14 @@ namespace CryptoExchange.Net.Implementation
 
         public void Send(string data)
         {
+            if (!HasConnection)
+            {
+                OnError(new Exception("No connection"));
+                Close();
+                return;
+            }
+
+            MessagesSend.Add(data);
         }
         
         public void EnqueueMessage(string data)
