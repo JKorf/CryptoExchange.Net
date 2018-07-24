@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.Converters
 
         public T ReadString(string data)
         {
-            return Mapping.Single(v => v.Value == data).Key;
+            return Mapping.SingleOrDefault(v => v.Value == data).Key;
         }
 
         public override bool CanConvert(Type objectType)
