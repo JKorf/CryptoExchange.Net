@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
-    public abstract class ExchangeClient: IDisposable
+    public abstract class ExchangeClient : IDisposable
     {
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
@@ -29,7 +29,7 @@ namespace CryptoExchange.Net
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc
         });
-        
+
         protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authenticationProvider)
         {
             log = new Log();
@@ -47,14 +47,14 @@ namespace CryptoExchange.Net
             log.Level = exchangeOptions.LogVerbosity;
 
             apiProxy = exchangeOptions.Proxy;
-            if(apiProxy != null)
+            if (apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
 
             rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
         }
-        
+
         /// <summary>
         /// Adds a rate limiter to the client. There are 2 choices, the <see cref="RateLimiterTotal"/> and the <see cref="RateLimiterPerEndpoint"/>.
         /// </summary>
@@ -71,7 +71,7 @@ namespace CryptoExchange.Net
         {
             rateLimiters.Clear();
         }
-        
+
         /// <summary>
         /// Set the authentication provider
         /// </summary>
@@ -104,12 +104,28 @@ namespace CryptoExchange.Net
             }
 
             string paramString = null;
-            if (parameters != null) {
+            if (parameters != null)
+            {
                 paramString = "with parameters ";
+                int paramCount = 1;
                 foreach (var param in parameters)
-                    paramString += $"{param.Key}={param.Value}, ";
+                {
+                    string paramValue = param.Value.ToString();
+                    if (param.Value.GetType().IsArray)
+                        paramValue = string.Format("[{0}]", string.Join(", ", ((object[])param.Value).Select(p => p.ToString())));
+
+                    paramString += $"{param.Key}={paramValue}";
+
+                    if (paramCount < parameters.Count)
+                        paramString += ", ";
+                    else
+                        paramString += ".";
+
+                    paramCount++;
+                }
             }
-            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed": "")} request to {request.Uri} {(paramString ?? "")}");
+
+            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed" : "")} request to {request.Uri} {(paramString ?? "")}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
         }
@@ -123,7 +139,26 @@ namespace CryptoExchange.Net
                 if (!uriString.EndsWith("?"))
                     uriString += "?";
 
-                uriString += $"{string.Join("&", parameters.Select(s => $"{s.Key}={s.Value}"))}";
+                var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
+                if (arraysParameters != null && arraysParameters.Count() > 0)
+                {
+                    bool isFirstEntry = true;
+                    arraysParameters.ForEach((arrayEntry) =>
+                    {
+                        if (!isFirstEntry)
+                            uriString += "&";
+
+                        List<object> values = ((object[])arrayEntry.Value).ToList();
+                        uriString += $"{string.Join("&", values.Select(v => $"{arrayEntry.Key}[]={v}"))}";
+
+                        isFirstEntry = false;
+                    });
+
+                    if (parameters.Count - arraysParameters.Count > 0)
+                        uriString += "&";
+                }
+
+                uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={s.Value}"))}";
             }
 
             if (authProvider != null)
@@ -189,7 +224,7 @@ namespace CryptoExchange.Net
             return new ServerError(error);
         }
 
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true) where T: class
+        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true) where T : class
         {
             try
             {
@@ -202,7 +237,7 @@ namespace CryptoExchange.Net
                             CheckObject(typeof(T), o);
                         else
                         {
-                            var ary = (JArray) obj;
+                            var ary = (JArray)obj;
                             if (ary.HasValues && ary[0] is JObject jObject)
                                 CheckObject(typeof(T).GetElementType(), jObject);
                         }
@@ -227,7 +262,7 @@ namespace CryptoExchange.Net
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {data}";
                 log.Write(LogVerbosity.Error, info);
@@ -247,7 +282,7 @@ namespace CryptoExchange.Net
                 if (ignore != null)
                     continue;
 
-                properties.Add(attr == null ? prop.Name : ((JsonPropertyAttribute) attr).PropertyName);
+                properties.Add(attr == null ? prop.Name : ((JsonPropertyAttribute)attr).PropertyName);
             }
             foreach (var token in obj)
             {
@@ -257,7 +292,11 @@ namespace CryptoExchange.Net
                     d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
                     if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                     {
-                        log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
+                        // Checking if missing properties is voluntary
+                        // True : If entire class is handled by a JsonConveter
+                        bool isManuallyDeserialized = type.GetCustomAttribute<JsonConverterAttribute>(true) != null;
+                        if (!isManuallyDeserialized)
+                            log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
                         isDif = true;
                         continue;
                     }
@@ -269,9 +308,9 @@ namespace CryptoExchange.Net
                     continue;
                 if (!IsSimple(propType) && propType != typeof(DateTime))
                 {
-                    if(propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
+                    if (propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
                         CheckObject(propType.GetElementType(), (JObject)token.Value[0]);
-                    else if(token.Value is JObject)
+                    else if (token.Value is JObject)
                         CheckObject(propType, (JObject)token.Value);
                 }
             }
@@ -282,7 +321,7 @@ namespace CryptoExchange.Net
                 log.Write(LogVerbosity.Warning, $"Didn't find key `{prop}` in returned data object of type `{type.Name}`");
             }
 
-            if(isDif)
+            if (isDif)
                 log.Write(LogVerbosity.Debug, "Returned data: " + obj);
         }
 
@@ -298,7 +337,7 @@ namespace CryptoExchange.Net
                 }
                 else
                 {
-                    if (((JsonPropertyAttribute) attr).PropertyName == name)
+                    if (((JsonPropertyAttribute)attr).PropertyName == name)
                         return prop;
                 }
             }
