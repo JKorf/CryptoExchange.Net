@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using System.Security;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -6,9 +7,16 @@ namespace CryptoExchange.Net.Authentication
     {
         public ApiCredentials Credentials { get; }
 
+        public SecureString PrivateKey { get; }
+
         protected AuthenticationProvider(ApiCredentials credentials)
         {
             Credentials = credentials;
+        }
+
+        protected AuthenticationProvider(SecureString privateKey)
+        {
+            PrivateKey = privateKey;
         }
 
         public virtual string AddAuthenticationToUriString(string uri, bool signed)
