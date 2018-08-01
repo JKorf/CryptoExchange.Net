@@ -35,6 +35,9 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="privateKey">The private key used for signing</param>
         public ApiCredentials(string privateKey)
         {
+            if(string.IsNullOrEmpty(privateKey))
+                throw new ArgumentException("Private key can't be null/empty");
+
             var securePrivateKey = new SecureString();
             foreach (var c in privateKey)
                 securePrivateKey.AppendChar(c);
@@ -59,6 +62,9 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="privateKey">The private key used for signing</param>
         public ApiCredentials(string key, string secret)
         {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
+                throw new ArgumentException("Key and secret can't be null/empty");
+
             var secureApiKey = new SecureString();
             foreach (var c in key)
                 secureApiKey.AppendChar(c);
