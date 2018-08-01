@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace CryptoExchange.Net
 {
@@ -24,6 +27,31 @@ namespace CryptoExchange.Net
         {
             if (value != null)
                 parameters.Add(key, value);
+        }
+
+        public static string GetString(this SecureString source)
+        {
+            string result = null;
+            int length = source.Length;
+            IntPtr pointer = IntPtr.Zero;
+            char[] chars = new char[length];
+
+            try
+            {
+                pointer = Marshal.SecureStringToBSTR(source);
+                Marshal.Copy(pointer, chars, 0, length);
+
+                result = string.Join("", chars);
+            }
+            finally
+            {
+                if (pointer != IntPtr.Zero)
+                {
+                    Marshal.ZeroFreeBSTR(pointer);
+                }
+            }
+
+            return result;
         }
     }
 }
