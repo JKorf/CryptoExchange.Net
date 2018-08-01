@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Security;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.RateLimiter;
@@ -17,11 +16,6 @@ namespace CryptoExchange.Net
         /// The api credentials
         /// </summary>
         public ApiCredentials ApiCredentials { get; set; }
-
-        /// <summary>
-        /// The private key instead of api credentials
-        /// </summary>
-        public SecureString PrivateKey { get; set; }
 
         /// <summary>
         /// Proxy to use

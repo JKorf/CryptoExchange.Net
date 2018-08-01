@@ -106,23 +106,12 @@ namespace CryptoExchange.Net
             string paramString = null;
             if (parameters != null)
             {
-                paramString = "with parameters ";
-                int paramCount = 1;
+                paramString = "with parameters";
+                
                 foreach (var param in parameters)
-                {
-                    string paramValue = param.Value.ToString();
-                    if (param.Value.GetType().IsArray)
-                        paramValue = string.Format("[{0}]", string.Join(", ", ((object[])param.Value).Select(p => p.ToString())));
+                    paramString += $" {param.Key}={(param.Value.GetType().IsArray ? $"[{string.Join(", ", ((object[])param.Value).Select(p => p.ToString()))}]": param.Value )},";
 
-                    paramString += $"{param.Key}={paramValue}";
-
-                    if (paramCount < parameters.Count)
-                        paramString += ", ";
-                    else
-                        paramString += ".";
-
-                    paramCount++;
-                }
+                paramString = paramString.Trim(',');
             }
 
             log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed" : "")} request to {request.Uri} {(paramString ?? "")}");
@@ -140,25 +129,13 @@ namespace CryptoExchange.Net
                     uriString += "?";
 
                 var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
-                if (arraysParameters != null && arraysParameters.Count() > 0)
+                foreach(var arrayEntry in arraysParameters)
                 {
-                    bool isFirstEntry = true;
-                    arraysParameters.ForEach((arrayEntry) =>
-                    {
-                        if (!isFirstEntry)
-                            uriString += "&";
-
-                        List<object> values = ((object[])arrayEntry.Value).ToList();
-                        uriString += $"{string.Join("&", values.Select(v => $"{arrayEntry.Key}[]={v}"))}";
-
-                        isFirstEntry = false;
-                    });
-
-                    if (parameters.Count - arraysParameters.Count > 0)
-                        uriString += "&";
+                    uriString += $"{string.Join("&", ((object[])arrayEntry.Value).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
                 }
 
                 uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={s.Value}"))}";
+                uriString = uriString.TrimEnd('&');
             }
 
             if (authProvider != null)
@@ -272,6 +249,10 @@ namespace CryptoExchange.Net
 
         private void CheckObject(Type type, JObject obj)
         {
+            if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
+                // If type has a custom JsonConverter we assume this will handle property mapping
+                return;
+
             bool isDif = false;
             var properties = new List<string>();
             var props = type.GetProperties();
@@ -291,12 +272,8 @@ namespace CryptoExchange.Net
                 {
                     d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
                     if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
-                    {
-                        // Checking if missing properties is voluntary
-                        // True : If entire class is handled by a JsonConveter
-                        bool isManuallyDeserialized = type.GetCustomAttribute<JsonConverterAttribute>(true) != null;
-                        if (!isManuallyDeserialized)
-                            log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
+                    {                        
+                        log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
                         isDif = true;
                         continue;
                     }
@@ -359,6 +336,7 @@ namespace CryptoExchange.Net
 
         public virtual void Dispose()
         {
+            authProvider?.Credentials?.Dispose();
             log.Write(LogVerbosity.Debug, "Disposing exchange client");
         }
     }
