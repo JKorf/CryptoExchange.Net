@@ -143,7 +143,6 @@ namespace CryptoExchange.Net
 
             var request = RequestFactory.Create(uriString);
             request.Method = method;
-            request.Parameters = parameters;
 
             if (authProvider != null)
                 request = authProvider.AddAuthenticationToRequest(request, signed);
@@ -156,15 +155,6 @@ namespace CryptoExchange.Net
             var returnedData = "";
             try
             {
-                if (request.WriteCustomBody &&
-                    request.CustomBody != null && request.CustomBody.Length > 0)
-                {
-                    using (var requestStream = await request.GetRequestStream())
-                    {
-                        requestStream.Write(request.CustomBody, 0, request.CustomBody.Length);
-                    }
-                }
-
                 var response = await request.GetResponse().ConfigureAwait(false);
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
