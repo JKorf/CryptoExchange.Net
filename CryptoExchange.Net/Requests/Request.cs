@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -43,6 +44,11 @@ namespace CryptoExchange.Net.Requests
             get => request.Method;
             set => request.Method = value;
         }
+
+        public Dictionary<string, object> Parameters { get; set; }
+
+        public byte[] CustomBody { get; set; }
+        public bool WriteCustomBody { get; set; } = false;
 
         public Uri Uri => request.RequestUri;
 

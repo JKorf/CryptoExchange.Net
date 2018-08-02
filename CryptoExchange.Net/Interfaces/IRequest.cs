@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,6 +11,10 @@ namespace CryptoExchange.Net.Interfaces
         Uri Uri { get; }
         WebHeaderCollection Headers { get; set; }
         string Method { get; set; }
+        Dictionary<string, object> Parameters { get; set; }
+
+        byte[] CustomBody { get; set; }
+        bool WriteCustomBody { get; set; }
 
         void SetProxy(string host, int port);
 
