@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="privateKey">The private key used for signing</param>
         public ApiCredentials(SecureString privateKey)
         {
-            PrivateKey = Key;
+            PrivateKey = privateKey;
         }
 
         /// <summary>
