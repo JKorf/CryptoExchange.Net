@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
@@ -294,6 +295,12 @@ namespace CryptoExchange.Net
 
             foreach (var prop in properties)
             {
+                var propInfo = props.FirstOrDefault(p => p.Name == prop ||
+                    ((JsonPropertyAttribute)p.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault())?.PropertyName == prop);
+                var optional = propInfo.GetCustomAttributes(typeof(JsonOptionalPropertyAttribute), false).FirstOrDefault();
+                if (optional != null)
+                    continue;
+
                 isDif = true;
                 log.Write(LogVerbosity.Warning, $"Didn't find key `{prop}` in returned data object of type `{type.Name}`");
             }
