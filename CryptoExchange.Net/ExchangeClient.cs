@@ -209,14 +209,16 @@ namespace CryptoExchange.Net
                 if (checkObject && log.Level == LogVerbosity.Debug)
                 {
                     try
-                    {
+                    {                        
                         if (obj is JObject o)
+                        {
                             CheckObject(typeof(T), o);
+                        }
                         else
                         {
                             var ary = (JArray)obj;
                             if (ary.HasValues && ary[0] is JObject jObject)
-                                CheckObject(typeof(T).GetElementType(), jObject);
+                                CheckObject(typeof(T).GetElementType(), jObject);                            
                         }
                     }
                     catch (Exception e)
@@ -251,6 +253,9 @@ namespace CryptoExchange.Net
         {
             if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
                 // If type has a custom JsonConverter we assume this will handle property mapping
+                return;
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 return;
 
             bool isDif = false;
