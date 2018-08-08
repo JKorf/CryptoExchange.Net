@@ -13,6 +13,9 @@ namespace CryptoExchange.Net.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (reader.Value.GetType() == typeof(double))
+                return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds((double)reader.Value);
+
             var t = double.Parse(reader.Value.ToString(), CultureInfo.InvariantCulture);
             return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(t);
         }

@@ -26,9 +26,9 @@ namespace CryptoExchange.Net
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
 
-        private static JsonSerializer serializer = JsonSerializer.Create(new JsonSerializerSettings()
+        private static JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
         {
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc            
         });
 
         protected ExchangeClient(ExchangeOptions exchangeOptions, AuthenticationProvider authenticationProvider)
@@ -202,8 +202,11 @@ namespace CryptoExchange.Net
             return new ServerError(error);
         }
 
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true) where T : class
+        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null) where T : class
         {
+            if (serializer == null)
+                serializer = defaultSerializer;
+
             try
             {
                 var obj = JToken.Parse(data);
@@ -227,7 +230,7 @@ namespace CryptoExchange.Net
                         log.Write(LogVerbosity.Debug, "Failed to check response data: " + e.Message);
                     }
                 }
-
+                
                 return new CallResult<T>(obj.ToObject<T>(serializer), null);
             }
             catch (JsonReaderException jre)

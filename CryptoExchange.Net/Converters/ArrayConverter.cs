@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,7 +42,17 @@ namespace CryptoExchange.Net.Converters
                         if (((JToken)value).Type == JTokenType.Null)
                             value = null;
 
-                    property.SetValue(result, value == null ? null : Convert.ChangeType(value, property.PropertyType));
+                    if ((property.PropertyType == typeof(decimal) 
+                     || property.PropertyType == typeof(decimal?))
+                     && value.ToString().Contains("e"))
+                    {
+                        if (decimal.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
+                            property.SetValue(result, dec);
+                    }
+                    else
+                    {
+                        property.SetValue(result, value == null ? null : Convert.ChangeType(value, property.PropertyType));
+                    }
                 }
             }
             return result;
