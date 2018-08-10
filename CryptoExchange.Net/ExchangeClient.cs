@@ -262,6 +262,12 @@ namespace CryptoExchange.Net
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 return;
 
+            if (!obj.HasValues && type != typeof(object))
+            {
+                log.Write(LogVerbosity.Warning, $"Expected `{type.Name}`, but received object was empty");
+                return;
+            }
+
             bool isDif = false;
             var properties = new List<string>();
             var props = type.GetProperties();
@@ -282,7 +288,7 @@ namespace CryptoExchange.Net
                     d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
                     if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                     {                        
-                        log.Write(LogVerbosity.Warning, $"Didn't find property `{token.Key}` in object of type `{type.Name}`");
+                        log.Write(LogVerbosity.Warning, $"Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
                         isDif = true;
                         continue;
                     }
@@ -310,7 +316,7 @@ namespace CryptoExchange.Net
                     continue;
 
                 isDif = true;
-                log.Write(LogVerbosity.Warning, $"Didn't find key `{prop}` in returned data object of type `{type.Name}`");
+                log.Write(LogVerbosity.Warning, $"Local object has property `{prop}` but was not found in received object of type `{type.Name}`");
             }
 
             if (isDif)
