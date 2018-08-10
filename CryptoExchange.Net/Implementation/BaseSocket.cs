@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
+using SuperSocket.ClientEngine;
 using SuperSocket.ClientEngine.Proxy;
 using WebSocket4Net;
 
@@ -97,7 +98,10 @@ namespace CryptoExchange.Net.Implementation
                 lock (socketLock)
                 {
                     if (socket == null || IsClosed)
+                    {
+                        log.Write(LogVerbosity.Debug, "Socket was already closed/disposed");
                         return;
+                    }
 
                     log.Write(LogVerbosity.Debug, "Closing websocket");
                     ManualResetEvent evnt = new ManualResetEvent(false);
@@ -106,11 +110,7 @@ namespace CryptoExchange.Net.Implementation
                     socket.Close();
                     bool triggered = evnt.WaitOne(3000);
                     socket.Closed -= handler;
-
-                    if (!triggered)
-                        log.Write(LogVerbosity.Debug, "Websocket closed event did not trigger");
-                    else
-                        log.Write(LogVerbosity.Debug, "Websocket closed");
+                    log.Write(LogVerbosity.Debug, "Websocket closed");
                 }
             }).ConfigureAwait(false);
         }
@@ -124,24 +124,34 @@ namespace CryptoExchange.Net.Implementation
         {
             return await Task.Run(() =>
             {
+                bool connected;
                 lock (socketLock)
                 {
                     log.Write(LogVerbosity.Debug, "Connecting websocket");
                     ManualResetEvent evnt = new ManualResetEvent(false);
-                    var handler = new EventHandler((o, a) => evnt.Set());
+                    var handler = new EventHandler((o, a) => evnt?.Set());
+                    var errorHandler = new EventHandler<ErrorEventArgs>((o, a) => evnt?.Set());
                     socket.Opened += handler;
                     socket.Closed += handler;
+                    socket.Error += errorHandler;
                     socket.Open();
-                    evnt.WaitOne();
+                    evnt.WaitOne(TimeSpan.FromSeconds(15));
                     socket.Opened -= handler;
                     socket.Closed -= handler;
-                    var connected = socket.State == WebSocketState.Open;
+                    socket.Error -= errorHandler;
+                    connected = socket.State == WebSocketState.Open;
                     if (connected)
                         log.Write(LogVerbosity.Debug, "Websocket connected");
                     else
                         log.Write(LogVerbosity.Debug, "Websocket connection failed, state: " + socket.State);
-                    return connected;
+                    evnt.Dispose();
+                    evnt = null;
                 }
+
+                if (socket.State == WebSocketState.Connecting)
+                    Close().Wait();
+
+                return connected;
             }).ConfigureAwait(false);
         }
 
