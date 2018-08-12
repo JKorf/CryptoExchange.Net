@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging;
+using SuperSocket.ClientEngine;
 using SuperSocket.ClientEngine.Proxy;
 using WebSocket4Net;
 
@@ -14,6 +17,8 @@ namespace CryptoExchange.Net.Implementation
     public class BaseSocket: IWebsocket
     {
         protected WebSocket socket;
+        protected Log log;
+        protected object socketLock = new object();
 
         protected readonly List<Action<Exception>> errorhandlers = new List<Action<Exception>>();
         protected readonly List<Action> openhandlers = new List<Action>();
@@ -35,12 +40,13 @@ namespace CryptoExchange.Net.Implementation
             set => socket.AutoSendPingInterval = (int) Math.Round(value.TotalSeconds);
         }
 
-        public BaseSocket(string url):this(url, new Dictionary<string, string>(), new Dictionary<string, string>())
+        public BaseSocket(Log log, string url):this(log, url, new Dictionary<string, string>(), new Dictionary<string, string>())
         {
         }
 
-        public BaseSocket(string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
+        public BaseSocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
+            this.log = log;
             socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList());
             socket.EnableAutoSendPing = true;
             socket.AutoSendPingInterval = 10;
@@ -70,7 +76,7 @@ namespace CryptoExchange.Net.Implementation
         public event Action OnOpen
         {
             add => openhandlers.Add(value);
-            remove => closehandlers.Remove(value);
+            remove => openhandlers.Remove(value);
         }
 
         protected static void Handle(List<Action> handlers)
@@ -89,12 +95,23 @@ namespace CryptoExchange.Net.Implementation
         {
             await Task.Run(() =>
             {
-                ManualResetEvent evnt = new ManualResetEvent(false);
-                var handler = new EventHandler((o, a) => evnt.Set());
-                socket.Closed += handler;
-                socket.Close();
-                evnt.WaitOne();
-                socket.Closed -= handler;
+                lock (socketLock)
+                {
+                    if (socket == null || IsClosed)
+                    {
+                        log.Write(LogVerbosity.Debug, "Socket was already closed/disposed");
+                        return;
+                    }
+
+                    log.Write(LogVerbosity.Debug, "Closing websocket");
+                    ManualResetEvent evnt = new ManualResetEvent(false);
+                    var handler = new EventHandler((o, a) => evnt.Set());
+                    socket.Closed += handler;
+                    socket.Close();
+                    bool triggered = evnt.WaitOne(3000);
+                    socket.Closed -= handler;
+                    log.Write(LogVerbosity.Debug, "Websocket closed");
+                }
             }).ConfigureAwait(false);
         }
 
@@ -107,15 +124,34 @@ namespace CryptoExchange.Net.Implementation
         {
             return await Task.Run(() =>
             {
-                ManualResetEvent evnt = new ManualResetEvent(false);
-                var handler = new EventHandler((o, a) => evnt.Set());
-                socket.Opened += handler;
-                socket.Closed += handler;
-                socket.Open();
-                evnt.WaitOne();
-                socket.Opened -= handler;
-                socket.Closed -= handler;
-                return socket.State == WebSocketState.Open;
+                bool connected;
+                lock (socketLock)
+                {
+                    log.Write(LogVerbosity.Debug, "Connecting websocket");
+                    ManualResetEvent evnt = new ManualResetEvent(false);
+                    var handler = new EventHandler((o, a) => evnt?.Set());
+                    var errorHandler = new EventHandler<ErrorEventArgs>((o, a) => evnt?.Set());
+                    socket.Opened += handler;
+                    socket.Closed += handler;
+                    socket.Error += errorHandler;
+                    socket.Open();
+                    evnt.WaitOne(TimeSpan.FromSeconds(15));
+                    socket.Opened -= handler;
+                    socket.Closed -= handler;
+                    socket.Error -= errorHandler;
+                    connected = socket.State == WebSocketState.Open;
+                    if (connected)
+                        log.Write(LogVerbosity.Debug, "Websocket connected");
+                    else
+                        log.Write(LogVerbosity.Debug, "Websocket connection failed, state: " + socket.State);
+                    evnt.Dispose();
+                    evnt = null;
+                }
+
+                if (socket.State == WebSocketState.Connecting)
+                    Close().Wait();
+
+                return connected;
             }).ConfigureAwait(false);
         }
 
@@ -134,12 +170,19 @@ namespace CryptoExchange.Net.Implementation
 
         public void Dispose()
         {
-            socket?.Dispose();
+            lock (socketLock)
+            {
+                if (socket != null)
+                    log.Write(LogVerbosity.Debug, "Disposing websocket");
 
-            errorhandlers.Clear();
-            openhandlers.Clear();
-            closehandlers.Clear();
-            messagehandlers.Clear();
+                socket?.Dispose();
+                socket = null;
+
+                errorhandlers.Clear();
+                openhandlers.Clear();
+                closehandlers.Clear();
+                messagehandlers.Clear();
+            }
         }
     }
 }

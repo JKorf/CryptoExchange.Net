@@ -11,6 +11,7 @@ namespace CryptoExchange.Net.Logging
         private List<TextWriter> writers;
         private LogVerbosity level = LogVerbosity.Info;
 
+
         public LogVerbosity Level
         {
             get => level;
@@ -36,16 +37,19 @@ namespace CryptoExchange.Net.Logging
 
         public void Write(LogVerbosity logType, string message)
         {
-            foreach (var writer in writers)
+            if ((int)logType < (int)Level)
+                return;
+
+            string logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logType} | {message}";
+            foreach (var writer in writers.ToList())
             {
                 try
                 {
-                    if ((int) logType >= (int) Level)
-                        writer.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss:fff} | {logType} | {message}");
+                    writer.WriteLine(logMessage);
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Failed to write log: " + e.Message);
+                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + e.Message);
                 }
             }
         }

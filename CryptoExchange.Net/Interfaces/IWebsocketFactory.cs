@@ -1,7 +1,9 @@
-﻿namespace CryptoExchange.Net.Interfaces
+﻿using CryptoExchange.Net.Logging;
+
+namespace CryptoExchange.Net.Interfaces
 {
     public interface IWebsocketFactory
     {
-        IWebsocket CreateWebsocket(string url);
+        IWebsocket CreateWebsocket(Log log, string url);
     }
 }

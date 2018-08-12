@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,7 +43,17 @@ namespace CryptoExchange.Net.Converters
                         if (((JToken)value).Type == JTokenType.Null)
                             value = null;
 
-                    property.SetValue(result, value == null ? null : Convert.ChangeType(value, property.PropertyType));
+                    if ((property.PropertyType == typeof(decimal) 
+                     || property.PropertyType == typeof(decimal?))
+                     && value.ToString().Contains("e"))
+                    {
+                        if (decimal.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
+                            property.SetValue(result, dec);
+                    }
+                    else
+                    {
+                        property.SetValue(result, value == null ? null : Convert.ChangeType(value, property.PropertyType));
+                    }
                 }
             }
             return result;
@@ -49,7 +61,19 @@ namespace CryptoExchange.Net.Converters
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            writer.WriteStartArray();
+            var props = value.GetType().GetProperties();
+            var ordered = props.OrderBy(p => p.GetCustomAttribute<ArrayPropertyAttribute>()?.Index);
+
+            foreach (var prop in ordered)
+            {
+                var converterAttribute = (JsonConverterAttribute)prop.GetCustomAttribute(typeof(JsonConverterAttribute));
+                if(converterAttribute != null)
+                    writer.WriteValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)));
+                else
+                    writer.WriteValue(JsonConvert.SerializeObject(prop.GetValue(value)));
+            }
+            writer.WriteEndArray();
         }
     }
 

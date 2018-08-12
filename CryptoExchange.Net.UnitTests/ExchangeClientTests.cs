@@ -173,12 +173,15 @@ namespace CryptoExchange.Net.UnitTests
             TestImplementation client;
             if (withOptions)
             {
-                client = new TestImplementation(new ExchangeOptions()
+                var options = new ExchangeOptions()
                 {
                     ApiCredentials = new ApiCredentials("Test", "Test2"),
-                    LogVerbosity = verbosity,
-                    LogWriters = new List<TextWriter>() { tw }
-                });
+                    LogVerbosity = verbosity
+                };
+                if (tw != null)
+                    options.LogWriters = new List<TextWriter>() { tw };
+
+                client = new TestImplementation(options);
             }
             else
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -25,20 +26,30 @@ namespace CryptoExchange.Net.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var val = Mapping.SingleOrDefault(v => v.Value == reader.Value.ToString()).Key;
-            if (val != null)
-                return val;
-            return Mapping.Single(v => v.Value.ToLower() == reader.Value.ToString().ToLower()).Key;
+            if (reader.Value == null)
+                return null;
+
+            var value = reader.Value.ToString();
+            if (Mapping.ContainsValue(value))
+                return Mapping.Single(m => m.Value == value).Key;
+
+            var lowerResult = Mapping.SingleOrDefault(m => m.Value.ToLower() == value.ToLower());
+            if (!lowerResult.Equals(default(KeyValuePair<T, string>)))
+                return lowerResult.Key;
+
+            Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {value}");
+            return null;
         }
 
         public T ReadString(string data)
         {
-            return Mapping.Single(v => v.Value == data).Key;
+            return Mapping.SingleOrDefault(v => v.Value == data).Key;
         }
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(T);
+            // Check if it is type, or nullable of type
+            return objectType == typeof(T) || Nullable.GetUnderlyingType(objectType) == typeof(T);
         }
     }
 }

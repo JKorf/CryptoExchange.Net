@@ -11,9 +11,25 @@ namespace CryptoExchange.Net.Authentication
             Credentials = credentials;
         }
 
-        public abstract string AddAuthenticationToUriString(string uri, bool signed);
-        public abstract IRequest AddAuthenticationToRequest(IRequest request, bool signed);
-        public abstract string Sign(string toSign);
+        public virtual string AddAuthenticationToUriString(string uri, bool signed)
+        {
+            return uri;    
+        }
+
+        public virtual IRequest AddAuthenticationToRequest(IRequest request, bool signed)
+        {
+            return request;
+        }
+
+        public virtual string Sign(string toSign)
+        {
+            return toSign;
+        }
+
+        public virtual byte[] Sign(byte[] toSign)
+        {
+            return toSign;
+        }
 
         protected string ByteToString(byte[] buff)
         {
