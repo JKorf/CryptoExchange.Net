@@ -1,7 +1,9 @@
-﻿namespace CryptoExchange.Net.RateLimiter
+﻿using CryptoExchange.Net.Objects;
+
+namespace CryptoExchange.Net.RateLimiter
 {
     public interface IRateLimiter
     {
-        double LimitRequest(string url);
+        CallResult<double> LimitRequest(string url, RateLimitingBehaviour limitBehaviour);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -27,7 +28,7 @@ namespace CryptoExchange.Net.RateLimiter
             this.perTimePeriod = perTimePeriod;
         }
 
-        public double LimitRequest(string url)
+        public CallResult<double> LimitRequest(string url, RateLimitingBehaviour limitingBehaviour)
         {
             int waitTime;
             RateLimitObject rlo;
@@ -49,6 +50,9 @@ namespace CryptoExchange.Net.RateLimiter
                 waitTime = rlo.GetWaitTime(DateTime.UtcNow, limitPerEndpoint, perTimePeriod);
                 if (waitTime != 0)
                 {
+                    if(limitingBehaviour == RateLimitingBehaviour.Fail)
+                        return new CallResult<double>(waitTime, new RateLimitError($"endpoint limit of {limitPerEndpoint} reached on endpoint " + url));
+
                     Thread.Sleep(Convert.ToInt32(waitTime));
                     waitTime += (int)sw.ElapsedMilliseconds;
                 }
@@ -56,7 +60,7 @@ namespace CryptoExchange.Net.RateLimiter
                 rlo.Add(DateTime.UtcNow);
             }
 
-            return waitTime;
+            return new CallResult<double>(waitTime, null);
         }
     }
 }

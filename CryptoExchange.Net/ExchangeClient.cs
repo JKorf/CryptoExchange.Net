@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ namespace CryptoExchange.Net
 
         protected Log log;
         protected ApiProxy apiProxy;
+        protected RateLimitingBehaviour rateLimitBehaviour;
 
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
@@ -45,6 +47,7 @@ namespace CryptoExchange.Net
             if(apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
 
+            rateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
@@ -79,8 +82,11 @@ namespace CryptoExchange.Net
 
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class
         {
-            if(signed && authProvider == null)
+            if (signed && authProvider == null)
+            {
+                log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new CallResult<T>(null, new NoApiCredentialsError());
+            }
 
             var request = ConstructRequest(uri, method, parameters, signed);
 
@@ -89,9 +95,14 @@ namespace CryptoExchange.Net
 
             foreach (var limiter in rateLimiters)
             {
-                var limitedBy = limiter.LimitRequest(uri.AbsolutePath);
-                if (limitedBy > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
+                var limitResult = limiter.LimitRequest(uri.AbsolutePath, rateLimitBehaviour);
+                if (!limitResult.Success)
+                {
+                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
+                    return new CallResult<T>(null, limitResult.Error);
+                }
+                else if (limitResult.Data > 0)
+                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
             }
 
             log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed": "")} request to {request.Uri}");

@@ -2,6 +2,7 @@
 using System.IO;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 
 namespace CryptoExchange.Net
@@ -36,5 +37,10 @@ namespace CryptoExchange.Net
         /// List of ratelimiters to use
         /// </summary>
         public List<IRateLimiter> RateLimiters { get; set; } = new List<IRateLimiter>();
+
+        /// <summary>
+        /// What to do when a call would exceed the rate limit
+        /// </summary>
+        public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
     }
 }
