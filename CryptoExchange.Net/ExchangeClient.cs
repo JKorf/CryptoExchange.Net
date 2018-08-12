@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Attributes;
@@ -21,6 +23,7 @@ namespace CryptoExchange.Net
     {
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
+        protected string baseAddress;
         protected Log log;
         protected ApiProxy apiProxy;
         protected RateLimitingBehaviour rateLimitBehaviour;
@@ -49,6 +52,7 @@ namespace CryptoExchange.Net
             log.UpdateWriters(exchangeOptions.LogWriters);
             log.Level = exchangeOptions.LogVerbosity;
 
+            baseAddress = exchangeOptions.BaseAddress;
             apiProxy = exchangeOptions.Proxy;
             if (apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
@@ -84,6 +88,41 @@ namespace CryptoExchange.Net
         {
             log.Write(LogVerbosity.Debug, "Setting api credentials");
             authProvider = authentictationProvider;
+        }
+
+        /// <summary>
+        /// Ping to see if the server is reachable
+        /// </summary>
+        /// <returns>The roundtrip time of the ping request</returns>
+        public CallResult<long> Ping() => PingAsync().Result;
+
+        /// <summary>
+        /// Ping to see if the server is reachable
+        /// </summary>
+        /// <returns>The roundtrip time of the ping request</returns>
+        public async Task<CallResult<long>> PingAsync()
+        {
+            var ping = new Ping();
+            var uri = new Uri(baseAddress);
+            PingReply reply = null;
+            try
+            {
+                reply = await ping.SendPingAsync(uri.Host);
+            }
+            catch(PingException e)
+            {
+                if(e.InnerException != null)
+                {
+                    if (e.InnerException is SocketException)
+                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + ((SocketException)e.InnerException).SocketErrorCode });
+                    else
+                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
+                }
+                return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.Message });
+            }
+            if (reply.Status == IPStatus.Success)
+                return new CallResult<long>(reply.RoundtripTime, null);
+            return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
         }
 
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class

@@ -19,6 +19,11 @@ namespace CryptoExchange.Net
         public ApiCredentials ApiCredentials { get; set; }
 
         /// <summary>
+        /// The base address of the client
+        /// </summary>
+        public string BaseAddress { get; set; }
+
+        /// <summary>
         /// Proxy to use
         /// </summary>
         public ApiProxy Proxy { get; set; }
