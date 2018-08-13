@@ -94,13 +94,13 @@ namespace CryptoExchange.Net
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        public CallResult<long> Ping() => PingAsync().Result;
+        public virtual CallResult<long> Ping() => PingAsync().Result;
 
         /// <summary>
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        public async Task<CallResult<long>> PingAsync()
+        public virtual async Task<CallResult<long>> PingAsync()
         {
             var ping = new Ping();
             var uri = new Uri(baseAddress);
