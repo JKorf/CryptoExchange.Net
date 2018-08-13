@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
@@ -20,8 +23,10 @@ namespace CryptoExchange.Net
     {
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
+        protected string baseAddress;
         protected Log log;
         protected ApiProxy apiProxy;
+        protected RateLimitingBehaviour rateLimitBehaviour;
 
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
@@ -47,10 +52,12 @@ namespace CryptoExchange.Net
             log.UpdateWriters(exchangeOptions.LogWriters);
             log.Level = exchangeOptions.LogVerbosity;
 
+            baseAddress = exchangeOptions.BaseAddress;
             apiProxy = exchangeOptions.Proxy;
             if (apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
 
+            rateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
@@ -83,11 +90,49 @@ namespace CryptoExchange.Net
             authProvider = authentictationProvider;
         }
 
+        /// <summary>
+        /// Ping to see if the server is reachable
+        /// </summary>
+        /// <returns>The roundtrip time of the ping request</returns>
+        public CallResult<long> Ping() => PingAsync().Result;
+
+        /// <summary>
+        /// Ping to see if the server is reachable
+        /// </summary>
+        /// <returns>The roundtrip time of the ping request</returns>
+        public async Task<CallResult<long>> PingAsync()
+        {
+            var ping = new Ping();
+            var uri = new Uri(baseAddress);
+            PingReply reply = null;
+            try
+            {
+                reply = await ping.SendPingAsync(uri.Host);
+            }
+            catch(PingException e)
+            {
+                if(e.InnerException != null)
+                {
+                    if (e.InnerException is SocketException)
+                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + ((SocketException)e.InnerException).SocketErrorCode });
+                    else
+                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
+                }
+                return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.Message });
+            }
+            if (reply.Status == IPStatus.Success)
+                return new CallResult<long>(reply.RoundtripTime, null);
+            return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
+        }
+
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = "GET", Dictionary<string, object> parameters = null, bool signed = false) where T : class
         {
             log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
             if (signed && authProvider == null)
+            { 
+                log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new CallResult<T>(null, new NoApiCredentialsError());
+            }
 
             var request = ConstructRequest(uri, method, parameters, signed);
 
@@ -99,9 +144,14 @@ namespace CryptoExchange.Net
 
             foreach (var limiter in rateLimiters)
             {
-                var limitedBy = limiter.LimitRequest(uri.AbsolutePath);
-                if (limitedBy > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitedBy}ms by {limiter.GetType().Name}");
+                var limitResult = limiter.LimitRequest(uri.AbsolutePath, rateLimitBehaviour);
+                if (!limitResult.Success)
+                {
+                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
+                    return new CallResult<T>(null, limitResult.Error);
+                }
+                else if (limitResult.Data > 0)
+                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
             }
 
             string paramString = null;

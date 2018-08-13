@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace CryptoExchange.Net.RateLimiter
             this.perTimePeriod = perTimePeriod;
         }
 
-        public double LimitRequest(string url)
+        public CallResult<double> LimitRequest(string url, RateLimitingBehaviour limitBehaviour)
         {
             var sw = Stopwatch.StartNew();
             lock (requestLock)
@@ -43,6 +44,9 @@ namespace CryptoExchange.Net.RateLimiter
                     waitTime = (history.First() - (checkTime - perTimePeriod)).TotalMilliseconds;
                     if (waitTime > 0)
                     {
+                        if (limitBehaviour == RateLimitingBehaviour.Fail)
+                            return new CallResult<double>(waitTime, new RateLimitError($"total limit of {limit} reached"));
+
                         Thread.Sleep(Convert.ToInt32(waitTime));
                         waitTime += sw.ElapsedMilliseconds;
                     }
@@ -50,7 +54,7 @@ namespace CryptoExchange.Net.RateLimiter
 
                 history.Add(DateTime.UtcNow);
                 history.Sort();
-                return waitTime;
+                return new CallResult<double>(waitTime, null);
             }
         }
     }

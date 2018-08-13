@@ -38,21 +38,26 @@
 
     public class WebError : Error
     {
-        public WebError(string message) : base(3, "Web error: " + message) { }
+        public WebError(string message) : base(4, "Web error: " + message) { }
     }
 
     public class DeserializeError : Error
     {
-        public DeserializeError(string message) : base(4, "Error deserializing data: " + message) { }
+        public DeserializeError(string message) : base(5, "Error deserializing data: " + message) { }
     }
 
     public class UnknownError : Error
     {
-        public UnknownError(string message) : base(5, "Unknown error occured " + message) { }
+        public UnknownError(string message) : base(6, "Unknown error occured " + message) { }
     }
 
     public class ArgumentError : Error
     {
-        public ArgumentError(string message) : base(5, "Invalid parameter: " + message) { }
+        public ArgumentError(string message) : base(7, "Invalid parameter: " + message) { }
+    }
+
+    public class RateLimitError: Error
+    {
+        public RateLimitError(string message) : base(8, "Rate limit exceeded: " + message) { }
     }
 }
