@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.Converters
 
                     if ((property.PropertyType == typeof(decimal) 
                      || property.PropertyType == typeof(decimal?))
-                     && value.ToString().Contains("e"))
+                     && (value != null && value.ToString().Contains("e")))
                     {
                         if (decimal.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
                             property.SetValue(result, dec);
