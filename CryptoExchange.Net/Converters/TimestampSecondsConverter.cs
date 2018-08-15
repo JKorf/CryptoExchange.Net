@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Converters
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteValue(Math.Round((((DateTime)value) - new DateTime(1970, 1, 1)).TotalSeconds));
+            writer.WriteValue((long)Math.Round((((DateTime)value) - new DateTime(1970, 1, 1)).TotalSeconds));
         }
     }
 }

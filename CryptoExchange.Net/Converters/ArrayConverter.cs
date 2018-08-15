@@ -65,15 +65,45 @@ namespace CryptoExchange.Net.Converters
             var props = value.GetType().GetProperties();
             var ordered = props.OrderBy(p => p.GetCustomAttribute<ArrayPropertyAttribute>()?.Index);
 
+            int last = -1;
             foreach (var prop in ordered)
             {
+                var arrayProp = prop.GetCustomAttribute<ArrayPropertyAttribute>();
+                if (arrayProp == null)
+                    continue;
+
+                if (arrayProp.Index == last)
+                    continue;
+
+                while (arrayProp.Index != last + 1)
+                {
+                    writer.WriteValue((string)null);
+                    last += 1;
+                }
+
+                last = arrayProp.Index;
                 var converterAttribute = (JsonConverterAttribute)prop.GetCustomAttribute(typeof(JsonConverterAttribute));
                 if(converterAttribute != null)
-                    writer.WriteValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)));
-                else
+                    writer.WriteRawValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)));
+                else if(!IsSimple(prop.PropertyType))
                     writer.WriteValue(JsonConvert.SerializeObject(prop.GetValue(value)));
+                else
+                    writer.WriteValue(prop.GetValue(value));
             }
             writer.WriteEndArray();
+        }
+
+        private bool IsSimple(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                // nullable type, check if the nested type is simple.
+                return IsSimple(type.GetGenericArguments()[0]);
+            }
+            return type.IsPrimitive
+              || type.IsEnum
+              || type.Equals(typeof(string))
+              || type.Equals(typeof(decimal));
         }
     }
 
