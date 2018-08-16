@@ -31,27 +31,30 @@ namespace CryptoExchange.Net
 
         public static string GetString(this SecureString source)
         {
-            string result = null;
-            int length = source.Length;
-            IntPtr pointer = IntPtr.Zero;
-            char[] chars = new char[length];
-
-            try
+            lock (source)
             {
-                pointer = Marshal.SecureStringToBSTR(source);
-                Marshal.Copy(pointer, chars, 0, length);
+                string result = null;
+                int length = source.Length;
+                IntPtr pointer = IntPtr.Zero;
+                char[] chars = new char[length];
 
-                result = string.Join("", chars);
-            }
-            finally
-            {
-                if (pointer != IntPtr.Zero)
+                try
                 {
-                    Marshal.ZeroFreeBSTR(pointer);
-                }
-            }
+                    pointer = Marshal.SecureStringToBSTR(source);
+                    Marshal.Copy(pointer, chars, 0, length);
 
-            return result;
+                    result = string.Join("", chars);
+                }
+                finally
+                {
+                    if (pointer != IntPtr.Zero)
+                    {
+                        Marshal.ZeroFreeBSTR(pointer);
+                    }
+                }
+
+                return result;
+            }
         }
     }
 }
