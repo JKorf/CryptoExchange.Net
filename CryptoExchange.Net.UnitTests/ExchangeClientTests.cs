@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 using Moq;
 using Newtonsoft.Json;

@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net
+﻿namespace CryptoExchange.Net.Objects
 {
     public abstract class Error
     {

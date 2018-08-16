@@ -33,7 +33,7 @@ namespace CryptoExchange.Net
         {
             lock (source)
             {
-                string result = null;
+                string result;
                 int length = source.Length;
                 IntPtr pointer = IntPtr.Zero;
                 char[] chars = new char[length];

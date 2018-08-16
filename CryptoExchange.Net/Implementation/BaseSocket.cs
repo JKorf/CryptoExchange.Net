@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Security.Authentication;
@@ -47,9 +46,11 @@ namespace CryptoExchange.Net.Implementation
         public BaseSocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
             this.log = log;
-            socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList());
-            socket.EnableAutoSendPing = true;
-            socket.AutoSendPingInterval = 10;
+            socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
+            {
+                EnableAutoSendPing = true,
+                AutoSendPingInterval = 10
+            };
             socket.Opened += (o, s) => Handle(openhandlers);
             socket.Closed += (o, s) => Handle(closehandlers);
             socket.Error += (o, s) => Handle(errorhandlers, s.Exception);
@@ -108,7 +109,7 @@ namespace CryptoExchange.Net.Implementation
                     var handler = new EventHandler((o, a) => evnt.Set());
                     socket.Closed += handler;
                     socket.Close();
-                    bool triggered = evnt.WaitOne(3000);
+                    evnt.WaitOne(3000);
                     socket.Closed -= handler;
                     log.Write(LogVerbosity.Debug, "Websocket closed");
                 }

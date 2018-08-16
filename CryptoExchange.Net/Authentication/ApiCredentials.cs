@@ -57,9 +57,10 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create Api credentials providing a private key for authenication
+        /// Create Api credentials providing a api key and secret for authenciation
         /// </summary>
-        /// <param name="privateKey">The private key used for signing</param>
+        /// <param name="key">The api key used for identification</param>
+        /// <param name="secret">The api secret used for signing</param>
         public ApiCredentials(string key, string secret)
         {
             if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))

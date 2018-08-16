@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.UnitTests
 {

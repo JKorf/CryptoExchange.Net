@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Objects
 {
     public class ApiProxy
     {

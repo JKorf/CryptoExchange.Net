@@ -6,18 +6,17 @@ namespace CryptoExchange.Net.Logging
 {
     public class ThreadSafeFileWriter: TextWriter
     {
-        private static object openedFilesLock = new object();
-        private static List<string> openedFiles = new List<string>();
+        private static readonly object openedFilesLock = new object();
+        private static readonly List<string> openedFiles = new List<string>();
 
         private StreamWriter logWriter;
-        private object writeLock;
+        private readonly object writeLock;
 
         public override Encoding Encoding => Encoding.ASCII;
 
         public ThreadSafeFileWriter(string path)
         {
-            logWriter = new StreamWriter(File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite));
-            logWriter.AutoFlush = true;
+            logWriter = new StreamWriter(File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite)) {AutoFlush = true};
             writeLock = new object();
 
             lock(openedFilesLock)
@@ -37,8 +36,11 @@ namespace CryptoExchange.Net.Logging
 
         protected override void Dispose(bool disposing)
         {
-            logWriter.Close();
-            logWriter = null;
+            lock (writeLock)
+            {
+                logWriter.Close();
+                logWriter = null;
+            }
         }
     }
 }

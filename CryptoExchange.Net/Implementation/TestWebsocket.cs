@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
-using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 
@@ -39,7 +38,7 @@ namespace CryptoExchange.Net.Implementation
         {
             if (!HasConnection)
             {
-                OnError(new Exception("No connection"));
+                OnError?.Invoke(new Exception("No connection"));
                 return Task.FromResult(false);
             }
 
@@ -54,7 +53,7 @@ namespace CryptoExchange.Net.Implementation
         {
             if (!HasConnection)
             {
-                OnError(new Exception("No connection"));
+                OnError?.Invoke(new Exception("No connection"));
                 Close();
                 return;
             }

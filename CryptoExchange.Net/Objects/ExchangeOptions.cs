@@ -2,10 +2,9 @@
 using System.IO;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// Options

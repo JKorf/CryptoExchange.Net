@@ -31,7 +31,7 @@ namespace CryptoExchange.Net
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
 
-        private static JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
+        private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc            
         });
@@ -104,7 +104,7 @@ namespace CryptoExchange.Net
         {
             var ping = new Ping();
             var uri = new Uri(baseAddress);
-            PingReply reply = null;
+            PingReply reply;
             try
             {
                 reply = await ping.SendPingAsync(uri.Host);
@@ -115,8 +115,7 @@ namespace CryptoExchange.Net
                 {
                     if (e.InnerException is SocketException)
                         return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + ((SocketException)e.InnerException).SocketErrorCode });
-                    else
-                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
+                    return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
                 }
                 return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.Message });
             }
@@ -150,7 +149,8 @@ namespace CryptoExchange.Net
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
                     return new CallResult<T>(null, limitResult.Error);
                 }
-                else if (limitResult.Data > 0)
+
+                if (limitResult.Data > 0)
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
             }
 
@@ -359,7 +359,7 @@ namespace CryptoExchange.Net
 
             foreach (var prop in properties)
             {
-                var propInfo = props.FirstOrDefault(p => p.Name == prop ||
+                var propInfo = props.First(p => p.Name == prop ||
                     ((JsonPropertyAttribute)p.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault())?.PropertyName == prop);
                 var optional = propInfo.GetCustomAttributes(typeof(JsonOptionalPropertyAttribute), false).FirstOrDefault();
                 if (optional != null)
