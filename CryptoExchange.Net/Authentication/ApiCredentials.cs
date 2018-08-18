@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create Api credentials providing a api key and secret for authenciation
+        /// Create Api credentials providing a api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create Api credentials providing a api key and secret for authenciation
+        /// Create Api credentials providing a api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
