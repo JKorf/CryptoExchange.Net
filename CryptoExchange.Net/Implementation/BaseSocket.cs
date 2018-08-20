@@ -141,7 +141,11 @@ namespace CryptoExchange.Net.Implementation
                     log.Write(LogVerbosity.Debug, "Connecting websocket");
                     var waitLock = new object();
                     ManualResetEvent evnt = new ManualResetEvent(false);
-                    var handler = new EventHandler((o, a) => evnt?.Set());
+                    var handler = new EventHandler((o, a) =>
+                    {
+                        lock (waitLock)
+                            evnt?.Set();
+                    });
                     var errorHandler = new EventHandler<ErrorEventArgs>((o, a) =>
                     {
                         lock(waitLock)
