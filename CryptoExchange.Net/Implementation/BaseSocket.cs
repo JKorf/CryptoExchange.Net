@@ -104,13 +104,23 @@ namespace CryptoExchange.Net.Implementation
                         return;
                     }
 
+                    var waitLock = new object();
                     log.Write(LogVerbosity.Debug, "Closing websocket");
                     ManualResetEvent evnt = new ManualResetEvent(false);
-                    var handler = new EventHandler((o, a) => evnt.Set());
+                    var handler = new EventHandler((o, a) =>
+                    {
+                        lock(waitLock)
+                            evnt?.Set();
+                    });
                     socket.Closed += handler;
                     socket.Close();
-                    evnt.WaitOne(3000);
-                    socket.Closed -= handler;
+                    evnt.WaitOne(2000);
+                    lock (waitLock)
+                    {
+                        socket.Closed -= handler;
+                        evnt.Dispose();
+                        evnt = null;
+                    }
                     log.Write(LogVerbosity.Debug, "Websocket closed");
                 }
             }).ConfigureAwait(false);
@@ -129,24 +139,32 @@ namespace CryptoExchange.Net.Implementation
                 lock (socketLock)
                 {
                     log.Write(LogVerbosity.Debug, "Connecting websocket");
+                    var waitLock = new object();
                     ManualResetEvent evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) => evnt?.Set());
-                    var errorHandler = new EventHandler<ErrorEventArgs>((o, a) => evnt?.Set());
+                    var errorHandler = new EventHandler<ErrorEventArgs>((o, a) =>
+                    {
+                        lock(waitLock)
+                            evnt?.Set();
+                    });
                     socket.Opened += handler;
                     socket.Closed += handler;
                     socket.Error += errorHandler;
                     socket.Open();
                     evnt.WaitOne(TimeSpan.FromSeconds(15));
-                    socket.Opened -= handler;
-                    socket.Closed -= handler;
-                    socket.Error -= errorHandler;
+                    lock (waitLock)
+                    {
+                        socket.Opened -= handler;
+                        socket.Closed -= handler;
+                        socket.Error -= errorHandler;
+                        evnt.Dispose();
+                        evnt = null;
+                    }
                     connected = socket.State == WebSocketState.Open;
                     if (connected)
                         log.Write(LogVerbosity.Debug, "Websocket connected");
                     else
                         log.Write(LogVerbosity.Debug, "Websocket connection failed, state: " + socket.State);
-                    evnt.Dispose();
-                    evnt = null;
                 }
 
                 if (socket.State == WebSocketState.Connecting)
