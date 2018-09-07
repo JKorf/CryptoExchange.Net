@@ -18,35 +18,19 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// The private key to authenticate requests
         /// </summary>
-        public SecureString PrivateKey { get; }
+        public PrivateKey PrivateKey { get; }
 
         /// <summary>
-        /// Create Api credentials providing a private key for authenication
+        /// Create Api credentials providing a private key for authentication
         /// </summary>
         /// <param name="privateKey">The private key used for signing</param>
-        public ApiCredentials(SecureString privateKey)
+        public ApiCredentials(PrivateKey privateKey)
         {
             PrivateKey = privateKey;
         }
 
         /// <summary>
-        /// Create Api credentials providing a private key for authenication
-        /// </summary>
-        /// <param name="privateKey">The private key used for signing</param>
-        public ApiCredentials(string privateKey)
-        {
-            if(string.IsNullOrEmpty(privateKey))
-                throw new ArgumentException("Private key can't be null/empty");
-
-            var securePrivateKey = new SecureString();
-            foreach (var c in privateKey)
-                securePrivateKey.AppendChar(c);
-            securePrivateKey.MakeReadOnly();
-            PrivateKey = securePrivateKey;
-        }
-
-        /// <summary>
-        /// Create Api credentials providing a api key and secret for authenciation
+        /// Create Api credentials providing a api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
@@ -57,7 +41,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create Api credentials providing a api key and secret for authenciation
+        /// Create Api credentials providing a api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
