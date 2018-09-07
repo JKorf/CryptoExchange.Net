@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using WebSocket4Net;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -13,6 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         event Action<Exception> OnError;
         event Action OnOpen;
 
+        WebSocketState SocketState { get; }
         bool IsClosed { get; }
         bool IsOpen { get; }
         bool PingConnection { get; set; }

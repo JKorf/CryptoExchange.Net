@@ -39,6 +39,16 @@ namespace CryptoExchange.Net.Implementation
             set => socket.AutoSendPingInterval = (int) Math.Round(value.TotalSeconds);
         }
 
+        public WebSocketState SocketState
+        {
+            get
+            {
+                if (socket == null)
+                    return WebSocketState.None;
+                return socket.State;
+            }
+        }
+
         public BaseSocket(Log log, string url):this(log, url, new Dictionary<string, string>(), new Dictionary<string, string>())
         {
         }
