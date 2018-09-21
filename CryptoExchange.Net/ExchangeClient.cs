@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Authentication;
@@ -28,6 +29,8 @@ namespace CryptoExchange.Net
         protected ApiProxy apiProxy;
         protected RateLimitingBehaviour rateLimitBehaviour;
 
+        protected PostParameters postParametersPosition = PostParameters.InBody;
+        
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
 
@@ -165,40 +168,55 @@ namespace CryptoExchange.Net
                 paramString = paramString.Trim(',');
             }
 
-            log.Write(LogVerbosity.Debug, $"Sending {(signed ? "signed" : "")} request to {request.Uri} {(paramString ?? "")}");
+            log.Write(LogVerbosity.Debug, $"Sending {method} {(signed ? "signed" : "")} request to {request.Uri} {(paramString ?? "")}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
         }
 
         protected virtual IRequest ConstructRequest(Uri uri, string method, Dictionary<string, object> parameters, bool signed)
         {
+            if (parameters == null)
+                parameters = new Dictionary<string, object>();
+
             var uriString = uri.ToString();
+            parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
 
-            if (parameters != null)
-            {
-                if (!uriString.EndsWith("?"))
-                    uriString += "?";
-
-                var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
-                foreach(var arrayEntry in arraysParameters)
-                {
-                    uriString += $"{string.Join("&", ((object[])arrayEntry.Value).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
-                }
-
-                uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={s.Value}"))}";
-                uriString = uriString.TrimEnd('&');
-            }
-
-            if (authProvider != null)
-                uriString = authProvider.AddAuthenticationToUriString(uriString, signed);
-
+            if((method == "GET" || method == "DELETE" || ((method == "POST" || method == "PUT") && postParametersPosition == PostParameters.InUri)) && parameters?.Any() == true)            
+                uriString += parameters.CreateParamString();
+            
             var request = RequestFactory.Create(uriString);
+            request.ContentType = "application/json";
+            request.Accept = "application/json";
             request.Method = method;
 
-            if (authProvider != null)
-                request = authProvider.AddAuthenticationToRequest(request, signed);
+            var headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters, signed);
+            foreach (var header in headers)
+                request.Headers.Add(header.Key, header.Value);
+
+            if ((method == "POST" || method == "PUT") && postParametersPosition != PostParameters.InUri)
+            {
+                if(parameters?.Any() == true)
+                    WriteParamBody(request, parameters);
+                else                
+                    WriteParamBody(request, "{}");
+            }
 
             return request;
+        }
+
+        protected void WriteParamBody(IRequest request, string stringData)
+        {
+            var data = Encoding.UTF8.GetBytes(stringData);
+            request.ContentLength = data.Length;
+
+            using (var stream = request.GetRequestStream().Result)
+                stream.Write(data, 0, data.Length);
+        }
+
+        protected void WriteParamBody(IRequest request, Dictionary<string, object> parameters)
+        {
+            var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
+            WriteParamBody(request, stringData);
         }
 
         private async Task<CallResult<string>> ExecuteRequest(IRequest request)

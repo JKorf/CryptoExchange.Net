@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -11,14 +12,14 @@ namespace CryptoExchange.Net.Authentication
             Credentials = credentials;
         }
 
-        public virtual string AddAuthenticationToUriString(string uri, bool signed)
+        public virtual Dictionary<string, object> AddAuthenticationToParameters(string uri, string method, Dictionary<string, object> parameters, bool signed)
         {
-            return uri;    
+            return parameters;
         }
 
-        public virtual IRequest AddAuthenticationToRequest(IRequest request, bool signed)
+        public virtual Dictionary<string, string> AddAuthenticationToHeaders(string uri, string method, Dictionary<string, object> parameters, bool signed)
         {
-            return request;
+            return new Dictionary<string, string>();
         }
 
         public virtual string Sign(string toSign)

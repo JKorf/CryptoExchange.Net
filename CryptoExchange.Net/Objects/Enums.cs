@@ -5,4 +5,10 @@
         Fail,
         Wait
     }
+
+    public enum PostParameters
+    {
+        InBody,
+        InUri
+    }
 }

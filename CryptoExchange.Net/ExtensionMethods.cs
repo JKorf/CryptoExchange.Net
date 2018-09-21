@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -27,6 +28,20 @@ namespace CryptoExchange.Net
         {
             if (value != null)
                 parameters.Add(key, value);
+        }
+
+        public static string CreateParamString(this Dictionary<string, object> parameters)
+        {
+            var uriString = "?";
+            var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
+            foreach (var arrayEntry in arraysParameters)
+            {
+                uriString += $"{string.Join("&", ((object[])arrayEntry.Value).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
+            }
+
+            uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={s.Value}"))}";
+            uriString = uriString.TrimEnd('&');
+            return uriString;
         }
 
         public static string GetString(this SecureString source)

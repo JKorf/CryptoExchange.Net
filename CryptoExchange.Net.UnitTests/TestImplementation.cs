@@ -31,14 +31,14 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public override string AddAuthenticationToUriString(string uri, bool signed)
+        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, string method, Dictionary<string, object> parameters, bool signed)
         {
-            return uri;
+            return base.AddAuthenticationToHeaders(uri, method, parameters, signed);
         }
 
-        public override IRequest AddAuthenticationToRequest(IRequest request, bool signed)
+        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, string method, Dictionary<string, object> parameters, bool signed)
         {
-            return request;
+            return base.AddAuthenticationToParameters(uri, method, parameters, signed);
         }
 
         public override string Sign(string toSign)
