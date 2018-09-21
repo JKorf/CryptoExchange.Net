@@ -179,7 +179,8 @@ namespace CryptoExchange.Net
                 parameters = new Dictionary<string, object>();
 
             var uriString = uri.ToString();
-            parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
+            if(authProvider != null)
+                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
 
             if((method == "GET" || method == "DELETE" || ((method == "POST" || method == "PUT") && postParametersPosition == PostParameters.InUri)) && parameters?.Any() == true)            
                 uriString += parameters.CreateParamString();
@@ -189,7 +190,10 @@ namespace CryptoExchange.Net
             request.Accept = "application/json";
             request.Method = method;
 
-            var headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters, signed);
+            var headers = new Dictionary<string, string>();
+            if (authProvider != null)
+                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters, signed);
+
             foreach (var header in headers)
                 request.Headers.Add(header.Key, header.Value);
 
