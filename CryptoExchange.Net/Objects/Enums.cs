@@ -11,4 +11,10 @@
         InBody,
         InUri
     }
+
+    public enum RequestBodyFormat
+    {
+        FormData,
+        Json
+    }
 }

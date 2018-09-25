@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
@@ -30,7 +32,8 @@ namespace CryptoExchange.Net
         protected RateLimitingBehaviour rateLimitBehaviour;
 
         protected PostParameters postParametersPosition = PostParameters.InBody;
-        
+        protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
+
         protected AuthenticationProvider authProvider;
         private List<IRateLimiter> rateLimiters;
 
@@ -186,7 +189,7 @@ namespace CryptoExchange.Net
                 uriString += parameters.CreateParamString();
             
             var request = RequestFactory.Create(uriString);
-            request.ContentType = "application/json";
+            request.ContentType = requestBodyFormat == RequestBodyFormat.Json ? "application/json": "application/x-www-form-urlencoded";
             request.Accept = "application/json";
             request.Method = method;
 
@@ -208,7 +211,7 @@ namespace CryptoExchange.Net
             return request;
         }
 
-        protected void WriteParamBody(IRequest request, string stringData)
+        protected virtual void WriteParamBody(IRequest request, string stringData)
         {
             var data = Encoding.UTF8.GetBytes(stringData);
             request.ContentLength = data.Length;
@@ -217,10 +220,21 @@ namespace CryptoExchange.Net
                 stream.Write(data, 0, data.Length);
         }
 
-        protected void WriteParamBody(IRequest request, Dictionary<string, object> parameters)
+        protected virtual void WriteParamBody(IRequest request, Dictionary<string, object> parameters)
         {
-            var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
-            WriteParamBody(request, stringData);
+            if (requestBodyFormat == RequestBodyFormat.Json)
+            {
+                var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
+                WriteParamBody(request, stringData);
+            }
+            else if(requestBodyFormat == RequestBodyFormat.FormData)
+            {
+                NameValueCollection formData = HttpUtility.ParseQueryString(String.Empty);
+                foreach (var kvp in parameters.OrderBy(p => p.Key))
+                    formData.Add(kvp.Key, kvp.Value.ToString());
+                string stringData = formData.ToString();
+                WriteParamBody(request, stringData);
+            }
         }
 
         private async Task<CallResult<string>> ExecuteRequest(IRequest request)
