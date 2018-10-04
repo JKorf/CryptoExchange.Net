@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         event Action<Exception> OnError;
         event Action OnOpen;
 
+        string Url { get; }
         WebSocketState SocketState { get; }
         bool IsClosed { get; }
         bool IsOpen { get; }

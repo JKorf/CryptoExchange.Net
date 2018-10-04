@@ -24,6 +24,7 @@ namespace CryptoExchange.Net.Implementation
         protected readonly List<Action> closehandlers = new List<Action>();
         protected readonly List<Action<string>> messagehandlers = new List<Action<string>>();
 
+        public string Url { get; }
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
 
@@ -56,6 +57,7 @@ namespace CryptoExchange.Net.Implementation
         public BaseSocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
             this.log = log;
+            Url = url;
             socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
             {
                 EnableAutoSendPing = true,
