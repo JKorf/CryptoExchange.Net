@@ -255,10 +255,12 @@ namespace CryptoExchange.Net
                 var response = (HttpWebResponse)we.Response;
                 try
                 {
-                    var reader = new StreamReader(response.GetResponseStream());
-                    var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Warning, "Server returned an error: " + responseData);
-                    return new CallResult<string>(null, ParseErrorResponse(responseData));
+                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    {
+                        var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        log.Write(LogVerbosity.Warning, "Server returned an error: " + responseData);
+                        return new CallResult<string>(null, ParseErrorResponse(responseData));
+                    }
                 }
                 catch (Exception)
                 {
