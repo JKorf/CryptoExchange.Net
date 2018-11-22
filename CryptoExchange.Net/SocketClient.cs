@@ -42,6 +42,10 @@ namespace CryptoExchange.Net
             reconnectInterval = exchangeOptions.ReconnectInterval;
         }
 
+        /// <summary>
+        /// Set a function to interprete the data, used when the data is received as bytes instead of a string
+        /// </summary>
+        /// <param name="handler"></param>
         protected void SetDataInterpreter(Func<byte[], string> handler)
         {
             dataInterpreter = handler;
@@ -75,9 +79,9 @@ namespace CryptoExchange.Net
             return socket;
         }
 
-        protected abstract void SocketOpened(IWebsocket socket);
-        protected abstract void SocketClosed(IWebsocket socket);
-        protected abstract void SocketError(IWebsocket socket, Exception ex);
+        protected virtual void SocketOpened(IWebsocket socket) { }
+        protected virtual void SocketClosed(IWebsocket socket) { }
+        protected virtual void SocketError(IWebsocket socket, Exception ex) { }
         protected abstract bool SocketReconnect(SocketSubscription socket, TimeSpan disconnectedTime);
 
         protected virtual CallResult<SocketSubscription> ConnectSocket(IWebsocket socket)
