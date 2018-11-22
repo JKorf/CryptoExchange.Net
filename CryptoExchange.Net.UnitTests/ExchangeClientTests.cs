@@ -174,7 +174,7 @@ namespace CryptoExchange.Net.UnitTests
             TestImplementation client;
             if (withOptions)
             {
-                var options = new ExchangeOptions()
+                var options = new ClientOptions()
                 {
                     ApiCredentials = new ApiCredentials("Test", "Test2"),
                     LogVerbosity = verbosity
@@ -219,7 +219,7 @@ namespace CryptoExchange.Net.UnitTests
             factory.Setup(c => c.Create(It.IsAny<string>()))
                 .Returns(request.Object);
 
-            TestImplementation client = credentials ? new TestImplementation(new ExchangeOptions() { ApiCredentials = new ApiCredentials("Test", "Test2") }) : new TestImplementation();
+            TestImplementation client = credentials ? new TestImplementation(new ClientOptions() { ApiCredentials = new ApiCredentials("Test", "Test2") }) : new TestImplementation();
             client.RequestFactory = factory.Object;
             return client;
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
@@ -35,8 +36,11 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The log writers
         /// </summary>
-        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() {new DebugTextWriter()};
+        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() {new DebugTextWriter()};        
+    }
 
+    public class ClientOptions: ExchangeOptions
+    {
         /// <summary>
         /// List of ratelimiters to use
         /// </summary>
@@ -46,5 +50,13 @@ namespace CryptoExchange.Net.Objects
         /// What to do when a call would exceed the rate limit
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+    }
+
+    public class SocketClientOptions: ExchangeOptions
+    {
+        /// <summary>
+        /// Time to wait between reconnect attempts
+        /// </summary>
+        public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(2);
     }
 }

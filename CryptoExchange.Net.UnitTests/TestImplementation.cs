@@ -6,11 +6,11 @@ using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.UnitTests
 {
-    public class TestImplementation: ExchangeClient
+    public class TestImplementation: RestClient
     {
-        public TestImplementation(): base(new ExchangeOptions(), null) { }
+        public TestImplementation(): base(new ClientOptions(), null) { }
 
-        public TestImplementation(ExchangeOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestImplementation(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
         }
 

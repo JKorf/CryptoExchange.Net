@@ -1,7 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 
-namespace CryptoExchange.Net.Implementation
+namespace CryptoExchange.Net.Sockets
 {
     public class WebsocketFactory : IWebsocketFactory
     {

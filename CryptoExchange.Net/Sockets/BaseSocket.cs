@@ -11,22 +11,30 @@ using SuperSocket.ClientEngine;
 using SuperSocket.ClientEngine.Proxy;
 using WebSocket4Net;
 
-namespace CryptoExchange.Net.Implementation
+namespace CryptoExchange.Net.Sockets
 {
     public class BaseSocket: IWebsocket
     {
+        internal static int lastStreamId;
+        private static readonly object streamIdLock = new object();
+
         protected WebSocket socket;
         protected Log log;
         protected object socketLock = new object();
+        protected DateTime? lostTime = null;
 
-        protected readonly List<Action<Exception>> errorhandlers = new List<Action<Exception>>();
-        protected readonly List<Action> openhandlers = new List<Action>();
-        protected readonly List<Action> closehandlers = new List<Action>();
-        protected readonly List<Action<string>> messagehandlers = new List<Action<string>>();
+        protected readonly List<Action<Exception>> errorHandlers = new List<Action<Exception>>();
+        protected readonly List<Action> openHandlers = new List<Action>();
+        protected readonly List<Action> closeHandlers = new List<Action>();
+        protected readonly List<Action<string>> messageHandlers = new List<Action<string>>();
 
+        public int Id { get; }
+        public DateTime? DisconnectTime { get; set; }
+        public bool ShouldReconnect { get; set; }
         public string Url { get; }
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
+        public Func<byte[], string> DataInterpreter { get; set; }
 
         public bool PingConnection
         {
@@ -56,6 +64,7 @@ namespace CryptoExchange.Net.Implementation
 
         public BaseSocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
+            Id = NextStreamId();
             this.log = log;
             Url = url;
             socket = new WebSocket(url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
@@ -63,33 +72,38 @@ namespace CryptoExchange.Net.Implementation
                 EnableAutoSendPing = true,
                 AutoSendPingInterval = 10
             };
-            socket.Opened += (o, s) => Handle(openhandlers);
-            socket.Closed += (o, s) => Handle(closehandlers);
-            socket.Error += (o, s) => Handle(errorhandlers, s.Exception);
-            socket.MessageReceived += (o, s) => Handle(messagehandlers, s.Message);
-            socket.EnableAutoSendPing = true;
-            socket.AutoSendPingInterval = 10;
+            socket.Opened += (o, s) => Handle(openHandlers);
+            socket.Closed += (o, s) => Handle(closeHandlers);
+            socket.Error += (o, s) => Handle(errorHandlers, s.Exception);
+            socket.MessageReceived += (o, s) => Handle(messageHandlers, s.Message);
+            socket.DataReceived += (o, s) => HandleByteData(s.Data);
+        }
+
+        private void HandleByteData(byte[] data)
+        {
+            var message = DataInterpreter(data);
+            Handle(messageHandlers, message);
         }
 
         public event Action OnClose
         {
-            add => closehandlers.Add(value);
-            remove => closehandlers.Remove(value);
+            add => closeHandlers.Add(value);
+            remove => closeHandlers.Remove(value);
         }
         public event Action<string> OnMessage
         {
-            add => messagehandlers.Add(value);
-            remove => messagehandlers.Remove(value);
+            add => messageHandlers.Add(value);
+            remove => messageHandlers.Remove(value);
         }
         public event Action<Exception> OnError
         {
-            add => errorhandlers.Add(value);
-            remove => errorhandlers.Remove(value);
+            add => errorHandlers.Add(value);
+            remove => errorHandlers.Remove(value);
         }
         public event Action OnOpen
         {
-            add => openhandlers.Add(value);
-            remove => openhandlers.Remove(value);
+            add => openHandlers.Add(value);
+            remove => openHandlers.Remove(value);
         }
 
         protected static void Handle(List<Action> handlers)
@@ -112,12 +126,12 @@ namespace CryptoExchange.Net.Implementation
                 {
                     if (socket == null || IsClosed)
                     {
-                        log.Write(LogVerbosity.Debug, "Socket was already closed/disposed");
+                        log.Write(LogVerbosity.Debug, $"Socket {Id} was already closed/disposed");
                         return;
                     }
 
                     var waitLock = new object();
-                    log.Write(LogVerbosity.Debug, "Closing websocket");
+                    log.Write(LogVerbosity.Debug, $"Socket {Id} closing");
                     ManualResetEvent evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
@@ -133,7 +147,7 @@ namespace CryptoExchange.Net.Implementation
                         evnt.Dispose();
                         evnt = null;
                     }
-                    log.Write(LogVerbosity.Debug, "Websocket closed");
+                    log.Write(LogVerbosity.Debug, $"Socket {Id} closed");
                 }
             }).ConfigureAwait(false);
         }
@@ -150,7 +164,7 @@ namespace CryptoExchange.Net.Implementation
                 bool connected;
                 lock (socketLock)
                 {
-                    log.Write(LogVerbosity.Debug, "Connecting websocket");
+                    log.Write(LogVerbosity.Debug, $"Socket {Id} connecting");
                     var waitLock = new object();
                     ManualResetEvent evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
@@ -178,9 +192,9 @@ namespace CryptoExchange.Net.Implementation
                     }
                     connected = socket.State == WebSocketState.Open;
                     if (connected)
-                        log.Write(LogVerbosity.Debug, "Websocket connected");
+                        log.Write(LogVerbosity.Debug, $"Socket {Id} connected");
                     else
-                        log.Write(LogVerbosity.Debug, "Websocket connection failed, state: " + socket.State);
+                        log.Write(LogVerbosity.Debug, $"Socket {Id} connection failed, state: " + socket.State);
                 }
 
                 if (socket.State == WebSocketState.Connecting)
@@ -208,15 +222,24 @@ namespace CryptoExchange.Net.Implementation
             lock (socketLock)
             {
                 if (socket != null)
-                    log.Write(LogVerbosity.Debug, "Disposing websocket");
+                    log.Write(LogVerbosity.Debug, $"Socket {Id} sisposing websocket");
 
                 socket?.Dispose();
                 socket = null;
 
-                errorhandlers.Clear();
-                openhandlers.Clear();
-                closehandlers.Clear();
-                messagehandlers.Clear();
+                errorHandlers.Clear();
+                openHandlers.Clear();
+                closeHandlers.Clear();
+                messageHandlers.Clear();
+            }
+        }
+
+        private int NextStreamId()
+        {
+            lock (streamIdLock)
+            {
+                lastStreamId++;
+                return lastStreamId;
             }
         }
     }

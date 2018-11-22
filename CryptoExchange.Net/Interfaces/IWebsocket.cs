@@ -7,13 +7,15 @@ namespace CryptoExchange.Net.Interfaces
 {
     public interface IWebsocket: IDisposable
     {
-        void SetEnabledSslProtocols(SslProtocols protocols);
-
         event Action OnClose;
         event Action<string> OnMessage;
         event Action<Exception> OnError;
         event Action OnOpen;
 
+        int Id { get; }
+        bool ShouldReconnect { get; set; }
+        Func<byte[], string> DataInterpreter { get; set; }
+        DateTime? DisconnectTime { get; set; }
         string Url { get; }
         WebSocketState SocketState { get; }
         bool IsClosed { get; }
@@ -21,6 +23,7 @@ namespace CryptoExchange.Net.Interfaces
         bool PingConnection { get; set; }
         TimeSpan PingInterval { get; set; }
 
+        void SetEnabledSslProtocols(SslProtocols protocols);
         Task<bool> Connect();
         void Send(string data);
         Task Close();
