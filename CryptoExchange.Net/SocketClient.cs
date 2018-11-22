@@ -114,7 +114,9 @@ namespace CryptoExchange.Net
                     lock(sockets)
                         subscription = sockets.Single(s => s.Socket == socket);
 
-                    SocketReconnected(subscription, DateTime.UtcNow - socket.DisconnectTime.Value);                    
+                    if (!SocketReconnect(subscription, DateTime.UtcNow - socket.DisconnectTime.Value))
+                        socket.Close().Wait(); // Close so we end up reconnecting again
+                    return;
                 });
             }
             else

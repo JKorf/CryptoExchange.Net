@@ -222,7 +222,7 @@ namespace CryptoExchange.Net.Sockets
             lock (socketLock)
             {
                 if (socket != null)
-                    log.Write(LogVerbosity.Debug, $"Socket {Id} sisposing websocket");
+                    log.Write(LogVerbosity.Debug, $"Socket {Id} disposing websocket");
 
                 socket?.Dispose();
                 socket = null;

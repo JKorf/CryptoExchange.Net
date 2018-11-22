@@ -57,6 +57,6 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Time to wait between reconnect attempts
         /// </summary>
-        public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(2);
+        public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
     }
 }
