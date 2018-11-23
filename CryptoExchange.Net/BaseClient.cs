@@ -61,12 +61,17 @@ namespace CryptoExchange.Net
 
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null) where T : class
         {
+            var obj = JToken.Parse(data);
+            return Deserialize<T>(obj, checkObject, serializer);
+        }
+
+        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer serializer = null) where T : class
+        {
             if (serializer == null)
                 serializer = defaultSerializer;
 
             try
             {
-                var obj = JToken.Parse(data);
                 if (checkObject && log.Level == LogVerbosity.Debug)
                 {
                     try
@@ -92,19 +97,19 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {data}";
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {data}";
+                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {data}";
+                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(null, new DeserializeError(info));
             }
@@ -139,7 +144,7 @@ namespace CryptoExchange.Net
             }
             foreach (var token in obj)
             {
-                var d = properties.SingleOrDefault(p => p == token.Key);
+                var d = properties.FirstOrDefault(p => p == token.Key);
                 if (d == null)
                 {
                     d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());

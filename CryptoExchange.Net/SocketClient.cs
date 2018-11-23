@@ -63,7 +63,8 @@ namespace CryptoExchange.Net
             socket.DataInterpreter = dataInterpreter;
             socket.OnClose += () =>
             {
-                socket.DisconnectTime = DateTime.UtcNow;
+                if(socket.DisconnectTime == null)
+                    socket.DisconnectTime = DateTime.UtcNow;
                 SocketOnClose(socket);
             };
             socket.OnError += (e) =>
@@ -73,7 +74,6 @@ namespace CryptoExchange.Net
             };
             socket.OnOpen += () =>
             {
-                socket.ShouldReconnect = true;
                 SocketOpened(socket);
             };
             return socket;
@@ -84,18 +84,26 @@ namespace CryptoExchange.Net
         protected virtual void SocketError(IWebsocket socket, Exception ex) { }
         protected abstract bool SocketReconnect(SocketSubscription socket, TimeSpan disconnectedTime);
 
-        protected virtual CallResult<SocketSubscription> ConnectSocket(IWebsocket socket)
+        protected virtual async Task<CallResult<bool>> ConnectSocket(SocketSubscription socketSubscription)
         {
-            if (socket.Connect().Result)
+            socketSubscription.Socket.OnMessage += data => ProcessMessage(socketSubscription, data);
+
+            if (await socketSubscription.Socket.Connect())
             {
-                var subscription = new SocketSubscription(socket);
                 lock (sockets)
-                    sockets.Add(subscription);
-                return new CallResult<SocketSubscription>(subscription, null);
+                    sockets.Add(socketSubscription);
+                return new CallResult<bool>(true, null);
             }
 
-            socket.Dispose();
-            return new CallResult<SocketSubscription>(null, new CantConnectError());
+            socketSubscription.Socket.Dispose();
+            return new CallResult<bool>(false, new CantConnectError());
+        }
+
+        protected virtual void ProcessMessage(SocketSubscription sub, string data)
+        {
+            log.Write(LogVerbosity.Debug, $"Socket {sub.Socket.Id} received data: " + data);
+            foreach (var handler in sub.DataHandlers)
+                handler(sub, JToken.Parse(data));
         }
 
         protected virtual void SocketOnClose(IWebsocket socket)
@@ -120,6 +128,7 @@ namespace CryptoExchange.Net
 
                     if (!SocketReconnect(subscription, DateTime.UtcNow - socket.DisconnectTime.Value))
                         socket.Close().Wait(); // Close so we end up reconnecting again
+                    socket.DisconnectTime = null;
                     return;
                 });
             }
@@ -144,35 +153,6 @@ namespace CryptoExchange.Net
         {
             log.Write(LogVerbosity.Debug, $"Socket {socket.Id} sending data: {data}");
             socket.Send(data);
-        }
-
-        protected virtual async Task<CallResult<string>> SendAndWait<T>(IWebsocket socket, T obj, Func<JToken, bool> waitingFor, int timeout=5000) 
-        {
-            return await Task.Run(() =>
-            {
-                var data = JsonConvert.SerializeObject(obj);
-                ManualResetEvent evnt = new ManualResetEvent(false);
-                string result = null;
-                var onMessageAction = new Action<string>((msg) =>
-                {
-                    if (!waitingFor(JToken.Parse(msg)))
-                        return;
-
-                    log.Write(LogVerbosity.Debug, "Socket received query response: " + msg);
-                    result = msg;
-                    evnt?.Set();
-                });
-
-                socket.OnMessage += onMessageAction;
-                Send(socket, data);
-                evnt.WaitOne(timeout);
-                socket.OnMessage -= onMessageAction;                
-                evnt.Dispose();
-                evnt = null;
-                if (result == null)
-                    return new CallResult<string>(null, new ServerError("No response from server"));
-                return new CallResult<string>(result, null);
-            }).ConfigureAwait(false);
         }
 
         public override void Dispose()

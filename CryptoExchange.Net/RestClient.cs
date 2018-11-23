@@ -103,7 +103,7 @@ namespace CryptoExchange.Net
             return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
         }
 
-        protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false) where T : class
+        protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false, bool checkResult = true) where T : class
         {
             log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
             if (signed && authProvider == null)
@@ -146,7 +146,7 @@ namespace CryptoExchange.Net
 
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {(paramString ?? "")}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
-            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data);
+            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data, checkResult);
         }
 
         protected virtual IRequest ConstructRequest(Uri uri, string method, Dictionary<string, object> parameters, bool signed)
