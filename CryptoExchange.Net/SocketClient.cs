@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
@@ -18,6 +17,9 @@ namespace CryptoExchange.Net
     public abstract class SocketClient: BaseClient
     {
         #region fields
+        /// <summary>
+        /// The factory for creating sockets. Used for unit testing
+        /// </summary>
         public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
         private const SslProtocols protocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
@@ -51,6 +53,11 @@ namespace CryptoExchange.Net
             dataInterpreter = handler;
         }
         
+        /// <summary>
+        /// Create a socket for an address
+        /// </summary>
+        /// <param name="address">The address the socket should connect to</param>
+        /// <returns></returns>
         protected virtual IWebsocket CreateSocket(string address)
         {
             var socket = SocketFactory.CreateWebsocket(log, address);
@@ -80,8 +87,20 @@ namespace CryptoExchange.Net
         protected virtual void SocketOpened(IWebsocket socket) { }
         protected virtual void SocketClosed(IWebsocket socket) { }
         protected virtual void SocketError(IWebsocket socket, Exception ex) { }
-        protected abstract bool SocketReconnect(SocketSubscription socket, TimeSpan disconnectedTime);
+        /// <summary>
+        /// Handler for when a socket reconnects. Should return true if reconnection handling was successful or false if not ( will try to reconnect again ). The handler should
+        /// handle functionality like resubscribing and re-authenticating the socket.
+        /// </summary>
+        /// <param name="subscription">The socket subscription that was reconnected</param>
+        /// <param name="disconnectedTime">The time the socket was disconnected</param>
+        /// <returns></returns>
+        protected abstract bool SocketReconnect(SocketSubscription subscription, TimeSpan disconnectedTime);
 
+        /// <summary>
+        /// Connect a socket
+        /// </summary>
+        /// <param name="socketSubscription">The subscription to connect</param>
+        /// <returns></returns>
         protected virtual async Task<CallResult<bool>> ConnectSocket(SocketSubscription socketSubscription)
         {
             socketSubscription.Socket.OnMessage += data => ProcessMessage(socketSubscription, data);
@@ -97,13 +116,22 @@ namespace CryptoExchange.Net
             return new CallResult<bool>(false, new CantConnectError());
         }
 
-        protected virtual void ProcessMessage(SocketSubscription sub, string data)
+        /// <summary>
+        /// The message handler. Normally distributes the received data to all data handlers
+        /// </summary>
+        /// <param name="subscription">The subscription that received the data</param>
+        /// <param name="data">The data received</param>
+        protected virtual void ProcessMessage(SocketSubscription subscription, string data)
         {
-            log.Write(LogVerbosity.Debug, $"Socket {sub.Socket.Id} received data: " + data);
-            foreach (var handler in sub.DataHandlers)
-                handler(sub, JToken.Parse(data));
+            log.Write(LogVerbosity.Debug, $"Socket {subscription.Socket.Id} received data: " + data);
+            foreach (var handler in subscription.DataHandlers)
+                handler(subscription, JToken.Parse(data));
         }
 
+        /// <summary>
+        /// Handler for a socket closing. Reconnects the socket if needed, or removes it from the active socket list if not
+        /// </summary>
+        /// <param name="socket">The socket that was closed</param>
         protected virtual void SocketOnClose(IWebsocket socket)
         {
             if (socket.ShouldReconnect)
@@ -148,22 +176,43 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// Send data to the websocket
+        /// </summary>
+        /// <typeparam name="T">The type of the object to send</typeparam>
+        /// <param name="socket">The socket to send to</param>
+        /// <param name="obj">The object to send</param>
+        /// <param name="nullValueHandling">How null values should be serialized</param>
         protected virtual void Send<T>(IWebsocket socket, T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
             Send(socket, JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));            
         }
 
+        /// <summary>
+        /// Send string data to the websocket
+        /// </summary>
+        /// <param name="socket">The socket to send to</param>
+        /// <param name="data">The data to send</param>
         protected virtual void Send(IWebsocket socket, string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {socket.Id} sending data: {data}");
             socket.Send(data);
         }
 
-        public virtual async Task Unsubscribe(UpdateSubscription sub)
+        /// <summary>
+        /// Unsubscribe from a stream
+        /// </summary>
+        /// <param name="subscription">The subscription to unsubscribe</param>
+        /// <returns></returns>
+        public virtual async Task Unsubscribe(UpdateSubscription subscription)
         {
-            await sub.Close();
+            await subscription.Close();
         }
 
+        /// <summary>
+        /// Unsubscribe all subscriptions
+        /// </summary>
+        /// <returns></returns>
         public virtual async Task UnsubscribeAll()
         {
             await Task.Run(() =>

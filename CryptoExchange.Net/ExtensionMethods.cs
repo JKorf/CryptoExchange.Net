@@ -31,6 +31,12 @@ namespace CryptoExchange.Net
                 parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Create a query string of the specified parameters
+        /// </summary>
+        /// <param name="parameters">The parameters to use</param>
+        /// <param name="urlEncodeValues">Whether or not the values should be url encoded</param>
+        /// <returns></returns>
         public static string CreateParamString(this Dictionary<string, object> parameters, bool urlEncodeValues)
         {
             var uriString = "";
@@ -45,6 +51,11 @@ namespace CryptoExchange.Net
             return uriString;
         }
 
+        /// <summary>
+        /// Get the string the secure string is representing
+        /// </summary>
+        /// <param name="source">The source secure string</param>
+        /// <returns></returns>
         public static string GetString(this SecureString source)
         {
             lock (source)

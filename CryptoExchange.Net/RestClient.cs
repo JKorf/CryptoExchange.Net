@@ -21,6 +21,9 @@ namespace CryptoExchange.Net
 {
     public abstract class RestClient: BaseClient
     {
+        /// <summary>
+        /// The factory for creating requests. Used for unit testing
+        /// </summary>
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
         protected RateLimitingBehaviour rateLimitBehaviour;
@@ -29,11 +32,6 @@ namespace CryptoExchange.Net
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
         private List<IRateLimiter> rateLimiters;
-
-        private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
-        {
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc            
-        });
 
         protected RestClient(ClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
@@ -103,6 +101,16 @@ namespace CryptoExchange.Net
             return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
         }
 
+        /// <summary>
+        /// Execute a request
+        /// </summary>
+        /// <typeparam name="T">The expected result type</typeparam>
+        /// <param name="uri">The uri to send the request to</param>
+        /// <param name="method">The method of the request</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
+        /// <returns></returns>
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false, bool checkResult = true) where T : class
         {
             log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
@@ -149,6 +157,14 @@ namespace CryptoExchange.Net
             return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data, checkResult);
         }
 
+        /// <summary>
+        /// Creates a request object
+        /// </summary>
+        /// <param name="uri">The uri to send the request to</param>
+        /// <param name="method">The method of the request</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <returns></returns>
         protected virtual IRequest ConstructRequest(Uri uri, string method, Dictionary<string, object> parameters, bool signed)
         {
             if (parameters == null)
@@ -184,6 +200,11 @@ namespace CryptoExchange.Net
             return request;
         }
 
+        /// <summary>
+        /// Writes the string data of the paramters to the request body stream
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="stringData"></param>
         protected virtual void WriteParamBody(IRequest request, string stringData)
         {
             var data = Encoding.UTF8.GetBytes(stringData);
@@ -193,6 +214,11 @@ namespace CryptoExchange.Net
                 stream.Write(data, 0, data.Length);
         }
 
+        /// <summary>
+        /// Writes the parameters of the request to the request object, either in the query string or the request body
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="parameters"></param>
         protected virtual void WriteParamBody(IRequest request, Dictionary<string, object> parameters)
         {
             if (requestBodyFormat == RequestBodyFormat.Json)
@@ -210,6 +236,11 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// Executes the request and returns the string result
+        /// </summary>
+        /// <param name="request">The request object to execute</param>
+        /// <returns></returns>
         private async Task<CallResult<string>> ExecuteRequest(IRequest request)
         {
             var returnedData = "";
@@ -258,6 +289,11 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// Parse an error response from the server. Only used when server returns a status other than Success(200)
+        /// </summary>
+        /// <param name="error">The string the request returned</param>
+        /// <returns></returns>
         protected virtual Error ParseErrorResponse(string error)
         {
             return new ServerError(error);

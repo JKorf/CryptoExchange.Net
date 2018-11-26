@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace CryptoExchange.Net
 {
@@ -21,12 +20,13 @@ namespace CryptoExchange.Net
 
         protected static int lastId;
         protected static object idLock = new object();
-        public  static int LastId { get => lastId; }
 
         private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc
         });
+
+        public static int LastId { get => lastId; }
 
         public BaseClient(ExchangeOptions options, AuthenticationProvider authenticationProvider)
         {
@@ -60,12 +60,27 @@ namespace CryptoExchange.Net
             authProvider = authentictationProvider;
         }
 
+        /// <summary>
+        /// Deserialize a string into an object
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize into</typeparam>
+        /// <param name="data">The data to deserialize</param>
+        /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
+        /// <param name="serializer">A specific serializer to use</param>
+        /// <returns></returns>
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
-            var obj = JToken.Parse(data);
-            return Deserialize<T>(obj, checkObject, serializer);
+            return Deserialize<T>(JToken.Parse(data), checkObject, serializer);
         }
 
+        /// <summary>
+        /// Deserialize a JToken into an object
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize into</typeparam>
+        /// <param name="obj">The data to deserialize</param>
+        /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
+        /// <param name="serializer">A specific serializer to use</param>
+        /// <returns></returns>
         protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer serializer = null)
         {
             if (serializer == null)
@@ -218,6 +233,10 @@ namespace CryptoExchange.Net
                    || type == typeof(decimal);
         }
 
+        /// <summary>
+        /// Generate a unique id
+        /// </summary>
+        /// <returns></returns>
         protected int NextId()
         {
             lock (idLock)
@@ -227,18 +246,24 @@ namespace CryptoExchange.Net
             }
         }
 
-        protected static string FillPathParameter(string endpoint, params string[] values)
+        /// <summary>
+        /// Fill parameters in a path. Parameters are specified by '{}' and should be specified in occuring sequence
+        /// </summary>
+        /// <param name="path">The total path string</param>
+        /// <param name="values">The values to fill</param>
+        /// <returns></returns>
+        protected static string FillPathParameter(string path, params string[] values)
         {
             foreach (var value in values)
             {
-                int index = endpoint.IndexOf("{}", StringComparison.Ordinal);
+                int index = path.IndexOf("{}", StringComparison.Ordinal);
                 if (index >= 0)
                 {
-                    endpoint = endpoint.Remove(index, 2);
-                    endpoint = endpoint.Insert(index, value);
+                    path = path.Remove(index, 2);
+                    path = path.Insert(index, value);
                 }
             }
-            return endpoint;
+            return path;
         }
 
         public virtual void Dispose()
