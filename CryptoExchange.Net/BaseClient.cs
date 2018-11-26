@@ -21,6 +21,7 @@ namespace CryptoExchange.Net
 
         protected static int lastId;
         protected static object idLock = new object();
+        public  static int LastId { get => lastId; }
 
         private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
         {
@@ -59,13 +60,13 @@ namespace CryptoExchange.Net
             authProvider = authentictationProvider;
         }
 
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null) where T : class
+        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
             var obj = JToken.Parse(data);
             return Deserialize<T>(obj, checkObject, serializer);
         }
 
-        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer serializer = null) where T : class
+        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer serializer = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
@@ -99,19 +100,19 @@ namespace CryptoExchange.Net
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(null, new DeserializeError(info));
+                return new CallResult<T>(default(T), new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(null, new DeserializeError(info));
+                return new CallResult<T>(default(T), new DeserializeError(info));
             }
             catch (Exception ex)
             {
                 var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj.ToString()}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(null, new DeserializeError(info));
+                return new CallResult<T>(default(T), new DeserializeError(info));
             }
         }
 

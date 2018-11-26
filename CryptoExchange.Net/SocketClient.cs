@@ -63,8 +63,6 @@ namespace CryptoExchange.Net
             socket.DataInterpreter = dataInterpreter;
             socket.OnClose += () =>
             {
-                if(socket.DisconnectTime == null)
-                    socket.DisconnectTime = DateTime.UtcNow;
                 SocketOnClose(socket);
             };
             socket.OnError += (e) =>
@@ -110,7 +108,7 @@ namespace CryptoExchange.Net
         {
             if (socket.ShouldReconnect)
             {
-                log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, going to try to reconnect");
+                log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect");
                 Task.Run(() =>
                 {
                     Thread.Sleep(reconnectInterval);
@@ -119,16 +117,22 @@ namespace CryptoExchange.Net
                         log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");
                         return; // Connect() should result in a SocketClosed event so we end up here again
                     }
+                    var time = socket.DisconnectTime;
+                    socket.DisconnectTime = null;
+                    if (time == null)
+                        return;
 
-                    log.Write(LogVerbosity.Info, $"Socket {socket.Id} reconnected after {DateTime.UtcNow - socket.DisconnectTime.Value}");
+                    log.Write(LogVerbosity.Info, $"Socket {socket.Id} reconnected after {DateTime.UtcNow - time}");
 
                     SocketSubscription subscription;
-                    lock(sockets)
+                    lock (sockets)
                         subscription = sockets.Single(s => s.Socket == socket);
 
-                    if (!SocketReconnect(subscription, DateTime.UtcNow - socket.DisconnectTime.Value))
+                    if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
                         socket.Close().Wait(); // Close so we end up reconnecting again
-                    socket.DisconnectTime = null;
+
+
+                    log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
                     return;
                 });
             }

@@ -6,7 +6,6 @@ namespace CryptoExchange.Net.Sockets
     public class SocketEvent
     {
         public string Name { get; set; }
-        public int Id { get; set; }
 
         private CallResult<bool> result;
         private ManualResetEvent setEvnt;

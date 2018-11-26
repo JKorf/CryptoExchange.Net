@@ -20,11 +20,14 @@ namespace CryptoExchange.Net.Sockets
         public object Request { get; set; }
 
         private bool lostTriggered;
+        private Dictionary<int, SocketEvent> waitingForIds;
+
 
         public SocketSubscription(IWebsocket socket)
         {
             Socket = socket;
             Events = new List<SocketEvent>();
+            waitingForIds = new Dictionary<int, SocketEvent>();
 
             DataHandlers = new List<Action<SocketSubscription, JToken>>();
 
@@ -33,6 +36,7 @@ namespace CryptoExchange.Net.Sockets
                 if (lostTriggered)
                     return;
 
+                Socket.DisconnectTime = DateTime.UtcNow;
                 lostTriggered = true;
 
                 foreach (var events in Events)
@@ -43,9 +47,11 @@ namespace CryptoExchange.Net.Sockets
             };
             Socket.OnOpen += () =>
             {
-                lostTriggered = false;
-                if (Socket.DisconnectTime != null)
+                if (lostTriggered)
+                {
+                    lostTriggered = false;
                     ConnectionRestored?.Invoke(DateTime.UtcNow - Socket.DisconnectTime.Value);
+                }
             };
         }
 
@@ -59,16 +65,37 @@ namespace CryptoExchange.Net.Sockets
             Events.SingleOrDefault(e => e.Name == name)?.Set(success, error);
         }
 
-        public CallResult<bool> WaitForEvent(string name)
+        public void SetEvent(int id, bool success, Error error)
         {
-            return Events.Single(e => e.Name == name).Wait();
+            if (waitingForIds.ContainsKey(id))
+            {
+                waitingForIds[id].Set(success, error);
+                waitingForIds.Remove(id);
+            }
         }
 
-        public CallResult<bool> WaitForEvent(string name, int id)
+        public (int, SocketEvent) GetWaitingEvent(string name)
         {
-            var evnt = Events.Single(e => e.Name == name);
-            evnt.Id = id;
-            return evnt.Wait();
+            var result = waitingForIds.SingleOrDefault(w => w.Value.Name == name);
+            if (result.Equals(default(KeyValuePair<int, SocketEvent>)))
+                return (0, null);
+
+            return (result.Key, result.Value);
+        }
+
+        public CallResult<bool> WaitForEvent(string name, int timeout)
+        {
+            return Events.Single(e => e.Name == name).Wait(timeout);
+        }
+
+        public Task<CallResult<bool>> WaitForEvent(string name, int id, int timeout)
+        {
+            return Task.Run(() =>
+            {
+                var evnt = Events.Single(e => e.Name == name);
+                waitingForIds.Add(id, evnt);
+                return evnt.Wait(timeout);
+            });
         }
 
         public async Task Close()
