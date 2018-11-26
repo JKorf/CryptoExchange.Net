@@ -64,6 +64,13 @@ namespace CryptoExchange.Net.Sockets
             return Events.Single(e => e.Name == name).Wait();
         }
 
+        public CallResult<bool> WaitForEvent(string name, int id)
+        {
+            var evnt = Events.Single(e => e.Name == name);
+            evnt.Id = id;
+            return evnt.Wait();
+        }
+
         public async Task Close()
         {
             Socket.ShouldReconnect = false;

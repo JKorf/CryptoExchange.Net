@@ -155,6 +155,22 @@ namespace CryptoExchange.Net
             socket.Send(data);
         }
 
+        public virtual async Task Unsubscribe(UpdateSubscription sub)
+        {
+            await sub.Close();
+        }
+
+        public virtual async Task UnsubscribeAll()
+        {
+            await Task.Run(() =>
+            {
+                var tasks = new List<Task>();
+                foreach (var sub in new List<SocketSubscription>(sockets))
+                    tasks.Add(sub.Close());
+                Task.WaitAll(tasks.ToArray());
+            });
+        }
+
         public override void Dispose()
         {
             lock(sockets)
