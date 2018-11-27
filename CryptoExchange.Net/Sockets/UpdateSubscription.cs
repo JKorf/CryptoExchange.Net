@@ -25,6 +25,8 @@ namespace CryptoExchange.Net.Sockets
             remove => subscription.ConnectionRestored -= value;
         }
 
+        public int Id => subscription.Socket.Id;
+
         public UpdateSubscription(SocketSubscription sub)
         {
             subscription = sub;

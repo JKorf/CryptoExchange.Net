@@ -44,6 +44,12 @@ namespace CryptoExchange.Net.Requests
             set => request.Method = value;
         }
 
+        public int Timeout
+        {
+            get => request.Timeout;
+            set => request.Timeout = value;
+        }
+
         public Uri Uri => request.RequestUri;
 
         public void SetProxy(string host, int port)

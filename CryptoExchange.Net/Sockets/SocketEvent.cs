@@ -6,6 +6,7 @@ namespace CryptoExchange.Net.Sockets
     public class SocketEvent
     {
         public string Name { get; set; }
+        public int WaitingId { get; set; }
 
         private CallResult<bool> result;
         private ManualResetEvent setEvnt;
@@ -21,6 +22,7 @@ namespace CryptoExchange.Net.Sockets
         {
             this.result = new CallResult<bool>(result, error);
             setEvnt.Set();
+            WaitingId = -1;
         }
         
         public CallResult<bool> Wait(int timeout = 5000)

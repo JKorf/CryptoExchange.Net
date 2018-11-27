@@ -17,17 +17,17 @@ namespace CryptoExchange.Net.Sockets
         public List<SocketEvent> Events { get; set; }
 
         public IWebsocket Socket { get; set; }
-        public object Request { get; set; }
+        public SocketRequest Request { get; set; }
 
         private bool lostTriggered;
-        private Dictionary<int, SocketEvent> waitingForIds;
+        private List<SocketEvent> waitingForEvents;
 
 
         public SocketSubscription(IWebsocket socket)
         {
             Socket = socket;
             Events = new List<SocketEvent>();
-            waitingForIds = new Dictionary<int, SocketEvent>();
+            waitingForEvents = new List<SocketEvent>();
 
             DataHandlers = new List<Action<SocketSubscription, JToken>>();
 
@@ -67,25 +67,27 @@ namespace CryptoExchange.Net.Sockets
 
         public void SetEvent(int id, bool success, Error error)
         {
-            if (waitingForIds.ContainsKey(id))
+            var waitingEvent = waitingForEvents.SingleOrDefault(e => e.WaitingId == id);
+            if (waitingEvent != null)
             {
-                waitingForIds[id].Set(success, error);
-                waitingForIds.Remove(id);
+                waitingEvent.Set(success, error);
+                waitingForEvents.Remove(waitingEvent);
             }
         }
 
-        public (int, SocketEvent) GetWaitingEvent(string name)
+        public SocketEvent GetWaitingEvent(string name)
         {
-            var result = waitingForIds.SingleOrDefault(w => w.Value.Name == name);
-            if (result.Equals(default(KeyValuePair<int, SocketEvent>)))
-                return (0, null);
-
-            return (result.Key, result.Value);
+            return waitingForEvents.SingleOrDefault(w => w.Name == name);
         }
 
-        public CallResult<bool> WaitForEvent(string name, int timeout)
+        public Task<CallResult<bool>> WaitForEvent(string name, int timeout)
         {
-            return Events.Single(e => e.Name == name).Wait(timeout);
+            return Task.Run(() =>
+            {
+                var evnt = Events.Single(e => e.Name == name);
+                waitingForEvents.Add(evnt);
+                return evnt.Wait(timeout);
+            });
         }
 
         public Task<CallResult<bool>> WaitForEvent(string name, int id, int timeout)
@@ -93,7 +95,8 @@ namespace CryptoExchange.Net.Sockets
             return Task.Run(() =>
             {
                 var evnt = Events.Single(e => e.Name == name);
-                waitingForIds.Add(id, evnt);
+                evnt.WaitingId = id;
+                waitingForEvents.Add(evnt);
                 return evnt.Wait(timeout);
             });
         }

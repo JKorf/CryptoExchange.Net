@@ -20,7 +20,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The factory for creating sockets. Used for unit testing
         /// </summary>
-        public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
+        public virtual IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
         private const SslProtocols protocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 
@@ -206,6 +206,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task Unsubscribe(UpdateSubscription subscription)
         {
+            log.Write(LogVerbosity.Info, $"Closing subscription {subscription.Id}");
             await subscription.Close();
         }
 
@@ -215,6 +216,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAll()
         {
+            log.Write(LogVerbosity.Debug, $"Closing all {sockets.Count} subscriptions");
             await Task.Run(() =>
             {
                 var tasks = new List<Task>();
@@ -226,10 +228,11 @@ namespace CryptoExchange.Net
 
         public override void Dispose()
         {
-            lock(sockets)
-                foreach (var socket in sockets)
-                    socket.Socket.Dispose();
-                sockets.Clear();
+            log.Write(LogVerbosity.Debug, "Disposing socket client, closing all subscriptions");
+            lock (sockets)
+                UnsubscribeAll().Wait();
+
+            base.Dispose();
         }
     }
 }

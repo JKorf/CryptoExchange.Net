@@ -50,6 +50,11 @@ namespace CryptoExchange.Net.Objects
         /// What to do when a call would exceed the rate limit
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+
+        /// <summary>
+        /// The time the server has to respond to a request before timing out
+        /// </summary>
+        public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
     }
 
     public class SocketClientOptions: ExchangeOptions

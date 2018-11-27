@@ -27,6 +27,7 @@ namespace CryptoExchange.Net
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
         protected RateLimitingBehaviour rateLimitBehaviour;
+        protected int requestTimeout;
 
         protected PostParameters postParametersPosition = PostParameters.InBody;
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
@@ -44,6 +45,7 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(ClientOptions exchangeOptions)
         {
+            requestTimeout = (int)Math.Round(exchangeOptions.RequestTimeout.TotalMilliseconds, 0);
             rateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -246,6 +248,7 @@ namespace CryptoExchange.Net
             var returnedData = "";
             try
             {
+                request.Timeout = requestTimeout;
                 var response = await request.GetResponse().ConfigureAwait(false);
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
