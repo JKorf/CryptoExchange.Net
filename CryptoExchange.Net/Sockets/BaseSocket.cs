@@ -37,6 +37,7 @@ namespace CryptoExchange.Net.Sockets
         public string Url { get; }
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
+        public SslProtocols SSLProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
         public Func<byte[], string> DataInterpreter { get; set; }
 
         public bool PingConnection
@@ -161,6 +162,7 @@ namespace CryptoExchange.Net.Sockets
                     EnableAutoSendPing = true,
                     AutoSendPingInterval = 10
                 };
+                socket.Security.EnabledSslProtocols = SSLProtocols;
                 socket.Opened += (o, s) => Handle(openHandlers);
                 socket.Closed += (o, s) => Handle(closeHandlers);
                 socket.Error += (o, s) => Handle(errorHandlers, s.Exception);

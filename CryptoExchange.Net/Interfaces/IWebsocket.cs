@@ -22,8 +22,7 @@ namespace CryptoExchange.Net.Interfaces
         bool IsOpen { get; }
         bool PingConnection { get; set; }
         TimeSpan PingInterval { get; set; }
-
-        void SetEnabledSslProtocols(SslProtocols protocols);
+        SslProtocols SSLProtocols { get; set; }
         Task<bool> Connect();
         void Send(string data);
         Task Close();

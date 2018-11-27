@@ -22,8 +22,6 @@ namespace CryptoExchange.Net
         /// </summary>
         public virtual IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
-        private const SslProtocols protocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-
         protected List<SocketSubscription> sockets = new List<SocketSubscription>();
 
         protected TimeSpan reconnectInterval;
@@ -66,7 +64,6 @@ namespace CryptoExchange.Net
             if (apiProxy != null)
                 socket.SetProxy(apiProxy.Host, apiProxy.Port);
 
-            socket.SetEnabledSslProtocols(protocols);
             socket.DataInterpreter = dataInterpreter;
             socket.OnClose += () =>
             {
