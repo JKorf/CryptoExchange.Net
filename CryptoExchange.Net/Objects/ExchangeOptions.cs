@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The log writers
         /// </summary>
-        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() {new DebugTextWriter()};        
+        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() { new DebugTextWriter() };           
     }
 
     public class ClientOptions: ExchangeOptions
@@ -55,6 +55,25 @@ namespace CryptoExchange.Net.Objects
         /// The time the server has to respond to a request before timing out
         /// </summary>
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+        public T Copy<T>() where T:ClientOptions, new()
+        {
+            var copy = new T
+            {
+                BaseAddress = BaseAddress,
+                LogVerbosity = LogVerbosity,
+                Proxy = Proxy,
+                LogWriters = LogWriters,
+                RateLimiters = RateLimiters,
+                RateLimitingBehaviour = RateLimitingBehaviour,
+                RequestTimeout = RequestTimeout
+            };
+
+            if (ApiCredentials != null)
+                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+
+            return copy;
+        }
     }
 
     public class SocketClientOptions: ExchangeOptions
@@ -63,5 +82,22 @@ namespace CryptoExchange.Net.Objects
         /// Time to wait between reconnect attempts
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+        public T Copy<T>() where T : SocketClientOptions, new()
+        {
+            var copy = new T
+            {
+                BaseAddress = BaseAddress,
+                LogVerbosity = LogVerbosity,
+                Proxy = Proxy,
+                LogWriters = LogWriters,
+                ReconnectInterval = ReconnectInterval
+            };
+
+            if (ApiCredentials != null)
+                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+
+            return copy;
+        }
     }
 }

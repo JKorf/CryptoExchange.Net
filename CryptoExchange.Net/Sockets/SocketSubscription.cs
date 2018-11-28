@@ -13,7 +13,10 @@ namespace CryptoExchange.Net.Sockets
         public event Action ConnectionLost;
         public event Action<TimeSpan> ConnectionRestored;
 
-        public List<Action<SocketSubscription, JToken>> DataHandlers { get; set; }
+        /// <summary>
+        /// Message handlers for this subscription. Should return true if the message is handled and should not be distributed to the other handlers
+        /// </summary>
+        public List<Func<SocketSubscription, JToken, bool>> MessageHandlers { get; set; }
         public List<SocketEvent> Events { get; set; }
 
         public IWebsocket Socket { get; set; }
@@ -29,7 +32,7 @@ namespace CryptoExchange.Net.Sockets
             Events = new List<SocketEvent>();
             waitingForEvents = new List<SocketEvent>();
 
-            DataHandlers = new List<Action<SocketSubscription, JToken>>();
+            MessageHandlers = new List<Func<SocketSubscription, JToken, bool>>();
 
             Socket.OnClose += () =>
             {

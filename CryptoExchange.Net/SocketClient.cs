@@ -121,8 +121,9 @@ namespace CryptoExchange.Net
         protected virtual void ProcessMessage(SocketSubscription subscription, string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {subscription.Socket.Id} received data: " + data);
-            foreach (var handler in subscription.DataHandlers)
-                handler(subscription, JToken.Parse(data));
+            foreach (var handler in subscription.MessageHandlers)
+                if (handler(subscription, JToken.Parse(data)))
+                    return;
         }
 
         /// <summary>
@@ -163,6 +164,7 @@ namespace CryptoExchange.Net
             }
             else
             {
+                log.Write(LogVerbosity.Info, $"Socket {socket.Id} closed");
                 socket.Dispose();
                 lock (sockets)
                 {
