@@ -1,27 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.UnitTests
 {
-    public class TestImplementation: RestClient
-    {
-        public TestImplementation(): base(new ClientOptions(), null) { }
-
-        public TestImplementation(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+    public class TestBaseClient: BaseClient
+    {       
+        public TestBaseClient(): base(new ClientOptions(), null)
         {
         }
 
-        public void SetApiCredentails(string key, string secret)
+        public TestBaseClient(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
-            SetAuthenticationProvider(new TestAuthProvider(new ApiCredentials(key, secret)));
         }
 
-        public CallResult<TestObject> TestCall()
+        public void Log(LogVerbosity verbosity, string data)
         {
-            return ExecuteRequest<TestObject>(new Uri("http://www.test.com")).Result;
+            log.Write(verbosity, data);
+        }
+
+        public CallResult<T> Deserialize<T>(string data)
+        {
+            return Deserialize<T>(data, false);
+        }
+
+        public string FillParameters(string path, params string[] values)
+        {
+            return FillPathParameter(path, values);
         }
     }
 
@@ -45,11 +51,5 @@ namespace CryptoExchange.Net.UnitTests
         {
             return toSign;
         }
-    }
-
-    public class TestObject
-    {
-        public int Id { get; set; }
-        public List<string> Data { get; set; }
     }
 }

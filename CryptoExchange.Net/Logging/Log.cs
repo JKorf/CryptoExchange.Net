@@ -17,11 +17,8 @@ namespace CryptoExchange.Net.Logging
             get => level;
             set
             {
-                if (level != value)
-                {
-                    Write(LogVerbosity.Info, "Loglevel set to " + value);
-                    level = value;
-                }
+                if (level != value)                
+                    level = value;                
             }
         }
 

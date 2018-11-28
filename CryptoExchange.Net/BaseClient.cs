@@ -70,7 +70,28 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
-            return Deserialize<T>(JToken.Parse(data), checkObject, serializer);
+            try
+            {
+                return Deserialize<T>(JToken.Parse(data), checkObject, serializer);
+            }
+            catch (JsonReaderException jre)
+            {
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default(T), new DeserializeError(info));
+            }
+            catch (JsonSerializationException jse)
+            {
+                var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default(T), new DeserializeError(info));
+            }
+            catch (Exception ex)
+            {
+                var info = $"Deserialize Unknown Exception: {ex.Message}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default(T), new DeserializeError(info));
+            }
         }
 
         /// <summary>
