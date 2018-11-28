@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -18,6 +19,11 @@ namespace CryptoExchange.Net.Converters
         {
             var result = Activator.CreateInstance(objectType);
             var arr = JArray.Load(reader);
+            return ParseObject(arr, result, objectType);
+        }
+
+        private object ParseObject(JArray arr, object result, Type objectType)
+        {
             foreach (var property in objectType.GetProperties())
             {
                 var attribute =
@@ -28,8 +34,42 @@ namespace CryptoExchange.Net.Converters
                 if (attribute.Index >= arr.Count)
                     continue;
 
+                if(property.PropertyType.BaseType == typeof(Array))
+                {
+                    var objType = property.PropertyType.GetElementType();
+                    var innerArray = (JArray)arr[attribute.Index];
+                    var count = 0;
+                    if (innerArray.Count == 0)
+                    {
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new object[] { 0 });
+                        property.SetValue(result, arrayResult);
+                    }
+                    else if (innerArray[0].Type == JTokenType.Array)
+                    {
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new object[] { innerArray.Count() });
+                        foreach (var obj in innerArray)
+                        {
+                            var innerObj = Activator.CreateInstance(objType);
+                            arrayResult[count] = ParseObject((JArray)obj, innerObj, objType);
+                            count++;
+                        }
+                        property.SetValue(result, arrayResult);
+                    }
+                    else
+                    {
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new object[] { 1 });
+                        var innerObj = Activator.CreateInstance(objType);
+                        arrayResult[0] = ParseObject(innerArray, innerObj, objType);
+                        property.SetValue(result, arrayResult);
+                    }
+                    continue;
+                }
+
                 object value;
                 var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute));
+                if (converterAttribute == null)
+                    converterAttribute = (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
+
                 if (converterAttribute != null)
                     value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer() { Converters = { (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType) } });
                 else
@@ -43,7 +83,7 @@ namespace CryptoExchange.Net.Converters
                         if (((JToken)value).Type == JTokenType.Null)
                             value = null;
 
-                    if ((property.PropertyType == typeof(decimal) 
+                    if ((property.PropertyType == typeof(decimal)
                      || property.PropertyType == typeof(decimal?))
                      && (value != null && value.ToString().Contains("e")))
                     {
