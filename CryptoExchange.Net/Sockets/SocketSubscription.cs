@@ -65,7 +65,12 @@ namespace CryptoExchange.Net.Sockets
 
         public void SetEvent(string name, bool success, Error error)
         {
-            Events.SingleOrDefault(e => e.Name == name)?.Set(success, error);
+            var waitingEvent = waitingForEvents.SingleOrDefault(e => e.Name == name);
+            if (waitingEvent != null)
+            {
+                waitingEvent.Set(success, error);
+                waitingForEvents.Remove(waitingEvent);
+            }
         }
 
         public void SetEvent(int id, bool success, Error error)
@@ -85,23 +90,24 @@ namespace CryptoExchange.Net.Sockets
 
         public Task<CallResult<bool>> WaitForEvent(string name, int timeout)
         {
-            return Task.Run(() =>
-            {
-                var evnt = Events.Single(e => e.Name == name);
-                waitingForEvents.Add(evnt);
-                return evnt.Wait(timeout);
-            });
+            var evnt = Events.Single(e => e.Name == name);
+            waitingForEvents.Add(evnt);
+            return Task.Run(() => evnt.Wait(timeout));
         }
 
         public Task<CallResult<bool>> WaitForEvent(string name, int id, int timeout)
         {
-            return Task.Run(() =>
-            {
-                var evnt = Events.Single(e => e.Name == name);
-                evnt.WaitingId = id;
-                waitingForEvents.Add(evnt);
-                return evnt.Wait(timeout);
-            });
+            var evnt = Events.Single(e => e.Name == name);
+            evnt.WaitingId = id;
+            waitingForEvents.Add(evnt);
+            return Task.Run(() => evnt.Wait(timeout));
+        }
+
+        public void ResetEvents()
+        {
+            foreach (var waiting in new List<SocketEvent>(waitingForEvents))
+                waiting.Set(false, new UnknownError("Connection reset"));
+            waitingForEvents.Clear();
         }
 
         public async Task Close()

@@ -67,6 +67,9 @@ namespace CryptoExchange.Net
             socket.DataInterpreter = dataInterpreter;
             socket.OnClose += () =>
             {
+                foreach (var sub in sockets)
+                    sub.ResetEvents();
+
                 SocketOnClose(socket);
             };
             socket.OnError += (e) =>
