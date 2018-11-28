@@ -1,0 +1,4 @@
+Documentation
+Socket client background connection for fast query requests?
+Data interpreter for string data
+Unit testing most socket stuff
