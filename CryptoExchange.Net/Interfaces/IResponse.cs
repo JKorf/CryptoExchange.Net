@@ -5,5 +5,6 @@ namespace CryptoExchange.Net.Interfaces
     public interface IResponse
     {
         Stream GetResponseStream();
+        void Close();
     }
 }

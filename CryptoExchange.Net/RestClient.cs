@@ -254,8 +254,10 @@ namespace CryptoExchange.Net
                 {
                     returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
                     log.Write(LogVerbosity.Debug, "Data returned: " + returnedData);
-                    return new CallResult<string>(returnedData, null);
                 }
+
+                response.Close();
+                return new CallResult<string>(returnedData, null);                
             }
             catch (WebException we)
             {
@@ -264,10 +266,12 @@ namespace CryptoExchange.Net
                 {
                     using (var reader = new StreamReader(response.GetResponseStream()))
                     {
-                        var responseData = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        log.Write(LogVerbosity.Warning, "Server returned an error: " + responseData);
-                        return new CallResult<string>(null, ParseErrorResponse(responseData));
+                        returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        log.Write(LogVerbosity.Warning, "Server returned an error: " + returnedData);
                     }
+
+                    response.Close();
+                    return new CallResult<string>(null, ParseErrorResponse(returnedData));                    
                 }
                 catch (Exception)
                 {
@@ -283,6 +287,7 @@ namespace CryptoExchange.Net
 
                 infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
                 log.Write(LogVerbosity.Warning, infoMessage);
+                response.Close();
                 return new CallResult<string>(null, new ServerError(infoMessage));
             }
             catch (Exception e)

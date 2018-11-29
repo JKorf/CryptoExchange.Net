@@ -17,5 +17,10 @@ namespace CryptoExchange.Net.Requests
         {
             return response.GetResponseStream();
         }
+
+        public void Close()
+        {
+            response.Close();
+        }
     }
 }
