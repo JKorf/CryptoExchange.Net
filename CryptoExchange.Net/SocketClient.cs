@@ -138,15 +138,19 @@ namespace CryptoExchange.Net
         protected virtual void ProcessMessage(SocketSubscription subscription, string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {subscription.Socket.Id} received data: " + data);
+            string currentHandlerName = null;
             try
             {
                 foreach (var handler in subscription.MessageHandlers)
+                {
+                    currentHandlerName = handler.Key;
                     if (handler.Value(subscription, JToken.Parse(data)))
                         return;
+                }
             }
             catch(Exception ex)
             {
-                log.Write(LogVerbosity.Error, $"Exception during message processing: " + ex.ToString());
+                log.Write(LogVerbosity.Error, $"Exception during message processing\r\nProcessor: {currentHandlerName}\r\nException: {ex}\r\nData: {data}");
             }
         }
 
