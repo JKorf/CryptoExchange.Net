@@ -26,6 +26,15 @@ namespace CryptoExchange.Net
 
         protected TimeSpan reconnectInterval;
         protected Func<byte[], string> dataInterpreter;
+
+        protected const string DataHandlerName = "DataHandler";
+        protected const string AuthenticationHandlerName = "AuthenticationHandler";
+        protected const string SubscriptionHandlerName = "SubscriptionHandler";
+        protected const string PingHandlerName = "SubscriptionHandler";
+
+        protected const string DataEvent = "Data";
+        protected const string SubscriptionEvent = "Subscription";
+        protected const string AuthenticationEvent = "Authentication";
         #endregion
 
         protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
@@ -84,6 +93,11 @@ namespace CryptoExchange.Net
             return socket;
         }
 
+        protected virtual SocketSubscription GetBackgroundSocket(bool authenticated = false)
+        {
+            return sockets.SingleOrDefault(s => s.Type == (authenticated ? SocketType.BackgroundAuthenticated : SocketType.Background));
+        }
+
         protected virtual void SocketOpened(IWebsocket socket) { }
         protected virtual void SocketClosed(IWebsocket socket) { }
         protected virtual void SocketError(IWebsocket socket, Exception ex) { }
@@ -125,7 +139,7 @@ namespace CryptoExchange.Net
         {
             log.Write(LogVerbosity.Debug, $"Socket {subscription.Socket.Id} received data: " + data);
             foreach (var handler in subscription.MessageHandlers)
-                if (handler(subscription, JToken.Parse(data)))
+                if (handler.Value(subscription, JToken.Parse(data)))
                     return;
         }
 

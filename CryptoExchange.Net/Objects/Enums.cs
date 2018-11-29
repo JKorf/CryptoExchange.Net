@@ -17,4 +17,11 @@
         FormData,
         Json
     }
+
+    public enum SocketType
+    {
+        Normal,
+        Background,
+        BackgroundAuthenticated
+    }
 }

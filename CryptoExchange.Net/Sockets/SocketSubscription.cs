@@ -16,11 +16,13 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Message handlers for this subscription. Should return true if the message is handled and should not be distributed to the other handlers
         /// </summary>
-        public List<Func<SocketSubscription, JToken, bool>> MessageHandlers { get; set; }
+        public Dictionary<string, Func<SocketSubscription, JToken, bool>> MessageHandlers { get; set; }
         public List<SocketEvent> Events { get; set; }
 
         public IWebsocket Socket { get; set; }
         public SocketRequest Request { get; set; }
+
+        public SocketType Type { get; set; }
 
         private bool lostTriggered;
         private List<SocketEvent> waitingForEvents;
@@ -32,7 +34,7 @@ namespace CryptoExchange.Net.Sockets
             Events = new List<SocketEvent>();
             waitingForEvents = new List<SocketEvent>();
 
-            MessageHandlers = new List<Func<SocketSubscription, JToken, bool>>();
+            MessageHandlers = new Dictionary<string, Func<SocketSubscription, JToken, bool>>();
 
             Socket.OnClose += () =>
             {
