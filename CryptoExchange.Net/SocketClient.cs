@@ -184,9 +184,8 @@ namespace CryptoExchange.Net
 
                     if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
                         socket.Close().Wait(); // Close so we end up reconnecting again
-
-
-                    log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
+                    else
+                        log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
                     return;
                 });
             }
