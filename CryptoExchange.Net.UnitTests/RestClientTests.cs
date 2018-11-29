@@ -61,6 +61,23 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
+        public void ReceivingErrorAndNotParsingError_Should_ResultInFlatError()
+        {
+            // arrange
+            var client = new TestRestClient();
+            client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
+
+            // act
+            var result = client.Request<TestObject>().Result;
+
+            // assert
+            Assert.IsFalse(result.Success);
+            Assert.IsTrue(result.Error != null);
+            Assert.IsTrue(result.Error is ServerError);
+            Assert.IsTrue(result.Error.Message.Contains("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}"));
+        }
+
+        [TestCase]
         public void ReceivingErrorAndParsingError_Should_ResultInParsedError()
         {
             // arrange
