@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.RateLimiter
+namespace CryptoExchange.Net.Interfaces
 {
     public interface IRateLimiter
     {

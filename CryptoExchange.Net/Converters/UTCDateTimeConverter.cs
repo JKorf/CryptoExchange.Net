@@ -16,8 +16,8 @@ namespace CryptoExchange.Net.Converters
                 return null;
 
             DateTime value;
-            if (reader.Value is string)
-                value = (DateTime)JsonConvert.DeserializeObject((string)reader.Value);
+            if (reader.Value is string s)
+                value = (DateTime)JsonConvert.DeserializeObject(s);
             else
                 value = (DateTime) reader.Value;
 

@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.Sockets
 {
     public class UpdateSubscription
     {
-        private SocketSubscription subscription;
+        private readonly SocketSubscription subscription;
 
         /// <summary>
         /// Event when the connection is lost
@@ -25,6 +25,9 @@ namespace CryptoExchange.Net.Sockets
             remove => subscription.ConnectionRestored -= value;
         }
 
+        /// <summary>
+        /// The id of the socket
+        /// </summary>
         public int Id => subscription.Socket.Id;
 
         public UpdateSubscription(SocketSubscription sub)

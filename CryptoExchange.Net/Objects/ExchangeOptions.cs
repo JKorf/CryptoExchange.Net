@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
-using CryptoExchange.Net.RateLimiter;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Objects
     public class ClientOptions: ExchangeOptions
     {
         /// <summary>
-        /// List of ratelimiters to use
+        /// List of rate limiters to use
         /// </summary>
         public List<IRateLimiter> RateLimiters { get; set; } = new List<IRateLimiter>();
 

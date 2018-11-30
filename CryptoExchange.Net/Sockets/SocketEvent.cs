@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.Sockets
     public class SocketEvent
     {
         public string Name { get; set; }
-        public int WaitingId { get; set; }
+        public string WaitingId { get; set; }
 
         private CallResult<bool> result;
         private ManualResetEvent setEvnt;
@@ -18,11 +18,11 @@ namespace CryptoExchange.Net.Sockets
             result = new CallResult<bool>(false, new UnknownError("No response received"));
         }
 
-        public void Set(bool result, Error error)
+        internal void Set(bool result, Error error)
         {
             this.result = new CallResult<bool>(result, error);
             setEvnt.Set();
-            WaitingId = -1;
+            WaitingId = null;
         }
         
         public CallResult<bool> Wait(int timeout = 5000)

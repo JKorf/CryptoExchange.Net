@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.Sockets
         public SocketType Type { get; set; }
 
         private bool lostTriggered;
-        private List<SocketEvent> waitingForEvents;
+        private readonly List<SocketEvent> waitingForEvents;
 
 
         public SocketSubscription(IWebsocket socket)
@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.Sockets
                 if (lostTriggered)
                 {
                     lostTriggered = false;
-                    ConnectionRestored?.Invoke(DateTime.UtcNow - Socket.DisconnectTime.Value);
+                    ConnectionRestored?.Invoke(Socket.DisconnectTime.HasValue ? DateTime.UtcNow - Socket.DisconnectTime.Value: TimeSpan.FromSeconds(0));
                 }
             };
         }
@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Sockets
             Events.Add(new SocketEvent(name));
         }
 
-        public void SetEvent(string name, bool success, Error error)
+        public void SetEventByName(string name, bool success, Error error)
         {
             var waitingEvent = waitingForEvents.SingleOrDefault(e => e.Name == name);
             if (waitingEvent != null)
@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        public void SetEvent(int id, bool success, Error error)
+        public void SetEventById(string id, bool success, Error error)
         {
             var waitingEvent = waitingForEvents.SingleOrDefault(e => e.WaitingId == id);
             if (waitingEvent != null)
@@ -90,6 +90,13 @@ namespace CryptoExchange.Net.Sockets
             return waitingForEvents.SingleOrDefault(w => w.Name == name);
         }
 
+
+
+        public Task<CallResult<bool>> WaitForEvent(string name, TimeSpan timeout)
+        {
+            return WaitForEvent(name, (int)Math.Round(timeout.TotalMilliseconds, 0));
+        }
+
         public Task<CallResult<bool>> WaitForEvent(string name, int timeout)
         {
             var evnt = Events.Single(e => e.Name == name);
@@ -97,7 +104,12 @@ namespace CryptoExchange.Net.Sockets
             return Task.Run(() => evnt.Wait(timeout));
         }
 
-        public Task<CallResult<bool>> WaitForEvent(string name, int id, int timeout)
+        public Task<CallResult<bool>> WaitForEvent(string name, string id, TimeSpan timeout)
+        {
+            return WaitForEvent(name, id, (int)Math.Round(timeout.TotalMilliseconds, 0));
+        }
+
+        public Task<CallResult<bool>> WaitForEvent(string name, string id, int timeout)
         {
             var evnt = Events.Single(e => e.Name == name);
             evnt.WaitingId = id;

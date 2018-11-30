@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -23,12 +24,13 @@ namespace CryptoExchange.Net
 
         private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
         {
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Culture = CultureInfo.InvariantCulture
         });
 
-        public static int LastId { get => lastId; }
+        public static int LastId => lastId;
 
-        public BaseClient(ExchangeOptions options, AuthenticationProvider authenticationProvider)
+        protected BaseClient(ExchangeOptions options, AuthenticationProvider authenticationProvider)
         {
             log = new Log();
             authProvider = authenticationProvider;
@@ -39,7 +41,7 @@ namespace CryptoExchange.Net
         /// Configure the client using the provided options
         /// </summary>
         /// <param name="exchangeOptions">Options</param>
-        protected virtual void Configure(ExchangeOptions exchangeOptions)
+        protected void Configure(ExchangeOptions exchangeOptions)
         {
             log.UpdateWriters(exchangeOptions.LogWriters);
             log.Level = exchangeOptions.LogVerbosity;
@@ -53,11 +55,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Set the authentication provider
         /// </summary>
-        /// <param name="authentictationProvider"></param>
-        protected void SetAuthenticationProvider(AuthenticationProvider authentictationProvider)
+        /// <param name="authenticationProvider"></param>
+        protected void SetAuthenticationProvider(AuthenticationProvider authenticationProvider)
         {
             log.Write(LogVerbosity.Debug, "Setting api credentials");
-            authProvider = authentictationProvider;
+            authProvider = authenticationProvider;
         }
 
         /// <summary>
@@ -117,10 +119,9 @@ namespace CryptoExchange.Net
                         {
                             CheckObject(typeof(T), o);
                         }
-                        else
+                        else if (obj is JArray j)
                         {
-                            var ary = (JArray)obj;
-                            if (ary.HasValues && ary[0] is JObject jObject)
+                            if (j.HasValues && j[0] is JObject jObject)
                                 CheckObject(typeof(T).GetElementType(), jObject);
                         }
                     }
@@ -134,19 +135,19 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj.ToString()}";
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default(T), new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj.ToString()}";
+                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default(T), new DeserializeError(info));
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj.ToString()}";
+                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default(T), new DeserializeError(info));
             }
@@ -201,8 +202,8 @@ namespace CryptoExchange.Net
                 {
                     if (propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
                         CheckObject(propType.GetElementType(), (JObject)token.Value[0]);
-                    else if (token.Value is JObject)
-                        CheckObject(propType, (JObject)token.Value);
+                    else if (token.Value is JObject o)
+                        CheckObject(propType, o);
                 }
             }
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Security;
-using System.Text;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -13,7 +11,7 @@ namespace CryptoExchange.Net.Authentication
         public SecureString Key { get; }
 
         /// <summary>
-        /// The private key's passphrase
+        /// The private key's pass phrase
         /// </summary>
         public SecureString Passphrase { get; }
 
@@ -36,7 +34,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create a private key providing an encrypted key informations
+        /// Create a private key providing an encrypted key information
         /// </summary>
         /// <param name="key">The private key used for signing</param>
         /// <param name="passphrase">The private key's passphrase</param>
@@ -61,7 +59,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create a private key providing an unencrypted key informations
+        /// Create a private key providing an unencrypted key information
         /// </summary>
         /// <param name="key">The private key used for signing</param>
         public PrivateKey(SecureString key)
@@ -72,7 +70,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create a private key providing an encrypted key informations
+        /// Create a private key providing an encrypted key information
         /// </summary>
         /// <param name="key">The private key used for signing</param>
         public PrivateKey(string key)

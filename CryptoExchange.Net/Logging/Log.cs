@@ -9,18 +9,8 @@ namespace CryptoExchange.Net.Logging
     public class Log
     {
         private List<TextWriter> writers;
-        private LogVerbosity level = LogVerbosity.Info;
-
-
-        public LogVerbosity Level
-        {
-            get => level;
-            set
-            {
-                if (level != value)                
-                    level = value;                
-            }
-        }
+        
+        public LogVerbosity Level { get; set; } = LogVerbosity.Info;
 
         public Log()
         {

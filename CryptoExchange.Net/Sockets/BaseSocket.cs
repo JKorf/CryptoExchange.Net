@@ -21,7 +21,6 @@ namespace CryptoExchange.Net.Sockets
         protected WebSocket socket;
         protected Log log;
         protected object socketLock = new object();
-        protected DateTime? lostTime = null;
 
         protected readonly List<Action<Exception>> errorHandlers = new List<Action<Exception>>();
         protected readonly List<Action> openHandlers = new List<Action>();
@@ -214,16 +213,10 @@ namespace CryptoExchange.Net.Sockets
                 return connected;
             }).ConfigureAwait(false);
         }
-
-        public virtual void SetEnabledSslProtocols(SslProtocols protocols)
-        {
-            socket.Security.EnabledSslProtocols = protocols;
-        }
-
+        
         public virtual void SetProxy(string host, int port)
         {
-            IPAddress address;
-            socket.Proxy = IPAddress.TryParse(host, out address)
+            socket.Proxy = IPAddress.TryParse(host, out var address)
                 ? new HttpConnectProxy(new IPEndPoint(address, port))
                 : new HttpConnectProxy(new DnsEndPoint(host, port));
         }

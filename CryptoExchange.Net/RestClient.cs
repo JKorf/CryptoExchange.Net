@@ -92,8 +92,8 @@ namespace CryptoExchange.Net
             {
                 if(e.InnerException != null)
                 {
-                    if (e.InnerException is SocketException)
-                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + ((SocketException)e.InnerException).SocketErrorCode });
+                    if (e.InnerException is SocketException exception)
+                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + exception.SocketErrorCode });
                     return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
                 }
                 return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.Message });
@@ -115,7 +115,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false, bool checkResult = true) where T : class
         {
-            log.Write(LogVerbosity.Debug, $"Creating request for " + uri);
+            log.Write(LogVerbosity.Debug, "Creating request for " + uri);
             if (signed && authProvider == null)
             { 
                 log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
@@ -203,7 +203,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Writes the string data of the paramters to the request body stream
+        /// Writes the string data of the parameters to the request body stream
         /// </summary>
         /// <param name="request"></param>
         /// <param name="stringData"></param>
@@ -292,7 +292,7 @@ namespace CryptoExchange.Net
             }
             catch (Exception e)
             {
-                log.Write(LogVerbosity.Error, $"Unkown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
+                log.Write(LogVerbosity.Error, $"Unknown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
                 return new CallResult<string>(null, new UnknownError(e.Message + ", data: " + returnedData));
             }
         }

@@ -34,10 +34,10 @@ namespace CryptoExchange.Net.Authentication
 
         protected string ByteToString(byte[] buff)
         {
-            var sbinary = "";
+            var result = "";
             foreach (var t in buff)
-                sbinary += t.ToString("X2"); /* hex format */
-            return sbinary;
+                result += t.ToString("X2"); /* hex format */
+            return result;
         }
     }
 }

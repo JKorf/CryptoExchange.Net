@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
@@ -52,7 +52,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Set a function to interprete the data, used when the data is received as bytes instead of a string
+        /// Set a function to interpret the data, used when the data is received as bytes instead of a string
         /// </summary>
         /// <param name="handler"></param>
         protected void SetDataInterpreter(Func<byte[], string> handler)
@@ -83,13 +83,11 @@ namespace CryptoExchange.Net
             };
             socket.OnError += (e) =>
             {
-                log.Write(LogVerbosity.Warning, $"Socket {socket.Id} error: " + e.ToString());
+                log.Write(LogVerbosity.Info, $"Socket {socket.Id} error: " + e.ToString());
                 SocketError(socket, e);
             };
-            socket.OnOpen += () =>
-            {
-                SocketOpened(socket);
-            };
+            socket.OnOpen += () => SocketOpened(socket);
+            socket.OnClose += () => SocketClosed(socket);
             return socket;
         }
 
@@ -141,16 +139,21 @@ namespace CryptoExchange.Net
             string currentHandlerName = null;
             try
             {
+                var sw = Stopwatch.StartNew();
                 foreach (var handler in subscription.MessageHandlers)
                 {
                     currentHandlerName = handler.Key;
                     if (handler.Value(subscription, JToken.Parse(data)))
-                        return;
+                        break;
                 }
+                sw.Stop();
+                if (sw.ElapsedMilliseconds > 500)
+                    log.Write(LogVerbosity.Warning, $"Socket {subscription.Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
+                        "Data from this socket may arrive late or not at all if message processing is continuously slow.");
             }
             catch(Exception ex)
             {
-                log.Write(LogVerbosity.Error, $"Exception during message processing\r\nProcessor: {currentHandlerName}\r\nException: {ex}\r\nData: {data}");
+                log.Write(LogVerbosity.Error, $"Socket {subscription.Socket.Id} Exception during message processing\r\nProcessor: {currentHandlerName}\r\nException: {ex}\r\nData: {data}");
             }
         }
 
@@ -186,7 +189,6 @@ namespace CryptoExchange.Net
                         socket.Close().Wait(); // Close so we end up reconnecting again
                     else
                         log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
-                    return;
                 });
             }
             else
