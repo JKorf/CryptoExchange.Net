@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.Sockets
         private readonly SocketSubscription subscription;
 
         /// <summary>
-        /// Event when the connection is lost
+        /// Event when the connection is lost. The socket will automatically reconnect when possible.
         /// </summary>
         public event Action ConnectionLost
         {

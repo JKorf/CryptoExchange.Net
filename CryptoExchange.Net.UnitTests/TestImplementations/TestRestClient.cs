@@ -22,9 +22,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public TestRestClient(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
+            RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        public void SetResponse(string responseData)
+        public void SetResponse(string responseData, Stream requestStream = null)
         {
             var expectedBytes = Encoding.UTF8.GetBytes(responseData);
             var responseStream = new MemoryStream();
@@ -37,6 +38,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             var request = new Mock<IRequest>();
             request.Setup(c => c.Headers).Returns(new WebHeaderCollection());
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
+            request.Setup(c => c.GetRequestStream()).Returns(Task.FromResult(requestStream));
             request.Setup(c => c.GetResponse()).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
@@ -84,9 +86,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
                 .Returns(request.Object);
         }
 
-        public async Task<CallResult<T>> Request<T>() where T:class
+        public async Task<CallResult<T>> Request<T>(string method = "GET") where T:class
         {
-            return await ExecuteRequest<T>(new Uri("http://www.test.com"));
+            return await ExecuteRequest<T>(new Uri("http://www.test.com"), method);
         }
     }
 

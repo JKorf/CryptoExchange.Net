@@ -20,11 +20,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The factory for creating sockets. Used for unit testing
         /// </summary>
-        public virtual IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
+        public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
         protected List<SocketSubscription> sockets = new List<SocketSubscription>();
 
-        protected TimeSpan reconnectInterval;
+        public TimeSpan ReconnectInterval { get; private set; }
         protected Func<byte[], string> dataInterpreter;
 
         protected const string DataHandlerName = "DataHandler";
@@ -48,7 +48,7 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(SocketClientOptions exchangeOptions)
         {
-            reconnectInterval = exchangeOptions.ReconnectInterval;
+            ReconnectInterval = exchangeOptions.ReconnectInterval;
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace CryptoExchange.Net
                 log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect");
                 Task.Run(() =>
                 {
-                    Thread.Sleep(reconnectInterval);
+                    Thread.Sleep(ReconnectInterval);
                     if (!socket.Connect().Result)
                     {
                         log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");

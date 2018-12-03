@@ -13,7 +13,6 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
 
@@ -25,14 +24,14 @@ namespace CryptoExchange.Net
         /// The factory for creating requests. Used for unit testing
         /// </summary>
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
-
-        protected RateLimitingBehaviour rateLimitBehaviour;
-        protected int requestTimeout;
+        
 
         protected PostParameters postParametersPosition = PostParameters.InBody;
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
-        private List<IRateLimiter> rateLimiters;
+        protected TimeSpan RequestTimeout { get; private set; }
+        public RateLimitingBehaviour RateLimitBehaviour { get; private set; }
+        public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
 
         protected RestClient(ClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
@@ -45,11 +44,12 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(ClientOptions exchangeOptions)
         {
-            requestTimeout = (int)Math.Round(exchangeOptions.RequestTimeout.TotalMilliseconds, 0);
-            rateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
-            rateLimiters = new List<IRateLimiter>();
+            RequestTimeout = exchangeOptions.RequestTimeout;
+            RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
+            var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
+            RateLimiters = rateLimiters;
         }
 
         /// <summary>
@@ -58,7 +58,9 @@ namespace CryptoExchange.Net
         /// <param name="limiter">The limiter to add</param>
         public void AddRateLimiter(IRateLimiter limiter)
         {
+            var rateLimiters = RateLimiters.ToList();
             rateLimiters.Add(limiter);
+            RateLimiters = rateLimiters;
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace CryptoExchange.Net
         /// </summary>
         public void RemoveRateLimiters()
         {
-            rateLimiters.Clear();
+            RateLimiters = new List<IRateLimiter>();
         }
 
         /// <summary>
@@ -82,7 +84,7 @@ namespace CryptoExchange.Net
         public virtual async Task<CallResult<long>> PingAsync()
         {
             var ping = new Ping();
-            var uri = new Uri(baseAddress);
+            var uri = new Uri(BaseAddress);
             PingReply reply;
             try
             {
@@ -130,9 +132,9 @@ namespace CryptoExchange.Net
                 request.SetProxy(apiProxy.Host, apiProxy.Port);
             }
 
-            foreach (var limiter in rateLimiters)
+            foreach (var limiter in RateLimiters)
             {
-                var limitResult = limiter.LimitRequest(uri.AbsolutePath, rateLimitBehaviour);
+                var limitResult = limiter.LimitRequest(uri.AbsolutePath, RateLimitBehaviour);
                 if (!limitResult.Success)
                 {
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
@@ -248,7 +250,7 @@ namespace CryptoExchange.Net
             var returnedData = "";
             try
             {
-                request.Timeout = requestTimeout;
+                request.Timeout = RequestTimeout;
                 var response = await request.GetResponse().ConfigureAwait(false);
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {

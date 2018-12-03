@@ -44,10 +44,10 @@ namespace CryptoExchange.Net.Requests
             set => request.Method = value;
         }
 
-        public int Timeout
+        public TimeSpan Timeout
         {
-            get => request.Timeout;
-            set => request.Timeout = value;
+            get => TimeSpan.FromMilliseconds(request.Timeout);
+            set => request.Timeout = (int)Math.Round(value.TotalMilliseconds);
         }
 
         public Uri Uri => request.RequestUri;

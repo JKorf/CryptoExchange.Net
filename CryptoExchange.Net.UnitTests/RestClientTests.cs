@@ -6,8 +6,12 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.RateLimiter;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -93,6 +97,73 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(result.Error is ServerError);
             Assert.IsTrue(result.Error.Code == 123);
             Assert.IsTrue(result.Error.Message == "Invalid request");
+        }
+
+        [TestCase]
+        public void SettingOptions_Should_ResultInOptionsSet()
+        {
+            // arrange
+            // act
+            var client = new TestRestClient(new ClientOptions()
+            {
+                BaseAddress = "http://test.address.com",
+                RateLimiters = new List<IRateLimiter>{new RateLimiterTotal(1, TimeSpan.FromSeconds(1))},
+                RateLimitingBehaviour = RateLimitingBehaviour.Fail
+            });
+
+
+            // assert
+            Assert.IsTrue(client.BaseAddress == "http://test.address.com");
+            Assert.IsTrue(client.RateLimiters.Count() == 1);
+            Assert.IsTrue(client.RateLimitBehaviour == RateLimitingBehaviour.Fail);
+        }
+
+        [TestCase]
+        public void SettingRateLimitingBehaviourToFail_Should_FailLimitedRequests()
+        {
+            // arrange
+            var client = new TestRestClient(new ClientOptions()
+            {
+                RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
+                RateLimitingBehaviour = RateLimitingBehaviour.Fail
+            });
+            client.SetResponse("{\"property\": 123}");
+
+
+            // act
+            var result1 = client.Request<TestObject>().Result;
+            client.SetResponse("{\"property\": 123}");
+            var result2 = client.Request<TestObject>().Result;
+
+
+            // assert
+            Assert.IsTrue(result1.Success);
+            Assert.IsFalse(result2.Success);
+        }
+
+        [TestCase]
+        public void SettingRateLimitingBehaviourToWait_Should_DelayLimitedRequests()
+        {
+            // arrange
+            var client = new TestRestClient(new ClientOptions()
+            {
+                RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
+                RateLimitingBehaviour = RateLimitingBehaviour.Wait
+            });
+            client.SetResponse("{\"property\": 123}");
+
+
+            // act
+            var sw = Stopwatch.StartNew();
+            var result1 = client.Request<TestObject>().Result;
+            client.SetResponse("{\"property\": 123}"); // reset response stream
+            var result2 = client.Request<TestObject>().Result;
+            sw.Stop();
+
+            // assert
+            Assert.IsTrue(result1.Success);
+            Assert.IsTrue(result2.Success);
+            Assert.IsTrue(sw.ElapsedMilliseconds > 900, $"Actual: {sw.ElapsedMilliseconds}");
         }
     }
 }

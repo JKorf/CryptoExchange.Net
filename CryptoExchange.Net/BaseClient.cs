@@ -14,7 +14,7 @@ namespace CryptoExchange.Net
 {
     public abstract class BaseClient
     {
-        protected string baseAddress;
+        public string BaseAddress;
         protected Log log;
         protected ApiProxy apiProxy;
         protected AuthenticationProvider authProvider;
@@ -46,7 +46,7 @@ namespace CryptoExchange.Net
             log.UpdateWriters(exchangeOptions.LogWriters);
             log.Level = exchangeOptions.LogVerbosity;
 
-            baseAddress = exchangeOptions.BaseAddress;
+            BaseAddress = exchangeOptions.BaseAddress;
             apiProxy = exchangeOptions.Proxy;
             if (apiProxy != null)
                 log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");

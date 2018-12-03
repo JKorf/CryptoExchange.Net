@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Interfaces
         Uri Uri { get; }
         WebHeaderCollection Headers { get; set; }
         string Method { get; set; }
-        int Timeout { get; set; }
+        TimeSpan Timeout { get; set; }
         void SetProxy(string host, int port);
 
         string ContentType { get; set; }
