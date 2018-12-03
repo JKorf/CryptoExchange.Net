@@ -63,6 +63,37 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Tries to parse the json data and returns a token
+        /// </summary>
+        /// <param name="data">The data to parse</param>
+        /// <returns></returns>
+        protected CallResult<JToken> ValidateJson(string data)
+        {
+            try
+            {
+                return new CallResult<JToken>(JToken.Parse(data), null);
+            }
+            catch (JsonReaderException jre)
+            {
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<JToken>(null, new DeserializeError(info));
+            }
+            catch (JsonSerializationException jse)
+            {
+                var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<JToken>(null, new DeserializeError(info));
+            }
+            catch (Exception ex)
+            {
+                var info = $"Deserialize Unknown Exception: {ex.Message}. Data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<JToken>(null, new DeserializeError(info));
+            }
+        }
+
+        /// <summary>
         /// Deserialize a string into an object
         /// </summary>
         /// <typeparam name="T">The type to deserialize into</typeparam>
@@ -72,28 +103,10 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
-            try
-            {
-                return Deserialize<T>(JToken.Parse(data), checkObject, serializer);
-            }
-            catch (JsonReaderException jre)
-            {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
-            }
-            catch (JsonSerializationException jse)
-            {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
-            }
-            catch (Exception ex)
-            {
-                var info = $"Deserialize Unknown Exception: {ex.Message}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
-            }
+            var tokenResult = ValidateJson(data);
+            if(!tokenResult.Success)
+                return new CallResult<T>(default(T), tokenResult.Error);
+            return Deserialize<T>(tokenResult.Data, checkObject, serializer);
         }
 
         /// <summary>

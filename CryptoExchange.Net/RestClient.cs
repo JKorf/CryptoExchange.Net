@@ -13,8 +13,10 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
@@ -158,7 +160,27 @@ namespace CryptoExchange.Net
 
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {(paramString ?? "")}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
-            return result.Error != null ? new CallResult<T>(null, result.Error) : Deserialize<T>(result.Data, checkResult);
+            if(!result.Success)
+                return new CallResult<T>(null, result.Error);
+
+            var jsonResult = ValidateJson(result.Data);
+            if(!jsonResult.Success)
+                return new CallResult<T>(null, jsonResult.Error);
+
+            if (IsErrorResponse(jsonResult.Data))
+                return new CallResult<T>(null, ParseErrorResponse(jsonResult.Data));
+            
+            return Deserialize<T>(jsonResult.Data, checkResult);
+        }
+
+        /// <summary>
+        /// Can be overridden to indicate if a response is an error response
+        /// </summary>
+        /// <param name="data">The received data</param>
+        /// <returns>True if error response</returns>
+        protected virtual bool IsErrorResponse(JToken data)
+        {
+            return false;
         }
 
         /// <summary>
@@ -304,9 +326,9 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="error">The string the request returned</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(string error)
+        protected virtual Error ParseErrorResponse(JToken error)
         {
-            return new ServerError(error);
+            return new ServerError(error.ToString());
         }
     }
 }

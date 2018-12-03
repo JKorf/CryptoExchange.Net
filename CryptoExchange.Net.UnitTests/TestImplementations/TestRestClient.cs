@@ -97,10 +97,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public ParseErrorTestRestClient() { }
         public ParseErrorTestRestClient(ClientOptions exchangeOptions) : base(exchangeOptions) { }
 
-        protected override Error ParseErrorResponse(string error)
+        protected override Error ParseErrorResponse(JToken error)
         {
-            var data = JToken.Parse(error);
-            return new ServerError((int)data["errorCode"], (string)data["errorMessage"]);
+            return new ServerError((int)error["errorCode"], (string)error["errorMessage"]);
         }
     }
 }
