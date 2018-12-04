@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestSocketClient: SocketClient
     {
-        public Action OnReconnect { get; set; }
+        public Func<bool> OnReconnect { get; set; }
 
         public TestSocketClient() : this(new SocketClientOptions())
         {
@@ -23,6 +23,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public TestSocket CreateSocket()
         {
+            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
             return (TestSocket)CreateSocket(BaseAddress);
         }
 
@@ -33,8 +34,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         
         protected override bool SocketReconnect(SocketSubscription subscription, TimeSpan disconnectedTime)
         {
-            OnReconnect?.Invoke();
-            return true;
+            return OnReconnect.Invoke();
         }
     }
 }

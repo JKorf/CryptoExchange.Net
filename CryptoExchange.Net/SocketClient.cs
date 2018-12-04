@@ -76,8 +76,11 @@ namespace CryptoExchange.Net
             socket.DataInterpreter = dataInterpreter;
             socket.OnClose += () =>
             {
-                foreach (var sub in sockets)
-                    sub.ResetEvents();
+                lock (sockets)
+                {
+                    foreach (var sub in sockets)
+                        sub.ResetEvents();
+                }
 
                 SocketOnClose(socket);
             };
@@ -93,7 +96,8 @@ namespace CryptoExchange.Net
 
         protected virtual SocketSubscription GetBackgroundSocket(bool authenticated = false)
         {
-            return sockets.SingleOrDefault(s => s.Type == (authenticated ? SocketType.BackgroundAuthenticated : SocketType.Background));
+            lock (sockets)
+                return sockets.SingleOrDefault(s => s.Type == (authenticated ? SocketType.BackgroundAuthenticated : SocketType.Background));
         }
 
         protected virtual void SocketOpened(IWebsocket socket) { }
@@ -197,7 +201,7 @@ namespace CryptoExchange.Net
                 socket.Dispose();
                 lock (sockets)
                 {
-                    var subscription = sockets.SingleOrDefault(s => s.Socket == socket);
+                    var subscription = sockets.SingleOrDefault(s => s.Socket.Id == socket.Id);
                     if(subscription != null)
                         sockets.Remove(subscription);
                 }
@@ -248,8 +252,12 @@ namespace CryptoExchange.Net
             await Task.Run(() =>
             {
                 var tasks = new List<Task>();
-                foreach (var sub in new List<SocketSubscription>(sockets))
-                    tasks.Add(sub.Close());
+                lock (sockets)
+                {
+                    foreach (var sub in new List<SocketSubscription>(sockets))
+                        tasks.Add(sub.Close());
+                }
+
                 Task.WaitAll(tasks.ToArray());
             });
         }
@@ -257,8 +265,7 @@ namespace CryptoExchange.Net
         public override void Dispose()
         {
             log.Write(LogVerbosity.Debug, "Disposing socket client, closing all subscriptions");
-            lock (sockets)
-                UnsubscribeAll().Wait();
+            UnsubscribeAll().Wait();
 
             base.Dispose();
         }

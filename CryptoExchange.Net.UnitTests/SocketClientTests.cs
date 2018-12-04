@@ -164,6 +164,7 @@ namespace CryptoExchange.Net.UnitTests
             {
                 reconnected = true;
                 rstEvent.Set();
+                return true;
             };
 
             // act
@@ -228,6 +229,35 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.IsFalse(connectResult.Success);
+        }
+        
+        [Test]
+        public void WhenResubscribeFails_Socket_ShouldReconnect()
+        {
+            // arrange
+            int reconnected = 0;
+            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.FromMilliseconds(1), LogVerbosity = LogVerbosity.Debug });
+            var socket = client.CreateSocket();
+            socket.ShouldReconnect = true;
+            socket.CanConnect = true;
+            socket.DisconnectTime = DateTime.UtcNow;
+            var sub = new SocketSubscription(socket);
+            client.ConnectSocketSub(sub);
+            var rstEvent = new ManualResetEvent(false);
+            client.OnReconnect += () =>
+            {
+                reconnected++;
+                rstEvent.Set();
+                return reconnected == 2;
+            };
+
+            // act
+            socket.InvokeClose();
+            rstEvent.WaitOne(1000);
+            Thread.Sleep(100);
+
+            // assert
+            Assert.IsTrue(reconnected == 2);
         }
     }
 }

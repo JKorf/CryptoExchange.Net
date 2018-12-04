@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public int Id { get; }
         public bool ShouldReconnect { get; set; }
+        public TimeSpan Timeout { get; set; }
         public Func<byte[], string> DataInterpreter { get; set; }
         public DateTime? DisconnectTime { get; set; }
         public string Url { get; }
@@ -30,9 +31,24 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TimeSpan PingInterval { get; set; }
         public SslProtocols SSLProtocols { get; set; }
 
+        public int ConnectCalls { get; private set; }
+
+        public static int lastId = 0;
+        public static object lastIdLock = new object();
+
+        public TestSocket()
+        {
+            lock (lastIdLock)
+            {
+                Id = lastId + 1;
+                lastId++;
+            }
+        }
+
         public Task<bool> Connect()
         {
             Connected = CanConnect;
+            ConnectCalls++;
             return Task.FromResult(CanConnect);
         }
 
@@ -45,6 +61,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public Task Close()
         {
             Connected = false;
+            DisconnectTime = DateTime.UtcNow;
+            OnClose?.Invoke();
             return Task.FromResult(0);
         }
 
@@ -59,6 +77,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public void InvokeClose()
         {
             Connected = false;
+            DisconnectTime = DateTime.UtcNow;
             OnClose?.Invoke();
         }
 
