@@ -39,6 +39,10 @@ namespace CryptoExchange.Net.Sockets
         public SslProtocols SSLProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
         public Func<byte[], string> DataInterpreter { get; set; }
 
+        public DateTime LastActionTime { get; private set; }
+        public TimeSpan Timeout { get; set; }
+        private Task timeoutTask;
+
         public bool PingConnection
         {
             get => socket.EnableAutoSendPing;
@@ -101,16 +105,36 @@ namespace CryptoExchange.Net.Sockets
             remove => openHandlers.Remove(value);
         }
 
-        protected static void Handle(List<Action> handlers)
+        protected void Handle(List<Action> handlers)
         {
+            LastActionTime = DateTime.UtcNow;
             foreach (var handle in new List<Action>(handlers))
                 handle?.Invoke();
         }
 
         protected void Handle<T>(List<Action<T>> handlers, T data)
         {
+            LastActionTime = DateTime.UtcNow;
             foreach (var handle in new List<Action<T>>(handlers))
                 handle?.Invoke(data);
+        }
+
+        protected void CheckTimeout()
+        {
+            while (true)
+            {
+                if (socket == null || socket.State != WebSocketState.Open)
+                    return;
+
+                if (DateTime.UtcNow - LastActionTime > Timeout)
+                {
+                    log.Write(LogVerbosity.Warning, $"No data received for {Timeout}, reconnecting socket");
+                    Close().Wait();
+                    return;
+                }
+
+                Thread.Sleep(500);
+            }
         }
 
         public virtual async Task Close()
@@ -202,7 +226,11 @@ namespace CryptoExchange.Net.Sockets
                     }
                     connected = socket.State == WebSocketState.Open;
                     if (connected)
+                    {
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connected");
+                        if ((timeoutTask == null || timeoutTask.IsCompleted) && Timeout != default(TimeSpan))
+                            timeoutTask = Task.Run(() => CheckTimeout());
+                    }
                     else
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connection failed, state: " + socket.State);
                 }
