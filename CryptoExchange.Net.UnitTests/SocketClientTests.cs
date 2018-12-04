@@ -173,5 +173,61 @@ namespace CryptoExchange.Net.UnitTests
             // assert
             Assert.IsTrue(reconnected);
         }
+
+        [TestCase()]
+        public void UnsubscribingStream_Should_CloseTheSocket()
+        {
+            // arrange
+            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var socket = client.CreateSocket();
+            socket.CanConnect = true;
+            var sub = new SocketSubscription(socket);
+            client.ConnectSocketSub(sub);
+            var ups = new UpdateSubscription(sub);
+
+            // act
+            client.Unsubscribe(ups).Wait();
+
+            // assert
+            Assert.IsTrue(socket.Connected == false);
+        }
+
+        [TestCase()]
+        public void UnsubscribingAll_Should_CloseAllSockets()
+        {
+            // arrange
+            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var socket1 = client.CreateSocket();
+            var socket2 = client.CreateSocket();
+            socket1.CanConnect = true;
+            socket2.CanConnect = true;
+            var sub1 = new SocketSubscription(socket1);
+            var sub2 = new SocketSubscription(socket2);
+            client.ConnectSocketSub(sub1);
+            client.ConnectSocketSub(sub2);
+
+            // act
+            client.UnsubscribeAll().Wait();
+
+            // assert
+            Assert.IsTrue(socket1.Connected == false);
+            Assert.IsTrue(socket2.Connected == false);
+        }
+
+        [TestCase()]
+        public void FailingToConnectSocket_Should_ReturnError()
+        {
+            // arrange
+            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var socket = client.CreateSocket();
+            socket.CanConnect = false;
+            var sub = new SocketSubscription(socket);
+
+            // act
+            var connectResult = client.ConnectSocketSub(sub);
+
+            // assert
+            Assert.IsFalse(connectResult.Success);
+        }
     }
 }

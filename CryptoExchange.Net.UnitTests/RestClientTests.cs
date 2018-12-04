@@ -78,7 +78,8 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsFalse(result.Success);
             Assert.IsTrue(result.Error != null);
             Assert.IsTrue(result.Error is ServerError);
-            Assert.IsTrue(result.Error.Message.Contains("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}"));
+            Assert.IsTrue(result.Error.Message.Contains("Invalid request"));
+            Assert.IsTrue(result.Error.Message.Contains("123"));
         }
 
         [TestCase]

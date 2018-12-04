@@ -1,3 +1,0 @@
-Documentation
-Data interpreter for string data
-Unit testing most socket stuff

@@ -295,7 +295,12 @@ namespace CryptoExchange.Net
                     }
 
                     response.Close();
-                    return new CallResult<string>(null, ParseErrorResponse(returnedData));                    
+
+                    var jsonResult = ValidateJson(returnedData);
+                    if (!jsonResult.Success)
+                        return new CallResult<string>(null, jsonResult.Error);
+
+                    return new CallResult<string>(null, ParseErrorResponse(jsonResult.Data));                    
                 }
                 catch (Exception)
                 {
