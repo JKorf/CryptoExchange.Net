@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace CryptoExchange.Net
 {
-    public abstract class BaseClient
+    public abstract class BaseClient: IDisposable
     {
         public string BaseAddress;
         protected Log log;
