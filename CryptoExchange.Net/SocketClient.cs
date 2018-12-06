@@ -30,7 +30,7 @@ namespace CryptoExchange.Net
         protected const string DataHandlerName = "DataHandler";
         protected const string AuthenticationHandlerName = "AuthenticationHandler";
         protected const string SubscriptionHandlerName = "SubscriptionHandler";
-        protected const string PingHandlerName = "SubscriptionHandler";
+        protected const string PingHandlerName = "PingHandler";
 
         protected const string DataEvent = "Data";
         protected const string SubscriptionEvent = "Subscription";
@@ -121,7 +121,7 @@ namespace CryptoExchange.Net
         {
             socketSubscription.Socket.OnMessage += data => ProcessMessage(socketSubscription, data);
 
-            if (await socketSubscription.Socket.Connect())
+            if (await socketSubscription.Socket.Connect().ConfigureAwait(false))
             {
                 lock (sockets)
                     sockets.Add(socketSubscription);
@@ -239,7 +239,7 @@ namespace CryptoExchange.Net
         public virtual async Task Unsubscribe(UpdateSubscription subscription)
         {
             log.Write(LogVerbosity.Info, $"Closing subscription {subscription.Id}");
-            await subscription.Close();
+            await subscription.Close().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace CryptoExchange.Net
                 }
 
                 Task.WaitAll(tasks.ToArray());
-            });
+            }).ConfigureAwait(false);
         }
 
         public override void Dispose()

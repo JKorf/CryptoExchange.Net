@@ -13,7 +13,6 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -90,7 +89,7 @@ namespace CryptoExchange.Net
             PingReply reply;
             try
             {
-                reply = await ping.SendPingAsync(uri.Host);
+                reply = await ping.SendPingAsync(uri.Host).ConfigureAwait(false);
             }
             catch(PingException e)
             {
