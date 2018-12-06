@@ -61,9 +61,9 @@ namespace CryptoExchange.Net
             lock (source)
             {
                 string result;
-                int length = source.Length;
-                IntPtr pointer = IntPtr.Zero;
-                char[] chars = new char[length];
+                var length = source.Length;
+                var pointer = IntPtr.Zero;
+                var chars = new char[length];
 
                 try
                 {

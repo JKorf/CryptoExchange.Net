@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The log writers
         /// </summary>
-        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter>() { new DebugTextWriter() };           
+        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };           
     }
 
     public class ClientOptions: ExchangeOptions

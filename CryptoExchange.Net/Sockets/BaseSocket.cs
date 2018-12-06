@@ -55,15 +55,7 @@ namespace CryptoExchange.Net.Sockets
             set => socket.AutoSendPingInterval = (int) Math.Round(value.TotalSeconds);
         }
 
-        public WebSocketState SocketState
-        {
-            get
-            {
-                if (socket == null)
-                    return WebSocketState.None;
-                return socket.State;
-            }
-        }
+        public WebSocketState SocketState => socket?.State ?? WebSocketState.None;
 
         public BaseSocket(Log log, string url):this(log, url, new Dictionary<string, string>(), new Dictionary<string, string>())
         {
@@ -151,7 +143,7 @@ namespace CryptoExchange.Net.Sockets
 
                     var waitLock = new object();
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} closing");
-                    ManualResetEvent evnt = new ManualResetEvent(false);
+                    var evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
                         lock(waitLock)
@@ -200,7 +192,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} connecting");
                     var waitLock = new object();
-                    ManualResetEvent evnt = new ManualResetEvent(false);
+                    var evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
                         lock (waitLock)
@@ -266,7 +258,7 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        private int NextStreamId()
+        private static int NextStreamId()
         {
             lock (streamIdLock)
             {

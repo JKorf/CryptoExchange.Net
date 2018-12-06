@@ -84,7 +84,7 @@ namespace CryptoExchange.Net
 
                 SocketOnClose(socket);
             };
-            socket.OnError += (e) =>
+            socket.OnError += e =>
             {
                 log.Write(LogVerbosity.Info, $"Socket {socket.Id} error: " + e.ToString());
                 SocketError(socket, e);
@@ -248,7 +248,9 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAll()
         {
-            log.Write(LogVerbosity.Debug, $"Closing all {sockets.Count} subscriptions");
+            lock (sockets)
+                log.Write(LogVerbosity.Debug, $"Closing all {sockets.Count} subscriptions");
+
             await Task.Run(() =>
             {
                 var tasks = new List<Task>();

@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Authentication
         public bool IsEncrypted { get; }
 
         /// <summary>
-        /// Create a private key providing an encrypted key informations
+        /// Create a private key providing an encrypted key information
         /// </summary>
         /// <param name="key">The private key used for signing</param>
         /// <param name="passphrase">The private key's passphrase</param>

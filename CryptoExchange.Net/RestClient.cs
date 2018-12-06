@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,6 +12,7 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -93,17 +93,15 @@ namespace CryptoExchange.Net
             }
             catch(PingException e)
             {
-                if(e.InnerException != null)
-                {
-                    if (e.InnerException is SocketException exception)
-                        return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + exception.SocketErrorCode });
-                    return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
-                }
-                return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.Message });
+                if (e.InnerException == null)
+                    return new CallResult<long>(0, new CantConnectError() {Message = "Ping failed: " + e.Message});
+
+                if (e.InnerException is SocketException exception)
+                    return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + exception.SocketErrorCode });
+                return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
             }
-            if (reply.Status == IPStatus.Success)
-                return new CallResult<long>(reply.RoundtripTime, null);
-            return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
+
+            return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
         }
 
         /// <summary>
@@ -157,7 +155,7 @@ namespace CryptoExchange.Net
                 paramString = paramString.Trim(',');
             }
 
-            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {(paramString ?? "")}");
+            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {paramString ?? ""}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             if(!result.Success)
                 return new CallResult<T>(null, result.Error);
@@ -199,7 +197,7 @@ namespace CryptoExchange.Net
             if(authProvider != null)
                 parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
 
-            if((method == Constants.GetMethod || method == Constants.DeleteMethod || (postParametersPosition == PostParameters.InUri)) && parameters?.Any() == true)            
+            if((method == Constants.GetMethod || method == Constants.DeleteMethod || postParametersPosition == PostParameters.InUri) && parameters?.Any() == true)            
                 uriString += "?" + parameters.CreateParamString(true);
             
             var request = RequestFactory.Create(uriString);
@@ -253,10 +251,10 @@ namespace CryptoExchange.Net
             }
             else if(requestBodyFormat == RequestBodyFormat.FormData)
             {
-                NameValueCollection formData = HttpUtility.ParseQueryString(String.Empty);
+                var formData = HttpUtility.ParseQueryString(String.Empty);
                 foreach (var kvp in parameters.OrderBy(p => p.Key))
                     formData.Add(kvp.Key, kvp.Value.ToString());
-                string stringData = formData.ToString();
+                var stringData = formData.ToString();
                 WriteParamBody(request, stringData);
             }
         }
@@ -296,10 +294,7 @@ namespace CryptoExchange.Net
                     response.Close();
 
                     var jsonResult = ValidateJson(returnedData);
-                    if (!jsonResult.Success)
-                        return new CallResult<string>(null, jsonResult.Error);
-
-                    return new CallResult<string>(null, ParseErrorResponse(jsonResult.Data));                    
+                    return !jsonResult.Success ? new CallResult<string>(null, jsonResult.Error) : new CallResult<string>(null, ParseErrorResponse(jsonResult.Data));
                 }
                 catch (Exception)
                 {

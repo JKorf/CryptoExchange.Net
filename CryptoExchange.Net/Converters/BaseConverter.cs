@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Converters
             if (Mapping.ContainsValue(value))
                 return Mapping.Single(m => m.Value == value).Key;
 
-            var lowerResult = Mapping.SingleOrDefault(m => m.Value.ToLower() == value.ToLower());
+            var lowerResult = Mapping.SingleOrDefault(m => string.Equals(m.Value, value, StringComparison.CurrentCultureIgnoreCase));
             if (!lowerResult.Equals(default(KeyValuePair<T, string>)))
                 return lowerResult.Key;
 

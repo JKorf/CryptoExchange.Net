@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Converters
             return ParseObject(arr, result, objectType);
         }
 
-        private object ParseObject(JArray arr, object result, Type objectType)
+        private static object ParseObject(JArray arr, object result, Type objectType)
         {
             foreach (var property in objectType.GetProperties())
             {
@@ -66,7 +66,7 @@ namespace CryptoExchange.Net.Converters
                 }
 
                 var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute)) ?? (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
-                var value = converterAttribute != null ? arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer() { Converters = { (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType) } }) : arr[attribute.Index];
+                var value = converterAttribute != null ? arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer { Converters = { (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType) } }) : arr[attribute.Index];
 
                 if (value != null && property.PropertyType.IsInstanceOfType(value))
                     property.SetValue(result, value);
@@ -98,7 +98,7 @@ namespace CryptoExchange.Net.Converters
             var props = value.GetType().GetProperties();
             var ordered = props.OrderBy(p => p.GetCustomAttribute<ArrayPropertyAttribute>()?.Index);
 
-            int last = -1;
+            var last = -1;
             foreach (var prop in ordered)
             {
                 var arrayProp = prop.GetCustomAttribute<ArrayPropertyAttribute>();
@@ -126,7 +126,7 @@ namespace CryptoExchange.Net.Converters
             writer.WriteEndArray();
         }
 
-        private bool IsSimple(Type type)
+        private static bool IsSimple(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {

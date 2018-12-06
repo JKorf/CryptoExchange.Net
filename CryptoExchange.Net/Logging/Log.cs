@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Logging
             if ((int)logType < (int)Level)
                 return;
 
-            string logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logType} | {message}";
+            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logType} | {message}";
             foreach (var writer in writers.ToList())
             {
                 try

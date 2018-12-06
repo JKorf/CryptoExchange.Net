@@ -14,7 +14,7 @@ namespace CryptoExchange.Net
 {
     public abstract class BaseClient: IDisposable
     {
-        public string BaseAddress;
+        public string BaseAddress { get; private set; }
         protected Log log;
         protected ApiProxy apiProxy;
         protected AuthenticationProvider authProvider;
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net
         protected static int lastId;
         protected static object idLock = new object();
 
-        private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings()
+        private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings
         {
             DateTimeZoneHandling = DateTimeZoneHandling.Utc,
             Culture = CultureInfo.InvariantCulture
@@ -104,9 +104,7 @@ namespace CryptoExchange.Net
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
             var tokenResult = ValidateJson(data);
-            if(!tokenResult.Success)
-                return new CallResult<T>(default(T), tokenResult.Error);
-            return Deserialize<T>(tokenResult.Data, checkObject, serializer);
+            return !tokenResult.Success ? new CallResult<T>(default(T), tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
         }
 
         /// <summary>
@@ -181,7 +179,7 @@ namespace CryptoExchange.Net
                 return;
             }
 
-            bool isDif = false;
+            var isDif = false;
             var properties = new List<string>();
             var props = type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             foreach (var prop in props)
@@ -198,7 +196,7 @@ namespace CryptoExchange.Net
                 var d = properties.FirstOrDefault(p => p == token.Key);
                 if (d == null)
                 {
-                    d = properties.SingleOrDefault(p => p.ToLower() == token.Key.ToLower());
+                    d = properties.SingleOrDefault(p => string.Equals(p, token.Key, StringComparison.CurrentCultureIgnoreCase));
                     if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                     {
                         log.Write(LogVerbosity.Warning, $"Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
@@ -236,14 +234,14 @@ namespace CryptoExchange.Net
                 log.Write(LogVerbosity.Debug, "Returned data: " + obj);
         }
 
-        private PropertyInfo GetProperty(string name, PropertyInfo[] props)
+        private static PropertyInfo GetProperty(string name, IEnumerable<PropertyInfo> props)
         {
             foreach (var prop in props)
             {
                 var attr = prop.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault();
                 if (attr == null)
                 {
-                    if (prop.Name.ToLower() == name.ToLower())
+                    if (String.Equals(prop.Name, name, StringComparison.CurrentCultureIgnoreCase))
                         return prop;
                 }
                 else
@@ -255,7 +253,7 @@ namespace CryptoExchange.Net
             return null;
         }
 
-        private bool IsSimple(Type type)
+        private static bool IsSimple(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
@@ -291,7 +289,7 @@ namespace CryptoExchange.Net
         {
             foreach (var value in values)
             {
-                int index = path.IndexOf("{}", StringComparison.Ordinal);
+                var index = path.IndexOf("{}", StringComparison.Ordinal);
                 if (index >= 0)
                 {
                     path = path.Remove(index, 2);

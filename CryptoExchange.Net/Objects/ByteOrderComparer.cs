@@ -17,17 +17,17 @@ namespace CryptoExchange.Net.Objects
 
             // Both arrays are non-null.  Find the shorter
             // of the two lengths.
-            int bytesToCompare = Math.Min(x.Length, y.Length);
+            var bytesToCompare = Math.Min(x.Length, y.Length);
 
             // Compare the bytes.
-            for (int index = 0; index < bytesToCompare; ++index)
+            for (var index = 0; index < bytesToCompare; ++index)
             {
                 // The x and y bytes.
-                byte xByte = x[index];
-                byte yByte = y[index];
+                var xByte = x[index];
+                var yByte = y[index];
 
                 // Compare result.
-                int compareResult = Comparer<byte>.Default.Compare(xByte, yByte);
+                var compareResult = Comparer<byte>.Default.Compare(xByte, yByte);
 
                 // If not the same, then return the result of the
                 // comparison of the bytes, as they were the same

@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.Sockets
         public string WaitingId { get; set; }
 
         private CallResult<bool> result;
-        private ManualResetEvent setEvnt;
+        private readonly ManualResetEvent setEvnt;
 
         public SocketEvent(string name)
         {
