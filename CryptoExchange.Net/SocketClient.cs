@@ -173,6 +173,8 @@ namespace CryptoExchange.Net
                 Task.Run(() =>
                 {
                     Thread.Sleep(ReconnectInterval);
+                    socket.Reset();
+
                     if (!socket.Connect().Result)
                     {
                         log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");

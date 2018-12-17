@@ -26,6 +26,7 @@ namespace CryptoExchange.Net.Interfaces
         TimeSpan Timeout { get; set; }
         Task<bool> Connect();
         void Send(string data);
+        void Reset();
         Task Close();
         void SetProxy(string host, int port);
     }

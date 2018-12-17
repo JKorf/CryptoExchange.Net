@@ -163,6 +163,12 @@ namespace CryptoExchange.Net.Sockets
             }).ConfigureAwait(false);
         }
 
+        public virtual void Reset()
+        {
+            socket.Dispose();
+            socket = null;
+        }
+
         public virtual void Send(string data)
         {
             socket.Send(data);
