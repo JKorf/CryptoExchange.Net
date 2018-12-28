@@ -32,6 +32,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public SslProtocols SSLProtocols { get; set; }
 
         public int ConnectCalls { get; private set; }
+        public bool Reconnecting { get; set; }
 
         public static int lastId = 0;
         public static object lastIdLock = new object();
