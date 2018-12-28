@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task Close()
         {
-            await subscription.Close();
+            await subscription.Close().ConfigureAwait(false);
         }
     }
 }
