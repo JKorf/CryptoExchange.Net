@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.Interfaces
 
         int Id { get; }
         bool ShouldReconnect { get; set; }
+        bool Reconnecting { get; set; }
         Func<byte[], string> DataInterpreter { get; set; }
         DateTime? DisconnectTime { get; set; }
         string Url { get; }
