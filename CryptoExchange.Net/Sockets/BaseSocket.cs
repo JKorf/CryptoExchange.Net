@@ -32,7 +32,10 @@ namespace CryptoExchange.Net.Sockets
 
         public int Id { get; }
         public DateTime? DisconnectTime { get; set; }
+
         public bool ShouldReconnect { get; set; }
+        public bool Reconnecting { get; set; }
+
         public string Url { get; }
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
@@ -115,14 +118,17 @@ namespace CryptoExchange.Net.Sockets
         {
             while (true)
             {
-                if (socket == null || socket.State != WebSocketState.Open)
-                    return;
-
-                if (DateTime.UtcNow - LastActionTime > Timeout)
+                lock (socketLock)
                 {
-                    log.Write(LogVerbosity.Warning, $"No data received for {Timeout}, reconnecting socket");
-                    Close().Wait();
-                    return;
+                    if (socket == null || socket.State != WebSocketState.Open)
+                        return;
+
+                    if (DateTime.UtcNow - LastActionTime > Timeout)
+                    {
+                        log.Write(LogVerbosity.Warning, $"No data received for {Timeout}, reconnecting socket");
+                        Close().ConfigureAwait(false);
+                        return;
+                    }
                 }
 
                 Thread.Sleep(500);
@@ -165,8 +171,11 @@ namespace CryptoExchange.Net.Sockets
 
         public virtual void Reset()
         {
-            socket.Dispose();
-            socket = null;
+            lock (socketLock)
+            {
+                socket?.Dispose();
+                socket = null;
+            }
         }
 
         public virtual void Send(string data)

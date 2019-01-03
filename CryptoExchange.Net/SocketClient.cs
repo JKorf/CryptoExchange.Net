@@ -169,6 +169,11 @@ namespace CryptoExchange.Net
         {
             if (socket.ShouldReconnect)
             {
+                if (socket.Reconnecting)
+                    return; // Already reconnecting
+
+                socket.Reconnecting = true;
+
                 log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect");
                 Task.Run(() =>
                 {
@@ -191,6 +196,7 @@ namespace CryptoExchange.Net
                     lock (sockets)
                         subscription = sockets.Single(s => s.Socket == socket);
 
+                    socket.Reconnecting = false;
                     if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
                         socket.Close().Wait(); // Close so we end up reconnecting again
                     else

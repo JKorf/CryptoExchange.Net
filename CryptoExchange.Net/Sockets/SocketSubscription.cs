@@ -26,6 +26,7 @@ namespace CryptoExchange.Net.Sockets
 
         private bool lostTriggered;
         private readonly List<SocketEvent> waitingForEvents;
+        private object eventLock = new object();
 
 
         public SocketSubscription(IWebsocket socket)
@@ -44,8 +45,11 @@ namespace CryptoExchange.Net.Sockets
                 Socket.DisconnectTime = DateTime.UtcNow;
                 lostTriggered = true;
 
-                foreach (var events in Events)
-                    events.Reset();
+                lock (eventLock)
+                {
+                    foreach (var events in Events)
+                        events.Reset();
+                }
 
                 if (Socket.ShouldReconnect)
                     ConnectionLost?.Invoke();
@@ -62,72 +66,89 @@ namespace CryptoExchange.Net.Sockets
 
         public void AddEvent(string name)
         {
-            Events.Add(new SocketEvent(name));
+            lock (eventLock)
+                Events.Add(new SocketEvent(name));
         }
 
         public void SetEventByName(string name, bool success, Error error)
         {
-            var waitingEvent = waitingForEvents.SingleOrDefault(e => e.Name == name);
-            if (waitingEvent != null)
+            lock (eventLock)
             {
-                waitingEvent.Set(success, error);
-                waitingForEvents.Remove(waitingEvent);
+                var waitingEvent = waitingForEvents.SingleOrDefault(e => e.Name == name);
+                if (waitingEvent != null)
+                {
+                    waitingEvent.Set(success, error);
+                    waitingForEvents.Remove(waitingEvent);
+                }
             }
         }
 
         public void SetEventById(string id, bool success, Error error)
         {
-            var waitingEvent = waitingForEvents.SingleOrDefault(e => e.WaitingId == id);
-            if (waitingEvent != null)
+            lock (eventLock)
             {
-                waitingEvent.Set(success, error);
-                waitingForEvents.Remove(waitingEvent);
+                var waitingEvent = waitingForEvents.SingleOrDefault(e => e.WaitingId == id);
+                if (waitingEvent != null)
+                {
+                    waitingEvent.Set(success, error);
+                    waitingForEvents.Remove(waitingEvent);
+                }
             }
         }
 
         public SocketEvent GetWaitingEvent(string name)
         {
-            return waitingForEvents.SingleOrDefault(w => w.Name == name);
+            lock (eventLock)
+                return waitingForEvents.SingleOrDefault(w => w.Name == name);
         }
-
-
-
+        
         public Task<CallResult<bool>> WaitForEvent(string name, TimeSpan timeout)
         {
-            return WaitForEvent(name, (int)Math.Round(timeout.TotalMilliseconds, 0));
+            lock (eventLock)
+                return WaitForEvent(name, (int)Math.Round(timeout.TotalMilliseconds, 0));
         }
 
         public Task<CallResult<bool>> WaitForEvent(string name, int timeout)
         {
-            var evnt = Events.Single(e => e.Name == name);
-            waitingForEvents.Add(evnt);
-            return Task.Run(() => evnt.Wait(timeout));
+            lock (eventLock)
+            {
+                var evnt = Events.Single(e => e.Name == name);
+                waitingForEvents.Add(evnt);
+                return Task.Run(() => evnt.Wait(timeout));
+            }
         }
 
         public Task<CallResult<bool>> WaitForEvent(string name, string id, TimeSpan timeout)
         {
-            return WaitForEvent(name, id, (int)Math.Round(timeout.TotalMilliseconds, 0));
+            lock (eventLock)
+                return WaitForEvent(name, id, (int)Math.Round(timeout.TotalMilliseconds, 0));
         }
 
         public Task<CallResult<bool>> WaitForEvent(string name, string id, int timeout)
         {
-            var evnt = Events.Single(e => e.Name == name);
-            evnt.WaitingId = id;
-            waitingForEvents.Add(evnt);
-            return Task.Run(() => evnt.Wait(timeout));
+            lock (eventLock)
+            {
+                var evnt = Events.Single(e => e.Name == name);
+                evnt.WaitingId = id;
+                waitingForEvents.Add(evnt);
+                return Task.Run(() => evnt.Wait(timeout));
+            }
         }
 
         public void ResetEvents()
         {
-            foreach (var waiting in new List<SocketEvent>(waitingForEvents))
-                waiting.Set(false, new UnknownError("Connection reset"));
-            waitingForEvents.Clear();
+            lock (eventLock)
+            {
+                foreach (var waiting in waitingForEvents)
+                    waiting.Set(false, new UnknownError("Connection reset"));
+                waitingForEvents.Clear();
+            }
         }
 
         public async Task Close()
         {
             Socket.ShouldReconnect = false;
-            await Socket.Close();
+            await Socket.Close().ConfigureAwait(false);
             Socket.Dispose();
         }
     }
