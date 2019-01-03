@@ -115,7 +115,7 @@ namespace CryptoExchange.Net.Sockets
         {
             while (true)
             {
-                if (socket?.State != WebSocketState.Open)
+                if (socket == null || socket.State != WebSocketState.Open)
                     return;
 
                 if (DateTime.UtcNow - LastActionTime > Timeout)
@@ -165,37 +165,30 @@ namespace CryptoExchange.Net.Sockets
 
         public virtual void Reset()
         {
-            lock (socketLock)
-            {
-                socket.Dispose();
-                socket = null;
-            }
+            socket.Dispose();
+            socket = null;
         }
 
         public virtual void Send(string data)
         {
-            lock (socketLock)
-                socket?.Send(data);
+            socket.Send(data);
         }
 
         public virtual async Task<bool> Connect()
         {
-            lock (socketLock)
+            if (socket == null)
             {
-                if (socket == null)
+                socket = new WebSocket(Url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
                 {
-                    socket = new WebSocket(Url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
-                    {
-                        EnableAutoSendPing = true,
-                        AutoSendPingInterval = 10
-                    };
-                    socket.Security.EnabledSslProtocols = SSLProtocols;
-                    socket.Opened += (o, s) => Handle(openHandlers);
-                    socket.Closed += (o, s) => Handle(closeHandlers);
-                    socket.Error += (o, s) => Handle(errorHandlers, s.Exception);
-                    socket.MessageReceived += (o, s) => Handle(messageHandlers, s.Message);
-                    socket.DataReceived += (o, s) => HandleByteData(s.Data);
-                }
+                    EnableAutoSendPing = true,
+                    AutoSendPingInterval = 10
+                };
+                socket.Security.EnabledSslProtocols = SSLProtocols;
+                socket.Opened += (o, s) => Handle(openHandlers);
+                socket.Closed += (o, s) => Handle(closeHandlers);
+                socket.Error += (o, s) => Handle(errorHandlers, s.Exception);
+                socket.MessageReceived += (o, s) => Handle(messageHandlers, s.Message);
+                socket.DataReceived += (o, s) => HandleByteData(s.Data);
             }
 
             return await Task.Run(() =>
