@@ -13,6 +13,7 @@ namespace CryptoExchange.Net.Interfaces
         event Action OnOpen;
 
         int Id { get; }
+        string Origin { get; set; }
         bool ShouldReconnect { get; set; }
         bool Reconnecting { get; set; }
         Func<byte[], string> DataInterpreter { get; set; }

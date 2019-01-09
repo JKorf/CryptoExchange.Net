@@ -35,6 +35,7 @@ namespace CryptoExchange.Net.Sockets
 
         public bool ShouldReconnect { get; set; }
         public bool Reconnecting { get; set; }
+        public string Origin { get; set; }
 
         public string Url { get; }
         public bool IsClosed => socket.State == WebSocketState.Closed;
@@ -173,6 +174,7 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (socketLock)
             {
+                log.Write(LogVerbosity.Debug, $"Socket {Id} resetting");
                 socket?.Dispose();
                 socket = null;
             }
@@ -187,7 +189,7 @@ namespace CryptoExchange.Net.Sockets
         {
             if (socket == null)
             {
-                socket = new WebSocket(Url, cookies: cookies.ToList(), customHeaderItems: headers.ToList())
+                socket = new WebSocket(Url, cookies: cookies.ToList(), customHeaderItems: headers.ToList(), origin: Origin ?? "")
                 {
                     EnableAutoSendPing = true,
                     AutoSendPingInterval = 10
@@ -243,7 +245,7 @@ namespace CryptoExchange.Net.Sockets
                 }
 
                 if (socket.State == WebSocketState.Connecting)
-                    Close().Wait();
+                    socket.Close();
 
                 return connected;
             }).ConfigureAwait(false);

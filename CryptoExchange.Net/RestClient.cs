@@ -33,6 +33,7 @@ namespace CryptoExchange.Net
         protected TimeSpan RequestTimeout { get; private set; }
         public RateLimitingBehaviour RateLimitBehaviour { get; private set; }
         public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
+        public int TotalRequestsMade { get; private set; }
 
         protected RestClient(ClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
@@ -270,6 +271,7 @@ namespace CryptoExchange.Net
             try
             {
                 request.Timeout = RequestTimeout;
+                TotalRequestsMade++;
                 var response = await request.GetResponse().ConfigureAwait(false);
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
