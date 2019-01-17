@@ -174,33 +174,41 @@ namespace CryptoExchange.Net
 
                 socket.Reconnecting = true;
 
-                log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect");
+                log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect after {ReconnectInterval}");
                 Task.Run(() =>
                 {
-                    Thread.Sleep(ReconnectInterval);
-                    socket.Reset();
-
-                    if (!socket.Connect().Result)
+                    while (socket.ShouldReconnect)
                     {
-                        log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");
-                        return; // Connect() should result in a SocketClosed event so we end up here again
+                        Thread.Sleep(ReconnectInterval);
+                        socket.Reset();
+                        if (!socket.Connect().Result)
+                        {
+                            log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");
+                            continue; 
+                        }
+
+                        var time = socket.DisconnectTime;
+                        socket.DisconnectTime = null;
+
+                        log.Write(LogVerbosity.Info, $"Socket {socket.Id} reconnected after {DateTime.UtcNow - time}");
+
+                        SocketSubscription subscription;
+                        lock (sockets)
+                            subscription = sockets.Single(s => s.Socket == socket);
+
+                        if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
+                        {
+                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} failed to resubscribe resubscribed");
+                            socket.Close().Wait();
+                        }
+                        else
+                        {
+                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
+                            break;
+                        }
                     }
-                    var time = socket.DisconnectTime;
-                    socket.DisconnectTime = null;
-                    if (time == null)
-                        return;
-
-                    log.Write(LogVerbosity.Info, $"Socket {socket.Id} reconnected after {DateTime.UtcNow - time}");
-
-                    SocketSubscription subscription;
-                    lock (sockets)
-                        subscription = sockets.Single(s => s.Socket == socket);
 
                     socket.Reconnecting = false;
-                    if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
-                        socket.Close().Wait(); // Close so we end up reconnecting again
-                    else
-                        log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
                 });
             }
             else
