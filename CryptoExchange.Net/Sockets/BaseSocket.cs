@@ -29,6 +29,7 @@ namespace CryptoExchange.Net.Sockets
 
         protected IDictionary<string, string> cookies;
         protected IDictionary<string, string> headers;
+        protected HttpConnectProxy proxy;
 
         public int Id { get; }
         public DateTime? DisconnectTime { get; set; }
@@ -194,6 +195,10 @@ namespace CryptoExchange.Net.Sockets
                     EnableAutoSendPing = true,
                     AutoSendPingInterval = 10
                 };
+
+                if (proxy != null)
+                    socket.Proxy = proxy;
+
                 socket.Security.EnabledSslProtocols = SSLProtocols;
                 socket.Opened += (o, s) => Handle(openHandlers);
                 socket.Closed += (o, s) => Handle(closeHandlers);
@@ -253,7 +258,7 @@ namespace CryptoExchange.Net.Sockets
         
         public virtual void SetProxy(string host, int port)
         {
-            socket.Proxy = IPAddress.TryParse(host, out var address)
+            proxy = IPAddress.TryParse(host, out var address)
                 ? new HttpConnectProxy(new IPEndPoint(address, port))
                 : new HttpConnectProxy(new DnsEndPoint(host, port));
         }
