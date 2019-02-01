@@ -26,6 +26,8 @@ namespace CryptoExchange.Net.Requests
             set => request.ContentType = value;
         }
 
+        public string Content { get; set; }
+
         public string Accept
         {
             get => ((HttpWebRequest)request).Accept;

@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         void SetProxy(string host, int port);
 
         string ContentType { get; set; }
+        string Content { get; set; }
         string Accept { get; set; }
         long ContentLength { get; set; }
 

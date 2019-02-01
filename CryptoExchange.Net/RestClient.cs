@@ -145,16 +145,9 @@ namespace CryptoExchange.Net
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
             }
 
-            string paramString = null;
-            if (parameters != null)
-            {
-                paramString = "with parameters";
-                
-                foreach (var param in parameters)
-                    paramString += $" {param.Key}={(param.Value.GetType().IsArray ? $"[{string.Join(", ", ((object[])param.Value).Select(p => p.ToString()))}]": param.Value )},";
-
-                paramString = paramString.Trim(',');
-            }
+            string paramString = null;            
+            if (parameters != null && method == Constants.PostMethod)            
+                paramString = "with request body " + request.Content;            
 
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {paramString ?? ""}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
@@ -233,7 +226,7 @@ namespace CryptoExchange.Net
         {
             var data = Encoding.UTF8.GetBytes(stringData);
             request.ContentLength = data.Length;
-
+            request.Content = stringData;
             using (var stream = request.GetRequestStream().Result)
                 stream.Write(data, 0, data.Length);
         }
