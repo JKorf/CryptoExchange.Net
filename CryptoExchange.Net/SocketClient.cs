@@ -158,6 +158,7 @@ namespace CryptoExchange.Net
             catch(Exception ex)
             {
                 log.Write(LogVerbosity.Error, $"Socket {subscription.Socket.Id} Exception during message processing\r\nProcessor: {currentHandlerName}\r\nException: {ex}\r\nData: {data}");
+                subscription.InvokeExceptionHandler(ex);
             }
         }
 

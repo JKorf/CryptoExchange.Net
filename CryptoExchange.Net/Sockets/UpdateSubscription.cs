@@ -26,6 +26,15 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Event when an exception happened
+        /// </summary>
+        public event Action<Exception> Exception
+        {
+            add => subscription.Exception += value;
+            remove => subscription.Exception -= value;
+        }
+
+        /// <summary>
         /// The id of the socket
         /// </summary>
         public int Id => subscription.Socket.Id;

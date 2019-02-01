@@ -12,6 +12,7 @@ namespace CryptoExchange.Net.Sockets
     {
         public event Action ConnectionLost;
         public event Action<TimeSpan> ConnectionRestored;
+        public event Action<Exception> Exception;
 
         /// <summary>
         /// Message handlers for this subscription. Should return true if the message is handled and should not be distributed to the other handlers
@@ -143,6 +144,11 @@ namespace CryptoExchange.Net.Sockets
                     waiting.Set(false, new UnknownError("Connection reset"));
                 waitingForEvents.Clear();
             }
+        }
+
+        public void InvokeExceptionHandler(Exception e)
+        {
+            Exception(e);
         }
 
         public async Task Close()
