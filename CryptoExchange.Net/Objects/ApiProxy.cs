@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Proxy login or password not filled");
 
             Login = login;
-            Password = Password;
+            Password = password;
         }
     }
 }
