@@ -129,7 +129,7 @@ namespace CryptoExchange.Net
             if (apiProxy != null)
             {
                 log.Write(LogVerbosity.Debug, "Setting proxy");
-                request.SetProxy(apiProxy.Host, apiProxy.Port);
+                request.SetProxy(apiProxy.Host, apiProxy.Port, apiProxy.Login, apiProxy.Password);
             }
 
             foreach (var limiter in RateLimiters)

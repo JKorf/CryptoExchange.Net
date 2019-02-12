@@ -54,9 +54,10 @@ namespace CryptoExchange.Net.Requests
 
         public Uri Uri => request.RequestUri;
 
-        public void SetProxy(string host, int port)
+        public void SetProxy(string host, int port, string login, string password)
         {
             request.Proxy = new WebProxy(host, port);
+            if(!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password)) request.Proxy.Credentials = new NetworkCredential(login, password);
         }
 
         public async Task<Stream> GetRequestStream()

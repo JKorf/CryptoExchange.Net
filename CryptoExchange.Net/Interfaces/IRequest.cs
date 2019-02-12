@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Interfaces
         WebHeaderCollection Headers { get; set; }
         string Method { get; set; }
         TimeSpan Timeout { get; set; }
-        void SetProxy(string host, int port);
+        void SetProxy(string host, int port, string login, string password);
 
         string ContentType { get; set; }
         string Content { get; set; }
