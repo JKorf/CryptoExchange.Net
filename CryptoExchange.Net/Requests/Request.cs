@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.Requests
 
         public async Task<IResponse> GetResponse()
         {
-            return new Response(await request.GetResponseAsync().ConfigureAwait(false));
+            return new Response((HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.Objects
+﻿using System.Net;
+
+namespace CryptoExchange.Net.Objects
 {
     public class CallResult<T>
     {
@@ -19,6 +21,19 @@
         {
             Data = data;
             Error = error;
+        }
+    }
+
+    public class WebCallResult<T>: CallResult<T>
+    {
+        /// <summary>
+        /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode { get; set; }
+
+        public WebCallResult(HttpStatusCode? code, T data, Error error): base(data, error)
+        {
+            ResponseStatusCode = code;
         }
     }
 }

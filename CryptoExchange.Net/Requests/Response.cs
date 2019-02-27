@@ -6,9 +6,11 @@ namespace CryptoExchange.Net.Requests
 {
     public class Response : IResponse
     {
-        private readonly WebResponse response;
+        private readonly HttpWebResponse response;
 
-        public Response(WebResponse response)
+        public HttpStatusCode StatusCode => response.StatusCode;
+
+        public Response(HttpWebResponse response)
         {
             this.response = response;
         }

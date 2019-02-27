@@ -115,13 +115,13 @@ namespace CryptoExchange.Net
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false, bool checkResult = true) where T : class
+        protected virtual async Task<WebCallResult<T>> ExecuteRequest<T>(Uri uri, string method = Constants.GetMethod, Dictionary<string, object> parameters = null, bool signed = false, bool checkResult = true) where T : class
         {
             log.Write(LogVerbosity.Debug, "Creating request for " + uri);
             if (signed && authProvider == null)
             { 
                 log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
-                return new CallResult<T>(null, new NoApiCredentialsError());
+                return new WebCallResult<T>(null, null, new NoApiCredentialsError());
             }
 
             var request = ConstructRequest(uri, method, parameters, signed);
@@ -138,7 +138,7 @@ namespace CryptoExchange.Net
                 if (!limitResult.Success)
                 {
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
-                    return new CallResult<T>(null, limitResult.Error);
+                    return new WebCallResult<T>(null, null, limitResult.Error);
                 }
 
                 if (limitResult.Data > 0)
@@ -152,16 +152,20 @@ namespace CryptoExchange.Net
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {paramString ?? ""}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             if(!result.Success)
-                return new CallResult<T>(null, result.Error);
+                return new WebCallResult<T>(result.ResponseStatusCode, null, result.Error);
 
             var jsonResult = ValidateJson(result.Data);
             if(!jsonResult.Success)
-                return new CallResult<T>(null, jsonResult.Error);
+                return new WebCallResult<T>(result.ResponseStatusCode, null, jsonResult.Error);
 
             if (IsErrorResponse(jsonResult.Data))
-                return new CallResult<T>(null, ParseErrorResponse(jsonResult.Data));
-            
-            return Deserialize<T>(jsonResult.Data, checkResult);
+                return new WebCallResult<T>(result.ResponseStatusCode, null, ParseErrorResponse(jsonResult.Data));
+
+            var desResult = Deserialize<T>(jsonResult.Data, checkResult);
+            if (!desResult.Success)
+                return new WebCallResult<T>(result.ResponseStatusCode, null, desResult.Error);
+
+            return new WebCallResult<T>(result.ResponseStatusCode, desResult.Data, null);
         }
 
         /// <summary>
@@ -258,7 +262,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="request">The request object to execute</param>
         /// <returns></returns>
-        private async Task<CallResult<string>> ExecuteRequest(IRequest request)
+        private async Task<WebCallResult<string>> ExecuteRequest(IRequest request)
         {
             var returnedData = "";
             try
@@ -272,12 +276,15 @@ namespace CryptoExchange.Net
                     log.Write(LogVerbosity.Debug, "Data returned: " + returnedData);
                 }
 
+                var statusCode = response.StatusCode;
                 response.Close();
-                return new CallResult<string>(returnedData, null);                
+                return new WebCallResult<string>(statusCode, returnedData, null);                
             }
             catch (WebException we)
             {
                 var response = (HttpWebResponse)we.Response;
+                var statusCode = response?.StatusCode;
+
                 try
                 {
                     using (var reader = new StreamReader(response.GetResponseStream()))
@@ -289,7 +296,7 @@ namespace CryptoExchange.Net
                     response.Close();
 
                     var jsonResult = ValidateJson(returnedData);
-                    return !jsonResult.Success ? new CallResult<string>(null, jsonResult.Error) : new CallResult<string>(null, ParseErrorResponse(jsonResult.Data));
+                    return !jsonResult.Success ? new WebCallResult<string>(statusCode, null, jsonResult.Error) : new WebCallResult<string>(statusCode, null, ParseErrorResponse(jsonResult.Data));
                 }
                 catch (Exception)
                 {
@@ -300,18 +307,18 @@ namespace CryptoExchange.Net
                 {
                     infoMessage += $" | {we.Status} - {we.Message}";
                     log.Write(LogVerbosity.Warning, infoMessage);
-                    return new CallResult<string>(null, new WebError(infoMessage));
+                    return new WebCallResult<string>(0, null, new WebError(infoMessage));
                 }
 
                 infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
                 log.Write(LogVerbosity.Warning, infoMessage);
                 response.Close();
-                return new CallResult<string>(null, new ServerError(infoMessage));
+                return new WebCallResult<string>(statusCode, null, new ServerError(infoMessage));
             }
             catch (Exception e)
             {
                 log.Write(LogVerbosity.Error, $"Unknown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
-                return new CallResult<string>(null, new UnknownError(e.Message + ", data: " + returnedData));
+                return new WebCallResult<string>(null, null, new UnknownError(e.Message + ", data: " + returnedData));
             }
         }
 

@@ -69,6 +69,13 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected CallResult<JToken> ValidateJson(string data)
         {
+            if (string.IsNullOrEmpty(data))
+            {
+                var info = "Empty data object received";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<JToken>(null, new DeserializeError(info));
+            }
+
             try
             {
                 return new CallResult<JToken>(JToken.Parse(data), null);
