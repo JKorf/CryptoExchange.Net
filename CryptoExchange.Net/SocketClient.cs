@@ -199,7 +199,7 @@ namespace CryptoExchange.Net
 
                         if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
                         {
-                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} failed to resubscribe resubscribed");
+                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} failed to resubscribe");
                             socket.Close().Wait();
                         }
                         else
