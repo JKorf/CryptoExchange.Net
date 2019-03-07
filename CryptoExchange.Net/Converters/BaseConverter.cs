@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.Converters
 {
     public abstract class BaseConverter<T>: JsonConverter
     {
-        protected abstract Dictionary<T, string> Mapping { get; }
+        protected abstract List<KeyValuePair<T, string>> Mapping { get; }
         private readonly bool quotes;
         
         protected BaseConverter(bool useQuotes)
@@ -18,10 +18,11 @@ namespace CryptoExchange.Net.Converters
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
+            var stringValue = GetValue((T) value);
             if (quotes)
-                writer.WriteValue(Mapping[(T)value]);
+                writer.WriteValue(stringValue);
             else
-                writer.WriteRawValue(Mapping[(T)value]);
+                writer.WriteRawValue(stringValue);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -29,27 +30,42 @@ namespace CryptoExchange.Net.Converters
             if (reader.Value == null)
                 return null;
 
-            var value = reader.Value.ToString();
-            if (Mapping.ContainsValue(value))
-                return Mapping.Single(m => m.Value == value).Key;
+            if (!GetValue(reader.Value.ToString(), out var result))
+            {
+                Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {reader.Value}");
+                return null;
+            }
 
-            var lowerResult = Mapping.SingleOrDefault(m => string.Equals(m.Value, value, StringComparison.CurrentCultureIgnoreCase));
-            if (!lowerResult.Equals(default(KeyValuePair<T, string>)))
-                return lowerResult.Key;
-
-            Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {value}");
-            return null;
+            return result;
         }
 
         public T ReadString(string data)
         {
-            return Mapping.SingleOrDefault(v => v.Value == data).Key;
+            return Mapping.FirstOrDefault(v => v.Value == data).Key;
         }
 
         public override bool CanConvert(Type objectType)
         {
             // Check if it is type, or nullable of type
             return objectType == typeof(T) || Nullable.GetUnderlyingType(objectType) == typeof(T);
+        }
+
+        private bool GetValue(string value, out T result)
+        {
+            var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            if (!mapping.Equals(default(KeyValuePair<T, string>)))
+            {
+                result = mapping.Key;
+                return true;
+            }
+
+            result = default(T);
+            return false;
+        }
+
+        private string GetValue(T value)
+        {
+            return Mapping.FirstOrDefault(v => v.Key.Equals(value)).Value;
         }
     }
 }
