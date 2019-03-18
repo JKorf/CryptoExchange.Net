@@ -25,6 +25,7 @@ namespace CryptoExchange.Net
         protected List<SocketSubscription> sockets = new List<SocketSubscription>();
 
         public TimeSpan ReconnectInterval { get; private set; }
+        public bool AutoReconnect { get; private set; }
         protected Func<byte[], string> dataInterpreter;
 
         protected const string DataHandlerName = "DataHandler";
@@ -48,6 +49,7 @@ namespace CryptoExchange.Net
         /// <param name="exchangeOptions">Options</param>
         protected void Configure(SocketClientOptions exchangeOptions)
         {
+            AutoReconnect = exchangeOptions.AutoReconnect;
             ReconnectInterval = exchangeOptions.ReconnectInterval;
         }
 
@@ -168,7 +170,7 @@ namespace CryptoExchange.Net
         /// <param name="socket">The socket that was closed</param>
         protected virtual void SocketOnClose(IWebsocket socket)
         {
-            if (socket.ShouldReconnect)
+            if (AutoReconnect && socket.ShouldReconnect)
             {
                 if (socket.Reconnecting)
                     return; // Already reconnecting
@@ -181,6 +183,13 @@ namespace CryptoExchange.Net
                     while (socket.ShouldReconnect)
                     {
                         Thread.Sleep(ReconnectInterval);
+                        if (!socket.ShouldReconnect)
+                        {
+                            // Should reconnect changed to false while waiting to reconnect
+                            socket.Reconnecting = false;
+                            return;
+                        }
+
                         socket.Reset();
                         if (!socket.Connect().Result)
                         {

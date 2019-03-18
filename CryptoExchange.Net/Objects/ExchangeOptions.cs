@@ -79,6 +79,11 @@ namespace CryptoExchange.Net.Objects
     public class SocketClientOptions: ExchangeOptions
     {
         /// <summary>
+        /// Whether or not the socket should automatically reconnect when losing connection
+        /// </summary>
+        public bool AutoReconnect { get; set; } = true;
+
+        /// <summary>
         /// Time to wait between reconnect attempts
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
@@ -91,6 +96,7 @@ namespace CryptoExchange.Net.Objects
                 LogVerbosity = LogVerbosity,
                 Proxy = Proxy,
                 LogWriters = LogWriters,
+                AutoReconnect = AutoReconnect,
                 ReconnectInterval = ReconnectInterval
             };
 
