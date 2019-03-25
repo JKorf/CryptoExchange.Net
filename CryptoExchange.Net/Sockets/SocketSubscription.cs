@@ -148,7 +148,7 @@ namespace CryptoExchange.Net.Sockets
 
         public void InvokeExceptionHandler(Exception e)
         {
-            Exception(e);
+            Exception?.Invoke(e);
         }
 
         public async Task Close()
