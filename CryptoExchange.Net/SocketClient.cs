@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
-    public abstract class SocketClient: BaseClient
+    public abstract class SocketClient: BaseClient, ISocketClient
     {
         #region fields
         /// <summary>
