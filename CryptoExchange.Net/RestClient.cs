@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
-    public abstract class RestClient: BaseClient
+    public abstract class RestClient: BaseClient, IRestClient
     {
         /// <summary>
         /// The factory for creating requests. Used for unit testing
