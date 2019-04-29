@@ -32,9 +32,6 @@ namespace CryptoExchange.Net.Sockets
         protected HttpConnectProxy proxy;
 
         public int Id { get; }
-        public DateTime? DisconnectTime { get; set; }
-
-        public bool ShouldReconnect { get; set; }
         public bool Reconnecting { get; set; }
         public string Origin { get; set; }
 
@@ -42,7 +39,8 @@ namespace CryptoExchange.Net.Sockets
         public bool IsClosed => socket.State == WebSocketState.Closed;
         public bool IsOpen => socket.State == WebSocketState.Open;
         public SslProtocols SSLProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-        public Func<byte[], string> DataInterpreter { get; set; }
+        public Func<byte[], string> DataInterpreterBytes { get; set; }
+        public Func<string, string> DataInterpreterString { get; set; }
 
         public DateTime LastActionTime { get; private set; }
         public TimeSpan Timeout { get; set; }
@@ -77,7 +75,7 @@ namespace CryptoExchange.Net.Sockets
 
         private void HandleByteData(byte[] data)
         {
-            var message = DataInterpreter(data);
+            var message = DataInterpreterBytes(data);
             Handle(messageHandlers, message);
         }
 
@@ -203,7 +201,13 @@ namespace CryptoExchange.Net.Sockets
                 socket.Opened += (o, s) => Handle(openHandlers);
                 socket.Closed += (o, s) => Handle(closeHandlers);
                 socket.Error += (o, s) => Handle(errorHandlers, s.Exception);
-                socket.MessageReceived += (o, s) => Handle(messageHandlers, s.Message);
+                socket.MessageReceived += (o, s) =>
+                {
+                    string data = s.Message;
+                    if (DataInterpreterString != null)
+                        data = DataInterpreterString(data);
+                    Handle(messageHandlers, data);
+                };
                 socket.DataReceived += (o, s) => HandleByteData(s.Data);
             }
 

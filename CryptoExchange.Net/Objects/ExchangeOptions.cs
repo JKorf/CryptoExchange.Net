@@ -88,6 +88,15 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
 
+        /// <summary>
+        /// The time to wait for a socket response
+        /// </summary>
+        public TimeSpan SocketResponseTimeout { get; set; } = TimeSpan.FromSeconds(10);
+        /// <summary>
+        /// The time after which the connection is assumed to be dropped
+        /// </summary>
+        public TimeSpan SocketNoDataTimeout { get; set; }
+
         public T Copy<T>() where T : SocketClientOptions, new()
         {
             var copy = new T
@@ -97,7 +106,8 @@ namespace CryptoExchange.Net.Objects
                 Proxy = Proxy,
                 LogWriters = LogWriters,
                 AutoReconnect = AutoReconnect,
-                ReconnectInterval = ReconnectInterval
+                ReconnectInterval = ReconnectInterval,
+                SocketResponseTimeout = SocketResponseTimeout
             };
 
             if (ApiCredentials != null)

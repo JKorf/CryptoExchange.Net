@@ -17,6 +17,9 @@ namespace CryptoExchange.Net.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (objectType == typeof(JToken))
+                return JToken.Load(reader);
+
             var result = Activator.CreateInstance(objectType);
             var arr = JArray.Load(reader);
             return ParseObject(arr, result, objectType);

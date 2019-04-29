@@ -5,6 +5,7 @@ namespace CryptoExchange.Net.Sockets
 {
     public class UpdateSubscription
     {
+        private readonly SocketConnection connection;
         private readonly SocketSubscription subscription;
 
         /// <summary>
@@ -12,8 +13,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action ConnectionLost
         {
-            add => subscription.ConnectionLost += value;
-            remove => subscription.ConnectionLost -= value;
+            add => connection.ConnectionLost += value;
+            remove => connection.ConnectionLost -= value;
         }
 
         /// <summary>
@@ -21,8 +22,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<TimeSpan> ConnectionRestored
         {
-            add => subscription.ConnectionRestored += value;
-            remove => subscription.ConnectionRestored -= value;
+            add => connection.ConnectionRestored += value;
+            remove => connection.ConnectionRestored -= value;
         }
 
         /// <summary>
@@ -37,11 +38,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The id of the socket
         /// </summary>
-        public int Id => subscription.Socket.Id;
+        public int Id => connection.Socket.Id;
 
-        public UpdateSubscription(SocketSubscription sub)
+        public UpdateSubscription(SocketConnection connection, SocketSubscription subscription)
         {
-            subscription = sub;
+            this.connection = connection;
+            this.subscription = subscription;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task Close()
         {
-            await subscription.Close().ConfigureAwait(false);
+            await connection.Close(subscription).ConfigureAwait(false);
         }
     }
 }

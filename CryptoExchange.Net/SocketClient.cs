@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
@@ -22,20 +20,22 @@ namespace CryptoExchange.Net
         /// </summary>
         public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
-        protected List<SocketSubscription> sockets = new List<SocketSubscription>();
+        protected internal List<SocketConnection> sockets = new List<SocketConnection>();
+        protected internal readonly object socketLock = new object();
 
         public TimeSpan ReconnectInterval { get; private set; }
         public bool AutoReconnect { get; private set; }
-        protected Func<byte[], string> dataInterpreter;
+        public TimeSpan ResponseTimeout { get; private set; }
+        public TimeSpan SocketTimeout { get; private set; }
+        public int MaxSocketConnections { get; protected set; } = 999;
+        public int SocketCombineTarget { get; protected set; } = 1;
 
-        protected const string DataHandlerName = "DataHandler";
-        protected const string AuthenticationHandlerName = "AuthenticationHandler";
-        protected const string SubscriptionHandlerName = "SubscriptionHandler";
-        protected const string PingHandlerName = "PingHandler";
-
-        protected const string DataEvent = "Data";
-        protected const string SubscriptionEvent = "Subscription";
-        protected const string AuthenticationEvent = "Authentication";
+        protected Func<byte[], string> dataInterpreterBytes;
+        protected Func<string, string> dataInterpreterString;
+        protected Dictionary<string, Action<SocketConnection, JToken>> genericHandlers = new Dictionary<string, Action<SocketConnection, JToken>>();
+        protected Task periodicTask;
+        protected AutoResetEvent periodicEvent;
+        protected bool disposing;
         #endregion
 
         protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
@@ -51,17 +51,230 @@ namespace CryptoExchange.Net
         {
             AutoReconnect = exchangeOptions.AutoReconnect;
             ReconnectInterval = exchangeOptions.ReconnectInterval;
+            ResponseTimeout = exchangeOptions.SocketResponseTimeout;
+            SocketTimeout = exchangeOptions.SocketNoDataTimeout;
         }
 
         /// <summary>
         /// Set a function to interpret the data, used when the data is received as bytes instead of a string
         /// </summary>
         /// <param name="handler"></param>
-        protected void SetDataInterpreter(Func<byte[], string> handler)
+        protected void SetDataInterpreter(Func<byte[], string> byteHandler, Func<string, string> stringHandler)
         {
-            dataInterpreter = handler;
+            dataInterpreterBytes = byteHandler;
+            dataInterpreterString = stringHandler;
         }
-        
+
+        protected virtual async Task<CallResult<UpdateSubscription>> Subscribe<T>(object request, string identifier, bool authenticated, Action<T> dataHandler)
+        {
+            return await Subscribe(BaseAddress, request, identifier, authenticated, dataHandler).ConfigureAwait(false);
+        }
+
+        protected virtual async Task<CallResult<UpdateSubscription>> Subscribe<T>(string url, object request, string identifier, bool authenticated, Action<T> dataHandler)
+        {
+            SocketConnection socket;
+            SocketSubscription handler;
+            if (SocketCombineTarget == 1)
+            {;
+                lock (socketLock)
+                {
+                    socket = GetWebsocket(url, authenticated);
+                    handler = AddHandler(request, identifier, true, socket, dataHandler);
+                }
+
+                var connectResult = ConnectIfNeeded(socket, authenticated).GetAwaiter().GetResult();
+                if (!connectResult.Success)
+                    return new CallResult<UpdateSubscription>(null, connectResult.Error);
+            }
+            else
+            {
+                lock (socketLock)
+                {
+                    socket = GetWebsocket(url, authenticated);
+                    handler = AddHandler(request, identifier, true, socket, dataHandler);
+
+                    var connectResult = ConnectIfNeeded(socket, authenticated).GetAwaiter().GetResult();
+                    if (!connectResult.Success)
+                        return new CallResult<UpdateSubscription>(null, connectResult.Error);
+                }
+            }
+
+
+            if (request != null)
+            {
+                var subResult = await SubscribeAndWait(socket, request, handler).ConfigureAwait(false);
+                if (!subResult.Success)
+                {
+                    await socket.Close(handler).ConfigureAwait(false);
+                    return new CallResult<UpdateSubscription>(null, subResult.Error);
+                }
+
+            }
+            else
+                handler.Confirmed = true;
+
+            socket.ShouldReconnect = true;
+            return new CallResult<UpdateSubscription>(new UpdateSubscription(socket, handler), null);
+        }
+
+        protected internal virtual async Task<CallResult<bool>> SubscribeAndWait(SocketConnection socket, object request, SocketSubscription subscription)
+        {
+            CallResult<object> callResult = null;
+            await socket.SendAndWait(request, ResponseTimeout, (data) =>
+            {
+                if (!HandleSubscriptionResponse(socket, subscription, request, data, out callResult))
+                    return false;
+
+                return true;
+            }).ConfigureAwait(false);
+
+            if (callResult?.Success == true)
+                subscription.Confirmed = true;
+
+            return new CallResult<bool>(callResult?.Success ?? false, callResult == null ? new ServerError("No response on subscription request received"): callResult.Error);
+        }
+
+        protected virtual async Task<CallResult<T>> Query<T>(object request, bool authenticated)
+        {
+            var socket = GetWebsocket(BaseAddress, authenticated);
+            var connectResult = await ConnectIfNeeded(socket, authenticated).ConfigureAwait(false);
+            if (!connectResult.Success) 
+                return new CallResult<T>(default(T), connectResult.Error);
+
+            if (socket.PausedActivity)
+            {
+                log.Write(LogVerbosity.Info, "Socket has been paused, can't send query at this moment");
+                return new CallResult<T>(default(T), new ServerError("Socket is paused"));
+            }
+
+            return await QueryAndWait<T>(socket, request).ConfigureAwait(false);
+        }
+
+        protected virtual async Task<CallResult<T>> QueryAndWait<T>(SocketConnection socket, object request)
+        {
+            CallResult<T> dataResult = new CallResult<T>(default(T), new ServerError("No response on query received"));
+            await socket.SendAndWait(request, ResponseTimeout, (data) =>
+            {
+                if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
+                    return false;
+
+                dataResult = callResult;
+                return true;
+            }).ConfigureAwait(false);
+
+            return dataResult;
+        }
+
+        protected virtual async Task<CallResult<bool>> ConnectIfNeeded(SocketConnection socket, bool authenticated)
+        {
+            if (!socket.Connected)
+            {
+                var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
+                if (!connectResult.Success)
+                {
+                    return new CallResult<bool>(false, new CantConnectError());
+                }
+
+                if (authenticated && !socket.Authenticated)
+                {
+                    var result = await AuthenticateSocket(socket).ConfigureAwait(false);
+                    if (!result.Success)
+                    {
+                        log.Write(LogVerbosity.Warning, "Socket authentication failed");
+                        result.Error.Message = "Authentication failed: " + result.Error.Message;
+                        return new CallResult<bool>(false, result.Error);
+                    }
+
+                    socket.Authenticated = true;
+                }
+            }
+
+            return new CallResult<bool>(true, null);
+        }
+
+        protected virtual void AddGenericHandler(string identifier, Action<SocketConnection, JToken> action)
+        {
+            genericHandlers.Add(identifier, action);
+            List<SocketConnection> socketList;
+            lock (socketLock)
+                socketList = sockets.ToList();
+            foreach (var wrapper in socketList)
+                wrapper.AddHandler(identifier, false, action);
+        }
+
+        protected internal abstract bool HandleQueryResponse<T>(SocketConnection s, object request, JToken data, out CallResult<T> callResult);
+        protected internal abstract bool HandleSubscriptionResponse(SocketConnection s, SocketSubscription subscription, object request, JToken message, out CallResult<object> callResult);
+        protected internal abstract bool MessageMatchesHandler(JToken message, object request);
+        protected internal abstract bool MessageMatchesHandler(JToken message, string identifier);
+        protected internal abstract Task<CallResult<bool>> AuthenticateSocket(SocketConnection s);
+        protected internal abstract Task<bool> Unsubscribe(SocketConnection connection, SocketSubscription s);
+        protected internal virtual JToken ProcessTokenData(JToken message)
+        {
+            return message;
+        }
+
+        protected virtual SocketSubscription AddHandler<T>(object request, string identifier, bool userSubscription, SocketConnection connection, Action<T> dataHandler)
+        {
+            Action<SocketConnection, JToken> internalHandler = (socketWrapper, data) =>
+            {
+                if (typeof(T) == typeof(string))
+                {
+                    dataHandler((T)Convert.ChangeType(data.ToString(), typeof(T)));
+                    return;
+                }
+
+                var desResult = Deserialize<T>(data, false);
+                if (!desResult.Success)
+                {
+                    log.Write(LogVerbosity.Warning, $"Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
+                    return;
+                }
+
+                dataHandler(desResult.Data);
+            };
+
+            if (request != null)
+                return connection.AddHandler(request, userSubscription, internalHandler);
+            return connection.AddHandler(identifier, userSubscription, internalHandler);
+        }
+
+        protected virtual SocketConnection GetWebsocket(string address, bool authenticated)
+        {
+            SocketConnection result = sockets.Where(s => s.Socket.Url == address && (s.Authenticated == authenticated || !authenticated) && s.Connected).OrderBy(s => s.HandlerCount).FirstOrDefault();
+            if (result != null)
+            {
+                if (result.HandlerCount < SocketCombineTarget || (sockets.Count >= MaxSocketConnections && sockets.All(s => s.HandlerCount >= SocketCombineTarget)))
+                {
+                    // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
+                    return result;
+                }
+            }
+
+            // Create new socket
+            var socket = CreateSocket(address);
+            var socketWrapper = new SocketConnection(this, log, socket);
+            foreach (var kvp in genericHandlers)
+                socketWrapper.AddHandler(kvp.Key, false, kvp.Value);
+            return socketWrapper;
+        }
+
+        /// <summary>
+        /// Connect a socket
+        /// </summary>
+        /// <param name="socketConnection">The subscription to connect</param>
+        /// <returns></returns>
+        protected virtual async Task<CallResult<bool>> ConnectSocket(SocketConnection socketConnection)
+        {
+            if (await socketConnection.Socket.Connect().ConfigureAwait(false))
+            {
+                sockets.Add(socketConnection);
+                return new CallResult<bool>(true, null);
+            }
+
+            socketConnection.Socket.Dispose();
+            return new CallResult<bool>(false, new CantConnectError());
+        }
+
         /// <summary>
         /// Create a socket for an address
         /// </summary>
@@ -75,187 +288,57 @@ namespace CryptoExchange.Net
             if (apiProxy != null)
                 socket.SetProxy(apiProxy.Host, apiProxy.Port);
 
-            socket.DataInterpreter = dataInterpreter;
-            socket.OnClose += () =>
-            {
-                lock (sockets)
-                {
-                    foreach (var sub in sockets)
-                        sub.ResetEvents();
-                }
-
-                SocketOnClose(socket);
-            };
+            socket.Timeout = SocketTimeout;
+            socket.DataInterpreterBytes = dataInterpreterBytes;
+            socket.DataInterpreterString = dataInterpreterString;
             socket.OnError += e =>
             {
                 log.Write(LogVerbosity.Info, $"Socket {socket.Id} error: " + e.ToString());
-                SocketError(socket, e);
             };
-            socket.OnOpen += () => SocketOpened(socket);
-            socket.OnClose += () => SocketClosed(socket);
             return socket;
         }
 
-        protected virtual SocketSubscription GetBackgroundSocket(bool authenticated = false)
+        public virtual void SendPeriodic(TimeSpan interval, Func<SocketConnection, object> objGetter)
         {
-            lock (sockets)
-                return sockets.SingleOrDefault(s => s.Type == (authenticated ? SocketType.BackgroundAuthenticated : SocketType.Background));
-        }
-
-        protected virtual void SocketOpened(IWebsocket socket) { }
-        protected virtual void SocketClosed(IWebsocket socket) { }
-        protected virtual void SocketError(IWebsocket socket, Exception ex) { }
-        /// <summary>
-        /// Handler for when a socket reconnects. Should return true if reconnection handling was successful or false if not ( will try to reconnect again ). The handler should
-        /// handle functionality like resubscribing and re-authenticating the socket.
-        /// </summary>
-        /// <param name="subscription">The socket subscription that was reconnected</param>
-        /// <param name="disconnectedTime">The time the socket was disconnected</param>
-        /// <returns></returns>
-        protected abstract bool SocketReconnect(SocketSubscription subscription, TimeSpan disconnectedTime);
-
-        /// <summary>
-        /// Connect a socket
-        /// </summary>
-        /// <param name="socketSubscription">The subscription to connect</param>
-        /// <returns></returns>
-        protected virtual async Task<CallResult<bool>> ConnectSocket(SocketSubscription socketSubscription)
-        {
-            socketSubscription.Socket.OnMessage += data => ProcessMessage(socketSubscription, data);
-
-            if (await socketSubscription.Socket.Connect().ConfigureAwait(false))
+            periodicEvent = new AutoResetEvent(false);
+            periodicTask = Task.Run(() =>
             {
-                lock (sockets)
-                    sockets.Add(socketSubscription);
-                return new CallResult<bool>(true, null);
-            }
-
-            socketSubscription.Socket.Dispose();
-            return new CallResult<bool>(false, new CantConnectError());
-        }
-
-        /// <summary>
-        /// The message handler. Normally distributes the received data to all data handlers
-        /// </summary>
-        /// <param name="subscription">The subscription that received the data</param>
-        /// <param name="data">The data received</param>
-        protected virtual void ProcessMessage(SocketSubscription subscription, string data)
-        {
-            log.Write(LogVerbosity.Debug, $"Socket {subscription.Socket.Id} received data: " + data);
-            string currentHandlerName = null;
-            try
-            {
-                var sw = Stopwatch.StartNew();
-                foreach (var handler in subscription.MessageHandlers)
+                while (!disposing)
                 {
-                    currentHandlerName = handler.Key;
-                    if (handler.Value(subscription, JToken.Parse(data)))
+                    periodicEvent.WaitOne(interval);
+                    if (disposing)
                         break;
-                }
-                sw.Stop();
-                if (sw.ElapsedMilliseconds > 500)
-                    log.Write(LogVerbosity.Warning, $"Socket {subscription.Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
-                        "Data from this socket may arrive late or not at all if message processing is continuously slow.");
-            }
-            catch(Exception ex)
-            {
-                log.Write(LogVerbosity.Error, $"Socket {subscription.Socket.Id} Exception during message processing\r\nProcessor: {currentHandlerName}\r\nException: {ex}\r\nData: {data}");
-                subscription.InvokeExceptionHandler(ex);
-            }
-        }
 
-        /// <summary>
-        /// Handler for a socket closing. Reconnects the socket if needed, or removes it from the active socket list if not
-        /// </summary>
-        /// <param name="socket">The socket that was closed</param>
-        protected virtual void SocketOnClose(IWebsocket socket)
-        {
-            if (AutoReconnect && socket.ShouldReconnect)
-            {
-                if (socket.Reconnecting)
-                    return; // Already reconnecting
+                    List<SocketConnection> socketList;
+                    lock (socketLock)
+                        socketList = sockets.ToList();
 
-                socket.Reconnecting = true;
+                    if (socketList.Any())
+                        log.Write(LogVerbosity.Debug, "Sending periodic");
 
-                log.Write(LogVerbosity.Info, $"Socket {socket.Id} Connection lost, will try to reconnect after {ReconnectInterval}");
-                Task.Run(() =>
-                {
-                    while (socket.ShouldReconnect)
+                    foreach (var socket in socketList)
                     {
-                        Thread.Sleep(ReconnectInterval);
-                        if (!socket.ShouldReconnect)
-                        {
-                            // Should reconnect changed to false while waiting to reconnect
-                            socket.Reconnecting = false;
-                            return;
-                        }
-
-                        socket.Reset();
-                        if (!socket.Connect().Result)
-                        {
-                            log.Write(LogVerbosity.Debug, $"Socket {socket.Id} failed to reconnect");
-                            continue; 
-                        }
-
-                        var time = socket.DisconnectTime;
-                        socket.DisconnectTime = null;
-
-                        log.Write(LogVerbosity.Info, $"Socket {socket.Id} reconnected after {DateTime.UtcNow - time}");
-
-                        SocketSubscription subscription;
-                        lock (sockets)
-                            subscription = sockets.Single(s => s.Socket == socket);
-
-                        if (!SocketReconnect(subscription, DateTime.UtcNow - time.Value))
-                        {
-                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} failed to resubscribe");
-                            socket.Close().Wait();
-                        }
-                        else
-                        {
-                            log.Write(LogVerbosity.Info, $"Socket {socket.Id} successfully resubscribed");
+                        if (disposing)
                             break;
+
+                        var obj = objGetter(socket);
+                        if (obj != null)
+                        {
+                            try
+                            {
+                                socket.Send(obj);
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Write(LogVerbosity.Warning, "Periodic send failed: " + ex);
+                            }
                         }
                     }
-
-                    socket.Reconnecting = false;
-                });
-            }
-            else
-            {
-                log.Write(LogVerbosity.Info, $"Socket {socket.Id} closed");
-                socket.Dispose();
-                lock (sockets)
-                {
-                    var subscription = sockets.SingleOrDefault(s => s.Socket.Id == socket.Id);
-                    if(subscription != null)
-                        sockets.Remove(subscription);
                 }
-            }
-        }
 
-        /// <summary>
-        /// Send data to the websocket
-        /// </summary>
-        /// <typeparam name="T">The type of the object to send</typeparam>
-        /// <param name="socket">The socket to send to</param>
-        /// <param name="obj">The object to send</param>
-        /// <param name="nullValueHandling">How null values should be serialized</param>
-        protected virtual void Send<T>(IWebsocket socket, T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
-        {
-            Send(socket, JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));            
+            });
         }
-
-        /// <summary>
-        /// Send string data to the websocket
-        /// </summary>
-        /// <param name="socket">The socket to send to</param>
-        /// <param name="data">The data to send</param>
-        protected virtual void Send(IWebsocket socket, string data)
-        {
-            log.Write(LogVerbosity.Debug, $"Socket {socket.Id} sending data: {data}");
-            socket.Send(data);
-        }
+        
 
         /// <summary>
         /// Unsubscribe from a stream
@@ -264,7 +347,10 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task Unsubscribe(UpdateSubscription subscription)
         {
-            log.Write(LogVerbosity.Info, $"Closing subscription {subscription.Id}");
+            if (subscription == null)
+                return;
+
+            log.Write(LogVerbosity.Info, "Closing subscription");
             await subscription.Close().ConfigureAwait(false);
         }
 
@@ -274,15 +360,15 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAll()
         {
-            lock (sockets)
+            lock (socketLock)
                 log.Write(LogVerbosity.Debug, $"Closing all {sockets.Count} subscriptions");
 
             await Task.Run(() =>
             {
                 var tasks = new List<Task>();
-                lock (sockets)
+                lock (socketLock)
                 {
-                    foreach (var sub in new List<SocketSubscription>(sockets))
+                    foreach (var sub in new List<SocketConnection>(sockets))
                         tasks.Add(sub.Close());
                 }
 
@@ -292,6 +378,8 @@ namespace CryptoExchange.Net
 
         public override void Dispose()
         {
+            disposing = true;
+            periodicEvent?.Set();
             log.Write(LogVerbosity.Debug, "Disposing socket client, closing all subscriptions");
             UnsubscribeAll().Wait();
 

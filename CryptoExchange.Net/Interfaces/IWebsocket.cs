@@ -14,10 +14,9 @@ namespace CryptoExchange.Net.Interfaces
 
         int Id { get; }
         string Origin { get; set; }
-        bool ShouldReconnect { get; set; }
         bool Reconnecting { get; set; }
-        Func<byte[], string> DataInterpreter { get; set; }
-        DateTime? DisconnectTime { get; set; }
+        Func<byte[], string> DataInterpreterBytes { get; set; }
+        Func<string, string> DataInterpreterString { get; set; }
         string Url { get; }
         WebSocketState SocketState { get; }
         bool IsClosed { get; }
