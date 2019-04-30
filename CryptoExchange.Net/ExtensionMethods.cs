@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -82,6 +84,48 @@ namespace CryptoExchange.Net
 
                 return result;
             }
+        }
+
+        public static IEnumerable<Tuple<string, string>> ToIEnumerable(this WebHeaderCollection headers)
+        {
+            if (headers == null)
+                return null;
+
+            return Enumerable
+                .Range(0, headers.Count)
+                .SelectMany(i => headers.GetValues(i)
+                    .Select(v => Tuple.Create(headers.GetKey(i), v))
+                );
+        }
+
+        public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
+        {
+            RegisteredWaitHandle registeredHandle = null;
+            CancellationTokenRegistration tokenRegistration = default(CancellationTokenRegistration);
+            try
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                registeredHandle = ThreadPool.RegisterWaitForSingleObject(
+                    handle,
+                    (state, timedOut) => ((TaskCompletionSource<bool>)state).TrySetResult(!timedOut),
+                    tcs,
+                    millisecondsTimeout,
+                    true);
+                tokenRegistration = cancellationToken.Register(
+                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
+                    tcs);
+                return await tcs.Task;
+            }
+            finally
+            {
+                registeredHandle?.Unregister(null);
+                tokenRegistration.Dispose();
+            }
+        }
+
+        public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout)
+        {
+            return handle.WaitOneAsync((int)timeout.TotalMilliseconds, CancellationToken.None);
         }
     }
 }

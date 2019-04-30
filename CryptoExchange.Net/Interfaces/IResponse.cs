@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 
 namespace CryptoExchange.Net.Interfaces
@@ -7,6 +9,7 @@ namespace CryptoExchange.Net.Interfaces
     {
         HttpStatusCode StatusCode { get; }
         Stream GetResponseStream();
+        IEnumerable<Tuple<string, string>> GetResponseHeaders();
         void Close();
     }
 }

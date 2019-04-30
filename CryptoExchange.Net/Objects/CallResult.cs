@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -31,9 +33,21 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public HttpStatusCode? ResponseStatusCode { get; set; }
 
-        public WebCallResult(HttpStatusCode? code, T data, Error error): base(data, error)
+        public IEnumerable<Tuple<string, string>> ResponseHeaders { get; set; }
+
+        public WebCallResult(HttpStatusCode? code, IEnumerable<Tuple<string, string>> responseHeaders, T data, Error error): base(data, error)
         {
+            ResponseHeaders = responseHeaders;
             ResponseStatusCode = code;
+        }
+
+        public static WebCallResult<T> CreateErrorResult(Error error)
+        {
+            return new WebCallResult<T>(null, null, default(T), error);
+        }
+        public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<Tuple<string, string>> responseHeaders, Error error)
+        {
+            return new WebCallResult<T>(code, responseHeaders, default(T), error);
         }
     }
 }

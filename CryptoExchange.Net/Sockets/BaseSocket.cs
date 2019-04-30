@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.Sockets
                 handle?.Invoke(data);
         }
 
-        protected void CheckTimeout()
+        protected async Task CheckTimeout()
         {
             while (true)
             {
@@ -131,7 +131,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                 }
 
-                Thread.Sleep(500);
+                await Task.Delay(500).ConfigureAwait(false);
             }
         }
 
@@ -184,7 +184,7 @@ namespace CryptoExchange.Net.Sockets
             socket.Send(data);
         }
 
-        public virtual async Task<bool> Connect()
+        public virtual Task<bool> Connect()
         {
             if (socket == null)
             {
@@ -211,7 +211,7 @@ namespace CryptoExchange.Net.Sockets
                 socket.DataReceived += (o, s) => HandleByteData(s.Data);
             }
 
-            return await Task.Run(() =>
+            return Task.Run(() =>
             {
                 bool connected;
                 lock (socketLock)
@@ -247,7 +247,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connected");
                         if ((timeoutTask == null || timeoutTask.IsCompleted) && Timeout != default(TimeSpan))
-                            timeoutTask = Task.Run(() => CheckTimeout());
+                            timeoutTask = Task.Run(CheckTimeout);
                     }
                     else
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connection failed, state: " + socket.State);
@@ -257,7 +257,7 @@ namespace CryptoExchange.Net.Sockets
                     socket.Close();
 
                 return connected;
-            }).ConfigureAwait(false);
+            });
         }
         
         public virtual void SetProxy(string host, int port)

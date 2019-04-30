@@ -11,8 +11,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestSocketClient: SocketClient
     {
-        public Func<bool> OnReconnect { get; set; }
-
         public TestSocketClient() : this(new SocketClientOptions())
         {
         }
@@ -51,7 +49,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         protected override bool MessageMatchesHandler(JToken message, string identifier)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         protected override Task<CallResult<bool>> AuthenticateSocket(SocketConnection s)

@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using CryptoExchange.Net.Interfaces;
 
@@ -18,6 +21,11 @@ namespace CryptoExchange.Net.Requests
         public Stream GetResponseStream()
         {
             return response.GetResponseStream();
+        }
+
+        public IEnumerable<Tuple<string, string>> GetResponseHeaders()
+        {
+            return response.Headers.ToIEnumerable();
         }
 
         public void Close()

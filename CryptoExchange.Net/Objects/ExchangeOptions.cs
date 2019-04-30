@@ -97,6 +97,12 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan SocketNoDataTimeout { get; set; }
 
+        /// <summary>
+        /// The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
+        /// Setting this to a higher number increases subscription speed, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection.
+        /// </summary>
+        public int? SocketSubscriptionsCombineTarget { get; set; }
+
         public T Copy<T>() where T : SocketClientOptions, new()
         {
             var copy = new T
@@ -107,7 +113,8 @@ namespace CryptoExchange.Net.Objects
                 LogWriters = LogWriters,
                 AutoReconnect = AutoReconnect,
                 ReconnectInterval = ReconnectInterval,
-                SocketResponseTimeout = SocketResponseTimeout
+                SocketResponseTimeout = SocketResponseTimeout,
+                SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget
             };
 
             if (ApiCredentials != null)

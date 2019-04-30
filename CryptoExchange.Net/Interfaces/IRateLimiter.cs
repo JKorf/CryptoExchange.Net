@@ -4,6 +4,6 @@ namespace CryptoExchange.Net.Interfaces
 {
     public interface IRateLimiter
     {
-        CallResult<double> LimitRequest(string url, RateLimitingBehaviour limitBehaviour);
+        CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour);
     }
 }

@@ -121,7 +121,7 @@ namespace CryptoExchange.Net
             if (signed && authProvider == null)
             { 
                 log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
-                return new WebCallResult<T>(null, null, new NoApiCredentialsError());
+                return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
             var request = ConstructRequest(uri, method, parameters, signed);
@@ -134,11 +134,11 @@ namespace CryptoExchange.Net
 
             foreach (var limiter in RateLimiters)
             {
-                var limitResult = limiter.LimitRequest(uri.AbsolutePath, RateLimitBehaviour);
+                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
                 if (!limitResult.Success)
                 {
                     log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
-                    return new WebCallResult<T>(null, null, limitResult.Error);
+                    return new WebCallResult<T>(null, null, null, limitResult.Error);
                 }
 
                 if (limitResult.Data > 0)
@@ -152,20 +152,20 @@ namespace CryptoExchange.Net
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri} {paramString ?? ""}");
             var result = await ExecuteRequest(request).ConfigureAwait(false);
             if(!result.Success)
-                return new WebCallResult<T>(result.ResponseStatusCode, null, result.Error);
+                return new WebCallResult<T>(result.ResponseStatusCode, result.ResponseHeaders, null, result.Error);
 
             var jsonResult = ValidateJson(result.Data);
             if(!jsonResult.Success)
-                return new WebCallResult<T>(result.ResponseStatusCode, null, jsonResult.Error);
+                return new WebCallResult<T>(result.ResponseStatusCode, result.ResponseHeaders, null, jsonResult.Error);
 
             if (IsErrorResponse(jsonResult.Data))
-                return new WebCallResult<T>(result.ResponseStatusCode, null, ParseErrorResponse(jsonResult.Data));
+                return new WebCallResult<T>(result.ResponseStatusCode, result.ResponseHeaders, null, ParseErrorResponse(jsonResult.Data));
 
             var desResult = Deserialize<T>(jsonResult.Data, checkResult);
             if (!desResult.Success)
-                return new WebCallResult<T>(result.ResponseStatusCode, null, desResult.Error);
+                return new WebCallResult<T>(result.ResponseStatusCode, result.ResponseHeaders, null, desResult.Error);
 
-            return new WebCallResult<T>(result.ResponseStatusCode, desResult.Data, null);
+            return new WebCallResult<T>(result.ResponseStatusCode, result.ResponseHeaders, desResult.Data, null);
         }
 
         /// <summary>
@@ -277,13 +277,15 @@ namespace CryptoExchange.Net
                 }
 
                 var statusCode = response.StatusCode;
+                var returnHeaders = response.GetResponseHeaders();
                 response.Close();
-                return new WebCallResult<string>(statusCode, returnedData, null);                
+                return new WebCallResult<string>(statusCode, returnHeaders, returnedData, null);                
             }
             catch (WebException we)
             {
                 var response = (HttpWebResponse)we.Response;
                 var statusCode = response?.StatusCode;
+                var returnHeaders = response?.Headers.ToIEnumerable();
 
                 try
                 {
@@ -296,7 +298,7 @@ namespace CryptoExchange.Net
                     response.Close();
 
                     var jsonResult = ValidateJson(returnedData);
-                    return !jsonResult.Success ? new WebCallResult<string>(statusCode, null, jsonResult.Error) : new WebCallResult<string>(statusCode, null, ParseErrorResponse(jsonResult.Data));
+                    return !jsonResult.Success ? new WebCallResult<string>(statusCode, returnHeaders, null, jsonResult.Error) : new WebCallResult<string>(statusCode, returnHeaders, null, ParseErrorResponse(jsonResult.Data));
                 }
                 catch (Exception)
                 {
@@ -307,18 +309,18 @@ namespace CryptoExchange.Net
                 {
                     infoMessage += $" | {we.Status} - {we.Message}";
                     log.Write(LogVerbosity.Warning, infoMessage);
-                    return new WebCallResult<string>(0, null, new WebError(infoMessage));
+                    return new WebCallResult<string>(0, null, null, new WebError(infoMessage));
                 }
 
                 infoMessage = $"Status: {response.StatusCode}-{response.StatusDescription}, Message: {we.Message}";
                 log.Write(LogVerbosity.Warning, infoMessage);
                 response.Close();
-                return new WebCallResult<string>(statusCode, null, new ServerError(infoMessage));
+                return new WebCallResult<string>(statusCode, returnHeaders, null, new ServerError(infoMessage));
             }
             catch (Exception e)
             {
                 log.Write(LogVerbosity.Error, $"Unknown error occured: {e.GetType()}, {e.Message}, {e.StackTrace}");
-                return new WebCallResult<string>(null, null, new UnknownError(e.Message + ", data: " + returnedData));
+                return new WebCallResult<string>(null, null, null, new UnknownError(e.Message + ", data: " + returnedData));
             }
         }
 

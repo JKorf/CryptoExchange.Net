@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.Sockets
         public DateTime? DisconnectTime { get; set; }
         public bool PausedActivity { get; set; }
 
-        private readonly List<SocketSubscription> handlers;
+        internal readonly List<SocketSubscription> handlers;
         private readonly object handlersLock = new object();
 
         private bool lostTriggered;
@@ -41,9 +41,9 @@ namespace CryptoExchange.Net.Sockets
 
         private readonly List<PendingRequest> pendingRequests;
 
-        public SocketConnection(SocketClient client, Log log, IWebsocket socket)
+        public SocketConnection(SocketClient client, IWebsocket socket)
         {
-            this.log = log;
+            log = client.log;
             socketClient = client;
 
             pendingRequests = new List<PendingRequest>();
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.Sockets
             handlers = new List<SocketSubscription>();
             Socket = socket;
 
-            Socket.Timeout = client.SocketTimeout;
+            Socket.Timeout = client.SocketNoDataTimeout;
             Socket.OnMessage += ProcessMessage;
             Socket.OnClose += () =>
             {
@@ -160,15 +160,12 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        public virtual async Task SendAndWait<T>(T obj, TimeSpan timeout, Func<JToken, bool> handler)
+        public virtual Task SendAndWait<T>(T obj, TimeSpan timeout, Func<JToken, bool> handler)
         {
             var pending = new PendingRequest(handler, timeout);
             pendingRequests.Add(pending);
-            await Task.Run(() =>
-            {
-                Send(obj);
-                pending.Event.WaitOne(timeout);
-            }).ConfigureAwait(false);
+            Send(obj);
+            return pending.Event.WaitOneAsync(timeout);
         }
 
         /// <summary>
@@ -209,7 +206,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     while (ShouldReconnect)
                     {
-                        Thread.Sleep(socketClient.ReconnectInterval);
+                        await Task.Delay(socketClient.ReconnectInterval).ConfigureAwait(false);
                         if (!ShouldReconnect)
                         {
                             // Should reconnect changed to false while waiting to reconnect
@@ -282,11 +279,9 @@ namespace CryptoExchange.Net.Sockets
         {
             Connected = false;
             ShouldReconnect = false;
-            lock (socketClient.socketLock)
-            {
-                if (socketClient.sockets.Contains(this))
-                    socketClient.sockets.Remove(this);
-            }
+            if (socketClient.sockets.ContainsKey(Socket.Id))
+                socketClient.sockets.TryRemove(Socket.Id, out _);
+            
 
             await Socket.Close().ConfigureAwait(false);
             Socket.Dispose();

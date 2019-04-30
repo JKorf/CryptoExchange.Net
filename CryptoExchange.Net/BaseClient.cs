@@ -15,7 +15,7 @@ namespace CryptoExchange.Net
     public abstract class BaseClient: IDisposable
     {
         public string BaseAddress { get; private set; }
-        protected Log log;
+        protected internal Log log;
         protected ApiProxy apiProxy;
         protected AuthenticationProvider authProvider;
 

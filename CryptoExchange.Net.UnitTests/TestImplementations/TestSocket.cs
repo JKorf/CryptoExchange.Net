@@ -52,6 +52,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             Connected = CanConnect;
             ConnectCalls++;
+            if (CanConnect)
+                InvokeOpen();
             return Task.FromResult(CanConnect);
         }
 
