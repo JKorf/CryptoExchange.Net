@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Authentication;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -23,6 +24,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestRestClient(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
+        }
+
+        public void SetKey(string key, string secret)
+        {
+            SetAuthenticationProvider(new UnitTests.TestAuthProvider(new ApiCredentials(key, secret)));
         }
 
         public void SetResponse(string responseData, Stream requestStream = null)
@@ -89,6 +95,13 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public async Task<CallResult<T>> Request<T>(string method = "GET") where T:class
         {
             return await ExecuteRequest<T>(new Uri("http://www.test.com"), method);
+        }
+    }
+
+    public class TestAuthProvider : AuthenticationProvider
+    {
+        public TestAuthProvider(ApiCredentials credentials) : base(credentials)
+        {
         }
     }
 

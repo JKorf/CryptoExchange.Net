@@ -17,7 +17,7 @@ namespace CryptoExchange.Net
         public string BaseAddress { get; private set; }
         protected internal Log log;
         protected ApiProxy apiProxy;
-        protected AuthenticationProvider authProvider;
+        protected internal AuthenticationProvider authProvider;
 
         protected static int lastId;
         protected static object idLock = new object();

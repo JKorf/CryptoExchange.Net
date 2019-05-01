@@ -166,5 +166,37 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(result2.Success);
             Assert.IsTrue(sw.ElapsedMilliseconds > 900, $"Actual: {sw.ElapsedMilliseconds}");
         }
+
+        [TestCase]
+        public void SettingApiKeyRateLimiter_Should_DelayRequestsFromSameKey()
+        {
+            // arrange
+            var client = new TestRestClient(new ClientOptions()
+            {
+                RateLimiters = new List<IRateLimiter> { new RateLimiterAPIKey(1, TimeSpan.FromSeconds(1)) },
+                RateLimitingBehaviour = RateLimitingBehaviour.Wait,
+                LogVerbosity = LogVerbosity.Debug,
+                ApiCredentials = new ApiCredentials("TestKey", "TestSecret")
+            });
+            client.SetResponse("{\"property\": 123}");
+
+
+            // act
+            var sw = Stopwatch.StartNew();
+            var result1 = client.Request<TestObject>().Result;
+            client.SetKey("TestKey2", "TestSecret2"); // set to different key
+            client.SetResponse("{\"property\": 123}"); // reset response stream
+            var result2 = client.Request<TestObject>().Result;
+            client.SetKey("TestKey", "TestSecret"); // set back to original key, should delay
+            client.SetResponse("{\"property\": 123}"); // reset response stream
+            var result3 = client.Request<TestObject>().Result;
+            sw.Stop();
+
+            // assert
+            Assert.IsTrue(result1.Success);
+            Assert.IsTrue(result2.Success);
+            Assert.IsTrue(result3.Success);
+            Assert.IsTrue(sw.ElapsedMilliseconds > 900 && sw.ElapsedMilliseconds < 1900, $"Actual: {sw.ElapsedMilliseconds}");
+        }
     }
 }
