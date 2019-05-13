@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.Sockets
             this.connection = connection;
             this.subscription = subscription;
         }
-
+        
         /// <summary>
         /// Close the subscription
         /// </summary>
@@ -53,6 +53,15 @@ namespace CryptoExchange.Net.Sockets
         public async Task Close()
         {
             await connection.Close(subscription).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Close the socket to cause a reconnect
+        /// </summary>
+        /// <returns></returns>
+        internal Task Reconnect()
+        {
+            return connection.Socket.Close();
         }
     }
 }

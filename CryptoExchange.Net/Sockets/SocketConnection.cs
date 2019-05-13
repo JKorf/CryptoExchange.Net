@@ -69,11 +69,6 @@ namespace CryptoExchange.Net.Sockets
             {
                 PausedActivity = false;
                 Connected = true;
-                if (lostTriggered)
-                {
-                    lostTriggered = false;
-                    ConnectionRestored?.Invoke(DisconnectTime.HasValue ? DateTime.UtcNow - DisconnectTime.Value: TimeSpan.FromSeconds(0));
-                }
             };
         }
 
@@ -230,7 +225,15 @@ namespace CryptoExchange.Net.Sockets
                         if (!reconnectResult)
                             await Socket.Close().ConfigureAwait(false);
                         else
+                        {
+                            if (lostTriggered)
+                            {
+                                lostTriggered = false;
+                                Task.Run(() => ConnectionRestored?.Invoke(DisconnectTime.HasValue ? DateTime.UtcNow - DisconnectTime.Value : TimeSpan.FromSeconds(0)));
+                            }
+
                             break;
+                        }
                     }
 
                     Socket.Reconnecting = false;
@@ -274,7 +277,7 @@ namespace CryptoExchange.Net.Sockets
             log.Write(LogVerbosity.Debug, "All subscription successfully resubscribed on reconnected socket.");
             return true;
         }
-
+        
         public async Task Close()
         {
             Connected = false;
@@ -282,7 +285,6 @@ namespace CryptoExchange.Net.Sockets
             if (socketClient.sockets.ContainsKey(Socket.Id))
                 socketClient.sockets.TryRemove(Socket.Id, out _);
             
-
             await Socket.Close().ConfigureAwait(false);
             Socket.Dispose();
         }

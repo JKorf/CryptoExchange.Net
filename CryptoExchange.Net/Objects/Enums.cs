@@ -18,10 +18,17 @@
         Json
     }
 
-    public enum SocketType
+    public enum OrderBookStatus
     {
-        Normal,
-        Background,
-        BackgroundAuthenticated
+        Disconnected,
+        Connecting,
+        Syncing,
+        Synced,
+    }
+
+    public enum OrderBookEntryType
+    {
+        Ask,
+        Bid
     }
 }
