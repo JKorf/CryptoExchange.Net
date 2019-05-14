@@ -2,7 +2,11 @@
 
 ![Build status](https://travis-ci.org/JKorf/CryptoExchange.Net.svg?branch=master)
 
-A base library for easy implementation of cryptocurrency API's.
+A base library for easy implementation of cryptocurrency API's. Include:
+* REST API calls and error handling
+* Websocket subscriptions, error handling and automatic reconnecting
+* Order book implementations automatically synchronizing and updating
+* Automatic rate limiting
 
 **If you think something is broken, something is missing or have any questions, please open an [Issue](https://github.com/JKorf/CryptoExchange.Net/issues)**
 
