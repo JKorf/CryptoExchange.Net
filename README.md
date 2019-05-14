@@ -112,7 +112,7 @@ using (var stream = File.OpenRead("/path/to/credential-file"))
 	});
 }
 ````
-Note that when using a file it can provide credentials for multiple exchange by providing the identifierKey and identifierSecret parameters:
+Note that when using a file it can provide credentials for multiple exchanges by providing the identifierKey and identifierSecret parameters:
 ````
 // File content:
 {
