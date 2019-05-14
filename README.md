@@ -76,6 +76,7 @@ public async Task AsyncMethod()
         var result2 = await client.PingAsync();
     }
 }
+````
 
 ## Response handling
 All API requests will respond with a (Web)CallResult object. This object contains whether the call was successful, the data returned from the call and an error if the call wasn't successful. As such, one should always check the Success flag when processing a response.
@@ -171,6 +172,8 @@ var bids = orderBook.Bids; // All bids
 
 ````
 The order book will automatically reconnect when the connection is lost and resync if it detects the sequence is off. Make sure to check the Status property to see it the book is currently in sync.
+
+To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
 * Version 2.1.2 - 14 may 2019
