@@ -2,7 +2,7 @@ language: csharp
 mono: none
 solution: CryptoExchange.Net.sln
 dotnet: 2.0.0
-dist: trusty
+dist: xenial
 script:
  - dotnet build CryptoExchange.Net/CryptoExchange.Net.csproj --framework "netstandard2.0"
  - dotnet test CryptoExchange.Net.UnitTests/CryptoExchange.Net.UnitTests.csproj
