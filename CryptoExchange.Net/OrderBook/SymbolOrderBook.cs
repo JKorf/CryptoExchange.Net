@@ -196,8 +196,10 @@ namespace CryptoExchange.Net.OrderBook
                 if (Status == OrderBookStatus.Connecting)
                     return;
 
+                asks.Clear();
                 foreach(var ask in askList)
                     asks.Add(ask.Price, new OrderBookEntry(ask.Price, ask.Quantity));
+                bids.Clear();
                 foreach (var bid in bidList)
                     bids.Add(bid.Price, new OrderBookEntry(bid.Price, bid.Quantity));
 
