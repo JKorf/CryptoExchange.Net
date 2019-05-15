@@ -13,8 +13,8 @@ namespace CryptoExchange.Net.OrderBook
     {
         protected readonly List<ProcessBufferEntry> processBuffer;
         private readonly object bookLock = new object();
-        protected List<OrderBookEntry> asks;
-        protected List<OrderBookEntry> bids;
+        protected SortedList<decimal, OrderBookEntry> asks;
+        protected SortedList<decimal, OrderBookEntry> bids;
         private OrderBookStatus status;
         private UpdateSubscription subscription;
         private readonly bool sequencesAreConsecutive;
@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (bookLock)
-                    return asks.OrderBy(a => a.Price).ToList();
+                    return asks.Select(a => a.Value).ToList();
             }
         }
 
@@ -84,7 +84,31 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (bookLock)
-                    return bids.OrderByDescending(a => a.Price).ToList();
+                    return bids.Select(a => a.Value).ToList();
+            }
+        }
+
+        /// <summary>
+        /// The best bid currently in the order book
+        /// </summary>
+        public ISymbolOrderBookEntry BestBid
+        {
+            get
+            {
+                lock (bookLock)
+                    return bids.FirstOrDefault().Value;
+            }
+        }
+
+        /// <summary>
+        /// The best ask currently in the order book
+        /// </summary>
+        public ISymbolOrderBookEntry BestAsk
+        {
+            get
+            {
+                lock (bookLock)
+                    return asks.FirstOrDefault().Value;
             }
         }
 
@@ -96,8 +120,8 @@ namespace CryptoExchange.Net.OrderBook
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
 
-            asks = new List<OrderBookEntry>();
-            bids = new List<OrderBookEntry>();
+            asks = new SortedList<decimal, OrderBookEntry>();
+            bids = new SortedList<decimal, OrderBookEntry>(new DescComparer<decimal>());
 
             log = new Log { Level = logVerbosity };
             if (logWriters == null)
@@ -172,8 +196,11 @@ namespace CryptoExchange.Net.OrderBook
                 if (Status == OrderBookStatus.Connecting)
                     return;
 
-                asks = askList.Select(a => new OrderBookEntry(a.Price, a.Quantity)).ToList();
-                bids = bidList.Select(b => new OrderBookEntry(b.Price, b.Quantity)).ToList();
+                foreach(var ask in askList)
+                    asks.Add(ask.Price, new OrderBookEntry(ask.Price, ask.Quantity));
+                foreach (var bid in bidList)
+                    bids.Add(bid.Price, new OrderBookEntry(bid.Price, bid.Quantity));
+
                 LastSequenceNumber = orderBookSequenceNumber;
 
                 AskCount = asks.Count;
@@ -245,28 +272,36 @@ namespace CryptoExchange.Net.OrderBook
             var listToChange = type == OrderBookEntryType.Ask ? asks : bids;
             if (entry.Quantity == 0)
             {
-                var bookEntry = listToChange.SingleOrDefault(i => i.Price == entry.Price);
-                if (bookEntry != null)
+                var bookEntry = listToChange.SingleOrDefault(i => i.Key == entry.Price);
+                if (!bookEntry.Equals(default(KeyValuePair<decimal, OrderBookEntry>)))
                 {
-                    listToChange.Remove(bookEntry);
+                    listToChange.Remove(entry.Price);
                     if (type == OrderBookEntryType.Ask) AskCount--;
                     else BidCount--;
                 }
             }
             else
             {
-                var bookEntry = listToChange.SingleOrDefault(i => i.Price == entry.Price);
-                if (bookEntry == null)
+                var bookEntry = listToChange.SingleOrDefault(i => i.Key == entry.Price);
+                if (bookEntry.Equals(default(KeyValuePair<decimal, OrderBookEntry>)))
                 {
-                    listToChange.Add(new OrderBookEntry(entry.Price, entry.Quantity));
+                    listToChange.Add(entry.Price, new OrderBookEntry(entry.Price, entry.Quantity));
                     if (type == OrderBookEntryType.Ask) AskCount++;
                     else BidCount++;
                 }
                 else
-                    bookEntry.Quantity = entry.Quantity;
+                    bookEntry.Value.Quantity = entry.Quantity;
             }
         }
 
         public abstract void Dispose();
+    }
+
+    internal class DescComparer<T> : IComparer<T>
+    {
+        public int Compare(T x, T y)
+        {
+            return Comparer<T>.Default.Compare(y, x);
+        }
     }
 }
