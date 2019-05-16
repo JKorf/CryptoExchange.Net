@@ -180,6 +180,10 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 2.1.3 - 16 may 2019
+	* Refactored SymbolOrderBook
+	* Added BestBid/BestAsk properties for order book
+
 * Version 2.1.2 - 14 may 2019
 	* Added order book base class for easy implementation
 	* Added additional constructor to ApiCredentials to be able to read from file
