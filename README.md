@@ -55,6 +55,11 @@ Implementations from third parties
 </tr>
 </table>
 
+Planned implementations:
+* BitMEX
+* Bitstamp
+* CoinFalcon
+
 ## Donations
 Donations are greatly appreciated and a motivation to keep improving.
 
