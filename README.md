@@ -55,7 +55,7 @@ Implementations from third parties
 </tr>
 </table>
 
-Planned implementations:
+Planned implementations (no timeline):
 * BitMEX
 * Bitstamp
 * CoinFalcon
