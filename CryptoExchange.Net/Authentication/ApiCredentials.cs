@@ -68,7 +68,10 @@ namespace CryptoExchange.Net.Authentication
             using (var reader = new StreamReader(inputStream, Encoding.ASCII, false, 512, true))
             {
                 var stringData = reader.ReadToEnd();
-                var jsonData = JToken.Parse(stringData);
+                var jsonData = stringData.ToJToken();
+                if(jsonData == null)
+                    throw new ArgumentException("Input stream not valid json data");
+
                 var key = TryGetValue(jsonData, identifierKey ?? "apiKey");
                 var secret = TryGetValue(jsonData, identifierSecret ?? "apiSecret");
 

@@ -91,9 +91,10 @@ namespace CryptoExchange.Net.Sockets
         public void ProcessMessage(string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} received data: " + data);
-            
-            var tokenData = JToken.Parse(data);
-            
+            var tokenData = data.ToJToken(log);
+            if (tokenData == null)
+                return;
+
             foreach (var pendingRequest in pendingRequests.ToList())
             {
                 if (pendingRequest.Check(tokenData))

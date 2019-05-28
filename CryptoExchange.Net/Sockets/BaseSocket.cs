@@ -75,8 +75,32 @@ namespace CryptoExchange.Net.Sockets
 
         private void HandleByteData(byte[] data)
         {
-            var message = DataInterpreterBytes(data);
-            Handle(messageHandlers, message);
+            if (DataInterpreterBytes == null)
+                throw new Exception("Byte interpreter not set while receiving byte data");
+
+            try
+            {
+                var message = DataInterpreterBytes(data);
+                Handle(messageHandlers, message);
+            }
+            catch (Exception ex)
+            {
+                log.Write(LogVerbosity.Error, $"{Id} Something went wrong while processing a byte message from the socket: {ex}");
+            }
+        }
+
+        private void HandleStringData(string data)
+        {
+            try
+            {
+                if (DataInterpreterString != null)
+                    data = DataInterpreterString(data);
+                Handle(messageHandlers, data);
+            }
+            catch (Exception ex)
+            {
+                log.Write(LogVerbosity.Error, $"{Id} Something went wrong while processing a string message from the socket: {ex}");
+            }
         }
 
         public event Action OnClose
@@ -201,13 +225,7 @@ namespace CryptoExchange.Net.Sockets
                 socket.Opened += (o, s) => Handle(openHandlers);
                 socket.Closed += (o, s) => Handle(closeHandlers);
                 socket.Error += (o, s) => Handle(errorHandlers, s.Exception);
-                socket.MessageReceived += (o, s) =>
-                {
-                    string data = s.Message;
-                    if (DataInterpreterString != null)
-                        data = DataInterpreterString(data);
-                    Handle(messageHandlers, data);
-                };
+                socket.MessageReceived += (o, s) => HandleStringData(s.Message);
                 socket.DataReceived += (o, s) => HandleByteData(s.Data);
             }
 
