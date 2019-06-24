@@ -55,11 +55,12 @@ Implementations from third parties
 </tr>
 </table>
 
-Planned implementations (no timeline):
+Planned implementations (no timeline or specific order):
 * BitMEX
 * Bitstamp
 * CoinFalcon
 * Kraken
+* Binance DEX
 
 ## Donations
 Donations are greatly appreciated and a motivation to keep improving.
