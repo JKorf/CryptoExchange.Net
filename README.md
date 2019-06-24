@@ -59,6 +59,7 @@ Planned implementations (no timeline):
 * BitMEX
 * Bitstamp
 * CoinFalcon
+* Kraken
 
 ## Donations
 Donations are greatly appreciated and a motivation to keep improving.
