@@ -145,14 +145,14 @@ namespace CryptoExchange.Net
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
                 log?.Write(LogVerbosity.Error, info);
-                if (log == null) Debug.WriteLine(LogVerbosity.Error, info);
+                if (log == null) Debug.WriteLine(info);
                 return null;
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
                 log?.Write(LogVerbosity.Error, info);
-                if (log == null) Debug.WriteLine(LogVerbosity.Error, info);
+                if (log == null) Debug.WriteLine(info);
                 return null;
             }
         }
