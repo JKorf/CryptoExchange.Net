@@ -180,6 +180,8 @@ var askCount = orderBook.AskCount; // The current number of asks in the book
 var bidCount = orderBook.BidCount; // The current number of bids in the book
 var asks = orderBook.Asks; // All asks
 var bids = orderBook.Bids; // All bids
+var bestBid = orderBook.BestBid; // The best bid available in the book
+var bestAsk = orderBook.BestAsk; // The best ask available in the book
 
 ````
 The order book will automatically reconnect when the connection is lost and resync if it detects the sequence is off. Make sure to check the Status property to see it the book is currently in sync.
