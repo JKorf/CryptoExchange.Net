@@ -133,7 +133,13 @@ namespace CryptoExchange.Net.OrderBook
         /// Start connecting and synchronizing the order book
         /// </summary>
         /// <returns></returns>
-        public async Task<CallResult<bool>> Start()
+        public CallResult<bool> Start() => StartAsync().Result;
+
+        /// <summary>
+        /// Start connecting and synchronizing the order book
+        /// </summary>
+        /// <returns></returns>
+        public async Task<CallResult<bool>> StartAsync()
         {
             Status = OrderBookStatus.Connecting;
             var startResult = await DoStart().ConfigureAwait(false);
@@ -177,10 +183,16 @@ namespace CryptoExchange.Net.OrderBook
         /// Stop syncing the order book
         /// </summary>
         /// <returns></returns>
-        public Task Stop()
+        public void Stop() => StopAsync().Wait();
+
+        /// <summary>
+        /// Stop syncing the order book
+        /// </summary>
+        /// <returns></returns>
+        public async Task StopAsync()
         {
             Status = OrderBookStatus.Disconnected;
-            return subscription.Close();
+            await subscription.Close().ConfigureAwait(false);
         }
 
         protected abstract Task<CallResult<UpdateSubscription>> DoStart();
