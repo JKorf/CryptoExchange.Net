@@ -164,11 +164,12 @@ client.Unsubscribe(subResult.Data);
 To unsubscribe all subscriptions the `client.UnsubscribeAll()` method can be used.
 
 ## Order books
-The library implementations provide a `SymbolOrderBook` implementation. This implementation can be used to keep an updated order book without having to think about synchronizing it. This example is from the Binance.Net library, but is the same for others:
+The library implementations provide a `SymbolOrderBook` implementation. This implementation can be used to keep an updated order book without having to think about synchronizing it. This example is from the Binance.Net library, 
+but the implementation is similar for each library:
 ````C#
-var orderBook = new BinanceSymbolOrderBook("BTCUSDT", 100);
+var orderBook = new BinanceSymbolOrderBook("BTCUSDT", new BinanceOrderBookOptions(20));
 orderBook.OnStatusChange += (oldStatus, newStatus) => Console.WriteLine($"Book state changed from {oldStatus} to {newStatus}");
-var startResult = await orderBook.Start();
+var startResult = await orderBook.StartAsync();
 if(!startResult.Success)
 {
 	Console.WriteLine("Error starting order book synchronization: " + startResult.Error);
