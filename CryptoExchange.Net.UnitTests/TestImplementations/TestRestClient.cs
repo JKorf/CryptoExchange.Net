@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestRestClient: RestClient
     {
-        public TestRestClient() : base(new ClientOptions(), null)
+        public TestRestClient() : base(new RestClientOptions(), null)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        public TestRestClient(ClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestRestClient(RestClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     public class ParseErrorTestRestClient: TestRestClient
     {
         public ParseErrorTestRestClient() { }
-        public ParseErrorTestRestClient(ClientOptions exchangeOptions) : base(exchangeOptions) { }
+        public ParseErrorTestRestClient(RestClientOptions exchangeOptions) : base(exchangeOptions) { }
 
         protected override Error ParseErrorResponse(JToken error)
         {

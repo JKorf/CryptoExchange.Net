@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             // act
             // assert
-            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new ClientOptions() { ApiCredentials = new ApiCredentials(key, secret) }));
+            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new RestClientOptions() { ApiCredentials = new ApiCredentials(key, secret) }));
         }
 
         [TestCase]
@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var stringBuilder = new StringBuilder();
-            var client = new TestBaseClient(new ClientOptions()
+            var client = new TestBaseClient(new RestClientOptions()
             {
                 LogWriters = new List<TextWriter> { new StringWriter(stringBuilder) }
             });
@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var stringBuilder = new StringBuilder();
-            var client = new TestBaseClient(new ClientOptions()
+            var client = new TestBaseClient(new RestClientOptions()
             {
                 LogWriters = new List<TextWriter> { new StringWriter(stringBuilder) },
                 LogVerbosity = verbosity

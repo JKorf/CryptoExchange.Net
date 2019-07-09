@@ -189,7 +189,10 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
-* Version 2.1.4 - 24 june 201
+* Version 2.1.5 - 09 jul 2019
+	* Updated SymbolOrderBook
+
+* Version 2.1.4 - 24 jun 2019
 	* Added checks for json deserialization issues
 
 * Version 2.1.3 - 16 may 2019

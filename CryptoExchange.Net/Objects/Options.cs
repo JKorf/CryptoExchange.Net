@@ -8,9 +8,51 @@ using CryptoExchange.Net.Logging;
 namespace CryptoExchange.Net.Objects
 {
     /// <summary>
-    /// Options
+    /// Base options
     /// </summary>
-    public class ExchangeOptions
+    public class BaseOptions
+    {
+        /// <summary>
+        /// The log verbosity
+        /// </summary>
+        public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Info;
+
+        /// <summary>
+        /// The log writers
+        /// </summary>
+        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };
+    }
+
+    /// <summary>
+    /// Base for order book options
+    /// </summary>
+    public class OrderBookOptions: BaseOptions
+    {
+        /// <summary>
+        /// The name of the order book implementation
+        /// </summary>
+        public string OrderBookName { get; }
+
+        /// <summary>
+        /// Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
+        /// </summary>
+        public bool SequenceNumbersAreConsecutive { get; }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="name">The name of the order book implementation</param>
+        /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
+        public OrderBookOptions(string name, bool sequencesAreConsecutive)
+        {
+            OrderBookName = name;
+            SequenceNumbersAreConsecutive = sequencesAreConsecutive;
+        }
+    }
+
+    /// <summary>
+    /// Base client options
+    /// </summary>
+    public class ClientOptions: BaseOptions
     {
 
         /// <summary>
@@ -27,19 +69,12 @@ namespace CryptoExchange.Net.Objects
         /// Proxy to use
         /// </summary>
         public ApiProxy Proxy { get; set; }
-        
-        /// <summary>
-        /// The log verbosity
-        /// </summary>
-        public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Info;
-
-        /// <summary>
-        /// The log writers
-        /// </summary>
-        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };           
     }
 
-    public class ClientOptions: ExchangeOptions
+    /// <summary>
+    /// Base for rest client options
+    /// </summary>
+    public class RestClientOptions: ClientOptions
     {
         /// <summary>
         /// List of rate limiters to use
@@ -56,7 +91,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
-        public T Copy<T>() where T:ClientOptions, new()
+        public T Copy<T>() where T:RestClientOptions, new()
         {
             var copy = new T
             {
@@ -76,7 +111,10 @@ namespace CryptoExchange.Net.Objects
         }
     }
 
-    public class SocketClientOptions: ExchangeOptions
+    /// <summary>
+    /// Base for socket client options
+    /// </summary>
+    public class SocketClientOptions: ClientOptions
     {
         /// <summary>
         /// Whether or not the socket should automatically reconnect when losing connection

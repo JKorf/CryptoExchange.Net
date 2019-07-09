@@ -30,7 +30,7 @@ namespace CryptoExchange.Net
 
         public static int LastId => lastId;
 
-        protected BaseClient(ExchangeOptions options, AuthenticationProvider authenticationProvider)
+        protected BaseClient(ClientOptions options, AuthenticationProvider authenticationProvider)
         {
             log = new Log();
             authProvider = authenticationProvider;
@@ -40,16 +40,16 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Configure the client using the provided options
         /// </summary>
-        /// <param name="exchangeOptions">Options</param>
-        protected void Configure(ExchangeOptions exchangeOptions)
+        /// <param name="clientOptionsns">Options</param>
+        protected void Configure(ClientOptions clientOptions)
         {
-            log.UpdateWriters(exchangeOptions.LogWriters);
-            log.Level = exchangeOptions.LogVerbosity;
+            log.UpdateWriters(clientOptions.LogWriters);
+            log.Level = clientOptions.LogVerbosity;
 
-            BaseAddress = exchangeOptions.BaseAddress;
-            apiProxy = exchangeOptions.Proxy;
+            BaseAddress = clientOptions.BaseAddress;
+            apiProxy = clientOptions.Proxy;
             if (apiProxy != null)
-                log.Write(LogVerbosity.Info, $"Setting api proxy to {exchangeOptions.Proxy.Host}:{exchangeOptions.Proxy.Port}");
+                log.Write(LogVerbosity.Info, $"Setting api proxy to {clientOptions.Proxy.Host}:{clientOptions.Proxy.Port}");
         }
 
         /// <summary>

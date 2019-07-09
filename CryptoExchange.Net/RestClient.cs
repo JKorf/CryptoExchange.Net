@@ -35,7 +35,7 @@ namespace CryptoExchange.Net
         public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
         public int TotalRequestsMade { get; private set; }
 
-        protected RestClient(ClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
             Configure(exchangeOptions);
         }
@@ -44,7 +44,7 @@ namespace CryptoExchange.Net
         /// Configure the client using the provided options
         /// </summary>
         /// <param name="exchangeOptions">Options</param>
-        protected void Configure(ClientOptions exchangeOptions)
+        protected void Configure(RestClientOptions exchangeOptions)
         {
             RequestTimeout = exchangeOptions.RequestTimeout;
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
