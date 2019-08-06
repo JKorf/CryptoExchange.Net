@@ -13,24 +13,51 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
+    /// <summary>
+    /// Helper methods
+    /// </summary>
     public static class ExtensionMethods
     {
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddParameter(this Dictionary<string, object> parameters, string key, string value)
         {
             parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddParameter(this Dictionary<string, object> parameters, string key, object value)
         {
             parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Add an optional parameter. Not added if value is null
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object value)
         {
             if(value != null)
                 parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Add an optional parameter. Not added if value is null
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddOptionalParameter(this Dictionary<string, string> parameters, string key, string value)
         {
             if (value != null)
@@ -90,6 +117,11 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// Header collection to inenumerable
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns></returns>
         public static IEnumerable<Tuple<string, string>> ToIEnumerable(this WebHeaderCollection headers)
         {
             if (headers == null)
@@ -102,6 +134,13 @@ namespace CryptoExchange.Net
                 );
         }
 
+        /// <summary>
+        /// Wait one async
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="millisecondsTimeout"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
         {
             RegisteredWaitHandle registeredHandle = null;
@@ -126,12 +165,24 @@ namespace CryptoExchange.Net
                 tokenRegistration.Dispose();
             }
         }
-
+        
+        /// <summary>
+        /// Wait one async
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
         public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout)
         {
             return handle.WaitOneAsync((int)timeout.TotalMilliseconds, CancellationToken.None);
         }
 
+        /// <summary>
+        /// String to JToken
+        /// </summary>
+        /// <param name="stringData"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
         public static JToken ToJToken(this string stringData, Log log = null)
         {
             if (string.IsNullOrEmpty(stringData))

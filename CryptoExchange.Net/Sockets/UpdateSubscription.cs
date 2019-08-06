@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
+    /// <summary>
+    /// Subscription
+    /// </summary>
     public class UpdateSubscription
     {
         private readonly SocketConnection connection;
@@ -40,6 +43,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Id => connection.Socket.Id;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="subscription"></param>
         public UpdateSubscription(SocketConnection connection, SocketSubscription subscription)
         {
             this.connection = connection;

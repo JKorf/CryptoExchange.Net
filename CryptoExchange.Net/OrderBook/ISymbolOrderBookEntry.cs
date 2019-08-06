@@ -1,5 +1,8 @@
 ﻿namespace CryptoExchange.Net.OrderBook
 {
+    /// <summary>
+    /// Interface for order book entries
+    /// </summary>
     public interface ISymbolOrderBookEntry
     {
         /// <summary>

@@ -8,13 +8,18 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.Converters
 {
+    /// <summary>
+    /// Converter for arrays to properties
+    /// </summary>
     public class ArrayConverter : JsonConverter
     {
+        /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
             return true;
         }
-
+        
+        /// <inheritdoc />
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (objectType == typeof(JToken))
@@ -95,6 +100,7 @@ namespace CryptoExchange.Net.Converters
             return result;
         }
 
+        /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             writer.WriteStartArray();
@@ -143,10 +149,20 @@ namespace CryptoExchange.Net.Converters
         }
     }
 
+    /// <summary>
+    /// Mark property as an index in the array
+    /// </summary>
     public class ArrayPropertyAttribute: Attribute
     {
+        /// <summary>
+        /// The index in the array
+        /// </summary>
         public int Index { get; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="index"></param>
         public ArrayPropertyAttribute(int index)
         {
             Index = index;

@@ -13,7 +13,10 @@ using WebSocket4Net;
 
 namespace CryptoExchange.Net.Sockets
 {
-    public class BaseSocket: IWebsocket
+    /// <summary>
+    /// Socket implementation
+    /// </summary>
+    internal class BaseSocket: IWebsocket
     {
         internal static int lastStreamId;
         private static readonly object streamIdLock = new object();

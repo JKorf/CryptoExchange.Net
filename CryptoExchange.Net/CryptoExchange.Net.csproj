@@ -1,27 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
-	<Authors>JKorf</Authors>
-    <PackageVersion>2.1.5</PackageVersion>
-	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Authors>JKorf</Authors>
+    <PackageVersion>2.1.6</PackageVersion>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
-	<PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
-	<NeutralLanguage>en</NeutralLanguage>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReleaseNotes>2.1.6 - Fix for missing subscription events if they are also a request response, added code docs</PackageReleaseNotes>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
   </PropertyGroup>
-  
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
   </ItemGroup>
-
 </Project>

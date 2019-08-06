@@ -15,14 +15,26 @@ namespace CryptoExchange.Net.OrderBook
     /// </summary>
     public abstract class SymbolOrderBook: IDisposable
     {
+        /// <summary>
+        /// The process buffer, used while syncing
+        /// </summary>
         protected readonly List<ProcessBufferEntry> processBuffer;
         private readonly object bookLock = new object();
+        /// <summary>
+        /// The ask list
+        /// </summary>
         protected SortedList<decimal, OrderBookEntry> asks;
+        /// <summary>
+        /// The bid list
+        /// </summary>
         protected SortedList<decimal, OrderBookEntry> bids;
         private OrderBookStatus status;
         private UpdateSubscription subscription;
         private readonly bool sequencesAreConsecutive;
         private readonly string id;
+        /// <summary>
+        /// The log
+        /// </summary>
         protected Log log;
 
         private bool bookSet;
@@ -116,6 +128,11 @@ namespace CryptoExchange.Net.OrderBook
             }
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="options"></param>
         protected SymbolOrderBook(string symbol, OrderBookOptions options)
         {
             id = options.OrderBookName;
@@ -198,12 +215,29 @@ namespace CryptoExchange.Net.OrderBook
             await subscription.Close().ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Start the order book
+        /// </summary>
+        /// <returns></returns>
         protected abstract Task<CallResult<UpdateSubscription>> DoStart();
 
+        /// <summary>
+        /// Reset the order book
+        /// </summary>
         protected virtual void DoReset() { }
 
+        /// <summary>
+        /// Resync the order book
+        /// </summary>
+        /// <returns></returns>
         protected abstract Task<CallResult<bool>> DoResync();
         
+        /// <summary>
+        /// Set the initial data for the order book
+        /// </summary>
+        /// <param name="orderBookSequenceNumber">The last update sequence number</param>
+        /// <param name="askList">List of asks</param>
+        /// <param name="bidList">List of bids</param>
         protected void SetInitialOrderBook(long orderBookSequenceNumber, IEnumerable<ISymbolOrderBookEntry> askList, IEnumerable<ISymbolOrderBookEntry> bidList)
         {
             lock (bookLock)
@@ -229,6 +263,12 @@ namespace CryptoExchange.Net.OrderBook
             }
         }
 
+        /// <summary>
+        /// Update the order book with entries
+        /// </summary>
+        /// <param name="firstSequenceNumber">First sequence number</param>
+        /// <param name="lastSequenceNumber">Last sequence number</param>
+        /// <param name="entries">List of entries</param>
         protected void UpdateOrderBook(long firstSequenceNumber, long lastSequenceNumber, List<ProcessEntry> entries)
         {
             lock (bookLock)
@@ -264,6 +304,9 @@ namespace CryptoExchange.Net.OrderBook
             }
         }
 
+        /// <summary>
+        /// Check and empty the process buffer; see what entries to update the book with
+        /// </summary>
         protected void CheckProcessBuffer()
         {
             foreach (var bufferEntry in processBuffer.OrderBy(b => b.FirstSequence).ToList())
@@ -284,6 +327,11 @@ namespace CryptoExchange.Net.OrderBook
             }
         }
 
+        /// <summary>
+        /// Update order book with an entry
+        /// </summary>
+        /// <param name="type">Type of entry</param>
+        /// <param name="entry">The entry</param>
         protected virtual void ProcessUpdate(OrderBookEntryType type, ISymbolOrderBookEntry entry)
         {
             var listToChange = type == OrderBookEntryType.Ask ? asks : bids;
@@ -311,13 +359,24 @@ namespace CryptoExchange.Net.OrderBook
             }
         }
 
+        /// <summary>
+        /// Dispose the order book
+        /// </summary>
         public abstract void Dispose();
 
+        /// <summary>
+        /// String representation of the top 3 entries
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return ToString(3);
         }
 
+        /// <summary>
+        /// String representation of the top x entries
+        /// </summary>
+        /// <returns></returns>
         public string ToString(int numberOfEntries)
         {
             var result = "";

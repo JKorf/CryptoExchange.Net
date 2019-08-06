@@ -91,6 +91,11 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
+        /// <summary>
+        /// Create a copy of the options
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Copy<T>() where T:RestClientOptions, new()
         {
             var copy = new T
@@ -141,6 +146,11 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
+        /// <summary>
+        /// Create a copy of the options
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Copy<T>() where T : SocketClientOptions, new()
         {
             var copy = new T

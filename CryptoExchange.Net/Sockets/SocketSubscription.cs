@@ -3,8 +3,14 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.Sockets
 {
+    /// <summary>
+    /// Socket subscription
+    /// </summary>
     public class SocketSubscription
     {
+        /// <summary>
+        /// Exception event
+        /// </summary>
         public event Action<Exception> Exception;
 
         /// <summary>
@@ -12,13 +18,32 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public Action<SocketConnection, JToken> MessageHandler { get; set; }
 
+        /// <summary>
+        /// Request object
+        /// </summary>
         public object Request { get; set; }
+        /// <summary>
+        /// Subscription identifier
+        /// </summary>
         public string Identifier { get; set; }
+        /// <summary>
+        /// Is user subscription or generic
+        /// </summary>
         public bool UserSubscription { get; set; }
         
+        /// <summary>
+        /// If the subscription has been confirmed
+        /// </summary>
         public bool Confirmed { get; set; }
 
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="request"></param>
+        /// <param name="userSubscription"></param>
+        /// <param name="dataHandler"></param>
         public SocketSubscription(string identifier, object request, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
         {
             UserSubscription = userSubscription;
@@ -27,6 +52,10 @@ namespace CryptoExchange.Net.Sockets
             Request = request;
         }
        
+        /// <summary>
+        /// Invoke the exception event
+        /// </summary>
+        /// <param name="e"></param>
         public void InvokeExceptionHandler(Exception e)
         {
             Exception?.Invoke(e);

@@ -12,14 +12,35 @@ using System.Reflection;
 
 namespace CryptoExchange.Net
 {
+    /// <summary>
+    /// The base for all clients
+    /// </summary>
     public abstract class BaseClient: IDisposable
     {
+        /// <summary>
+        /// The address of the client
+        /// </summary>
         public string BaseAddress { get; private set; }
+        /// <summary>
+        /// The log object
+        /// </summary>
         protected internal Log log;
+        /// <summary>
+        /// The api proxy
+        /// </summary>
         protected ApiProxy apiProxy;
+        /// <summary>
+        /// The auth provider
+        /// </summary>
         protected internal AuthenticationProvider authProvider;
 
+        /// <summary>
+        /// The last used id
+        /// </summary>
         protected static int lastId;
+        /// <summary>
+        /// Lock for id generating
+        /// </summary>
         protected static object idLock = new object();
 
         private static readonly JsonSerializer defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -28,8 +49,16 @@ namespace CryptoExchange.Net
             Culture = CultureInfo.InvariantCulture
         });
 
+        /// <summary>
+        /// Last is used
+        /// </summary>
         public static int LastId => lastId;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="authenticationProvider"></param>
         protected BaseClient(ClientOptions options, AuthenticationProvider authenticationProvider)
         {
             log = new Log();
@@ -40,7 +69,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Configure the client using the provided options
         /// </summary>
-        /// <param name="clientOptionsns">Options</param>
+        /// <param name="clientOptions">Options</param>
         protected void Configure(ClientOptions clientOptions)
         {
             log.UpdateWriters(clientOptions.LogWriters);
@@ -306,6 +335,9 @@ namespace CryptoExchange.Net
             return path;
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public virtual void Dispose()
         {
             authProvider?.Credentials?.Dispose();

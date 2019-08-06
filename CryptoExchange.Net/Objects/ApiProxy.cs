@@ -2,6 +2,9 @@
 
 namespace CryptoExchange.Net.Objects
 {
+    /// <summary>
+    /// Proxy info
+    /// </summary>
     public class ApiProxy
     {
         /// <summary>

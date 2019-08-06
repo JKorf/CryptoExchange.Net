@@ -29,6 +29,7 @@ namespace CryptoExchange.Net.RateLimiter
             this.perTimePeriod = perTimePeriod;
         }
 
+        /// <inheritdoc />
         public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitingBehaviour)
         {
             int waitTime;

@@ -4,6 +4,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.Logging
 {
+    /// <summary>
+    /// File writer
+    /// </summary>
     public class ThreadSafeFileWriter: TextWriter
     {
         private static readonly object openedFilesLock = new object();
@@ -12,8 +15,13 @@ namespace CryptoExchange.Net.Logging
         private StreamWriter logWriter;
         private readonly object writeLock;
 
+        /// <inheritdoc />
         public override Encoding Encoding => Encoding.ASCII;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="path"></param>
         public ThreadSafeFileWriter(string path)
         {
             logWriter = new StreamWriter(File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite)) {AutoFlush = true};
@@ -28,12 +36,17 @@ namespace CryptoExchange.Net.Logging
             }
         }
 
+        /// <inheritdoc />
         public override void WriteLine(string logMessage)
         {
             lock(writeLock)
                 logWriter.WriteLine(logMessage);            
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             lock (writeLock)

@@ -6,16 +6,28 @@ using Newtonsoft.Json;
 
 namespace CryptoExchange.Net.Converters
 {
+    /// <summary>
+    /// Base class for enum converters
+    /// </summary>
+    /// <typeparam name="T">Type of enum to convert</typeparam>
     public abstract class BaseConverter<T>: JsonConverter
     {
+        /// <summary>
+        /// The enum->string mapping
+        /// </summary>
         protected abstract List<KeyValuePair<T, string>> Mapping { get; }
         private readonly bool quotes;
         
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="useQuotes"></param>
         protected BaseConverter(bool useQuotes)
         {
             quotes = useQuotes;
         }
 
+        /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var stringValue = GetValue((T) value);
@@ -25,6 +37,7 @@ namespace CryptoExchange.Net.Converters
                 writer.WriteRawValue(stringValue);
         }
 
+        /// <inheritdoc />
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
@@ -39,11 +52,17 @@ namespace CryptoExchange.Net.Converters
             return result;
         }
 
+        /// <summary>
+        /// Convert a string value
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public T ReadString(string data)
         {
             return Mapping.FirstOrDefault(v => v.Value == data).Key;
         }
 
+        /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
             // Check if it is type, or nullable of type

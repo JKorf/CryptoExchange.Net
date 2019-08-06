@@ -3,8 +3,17 @@ using System.Collections.Generic;
 
 namespace CryptoExchange.Net.Objects
 {
+    /// <summary>
+    /// Comparer for byte order
+    /// </summary>
     public class ByteOrderComparer : IComparer<byte[]>
     {
+        /// <summary>
+        /// Compare function
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public int Compare(byte[] x, byte[] y)
         {
             // Shortcuts: If both are null, they are the same.

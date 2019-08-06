@@ -13,6 +13,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
+    /// <summary>
+    /// Base for socket client implementations
+    /// </summary>
     public abstract class SocketClient: BaseClient, ISocketClient
     {
         #region fields
@@ -25,6 +28,8 @@ namespace CryptoExchange.Net
         /// List of socket connections currently connecting/connected
         /// </summary>
         protected internal ConcurrentDictionary<int, SocketConnection> sockets = new ConcurrentDictionary<int, SocketConnection>();
+        /// <summary>
+        /// </summary>
         protected internal readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
         /// <inheritdoc cref="SocketClientOptions.ReconnectInterval"/>
@@ -42,14 +47,43 @@ namespace CryptoExchange.Net
         /// <inheritdoc cref="SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         public int SocketCombineTarget { get; protected set; }
 
+        /// <summary>
+        /// Handler for byte data
+        /// </summary>
         protected Func<byte[], string> dataInterpreterBytes;
+        /// <summary>
+        /// Handler for string data
+        /// </summary>
         protected Func<string, string> dataInterpreterString;
+        /// <summary>
+        /// Generic handlers
+        /// </summary>
         protected Dictionary<string, Action<SocketConnection, JToken>> genericHandlers = new Dictionary<string, Action<SocketConnection, JToken>>();
+        /// <summary>
+        /// Periodic task
+        /// </summary>
         protected Task periodicTask;
+        /// <summary>
+        /// Periodic task event
+        /// </summary>
         protected AutoResetEvent periodicEvent;
+        /// <summary>
+        /// Is disposing
+        /// </summary>
         protected bool disposing;
+
+        /// <summary>
+        /// If true; data which is a response to a query will also be distributed to subscriptions
+        /// If false; data which is a response to a query won't get forwarded to subscriptions as well
+        /// </summary>
+        protected internal bool ContinueOnQueryResponse { get; protected set; }
         #endregion
 
+        /// <summary>
+        /// Create a socket client
+        /// </summary>
+        /// <param name="exchangeOptions">Client options</param>
+        /// <param name="authenticationProvider">Authentication provider</param>
         protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
             Configure(exchangeOptions);
@@ -174,6 +208,13 @@ namespace CryptoExchange.Net
             return new CallResult<bool>(callResult?.Success ?? false, callResult == null ? new ServerError("No response on subscription request received"): callResult.Error);
         }
 
+        /// <summary>
+        /// Query for data
+        /// </summary>
+        /// <typeparam name="T">Exepected result type</typeparam>
+        /// <param name="request">The request to send</param>
+        /// <param name="authenticated">Whether the socket should be authenticated</param>
+        /// <returns></returns>
         protected virtual Task<CallResult<T>> Query<T>(object request, bool authenticated)
         {
             return Query<T>(BaseAddress, request, authenticated);
@@ -183,6 +224,7 @@ namespace CryptoExchange.Net
         /// Query for data
         /// </summary>
         /// <typeparam name="T">The expected result type</typeparam>
+        /// <param name="url">The url for the request</param>
         /// <param name="request">The request to send</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>
@@ -293,7 +335,7 @@ namespace CryptoExchange.Net
         /// <param name="s">The socket connection</param>
         /// <param name="subscription"></param>
         /// <param name="request">The request that a response is awaited for</param>
-        /// <param name="data">The message</param>
+        /// <param name="message">The message</param>
         /// <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
         /// <returns>True if the message was a response to the subscription request</returns>
         protected internal abstract bool HandleSubscriptionResponse(SocketConnection s, SocketSubscription subscription, object request, JToken message, out CallResult<object> callResult);

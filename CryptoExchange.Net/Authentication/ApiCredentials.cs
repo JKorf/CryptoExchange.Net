@@ -6,6 +6,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.Authentication
 {
+    /// <summary>
+    /// Api credentials info
+    /// </summary>
     public class ApiCredentials: IDisposable
     {
         /// <summary>
@@ -85,14 +88,14 @@ namespace CryptoExchange.Net.Authentication
             inputStream.Seek(0, SeekOrigin.Begin);
         }
 
-        protected string TryGetValue(JToken data, string key)
+        private string TryGetValue(JToken data, string key)
         {
             if (data[key] == null)
                 return null;
             return (string) data[key];
         }
 
-        protected SecureString CreateSecureString(string source)
+        private SecureString CreateSecureString(string source)
         {
             var secureString = new SecureString();
             foreach (var c in source)
@@ -101,6 +104,9 @@ namespace CryptoExchange.Net.Authentication
             return secureString;
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             Key?.Dispose();

@@ -19,6 +19,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
+    /// <summary>
+    /// Base rest client
+    /// </summary>
     public abstract class RestClient: BaseClient, IRestClient
     {
         /// <summary>
@@ -27,14 +30,37 @@ namespace CryptoExchange.Net
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
         
 
+        /// <summary>
+        /// Where to place post parameters
+        /// </summary>
         protected PostParameters postParametersPosition = PostParameters.InBody;
+        /// <summary>
+        /// Request body content type
+        /// </summary>
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
+        /// <summary>
+        /// Timeout for requests
+        /// </summary>
         protected TimeSpan RequestTimeout { get; private set; }
+        /// <summary>
+        /// Rate limiting behaviour
+        /// </summary>
         public RateLimitingBehaviour RateLimitBehaviour { get; private set; }
+        /// <summary>
+        /// List of ratelimitters
+        /// </summary>
         public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
+        /// <summary>
+        /// Total requests made
+        /// </summary>
         public int TotalRequestsMade { get; private set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="exchangeOptions"></param>
+        /// <param name="authenticationProvider"></param>
         protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
             Configure(exchangeOptions);
