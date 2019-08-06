@@ -88,14 +88,25 @@ namespace CryptoExchange.Net.Authentication
             inputStream.Seek(0, SeekOrigin.Begin);
         }
 
-        private string TryGetValue(JToken data, string key)
+        /// <summary>
+        /// Try get the value of a key from a JToken
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        protected string TryGetValue(JToken data, string key)
         {
             if (data[key] == null)
                 return null;
             return (string) data[key];
         }
 
-        private SecureString CreateSecureString(string source)
+        /// <summary>
+        /// Create a secure string from a string
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        protected SecureString CreateSecureString(string source)
         {
             var secureString = new SecureString();
             foreach (var c in source)

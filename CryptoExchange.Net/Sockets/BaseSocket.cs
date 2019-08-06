@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Socket implementation
     /// </summary>
-    internal class BaseSocket: IWebsocket
+    public class BaseSocket: IWebsocket
     {
         internal static int lastStreamId;
         private static readonly object streamIdLock = new object();

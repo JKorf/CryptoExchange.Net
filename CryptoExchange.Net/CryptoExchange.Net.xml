@@ -57,6 +57,21 @@
             <param name="identifierKey">A key to identify the credentials for the API. For example, when set to `binanceKey` the json data should contain a value for the property `binanceKey`. Defaults to 'apiKey'.</param>
             <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
         </member>
+        <member name="M:CryptoExchange.Net.Authentication.ApiCredentials.TryGetValue(Newtonsoft.Json.Linq.JToken,System.String)">
+            <summary>
+            Try get the value of a key from a JToken
+            </summary>
+            <param name="data"></param>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Authentication.ApiCredentials.CreateSecureString(System.String)">
+            <summary>
+            Create a secure string from a string
+            </summary>
+            <param name="source"></param>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.Authentication.ApiCredentials.Dispose">
             <summary>
             Dispose
