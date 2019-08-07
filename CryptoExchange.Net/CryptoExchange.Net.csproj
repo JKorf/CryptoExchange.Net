@@ -5,13 +5,13 @@
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>2.1.6</PackageVersion>
+    <PackageVersion>2.1.7</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>2.1.6 - Fix for missing subscription events if they are also a request response, added code docs</PackageReleaseNotes>
+    <PackageReleaseNotes>2.1.7 - Fixed bug with socket connection not being disposed after lost connection, Resubscribing after reconnecting socket now in parallel</PackageReleaseNotes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
