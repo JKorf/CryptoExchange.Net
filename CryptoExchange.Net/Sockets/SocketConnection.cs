@@ -148,6 +148,7 @@ namespace CryptoExchange.Net.Sockets
             if (tokenData == null)
                 return;
 
+            var handledResponse = false;
             foreach (var pendingRequest in pendingRequests.ToList())
             {
                 if (pendingRequest.Check(tokenData))
@@ -155,11 +156,12 @@ namespace CryptoExchange.Net.Sockets
                     pendingRequests.Remove(pendingRequest);
                     if (!socketClient.ContinueOnQueryResponse)
                         return;
+                    handledResponse = true;
                     break;
                 }
             }
-
-            if (!HandleData(tokenData))
+            
+            if (!HandleData(tokenData) && !handledResponse)
             {
                 log.Write(LogVerbosity.Debug, "Message not handled: " + tokenData);
             }
@@ -306,6 +308,9 @@ namespace CryptoExchange.Net.Sockets
             else
             {
                 log.Write(LogVerbosity.Info, $"Socket {Socket.Id} closed");
+                if (socketClient.sockets.ContainsKey(Socket.Id))
+                    socketClient.sockets.TryRemove(Socket.Id, out _);
+
                 Socket.Dispose();
                 Closed?.Invoke();
             }
@@ -333,14 +338,24 @@ namespace CryptoExchange.Net.Sockets
             List<SocketSubscription> handlerList;
             lock (handlersLock)
                 handlerList = handlers.Where(h => h.Request != null).ToList();
+
+            var success = true;
+            var taskList = new List<Task>();
             foreach (var handler in handlerList)
             {
-                var resubResult = await socketClient.SubscribeAndWait(this, handler.Request, handler).ConfigureAwait(false);
-                if (!resubResult.Success)
+                var task = socketClient.SubscribeAndWait(this, handler.Request, handler).ContinueWith(t =>
                 {
-                    log.Write(LogVerbosity.Debug, "Resubscribing all subscriptions failed on reconnected socket. Disconnecting and reconnecting.");
-                    return false;
-                }
+                    if (!t.Result.Success)
+                        success = false;
+                });
+                taskList.Add(task);
+            }
+
+            Task.WaitAll(taskList.ToArray());
+            if (!success)
+            {
+                log.Write(LogVerbosity.Debug, "Resubscribing all subscriptions failed on reconnected socket. Disconnecting and reconnecting.");
+                return false;
             }
 
             log.Write(LogVerbosity.Debug, "All subscription successfully resubscribed on reconnected socket.");
@@ -363,7 +378,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Close the subscriptions
+        /// Close the subscription
         /// </summary>
         /// <param name="subscription">Subscription to close</param>
         /// <returns></returns>

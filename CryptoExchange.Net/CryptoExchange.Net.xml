@@ -2371,7 +2371,7 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketConnection.Close(CryptoExchange.Net.Sockets.SocketSubscription)">
             <summary>
-            Close the subscriptions
+            Close the subscription
             </summary>
             <param name="subscription">Subscription to close</param>
             <returns></returns>
