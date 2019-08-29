@@ -190,6 +190,9 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 2.1.8 - 29 Aug 2019
+    * Added array serialization options for implementations
+
 * Version 2.1.7 - 07 Aug 2019
     * Fixed bug with socket connection not being disposed after lost connection
     * Resubscribing after reconnecting socket now in parallel
