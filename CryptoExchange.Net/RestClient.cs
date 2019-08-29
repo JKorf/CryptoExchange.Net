@@ -40,6 +40,11 @@ namespace CryptoExchange.Net
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
+        /// How to serialize array parameters
+        /// </summary>
+        protected ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
         /// Timeout for requests
         /// </summary>
         protected TimeSpan RequestTimeout { get; private set; }
@@ -222,7 +227,7 @@ namespace CryptoExchange.Net
                 parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
 
             if((method == Constants.GetMethod || method == Constants.DeleteMethod || postParametersPosition == PostParameters.InUri) && parameters?.Any() == true)            
-                uriString += "?" + parameters.CreateParamString(true);
+                uriString += "?" + parameters.CreateParamString(true, arraySerialization);
             
             var request = RequestFactory.Create(uriString);
             request.ContentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;

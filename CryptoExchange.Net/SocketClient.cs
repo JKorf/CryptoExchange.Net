@@ -175,7 +175,6 @@ namespace CryptoExchange.Net
                     await socket.Close(handler).ConfigureAwait(false);
                     return new CallResult<UpdateSubscription>(null, subResult.Error);
                 }
-
             }
             else
                 handler.Confirmed = true;
@@ -554,7 +553,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAll()
         {
-            log.Write(LogVerbosity.Debug, $"Closing all {sockets.Count} subscriptions");
+            log.Write(LogVerbosity.Debug, $"Closing all {sockets.Sum(s => s.Value.handlers.Count(h => h.UserSubscription))} subscriptions");
 
             await Task.Run(() =>
             {

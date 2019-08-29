@@ -4,6 +4,11 @@
         <name>CryptoExchange.Net</name>
     </assembly>
     <members>
+        <member name="T:CryptoExchange.Net.Attributes.JsonConversionAttribute">
+            <summary>
+            Used for conversion in ArrayConverter
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.Attributes.JsonOptionalPropertyAttribute">
             <summary>
             Marks property as optional
@@ -446,12 +451,13 @@
             <param name="key"></param>
             <param name="value"></param>
         </member>
-        <member name="M:CryptoExchange.Net.ExtensionMethods.CreateParamString(System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.ExtensionMethods.CreateParamString(System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Create a query string of the specified parameters
             </summary>
             <param name="parameters">The parameters to use</param>
             <param name="urlEncodeValues">Whether or not the values should be url encoded</param>
+            <param name="serializationType">How to serialize array parameters</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.ExtensionMethods.GetString(System.Security.SecureString)">
@@ -1182,6 +1188,21 @@
             Bid
             </summary>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.ArrayParametersSerialization">
+            <summary>
+            Define how array parameters should be send
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Objects.ArrayParametersSerialization.MultipleValues">
+            <summary>
+            Send multiple key=value for each entry
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Objects.ArrayParametersSerialization.Array">
+            <summary>
+            Create an []=value array
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.Error">
             <summary>
             Base class for errors
@@ -1844,6 +1865,11 @@
         <member name="F:CryptoExchange.Net.RestClient.requestBodyFormat">
             <summary>
             Request body content type
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.RestClient.arraySerialization">
+            <summary>
+            How to serialize array parameters
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RequestTimeout">

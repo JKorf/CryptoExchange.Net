@@ -8,6 +8,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -69,14 +70,22 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="parameters">The parameters to use</param>
         /// <param name="urlEncodeValues">Whether or not the values should be url encoded</param>
+        /// <param name="serializationType">How to serialize array parameters</param>
         /// <returns></returns>
-        public static string CreateParamString(this Dictionary<string, object> parameters, bool urlEncodeValues)
+        public static string CreateParamString(this Dictionary<string, object> parameters, bool urlEncodeValues, ArrayParametersSerialization serializationType)
         {
             var uriString = "";
             var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
             foreach (var arrayEntry in arraysParameters)
             {
-                uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? WebUtility.UrlEncode(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
+                if(serializationType == ArrayParametersSerialization.Array)
+                    uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? WebUtility.UrlEncode(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
+                else
+                {
+                    var array = (Array)arrayEntry.Value;
+                    uriString += string.Join("&", array.OfType<object>().Select(a => $"{arrayEntry.Key}={WebUtility.UrlEncode(a.ToString())}"));
+                    uriString += "&";
+                }
             }
 
             uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={(urlEncodeValues ? WebUtility.UrlEncode(s.Value.ToString()) : s.Value)}"))}";

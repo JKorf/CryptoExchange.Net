@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using CryptoExchange.Net.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -74,7 +75,20 @@ namespace CryptoExchange.Net.Converters
                 }
 
                 var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute)) ?? (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
-                var value = converterAttribute != null ? arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer { Converters = { (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType) } }) : arr[attribute.Index];
+                var conversionAttribute = (JsonConversionAttribute)property.GetCustomAttribute(typeof(JsonConversionAttribute)) ?? (JsonConversionAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConversionAttribute));
+                object value = null;
+                if (converterAttribute != null)
+                {
+                    value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer {Converters = {(JsonConverter) Activator.CreateInstance(converterAttribute.ConverterType)}});
+                }
+                else if (conversionAttribute != null)
+                {
+                    value = arr[attribute.Index].ToObject(property.PropertyType);
+                }
+                else
+                {
+                    value = arr[attribute.Index];
+                }
 
                 if (value != null && property.PropertyType.IsInstanceOfType(value))
                     property.SetValue(result, value);
