@@ -63,7 +63,6 @@ Planned implementations (no timeline or specific order):
 * BitMEX
 * Bitstamp
 * CoinFalcon
-* Kraken
 * Binance DEX
 
 ## Donations
