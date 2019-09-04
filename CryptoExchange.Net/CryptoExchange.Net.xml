@@ -1553,6 +1553,16 @@
             Event when the state changes
             </summary>
         </member>
+        <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnOrderBookUpdate">
+            <summary>
+            Event when orderbook was updated. Be careful! It can generate a lot of events at high-liquidity markets
+            </summary>    
+        </member>
+        <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.LastOrderBookUpdate">
+            <summary>
+            Should be useful for low-liquidity order-books to monitor market activity
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.AskCount">
             <summary>
             The number of asks in the book

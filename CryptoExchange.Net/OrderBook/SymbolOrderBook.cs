@@ -72,16 +72,14 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
         /// <summary>
-        /// Event when orderbook was updated, but not more often then timeout setted in orderbook options (1000ms by default). Be careful! with small timeout it can generate a lot of events at high-liquidity order books 
+        /// Event when orderbook was updated. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>    
         public event Action OnOrderBookUpdate;
         /// <summary>
         /// Should be useful for low-liquidity order-books to monitor market activity
         /// </summary>
         public DateTime LastOrderBookUpdate;
-        private DateTime LastOrderBookUpdateEventTrigger;
 
-        private readonly int updateEventInterval;
         /// <summary>
         /// The number of asks in the book
         /// </summary>
@@ -149,7 +147,6 @@ namespace CryptoExchange.Net.OrderBook
             id = options.OrderBookName;
             processBuffer = new List<ProcessBufferEntry>();
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
-            updateEventInterval = options.UpdateEventTimeout;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
 
@@ -272,11 +269,7 @@ namespace CryptoExchange.Net.OrderBook
                 CheckProcessBuffer();
                 bookSet = true;
                 LastOrderBookUpdate = DateTime.UtcNow;
-                if ((LastOrderBookUpdate - LastOrderBookUpdateEventTrigger).TotalMilliseconds >= updateEventInterval)
-                {
-                    OnOrderBookUpdate?.Invoke();
-                    LastOrderBookUpdateEventTrigger = DateTime.UtcNow;
-                }
+                OnOrderBookUpdate?.Invoke();
                 log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
@@ -318,11 +311,7 @@ namespace CryptoExchange.Net.OrderBook
                     LastSequenceNumber = lastSequenceNumber;
                     CheckProcessBuffer();
                     LastOrderBookUpdate = DateTime.UtcNow;
-                    if ((LastOrderBookUpdate - LastOrderBookUpdateEventTrigger).TotalMilliseconds >= updateEventInterval)
-                    {
-                        OnOrderBookUpdate?.Invoke();
-                        LastOrderBookUpdateEventTrigger = DateTime.UtcNow;
-                    }
+                    OnOrderBookUpdate?.Invoke();
                     log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} update: {entries.Count} entries processed");
                 }
             }

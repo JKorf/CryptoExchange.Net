@@ -27,11 +27,7 @@ namespace CryptoExchange.Net.Objects
     /// Base for order book options
     /// </summary>
     public class OrderBookOptions : BaseOptions
-    {
-        /// <summary>
-        /// Update event raising timeout in milliseconds (to limit it at high-liquidity order books)
-        /// </summary>
-        public int UpdateEventTimeout { get; }
+    {  
         /// <summary>
         /// The name of the order book implementation
         /// </summary>
@@ -46,10 +42,8 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="name">The name of the order book implementation</param>
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
-        /// <param name="updateInterval">Update event raising timeout in milliseconds (to limit it at high-liquidity order books)</param>
-        public OrderBookOptions(string name, bool sequencesAreConsecutive, int? updateInterval)
-        {
-            UpdateEventTimeout = updateInterval ?? 1000;
+        public OrderBookOptions(string name, bool sequencesAreConsecutive)
+        {            
             OrderBookName = name;
             SequenceNumbersAreConsecutive = sequencesAreConsecutive;
         }
