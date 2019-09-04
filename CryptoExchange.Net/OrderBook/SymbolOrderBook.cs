@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.OrderBook
     /// <summary>
     /// Base for order book implementations
     /// </summary>
-    public abstract class SymbolOrderBook: IDisposable
+    public abstract class SymbolOrderBook : IDisposable
     {
         /// <summary>
         /// The process buffer, used while syncing
@@ -27,6 +27,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The bid list
         /// </summary>
+
         protected SortedList<decimal, OrderBookEntry> bids;
         private OrderBookStatus status;
         private UpdateSubscription subscription;
@@ -70,6 +71,14 @@ namespace CryptoExchange.Net.OrderBook
         /// Event when the state changes
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
+        /// <summary>
+        /// Event when orderbook was updated. Be careful! It can generate a lot of events at high-liquidity markets
+        /// </summary>    
+        public event Action OnOrderBookUpdate;
+        /// <summary>
+        /// Should be useful for low-liquidity order-books to monitor market activity
+        /// </summary>
+        public DateTime LastOrderBookUpdate;
 
         /// <summary>
         /// The number of asks in the book
@@ -163,7 +172,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             Status = OrderBookStatus.Connecting;
             var startResult = await DoStart().ConfigureAwait(false);
-            if(!startResult.Success)
+            if (!startResult.Success)
                 return new CallResult<bool>(false, startResult.Error);
 
             subscription = startResult.Data;
@@ -231,7 +240,7 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         /// <returns></returns>
         protected abstract Task<CallResult<bool>> DoResync();
-        
+
         /// <summary>
         /// Set the initial data for the order book
         /// </summary>
@@ -246,7 +255,7 @@ namespace CryptoExchange.Net.OrderBook
                     return;
 
                 asks.Clear();
-                foreach(var ask in askList)
+                foreach (var ask in askList)
                     asks.Add(ask.Price, new OrderBookEntry(ask.Price, ask.Quantity));
                 bids.Clear();
                 foreach (var bid in bidList)
@@ -259,6 +268,8 @@ namespace CryptoExchange.Net.OrderBook
 
                 CheckProcessBuffer();
                 bookSet = true;
+                LastOrderBookUpdate = DateTime.UtcNow;
+                OnOrderBookUpdate?.Invoke();
                 log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
@@ -295,10 +306,12 @@ namespace CryptoExchange.Net.OrderBook
                 }
                 else
                 {
-                    foreach(var entry in entries)
+                    foreach (var entry in entries)
                         ProcessUpdate(entry.Type, entry.Entry);
                     LastSequenceNumber = lastSequenceNumber;
                     CheckProcessBuffer();
+                    LastOrderBookUpdate = DateTime.UtcNow;
+                    OnOrderBookUpdate?.Invoke();
                     log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} update: {entries.Count} entries processed");
                 }
             }
@@ -311,7 +324,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             foreach (var bufferEntry in processBuffer.OrderBy(b => b.FirstSequence).ToList())
             {
-                if(bufferEntry.LastSequence < LastSequenceNumber)
+                if (bufferEntry.LastSequence < LastSequenceNumber)
                 {
                     processBuffer.Remove(bufferEntry);
                     continue;
@@ -320,7 +333,7 @@ namespace CryptoExchange.Net.OrderBook
                 if (bufferEntry.FirstSequence > LastSequenceNumber + 1)
                     break;
 
-                foreach(var entry in bufferEntry.Entries)
+                foreach (var entry in bufferEntry.Entries)
                     ProcessUpdate(entry.Type, entry.Entry);
                 processBuffer.Remove(bufferEntry);
                 LastSequenceNumber = bufferEntry.LastSequence;
