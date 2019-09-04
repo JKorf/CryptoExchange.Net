@@ -69,8 +69,11 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// Event when the state changes
         /// </summary>
-        public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
-
+        public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;  
+        /// <summary>
+        /// Event when orderbook was updated
+        /// </summary>
+        public event Action OnOrderBookUpdate;
         /// <summary>
         /// The number of asks in the book
         /// </summary>
@@ -259,6 +262,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 CheckProcessBuffer();
                 bookSet = true;
+                OnOrderBookUpdate?.Invoke();
                 log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
@@ -299,6 +303,7 @@ namespace CryptoExchange.Net.OrderBook
                         ProcessUpdate(entry.Type, entry.Entry);
                     LastSequenceNumber = lastSequenceNumber;
                     CheckProcessBuffer();
+                    OnOrderBookUpdate?.Invoke();
                     log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} update: {entries.Count} entries processed");
                 }
             }
