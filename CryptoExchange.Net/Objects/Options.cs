@@ -26,8 +26,12 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Base for order book options
     /// </summary>
-    public class OrderBookOptions: BaseOptions
+    public class OrderBookOptions : BaseOptions
     {
+        /// <summary>
+        /// Update event raising timeout in milliseconds (to limit it at high-liquidity order books)
+        /// </summary>
+        public int UpdateEventTimeout { get; }
         /// <summary>
         /// The name of the order book implementation
         /// </summary>
@@ -42,8 +46,10 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="name">The name of the order book implementation</param>
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
-        public OrderBookOptions(string name, bool sequencesAreConsecutive)
+        /// <param name="updateInterval">Update event raising timeout in milliseconds (to limit it at high-liquidity order books)</param>
+        public OrderBookOptions(string name, bool sequencesAreConsecutive, int? updateInterval)
         {
+            UpdateEventTimeout = updateInterval ?? 1000;
             OrderBookName = name;
             SequenceNumbersAreConsecutive = sequencesAreConsecutive;
         }
@@ -52,7 +58,7 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Base client options
     /// </summary>
-    public class ClientOptions: BaseOptions
+    public class ClientOptions : BaseOptions
     {
 
         /// <summary>
@@ -74,7 +80,7 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Base for rest client options
     /// </summary>
-    public class RestClientOptions: ClientOptions
+    public class RestClientOptions : ClientOptions
     {
         /// <summary>
         /// List of rate limiters to use
@@ -96,7 +102,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Copy<T>() where T:RestClientOptions, new()
+        public T Copy<T>() where T : RestClientOptions, new()
         {
             var copy = new T
             {
@@ -119,7 +125,7 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Base for socket client options
     /// </summary>
-    public class SocketClientOptions: ClientOptions
+    public class SocketClientOptions : ClientOptions
     {
         /// <summary>
         /// Whether or not the socket should automatically reconnect when losing connection
