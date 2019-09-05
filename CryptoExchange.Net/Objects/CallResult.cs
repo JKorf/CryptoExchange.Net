@@ -71,7 +71,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public static WebCallResult<T> CreateErrorResult(Error error)
         {
-            return new WebCallResult<T>(null, null, default(T), error);
+            return new WebCallResult<T>(null, null, default, error);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<Tuple<string, string>> responseHeaders, Error error)
         {
-            return new WebCallResult<T>(code, responseHeaders, default(T), error);
+            return new WebCallResult<T>(code, responseHeaders, default, error);
         }
     }
 }

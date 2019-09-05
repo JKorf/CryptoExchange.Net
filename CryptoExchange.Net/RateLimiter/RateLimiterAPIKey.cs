@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.RateLimiter
             if(client.authProvider?.Credentials == null)
                 return new CallResult<double>(0, null);
 
-            string key = client.authProvider.Credentials.Key.GetString();
+            var key = client.authProvider.Credentials.Key.GetString();
 
             int waitTime;
             RateLimitObject rlo;

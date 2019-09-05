@@ -469,7 +469,7 @@
         </member>
         <member name="M:CryptoExchange.Net.ExtensionMethods.ToIEnumerable(System.Net.WebHeaderCollection)">
             <summary>
-            Header collection to inenumerable
+            Header collection to IEnumerable
             </summary>
             <param name="headers"></param>
             <returns></returns>
@@ -708,6 +708,110 @@
             Unsubscribe all subscriptions
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Interfaces.ISymbolOrderBook">
+            <summary>
+            Interface for order book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Status">
+            <summary>
+            The status of the order book. Order book is up to date when the status is `Synced`
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.LastSequenceNumber">
+            <summary>
+            Last update identifier
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Symbol">
+            <summary>
+            The symbol of the order book
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Interfaces.ISymbolOrderBook.OnStatusChange">
+            <summary>
+            Event when the state changes
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Interfaces.ISymbolOrderBook.OnOrderBookUpdate">
+            <summary>
+            Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
+            </summary>    
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.LastOrderBookUpdate">
+            <summary>
+            Timestamp of the last update
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.AskCount">
+            <summary>
+            The number of asks in the book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.BidCount">
+            <summary>
+            The number of bids in the book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Asks">
+            <summary>
+            The list of asks
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Bids">
+            <summary>
+            The list of bids
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.BestBid">
+            <summary>
+            The best bid currently in the order book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.BestAsk">
+            <summary>
+            The best ask currently in the order book
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Start">
+            <summary>
+            Start connecting and synchronizing the order book
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.StartAsync">
+            <summary>
+            Start connecting and synchronizing the order book
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Stop">
+            <summary>
+            Stop syncing the order book
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.StopAsync">
+            <summary>
+            Stop syncing the order book
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry">
+            <summary>
+            Interface for order book entries
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry.Quantity">
+            <summary>
+            The quantity of the entry
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry.Price">
+            <summary>
+            The price of the entry
+            </summary>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IWebsocket">
             <summary>
@@ -1445,21 +1549,6 @@
             <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry">
-            <summary>
-            Interface for order book entries
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry.Quantity">
-            <summary>
-            The quantity of the entry
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry.Price">
-            <summary>
-            The price of the entry
-            </summary>
-        </member>
         <member name="T:CryptoExchange.Net.OrderBook.OrderBookEntry">
             <summary>
             Order book entry
@@ -1522,7 +1611,7 @@
             The type
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.ProcessEntry.#ctor(CryptoExchange.Net.Objects.OrderBookEntryType,CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry)">
+        <member name="M:CryptoExchange.Net.OrderBook.ProcessEntry.#ctor(CryptoExchange.Net.Objects.OrderBookEntryType,CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry)">
             <summary>
             ctor
             </summary>
@@ -1576,12 +1665,12 @@
         </member>
         <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnOrderBookUpdate">
             <summary>
-            Event when orderbook was updated. Be careful! It can generate a lot of events at high-liquidity markets
+            Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
             </summary>    
         </member>
-        <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.LastOrderBookUpdate">
+        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.LastOrderBookUpdate">
             <summary>
-            Should be useful for low-liquidity order-books to monitor market activity
+            Timestamp of the last update
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.AskCount">
@@ -1662,7 +1751,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.SetInitialOrderBook(System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry})">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.SetInitialOrderBook(System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry})">
             <summary>
             Set the initial data for the order book
             </summary>
@@ -1683,7 +1772,7 @@
             Check and empty the process buffer; see what entries to update the book with
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.ProcessUpdate(CryptoExchange.Net.Objects.OrderBookEntryType,CryptoExchange.Net.OrderBook.ISymbolOrderBookEntry)">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.ProcessUpdate(CryptoExchange.Net.Objects.OrderBookEntryType,CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry)">
             <summary>
             Update order book with an entry
             </summary>
@@ -1789,7 +1878,7 @@
         </member>
         <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.WebRequest)">
             <summary>
-            Create request object for webrequest
+            Create request object for web request
             </summary>
             <param name="request"></param>
         </member>
@@ -2126,7 +2215,7 @@
             <summary>
             Query for data
             </summary>
-            <typeparam name="T">Exepected result type</typeparam>
+            <typeparam name="T">Expected result type</typeparam>
             <param name="request">The request to send</param>
             <param name="authenticated">Whether the socket should be authenticated</param>
             <returns></returns>

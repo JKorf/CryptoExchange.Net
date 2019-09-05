@@ -141,7 +141,7 @@ namespace CryptoExchange.Net
         {
             SocketConnection socket;
             SocketSubscription handler;
-            bool released = false;
+            var released = false;
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -193,13 +193,7 @@ namespace CryptoExchange.Net
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWait(SocketConnection socket, object request, SocketSubscription subscription)
         {
             CallResult<object> callResult = null;
-            await socket.SendAndWait(request, ResponseTimeout, (data) =>
-            {
-                if (!HandleSubscriptionResponse(socket, subscription, request, data, out callResult))
-                    return false;
-
-                return true;
-            }).ConfigureAwait(false);
+            await socket.SendAndWait(request, ResponseTimeout, data => HandleSubscriptionResponse(socket, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
                 subscription.Confirmed = true;
@@ -210,7 +204,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Query for data
         /// </summary>
-        /// <typeparam name="T">Exepected result type</typeparam>
+        /// <typeparam name="T">Expected result type</typeparam>
         /// <param name="request">The request to send</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>
@@ -230,7 +224,7 @@ namespace CryptoExchange.Net
         protected virtual async Task<CallResult<T>> Query<T>(string url, object request, bool authenticated)
         {
             SocketConnection socket;
-            bool released = false;
+            var released = false;
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -244,7 +238,7 @@ namespace CryptoExchange.Net
 
                 var connectResult = await ConnectIfNeeded(socket, authenticated).ConfigureAwait(false);
                 if (!connectResult.Success)
-                    return new CallResult<T>(default(T), connectResult.Error);
+                    return new CallResult<T>(default, connectResult.Error);
             }
             finally
             {
@@ -257,7 +251,7 @@ namespace CryptoExchange.Net
             if (socket.PausedActivity)
             {
                 log.Write(LogVerbosity.Info, "Socket has been paused, can't send query at this moment");
-                return new CallResult<T>(default(T), new ServerError("Socket is paused"));
+                return new CallResult<T>(default, new ServerError("Socket is paused"));
             }
 
             return await QueryAndWait<T>(socket, request).ConfigureAwait(false);
@@ -272,8 +266,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual async Task<CallResult<T>> QueryAndWait<T>(SocketConnection socket, object request)
         {
-            CallResult<T> dataResult = new CallResult<T>(default(T), new ServerError("No response on query received"));
-            await socket.SendAndWait(request, ResponseTimeout, (data) =>
+            var dataResult = new CallResult<T>(default, new ServerError("No response on query received"));
+            await socket.SendAndWait(request, ResponseTimeout, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
                     return false;
@@ -293,28 +287,25 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual async Task<CallResult<bool>> ConnectIfNeeded(SocketConnection socket, bool authenticated)
         {
-            if (!socket.Connected)
+            if (socket.Connected)
+                return new CallResult<bool>(true, null);
+
+            var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
+            if (!connectResult.Success)
+                return new CallResult<bool>(false, new CantConnectError());
+
+            if (!authenticated || socket.Authenticated)
+                return new CallResult<bool>(true, null);
+
+            var result = await AuthenticateSocket(socket).ConfigureAwait(false);
+            if (!result.Success)
             {
-                var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
-                if (!connectResult.Success)
-                {
-                    return new CallResult<bool>(false, new CantConnectError());
-                }
-
-                if (authenticated && !socket.Authenticated)
-                {
-                    var result = await AuthenticateSocket(socket).ConfigureAwait(false);
-                    if (!result.Success)
-                    {
-                        log.Write(LogVerbosity.Warning, "Socket authentication failed");
-                        result.Error.Message = "Authentication failed: " + result.Error.Message;
-                        return new CallResult<bool>(false, result.Error);
-                    }
-
-                    socket.Authenticated = true;
-                }
+                log.Write(LogVerbosity.Warning, "Socket authentication failed");
+                result.Error.Message = "Authentication failed: " + result.Error.Message;
+                return new CallResult<bool>(false, result.Error);
             }
 
+            socket.Authenticated = true;
             return new CallResult<bool>(true, null);
         }
         
@@ -388,11 +379,11 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual SocketSubscription AddHandler<T>(object request, string identifier, bool userSubscription, SocketConnection connection, Action<T> dataHandler)
         {
-            Action<SocketConnection, JToken> internalHandler = (socketWrapper, data) =>
+            void InternalHandler(SocketConnection socketWrapper, JToken data)
             {
                 if (typeof(T) == typeof(string))
                 {
-                    dataHandler((T)Convert.ChangeType(data.ToString(), typeof(T)));
+                    dataHandler((T) Convert.ChangeType(data.ToString(), typeof(T)));
                     return;
                 }
 
@@ -404,11 +395,9 @@ namespace CryptoExchange.Net
                 }
 
                 dataHandler(desResult.Data);
-            };
+            }
 
-            if (request != null)
-                return connection.AddHandler(request, userSubscription, internalHandler);
-            return connection.AddHandler(identifier, userSubscription, internalHandler);
+            return connection.AddHandler(request ?? identifier, userSubscription, InternalHandler);
         }
 
         /// <summary>
@@ -515,16 +504,16 @@ namespace CryptoExchange.Net
                             break;
 
                         var obj = objGetter(socket);
-                        if (obj != null)
+                        if (obj == null)
+                            continue;
+
+                        try
                         {
-                            try
-                            {
-                                socket.Send(obj);
-                            }
-                            catch (Exception ex)
-                            {
-                                log.Write(LogVerbosity.Warning, "Periodic send failed: " + ex);
-                            }
+                            socket.Send(obj);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Write(LogVerbosity.Warning, "Periodic send failed: " + ex);
                         }
                     }
                 }

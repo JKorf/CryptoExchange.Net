@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
@@ -13,7 +14,7 @@ namespace CryptoExchange.Net.OrderBook
     /// <summary>
     /// Base for order book implementations
     /// </summary>
-    public abstract class SymbolOrderBook : IDisposable
+    public abstract class SymbolOrderBook : ISymbolOrderBook, IDisposable
     {
         /// <summary>
         /// The process buffer, used while syncing
@@ -23,12 +24,12 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The ask list
         /// </summary>
-        protected SortedList<decimal, OrderBookEntry> asks;
+        protected SortedList<decimal, ISymbolOrderBookEntry> asks;
         /// <summary>
         /// The bid list
         /// </summary>
 
-        protected SortedList<decimal, OrderBookEntry> bids;
+        protected SortedList<decimal, ISymbolOrderBookEntry> bids;
         private OrderBookStatus status;
         private UpdateSubscription subscription;
         private readonly bool sequencesAreConsecutive;
@@ -72,13 +73,13 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
         /// <summary>
-        /// Event when orderbook was updated. Be careful! It can generate a lot of events at high-liquidity markets
+        /// Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>    
         public event Action OnOrderBookUpdate;
         /// <summary>
-        /// Should be useful for low-liquidity order-books to monitor market activity
+        /// Timestamp of the last update
         /// </summary>
-        public DateTime LastOrderBookUpdate;
+        public DateTime LastOrderBookUpdate { get; private set; }
 
         /// <summary>
         /// The number of asks in the book
@@ -150,8 +151,8 @@ namespace CryptoExchange.Net.OrderBook
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
 
-            asks = new SortedList<decimal, OrderBookEntry>();
-            bids = new SortedList<decimal, OrderBookEntry>(new DescComparer<decimal>());
+            asks = new SortedList<decimal, ISymbolOrderBookEntry>();
+            bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 
             log = new Log { Level = options.LogVerbosity };
             var writers = options.LogWriters ?? new List<TextWriter> { new DebugTextWriter() };
@@ -177,7 +178,7 @@ namespace CryptoExchange.Net.OrderBook
 
             subscription = startResult.Data;
             subscription.ConnectionLost += Reset;
-            subscription.ConnectionRestored += (time) => Resync();
+            subscription.ConnectionRestored += time => Resync();
             Status = OrderBookStatus.Synced;
             return new CallResult<bool>(true, null);
         }
@@ -194,7 +195,7 @@ namespace CryptoExchange.Net.OrderBook
         private void Resync()
         {
             Status = OrderBookStatus.Syncing;
-            bool success = false;
+            var success = false;
             while (!success)
             {
                 if (Status != OrderBookStatus.Syncing)
@@ -289,7 +290,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 if (!bookSet)
                 {
-                    var entry = new ProcessBufferEntry()
+                    var entry = new ProcessBufferEntry
                     {
                         FirstSequence = firstSequenceNumber,
                         LastSequence = lastSequenceNumber,
@@ -350,25 +351,25 @@ namespace CryptoExchange.Net.OrderBook
             var listToChange = type == OrderBookEntryType.Ask ? asks : bids;
             if (entry.Quantity == 0)
             {
-                var bookEntry = listToChange.SingleOrDefault(i => i.Key == entry.Price);
-                if (!bookEntry.Equals(default(KeyValuePair<decimal, OrderBookEntry>)))
-                {
-                    listToChange.Remove(entry.Price);
-                    if (type == OrderBookEntryType.Ask) AskCount--;
-                    else BidCount--;
-                }
+                if (!listToChange.ContainsKey(entry.Price))
+                    return;
+
+                listToChange.Remove(entry.Price);
+                if (type == OrderBookEntryType.Ask) AskCount--;
+                else BidCount--;
             }
             else
             {
-                var bookEntry = listToChange.SingleOrDefault(i => i.Key == entry.Price);
-                if (bookEntry.Equals(default(KeyValuePair<decimal, OrderBookEntry>)))
+                if (!listToChange.ContainsKey(entry.Price))
                 {
                     listToChange.Add(entry.Price, new OrderBookEntry(entry.Price, entry.Quantity));
                     if (type == OrderBookEntryType.Ask) AskCount++;
                     else BidCount++;
                 }
                 else
-                    bookEntry.Value.Quantity = entry.Quantity;
+                {
+                    listToChange[entry.Price].Quantity = entry.Quantity;
+                }
             }
         }
 

@@ -126,14 +126,14 @@ namespace CryptoExchange.Net
             catch(PingException e)
             {
                 if (e.InnerException == null)
-                    return new CallResult<long>(0, new CantConnectError() {Message = "Ping failed: " + e.Message});
+                    return new CallResult<long>(0, new CantConnectError {Message = "Ping failed: " + e.Message});
 
                 if (e.InnerException is SocketException exception)
-                    return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + exception.SocketErrorCode });
-                return new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + e.InnerException.Message });
+                    return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + exception.SocketErrorCode });
+                return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + e.InnerException.Message });
             }
 
-            return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError() { Message = "Ping failed: " + reply.Status });
+            return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace CryptoExchange.Net
             }
             else if(requestBodyFormat == RequestBodyFormat.FormData)
             {
-                var formData = HttpUtility.ParseQueryString(String.Empty);
+                var formData = HttpUtility.ParseQueryString(string.Empty);
                 foreach (var kvp in parameters.OrderBy(p => p.Key))
                     formData.Add(kvp.Key, kvp.Value.ToString());
                 var stringData = formData.ToString();
@@ -320,19 +320,24 @@ namespace CryptoExchange.Net
 
                 try
                 {
-                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    var responseStream = response?.GetResponseStream();
+                    if (response != null && responseStream != null)
                     {
-                        returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        log.Write(LogVerbosity.Warning, "Server returned an error: " + returnedData);
+                        using (var reader = new StreamReader(responseStream))
+                        {
+                            returnedData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                            log.Write(LogVerbosity.Warning, "Server returned an error: " + returnedData);
+                        }
+
+                        response.Close();
+
+                        var jsonResult = ValidateJson(returnedData);
+                        return !jsonResult.Success ? new WebCallResult<string>(statusCode, returnHeaders, null, jsonResult.Error) : new WebCallResult<string>(statusCode, returnHeaders, null, ParseErrorResponse(jsonResult.Data));
                     }
-
-                    response.Close();
-
-                    var jsonResult = ValidateJson(returnedData);
-                    return !jsonResult.Success ? new WebCallResult<string>(statusCode, returnHeaders, null, jsonResult.Error) : new WebCallResult<string>(statusCode, returnHeaders, null, ParseErrorResponse(jsonResult.Data));
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    log.Write(LogVerbosity.Debug, "Not able to read server response: " + e.Message);
                 }
 
                 var infoMessage = "No response from server";

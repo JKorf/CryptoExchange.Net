@@ -172,7 +172,7 @@ namespace CryptoExchange.Net.Sockets
             SocketSubscription currentSubscription = null;
             try
             { 
-                bool handled = false;
+                var handled = false;
                 var sw = Stopwatch.StartNew();
                 lock (handlersLock)
                 {
@@ -387,7 +387,7 @@ namespace CryptoExchange.Net.Sockets
             if (subscription.Confirmed)
                 await socketClient.Unsubscribe(this, subscription).ConfigureAwait(false);
 
-            bool shouldCloseWrapper = false;
+            var shouldCloseWrapper = false;
             lock (handlersLock)
             {
                 handlers.Remove(subscription);

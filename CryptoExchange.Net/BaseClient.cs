@@ -140,7 +140,7 @@ namespace CryptoExchange.Net
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
         {
             var tokenResult = ValidateJson(data);
-            return !tokenResult.Success ? new CallResult<T>(default(T), tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
+            return !tokenResult.Success ? new CallResult<T>(default, tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
         }
 
         /// <summary>
@@ -184,19 +184,19 @@ namespace CryptoExchange.Net
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info));
             }
             catch (Exception ex)
             {
                 var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default(T), new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info));
             }
         }
 
@@ -277,7 +277,7 @@ namespace CryptoExchange.Net
                 var attr = prop.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault();
                 if (attr == null)
                 {
-                    if (String.Equals(prop.Name, name, StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(prop.Name, name, StringComparison.CurrentCultureIgnoreCase))
                         return prop;
                 }
                 else

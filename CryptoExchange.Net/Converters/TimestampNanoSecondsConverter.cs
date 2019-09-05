@@ -8,6 +8,8 @@ namespace CryptoExchange.Net.Converters
     /// </summary>
     public class TimestampNanoSecondsConverter : JsonConverter
     {
+        private const decimal ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
+
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
@@ -20,7 +22,6 @@ namespace CryptoExchange.Net.Converters
             if (reader.Value == null)
                 return null;
 
-            var ticksPerNanosecond = (TimeSpan.TicksPerMillisecond / 1000m / 1000);
             var nanoSeconds = long.Parse(reader.Value.ToString());
             return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks((long)Math.Round(nanoSeconds * ticksPerNanosecond));
         }
@@ -28,7 +29,6 @@ namespace CryptoExchange.Net.Converters
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var ticksPerNanosecond = (TimeSpan.TicksPerMillisecond / 1000m / 1000);
             writer.WriteValue((long)Math.Round(((DateTime)value - new DateTime(1970, 1, 1)).Ticks / ticksPerNanosecond));
         }
     }

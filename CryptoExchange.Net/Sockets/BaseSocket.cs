@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Socket implementation
     /// </summary>
-    public class BaseSocket: IWebsocket
+    internal class BaseSocket: IWebsocket
     {
         internal static int lastStreamId;
         private static readonly object streamIdLock = new object();
@@ -153,7 +153,7 @@ namespace CryptoExchange.Net.Sockets
                     if (DateTime.UtcNow - LastActionTime > Timeout)
                     {
                         log.Write(LogVerbosity.Warning, $"No data received for {Timeout}, reconnecting socket");
-                        Close().ConfigureAwait(false);
+                        _ = Close().ConfigureAwait(false);
                         return;
                     }
                 }
@@ -267,7 +267,7 @@ namespace CryptoExchange.Net.Sockets
                     if (connected)
                     {
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connected");
-                        if ((timeoutTask == null || timeoutTask.IsCompleted) && Timeout != default(TimeSpan))
+                        if ((timeoutTask == null || timeoutTask.IsCompleted) && Timeout != default)
                             timeoutTask = Task.Run(CheckTimeout);
                     }
                     else

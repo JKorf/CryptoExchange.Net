@@ -127,7 +127,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Header collection to inenumerable
+        /// Header collection to IEnumerable
         /// </summary>
         /// <param name="headers"></param>
         /// <returns></returns>
@@ -153,7 +153,7 @@ namespace CryptoExchange.Net
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
         {
             RegisteredWaitHandle registeredHandle = null;
-            CancellationTokenRegistration tokenRegistration = default(CancellationTokenRegistration);
+            CancellationTokenRegistration tokenRegistration = default;
             try
             {
                 var tcs = new TaskCompletionSource<bool>();

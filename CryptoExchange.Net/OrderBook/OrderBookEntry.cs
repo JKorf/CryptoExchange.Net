@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.OrderBook
+﻿using CryptoExchange.Net.Interfaces;
+
+namespace CryptoExchange.Net.OrderBook
 {
     /// <summary>
     /// Order book entry

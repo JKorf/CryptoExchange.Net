@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Requests
         private readonly WebRequest request;
 
         /// <summary>
-        /// Create request object for webrequest
+        /// Create request object for web request
         /// </summary>
         /// <param name="request"></param>
         public Request(WebRequest request)

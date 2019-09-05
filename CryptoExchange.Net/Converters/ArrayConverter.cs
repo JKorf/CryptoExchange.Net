@@ -76,7 +76,7 @@ namespace CryptoExchange.Net.Converters
 
                 var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute)) ?? (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
                 var conversionAttribute = (JsonConversionAttribute)property.GetCustomAttribute(typeof(JsonConversionAttribute)) ?? (JsonConversionAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConversionAttribute));
-                object value = null;
+                object value;
                 if (converterAttribute != null)
                 {
                     value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer {Converters = {(JsonConverter) Activator.CreateInstance(converterAttribute.ConverterType)}});

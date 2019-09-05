@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.Converters
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
 

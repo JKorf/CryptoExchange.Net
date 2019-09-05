@@ -14,12 +14,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// The api key to authenticate requests
         /// </summary>
-        public SecureString Key { get; private set; }
+        public SecureString Key { get; }
 
         /// <summary>
         /// The api secret to authenticate requests
         /// </summary>
-        public SecureString Secret { get; private set; }
+        public SecureString Secret { get; }
 
         /// <summary>
         /// The private key to authenticate requests
