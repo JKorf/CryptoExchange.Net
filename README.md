@@ -130,10 +130,10 @@ Note that when using a file it can provide credentials for multiple exchanges by
 ````
 // File content:
 {
-	"binanceKey": "binanceApiKey",
-	"binanceSecret": "binanceApiSecret",
-	"bittrexKey": "bitrexApiKey",
-	"bittrexSecret": "bittrexApiSecret",
+	"binanceKey": "actualBinanceApiKey",
+	"binanceSecret": "actualBinanceApiSecret",
+	"bittrexKey": "actualBittrexApiKey",
+	"bittrexSecret": "actualBittrexApiSecret",
 }
 
 // Loading:
@@ -145,7 +145,7 @@ using (var stream = File.OpenRead("/path/to/credential-file"))
 	});
 	BittrexClient.SetDefaultOptions(new BittrexClientOptions
 	{
-		ApiCredentials = new ApiCredentials(stream, "BittrexKey", "BittrexSecret")
+		ApiCredentials = new ApiCredentials(stream, "bittrexKey", "bittrexSecret")
 	});
 }
 ````
