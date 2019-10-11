@@ -49,11 +49,8 @@ namespace CryptoExchange.Net.Logging
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            lock (writeLock)
-            {
-                logWriter.Close();
-                logWriter = null;
-            }
+            lock (writeLock)            
+                logWriter.Close();            
         }
     }
 }

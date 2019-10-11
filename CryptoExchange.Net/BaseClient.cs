@@ -7,15 +7,17 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
     /// <summary>
     /// The base for all clients
     /// </summary>
-    public abstract class BaseClient: IDisposable
+    public abstract class BaseClient : IDisposable
     {
         /// <summary>
         /// The address of the client
@@ -28,11 +30,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The api proxy
         /// </summary>
-        protected ApiProxy apiProxy;
+        protected ApiProxy? apiProxy;
         /// <summary>
         /// The auth provider
         /// </summary>
-        protected internal AuthenticationProvider authProvider;
+        protected internal AuthenticationProvider? authProvider;
 
         /// <summary>
         /// The last used id
@@ -59,26 +61,17 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="options"></param>
         /// <param name="authenticationProvider"></param>
-        protected BaseClient(ClientOptions options, AuthenticationProvider authenticationProvider)
+        protected BaseClient(ClientOptions options, AuthenticationProvider? authenticationProvider)
         {
             log = new Log();
             authProvider = authenticationProvider;
-            Configure(options);
-        }
+            log.UpdateWriters(options.LogWriters);
+            log.Level = options.LogVerbosity;
 
-        /// <summary>
-        /// Configure the client using the provided options
-        /// </summary>
-        /// <param name="clientOptions">Options</param>
-        protected void Configure(ClientOptions clientOptions)
-        {
-            log.UpdateWriters(clientOptions.LogWriters);
-            log.Level = clientOptions.LogVerbosity;
+            BaseAddress = options.BaseAddress;
+            apiProxy = options.Proxy;
 
-            BaseAddress = clientOptions.BaseAddress;
-            apiProxy = clientOptions.Proxy;
-            if (apiProxy != null)
-                log.Write(LogVerbosity.Info, $"Setting api proxy to {clientOptions.Proxy.Host}:{clientOptions.Proxy.Port}");
+            log.Write(LogVerbosity.Debug, $"Client configuration: {options}");
         }
 
         /// <summary>
@@ -137,10 +130,10 @@ namespace CryptoExchange.Net
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer serializer = null)
+        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer? serializer = null)
         {
             var tokenResult = ValidateJson(data);
-            return !tokenResult.Success ? new CallResult<T>(default, tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
+            return !tokenResult ? new CallResult<T>(default, tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
         }
 
         /// <summary>
@@ -151,7 +144,7 @@ namespace CryptoExchange.Net
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer serializer = null)
+        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer? serializer = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
@@ -200,6 +193,53 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// Deserialize a stream into an object
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize into</typeparam>
+        /// <param name="stream">The stream to deserialize</param>
+        /// <param name="serializer">A specific serializer to use</param>
+        /// <returns></returns>
+        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null)
+        {
+            if (serializer == null)
+                serializer = defaultSerializer;
+
+            try
+            {
+                using var reader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(reader);
+                return new CallResult<T>(serializer.Deserialize<T>(jsonReader), null);
+            }
+            catch (JsonReaderException jre)
+            {
+                var data = await ReadStream(stream).ConfigureAwait(false);
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default, new DeserializeError(info));
+            }
+            catch (JsonSerializationException jse)
+            {
+                var data = await ReadStream(stream).ConfigureAwait(false);
+                var info = $"Deserialize JsonSerializationException: {jse.Message}, data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default, new DeserializeError(info));
+            }
+            catch (Exception ex)
+            {
+                var data = await ReadStream(stream).ConfigureAwait(false);
+                var info = $"Deserialize Unknown Exception: {ex.Message}, data: {data}";
+                log.Write(LogVerbosity.Error, info);
+                return new CallResult<T>(default, new DeserializeError(info));
+            }
+        }
+
+        private async Task<string> ReadStream(Stream stream)
+        {
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync().ConfigureAwait(false);
+        }
+
         private void CheckObject(Type type, JObject obj)
         {
             if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
@@ -233,13 +273,17 @@ namespace CryptoExchange.Net
                 if (d == null)
                 {
                     d = properties.SingleOrDefault(p => string.Equals(p, token.Key, StringComparison.CurrentCultureIgnoreCase));
-                    if (d == null && !(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+                    if (d == null)
                     {
-                        log.Write(LogVerbosity.Warning, $"Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
-                        isDif = true;
+                        if (!(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+                        {
+                            log.Write(LogVerbosity.Warning, $"Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
+                            isDif = true;
+                        }
                         continue;
                     }
                 }
+
                 properties.Remove(d);
 
                 var propType = GetProperty(d, props)?.PropertyType;
@@ -270,7 +314,7 @@ namespace CryptoExchange.Net
                 log.Write(LogVerbosity.Debug, "Returned data: " + obj);
         }
 
-        private static PropertyInfo GetProperty(string name, IEnumerable<PropertyInfo> props)
+        private static PropertyInfo? GetProperty(string name, IEnumerable<PropertyInfo> props)
         {
             foreach (var prop in props)
             {

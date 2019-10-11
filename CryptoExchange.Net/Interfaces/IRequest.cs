@@ -1,6 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -11,56 +12,41 @@ namespace CryptoExchange.Net.Interfaces
     public interface IRequest
     {
         /// <summary>
-        /// The uri of the request
+        /// Accept header
+        /// </summary>
+        string Accept { set; }
+        /// <summary>
+        /// Content
+        /// </summary>
+        string? Content { get; }
+        /// <summary>
+        /// Headers
+        /// </summary>
+        HttpRequestHeaders Headers { get; }
+        /// <summary>
+        /// Method
+        /// </summary>
+        HttpMethod Method { get; set; }
+        /// <summary>
+        /// Uri
         /// </summary>
         Uri Uri { get; }
         /// <summary>
-        /// The headers of the request
+        /// Set byte content
         /// </summary>
-        WebHeaderCollection Headers { get; set; }
+        /// <param name="data"></param>
+        void SetContent(byte[] data);
         /// <summary>
-        /// The method of the request
+        /// Set string content
         /// </summary>
-        string Method { get; set; }
+        /// <param name="data"></param>
+        /// <param name="contentType"></param>
+        void SetContent(string data, string contentType);
         /// <summary>
-        /// The timeout of the request
+        /// Get the response
         /// </summary>
-        TimeSpan Timeout { get; set; }
-        /// <summary>
-        /// Set a proxy
-        /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        /// <param name="login"></param>
-        /// <param name="password"></param>
-        void SetProxy(string host, int port, string login, string password);
-
-        /// <summary>
-        /// Content type
-        /// </summary>
-        string ContentType { get; set; }
-        /// <summary>
-        /// String content
-        /// </summary>
-        string Content { get; set; }
-        /// <summary>
-        /// Accept
-        /// </summary>
-        string Accept { get; set; }
-        /// <summary>
-        /// Content length
-        /// </summary>
-        long ContentLength { get; set; }
-
-        /// <summary>
-        /// Get the request stream
-        /// </summary>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<Stream> GetRequestStream();
-        /// <summary>
-        /// Get the response object
-        /// </summary>
-        /// <returns></returns>
-        Task<IResponse> GetResponse();
+        Task<IResponse> GetResponse(CancellationToken cancellationToken);
     }
 }

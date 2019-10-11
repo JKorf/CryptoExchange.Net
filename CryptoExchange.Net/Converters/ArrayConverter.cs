@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Converters
         }
         
         /// <inheritdoc />
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (objectType == typeof(JToken))
                 return JToken.Load(reader);
@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Converters
             return ParseObject(arr, result, objectType);
         }
 
-        private static object ParseObject(JArray arr, object result, Type objectType)
+        private static object? ParseObject(JArray arr, object result, Type objectType)
         {
             foreach (var property in objectType.GetProperties())
             {
@@ -76,7 +76,7 @@ namespace CryptoExchange.Net.Converters
 
                 var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute)) ?? (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
                 var conversionAttribute = (JsonConversionAttribute)property.GetCustomAttribute(typeof(JsonConversionAttribute)) ?? (JsonConversionAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConversionAttribute));
-                object value;
+                object? value;
                 if (converterAttribute != null)
                 {
                     value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer {Converters = {(JsonConverter) Activator.CreateInstance(converterAttribute.ConverterType)}});
@@ -133,7 +133,7 @@ namespace CryptoExchange.Net.Converters
 
                 while (arrayProp.Index != last + 1)
                 {
-                    writer.WriteValue((string)null);
+                    writer.WriteValue((string?)null);
                     last += 1;
                 }
 

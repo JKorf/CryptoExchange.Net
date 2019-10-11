@@ -21,6 +21,12 @@ namespace CryptoExchange.Net.Objects
         /// The log writers
         /// </summary>
         public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"LogVerbosity: {LogVerbosity}, Writers: {LogWriters.Count}";
+        }
     }
 
     /// <summary>
@@ -47,6 +53,12 @@ namespace CryptoExchange.Net.Objects
             OrderBookName = name;
             SequenceNumbersAreConsecutive = sequencesAreConsecutive;
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, OrderBookName: {OrderBookName}, SequenceNumbersAreConsequtive: {SequenceNumbersAreConsecutive}";
+        }
     }
 
     /// <summary>
@@ -54,21 +66,36 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ClientOptions : BaseOptions
     {
-
-        /// <summary>
-        /// The api credentials
-        /// </summary>
-        public ApiCredentials ApiCredentials { get; set; }
-
         /// <summary>
         /// The base address of the client
         /// </summary>
         public string BaseAddress { get; set; }
 
         /// <summary>
+        /// The api credentials
+        /// </summary>        
+        public ApiCredentials? ApiCredentials { get; set; }
+
+
+        /// <summary>
         /// Proxy to use
         /// </summary>
-        public ApiProxy Proxy { get; set; }
+        public ApiProxy? Proxy { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public ClientOptions(string baseAddress)
+        {
+            BaseAddress = baseAddress;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-": "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null? "-": Proxy.Host)}";
+        }
     }
 
     /// <summary>
@@ -92,6 +119,14 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public RestClientOptions(string baseAddress): base(baseAddress)
+        {
+        }
+
+        /// <summary>
         /// Create a copy of the options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -110,9 +145,15 @@ namespace CryptoExchange.Net.Objects
             };
 
             if (ApiCredentials != null)
-                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+                copy.ApiCredentials = ApiCredentials.Copy();
 
             return copy;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, RateLimitters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, RequestTimeout: {RequestTimeout.ToString("c")}";
         }
     }
 
@@ -147,6 +188,14 @@ namespace CryptoExchange.Net.Objects
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public SocketClientOptions(string baseAddress) : base(baseAddress)
+        {
+        }
+
+        /// <summary>
         /// Create a copy of the options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -166,9 +215,15 @@ namespace CryptoExchange.Net.Objects
             };
 
             if (ApiCredentials != null)
-                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+                copy.ApiCredentials = ApiCredentials.Copy();
 
             return copy;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, SocketResponseTimeout: {SocketResponseTimeout.ToString("c")}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
         }
     }
 }

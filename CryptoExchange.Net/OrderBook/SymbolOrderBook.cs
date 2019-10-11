@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.OrderBook
 
         protected SortedList<decimal, ISymbolOrderBookEntry> bids;
         private OrderBookStatus status;
-        private UpdateSubscription subscription;
+        private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
         private readonly string id;
         /// <summary>
@@ -71,11 +71,11 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// Event when the state changes
         /// </summary>
-        public event Action<OrderBookStatus, OrderBookStatus> OnStatusChange;
+        public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
         /// <summary>
         /// Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>    
-        public event Action OnOrderBookUpdate;
+        public event Action? OnOrderBookUpdate;
         /// <summary>
         /// Timestamp of the last update
         /// </summary>
@@ -145,6 +145,12 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="options"></param>
         protected SymbolOrderBook(string symbol, OrderBookOptions options)
         {
+            if (symbol == null)
+                throw new ArgumentNullException("symbol");
+
+            if (options == null)
+                throw new ArgumentNullException("options");
+
             id = options.OrderBookName;
             processBuffer = new List<ProcessBufferEntry>();
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
@@ -173,7 +179,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             Status = OrderBookStatus.Connecting;
             var startResult = await DoStart().ConfigureAwait(false);
-            if (!startResult.Success)
+            if (!startResult)
                 return new CallResult<bool>(false, startResult.Error);
 
             subscription = startResult.Data;
@@ -202,7 +208,7 @@ namespace CryptoExchange.Net.OrderBook
                     return;
 
                 var resyncResult = DoResync().Result;
-                success = resyncResult.Success;
+                success = resyncResult;
             }
 
             log.Write(LogVerbosity.Info, $"{id} order book {Symbol} successfully resynchronized");
@@ -222,7 +228,8 @@ namespace CryptoExchange.Net.OrderBook
         public async Task StopAsync()
         {
             Status = OrderBookStatus.Disconnected;
-            await subscription.Close().ConfigureAwait(false);
+            if(subscription != null)
+                await subscription.Close().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -303,7 +310,7 @@ namespace CryptoExchange.Net.OrderBook
                 {
                     // Out of sync
                     log.Write(LogVerbosity.Warning, $"{id} order book {Symbol} out of sync, reconnecting");
-                    subscription.Reconnect().Wait();
+                    subscription!.Reconnect().Wait();
                 }
                 else
                 {

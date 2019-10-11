@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Sockets
         internal static int lastStreamId;
         private static readonly object streamIdLock = new object();
 
-        protected WebSocket socket;
+        protected WebSocket? socket;
         protected Log log;
         protected object socketLock = new object();
 
@@ -32,34 +32,22 @@ namespace CryptoExchange.Net.Sockets
 
         protected IDictionary<string, string> cookies;
         protected IDictionary<string, string> headers;
-        protected HttpConnectProxy proxy;
+        protected HttpConnectProxy? proxy;
 
         public int Id { get; }
         public bool Reconnecting { get; set; }
-        public string Origin { get; set; }
+        public string? Origin { get; set; }
 
         public string Url { get; }
-        public bool IsClosed => socket.State == WebSocketState.Closed;
-        public bool IsOpen => socket.State == WebSocketState.Open;
+        public bool IsClosed => socket?.State == null ? true: socket.State == WebSocketState.Closed;
+        public bool IsOpen => socket?.State == WebSocketState.Open;
         public SslProtocols SSLProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-        public Func<byte[], string> DataInterpreterBytes { get; set; }
-        public Func<string, string> DataInterpreterString { get; set; }
+        public Func<byte[], string>? DataInterpreterBytes { get; set; }
+        public Func<string, string>? DataInterpreterString { get; set; }
 
         public DateTime LastActionTime { get; private set; }
         public TimeSpan Timeout { get; set; }
-        private Task timeoutTask;
-
-        public bool PingConnection
-        {
-            get => socket.EnableAutoSendPing;
-            set => socket.EnableAutoSendPing = value;
-        }
-
-        public TimeSpan PingInterval
-        {
-            get => TimeSpan.FromSeconds(socket.AutoSendPingInterval);
-            set => socket.AutoSendPingInterval = (int) Math.Round(value.TotalSeconds);
-        }
+        private Task? timeoutTask;
 
         public WebSocketState SocketState => socket?.State ?? WebSocketState.None;
 
@@ -176,7 +164,7 @@ namespace CryptoExchange.Net.Sockets
 
                     var waitLock = new object();
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} closing");
-                    var evnt = new ManualResetEvent(false);
+                    ManualResetEvent? evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
                         lock(waitLock)
@@ -208,7 +196,7 @@ namespace CryptoExchange.Net.Sockets
 
         public virtual void Send(string data)
         {
-            socket.Send(data);
+            socket?.Send(data);
         }
 
         public virtual Task<bool> Connect()
@@ -239,7 +227,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} connecting");
                     var waitLock = new object();
-                    var evnt = new ManualResetEvent(false);
+                    ManualResetEvent? evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
                         lock (waitLock)

@@ -137,4 +137,15 @@
         /// <param name="message"></param>
         public RateLimitError(string message) : base(8, "Rate limit exceeded: " + message) { }
     }
+
+    /// <summary>
+    /// Cancellation requested
+    /// </summary>
+    public class CancellationRequestedError : Error
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public CancellationRequestedError() : base(9, "Cancellation requested") { }
+    }
 }

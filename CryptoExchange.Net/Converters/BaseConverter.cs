@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.Converters
     /// Base class for enum converters
     /// </summary>
     /// <typeparam name="T">Type of enum to convert</typeparam>
-    public abstract class BaseConverter<T>: JsonConverter
+    public abstract class BaseConverter<T>: JsonConverter where T: struct
     {
         /// <summary>
         /// The enum->string mapping
@@ -38,7 +39,7 @@ namespace CryptoExchange.Net.Converters
         }
 
         /// <inheritdoc />
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
                 return null;
@@ -69,7 +70,7 @@ namespace CryptoExchange.Net.Converters
             return objectType == typeof(T) || Nullable.GetUnderlyingType(objectType) == typeof(T);
         }
 
-        private bool GetValue(string value, out T result)
+        private bool GetValue(string value, [NotNullWhen(false)]out T result)
         {
             var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
             if (!mapping.Equals(default(KeyValuePair<T, string>)))

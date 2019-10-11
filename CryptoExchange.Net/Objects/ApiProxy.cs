@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -19,25 +20,20 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The login of the proxy
         /// </summary>
-        public string Login { get; }
+        public string? Login { get; }
 
         /// <summary>
         /// The password of the proxy
         /// </summary>
-        public string Password { get; }
+        public SecureString? Password { get; }
 
         /// <summary>
         /// Create new settings for a proxy
         /// </summary>
         /// <param name="host">The proxy hostname/ip</param>
         /// <param name="port">The proxy port</param>
-        public ApiProxy(string host, int port)
+        public ApiProxy(string host, int port): this(host, port, null, (SecureString?)null)
         {
-            if(string.IsNullOrEmpty(host) || port <=  0)
-                throw new ArgumentException("Proxy host or port not filled");
-
-            Host = host;
-            Port = port;
         }
 
         /// <inheritdoc />
@@ -48,11 +44,28 @@ namespace CryptoExchange.Net.Objects
         /// <param name="port">The proxy port</param>
         /// <param name="login">The proxy login</param>
         /// <param name="password">The proxy password</param>
-        public ApiProxy(string host, int port, string login, string password) : this(host, port)
+        public ApiProxy(string host, int port, string? login, string? password) : this(host, port, login, password?.ToSecureString())
         {
-            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
-                throw new ArgumentException("Proxy login or password not filled");
+        }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Create new settings for a proxy
+        /// </summary>
+        /// <param name="host">The proxy hostname/ip</param>
+        /// <param name="port">The proxy port</param>
+        /// <param name="login">The proxy login</param>
+        /// <param name="password">The proxy password</param>
+        public ApiProxy(string host, int port, string? login, SecureString? password)
+        {
+            if (string.IsNullOrEmpty(login))
+                throw new ArgumentException("Proxy login not provided");
+
+            if (!host.StartsWith("http"))
+                throw new ArgumentException("Proxy host should start with either http:// or https://");
+
+            Host = host;
+            Port = port;
             Login = login;
             Password = password;
         }

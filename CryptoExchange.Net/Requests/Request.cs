@@ -1,6 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 
@@ -9,84 +11,61 @@ namespace CryptoExchange.Net.Requests
     /// <summary>
     /// Request object
     /// </summary>
-    public class Request : IRequest
+    internal class Request : IRequest
     {
-        private readonly WebRequest request;
+        private readonly HttpRequestMessage request;
+        private readonly HttpClient httpClient;
 
         /// <summary>
         /// Create request object for web request
         /// </summary>
         /// <param name="request"></param>
-        public Request(WebRequest request)
+        /// <param name="client"></param>
+        public Request(HttpRequestMessage request, HttpClient client)
         {
+            httpClient = client;
             this.request = request;
         }
 
         /// <inheritdoc />
-        public WebHeaderCollection Headers
-        {
-            get => request.Headers;
-            set => request.Headers = value;
-        }
+        public HttpRequestHeaders Headers => request.Headers;
 
         /// <inheritdoc />
-        public string ContentType
-        {
-            get => request.ContentType;
-            set => request.ContentType = value;
-        }
-
-        /// <inheritdoc />
-        public string Content { get; set; }
+        public string? Content { get; private set; }
 
         /// <inheritdoc />
         public string Accept
         {
-            get => ((HttpWebRequest)request).Accept;
-            set => ((HttpWebRequest)request).Accept = value;
+            set => request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(value));
         }
 
         /// <inheritdoc />
-        public long ContentLength
-        {
-            get => ((HttpWebRequest)request).ContentLength;
-            set => ((HttpWebRequest)request).ContentLength = value;
-        }
-
-        /// <inheritdoc />
-        public string Method
+        public HttpMethod Method
         {
             get => request.Method;
             set => request.Method = value;
         }
 
         /// <inheritdoc />
-        public TimeSpan Timeout
-        {
-            get => TimeSpan.FromMilliseconds(request.Timeout);
-            set => request.Timeout = (int)Math.Round(value.TotalMilliseconds);
-        }
-
-        /// <inheritdoc />
         public Uri Uri => request.RequestUri;
 
         /// <inheritdoc />
-        public void SetProxy(string host, int port, string login, string password)
+        public void SetContent(string data, string contentType)
         {
-            request.Proxy = new WebProxy(host, port);
-            if(!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password)) request.Proxy.Credentials = new NetworkCredential(login, password);
+            Content = data;
+            request.Content = new StringContent(data, Encoding.UTF8, contentType);
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetRequestStream()
+        public void SetContent(byte[] data)
         {
-            return await request.GetRequestStreamAsync().ConfigureAwait(false);
+            request.Content = new ByteArrayContent(data);
         }
 
         /// <inheritdoc />
-        public async Task<IResponse> GetResponse()
+        public async Task<IResponse> GetResponse(CancellationToken cancellationToken)
         {
-            return new Response((HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false));
+            return new Response(await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false));
         }
     }
 }

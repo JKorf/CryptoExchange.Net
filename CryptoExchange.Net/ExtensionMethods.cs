@@ -47,7 +47,7 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object value)
+        public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value)
         {
             if(value != null)
                 parameters.Add(key, value);
@@ -59,7 +59,7 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddOptionalParameter(this Dictionary<string, string> parameters, string key, string value)
+        public static void AddOptionalParameter(this Dictionary<string, string> parameters, string key, string? value)
         {
             if (value != null)
                 parameters.Add(key, value);
@@ -127,20 +127,17 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Header collection to IEnumerable
+        /// Create a secure string from a string
         /// </summary>
-        /// <param name="headers"></param>
+        /// <param name="source"></param>
         /// <returns></returns>
-        public static IEnumerable<Tuple<string, string>> ToIEnumerable(this WebHeaderCollection headers)
+        internal static SecureString ToSecureString(this string source)
         {
-            if (headers == null)
-                return null;
-
-            return Enumerable
-                .Range(0, headers.Count)
-                .SelectMany(i => headers.GetValues(i)
-                    .Select(v => Tuple.Create(headers.GetKey(i), v))
-                );
+            var secureString = new SecureString();
+            foreach (var c in source)
+                secureString.AppendChar(c);
+            secureString.MakeReadOnly();
+            return secureString;
         }
 
         /// <summary>
@@ -152,7 +149,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
         {
-            RegisteredWaitHandle registeredHandle = null;
+            RegisteredWaitHandle? registeredHandle = null;
             CancellationTokenRegistration tokenRegistration = default;
             try
             {
@@ -192,7 +189,7 @@ namespace CryptoExchange.Net
         /// <param name="stringData"></param>
         /// <param name="log"></param>
         /// <returns></returns>
-        public static JToken ToJToken(this string stringData, Log log = null)
+        public static JToken? ToJToken(this string stringData, Log? log = null)
         {
             if (string.IsNullOrEmpty(stringData))
                 return null;

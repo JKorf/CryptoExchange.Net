@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -29,7 +30,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="parameters"></param>
         /// <param name="signed"></param>
         /// <returns></returns>
-        public virtual Dictionary<string, object> AddAuthenticationToParameters(string uri, string method, Dictionary<string, object> parameters, bool signed)
+        public virtual Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
         {
             return parameters;
         }
@@ -42,7 +43,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="parameters"></param>
         /// <param name="signed"></param>
         /// <returns></returns>
-        public virtual Dictionary<string, string> AddAuthenticationToHeaders(string uri, string method, Dictionary<string, object> parameters, bool signed)
+        public virtual Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
         {
             return new Dictionary<string, string>();
         }

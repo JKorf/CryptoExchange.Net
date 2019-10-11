@@ -50,11 +50,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Handler for byte data
         /// </summary>
-        protected Func<byte[], string> dataInterpreterBytes;
+        protected Func<byte[], string>? dataInterpreterBytes;
         /// <summary>
         /// Handler for string data
         /// </summary>
-        protected Func<string, string> dataInterpreterString;
+        protected Func<string, string>? dataInterpreterString;
         /// <summary>
         /// Generic handlers
         /// </summary>
@@ -62,11 +62,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Periodic task
         /// </summary>
-        protected Task periodicTask;
+        protected Task? periodicTask;
         /// <summary>
         /// Periodic task event
         /// </summary>
-        protected AutoResetEvent periodicEvent;
+        protected AutoResetEvent? periodicEvent;
         /// <summary>
         /// Is disposing
         /// </summary>
@@ -84,17 +84,11 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeOptions">Client options</param>
         /// <param name="authenticationProvider">Authentication provider</param>
-        protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
-            Configure(exchangeOptions);
-        }
+            if (exchangeOptions == null)
+                throw new ArgumentNullException("Options");
 
-        /// <summary>
-        /// Configure the client using the provided options
-        /// </summary>
-        /// <param name="exchangeOptions">Options</param>
-        protected void Configure(SocketClientOptions exchangeOptions)
-        {
             AutoReconnect = exchangeOptions.AutoReconnect;
             ReconnectInterval = exchangeOptions.ReconnectInterval;
             ResponseTimeout = exchangeOptions.SocketResponseTimeout;
@@ -137,7 +131,7 @@ namespace CryptoExchange.Net
         /// <param name="authenticated">If the subscription should be authenticated</param>
         /// <param name="dataHandler">The handler of update data</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> Subscribe<T>(string url, object request, string identifier, bool authenticated, Action<T> dataHandler)
+        protected virtual async Task<CallResult<UpdateSubscription>> Subscribe<T>(string url, object? request, string? identifier, bool authenticated, Action<T> dataHandler)
         {
             SocketConnection socket;
             SocketSubscription handler;
@@ -155,7 +149,7 @@ namespace CryptoExchange.Net
                 }
 
                 var connectResult = await ConnectIfNeeded(socket, authenticated).ConfigureAwait(false);
-                if (!connectResult.Success)
+                if (!connectResult)
                     return new CallResult<UpdateSubscription>(null, connectResult.Error);
             }
             finally
@@ -170,7 +164,7 @@ namespace CryptoExchange.Net
             if (request != null)
             {
                 var subResult = await SubscribeAndWait(socket, request, handler).ConfigureAwait(false);
-                if (!subResult.Success)
+                if (!subResult)
                 {
                     await socket.Close(handler).ConfigureAwait(false);
                     return new CallResult<UpdateSubscription>(null, subResult.Error);
@@ -192,8 +186,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWait(SocketConnection socket, object request, SocketSubscription subscription)
         {
-            CallResult<object> callResult = null;
-            await socket.SendAndWait(request, ResponseTimeout, data => HandleSubscriptionResponse(socket, subscription, request, data, out callResult)).ConfigureAwait(false);
+            CallResult<object>? callResult = null;
+            await socket.SendAndWait(request, ResponseTimeout, data => HandleSubscriptionResponse(socket, subscription, request, data, out var callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
                 subscription.Confirmed = true;
@@ -237,7 +231,7 @@ namespace CryptoExchange.Net
                 }
 
                 var connectResult = await ConnectIfNeeded(socket, authenticated).ConfigureAwait(false);
-                if (!connectResult.Success)
+                if (!connectResult)
                     return new CallResult<T>(default, connectResult.Error);
             }
             finally
@@ -291,17 +285,17 @@ namespace CryptoExchange.Net
                 return new CallResult<bool>(true, null);
 
             var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
-            if (!connectResult.Success)
+            if (!connectResult)
                 return new CallResult<bool>(false, new CantConnectError());
 
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true, null);
 
             var result = await AuthenticateSocket(socket).ConfigureAwait(false);
-            if (!result.Success)
+            if (!result)
             {
                 log.Write(LogVerbosity.Warning, "Socket authentication failed");
-                result.Error.Message = "Authentication failed: " + result.Error.Message;
+                result.Error!.Message = "Authentication failed: " + result.Error.Message;
                 return new CallResult<bool>(false, result.Error);
             }
 
@@ -377,7 +371,7 @@ namespace CryptoExchange.Net
         /// <param name="connection">The socket connection the handler is on</param>
         /// <param name="dataHandler">The handler of the data received</param>
         /// <returns></returns>
-        protected virtual SocketSubscription AddHandler<T>(object request, string identifier, bool userSubscription, SocketConnection connection, Action<T> dataHandler)
+        protected virtual SocketSubscription AddHandler<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<T> dataHandler)
         {
             void InternalHandler(SocketConnection socketWrapper, JToken data)
             {
@@ -388,7 +382,7 @@ namespace CryptoExchange.Net
                 }
 
                 var desResult = Deserialize<T>(data, false);
-                if (!desResult.Success)
+                if (!desResult)
                 {
                     log.Write(LogVerbosity.Warning, $"Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
                     return;
@@ -397,7 +391,7 @@ namespace CryptoExchange.Net
                 dataHandler(desResult.Data);
             }
 
-            return connection.AddHandler(request ?? identifier, userSubscription, InternalHandler);
+            return connection.AddHandler(request ?? identifier!, userSubscription, InternalHandler);
         }
 
         /// <summary>
@@ -486,6 +480,9 @@ namespace CryptoExchange.Net
         /// <param name="objGetter">Method returning the object to send</param>
         public virtual void SendPeriodic(TimeSpan interval, Func<SocketConnection, object> objGetter)
         {
+            if (objGetter == null)
+                throw new ArgumentNullException("objGetter");
+
             periodicEvent = new AutoResetEvent(false);
             periodicTask = Task.Run(async () =>
             {
@@ -517,7 +514,6 @@ namespace CryptoExchange.Net
                         }
                     }
                 }
-
             });
         }
         
@@ -530,7 +526,7 @@ namespace CryptoExchange.Net
         public virtual async Task Unsubscribe(UpdateSubscription subscription)
         {
             if (subscription == null)
-                return;
+                throw new ArgumentNullException("subscription");
 
             log.Write(LogVerbosity.Info, "Closing subscription");
             await subscription.Close().ConfigureAwait(false);
@@ -564,9 +560,10 @@ namespace CryptoExchange.Net
         {
             disposing = true;
             periodicEvent?.Set();
+            periodicEvent?.Dispose();
             log.Write(LogVerbosity.Debug, "Disposing socket client, closing all subscriptions");
             UnsubscribeAll().Wait();
-
+            semaphoreSlim?.Dispose();
             base.Dispose();
         }
     }
