@@ -36,30 +36,38 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="userSubscription"></param>
-        /// <param name="dataHandler"></param>
-        public SocketSubscription(object request, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
+        private SocketSubscription(object? request, string? identifier, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
         {
             UserSubscription = userSubscription;
             MessageHandler = dataHandler;
             Request = request;
+            Identifier = identifier;
         }
 
         /// <summary>
-        /// ctor
+        /// Create SocketSubscription for a request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="userSubscription"></param>
+        /// <param name="dataHandler"></param>
+        /// <returns></returns>
+        public static SocketSubscription CreateForRequest(object request, bool userSubscription,
+            Action<SocketConnection, JToken> dataHandler)
+        {
+            return new SocketSubscription(request, null, userSubscription, dataHandler);
+        }
+
+        /// <summary>
+        /// Create SocketSubscription for an identifier
         /// </summary>
         /// <param name="identifier"></param>
         /// <param name="userSubscription"></param>
         /// <param name="dataHandler"></param>
-        public SocketSubscription(string identifier, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
+        /// <returns></returns>
+        public static SocketSubscription CreateForIdentifier(string identifier, bool userSubscription,
+            Action<SocketConnection, JToken> dataHandler)
         {
-            UserSubscription = userSubscription;
-            MessageHandler = dataHandler;
-            Identifier = identifier;
+            return new SocketSubscription(null, identifier, userSubscription, dataHandler);
         }
 
         /// <summary>

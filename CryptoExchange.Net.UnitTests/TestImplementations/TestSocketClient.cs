@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestSocketClient: SocketClient
     {
-        public TestSocketClient() : this(new SocketClientOptions())
+        public TestSocketClient() : this(new SocketClientOptions("http://testurl.url"))
         {
         }
 
@@ -32,32 +32,33 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return ConnectSocket(sub).Result;
         }
 
-        protected override bool HandleQueryResponse<T>(SocketConnection s, object request, JToken data, out CallResult<T> callResult)
+        protected internal override bool HandleQueryResponse<T>(SocketConnection s, object request, JToken data, out CallResult<T> callResult)
         {
             throw new NotImplementedException();
         }
 
-        protected override bool HandleSubscriptionResponse(SocketConnection s, SocketSubscription subscription, object request, JToken message, out CallResult<object> callResult)
+        protected internal override bool HandleSubscriptionResponse(SocketConnection s, SocketSubscription subscription, object request, JToken message,
+            out CallResult<object> callResult)
         {
             throw new NotImplementedException();
         }
 
-        protected override bool MessageMatchesHandler(JToken message, object request)
+        protected internal override bool MessageMatchesHandler(JToken message, object request)
         {
             throw new NotImplementedException();
         }
 
-        protected override bool MessageMatchesHandler(JToken message, string identifier)
+        protected internal override bool MessageMatchesHandler(JToken message, string identifier)
         {
             return true;
         }
 
-        protected override Task<CallResult<bool>> AuthenticateSocket(SocketConnection s)
+        protected internal override Task<CallResult<bool>> AuthenticateSocket(SocketConnection s)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task<bool> Unsubscribe(SocketConnection connection, SocketSubscription s)
+        protected internal override Task<bool> Unsubscribe(SocketConnection connection, SocketSubscription s)
         {
             throw new NotImplementedException();
         }

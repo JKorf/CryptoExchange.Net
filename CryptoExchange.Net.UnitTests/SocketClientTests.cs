@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             //arrange
             //act
-            var client = new TestSocketClient(new SocketClientOptions()
+            var client = new TestSocketClient(new SocketClientOptions("")
             {
                 BaseAddress = "http://test.address.com",
                 ReconnectInterval = TimeSpan.FromSeconds(6)
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.UnitTests
         public void SocketMessages_Should_BeProcessedInDataHandlers()
         {
             // arrange
-            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var client = new TestSocketClient(new SocketClientOptions("") { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
             var socket = client.CreateSocket();
             socket.ShouldReconnect = true;
             socket.CanConnect = true;
@@ -59,11 +59,11 @@ namespace CryptoExchange.Net.UnitTests
             var sub = new SocketConnection(client, socket);
             var rstEvent = new ManualResetEvent(false);
             JToken result = null;
-            sub.AddHandler("TestHandler", true, (connection, data) =>
+            sub.AddHandler(SocketSubscription.CreateForIdentifier("TestHandler", true, (connection, data) =>
             {
                 result = data;
                 rstEvent.Set();
-            });
+            }));
             client.ConnectSocketSub(sub);
 
             // act
@@ -79,7 +79,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             bool reconnected = false;
-            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var client = new TestSocketClient(new SocketClientOptions("") { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
             var socket = client.CreateSocket();
             socket.ShouldReconnect = true;
             socket.CanConnect = true;
@@ -106,12 +106,12 @@ namespace CryptoExchange.Net.UnitTests
         public void UnsubscribingStream_Should_CloseTheSocket()
         {
             // arrange
-            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var client = new TestSocketClient(new SocketClientOptions("") { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
             var sub = new SocketConnection(client, socket);
             client.ConnectSocketSub(sub);
-            var ups = new UpdateSubscription(sub, new SocketSubscription("Test", null, true, (d, a) => {}));
+            var ups = new UpdateSubscription(sub, SocketSubscription.CreateForIdentifier("Test", true, (d, a) => {}));
 
             // act
             client.Unsubscribe(ups).Wait();
@@ -124,7 +124,7 @@ namespace CryptoExchange.Net.UnitTests
         public void UnsubscribingAll_Should_CloseAllSockets()
         {
             // arrange
-            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var client = new TestSocketClient(new SocketClientOptions("") { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
             var socket1 = client.CreateSocket();
             var socket2 = client.CreateSocket();
             socket1.CanConnect = true;
@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.UnitTests
         public void FailingToConnectSocket_Should_ReturnError()
         {
             // arrange
-            var client = new TestSocketClient(new SocketClientOptions() { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
+            var client = new TestSocketClient(new SocketClientOptions("") { ReconnectInterval = TimeSpan.Zero, LogVerbosity = LogVerbosity.Debug });
             var socket = client.CreateSocket();
             socket.CanConnect = false;
             var sub = new SocketConnection(client, socket);

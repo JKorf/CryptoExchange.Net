@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool PausedActivity { get; set; }
 
-        internal readonly List<SocketSubscription> handlers;
+        private readonly List<SocketSubscription> handlers;
         private readonly object handlersLock = new object();
 
         private bool lostTriggered;
@@ -109,38 +109,7 @@ namespace CryptoExchange.Net.Sockets
                 Connected = true;
             };
         }
-
-        /// <summary>
-        /// Add a handler
-        /// </summary>
-        /// <param name="request">The request object</param>
-        /// <param name="userSubscription">If it is a user subscription or a generic handler</param>
-        /// <param name="dataHandler">The data handler</param>
-        /// <returns></returns>
-        public SocketSubscription AddHandler(object request, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
-        {
-            var handler = new SocketSubscription(request, userSubscription, dataHandler);
-            lock (handlersLock)
-                handlers.Add(handler);
-            return handler;
-        }
-
-        /// <summary>
-        /// Add a handler
-        /// </summary>
-        /// <param name="identifier">The identifier of the handler</param>
-        /// <param name="userSubscription">If it is a user subscription or a generic handler</param>
-        /// <param name="dataHandler">The data handler</param>
-        /// <returns></returns>
-        /// <returns></returns>
-        public SocketSubscription AddHandler(string identifier, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
-        {
-            var handler = new SocketSubscription(identifier, userSubscription, dataHandler);
-            lock (handlersLock)
-                handlers.Add(handler);
-            return handler;
-        }
-
+        
         private void ProcessMessage(string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} received data: " + data);
@@ -165,6 +134,16 @@ namespace CryptoExchange.Net.Sockets
             {
                 log.Write(LogVerbosity.Debug, "Message not handled: " + tokenData);
             }
+        }
+
+        /// <summary>
+        /// Add handler
+        /// </summary>
+        /// <param name="handler"></param>
+        public void AddHandler(SocketSubscription handler)
+        {
+            lock(handlersLock)
+                handlers.Add(handler);
         }
 
         private bool HandleData(JToken tokenData)

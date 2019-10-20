@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
@@ -22,7 +23,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The address of the client
         /// </summary>
-        public string BaseAddress { get; private set; }
+        public string BaseAddress { get; }
         /// <summary>
         /// The log object
         /// </summary>
@@ -207,36 +208,39 @@ namespace CryptoExchange.Net
 
             try
             {
-                using var reader = new StreamReader(stream);
+                using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
                 using var jsonReader = new JsonTextReader(reader);
                 return new CallResult<T>(serializer.Deserialize<T>(jsonReader), null);
             }
             catch (JsonReaderException jre)
             {
+                if(stream.CanSeek)
+                    stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                log.Write(LogVerbosity.Error, $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
+                return new CallResult<T>(default, new DeserializeError(data));
             }
             catch (JsonSerializationException jse)
             {
+                if (stream.CanSeek)
+                    stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                var info = $"Deserialize JsonSerializationException: {jse.Message}, data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                log.Write(LogVerbosity.Error, $"Deserialize JsonSerializationException: {jse.Message}, data: {data}");
+                return new CallResult<T>(default, new DeserializeError(data));
             }
             catch (Exception ex)
             {
+                if (stream.CanSeek)
+                    stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                var info = $"Deserialize Unknown Exception: {ex.Message}, data: {data}";
-                log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                log.Write(LogVerbosity.Error, $"Deserialize Unknown Exception: {ex.Message}, data: {data}");
+                return new CallResult<T>(default, new DeserializeError(data));
             }
         }
 
         private async Task<string> ReadStream(Stream stream)
-        {
-            using var reader = new StreamReader(stream);
+        { 
+            using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
             return await reader.ReadToEndAsync().ConfigureAwait(false);
         }
 

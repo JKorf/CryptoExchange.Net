@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -46,11 +47,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Timeout for requests
         /// </summary>
-        protected TimeSpan RequestTimeout { get; private set; }
+        protected TimeSpan RequestTimeout { get; }
         /// <summary>
         /// Rate limiting behaviour
         /// </summary>
-        public RateLimitingBehaviour RateLimitBehaviour { get; private set; }
+        public RateLimitingBehaviour RateLimitBehaviour { get; }
         /// <summary>
         /// List of ratelimitters
         /// </summary>
@@ -68,7 +69,7 @@ namespace CryptoExchange.Net
         protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
-                throw new ArgumentNullException("Options");
+                throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
             RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
@@ -86,7 +87,7 @@ namespace CryptoExchange.Net
         public void AddRateLimiter(IRateLimiter limiter)
         {
             if (limiter == null)
-                throw new ArgumentNullException("limiter");
+                throw new ArgumentNullException(nameof(limiter));
 
             var rateLimiters = RateLimiters.ToList();
             rateLimiters.Add(limiter);
@@ -105,17 +106,19 @@ namespace CryptoExchange.Net
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        public virtual CallResult<long> Ping() => PingAsync().Result;
+        public virtual CallResult<long> Ping(CancellationToken ct = default) => PingAsync(ct).Result;
 
         /// <summary>
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        public virtual async Task<CallResult<long>> PingAsync()
+        public virtual async Task<CallResult<long>> PingAsync(CancellationToken ct = default)
         {
             var ping = new Ping();
             var uri = new Uri(BaseAddress);
             PingReply reply;
+
+            var ctRegistration = ct.Register(() => ping.SendAsyncCancel());
             try
             {
                 reply = await ping.SendPingAsync(uri.Host).ConfigureAwait(false);
@@ -131,8 +134,12 @@ namespace CryptoExchange.Net
             }
             finally
             {
+                ctRegistration.Dispose();
                 ping.Dispose();
             }
+
+            if(ct.IsCancellationRequested)
+                return new CallResult<long>(0, new CancellationRequestedError());
 
             return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
         }
@@ -148,6 +155,7 @@ namespace CryptoExchange.Net
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
         /// <returns></returns>
+        [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequest<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true) where T : class
         {
@@ -198,13 +206,17 @@ namespace CryptoExchange.Net
                 if (response.IsSuccessStatusCode)
                 {
                     var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
+                    responseStream.Close();
                     response.Close();
+
+
                     return new WebCallResult<T>(statusCode, headers, desResult.Data, desResult.Error);
                 }
                 else
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
                     return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) :new ServerError(data));
@@ -261,7 +273,7 @@ namespace CryptoExchange.Net
                 headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed);
 
             foreach (var header in headers)
-                request.Headers.Add(header.Key, header.Value);
+                request.AddHeader(header.Key, header.Value);
 
             if ((method == HttpMethod.Post || method == HttpMethod.Put) && postParametersPosition != PostParameters.InUri)
             {
@@ -286,7 +298,6 @@ namespace CryptoExchange.Net
             {
                 var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
                 request.SetContent(stringData, contentType);
-
             }
             else if(requestBodyFormat == RequestBodyFormat.FormData)
             {

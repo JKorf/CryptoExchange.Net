@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Converters
             return objectType == typeof(T) || Nullable.GetUnderlyingType(objectType) == typeof(T);
         }
 
-        private bool GetValue(string value, [NotNullWhen(false)]out T result)
+        private bool GetValue(string value, out T result)
         {
             var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
             if (!mapping.Equals(default(KeyValuePair<T, string>)))

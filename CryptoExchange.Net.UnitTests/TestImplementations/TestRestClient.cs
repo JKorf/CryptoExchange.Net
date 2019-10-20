@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 
@@ -16,7 +18,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestRestClient: RestClient
     {
-        public TestRestClient() : base(new RestClientOptions(), null)
+        public TestRestClient() : base(new RestClientOptions("http://testurl.url"), null)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
@@ -39,36 +41,28 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             responseStream.Seek(0, SeekOrigin.Begin);
 
             var response = new Mock<IResponse>();
-            response.Setup(c => c.GetResponseStream()).Returns(responseStream);
-
+            response.Setup(c => c.IsSuccessStatusCode).Returns(true);
+            response.Setup(c => c.GetResponseStream()).Returns(Task.FromResult((Stream)responseStream));
+            
             var request = new Mock<IRequest>();
-            request.Setup(c => c.Headers).Returns(new WebHeaderCollection());
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetRequestStream()).Returns(Task.FromResult(requestStream));
-            request.Setup(c => c.GetResponse()).Returns(Task.FromResult(response.Object));
+            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
                 .Returns(request.Object);
         }
 
         public void SetErrorWithoutResponse(HttpStatusCode code, string message)
         {
-            var we = new WebException();
-            var r = new HttpWebResponse();
-            var re = new HttpResponseMessage();
-
-            typeof(HttpResponseMessage).GetField("_statusCode", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(re, code);
-            typeof(HttpWebResponse).GetField("_httpResponseMessage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(r, re);
-            typeof(WebException).GetField("_message", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(we, message);
-            typeof(WebException).GetField("_response", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(we, r);
-            
+            var we = new HttpRequestException();
+            typeof(HttpRequestException).GetField("_message", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(we, message);
+           
             var request = new Mock<IRequest>();
-            request.Setup(c => c.Headers).Returns(new WebHeaderCollection());
-            request.Setup(c => c.GetResponse()).Throws(we);
+            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
                 .Returns(request.Object);
         }
 
@@ -79,22 +73,22 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             responseStream.Write(expectedBytes, 0, expectedBytes.Length);
             responseStream.Seek(0, SeekOrigin.Begin);
 
-            var r = new Mock<HttpWebResponse>();
-            r.Setup(x => x.GetResponseStream()).Returns(responseStream);
-            var we = new WebException("", null, WebExceptionStatus.Success, r.Object);
-            
+            var response = new Mock<IResponse>();
+            response.Setup(c => c.IsSuccessStatusCode).Returns(false);
+            response.Setup(c => c.GetResponseStream()).Returns(Task.FromResult((Stream)responseStream));
+
             var request = new Mock<IRequest>();
-            request.Setup(c => c.Headers).Returns(new WebHeaderCollection());
-            request.Setup(c => c.GetResponse()).Throws(we);
+            request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
+            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
                 .Returns(request.Object);
         }
 
-        public async Task<CallResult<T>> Request<T>(string method = "GET") where T:class
+        public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T:class
         {
-            return await ExecuteRequest<T>(new Uri("http://www.test.com"), method);
+            return await SendRequest<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
     }
 

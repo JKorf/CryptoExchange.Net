@@ -131,7 +131,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        internal static SecureString ToSecureString(this string source)
+        public static SecureString ToSecureString(this string source)
         {
             var secureString = new SecureString();
             foreach (var c in source)

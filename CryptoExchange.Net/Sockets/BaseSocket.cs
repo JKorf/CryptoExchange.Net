@@ -16,45 +16,111 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Socket implementation
     /// </summary>
-    internal class BaseSocket: IWebsocket
+    public class BaseSocket: IWebsocket
     {
         internal static int lastStreamId;
         private static readonly object streamIdLock = new object();
 
+        /// <summary>
+        /// Socket
+        /// </summary>
         protected WebSocket? socket;
+        /// <summary>
+        /// Log
+        /// </summary>
         protected Log log;
-        protected object socketLock = new object();
+        private readonly object socketLock = new object();
 
+        /// <summary>
+        /// Error handlers
+        /// </summary>
         protected readonly List<Action<Exception>> errorHandlers = new List<Action<Exception>>();
+        /// <summary>
+        /// Open handlers
+        /// </summary>
         protected readonly List<Action> openHandlers = new List<Action>();
+        /// <summary>
+        /// Close handlers
+        /// </summary>
         protected readonly List<Action> closeHandlers = new List<Action>();
+        /// <summary>
+        /// Message handlers
+        /// </summary>
         protected readonly List<Action<string>> messageHandlers = new List<Action<string>>();
 
-        protected IDictionary<string, string> cookies;
-        protected IDictionary<string, string> headers;
-        protected HttpConnectProxy? proxy;
+        private readonly IDictionary<string, string> cookies;
+        private readonly IDictionary<string, string> headers;
+        private HttpConnectProxy? proxy;
 
+        /// <summary>
+        /// Id
+        /// </summary>
         public int Id { get; }
+        /// <summary>
+        /// If is reconnecting
+        /// </summary>
         public bool Reconnecting { get; set; }
+        /// <summary>
+        /// Origin
+        /// </summary>
         public string? Origin { get; set; }
 
+        /// <summary>
+        /// Url
+        /// </summary>
         public string Url { get; }
-        public bool IsClosed => socket?.State == null ? true: socket.State == WebSocketState.Closed;
+        /// <summary>
+        /// Is closed
+        /// </summary>
+        public bool IsClosed => socket?.State == null || socket.State == WebSocketState.Closed;
+        /// <summary>
+        /// Is open
+        /// </summary>
         public bool IsOpen => socket?.State == WebSocketState.Open;
+        /// <summary>
+        /// Protocols
+        /// </summary>
         public SslProtocols SSLProtocols { get; set; } = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+        /// <summary>
+        /// Interpreter for bytes
+        /// </summary>
         public Func<byte[], string>? DataInterpreterBytes { get; set; }
+        /// <summary>
+        /// Interpreter for strings
+        /// </summary>
         public Func<string, string>? DataInterpreterString { get; set; }
 
+        /// <summary>
+        /// Last action time
+        /// </summary>
         public DateTime LastActionTime { get; private set; }
+        /// <summary>
+        /// Timeout
+        /// </summary>
         public TimeSpan Timeout { get; set; }
         private Task? timeoutTask;
 
+        /// <summary>
+        /// Socket state
+        /// </summary>
         public WebSocketState SocketState => socket?.State ?? WebSocketState.None;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="url"></param>
         public BaseSocket(Log log, string url):this(log, url, new Dictionary<string, string>(), new Dictionary<string, string>())
         {
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="log"></param>
+        /// <param name="url"></param>
+        /// <param name="cookies"></param>
+        /// <param name="headers"></param>
         public BaseSocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers)
         {
             Id = NextStreamId();
@@ -94,27 +160,43 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// On close
+        /// </summary>
         public event Action OnClose
         {
             add => closeHandlers.Add(value);
             remove => closeHandlers.Remove(value);
         }
+        /// <summary>
+        /// On message
+        /// </summary>
         public event Action<string> OnMessage
         {
             add => messageHandlers.Add(value);
             remove => messageHandlers.Remove(value);
         }
+        /// <summary>
+        /// On error
+        /// </summary>
         public event Action<Exception> OnError
         {
             add => errorHandlers.Add(value);
             remove => errorHandlers.Remove(value);
         }
+        /// <summary>
+        /// On open
+        /// </summary>
         public event Action OnOpen
         {
             add => openHandlers.Add(value);
             remove => openHandlers.Remove(value);
         }
 
+        /// <summary>
+        /// Handle
+        /// </summary>
+        /// <param name="handlers"></param>
         protected void Handle(List<Action> handlers)
         {
             LastActionTime = DateTime.UtcNow;
@@ -122,6 +204,12 @@ namespace CryptoExchange.Net.Sockets
                 handle?.Invoke();
         }
 
+        /// <summary>
+        /// Handle
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="handlers"></param>
+        /// <param name="data"></param>
         protected void Handle<T>(List<Action<T>> handlers, T data)
         {
             LastActionTime = DateTime.UtcNow;
@@ -129,6 +217,10 @@ namespace CryptoExchange.Net.Sockets
                 handle?.Invoke(data);
         }
 
+        /// <summary>
+        /// Checks if timed out
+        /// </summary>
+        /// <returns></returns>
         protected async Task CheckTimeout()
         {
             while (true)
@@ -150,6 +242,10 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// Close socket
+        /// </summary>
+        /// <returns></returns>
         public virtual async Task Close()
         {
             await Task.Run(() =>
@@ -184,6 +280,9 @@ namespace CryptoExchange.Net.Sockets
             }).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Reset socket
+        /// </summary>
         public virtual void Reset()
         {
             lock (socketLock)
@@ -194,11 +293,19 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// Send data
+        /// </summary>
+        /// <param name="data"></param>
         public virtual void Send(string data)
         {
             socket?.Send(data);
         }
 
+        /// <summary>
+        /// Connect socket
+        /// </summary>
+        /// <returns></returns>
         public virtual Task<bool> Connect()
         {
             if (socket == null)
@@ -259,7 +366,9 @@ namespace CryptoExchange.Net.Sockets
                             timeoutTask = Task.Run(CheckTimeout);
                     }
                     else
+                    {
                         log?.Write(LogVerbosity.Debug, $"Socket {Id} connection failed, state: " + socket.State);
+                    }
                 }
 
                 if (socket.State == WebSocketState.Connecting)
@@ -269,6 +378,11 @@ namespace CryptoExchange.Net.Sockets
             });
         }
         
+        /// <summary>
+        /// Set a proxy
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="port"></param>
         public virtual void SetProxy(string host, int port)
         {
             proxy = IPAddress.TryParse(host, out var address)
@@ -276,6 +390,9 @@ namespace CryptoExchange.Net.Sockets
                 : new HttpConnectProxy(new DnsEndPoint(host, port));
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             lock (socketLock)

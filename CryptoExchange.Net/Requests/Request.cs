@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,7 +12,7 @@ namespace CryptoExchange.Net.Requests
     /// <summary>
     /// Request object
     /// </summary>
-    internal class Request : IRequest
+    public class Request : IRequest
     {
         private readonly HttpRequestMessage request;
         private readonly HttpClient httpClient;
@@ -26,10 +27,7 @@ namespace CryptoExchange.Net.Requests
             httpClient = client;
             this.request = request;
         }
-
-        /// <inheritdoc />
-        public HttpRequestHeaders Headers => request.Headers;
-
+        
         /// <inheritdoc />
         public string? Content { get; private set; }
 
@@ -54,6 +52,12 @@ namespace CryptoExchange.Net.Requests
         {
             Content = data;
             request.Content = new StringContent(data, Encoding.UTF8, contentType);
+        }
+
+        /// <inheritdoc />
+        public void AddHeader(string key, string value)
+        {
+            request.Headers.Add(key, value);
         }
 
         /// <inheritdoc />

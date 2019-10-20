@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -20,10 +21,6 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         string? Content { get; }
         /// <summary>
-        /// Headers
-        /// </summary>
-        HttpRequestHeaders Headers { get; }
-        /// <summary>
         /// Method
         /// </summary>
         HttpMethod Method { get; set; }
@@ -42,6 +39,13 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="data"></param>
         /// <param name="contentType"></param>
         void SetContent(string data, string contentType);
+
+        /// <summary>
+        /// Add a header to the request
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        void AddHeader(string key, string value);
         /// <summary>
         /// Get the response
         /// </summary>

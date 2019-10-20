@@ -33,7 +33,11 @@ namespace CryptoExchange.Net.OrderBook
         private OrderBookStatus status;
         private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
-        private readonly string id;
+
+        /// <summary>
+        /// Order book implementation id
+        /// </summary>
+        public string Id { get; }
         /// <summary>
         /// The log
         /// </summary>
@@ -54,7 +58,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 var old = status;
                 status = value;
-                log.Write(LogVerbosity.Info, $"{id} order book {Symbol} status changed: {old} => {value}");
+                log.Write(LogVerbosity.Info, $"{Id} order book {Symbol} status changed: {old} => {value}");
                 OnStatusChange?.Invoke(old, status);
             }
         }
@@ -146,12 +150,12 @@ namespace CryptoExchange.Net.OrderBook
         protected SymbolOrderBook(string symbol, OrderBookOptions options)
         {
             if (symbol == null)
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
 
             if (options == null)
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException(nameof(options));
 
-            id = options.OrderBookName;
+            Id = options.OrderBookName;
             processBuffer = new List<ProcessBufferEntry>();
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
             Symbol = symbol;
@@ -191,7 +195,7 @@ namespace CryptoExchange.Net.OrderBook
 
         private void Reset()
         {
-            log.Write(LogVerbosity.Warning, $"{id} order book {Symbol} connection lost");
+            log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} connection lost");
             Status = OrderBookStatus.Connecting;
             processBuffer.Clear();
             bookSet = false;
@@ -211,7 +215,7 @@ namespace CryptoExchange.Net.OrderBook
                 success = resyncResult;
             }
 
-            log.Write(LogVerbosity.Info, $"{id} order book {Symbol} successfully resynchronized");
+            log.Write(LogVerbosity.Info, $"{Id} order book {Symbol} successfully resynchronized");
             Status = OrderBookStatus.Synced;
         }
 
@@ -278,7 +282,7 @@ namespace CryptoExchange.Net.OrderBook
                 bookSet = true;
                 LastOrderBookUpdate = DateTime.UtcNow;
                 OnOrderBookUpdate?.Invoke();
-                log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
+                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
 
@@ -304,12 +308,12 @@ namespace CryptoExchange.Net.OrderBook
                         Entries = entries
                     };
                     processBuffer.Add(entry);
-                    log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} update before synced; buffering");
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update before synced; buffering");
                 }
                 else if (sequencesAreConsecutive && firstSequenceNumber > LastSequenceNumber + 1)
                 {
                     // Out of sync
-                    log.Write(LogVerbosity.Warning, $"{id} order book {Symbol} out of sync, reconnecting");
+                    log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} out of sync, reconnecting");
                     subscription!.Reconnect().Wait();
                 }
                 else
@@ -320,7 +324,7 @@ namespace CryptoExchange.Net.OrderBook
                     CheckProcessBuffer();
                     LastOrderBookUpdate = DateTime.UtcNow;
                     OnOrderBookUpdate?.Invoke();
-                    log.Write(LogVerbosity.Debug, $"{id} order book {Symbol} update: {entries.Count} entries processed");
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update: {entries.Count} entries processed");
                 }
             }
         }

@@ -25,8 +25,7 @@ namespace CryptoExchange.Net.Requests
                 }
             };
 
-            httpClient = new HttpClient(handler);
-            httpClient.Timeout = requestTimeout;
+            httpClient = new HttpClient(handler) {Timeout = requestTimeout};
         }
 
         /// <inheritdoc />
