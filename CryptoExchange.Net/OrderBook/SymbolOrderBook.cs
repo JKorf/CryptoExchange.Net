@@ -77,9 +77,9 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
         /// <summary>
-        /// Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
+        /// Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>    
-        public event Action? OnOrderBookUpdate;
+        public event Action<IEnumerable<ISymbolOrderBookEntry>, IEnumerable<ISymbolOrderBookEntry>>? OnOrderBookUpdate;
         /// <summary>
         /// Timestamp of the last update
         /// </summary>
@@ -268,10 +268,10 @@ namespace CryptoExchange.Net.OrderBook
 
                 asks.Clear();
                 foreach (var ask in askList)
-                    asks.Add(ask.Price, new OrderBookEntry(ask.Price, ask.Quantity));
+                    asks.Add(ask.Price, ask);
                 bids.Clear();
                 foreach (var bid in bidList)
-                    bids.Add(bid.Price, new OrderBookEntry(bid.Price, bid.Quantity));
+                    bids.Add(bid.Price, bid);
 
                 LastSequenceNumber = orderBookSequenceNumber;
 
@@ -281,7 +281,7 @@ namespace CryptoExchange.Net.OrderBook
                 CheckProcessBuffer();
                 bookSet = true;
                 LastOrderBookUpdate = DateTime.UtcNow;
-                OnOrderBookUpdate?.Invoke();
+                OnOrderBookUpdate?.Invoke(bidList, askList);
                 log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
@@ -291,8 +291,9 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         /// <param name="firstSequenceNumber">First sequence number</param>
         /// <param name="lastSequenceNumber">Last sequence number</param>
-        /// <param name="entries">List of entries</param>
-        protected void UpdateOrderBook(long firstSequenceNumber, long lastSequenceNumber, List<ProcessEntry> entries)
+        /// <param name="bids">List of bids</param>
+        /// <param name="asks">List of asks</param>
+        protected void UpdateOrderBook(long firstSequenceNumber, long lastSequenceNumber, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
         {
             lock (bookLock)
             {
@@ -305,7 +306,8 @@ namespace CryptoExchange.Net.OrderBook
                     {
                         FirstSequence = firstSequenceNumber,
                         LastSequence = lastSequenceNumber,
-                        Entries = entries
+                        Asks = asks,
+                        Bids = bids
                     };
                     processBuffer.Add(entry);
                     log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update before synced; buffering");
@@ -318,13 +320,15 @@ namespace CryptoExchange.Net.OrderBook
                 }
                 else
                 {
-                    foreach (var entry in entries)
-                        ProcessUpdate(entry.Type, entry.Entry);
+                    foreach (var entry in asks)
+                        ProcessUpdate(OrderBookEntryType.Ask, entry);
+                    foreach (var entry in bids)
+                        ProcessUpdate(OrderBookEntryType.Bid, entry);
                     LastSequenceNumber = lastSequenceNumber;
                     CheckProcessBuffer();
                     LastOrderBookUpdate = DateTime.UtcNow;
-                    OnOrderBookUpdate?.Invoke();
-                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update: {entries.Count} entries processed");
+                    OnOrderBookUpdate?.Invoke(bids, asks);
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update: {asks.Count()} asks, {bids.Count()} bids processed");
                 }
             }
         }
@@ -345,8 +349,11 @@ namespace CryptoExchange.Net.OrderBook
                 if (bufferEntry.FirstSequence > LastSequenceNumber + 1)
                     break;
 
-                foreach (var entry in bufferEntry.Entries)
-                    ProcessUpdate(entry.Type, entry.Entry);
+                foreach (var entry in bufferEntry.Asks)
+                    ProcessUpdate(OrderBookEntryType.Ask, entry);
+                foreach (var entry in bufferEntry.Bids)
+                    ProcessUpdate(OrderBookEntryType.Bid, entry);
+
                 processBuffer.Remove(bufferEntry);
                 LastSequenceNumber = bufferEntry.LastSequence;
             }
@@ -373,7 +380,7 @@ namespace CryptoExchange.Net.OrderBook
             {
                 if (!listToChange.ContainsKey(entry.Price))
                 {
-                    listToChange.Add(entry.Price, new OrderBookEntry(entry.Price, entry.Quantity));
+                    listToChange.Add(entry.Price, entry);
                     if (type == OrderBookEntryType.Ask) AskCount++;
                     else BidCount++;
                 }

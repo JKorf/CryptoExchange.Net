@@ -538,6 +538,13 @@
             <param name="value">The value of the object</param>
             <param name="argumentName">Name of the parameter</param>
         </member>
+        <member name="M:CryptoExchange.Net.ExtensionMethods.ValidateNotNull``1(System.Collections.Generic.IEnumerable{``0},System.String)">
+            <summary>
+            Validates a list is not null or empty
+            </summary>
+            <param name="value">The value of the object</param>
+            <param name="argumentName">Name of the parameter</param>
+        </member>
         <member name="T:CryptoExchange.Net.Interfaces.IRateLimiter">
             <summary>
             Rate limiter interface
@@ -1637,28 +1644,6 @@
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.ToString">
             <inheritdoc />
         </member>
-        <member name="T:CryptoExchange.Net.OrderBook.OrderBookEntry">
-            <summary>
-            Order book entry
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.OrderBookEntry.Quantity">
-            <summary>
-            Quantity of the entry
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.OrderBookEntry.Price">
-            <summary>
-            Price of the entry
-            </summary>
-        </member>
-        <member name="M:CryptoExchange.Net.OrderBook.OrderBookEntry.#ctor(System.Decimal,System.Decimal)">
-            <summary>
-            ctor
-            </summary>
-            <param name="price"></param>
-            <param name="quantity"></param>
-        </member>
         <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferEntry">
             <summary>
             Buffer entry for order book
@@ -1674,37 +1659,15 @@
             The last sequence number of the entries
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Entries">
+        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Asks">
             <summary>
-            List of entries
+            List of asks
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.ProcessBufferEntry.#ctor">
+        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Bids">
             <summary>
-            ctor
+            List of bids
             </summary>
-        </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ProcessEntry">
-            <summary>
-            Process entry for order book
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessEntry.Entry">
-            <summary>
-            The entry
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessEntry.Type">
-            <summary>
-            The type
-            </summary>
-        </member>
-        <member name="M:CryptoExchange.Net.OrderBook.ProcessEntry.#ctor(CryptoExchange.Net.Objects.OrderBookEntryType,CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry)">
-            <summary>
-            ctor
-            </summary>
-            <param name="type"></param>
-            <param name="entry"></param>
         </member>
         <member name="T:CryptoExchange.Net.OrderBook.SymbolOrderBook">
             <summary>
@@ -1758,7 +1721,7 @@
         </member>
         <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnOrderBookUpdate">
             <summary>
-            Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
+            Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets
             </summary>    
         </member>
         <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.LastOrderBookUpdate">
@@ -1852,13 +1815,14 @@
             <param name="askList">List of asks</param>
             <param name="bidList">List of bids</param>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.UpdateOrderBook(System.Int64,System.Int64,System.Collections.Generic.List{CryptoExchange.Net.OrderBook.ProcessEntry})">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.UpdateOrderBook(System.Int64,System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry})">
             <summary>
             Update the order book with entries
             </summary>
             <param name="firstSequenceNumber">First sequence number</param>
             <param name="lastSequenceNumber">Last sequence number</param>
-            <param name="entries">List of entries</param>
+            <param name="bids">List of bids</param>
+            <param name="asks">List of asks</param>
         </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.CheckProcessBuffer">
             <summary>

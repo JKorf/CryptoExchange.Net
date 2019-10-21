@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>    
-        event Action OnOrderBookUpdate;
+        event Action<IEnumerable<ISymbolOrderBookEntry>, IEnumerable<ISymbolOrderBookEntry>> OnOrderBookUpdate;
         /// <summary>
         /// Timestamp of the last update
         /// </summary>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Interfaces;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.OrderBook
 {
@@ -16,16 +17,12 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         public long LastSequence { get; set; }
         /// <summary>
-        /// List of entries
+        /// List of asks
         /// </summary>
-        public List<ProcessEntry> Entries { get; set; }
-
+        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = new List<ISymbolOrderBookEntry>();
         /// <summary>
-        /// ctor
+        /// List of bids
         /// </summary>
-        public ProcessBufferEntry()
-        {
-            Entries = new List<ProcessEntry>();
-        }
+        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
     }
 }

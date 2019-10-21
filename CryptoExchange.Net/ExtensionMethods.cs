@@ -262,6 +262,17 @@ namespace CryptoExchange.Net
             if (value == null)
                 throw new ArgumentException($"No value provided for parameter {argumentName}");
         }
+
+        /// <summary>
+        /// Validates a list is not null or empty
+        /// </summary>
+        /// <param name="value">The value of the object</param>
+        /// <param name="argumentName">Name of the parameter</param>
+        public static void ValidateNotNull<T>(this IEnumerable<T> value, string argumentName)
+        {
+            if (value == null || !value.Any())
+                throw new ArgumentException($"No values provided for parameter {argumentName}");
+        }
     }
 }
 
