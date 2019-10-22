@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The process buffer, used while syncing
         /// </summary>
-        protected readonly List<ProcessBufferEntry> processBuffer;
+        protected readonly List<object> processBuffer;
         private readonly object bookLock = new object();
         /// <summary>
         /// The ask list
@@ -43,7 +43,10 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         protected Log log;
 
-        private bool bookSet;
+        /// <summary>
+        /// If order book is set
+        /// </summary>
+        protected bool bookSet;
 
         /// <summary>
         /// The status of the order book. Order book is up to date when the status is `Synced`
@@ -78,7 +81,7 @@ namespace CryptoExchange.Net.OrderBook
         public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
         /// <summary>
         /// Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets
-        /// </summary>    
+        /// </summary>
         public event Action<IEnumerable<ISymbolOrderBookEntry>, IEnumerable<ISymbolOrderBookEntry>>? OnOrderBookUpdate;
         /// <summary>
         /// Timestamp of the last update
@@ -156,7 +159,7 @@ namespace CryptoExchange.Net.OrderBook
                 throw new ArgumentNullException(nameof(options));
 
             Id = options.OrderBookName;
-            processBuffer = new List<ProcessBufferEntry>();
+            processBuffer = new List<object>();
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
@@ -259,11 +262,11 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="orderBookSequenceNumber">The last update sequence number</param>
         /// <param name="askList">List of asks</param>
         /// <param name="bidList">List of bids</param>
-        protected void SetInitialOrderBook(long orderBookSequenceNumber, IEnumerable<ISymbolOrderBookEntry> askList, IEnumerable<ISymbolOrderBookEntry> bidList)
+        protected void SetInitialOrderBook(long orderBookSequenceNumber, IEnumerable<ISymbolOrderBookEntry> bidList, IEnumerable<ISymbolOrderBookEntry> askList)
         {
             lock (bookLock)
             {
-                if (Status == OrderBookStatus.Connecting)
+                if (Status == OrderBookStatus.Connecting || Status == OrderBookStatus.Disconnected)
                     return;
 
                 asks.Clear();
@@ -278,59 +281,157 @@ namespace CryptoExchange.Net.OrderBook
                 AskCount = asks.Count;
                 BidCount = asks.Count;
 
-                CheckProcessBuffer();
                 bookSet = true;
                 LastOrderBookUpdate = DateTime.UtcNow;
+                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks. #{orderBookSequenceNumber}");
+                CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke(bidList, askList);
-                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks");
             }
         }
 
         /// <summary>
-        /// Update the order book with entries
+        /// Update the order book using a single id for an update
         /// </summary>
-        /// <param name="firstSequenceNumber">First sequence number</param>
-        /// <param name="lastSequenceNumber">Last sequence number</param>
-        /// <param name="bids">List of bids</param>
-        /// <param name="asks">List of asks</param>
-        protected void UpdateOrderBook(long firstSequenceNumber, long lastSequenceNumber, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        /// <param name="rangeUpdateId"></param>
+        /// <param name="bids"></param>
+        /// <param name="asks"></param>
+        protected void UpdateOrderBook(long rangeUpdateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
         {
             lock (bookLock)
             {
-                if (lastSequenceNumber < LastSequenceNumber)
+                if (Status == OrderBookStatus.Connecting || Status == OrderBookStatus.Disconnected)
                     return;
 
                 if (!bookSet)
                 {
-                    var entry = new ProcessBufferEntry
+                    processBuffer.Add(new ProcessBufferSingleSequenceEntry()
                     {
-                        FirstSequence = firstSequenceNumber,
-                        LastSequence = lastSequenceNumber,
+                        UpdateId = rangeUpdateId,
                         Asks = asks,
                         Bids = bids
-                    };
-                    processBuffer.Add(entry);
-                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update before synced; buffering");
-                }
-                else if (sequencesAreConsecutive && firstSequenceNumber > LastSequenceNumber + 1)
-                {
-                    // Out of sync
-                    log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} out of sync, reconnecting");
-                    subscription!.Reconnect().Wait();
+                    });
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{rangeUpdateId}");
                 }
                 else
                 {
-                    foreach (var entry in asks)
-                        ProcessUpdate(OrderBookEntryType.Ask, entry);
-                    foreach (var entry in bids)
-                        ProcessUpdate(OrderBookEntryType.Bid, entry);
-                    LastSequenceNumber = lastSequenceNumber;
                     CheckProcessBuffer();
-                    LastOrderBookUpdate = DateTime.UtcNow;
+                    ProcessSingleSequenceUpdates(rangeUpdateId, bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
-                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update: {asks.Count()} asks, {bids.Count()} bids processed");
                 }
             }
+        }
+
+        /// <summary>
+        /// Update the order book using a first/last update id
+        /// </summary>
+        /// <param name="firstUpdateId"></param>
+        /// <param name="lastUpdateId"></param>
+        /// <param name="bids"></param>
+        /// <param name="asks"></param>
+        protected void UpdateOrderBook(long firstUpdateId, long lastUpdateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        {
+            lock (bookLock)
+            {
+                if (Status == OrderBookStatus.Connecting || Status == OrderBookStatus.Disconnected)
+                    return;
+
+                if (!bookSet)
+                {
+                    processBuffer.Add(new ProcessBufferRangeSequenceEntry()
+                    {
+                        Asks = asks,
+                        Bids = bids,
+                        FirstUpdateId = firstUpdateId,
+                        LastUpdateId = lastUpdateId
+                    });
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{firstUpdateId}-{lastUpdateId}");
+                }
+                else
+                {
+                    CheckProcessBuffer();
+                    ProcessRangeUpdates(firstUpdateId, lastUpdateId, bids, asks);
+                    OnOrderBookUpdate?.Invoke(bids, asks);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update the order book using sequenced entries
+        /// </summary>
+        /// <param name="bids">List of bids</param>
+        /// <param name="asks">List of asks</param>
+        protected void UpdateOrderBook(IEnumerable<ISymbolOrderSequencedBookEntry> bids, IEnumerable<ISymbolOrderSequencedBookEntry> asks)
+        {
+            lock (bookLock)
+            {
+                if (!bookSet)
+                {
+                    processBuffer.Add(new ProcessBufferEntry
+                    {
+                        Asks = asks,
+                        Bids = bids
+                    });
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{Math.Min(bids.Min(b => b.Sequence), asks.Min(a => a.Sequence))}-{Math.Max(bids.Max(b => b.Sequence), asks.Max(a => a.Sequence))}");
+                }
+                else
+                {
+                    CheckProcessBuffer();
+                    ProcessUpdates(bids, asks);
+                    OnOrderBookUpdate?.Invoke(bids, asks);
+                }
+            }
+        }
+
+        private void ProcessUpdates(IEnumerable<ISymbolOrderSequencedBookEntry> bids, IEnumerable<ISymbolOrderSequencedBookEntry> asks)
+        {
+            var entries = new Dictionary<ISymbolOrderSequencedBookEntry, OrderBookEntryType>();
+            foreach (var entry in asks.OrderBy(a => a.Sequence))
+                entries.Add(entry, OrderBookEntryType.Ask);
+            foreach (var entry in bids.OrderBy(a => a.Sequence))
+                entries.Add(entry, OrderBookEntryType.Bid);
+
+            foreach (var entry in entries.OrderBy(e => e.Key.Sequence))
+            {
+                if(ProcessUpdate(entry.Key.Sequence, entry.Value, entry.Key))
+                    LastSequenceNumber = entry.Key.Sequence;
+                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update #{LastSequenceNumber}");
+            }
+        }
+
+        private void ProcessRangeUpdates(long firstUpdateId, long lastUpdateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        {
+            if (lastUpdateId < LastSequenceNumber)
+            {
+                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update skipped #{firstUpdateId}-{lastUpdateId}");
+                return;
+            }
+
+            foreach (var entry in bids)
+                ProcessUpdate(LastSequenceNumber + 1, OrderBookEntryType.Bid, entry);
+
+            foreach (var entry in asks)
+                ProcessUpdate(LastSequenceNumber + 1, OrderBookEntryType.Ask, entry);
+
+            LastSequenceNumber = lastUpdateId;
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update processed #{firstUpdateId}-{lastUpdateId}");
+        }
+
+        private void ProcessSingleSequenceUpdates(long updateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        {
+            foreach (var entry in bids)
+            {
+                if (!ProcessUpdate(updateId, OrderBookEntryType.Bid, entry))
+                    return;
+            }
+
+            foreach (var entry in asks)
+            {
+                if (!ProcessUpdate(updateId, OrderBookEntryType.Ask, entry))
+                    return;
+            }
+
+            LastSequenceNumber = updateId;
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update processed #{LastSequenceNumber}");
         }
 
         /// <summary>
@@ -338,39 +439,55 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         protected void CheckProcessBuffer()
         {
-            foreach (var bufferEntry in processBuffer.OrderBy(b => b.FirstSequence).ToList())
+            var pbList = processBuffer.ToList();
+            if(pbList.Count > 0)
+                log.Write(LogVerbosity.Debug, "Processing buffered updates");
+
+            foreach (var bufferEntry in pbList)
             {
-                if (bufferEntry.LastSequence < LastSequenceNumber)
-                {
-                    processBuffer.Remove(bufferEntry);
-                    continue;
-                }
-
-                if (bufferEntry.FirstSequence > LastSequenceNumber + 1)
-                    break;
-
-                foreach (var entry in bufferEntry.Asks)
-                    ProcessUpdate(OrderBookEntryType.Ask, entry);
-                foreach (var entry in bufferEntry.Bids)
-                    ProcessUpdate(OrderBookEntryType.Bid, entry);
+                if (bufferEntry is ProcessBufferEntry pbe)
+                    ProcessUpdates(pbe.Bids, pbe.Asks);
+                else if(bufferEntry is ProcessBufferRangeSequenceEntry pbrse)
+                    ProcessRangeUpdates(pbrse.FirstUpdateId, pbrse.LastUpdateId, pbrse.Bids, pbrse.Asks);
+                else if (bufferEntry is ProcessBufferSingleSequenceEntry pbsse)
+                    ProcessSingleSequenceUpdates(pbsse.UpdateId, pbsse.Bids, pbsse.Asks);
 
                 processBuffer.Remove(bufferEntry);
-                LastSequenceNumber = bufferEntry.LastSequence;
             }
         }
 
         /// <summary>
         /// Update order book with an entry
         /// </summary>
+        /// <param name="sequence">Sequence number of the update</param>
         /// <param name="type">Type of entry</param>
         /// <param name="entry">The entry</param>
-        protected virtual void ProcessUpdate(OrderBookEntryType type, ISymbolOrderBookEntry entry)
+        protected virtual bool ProcessUpdate(long sequence, OrderBookEntryType type, ISymbolOrderBookEntry entry)
         {
+            if (Status != OrderBookStatus.Syncing && Status != OrderBookStatus.Synced)
+                return false;
+
+            if (sequence <= LastSequenceNumber)
+            {
+                log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update skipped #{sequence}");
+                return false;
+            }
+
+            if (sequencesAreConsecutive && sequence > LastSequenceNumber + 1)
+            {
+                // Out of sync
+                log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} out of sync (expected { LastSequenceNumber + 1}, was {sequence}), reconnecting");
+                Status = OrderBookStatus.Connecting;
+                subscription?.Reconnect();
+                return false;
+            }
+
+            LastOrderBookUpdate = DateTime.UtcNow;
             var listToChange = type == OrderBookEntryType.Ask ? asks : bids;
             if (entry.Quantity == 0)
             {
                 if (!listToChange.ContainsKey(entry.Price))
-                    return;
+                    return true;
 
                 listToChange.Remove(entry.Price);
                 if (type == OrderBookEntryType.Ask) AskCount--;
@@ -389,6 +506,27 @@ namespace CryptoExchange.Net.OrderBook
                     listToChange[entry.Price].Quantity = entry.Quantity;
                 }
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Wait until the order book has been set
+        /// </summary>
+        /// <param name="timeout">Max wait time</param>
+        /// <returns></returns>
+        protected async Task<CallResult<bool>> WaitForSetOrderBook(int timeout)
+        {
+            var startWait = DateTime.UtcNow;
+            while (!bookSet && Status == OrderBookStatus.Syncing)
+            {
+                if ((DateTime.UtcNow - startWait).TotalMilliseconds > timeout)
+                    return new CallResult<bool>(false, new ServerError("Timeout while waiting for data"));
+
+                await Task.Delay(10).ConfigureAwait(false);
+            }
+
+            return new CallResult<bool>(true, null);
         }
 
         /// <summary>

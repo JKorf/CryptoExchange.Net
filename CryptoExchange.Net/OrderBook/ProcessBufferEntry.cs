@@ -9,13 +9,41 @@ namespace CryptoExchange.Net.OrderBook
     public class ProcessBufferEntry
     {
         /// <summary>
-        /// The first sequence number of the entries
+        /// List of asks
         /// </summary>
-        public long FirstSequence { get; set; }
+        public IEnumerable<ISymbolOrderSequencedBookEntry> Asks { get; set; } = new List<ISymbolOrderSequencedBookEntry>();
         /// <summary>
-        /// The last sequence number of the entries
+        /// List of bids
         /// </summary>
-        public long LastSequence { get; set; }
+        public IEnumerable<ISymbolOrderSequencedBookEntry> Bids { get; set; } = new List<ISymbolOrderSequencedBookEntry>();
+    }
+
+    public class ProcessBufferSingleSequenceEntry
+    {
+        /// <summary>
+        /// First update id
+        /// </summary>
+        public long UpdateId { get; set; }
+        /// <summary>
+        /// List of asks
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = new List<ISymbolOrderBookEntry>();
+        /// <summary>
+        /// List of bids
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
+    }
+
+    public class ProcessBufferRangeSequenceEntry
+    {
+        /// <summary>
+        /// First update id
+        /// </summary>
+        public long FirstUpdateId { get; set; }
+        /// <summary>
+        /// Last update id
+        /// </summary>
+        public long LastUpdateId { get; set; }
         /// <summary>
         /// List of asks
         /// </summary>
