@@ -1669,6 +1669,11 @@
             List of bids
             </summary>
         </member>
+        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry">
+            <summary>
+            Buffer entry with a single update id per update
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.UpdateId">
             <summary>
             First update id
@@ -1682,6 +1687,11 @@
         <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.Bids">
             <summary>
             List of bids
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferRangeSequenceEntry">
+            <summary>
+            Buffer entry with a first and last update id
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferRangeSequenceEntry.FirstUpdateId">

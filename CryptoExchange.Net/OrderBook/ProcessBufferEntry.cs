@@ -18,6 +18,9 @@ namespace CryptoExchange.Net.OrderBook
         public IEnumerable<ISymbolOrderSequencedBookEntry> Bids { get; set; } = new List<ISymbolOrderSequencedBookEntry>();
     }
 
+    /// <summary>
+    /// Buffer entry with a single update id per update
+    /// </summary>
     public class ProcessBufferSingleSequenceEntry
     {
         /// <summary>
@@ -34,6 +37,9 @@ namespace CryptoExchange.Net.OrderBook
         public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
     }
 
+    /// <summary>
+    /// Buffer entry with a first and last update id
+    /// </summary>
     public class ProcessBufferRangeSequenceEntry
     {
         /// <summary>
