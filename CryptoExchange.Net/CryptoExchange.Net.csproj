@@ -10,13 +10,14 @@
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0.0 - * Updated to C# 8.0\n
-	* Added .NetStandard2.1 support\n
-	* Added Nullability support\n
-	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests\n
-	* Added CancellationToken support\n
-	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)\n
-	* Added input validation methods\n
+    <PackageReleaseNotes>3.0.0 - 
+	* Updated to C# 8.0
+	* Added .NetStandard2.1 support
+	* Added Nullability support
+	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests
+	* Added CancellationToken support
+	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)
+	* Added input validation methods
 	* OnOrderBookUpdate event added to `SymbolOrderBook`</PackageReleaseNotes>
     <Nullable>enable</Nullable>
 	<LangVersion>8.0</LangVersion>
