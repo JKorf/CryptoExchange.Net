@@ -1,18 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+  </PropertyGroup>  
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>2.1.8</PackageVersion>
+    <PackageVersion>3.0.0</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>2.1.8 - Added array serialization options for implementations</PackageReleaseNotes>
-    <LangVersion>7.1</LangVersion>
+    <PackageReleaseNotes>3.0.0 - * Updated to C# 8.0\n
+	* Added .NetStandard2.1 support\n
+	* Added Nullability support\n
+	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests\n
+	* Added CancellationToken support\n
+	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)\n
+	* Added input validation methods\n
+	* OnOrderBookUpdate event added to `SymbolOrderBook`</PackageReleaseNotes>
+    <Nullable>enable</Nullable>
+	<LangVersion>8.0</LangVersion>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>

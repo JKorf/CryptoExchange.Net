@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.Logging
         private static readonly object openedFilesLock = new object();
         private static readonly List<string> openedFiles = new List<string>();
 
-        private StreamWriter logWriter;
+        private readonly StreamWriter logWriter;
         private readonly object writeLock;
 
         /// <inheritdoc />
@@ -49,11 +49,8 @@ namespace CryptoExchange.Net.Logging
         /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
-            lock (writeLock)
-            {
-                logWriter.Close();
-                logWriter = null;
-            }
+            lock (writeLock)            
+                logWriter.Close();            
         }
     }
 }

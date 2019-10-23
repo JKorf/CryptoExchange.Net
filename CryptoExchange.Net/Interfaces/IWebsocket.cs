@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Origin
         /// </summary>
-        string Origin { get; set; }
+        string? Origin { get; set; }
         /// <summary>
         /// Reconnecting
         /// </summary>
@@ -42,11 +42,11 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Handler for byte data
         /// </summary>
-        Func<byte[], string> DataInterpreterBytes { get; set; }
+        Func<byte[], string>? DataInterpreterBytes { get; set; }
         /// <summary>
         /// Handler for string data
         /// </summary>
-        Func<string, string> DataInterpreterString { get; set; }
+        Func<string, string>? DataInterpreterString { get; set; }
         /// <summary>
         /// Socket url
         /// </summary>
@@ -63,14 +63,6 @@ namespace CryptoExchange.Net.Interfaces
         /// Is open
         /// </summary>
         bool IsOpen { get; }
-        /// <summary>
-        /// Should ping connecting
-        /// </summary>
-        bool PingConnection { get; set; }
-        /// <summary>
-        /// Interval of pinging
-        /// </summary>
-        TimeSpan PingInterval { get; set; }
         /// <summary>
         /// Supported ssl protocols
         /// </summary>

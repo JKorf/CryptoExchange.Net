@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Interfaces;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.OrderBook
 {
@@ -8,24 +9,54 @@ namespace CryptoExchange.Net.OrderBook
     public class ProcessBufferEntry
     {
         /// <summary>
-        /// The first sequence number of the entries
+        /// List of asks
         /// </summary>
-        public long FirstSequence { get; set; }
+        public IEnumerable<ISymbolOrderSequencedBookEntry> Asks { get; set; } = new List<ISymbolOrderSequencedBookEntry>();
         /// <summary>
-        /// The last sequence number of the entries
+        /// List of bids
         /// </summary>
-        public long LastSequence { get; set; }
-        /// <summary>
-        /// List of entries
-        /// </summary>
-        public List<ProcessEntry> Entries { get; set; }
+        public IEnumerable<ISymbolOrderSequencedBookEntry> Bids { get; set; } = new List<ISymbolOrderSequencedBookEntry>();
+    }
 
+    /// <summary>
+    /// Buffer entry with a single update id per update
+    /// </summary>
+    public class ProcessBufferSingleSequenceEntry
+    {
         /// <summary>
-        /// ctor
+        /// First update id
         /// </summary>
-        public ProcessBufferEntry()
-        {
-            Entries = new List<ProcessEntry>();
-        }
+        public long UpdateId { get; set; }
+        /// <summary>
+        /// List of asks
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = new List<ISymbolOrderBookEntry>();
+        /// <summary>
+        /// List of bids
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
+    }
+
+    /// <summary>
+    /// Buffer entry with a first and last update id
+    /// </summary>
+    public class ProcessBufferRangeSequenceEntry
+    {
+        /// <summary>
+        /// First update id
+        /// </summary>
+        public long FirstUpdateId { get; set; }
+        /// <summary>
+        /// Last update id
+        /// </summary>
+        public long LastUpdateId { get; set; }
+        /// <summary>
+        /// List of asks
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = new List<ISymbolOrderBookEntry>();
+        /// <summary>
+        /// List of bids
+        /// </summary>
+        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
     }
 }

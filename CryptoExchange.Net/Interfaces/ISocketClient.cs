@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
 
 namespace CryptoExchange.Net.Interfaces
@@ -28,6 +29,20 @@ namespace CryptoExchange.Net.Interfaces
         /// The base address of the API
         /// </summary>
         string BaseAddress { get; }
+
+        /// <inheritdoc cref="SocketClientOptions.SocketResponseTimeout"/>
+        TimeSpan ResponseTimeout { get; }
+
+        /// <inheritdoc cref="SocketClientOptions.SocketNoDataTimeout"/>
+        TimeSpan SocketNoDataTimeout { get; }
+
+        /// <summary>
+        /// The max amount of concurrent socket connections
+        /// </summary>
+        int MaxSocketConnections { get; }
+
+        /// <inheritdoc cref="SocketClientOptions.SocketSubscriptionsCombineTarget"/>
+        int SocketCombineTarget { get; }
 
         /// <summary>
         /// Unsubscribe from a stream

@@ -1,8 +1,7 @@
 language: csharp
 mono: none
 solution: CryptoExchange.Net.sln
-dotnet: 2.0.0
-dist: xenial
+dotnet: 3.0
 script:
- - dotnet build CryptoExchange.Net/CryptoExchange.Net.csproj --framework "netstandard2.0"
+ - dotnet build CryptoExchange.Net/CryptoExchange.Net.csproj --framework "netstandard2.1"
  - dotnet test CryptoExchange.Net.UnitTests/CryptoExchange.Net.UnitTests.csproj

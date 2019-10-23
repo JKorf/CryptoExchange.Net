@@ -15,14 +15,21 @@
         public string Message { get; set; }
 
         /// <summary>
+        /// Optional data for the error
+        /// </summary>
+        public object? Data { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="code"></param>
         /// <param name="message"></param>
-        protected Error(int code, string message)
+        /// <param name="data"></param>
+        protected Error(int code, string message, object? data)
         {
             Code = code;
             Message = message;
+            Data = data;
         }
 
         /// <summary>
@@ -31,7 +38,7 @@
         /// <returns></returns>
         public override string ToString()
         {
-            return $"{Code}: {Message}";
+            return $"{Code}: {Message} {Data}";
         }
     }
 
@@ -43,7 +50,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public CantConnectError() : base(1, "Can't connect to the server") { }
+        public CantConnectError() : base(1, "Can't connect to the server", null) { }
     }
 
     /// <summary>
@@ -54,7 +61,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public NoApiCredentialsError() : base(2, "No credentials provided for private endpoint") { }
+        public NoApiCredentialsError() : base(2, "No credentials provided for private endpoint", null) { }
     }
 
     /// <summary>
@@ -66,14 +73,16 @@
         /// ctor
         /// </summary>
         /// <param name="message"></param>
-        public ServerError(string message) : base(3, "Server error: " + message) { }
+        /// <param name="data"></param>
+        public ServerError(string message, object? data = null) : base(3, "Server error: " + message, data) { }
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="code"></param>
         /// <param name="message"></param>
-        public ServerError(int code, string message) : base(code, message)
+        /// <param name="data"></param>
+        public ServerError(int code, string message, object? data = null) : base(code, message, data)
         {
         }
     }
@@ -86,8 +95,8 @@
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        public WebError(string message) : base(4, "Web error: " + message) { }
+        /// <param name="data"></param>
+        public WebError(object? data) : base(4, "Web error", data) { }
     }
 
     /// <summary>
@@ -98,8 +107,8 @@
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        public DeserializeError(string message) : base(5, "Error deserializing data: " + message) { }
+        /// <param name="data">Deserializing data</param>
+        public DeserializeError(object? data) : base(5, "Error deserializing data", data) { }
     }
 
     /// <summary>
@@ -110,8 +119,8 @@
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        public UnknownError(string message) : base(6, "Unknown error occured " + message) { }
+        /// <param name="data">Error data</param>
+        public UnknownError(object? data = null) : base(6, "Unknown error occured", data) { }
     }
 
     /// <summary>
@@ -123,7 +132,7 @@
         /// ctor
         /// </summary>
         /// <param name="message"></param>
-        public ArgumentError(string message) : base(7, "Invalid parameter: " + message) { }
+        public ArgumentError(string message) : base(7, "Invalid parameter: " + message, null) { }
     }
 
     /// <summary>
@@ -135,6 +144,17 @@
         /// ctor
         /// </summary>
         /// <param name="message"></param>
-        public RateLimitError(string message) : base(8, "Rate limit exceeded: " + message) { }
+        public RateLimitError(string message) : base(8, "Rate limit exceeded: " + message, null) { }
+    }
+
+    /// <summary>
+    /// Cancellation requested
+    /// </summary>
+    public class CancellationRequestedError : Error
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public CancellationRequestedError() : base(9, "Cancellation requested", null) { }
     }
 }

@@ -19,15 +19,15 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Connection lost event
         /// </summary>
-        public event Action ConnectionLost;
+        public event Action? ConnectionLost;
         /// <summary>
         /// Connecting restored event
         /// </summary>
-        public event Action<TimeSpan> ConnectionRestored;
+        public event Action<TimeSpan>? ConnectionRestored;
         /// <summary>
         /// Connecting closed event
         /// </summary>
-        public event Action Closed;
+        public event Action? Closed;
 
         /// <summary>
         /// The amount of handlers
@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool PausedActivity { get; set; }
 
-        internal readonly List<SocketSubscription> handlers;
+        private readonly List<SocketSubscription> handlers;
         private readonly object handlersLock = new object();
 
         private bool lostTriggered;
@@ -109,38 +109,7 @@ namespace CryptoExchange.Net.Sockets
                 Connected = true;
             };
         }
-
-        /// <summary>
-        /// Add a handler
-        /// </summary>
-        /// <param name="request">The request object</param>
-        /// <param name="userSubscription">If it is a user subscription or a generic handler</param>
-        /// <param name="dataHandler">The data handler</param>
-        /// <returns></returns>
-        public SocketSubscription AddHandler(object request, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
-        {
-            var handler = new SocketSubscription(null, request, userSubscription, dataHandler);
-            lock (handlersLock)
-                handlers.Add(handler);
-            return handler;
-        }
-
-        /// <summary>
-        /// Add a handler
-        /// </summary>
-        /// <param name="identifier">The identifier of the handler</param>
-        /// <param name="userSubscription">If it is a user subscription or a generic handler</param>
-        /// <param name="dataHandler">The data handler</param>
-        /// <returns></returns>
-        /// <returns></returns>
-        public SocketSubscription AddHandler(string identifier, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
-        {
-            var handler = new SocketSubscription(identifier, null, userSubscription, dataHandler);
-            lock (handlersLock)
-                handlers.Add(handler);
-            return handler;
-        }
-
+        
         private void ProcessMessage(string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} received data: " + data);
@@ -167,9 +136,19 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// Add handler
+        /// </summary>
+        /// <param name="handler"></param>
+        public void AddHandler(SocketSubscription handler)
+        {
+            lock(handlersLock)
+                handlers.Add(handler);
+        }
+
         private bool HandleData(JToken tokenData)
         {
-            SocketSubscription currentSubscription = null;
+            SocketSubscription? currentSubscription = null;
             try
             { 
                 var handled = false;
@@ -181,7 +160,7 @@ namespace CryptoExchange.Net.Sockets
                         currentSubscription = handler;
                         if (handler.Request == null)
                         {
-                            if (socketClient.MessageMatchesHandler(tokenData, handler.Identifier))
+                            if (socketClient.MessageMatchesHandler(tokenData, handler.Identifier!))
                             {
                                 handled = true;
                                 handler.MessageHandler(this, tokenData);
@@ -326,7 +305,7 @@ namespace CryptoExchange.Net.Sockets
             if (Authenticated)
             {
                 var authResult = await socketClient.AuthenticateSocket(this).ConfigureAwait(false);
-                if (!authResult.Success)
+                if (!authResult)
                 {
                     log.Write(LogVerbosity.Info, "Authentication failed on reconnected socket. Disconnecting and reconnecting.");
                     return false;
@@ -343,9 +322,9 @@ namespace CryptoExchange.Net.Sockets
             var taskList = new List<Task>();
             foreach (var handler in handlerList)
             {
-                var task = socketClient.SubscribeAndWait(this, handler.Request, handler).ContinueWith(t =>
+                var task = socketClient.SubscribeAndWait(this, handler.Request!, handler).ContinueWith(t =>
                 {
-                    if (!t.Result.Success)
+                    if (!t.Result)
                         success = false;
                 });
                 taskList.Add(task);
@@ -403,7 +382,7 @@ namespace CryptoExchange.Net.Sockets
     internal class PendingRequest
     {
         public Func<JToken, bool> Handler { get; }
-        public JToken Result { get; private set; }
+        public JToken? Result { get; private set; }
         public ManualResetEvent Event { get; }
         public TimeSpan Timeout { get; }
 
