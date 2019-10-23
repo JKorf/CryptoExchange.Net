@@ -202,7 +202,9 @@ To stop synchronizing an order book use the `Stop` method.
 	* Added CancellationToken support
 	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)
 	* Added input validation methods
+		* Wrong input will now throw exceptions rather than error results
 	* OnOrderBookUpdate event added to `SymbolOrderBook`
+
 
 * Version 2.1.8 - 29 Aug 2019
     * Added array serialization options for implementations
