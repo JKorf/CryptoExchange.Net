@@ -194,6 +194,16 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.0 - 23 Oct 2019
+	* Updated to C# 8.0
+	* Added .NetStandard2.1 support
+	* Added Nullability support
+	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests
+	* Added CancellationToken support
+	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)
+	* Added input validation methods
+	* OnOrderBookUpdate event added to `SymbolOrderBook`
+
 * Version 2.1.8 - 29 Aug 2019
     * Added array serialization options for implementations
 
