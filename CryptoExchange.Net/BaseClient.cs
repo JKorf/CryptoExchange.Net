@@ -209,6 +209,13 @@ namespace CryptoExchange.Net
             try
             {
                 using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
+                if (log.Level == LogVerbosity.Debug)
+                {
+                    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Debug, $"Data received: {data}");
+                    return new CallResult<T>(JsonConvert.DeserializeObject<T>(data), null);
+                }
+                
                 using var jsonReader = new JsonTextReader(reader);
                 return new CallResult<T>(serializer.Deserialize<T>(jsonReader), null);
             }

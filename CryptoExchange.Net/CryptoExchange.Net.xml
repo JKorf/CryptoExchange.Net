@@ -2111,7 +2111,7 @@
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RateLimiters">
             <summary>
-            List of ratelimitters
+            List of rate limiters
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.TotalRequestsMade">
