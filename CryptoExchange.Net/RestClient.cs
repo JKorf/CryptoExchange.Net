@@ -47,13 +47,13 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Timeout for requests
         /// </summary>
-        protected TimeSpan RequestTimeout { get; }
+        public TimeSpan RequestTimeout { get; }
         /// <summary>
         /// Rate limiting behaviour
         /// </summary>
         public RateLimitingBehaviour RateLimitBehaviour { get; }
         /// <summary>
-        /// List of ratelimitters
+        /// List of rate limiters
         /// </summary>
         public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
         /// <summary>

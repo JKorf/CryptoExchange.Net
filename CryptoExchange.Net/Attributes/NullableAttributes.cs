@@ -1,7 +1,7 @@
 ﻿#if !NETSTANDARD2_1
 namespace System.Diagnostics.CodeAnalysis
 {
-    using global::System;
+    using System;
 
     /// <summary>
     ///     Specifies that <see langword="null"/> is allowed as an input even if the

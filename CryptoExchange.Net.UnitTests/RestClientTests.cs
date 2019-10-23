@@ -7,10 +7,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.RateLimiter;
 
@@ -110,7 +107,8 @@ namespace CryptoExchange.Net.UnitTests
             {
                 BaseAddress = "http://test.address.com",
                 RateLimiters = new List<IRateLimiter>{new RateLimiterTotal(1, TimeSpan.FromSeconds(1))},
-                RateLimitingBehaviour = RateLimitingBehaviour.Fail
+                RateLimitingBehaviour = RateLimitingBehaviour.Fail,
+                RequestTimeout = TimeSpan.FromMinutes(1)
             });
 
 
@@ -118,6 +116,7 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(client.BaseAddress == "http://test.address.com");
             Assert.IsTrue(client.RateLimiters.Count() == 1);
             Assert.IsTrue(client.RateLimitBehaviour == RateLimitingBehaviour.Fail);
+            Assert.IsTrue(client.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase]
