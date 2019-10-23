@@ -159,7 +159,7 @@ To unsubscribe use the client.Unsubscribe method and pass the UpdateSubscription
 ````C#
 // Subscribe
 var client = new BinanceSocketClient();
-var subResult = client.SubscribeToDepthStream("BTCUSDT", data => {});
+var subResult = client.SubscribeToOrderBookUpdates("BTCUSDT", data => {});
 
 // Unsubscribe
 client.Unsubscribe(subResult.Data);
@@ -172,6 +172,7 @@ but the implementation is similar for each library:
 ````C#
 var orderBook = new BinanceSymbolOrderBook("BTCUSDT", new BinanceOrderBookOptions(20));
 orderBook.OnStatusChange += (oldStatus, newStatus) => Console.WriteLine($"Book state changed from {oldStatus} to {newStatus}");
+orderBook.OnOrderBookUpdate += (changedBids, changedAsks) => Console.WriteLine("Book updated");
 var startResult = await orderBook.StartAsync();
 if(!startResult.Success)
 {
