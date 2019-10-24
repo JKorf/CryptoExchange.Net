@@ -23,7 +23,7 @@
 	<LangVersion>8.0</LangVersion>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
