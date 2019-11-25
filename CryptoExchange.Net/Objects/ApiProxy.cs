@@ -58,8 +58,8 @@ namespace CryptoExchange.Net.Objects
         /// <param name="password">The proxy password</param>
         public ApiProxy(string host, int port, string? login, SecureString? password)
         {
-            if (string.IsNullOrEmpty(login))
-                throw new ArgumentException("Proxy login not provided");
+            //if (string.IsNullOrEmpty(login))
+            //    throw new ArgumentException("Proxy login not provided");
 
             if (!host.StartsWith("http"))
                 throw new ArgumentException("Proxy host should start with either http:// or https://");
