@@ -181,7 +181,7 @@ namespace CryptoExchange.Net
             }
 
             string? paramString = null;            
-            if (parameters != null && method == HttpMethod.Post)            
+            if (method == HttpMethod.Post)            
                 paramString = " with request body " + request.Content;
 
             log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")}");
