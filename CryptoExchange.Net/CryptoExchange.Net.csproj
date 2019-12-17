@@ -1,27 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-  </PropertyGroup>  
+  </PropertyGroup>
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>3.0.0</PackageVersion>
+    <PackageVersion>3.0.2</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0.0 - 
-	* Updated to C# 8.0
-	* Added .NetStandard2.1 support
-	* Added Nullability support
-	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests
-	* Added CancellationToken support
-	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)
-	* Added input validation methods
-	* OnOrderBookUpdate event added to `SymbolOrderBook`</PackageReleaseNotes>
+    <PackageReleaseNotes>3.0.2 - Removed invalid check for unauthenticated proxy</PackageReleaseNotes>
     <Nullable>enable</Nullable>
-	<LangVersion>8.0</LangVersion>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <LangVersion>8.0</LangVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <PropertyGroup>
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>

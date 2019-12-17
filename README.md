@@ -194,6 +194,12 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.2 - 10 Dec 2019
+    * Removed invalid check for unauthenticated proxy
+
+* Version 3.0.1 - 14 Nov 2019
+    * Re-enabled debug response logging
+
 * Version 3.0.0 - 23 Oct 2019
 	* Updated to C# 8.0
 	* Added .NetStandard2.1 support
