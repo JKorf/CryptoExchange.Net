@@ -83,7 +83,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// Event when the BestBid or BestAsk changes ie a Pricing Tick
         /// </summary>
-        public event Action<ISymbolOrderBookEntry, ISymbolOrderBookEntry>? OnPriceChanged;
+        public event Action<ISymbolOrderBookEntry, ISymbolOrderBookEntry>? OnBestOffersChanged;
 
         /// <summary>
         /// Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets
@@ -292,14 +292,15 @@ namespace CryptoExchange.Net.OrderBook
                 log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks. #{orderBookSequenceNumber}");
                 CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke(bidList, askList);
-                OnPriceChanged?.Invoke(BestBid, BestAsk);
+                OnBestOffersChanged?.Invoke(BestBid, BestAsk);
             }
         }
 
-        private bool BestPricingUpdated(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
+        private void CheckBestOffersChanged(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
         {
-            return BestBid.Price != prevBestBid.Price || BestBid.Quantity != prevBestBid.Quantity ||
-                   BestAsk.Price != prevBestAsk.Price || BestAsk.Quantity != prevBestAsk.Quantity;
+            if (BestBid.Price != prevBestBid.Price || BestBid.Quantity != prevBestBid.Quantity ||
+                   BestAsk.Price != prevBestAsk.Price || BestAsk.Quantity != prevBestAsk.Quantity)
+                OnBestOffersChanged?.Invoke(BestBid, BestAsk);
         }
 
         /// <summary>
@@ -332,8 +333,7 @@ namespace CryptoExchange.Net.OrderBook
                     var prevBestAsk = BestAsk;
                     ProcessSingleSequenceUpdates(rangeUpdateId, bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
-                    if (BestPricingUpdated(prevBestBid, prevBestAsk))
-                        OnPriceChanged?.Invoke(BestBid, BestAsk);
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }
@@ -370,8 +370,7 @@ namespace CryptoExchange.Net.OrderBook
                     var prevBestAsk = BestAsk;
                     ProcessRangeUpdates(firstUpdateId, lastUpdateId, bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
-                    if (BestPricingUpdated(prevBestBid, prevBestAsk))
-                        OnPriceChanged?.Invoke(BestBid, BestAsk);
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }
@@ -401,9 +400,7 @@ namespace CryptoExchange.Net.OrderBook
                     var prevBestAsk = BestAsk;
                     ProcessUpdates(bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
-                    if (BestPricingUpdated(prevBestBid, prevBestAsk))
-                        OnPriceChanged?.Invoke(BestBid, BestAsk);
-
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }
