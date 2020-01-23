@@ -106,19 +106,16 @@ namespace CryptoExchange.Net
             catch (JsonReaderException jre)
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
                 return new CallResult<JToken>(null, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
                 return new CallResult<JToken>(null, new DeserializeError(info));
             }
             catch (Exception ex)
             {
                 var info = $"Deserialize Unknown Exception: {ex.Message}. Data: {data}";
-                log.Write(LogVerbosity.Error, info);
                 return new CallResult<JToken>(null, new DeserializeError(info));
             }
         }
@@ -134,7 +131,13 @@ namespace CryptoExchange.Net
         protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer? serializer = null)
         {
             var tokenResult = ValidateJson(data);
-            return !tokenResult ? new CallResult<T>(default, tokenResult.Error) : Deserialize<T>(tokenResult.Data, checkObject, serializer);
+            if (!tokenResult)
+            {
+                log.Write(LogVerbosity.Error, tokenResult.Error!.Message);
+                return new CallResult<T>(default, tokenResult.Error);
+            }
+
+            return Deserialize<T>(tokenResult.Data, checkObject, serializer);
         }
 
         /// <summary>
