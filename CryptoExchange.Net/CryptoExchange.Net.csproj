@@ -5,12 +5,13 @@
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>3.0.2</PackageVersion>
+	<Description>A base package for implementing cryptocurrency exchange API's</Description>
+    <PackageVersion>3.0.4</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0.2 - Removed invalid check for unauthenticated proxy</PackageReleaseNotes>
+    <PackageReleaseNotes>3.0.4 - Removed unnecessary json serialization when sending string data</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

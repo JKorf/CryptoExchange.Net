@@ -194,6 +194,9 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.3 - 23 Jan 2020
+    * Added OnBestOffersChanged event to order book implementations
+
 * Version 3.0.2 - 10 Dec 2019
     * Removed invalid check for unauthenticated proxy
 

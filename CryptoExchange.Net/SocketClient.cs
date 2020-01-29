@@ -552,7 +552,7 @@ namespace CryptoExchange.Net
         {
             log.Write(LogVerbosity.Debug, $"Closing all {sockets.Sum(s => s.Value.HandlerCount)} subscriptions");
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 var tasks = new List<Task>();
                 {
@@ -561,7 +561,7 @@ namespace CryptoExchange.Net
                         tasks.Add(sub.Close());
                 }
 
-                Task.WaitAll(tasks.ToArray());
+                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 

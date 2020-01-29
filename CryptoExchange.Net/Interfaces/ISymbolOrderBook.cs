@@ -33,6 +33,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>    
         event Action<IEnumerable<ISymbolOrderBookEntry>, IEnumerable<ISymbolOrderBookEntry>> OnOrderBookUpdate;
         /// <summary>
+        /// Event when the BestBid or BestAsk changes ie a Pricing Tick
+        /// </summary>
+        event Action<ISymbolOrderBookEntry, ISymbolOrderBookEntry> OnBestOffersChanged;
+        /// <summary>
         /// Timestamp of the last update
         /// </summary>
         DateTime LastOrderBookUpdate { get; }

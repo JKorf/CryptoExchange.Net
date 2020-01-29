@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The status of the order book. Order book is up to date when the status is `Synced`
         /// </summary>
-        public OrderBookStatus Status
+        public OrderBookStatus Status 
         {
             get => status;
             set
@@ -79,6 +79,12 @@ namespace CryptoExchange.Net.OrderBook
         /// Event when the state changes
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
+
+        /// <summary>
+        /// Event when the BestBid or BestAsk changes ie a Pricing Tick
+        /// </summary>
+        public event Action<ISymbolOrderBookEntry, ISymbolOrderBookEntry>? OnBestOffersChanged;
+
         /// <summary>
         /// Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets
         /// </summary>
@@ -112,7 +118,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The list of bids
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Bids
+        public IEnumerable<ISymbolOrderBookEntry> Bids 
         {
             get
             {
@@ -136,7 +142,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The best ask currently in the order book
         /// </summary>
-        public ISymbolOrderBookEntry BestAsk
+        public ISymbolOrderBookEntry BestAsk 
         {
             get
             {
@@ -286,7 +292,15 @@ namespace CryptoExchange.Net.OrderBook
                 log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks. #{orderBookSequenceNumber}");
                 CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke(bidList, askList);
+                OnBestOffersChanged?.Invoke(BestBid, BestAsk);
             }
+        }
+
+        private void CheckBestOffersChanged(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
+        {
+            if (BestBid.Price != prevBestBid.Price || BestBid.Quantity != prevBestBid.Quantity ||
+                   BestAsk.Price != prevBestAsk.Price || BestAsk.Quantity != prevBestAsk.Quantity)
+                OnBestOffersChanged?.Invoke(BestBid, BestAsk);
         }
 
         /// <summary>
@@ -315,8 +329,11 @@ namespace CryptoExchange.Net.OrderBook
                 else
                 {
                     CheckProcessBuffer();
+                    var prevBestBid = BestBid;
+                    var prevBestAsk = BestAsk;
                     ProcessSingleSequenceUpdates(rangeUpdateId, bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }
@@ -349,8 +366,11 @@ namespace CryptoExchange.Net.OrderBook
                 else
                 {
                     CheckProcessBuffer();
+                    var prevBestBid = BestBid;
+                    var prevBestAsk = BestAsk;
                     ProcessRangeUpdates(firstUpdateId, lastUpdateId, bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }
@@ -376,8 +396,11 @@ namespace CryptoExchange.Net.OrderBook
                 else
                 {
                     CheckProcessBuffer();
+                    var prevBestBid = BestBid;
+                    var prevBestAsk = BestAsk;
                     ProcessUpdates(bids, asks);
                     OnOrderBookUpdate?.Invoke(bids, asks);
+                    CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }
         }

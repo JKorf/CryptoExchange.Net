@@ -797,6 +797,11 @@
             Event when order book was updated. Be careful! It can generate a lot of events at high-liquidity markets
             </summary>    
         </member>
+        <member name="E:CryptoExchange.Net.Interfaces.ISymbolOrderBook.OnBestOffersChanged">
+            <summary>
+            Event when the BestBid or BestAsk changes ie a Pricing Tick
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.LastOrderBookUpdate">
             <summary>
             Timestamp of the last update
@@ -1767,6 +1772,11 @@
         <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnStatusChange">
             <summary>
             Event when the state changes
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnBestOffersChanged">
+            <summary>
+            Event when the BestBid or BestAsk changes ie a Pricing Tick
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.OrderBook.SymbolOrderBook.OnOrderBookUpdate">
