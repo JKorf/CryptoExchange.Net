@@ -216,7 +216,10 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="nullValueHandling">How null values should be serialized</param>
         public virtual void Send<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
-            Send(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));
+            if(obj is string str)
+                Send(str);
+            else
+                Send(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));
         }
 
         /// <summary>
