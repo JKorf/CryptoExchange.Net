@@ -22,10 +22,7 @@ namespace CryptoExchange.Net.UnitTests
             {
             }
 
-            public override void Dispose()
-            {
-                throw new NotImplementedException();
-            }
+            public override void Dispose() {}
 
             protected override Task<CallResult<bool>> DoResync()
             {
