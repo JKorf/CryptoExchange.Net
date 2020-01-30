@@ -162,7 +162,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// BestBid/BesAsk returned as a pair
         /// </summary>
-        public (ISymbolOrderBookEntry BestBid, ISymbolOrderBookEntry BestAsk) BestOffers {
+        public (ISymbolOrderBookEntry Bid, ISymbolOrderBookEntry Ask) BestOffers {
             get {
                 lock (bookLock)
                     return (BestBid,BestAsk);
