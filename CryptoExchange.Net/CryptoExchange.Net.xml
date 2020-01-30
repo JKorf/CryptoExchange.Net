@@ -837,6 +837,11 @@
             The best ask currently in the order book
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.BestOffers">
+            <summary>
+            BestBid/BesAsk returned as a pair
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Start">
             <summary>
             Start connecting and synchronizing the order book
