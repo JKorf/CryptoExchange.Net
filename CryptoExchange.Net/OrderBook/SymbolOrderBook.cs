@@ -162,12 +162,10 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// BestBid/BesAsk returned as a pair
         /// </summary>
-        public Tuple<ISymbolOrderBookEntry, ISymbolOrderBookEntry>  BestOffers {
+        public (ISymbolOrderBookEntry BestBid, ISymbolOrderBookEntry BestAsk) BestOffers {
             get {
                 lock (bookLock)
-                {
-                    return new Tuple<ISymbolOrderBookEntry, ISymbolOrderBookEntry>(BestBid,BestAsk);
-                }
+                    return (BestBid,BestAsk);
             }
         }
 

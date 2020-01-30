@@ -58,12 +58,12 @@ namespace CryptoExchange.Net.UnitTests
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
             Assert.IsNotNull(symbolOrderBook.BestOffers);
-            Assert.IsNotNull(symbolOrderBook.BestOffers.Item1);
-            Assert.IsNotNull(symbolOrderBook.BestOffers.Item2);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Item1.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Item1.Quantity);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Item2.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Item2.Quantity);
+            Assert.IsNotNull(symbolOrderBook.BestOffers.BestBid);
+            Assert.IsNotNull(symbolOrderBook.BestOffers.BestAsk);
+            Assert.AreEqual(0m, symbolOrderBook.BestOffers.BestBid.Price);
+            Assert.AreEqual(0m, symbolOrderBook.BestOffers.BestBid.Quantity);
+            Assert.AreEqual(0m, symbolOrderBook.BestOffers.BestAsk.Price);
+            Assert.AreEqual(0m, symbolOrderBook.BestOffers.BestAsk.Quantity);
         }
     }
 }
