@@ -197,6 +197,9 @@ To stop synchronizing an order book use the `Stop` method.
 * Version 3.0.5 - 05 Feb 2020
     * Added PausedActivity events on socket subscriptions
 
+* Version 3.0.4 - 29 Jan 2020
+	* Removed unnecessary json serialization
+
 * Version 3.0.3 - 23 Jan 2020
     * Added OnBestOffersChanged event to order book implementations
 
