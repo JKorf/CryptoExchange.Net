@@ -161,6 +161,11 @@ namespace CryptoExchange.Net
                     semaphoreSlim.Release();
             }
 
+            if (socket.PausedActivity)
+            {
+                log.Write(LogVerbosity.Info, "Socket has been paused, can't subscribe at this moment");
+                return new CallResult<UpdateSubscription>(default, new ServerError("Socket is paused"));
+            }
 
             if (request != null)
             {

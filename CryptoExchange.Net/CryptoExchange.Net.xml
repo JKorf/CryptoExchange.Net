@@ -2689,6 +2689,16 @@
             Connecting restored event
             </summary>
         </member>
+        <member name="E:CryptoExchange.Net.Sockets.SocketConnection.ActivityPaused">
+            <summary>
+            The connection is paused event
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.SocketConnection.ActivityUnpaused">
+            <summary>
+            The connection is unpaused event
+            </summary>
+        </member>
         <member name="E:CryptoExchange.Net.Sockets.SocketConnection.Closed">
             <summary>
             Connecting closed event
@@ -2856,6 +2866,16 @@
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionRestored">
             <summary>
             Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ActivityPaused">
+            <summary>
+            Event when the connection to the server is paused. No operations can be performed while paused
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ActivityUnpaused">
+            <summary>
+            Event when the connection to the server is unpaused
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.Exception">

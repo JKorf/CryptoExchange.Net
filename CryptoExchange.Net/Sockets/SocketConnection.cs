@@ -25,6 +25,14 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<TimeSpan>? ConnectionRestored;
         /// <summary>
+        /// The connection is paused event
+        /// </summary>
+        public event Action? ActivityPaused;
+        /// <summary>
+        /// The connection is unpaused event
+        /// </summary>
+        public event Action? ActivityUnpaused;
+        /// <summary>
         /// Connecting closed event
         /// </summary>
         public event Action? Closed;
@@ -60,11 +68,26 @@ namespace CryptoExchange.Net.Sockets
         /// Time of disconnecting
         /// </summary>
         public DateTime? DisconnectTime { get; set; }
+
         /// <summary>
         /// If activity is paused
         /// </summary>
-        public bool PausedActivity { get; set; }
+        public bool PausedActivity
+        {
+            get => pausedActivity;
+            set
+            {
+                if (pausedActivity != value)
+                {
+                    pausedActivity = value;
+                    log.Write(LogVerbosity.Debug, "Paused activity: " + value);
+                    if(pausedActivity) ActivityPaused?.Invoke();
+                    else ActivityUnpaused?.Invoke();
+                }
+            }
+        }
 
+        private bool pausedActivity;
         private readonly List<SocketSubscription> handlers;
         private readonly object handlersLock = new object();
 
@@ -155,7 +178,7 @@ namespace CryptoExchange.Net.Sockets
                 var sw = Stopwatch.StartNew();
                 lock (handlersLock)
                 {
-                    foreach (var handler in handlers)
+                    foreach (var handler in handlers.ToList())
                     {
                         currentSubscription = handler;
                         if (handler.Request == null)
