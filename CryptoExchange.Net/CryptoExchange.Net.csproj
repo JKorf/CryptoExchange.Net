@@ -1,19 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <PackageVersion>2.1.7</PackageVersion>
+    <Description>A base package for implementing cryptocurrency exchange API's</Description>
+    <PackageVersion>3.0.5</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/JKorf/CryptoExchange.Net/blob/master/LICENSE</PackageLicenseUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>2.1.7 - Fixed bug with socket connection not being disposed after lost connection, Resubscribing after reconnecting socket now in parallel</PackageReleaseNotes>
+    <PackageReleaseNotes>3.0.5 - Added PausedActivity events on socket subscriptions</PackageReleaseNotes>
+    <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>

@@ -30,6 +30,24 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Event when the connection to the server is paused. No operations can be performed while paused
+        /// </summary>
+        public event Action ActivityPaused
+        {
+            add => connection.ActivityPaused += value;
+            remove => connection.ActivityPaused -= value;
+        }
+
+        /// <summary>
+        /// Event when the connection to the server is unpaused
+        /// </summary>
+        public event Action ActivityUnpaused
+        {
+            add => connection.ActivityUnpaused += value;
+            remove => connection.ActivityUnpaused -= value;
+        }
+
+        /// <summary>
         /// Event when an exception happened
         /// </summary>
         public event Action<Exception> Exception

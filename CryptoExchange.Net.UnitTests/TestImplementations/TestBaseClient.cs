@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
@@ -7,7 +8,7 @@ namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base(new RestClientOptions(), null)
+        public TestBaseClient(): base(new RestClientOptions("http://testurl.url"), null)
         {
         }
 
@@ -37,12 +38,12 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, string method, Dictionary<string, object> parameters, bool signed)
+        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
         {
             return base.AddAuthenticationToHeaders(uri, method, parameters, signed);
         }
 
-        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, string method, Dictionary<string, object> parameters, bool signed)
+        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
         {
             return base.AddAuthenticationToParameters(uri, method, parameters, signed);
         }

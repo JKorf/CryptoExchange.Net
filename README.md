@@ -14,29 +14,33 @@ A base library for easy implementation of cryptocurrency API's. Include:
 ## Implementations
 <table>
 <tr>
-<td><a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Bittrex.Net">Bittrex</a>
 </td>
-<td><a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Bitfinex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Bitfinex.Net">Bitfinex</a>
 </td>
-<td><a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Resources/binance-coin.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Binance.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Binance.Net">Binance</a>
 </td>
-<td><a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/CoinEx.Net">CoinEx</a>
 </td>
-<td><a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Huobi.Net">Huobi</a>
 </td>
-<td><a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Kucoin.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Kucoin.Net">Kucoin</a>
+</td>
+<td><a href="https://github.com/JKorf/Kraken.Net"><img src="https://github.com/JKorf/Kraken.Net/blob/master/Kraken.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Kraken.Net">Kraken</a>
 </td>
 </tr>
 </table>
@@ -59,7 +63,6 @@ Planned implementations (no timeline or specific order):
 * BitMEX
 * Bitstamp
 * CoinFalcon
-* Kraken
 * Binance DEX
 
 ## Donations
@@ -127,10 +130,10 @@ Note that when using a file it can provide credentials for multiple exchanges by
 ````
 // File content:
 {
-	"binanceKey": "binanceApiKey",
-	"binanceSecret": "binanceApiSecret",
-	"bittrexKey": "bitrexApiKey",
-	"bittrexSecret": "bittrexApiSecret",
+	"binanceKey": "actualBinanceApiKey",
+	"binanceSecret": "actualBinanceApiSecret",
+	"bittrexKey": "actualBittrexApiKey",
+	"bittrexSecret": "actualBittrexApiSecret",
 }
 
 // Loading:
@@ -142,7 +145,7 @@ using (var stream = File.OpenRead("/path/to/credential-file"))
 	});
 	BittrexClient.SetDefaultOptions(new BittrexClientOptions
 	{
-		ApiCredentials = new ApiCredentials(stream, "BittrexKey", "BittrexSecret")
+		ApiCredentials = new ApiCredentials(stream, "bittrexKey", "bittrexSecret")
 	});
 }
 ````
@@ -156,7 +159,7 @@ To unsubscribe use the client.Unsubscribe method and pass the UpdateSubscription
 ````C#
 // Subscribe
 var client = new BinanceSocketClient();
-var subResult = client.SubscribeToDepthStream("BTCUSDT", data => {});
+var subResult = client.SubscribeToOrderBookUpdates("BTCUSDT", data => {});
 
 // Unsubscribe
 client.Unsubscribe(subResult.Data);
@@ -169,6 +172,7 @@ but the implementation is similar for each library:
 ````C#
 var orderBook = new BinanceSymbolOrderBook("BTCUSDT", new BinanceOrderBookOptions(20));
 orderBook.OnStatusChange += (oldStatus, newStatus) => Console.WriteLine($"Book state changed from {oldStatus} to {newStatus}");
+orderBook.OnOrderBookUpdate += (changedBids, changedAsks) => Console.WriteLine("Book updated");
 var startResult = await orderBook.StartAsync();
 if(!startResult.Success)
 {
@@ -190,6 +194,36 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.5 - 05 Feb 2020
+    * Added PausedActivity events on socket subscriptions
+
+* Version 3.0.4 - 29 Jan 2020
+	* Removed unnecessary json serialization
+
+* Version 3.0.3 - 23 Jan 2020
+    * Added OnBestOffersChanged event to order book implementations
+
+* Version 3.0.2 - 10 Dec 2019
+    * Removed invalid check for unauthenticated proxy
+
+* Version 3.0.1 - 14 Nov 2019
+    * Re-enabled debug response logging
+
+* Version 3.0.0 - 23 Oct 2019
+	* Updated to C# 8.0
+	* Added .NetStandard2.1 support
+	* Added Nullability support
+	* Now using HttpClient instead of WebRequest, should result in faster consequtive requests
+	* Added CancellationToken support
+	* Added bool compare override to CallResult (now possible to `if(callresult)` instead of `if(callresult.Success)`)
+	* Added input validation methods
+		* Wrong input will now throw exceptions rather than error results
+	* OnOrderBookUpdate event added to `SymbolOrderBook`
+
+
+* Version 2.1.8 - 29 Aug 2019
+    * Added array serialization options for implementations
+
 * Version 2.1.7 - 07 Aug 2019
     * Fixed bug with socket connection not being disposed after lost connection
     * Resubscribing after reconnecting socket now in parallel

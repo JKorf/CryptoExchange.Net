@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace CryptoExchange.Net.Objects
@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// An error if the call didn't succeed
         /// </summary>
-        public Error Error { get; internal set; }
+        public Error? Error { get; internal set; }
         /// <summary>
         /// Whether the call was successful
         /// </summary>
@@ -28,10 +28,19 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="data"></param>
         /// <param name="error"></param>
-        public CallResult(T data, Error error)
+        public CallResult([AllowNull]T data, Error? error)
         {
             Data = data;
             Error = error;
+        }
+
+        /// <summary>
+        /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+        /// </summary>
+        /// <param name="obj"></param>
+        public static implicit operator bool(CallResult<T> obj)
+        {
+            return obj?.Success == true;
         }
     }
 
@@ -49,7 +58,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The response headers
         /// </summary>
-        public IEnumerable<Tuple<string, string>> ResponseHeaders { get; set; }
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
 
         /// <summary>
         /// ctor
@@ -58,7 +67,9 @@ namespace CryptoExchange.Net.Objects
         /// <param name="responseHeaders"></param>
         /// <param name="data"></param>
         /// <param name="error"></param>
-        public WebCallResult(HttpStatusCode? code, IEnumerable<Tuple<string, string>> responseHeaders, T data, Error error): base(data, error)
+        public WebCallResult(
+            HttpStatusCode? code, 
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, [AllowNull] T data, Error? error): base(data, error)
         {
             ResponseHeaders = responseHeaders;
             ResponseStatusCode = code;
@@ -71,7 +82,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public static WebCallResult<T> CreateErrorResult(Error error)
         {
-            return new WebCallResult<T>(null, null, default(T), error);
+            return new WebCallResult<T>(null, null, default!, error);
         }
 
         /// <summary>
@@ -81,9 +92,9 @@ namespace CryptoExchange.Net.Objects
         /// <param name="responseHeaders"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<Tuple<string, string>> responseHeaders, Error error)
+        public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error error)
         {
-            return new WebCallResult<T>(code, responseHeaders, default(T), error);
+            return new WebCallResult<T>(code, responseHeaders, default!, error);
         }
     }
 }

@@ -21,8 +21,8 @@ namespace CryptoExchange.Net.Objects
 
             // If one is null and the other isn't, then the
             // one that is null is "lesser".
-            if (x == null && y != null) return -1;
-            if (x != null && y == null) return 1;
+            if (x == null) return -1;
+            if (y == null) return 1;
 
             // Both arrays are non-null.  Find the shorter
             // of the two lengths.

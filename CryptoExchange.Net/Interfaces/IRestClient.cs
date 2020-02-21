@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiter;
 
@@ -52,12 +52,12 @@ namespace CryptoExchange.Net.Interfaces
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        CallResult<long> Ping();
+        CallResult<long> Ping(CancellationToken ct = default);
 
         /// <summary>
         /// Ping to see if the server is reachable
         /// </summary>
         /// <returns>The roundtrip time of the ping request</returns>
-        Task<CallResult<long>> PingAsync();
+        Task<CallResult<long>> PingAsync(CancellationToken ct = default);
     }
 }

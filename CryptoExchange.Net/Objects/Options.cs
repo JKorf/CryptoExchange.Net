@@ -21,13 +21,19 @@ namespace CryptoExchange.Net.Objects
         /// The log writers
         /// </summary>
         public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"LogVerbosity: {LogVerbosity}, Writers: {LogWriters.Count}";
+        }
     }
 
     /// <summary>
     /// Base for order book options
     /// </summary>
-    public class OrderBookOptions: BaseOptions
-    {
+    public class OrderBookOptions : BaseOptions
+    {  
         /// <summary>
         /// The name of the order book implementation
         /// </summary>
@@ -43,38 +49,59 @@ namespace CryptoExchange.Net.Objects
         /// <param name="name">The name of the order book implementation</param>
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
         public OrderBookOptions(string name, bool sequencesAreConsecutive)
-        {
+        {            
             OrderBookName = name;
             SequenceNumbersAreConsecutive = sequencesAreConsecutive;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, OrderBookName: {OrderBookName}, SequenceNumbersAreConsequtive: {SequenceNumbersAreConsecutive}";
         }
     }
 
     /// <summary>
     /// Base client options
     /// </summary>
-    public class ClientOptions: BaseOptions
+    public class ClientOptions : BaseOptions
     {
-
-        /// <summary>
-        /// The api credentials
-        /// </summary>
-        public ApiCredentials ApiCredentials { get; set; }
-
         /// <summary>
         /// The base address of the client
         /// </summary>
         public string BaseAddress { get; set; }
 
         /// <summary>
+        /// The api credentials
+        /// </summary>        
+        public ApiCredentials? ApiCredentials { get; set; }
+
+
+        /// <summary>
         /// Proxy to use
         /// </summary>
-        public ApiProxy Proxy { get; set; }
+        public ApiProxy? Proxy { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public ClientOptions(string baseAddress)
+        {
+            BaseAddress = baseAddress;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-": "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null? "-": Proxy.Host)}";
+        }
     }
 
     /// <summary>
     /// Base for rest client options
     /// </summary>
-    public class RestClientOptions: ClientOptions
+    public class RestClientOptions : ClientOptions
     {
         /// <summary>
         /// List of rate limiters to use
@@ -92,11 +119,19 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public RestClientOptions(string baseAddress): base(baseAddress)
+        {
+        }
+
+        /// <summary>
         /// Create a copy of the options
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Copy<T>() where T:RestClientOptions, new()
+        public T Copy<T>() where T : RestClientOptions, new()
         {
             var copy = new T
             {
@@ -110,16 +145,22 @@ namespace CryptoExchange.Net.Objects
             };
 
             if (ApiCredentials != null)
-                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+                copy.ApiCredentials = ApiCredentials.Copy();
 
             return copy;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, RequestTimeout: {RequestTimeout:c}";
         }
     }
 
     /// <summary>
     /// Base for socket client options
     /// </summary>
-    public class SocketClientOptions: ClientOptions
+    public class SocketClientOptions : ClientOptions
     {
         /// <summary>
         /// Whether or not the socket should automatically reconnect when losing connection
@@ -147,6 +188,14 @@ namespace CryptoExchange.Net.Objects
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress"></param>
+        public SocketClientOptions(string baseAddress) : base(baseAddress)
+        {
+        }
+
+        /// <summary>
         /// Create a copy of the options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -166,9 +215,15 @@ namespace CryptoExchange.Net.Objects
             };
 
             if (ApiCredentials != null)
-                copy.ApiCredentials = new ApiCredentials(ApiCredentials.Key.GetString(), ApiCredentials.Secret.GetString());
+                copy.ApiCredentials = ApiCredentials.Copy();
 
             return copy;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
         }
     }
 }

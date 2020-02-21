@@ -32,10 +32,10 @@ namespace CryptoExchange.Net.RateLimiter
         /// <inheritdoc />
         public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour)
         {
-            if(client.authProvider?.Credentials == null)
+            if(client.authProvider?.Credentials?.Key == null)
                 return new CallResult<double>(0, null);
 
-            string key = client.authProvider.Credentials.Key.GetString();
+            var key = client.authProvider.Credentials.Key.GetString();
 
             int waitTime;
             RateLimitObject rlo;

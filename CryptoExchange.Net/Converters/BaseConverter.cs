@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Converters
     /// Base class for enum converters
     /// </summary>
     /// <typeparam name="T">Type of enum to convert</typeparam>
-    public abstract class BaseConverter<T>: JsonConverter
+    public abstract class BaseConverter<T>: JsonConverter where T: struct
     {
         /// <summary>
         /// The enum->string mapping
@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Converters
         }
 
         /// <inheritdoc />
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
                 return null;
@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.Converters
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
 

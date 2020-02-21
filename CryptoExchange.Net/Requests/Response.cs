@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 
 namespace CryptoExchange.Net.Requests
@@ -9,38 +10,38 @@ namespace CryptoExchange.Net.Requests
     /// <summary>
     /// HttpWebResponse response object
     /// </summary>
-    public class Response : IResponse
+    internal class Response : IResponse
     {
-        private readonly HttpWebResponse response;
+        private readonly HttpResponseMessage response;
 
         /// <inheritdoc />
         public HttpStatusCode StatusCode => response.StatusCode;
 
+        /// <inheritdoc />
+        public bool IsSuccessStatusCode => response.IsSuccessStatusCode;
+
+        /// <inheritdoc />
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders => response.Headers;
+
         /// <summary>
-        /// Create response for http web response
+        /// Create response for a http response message
         /// </summary>
-        /// <param name="response"></param>
-        public Response(HttpWebResponse response)
+        /// <param name="response">The actual response</param>
+        public Response(HttpResponseMessage response)
         {
             this.response = response;
         }
 
         /// <inheritdoc />
-        public Stream GetResponseStream()
+        public async Task<Stream> GetResponseStream()
         {
-            return response.GetResponseStream();
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<Tuple<string, string>> GetResponseHeaders()
-        {
-            return response.Headers.ToIEnumerable();
+            return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public void Close()
         {
-            response.Close();
+            response.Dispose();
         }
     }
 }
