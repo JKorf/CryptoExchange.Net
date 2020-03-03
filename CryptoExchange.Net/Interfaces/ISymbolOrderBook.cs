@@ -71,6 +71,11 @@ namespace CryptoExchange.Net.Interfaces
         ISymbolOrderBookEntry BestAsk { get; }
 
         /// <summary>
+        /// BestBid/BesAsk returned as a pair
+        /// </summary>
+        (ISymbolOrderBookEntry Bid, ISymbolOrderBookEntry Ask) BestOffers { get; }
+
+        /// <summary>
         /// Start connecting and synchronizing the order book
         /// </summary>
         /// <returns></returns>
