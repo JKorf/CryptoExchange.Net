@@ -136,9 +136,16 @@ namespace CryptoExchange.Net.Sockets
         private void ProcessMessage(string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} received data: " + data);
+            if (string.IsNullOrEmpty(data)) return;
+
             var tokenData = data.ToJToken(log);
             if (tokenData == null)
-                return;
+            {
+                data = $"\"{data}\"";
+                tokenData = data.ToJToken(log);
+                if (tokenData == null)
+                    return;
+            }
 
             var handledResponse = false;
             foreach (var pendingRequest in pendingRequests.ToList())
