@@ -215,6 +215,7 @@ namespace CryptoExchange.Net
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Debug, $"Error received: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
