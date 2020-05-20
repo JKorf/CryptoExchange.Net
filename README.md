@@ -194,6 +194,10 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.7 - 20 May 2020
+    * Added error debug output
+    * Fix for unsubscribe causing possible deadlock
+
 * Version 3.0.6 - 03 Mar 2020
     * Added BestOffer to SymbolOrderBook, removed invalid check on proxy
 
