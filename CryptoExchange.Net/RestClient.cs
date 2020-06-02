@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -40,9 +41,19 @@ namespace CryptoExchange.Net
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
+        /// Whether or not we need to manually parse an error instead of relying on the http status code
+        /// </summary>
+        protected bool manualParseError = false;
+
+        /// <summary>
         /// How to serialize array parameters
         /// </summary>
         protected ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
+        /// What request body should be when no data is send
+        /// </summary>
+        protected string requestBodyEmptyContent = "{}";
 
         /// <summary>
         /// Timeout for requests
@@ -205,11 +216,32 @@ namespace CryptoExchange.Net
                 var responseStream = await response.GetResponseStream().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
-                    var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
-                    responseStream.Close();
-                    response.Close();
+                    if (manualParseError)
+                    {
+                        using var reader = new StreamReader(responseStream);
+                        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        responseStream.Close();
+                        response.Close();
+                        log.Write(LogVerbosity.Debug, $"Data received: {data}");
 
-                    return new WebCallResult<T>(statusCode, headers, desResult.Data, desResult.Error);
+                        var parseResult = ValidateJson(data);
+                        if (!parseResult.Success)
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
+                        var error = await TryParseError(parseResult.Data);
+                        if(error != null)
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
+
+                        var deserializeResult = Deserialize<T>(parseResult.Data);
+                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, deserializeResult.Data, deserializeResult.Error);
+                    }
+                    else
+                    {
+                        var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
+                        responseStream.Close();
+                        response.Close();
+
+                        return new WebCallResult<T>(statusCode, headers, desResult.Data, desResult.Error);
+                    }
                 }
                 else
                 {
@@ -242,6 +274,17 @@ namespace CryptoExchange.Net
                     return new WebCallResult<T>(null, null, default, new WebError("Request timed out"));
                 }
             }
+        }
+
+        /// <summary>
+        /// Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
+        /// This can be used together with ManualParseError to check if it is an error before deserializing to an object
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <returns>Null if not an error, Error otherwise</returns>
+        protected virtual Task<ServerError?> TryParseError(JToken data)
+        {
+            return Task.FromResult<ServerError?>(null);
         }
 
         /// <summary>
@@ -280,7 +323,7 @@ namespace CryptoExchange.Net
                 if(parameters?.Any() == true)
                     WriteParamBody(request, parameters, contentType);
                 else
-                    request.SetContent("{}", contentType);
+                    request.SetContent(requestBodyEmptyContent, contentType);
             }
 
             return request;
