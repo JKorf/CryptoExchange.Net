@@ -2122,6 +2122,11 @@
             How to serialize array parameters
             </summary>
         </member>
+        <member name="F:CryptoExchange.Net.RestClient.requestBodyEmptyContent">
+            <summary>
+            What request body should be when no data is send
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.RestClient.RequestTimeout">
             <summary>
             Timeout for requests
@@ -2939,7 +2944,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+    </members>
+</doc>
+System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.
