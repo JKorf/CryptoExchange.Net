@@ -22,7 +22,6 @@ namespace CryptoExchange.Net.OrderBook
         /// The process buffer, used while syncing
         /// </summary>
         protected readonly List<ProcessBufferRangeSequenceEntry> processBuffer;
-        private readonly object bookLock = new object();
         /// <summary>
         /// The ask list
         /// </summary>
@@ -30,8 +29,10 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The bid list
         /// </summary>
-
         protected SortedList<decimal, ISymbolOrderBookEntry> bids;
+
+        private readonly object bookLock = new object();
+
         private OrderBookStatus status;
         private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
