@@ -194,6 +194,10 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.9 - 07 Jun 2020
+	* Added arraySerialization and postParameterPosition to AuthenticationProvider interface
+	* Fixed array serialization in request body
+
 * Version 3.0.8 - 02 Jun 2020
 	* Added requestBodyEmptyContent setting for rest client
 	* Added TryParseError for rest implementations to check for error with success status code
