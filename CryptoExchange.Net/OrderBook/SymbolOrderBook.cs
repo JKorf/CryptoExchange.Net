@@ -218,6 +218,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <returns></returns>
         public async Task<CallResult<bool>> StartAsync()
         {
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} starting");
             Status = OrderBookStatus.Connecting;
             _processTask = Task.Run(ProcessQueue);
 
@@ -271,6 +272,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <returns></returns>
         public async Task StopAsync()
         {
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} stopping");
             Status = OrderBookStatus.Disconnected;
             _queueEvent.Set();
             _processTask.Wait();
