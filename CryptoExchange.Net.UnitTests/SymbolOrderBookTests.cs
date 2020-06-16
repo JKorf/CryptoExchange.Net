@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture]
     public class SymbolOrderBookTests
     {
-        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions("Test", true);
+        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions("Test", true, false);
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
