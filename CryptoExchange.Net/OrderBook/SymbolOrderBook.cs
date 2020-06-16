@@ -22,7 +22,6 @@ namespace CryptoExchange.Net.OrderBook
         /// The process buffer, used while syncing
         /// </summary>
         protected readonly List<ProcessBufferRangeSequenceEntry> processBuffer;
-        private readonly object bookLock = new object();
         /// <summary>
         /// The ask list
         /// </summary>
@@ -30,8 +29,10 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// The bid list
         /// </summary>
-
         protected SortedList<decimal, ISymbolOrderBookEntry> bids;
+
+        private readonly object bookLock = new object();
+
         private OrderBookStatus status;
         private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
@@ -224,6 +225,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <returns></returns>
         public async Task<CallResult<bool>> StartAsync()
         {
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} starting");
             Status = OrderBookStatus.Connecting;
             _processTask = Task.Run(ProcessQueue);
 
@@ -279,6 +281,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <returns></returns>
         public async Task StopAsync()
         {
+            log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} stopping");
             Status = OrderBookStatus.Disconnected;
             _queueEvent.Set();
             _processTask.Wait();

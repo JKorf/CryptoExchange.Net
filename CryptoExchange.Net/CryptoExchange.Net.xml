@@ -97,7 +97,7 @@
             </summary>
             <param name="credentials"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the parameter list
             </summary>
@@ -105,9 +105,11 @@
             <param name="method"></param>
             <param name="parameters"></param>
             <param name="signed"></param>
+            <param name="postParameterPosition"></param>
+            <param name="arraySerialization"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the header dictionary
             </summary>
@@ -115,6 +117,8 @@
             <param name="method"></param>
             <param name="parameters"></param>
             <param name="signed"></param>
+            <param name="postParameterPosition"></param>
+            <param name="arraySerialization"></param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.Sign(System.String)">
@@ -1671,41 +1675,6 @@
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.ToString">
             <inheritdoc />
         </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferEntry">
-            <summary>
-            Buffer entry for order book
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Asks">
-            <summary>
-            List of asks
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Bids">
-            <summary>
-            List of bids
-            </summary>
-        </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry">
-            <summary>
-            Buffer entry with a single update id per update
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.UpdateId">
-            <summary>
-            First update id
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.Asks">
-            <summary>
-            List of asks
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.Bids">
-            <summary>
-            List of bids
-            </summary>
-        </member>
         <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferRangeSequenceEntry">
             <summary>
             Buffer entry with a first and last update id
@@ -2191,7 +2160,7 @@
             </summary>
             <returns>The roundtrip time of the ping request</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean)">
+        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization})">
             <summary>
             Execute a request
             </summary>
@@ -2201,7 +2170,9 @@
             <param name="cancellationToken">Cancellation token</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
-            <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
+            <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
+            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="arraySerialization">How array paramters should be serialized</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.GetResponse``1(CryptoExchange.Net.Interfaces.IRequest,System.Threading.CancellationToken)">
@@ -2220,7 +2191,7 @@
             <param name="data">Received data</param>
             <returns>Null if not an error, Error otherwise</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Creates a request object
             </summary>
@@ -2228,6 +2199,8 @@
             <param name="method">The method of the request</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
+            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="arraySerialization">How array paramters should be serialized</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.WriteParamBody(CryptoExchange.Net.Interfaces.IRequest,System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
