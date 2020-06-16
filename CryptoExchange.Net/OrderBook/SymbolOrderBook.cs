@@ -35,6 +35,7 @@ namespace CryptoExchange.Net.OrderBook
         private OrderBookStatus status;
         private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
+        private readonly bool strictLevels;
 
         private Task _processTask;
         private AutoResetEvent _queueEvent;
@@ -53,6 +54,11 @@ namespace CryptoExchange.Net.OrderBook
         /// If order book is set
         /// </summary>
         protected bool bookSet;
+
+        /// <summary>
+        /// The amount of levels for this book
+        /// </summary>
+        protected int? Levels { get; set; } = null;
 
         /// <summary>
         /// The status of the order book. Order book is up to date when the status is `Synced`
@@ -194,6 +200,7 @@ namespace CryptoExchange.Net.OrderBook
             _queueEvent = new AutoResetEvent(false);
 
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
+            strictLevels = options.StrictLevels;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
 
@@ -236,6 +243,8 @@ namespace CryptoExchange.Net.OrderBook
             log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} connection lost");
             Status = OrderBookStatus.Connecting;
             _queueEvent.Set();
+            // Clear queue
+            while(_processQueue.TryDequeue(out _))
             processBuffer.Clear();
             bookSet = false;
             DoReset();
@@ -328,6 +337,14 @@ namespace CryptoExchange.Net.OrderBook
                     CheckProcessBuffer();
                     var (prevBestBid, prevBestAsk) = BestOffers;
                     ProcessRangeUpdates(item.StartUpdateId, item.EndUpdateId, item.Bids, item.Asks);
+
+                    if (asks.First().Key < bids.First().Key)
+                    {
+                        log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} detected out of sync order book. Resyncing");
+                        _ = subscription?.Reconnect();
+                        return;
+                    }
+
                     OnOrderBookUpdate?.Invoke(item.Bids, item.Asks);
                     CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
@@ -428,6 +445,21 @@ namespace CryptoExchange.Net.OrderBook
 
             foreach (var entry in asks)
                 ProcessUpdate(LastSequenceNumber + 1, OrderBookEntryType.Ask, entry);
+
+            if (Levels.HasValue && strictLevels)
+            {
+                while (this.bids.Count() > Levels.Value)
+                {
+                    BidCount--;
+                    this.bids.Remove(this.bids.Last().Key);
+                }
+
+                while (this.asks.Count() > Levels.Value)
+                {
+                    AskCount--;
+                    this.asks.Remove(this.asks.Last().Key);
+                }
+            }
 
             LastSequenceNumber = lastUpdateId;
             log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update processed #{firstUpdateId}-{lastUpdateId}");
