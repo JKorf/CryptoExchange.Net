@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Requests
             {
                 Proxy = proxy == null ? null : new WebProxy
                 {
-                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                    Address = new Uri($"http://{proxy.Host}:{proxy.Port}/"),
                     Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
                 }
             };
