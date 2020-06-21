@@ -1886,6 +1886,12 @@
             <param name="bids"></param>
             <param name="asks"></param>
         </member>
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.AddChecksum(System.Int32)">
+            <summary>
+            Add a checksum to the process queue
+            </summary>
+            <param name="checksum"></param>
+        </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.UpdateOrderBook(System.Int64,System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry})">
             <summary>
             Update the order book using a first/last update id
