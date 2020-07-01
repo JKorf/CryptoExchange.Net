@@ -97,7 +97,7 @@
             </summary>
             <param name="credentials"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the parameter list
             </summary>
@@ -105,9 +105,11 @@
             <param name="method"></param>
             <param name="parameters"></param>
             <param name="signed"></param>
+            <param name="postParameterPosition"></param>
+            <param name="arraySerialization"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the header dictionary
             </summary>
@@ -115,6 +117,8 @@
             <param name="method"></param>
             <param name="parameters"></param>
             <param name="signed"></param>
+            <param name="postParameterPosition"></param>
+            <param name="arraySerialization"></param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.Sign(System.String)">
@@ -837,6 +841,11 @@
             The best ask currently in the order book
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.BestOffers">
+            <summary>
+            BestBid/BesAsk returned as a pair
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Start">
             <summary>
             Start connecting and synchronizing the order book
@@ -1144,7 +1153,6 @@
             <param name="port">The proxy port</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.ApiProxy.#ctor(System.String,System.Int32,System.String,System.String)">
-            <inheritdoc />
             <summary>
             Create new settings for a proxy
             </summary>
@@ -1154,7 +1162,6 @@
             <param name="password">The proxy password</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.ApiProxy.#ctor(System.String,System.Int32,System.String,System.Security.SecureString)">
-            <inheritdoc />
             <summary>
             Create new settings for a proxy
             </summary>
@@ -1324,6 +1331,11 @@
         <member name="F:CryptoExchange.Net.Objects.OrderBookStatus.Connecting">
             <summary>
             Connecting
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Objects.OrderBookStatus.Reconnecting">
+            <summary>
+            Reconnecting
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.Objects.OrderBookStatus.Syncing">
@@ -1538,11 +1550,20 @@
             Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.#ctor(System.String,System.Boolean)">
+        <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.StrictLevels">
+            <summary>
+            Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
+            when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.#ctor(System.String,System.Boolean,System.Boolean)">
             <summary>
             </summary>
             <param name="name">The name of the order book implementation</param>
             <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
+            <param name="strictLevels">Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
+            when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed</param>
+            <param name="levels">Amount of levels for this order book</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.ToString">
             <inheritdoc />
@@ -1659,41 +1680,6 @@
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.ToString">
             <inheritdoc />
         </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferEntry">
-            <summary>
-            Buffer entry for order book
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Asks">
-            <summary>
-            List of asks
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferEntry.Bids">
-            <summary>
-            List of bids
-            </summary>
-        </member>
-        <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry">
-            <summary>
-            Buffer entry with a single update id per update
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.UpdateId">
-            <summary>
-            First update id
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.Asks">
-            <summary>
-            List of asks
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.OrderBook.ProcessBufferSingleSequenceEntry.Bids">
-            <summary>
-            List of bids
-            </summary>
-        </member>
         <member name="T:CryptoExchange.Net.OrderBook.ProcessBufferRangeSequenceEntry">
             <summary>
             Buffer entry with a first and last update id
@@ -1752,6 +1738,11 @@
         <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.bookSet">
             <summary>
             If order book is set
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.Levels">
+            <summary>
+            The amount of levels for this book
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.Status">
@@ -1819,6 +1810,11 @@
             The best ask currently in the order book
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.BestOffers">
+            <summary>
+            BestBid/BesAsk returned as a pair
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.#ctor(System.String,CryptoExchange.Net.Objects.OrderBookOptions)">
             <summary>
             ctor
@@ -1867,6 +1863,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.DoChecksum(System.Int32)">
+            <summary>
+            Validate a checksum with the current order book
+            </summary>
+            <param name="checksum"></param>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.SetInitialOrderBook(System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry})">
             <summary>
             Set the initial data for the order book
@@ -1882,6 +1885,12 @@
             <param name="rangeUpdateId"></param>
             <param name="bids"></param>
             <param name="asks"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.AddChecksum(System.Int32)">
+            <summary>
+            Add a checksum to the process queue
+            </summary>
+            <param name="checksum"></param>
         </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.UpdateOrderBook(System.Int64,System.Int64,System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry},System.Collections.Generic.IEnumerable{CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry})">
             <summary>
@@ -2104,9 +2113,19 @@
             Request body content type
             </summary>
         </member>
+        <member name="F:CryptoExchange.Net.RestClient.manualParseError">
+            <summary>
+            Whether or not we need to manually parse an error instead of relying on the http status code
+            </summary>
+        </member>
         <member name="F:CryptoExchange.Net.RestClient.arraySerialization">
             <summary>
             How to serialize array parameters
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.RestClient.requestBodyEmptyContent">
+            <summary>
+            What request body should be when no data is send
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RequestTimeout">
@@ -2159,7 +2178,7 @@
             </summary>
             <returns>The roundtrip time of the ping request</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean)">
+        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization})">
             <summary>
             Execute a request
             </summary>
@@ -2169,7 +2188,9 @@
             <param name="cancellationToken">Cancellation token</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
-            <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
+            <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
+            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="arraySerialization">How array paramters should be serialized</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.GetResponse``1(CryptoExchange.Net.Interfaces.IRequest,System.Threading.CancellationToken)">
@@ -2180,7 +2201,15 @@
             <param name="cancellationToken">Cancellation token</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean)">
+        <member name="M:CryptoExchange.Net.RestClient.TryParseError(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
+            This can be used together with ManualParseError to check if it is an error before deserializing to an object
+            </summary>
+            <param name="data">Received data</param>
+            <returns>Null if not an error, Error otherwise</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Creates a request object
             </summary>
@@ -2188,6 +2217,8 @@
             <param name="method">The method of the request</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
+            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="arraySerialization">How array paramters should be serialized</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.WriteParamBody(CryptoExchange.Net.Interfaces.IRequest,System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
@@ -2917,6 +2948,149 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is allowed as an input even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is disallowed as an input even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
+            <summary>
+                Specifies that a method that will never return under any circumstance.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+            <summary>
+                Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
+                parameter is passed the specified value.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
+            <summary>
+                Gets the condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute"/>
+                class with the specified parameter value.
+            </summary>
+            <param name="parameterValue">
+                The condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
+            <summary>
+                Specifies that an output may be <see langword="null"/> even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, 
+                the parameter may be <see langword="null"/> even if the corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                 Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>
+                Specifies that an output is not <see langword="null"/> even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.NotNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
+            <summary>
+                Specifies that the output will be non-<see langword="null"/> if the
+                named parameter is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
+            <summary>
+                Gets the associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
+            <summary>
+                Initializes the attribute with the associated parameter name.
+            </summary>
+            <param name="parameterName">
+                The associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>,
+                the parameter will not be <see langword="null"/> even if the corresponding type allows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </param>
         </member>
     </members>
 </doc>

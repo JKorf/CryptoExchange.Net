@@ -579,7 +579,7 @@ namespace CryptoExchange.Net
             periodicEvent?.Set();
             periodicEvent?.Dispose();
             log.Write(LogVerbosity.Debug, "Disposing socket client, closing all subscriptions");
-            UnsubscribeAll().Wait();
+            Task.Run(UnsubscribeAll).Wait();
             semaphoreSlim?.Dispose();
             base.Dispose();
         }

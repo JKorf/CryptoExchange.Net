@@ -194,6 +194,27 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.11 - 20 Jun 2020
+	* Added support for checksum in SymbolOrderBook
+
+* Version 3.0.10 - 16 Jun 2020
+    * Fix for order book synchronization
+
+* Version 3.0.9 - 07 Jun 2020
+	* Added arraySerialization and postParameterPosition to AuthenticationProvider interface
+	* Fixed array serialization in request body
+
+* Version 3.0.8 - 02 Jun 2020
+	* Added requestBodyEmptyContent setting for rest client
+	* Added TryParseError for rest implementations to check for error with success status code
+
+* Version 3.0.7 - 20 May 2020
+    * Added error debug output
+    * Fix for unsubscribe causing possible deadlock
+
+* Version 3.0.6 - 03 Mar 2020
+    * Added BestOffer to SymbolOrderBook, removed invalid check on proxy
+
 * Version 3.0.5 - 05 Feb 2020
     * Added PausedActivity events on socket subscriptions
 

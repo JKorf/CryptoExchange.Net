@@ -59,6 +59,10 @@
         /// </summary>
         Connecting,
         /// <summary>
+        /// Reconnecting
+        /// </summary>
+        Reconnecting,
+        /// <summary>
         /// Syncing data
         /// </summary>
         Syncing,

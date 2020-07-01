@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -40,9 +41,19 @@ namespace CryptoExchange.Net
         protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
+        /// Whether or not we need to manually parse an error instead of relying on the http status code
+        /// </summary>
+        protected bool manualParseError = false;
+
+        /// <summary>
         /// How to serialize array parameters
         /// </summary>
         protected ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
+        /// What request body should be when no data is send
+        /// </summary>
+        protected string requestBodyEmptyContent = "{}";
 
         /// <summary>
         /// Timeout for requests
@@ -153,11 +164,13 @@ namespace CryptoExchange.Net
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param>
+        /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
+        /// <param name="postPosition">Where the post parameters should be placed</param>
+        /// <param name="arraySerialization">How array paramters should be serialized</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequest<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true) where T : class
+            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null) where T : class
         {
             log.Write(LogVerbosity.Debug, "Creating request for " + uri);
             if (signed && authProvider == null)
@@ -166,7 +179,7 @@ namespace CryptoExchange.Net
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
-            var request = ConstructRequest(uri, method, parameters, signed);
+            var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization);
             foreach (var limiter in RateLimiters)
             {
                 var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
@@ -205,16 +218,38 @@ namespace CryptoExchange.Net
                 var responseStream = await response.GetResponseStream().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
-                    var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
-                    responseStream.Close();
-                    response.Close();
+                    if (manualParseError)
+                    {
+                        using var reader = new StreamReader(responseStream);
+                        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        responseStream.Close();
+                        response.Close();
+                        log.Write(LogVerbosity.Debug, $"Data received: {data}");
 
-                    return new WebCallResult<T>(statusCode, headers, desResult.Data, desResult.Error);
+                        var parseResult = ValidateJson(data);
+                        if (!parseResult.Success)
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
+                        var error = await TryParseError(parseResult.Data);
+                        if(error != null)
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
+
+                        var deserializeResult = Deserialize<T>(parseResult.Data);
+                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, deserializeResult.Data, deserializeResult.Error);
+                    }
+                    else
+                    {
+                        var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
+                        responseStream.Close();
+                        response.Close();
+
+                        return new WebCallResult<T>(statusCode, headers, desResult.Data, desResult.Error);
+                    }
                 }
                 else
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    log.Write(LogVerbosity.Debug, $"Error received: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
@@ -244,23 +279,36 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
+        /// This can be used together with ManualParseError to check if it is an error before deserializing to an object
+        /// </summary>
+        /// <param name="data">Received data</param>
+        /// <returns>Null if not an error, Error otherwise</returns>
+        protected virtual Task<ServerError?> TryParseError(JToken data)
+        {
+            return Task.FromResult<ServerError?>(null);
+        }
+
+        /// <summary>
         /// Creates a request object
         /// </summary>
         /// <param name="uri">The uri to send the request to</param>
         /// <param name="method">The method of the request</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="postPosition">Where the post parameters should be placed</param>
+        /// <param name="arraySerialization">How array paramters should be serialized</param>
         /// <returns></returns>
-        protected virtual IRequest ConstructRequest(Uri uri, HttpMethod method, Dictionary<string, object>? parameters, bool signed)
+        protected virtual IRequest ConstructRequest(Uri uri, HttpMethod method, Dictionary<string, object>? parameters, bool signed, PostParameters postPosition, ArrayParametersSerialization arraySerialization)
         {
             if (parameters == null)
                 parameters = new Dictionary<string, object>();
 
             var uriString = uri.ToString();
             if(authProvider != null)
-                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed);
+                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, postPosition, arraySerialization);
 
-            if((method == HttpMethod.Get || method == HttpMethod.Delete || postParametersPosition == PostParameters.InUri) && parameters?.Any() == true)            
+            if((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)            
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
 
             var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
@@ -269,17 +317,17 @@ namespace CryptoExchange.Net
 
             var headers = new Dictionary<string, string>();
             if (authProvider != null)
-                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed);
+                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, postPosition, arraySerialization);
 
             foreach (var header in headers)
                 request.AddHeader(header.Key, header.Value);
 
-            if ((method == HttpMethod.Post || method == HttpMethod.Put) && postParametersPosition != PostParameters.InUri)
+            if ((method == HttpMethod.Post || method == HttpMethod.Put) && postPosition != PostParameters.InUri)
             {
                 if(parameters?.Any() == true)
                     WriteParamBody(request, parameters, contentType);
                 else
-                    request.SetContent("{}", contentType);
+                    request.SetContent(requestBodyEmptyContent, contentType);
             }
 
             return request;
@@ -302,7 +350,16 @@ namespace CryptoExchange.Net
             {
                 var formData = HttpUtility.ParseQueryString(string.Empty);
                 foreach (var kvp in parameters.OrderBy(p => p.Key))
-                    formData.Add(kvp.Key, kvp.Value.ToString());
+                {
+                    if (kvp.Value.GetType().IsArray)
+                    {
+                        var array = (Array)kvp.Value;
+                        foreach(var value in array)
+                            formData.Add(kvp.Key, value.ToString());
+                    }
+                    else
+                        formData.Add(kvp.Key, kvp.Value.ToString());
+                }
                 var stringData = formData.ToString();
                 request.SetContent(stringData, contentType);
             }

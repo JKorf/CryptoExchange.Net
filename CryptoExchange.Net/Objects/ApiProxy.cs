@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security;
+﻿using System.Security;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -36,7 +35,6 @@ namespace CryptoExchange.Net.Objects
         {
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// Create new settings for a proxy
         /// </summary>
@@ -48,7 +46,6 @@ namespace CryptoExchange.Net.Objects
         {
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// Create new settings for a proxy
         /// </summary>
@@ -58,9 +55,6 @@ namespace CryptoExchange.Net.Objects
         /// <param name="password">The proxy password</param>
         public ApiProxy(string host, int port, string? login, SecureString? password)
         {
-            if (!host.StartsWith("http"))
-                throw new ArgumentException("Proxy host should start with either http:// or https://");
-
             Host = host;
             Port = port;
             Login = login;

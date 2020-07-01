@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Objects;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace CryptoExchange.Net.Authentication
@@ -29,8 +30,11 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="method"></param>
         /// <param name="parameters"></param>
         /// <param name="signed"></param>
+        /// <param name="postParameterPosition"></param>
+        /// <param name="arraySerialization"></param>
         /// <returns></returns>
-        public virtual Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
+        public virtual Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, 
+            PostParameters postParameterPosition, ArrayParametersSerialization arraySerialization)
         {
             return parameters;
         }
@@ -42,8 +46,11 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="method"></param>
         /// <param name="parameters"></param>
         /// <param name="signed"></param>
+        /// <param name="postParameterPosition"></param>
+        /// <param name="arraySerialization"></param>
         /// <returns></returns>
-        public virtual Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
+        public virtual Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, 
+            PostParameters postParameterPosition, ArrayParametersSerialization arraySerialization)
         {
             return new Dictionary<string, string>();
         }

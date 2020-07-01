@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
@@ -38,14 +39,14 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
+        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, PostParameters postParameters, ArrayParametersSerialization arraySerialization)
         {
-            return base.AddAuthenticationToHeaders(uri, method, parameters, signed);
+            return base.AddAuthenticationToHeaders(uri, method, parameters, signed, postParameters, arraySerialization);
         }
 
-        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed)
+        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, PostParameters postParameters, ArrayParametersSerialization arraySerialization)
         {
-            return base.AddAuthenticationToParameters(uri, method, parameters, signed);
+            return base.AddAuthenticationToParameters(uri, method, parameters, signed, postParameters, arraySerialization);
         }
 
         public override string Sign(string toSign)
