@@ -56,6 +56,11 @@ Implementations from third parties
 <br />
 <a href="https://github.com/ridicoulous/LiquidQuoine.Net">Liquid</a>
 </td>
+	</td>
+	<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png"></a>
+<br />
+<a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
+</td>
 </tr>
 </table>
 
