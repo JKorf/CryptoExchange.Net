@@ -56,6 +56,11 @@ Implementations from third parties
 <br />
 <a href="https://github.com/ridicoulous/LiquidQuoine.Net">Liquid</a>
 </td>
+	</td>
+	<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png"></a>
+<br />
+<a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
+</td>
 </tr>
 </table>
 
@@ -194,6 +199,9 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.11 - 20 Jun 2020
+	* Added support for checksum in SymbolOrderBook
+
 * Version 3.0.10 - 16 Jun 2020
     * Fix for order book synchronization
 
