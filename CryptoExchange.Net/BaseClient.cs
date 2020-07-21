@@ -216,7 +216,7 @@ namespace CryptoExchange.Net
                 {
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                     log.Write(LogVerbosity.Debug, $"Data received: {data}");
-                    return new CallResult<T>(JsonConvert.DeserializeObject<T>(data), null);
+                    return Deserialize<T>(data);
                 }
                 
                 using var jsonReader = new JsonTextReader(reader);
