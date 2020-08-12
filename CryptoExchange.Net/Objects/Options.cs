@@ -56,7 +56,6 @@ namespace CryptoExchange.Net.Objects
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
         /// <param name="strictLevels">Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
         /// when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed</param>
-        /// <param name="levels">Amount of levels for this order book</param>
         public OrderBookOptions(string name, bool sequencesAreConsecutive, bool strictLevels)
         {            
             OrderBookName = name;
