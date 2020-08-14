@@ -12,10 +12,11 @@ namespace CryptoExchange.Net.Requests
     public class RequestFactory : IRequestFactory
     {
         private HttpClient? httpClient;
-
+        private bool isTracingEnabled;
         /// <inheritdoc />
-        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy)
+        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy, bool isTracingEnabled = false)
         {
+            this.isTracingEnabled = isTracingEnabled;
             HttpMessageHandler handler = new HttpClientHandler()
             {
                 Proxy = proxy == null ? null : new WebProxy
@@ -25,7 +26,7 @@ namespace CryptoExchange.Net.Requests
                 }
             };
 
-            httpClient = new HttpClient(handler) {Timeout = requestTimeout};
+            httpClient = new HttpClient(handler) { Timeout = requestTimeout };
         }
 
         /// <inheritdoc />
@@ -34,7 +35,7 @@ namespace CryptoExchange.Net.Requests
             if (httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
-            return new Request(new HttpRequestMessage(method, uri), httpClient);
+            return new Request(new HttpRequestMessage(method, uri), httpClient, isTracingEnabled);
         }
     }
 }

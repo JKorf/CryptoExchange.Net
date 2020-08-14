@@ -27,6 +27,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         Uri Uri { get; }
         /// <summary>
+        /// internal request id for tracing
+        /// </summary>
+        string? RequestId { get; }
+        /// <summary>
         /// Set byte content
         /// </summary>
         /// <param name="data"></param>

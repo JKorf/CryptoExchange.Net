@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -21,10 +22,15 @@ namespace CryptoExchange.Net.Requests
         /// </summary>
         /// <param name="request"></param>
         /// <param name="client"></param>
-        public Request(HttpRequestMessage request, HttpClient client)
+        /// <param name="isTracingEnabled">if true, should assign unique id for request</param>
+        public Request(HttpRequestMessage request, HttpClient client, bool isTracingEnabled=false)
         {
             httpClient = client;
             this.request = request;
+            if (isTracingEnabled)
+            {
+                RequestId = Path.GetRandomFileName();
+            }
         }
         
         /// <inheritdoc />
@@ -45,6 +51,8 @@ namespace CryptoExchange.Net.Requests
 
         /// <inheritdoc />
         public Uri Uri => request.RequestUri;
+        /// <inheritdoc />
+        public string? RequestId { get; }
 
         /// <inheritdoc />
         public void SetContent(string data, string contentType)
