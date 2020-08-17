@@ -588,6 +588,11 @@
             Uri
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.IRequest.RequestId">
+            <summary>
+            internal request id for tracing
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRequest.SetContent(System.Byte[])">
             <summary>
             Set byte content
@@ -628,12 +633,13 @@
             <param name="uri"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Boolean)">
             <summary>
             Configure the requests created by this factory
             </summary>
             <param name="requestTimeout">Request timeout to use</param>
             <param name="proxy">Proxy settings to use</param>
+            <param name="isTracingEnabled">Should generate unique id for requests</param>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IResponse">
             <summary>
@@ -2024,12 +2030,13 @@
             Request object
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
+        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient,System.Boolean)">
             <summary>
             Create request object for web request
             </summary>
             <param name="request"></param>
             <param name="client"></param>
+            <param name="isTracingEnabled">if true, should assign unique id for request</param>
         </member>
         <member name="P:CryptoExchange.Net.Requests.Request.Content">
             <inheritdoc />
@@ -2041,6 +2048,9 @@
             <inheritdoc />
         </member>
         <member name="P:CryptoExchange.Net.Requests.Request.Uri">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Requests.Request.RequestId">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.Requests.Request.SetContent(System.String,System.String)">
@@ -2060,7 +2070,7 @@
             WebRequest factory
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
+        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Boolean)">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.Requests.RequestFactory.Create(System.Net.Http.HttpMethod,System.String)">

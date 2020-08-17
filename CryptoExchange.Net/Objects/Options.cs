@@ -126,7 +126,7 @@ namespace CryptoExchange.Net.Objects
         /// The time the server has to respond to a request before timing out
         /// </summary>
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
-
+        public bool IsRequestsTracingEnabled { get; set; } = false;
         /// <summary>
         /// ctor
         /// </summary>

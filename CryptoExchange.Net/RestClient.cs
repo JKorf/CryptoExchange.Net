@@ -83,7 +83,7 @@ namespace CryptoExchange.Net
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
+            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy,exchangeOptions.IsRequestsTracingEnabled);
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -190,14 +190,14 @@ namespace CryptoExchange.Net
                 }
 
                 if (limitResult.Data > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
+                    log.Write(LogVerbosity.Debug, $"Request {request.RequestId} {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
             }
 
             string? paramString = null;            
             if (method == HttpMethod.Post)            
                 paramString = " with request body " + request.Content;
 
-            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")}");
+            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")} {(request.RequestId==null?"":$" with id {request.RequestId}")}");
             return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -224,7 +224,7 @@ namespace CryptoExchange.Net
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
-                        log.Write(LogVerbosity.Debug, $"Data received: {data}");
+                        log.Write(LogVerbosity.Debug, $"Data {(request.RequestId==null?"":$"for request {request.RequestId} ")}received: {data}");
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
@@ -249,7 +249,7 @@ namespace CryptoExchange.Net
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"Error received: {data}");
+                    log.Write(LogVerbosity.Debug, $"Error {(request.RequestId == null ? "" : $"for request {request.RequestId} ")}received: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
@@ -258,7 +258,7 @@ namespace CryptoExchange.Net
             }
             catch (HttpRequestException requestException)
             {
-                log.Write(LogVerbosity.Warning, "Request exception: " + requestException.Message);
+                log.Write(LogVerbosity.Warning, $"Request {request.RequestId} exception: " + requestException.Message);
                 return new WebCallResult<T>(null, null, default, new ServerError(requestException.Message));
             }
             catch (TaskCanceledException canceledException)
@@ -266,14 +266,14 @@ namespace CryptoExchange.Net
                 if(canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token cancelled
-                    log.Write(LogVerbosity.Warning, "Request cancel requested");
+                    log.Write(LogVerbosity.Warning, $"Request {request.RequestId} cancel requested");
                     return new WebCallResult<T>(null, null, default, new CancellationRequestedError());
                 }
                 else
                 {
                     // Request timed out
-                    log.Write(LogVerbosity.Warning, "Request timed out");
-                    return new WebCallResult<T>(null, null, default, new WebError("Request timed out"));
+                    log.Write(LogVerbosity.Warning, $"Request {request.RequestId} timed out");
+                    return new WebCallResult<T>(null, null, default, new WebError($"Request {request.RequestId} timed out"));
                 }
             }
         }

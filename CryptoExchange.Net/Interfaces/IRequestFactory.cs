@@ -22,6 +22,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="requestTimeout">Request timeout to use</param>
         /// <param name="proxy">Proxy settings to use</param>
-        void Configure(TimeSpan requestTimeout, ApiProxy? proxy);
+        /// <param name="isTracingEnabled">Should generate unique id for requests</param>
+        void Configure(TimeSpan requestTimeout, ApiProxy? proxy, bool isTracingEnabled=false);
     }
 }
