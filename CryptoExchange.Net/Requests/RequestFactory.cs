@@ -14,9 +14,8 @@ namespace CryptoExchange.Net.Requests
         private HttpClient? httpClient;
         private bool isTracingEnabled;
         /// <inheritdoc />
-        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy, bool isTracingEnabled = false)
-        {
-            this.isTracingEnabled = isTracingEnabled;
+        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy)
+        {           
             HttpMessageHandler handler = new HttpClientHandler()
             {
                 Proxy = proxy == null ? null : new WebProxy
@@ -35,7 +34,7 @@ namespace CryptoExchange.Net.Requests
             if (httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
-            return new Request(new HttpRequestMessage(method, uri), httpClient, isTracingEnabled);
+            return new Request(new HttpRequestMessage(method, uri), httpClient);
         }
     }
 }

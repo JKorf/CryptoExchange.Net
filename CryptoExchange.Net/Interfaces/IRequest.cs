@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// internal request id for tracing
         /// </summary>
-        string? RequestId { get; }
+        string RequestId { get; }
         /// <summary>
         /// Set byte content
         /// </summary>

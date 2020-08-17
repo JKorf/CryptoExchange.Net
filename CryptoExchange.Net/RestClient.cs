@@ -83,7 +83,7 @@ namespace CryptoExchange.Net
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy,exchangeOptions.IsRequestsTracingEnabled);
+            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -197,7 +197,7 @@ namespace CryptoExchange.Net
             if (method == HttpMethod.Post)            
                 paramString = " with request body " + request.Content;
 
-            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")} {(request.RequestId==null?"":$" with id {request.RequestId}")}");
+            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")} with id {request.RequestId}");
             return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -224,7 +224,7 @@ namespace CryptoExchange.Net
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
-                        log.Write(LogVerbosity.Debug, $"Data {(request.RequestId==null?"":$"for request {request.RequestId} ")}received: {data}");
+                        log.Write(LogVerbosity.Debug, $"Data for request {request.RequestId} received: {data}");
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
@@ -249,7 +249,7 @@ namespace CryptoExchange.Net
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"Error {(request.RequestId == null ? "" : $"for request {request.RequestId} ")}received: {data}");
+                    log.Write(LogVerbosity.Debug, $"Error for request {request.RequestId} received: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);

@@ -21,16 +21,12 @@ namespace CryptoExchange.Net.Requests
         /// Create request object for web request
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="client"></param>
-        /// <param name="isTracingEnabled">if true, should assign unique id for request</param>
-        public Request(HttpRequestMessage request, HttpClient client, bool isTracingEnabled=false)
+        /// <param name="client"></param>        
+        public Request(HttpRequestMessage request, HttpClient client)
         {
             httpClient = client;
             this.request = request;
-            if (isTracingEnabled)
-            {
-                RequestId = Path.GetRandomFileName();
-            }
+            RequestId = Path.GetRandomFileName();
         }
         
         /// <inheritdoc />
@@ -52,7 +48,7 @@ namespace CryptoExchange.Net.Requests
         /// <inheritdoc />
         public Uri Uri => request.RequestUri;
         /// <inheritdoc />
-        public string? RequestId { get; }
+        public  string RequestId { get; }
 
         /// <inheritdoc />
         public void SetContent(string data, string contentType)

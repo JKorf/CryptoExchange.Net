@@ -633,13 +633,12 @@
             <param name="uri"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Boolean)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
             <summary>
             Configure the requests created by this factory
             </summary>
             <param name="requestTimeout">Request timeout to use</param>
-            <param name="proxy">Proxy settings to use</param>
-            <param name="isTracingEnabled">Should generate unique id for requests</param>
+            <param name="proxy">Proxy settings to use</param>       
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IResponse">
             <summary>
@@ -2031,13 +2030,12 @@
             Request object
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient,System.Boolean)">
+        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
             <summary>
             Create request object for web request
             </summary>
             <param name="request"></param>
-            <param name="client"></param>
-            <param name="isTracingEnabled">if true, should assign unique id for request</param>
+            <param name="client"></param>        
         </member>
         <member name="P:CryptoExchange.Net.Requests.Request.Content">
             <inheritdoc />
@@ -2071,7 +2069,7 @@
             WebRequest factory
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Boolean)">
+        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.Requests.RequestFactory.Create(System.Net.Http.HttpMethod,System.String)">
@@ -2959,39 +2957,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is allowed as an input even if the
-                corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is disallowed as an input even if the
-                corresponding type allows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
-            <summary>
-                Specifies that a method that will never return under any circumstance.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+    </members>
+</doc>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ember name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
             <summary>
                 Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
                 parameter is passed the specified value.
