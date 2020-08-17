@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.OrderBook
         private readonly bool sequencesAreConsecutive;
         private readonly bool strictLevels;
 
-        private Task _processTask;
+        private Task? _processTask;
         private AutoResetEvent _queueEvent;
         private ConcurrentQueue<object> _processQueue;
 
@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.OrderBook
             public decimal Price { get { return 0m; } set {; } }
         }
 
-        private static ISymbolOrderBookEntry emptySymbolOrderBookEntry = new EmptySymbolOrderBookEntry();
+        private static readonly ISymbolOrderBookEntry emptySymbolOrderBookEntry = new EmptySymbolOrderBookEntry();
 
         /// <summary>
         /// The best bid currently in the order book
@@ -284,7 +284,7 @@ namespace CryptoExchange.Net.OrderBook
             log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} stopping");
             Status = OrderBookStatus.Disconnected;
             _queueEvent.Set();
-            _processTask.Wait();
+            _processTask?.Wait();
             if(subscription != null)
                 await subscription.Close().ConfigureAwait(false);
         }

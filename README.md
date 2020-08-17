@@ -199,6 +199,9 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.12 - 12 Aug 2020
+    * Named parameters on SymbolOrderBook events
+
 * Version 3.0.11 - 20 Jun 2020
 	* Added support for checksum in SymbolOrderBook
 
