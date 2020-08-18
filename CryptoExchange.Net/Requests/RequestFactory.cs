@@ -11,21 +11,28 @@ namespace CryptoExchange.Net.Requests
     /// </summary>
     public class RequestFactory : IRequestFactory
     {
-        private HttpClient? httpClient;
-        private bool isTracingEnabled;
-        /// <inheritdoc />
-        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy)
-        {           
-            HttpMessageHandler handler = new HttpClientHandler()
-            {
-                Proxy = proxy == null ? null : new WebProxy
-                {
-                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
-                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
-                }
-            };
+        private HttpClient? httpClient;        
 
-            httpClient = new HttpClient(handler) { Timeout = requestTimeout };
+        /// <inheritdoc />
+        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy, HttpClient? client = null)
+        {
+            if (client == null)
+            {
+                HttpMessageHandler handler = new HttpClientHandler()
+                {
+                    Proxy = proxy == null ? null : new WebProxy
+                    {
+                        Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                        Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                    }
+                };
+
+                httpClient = new HttpClient(handler) { Timeout = requestTimeout };
+            }
+            else
+            {
+                httpClient = client;                
+            }
         }
 
         /// <inheritdoc />
