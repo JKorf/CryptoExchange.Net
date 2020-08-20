@@ -84,8 +84,10 @@ namespace CryptoExchange.Net.Objects
         /// The api credentials
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
-
-
+        /// <summary>
+        /// ShoouldCheckObjects
+        /// </summary>
+        public bool ShouldCheckObjects { get; set; } = true;
         /// <summary>
         /// Proxy to use
         /// </summary>

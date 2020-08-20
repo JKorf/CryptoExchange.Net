@@ -36,6 +36,10 @@ namespace CryptoExchange.Net
         /// The auth provider
         /// </summary>
         protected internal AuthenticationProvider? authProvider;
+        /// <summary>
+        /// Should check received objects
+        /// </summary>
+        public bool ShouldCheckObjects { get; set; }
 
         /// <summary>
         /// The last used id
@@ -73,6 +77,7 @@ namespace CryptoExchange.Net
             apiProxy = options.Proxy;
 
             log.Write(LogVerbosity.Debug, $"Client configuration: {options}");
+            ShouldCheckObjects = options.ShouldCheckObjects;
         }
 
         /// <summary>
@@ -128,7 +133,7 @@ namespace CryptoExchange.Net
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer? serializer = null)
+        protected CallResult<T> Deserialize<T>(string data, bool? checkObject = null, JsonSerializer? serializer = null)
         {
             var tokenResult = ValidateJson(data);
             if (!tokenResult)
@@ -148,14 +153,14 @@ namespace CryptoExchange.Net
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer? serializer = null)
+        protected CallResult<T> Deserialize<T>(JToken obj, bool? checkObject = null, JsonSerializer? serializer = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
 
             try
             {
-                if (checkObject && log.Level == LogVerbosity.Debug)
+                if ((checkObject ?? ShouldCheckObjects)&& log.Level == LogVerbosity.Debug)
                 {
                     try
                     {
@@ -256,6 +261,9 @@ namespace CryptoExchange.Net
 
         private void CheckObject(Type type, JObject obj)
         {
+            if (type == null)
+                return;
+
             if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
                 // If type has a custom JsonConverter we assume this will handle property mapping
                 return;
