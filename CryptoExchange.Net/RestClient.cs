@@ -24,13 +24,13 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class RestClient: BaseClient, IRestClient
+    public abstract class RestClient : BaseClient, IRestClient
     {
         /// <summary>
         /// The factory for creating requests. Used for unit testing
         /// </summary>
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
-        
+
         /// <summary>
         /// Where to place post parameters
         /// </summary>
@@ -77,13 +77,13 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeOptions"></param>
         /// <param name="authenticationProvider"></param>
-        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
+            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -134,10 +134,10 @@ namespace CryptoExchange.Net
             {
                 reply = await ping.SendPingAsync(uri.Host).ConfigureAwait(false);
             }
-            catch(PingException e)
+            catch (PingException e)
             {
                 if (e.InnerException == null)
-                    return new CallResult<long>(0, new CantConnectError {Message = "Ping failed: " + e.Message});
+                    return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + e.Message });
 
                 if (e.InnerException is SocketException exception)
                     return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + exception.SocketErrorCode });
@@ -149,7 +149,7 @@ namespace CryptoExchange.Net
                 ping.Dispose();
             }
 
-            if(ct.IsCancellationRequested)
+            if (ct.IsCancellationRequested)
                 return new CallResult<long>(0, new CancellationRequestedError());
 
             return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
@@ -174,7 +174,7 @@ namespace CryptoExchange.Net
         {
             log.Write(LogVerbosity.Debug, "Creating request for " + uri);
             if (signed && authProvider == null)
-            { 
+            {
                 log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
@@ -185,19 +185,19 @@ namespace CryptoExchange.Net
                 var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
                 if (!limitResult.Success)
                 {
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
+                    log.Write(LogVerbosity.Debug, $"Request {request.RequestId} {uri.AbsolutePath} failed because of rate limit");
                     return new WebCallResult<T>(null, null, null, limitResult.Error);
                 }
 
                 if (limitResult.Data > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {request.RequestId} {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
+                    log.Write(LogVerbosity.Debug, $"Request {request.RequestId} {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");
             }
 
-            string? paramString = null;            
-            if (method == HttpMethod.Post)            
+            string? paramString = null;
+            if (method == HttpMethod.Post)
                 paramString = " with request body " + request.Content;
 
-            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")} with id {request.RequestId}");
+            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")} with id {request.RequestId}");
             return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -230,7 +230,7 @@ namespace CryptoExchange.Net
                         if (!parseResult.Success)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
                         var error = await TryParseError(parseResult.Data);
-                        if(error != null)
+                        if (error != null)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
 
                         var deserializeResult = Deserialize<T>(parseResult.Data);
@@ -253,7 +253,7 @@ namespace CryptoExchange.Net
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
-                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) :new ServerError(data));
+                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data));
                 }
             }
             catch (HttpRequestException requestException)
@@ -263,7 +263,7 @@ namespace CryptoExchange.Net
             }
             catch (TaskCanceledException canceledException)
             {
-                if(canceledException.CancellationToken == cancellationToken)
+                if (canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token cancelled
                     log.Write(LogVerbosity.Warning, $"Request {request.RequestId} cancel requested");
@@ -305,10 +305,10 @@ namespace CryptoExchange.Net
                 parameters = new Dictionary<string, object>();
 
             var uriString = uri.ToString();
-            if(authProvider != null)
+            if (authProvider != null)
                 parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, postPosition, arraySerialization);
 
-            if((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)            
+            if ((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
 
             var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
@@ -324,7 +324,7 @@ namespace CryptoExchange.Net
 
             if ((method == HttpMethod.Post || method == HttpMethod.Put) && postPosition != PostParameters.InUri)
             {
-                if(parameters?.Any() == true)
+                if (parameters?.Any() == true)
                     WriteParamBody(request, parameters, contentType);
                 else
                     request.SetContent(requestBodyEmptyContent, contentType);
@@ -346,7 +346,7 @@ namespace CryptoExchange.Net
                 var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
                 request.SetContent(stringData, contentType);
             }
-            else if(requestBodyFormat == RequestBodyFormat.FormData)
+            else if (requestBodyFormat == RequestBodyFormat.FormData)
             {
                 var formData = HttpUtility.ParseQueryString(string.Empty);
                 foreach (var kvp in parameters.OrderBy(p => p.Key))
@@ -354,7 +354,7 @@ namespace CryptoExchange.Net
                     if (kvp.Value.GetType().IsArray)
                     {
                         var array = (Array)kvp.Value;
-                        foreach(var value in array)
+                        foreach (var value in array)
                             formData.Add(kvp.Key, value.ToString());
                     }
                     else
@@ -363,7 +363,7 @@ namespace CryptoExchange.Net
                 var stringData = formData.ToString();
                 request.SetContent(stringData, contentType);
             }
-        }        
+        }
 
         /// <summary>
         /// Parse an error response from the server. Only used when server returns a status other than Success(200)
