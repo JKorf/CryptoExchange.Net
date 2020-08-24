@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.Logging
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + e.Message);
+                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + (e.InnerException?.Message ?? e.Message));
                 }
             }
         }
