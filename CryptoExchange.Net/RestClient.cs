@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -213,7 +214,9 @@ namespace CryptoExchange.Net
             try
             {
                 TotalRequestsMade++;
+                var sw = Stopwatch.StartNew();
                 var response = await request.GetResponse(cancellationToken).ConfigureAwait(false);
+                sw.Stop();
                 var statusCode = response.StatusCode;
                 var headers = response.ResponseHeaders;
                 var responseStream = await response.GetResponseStream().ConfigureAwait(false);
@@ -225,7 +228,7 @@ namespace CryptoExchange.Net
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
-                        log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Data received: {data}");
+                        log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms: {data}");
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
@@ -239,7 +242,7 @@ namespace CryptoExchange.Net
                     }
                     else
                     {
-                        var desResult = await Deserialize<T>(responseStream, null, request.RequestId).ConfigureAwait(false);
+                        var desResult = await Deserialize<T>(responseStream, null, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
 

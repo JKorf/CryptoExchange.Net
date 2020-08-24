@@ -153,6 +153,7 @@ namespace CryptoExchange.Net
         /// <param name="obj">The data to deserialize</param>
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
+        /// <param name="requestId">A request identifier</param>
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(JToken obj, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
         {
@@ -210,8 +211,9 @@ namespace CryptoExchange.Net
         /// <param name="stream">The stream to deserialize</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <param name="requestId">Id of the request</param>
+        /// <param name="elapsedMilliseconds">Milliseconds reponse time</param>
         /// <returns></returns>
-        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null)
+        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
@@ -222,7 +224,7 @@ namespace CryptoExchange.Net
                 if (log.Level == LogVerbosity.Debug)
                 {
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Data received: {data}");
+                    log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: {data}");
                     return Deserialize<T>(data, null, serializer, requestId);
                 }
                 
