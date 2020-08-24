@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Returns(request.Object);
         }
 
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Returns(request.Object);
         }
 
@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Returns(request.Object);
         }
 

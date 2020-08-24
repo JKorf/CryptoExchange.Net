@@ -283,9 +283,10 @@
             <param name="obj">The data to deserialize</param>
             <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
+            <param name="requestId">A request identifier</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32},System.Nullable{System.Int64})">
             <summary>
             Deserialize a stream into an object
             </summary>
@@ -293,6 +294,7 @@
             <param name="stream">The stream to deserialize</param>
             <param name="serializer">A specific serializer to use</param>
             <param name="requestId">Id of the request</param>
+            <param name="elapsedMilliseconds">Milliseconds reponse time</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.NextId">

@@ -199,6 +199,13 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.14 - 24 Aug 2020
+    * Updated exception message logging
+
+* Version 3.0.13 - 24 Aug 2020
+    * Added request tracing id for logging
+    * Added shared HttpClient option
+
 * Version 3.0.12 - 12 Aug 2020
     * Named parameters on SymbolOrderBook events
 

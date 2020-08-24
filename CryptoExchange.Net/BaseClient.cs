@@ -120,7 +120,7 @@ namespace CryptoExchange.Net
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize Unknown Exception: {ex.Message}. Data: {data}";
+                var info = $"Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}. Data: {data}";
                 return new CallResult<JToken>(null, new DeserializeError(info));
             }
         }
@@ -153,6 +153,7 @@ namespace CryptoExchange.Net
         /// <param name="obj">The data to deserialize</param>
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
+        /// <param name="requestId">A request identifier</param>
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(JToken obj, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
         {
@@ -177,7 +178,7 @@ namespace CryptoExchange.Net
                     }
                     catch (Exception e)
                     {
-                        log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Failed to check response data: " + e.Message);
+                        log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Failed to check response data: " + (e.InnerException?.Message ?? e.Message));
                     }
                 }
 
@@ -197,7 +198,7 @@ namespace CryptoExchange.Net
             }
             catch (Exception ex)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {ex.Message}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info));
             }
@@ -210,8 +211,9 @@ namespace CryptoExchange.Net
         /// <param name="stream">The stream to deserialize</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <param name="requestId">Id of the request</param>
+        /// <param name="elapsedMilliseconds">Milliseconds reponse time</param>
         /// <returns></returns>
-        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null)
+        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
@@ -222,7 +224,7 @@ namespace CryptoExchange.Net
                 if (log.Level == LogVerbosity.Debug)
                 {
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Data received: {data}");
+                    log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: {data}");
                     return Deserialize<T>(data, null, serializer, requestId);
                 }
                 
@@ -250,7 +252,7 @@ namespace CryptoExchange.Net
                 if (stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {ex.Message}, data: {data}");
+                log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError(data));
             }
         }
