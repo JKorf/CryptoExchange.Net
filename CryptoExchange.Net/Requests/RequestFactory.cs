@@ -36,12 +36,12 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public IRequest Create(HttpMethod method, string uri)
+        public IRequest Create(HttpMethod method, string uri, int requestId)
         {
             if (httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
-            return new Request(new HttpRequestMessage(method, uri), httpClient);
+            return new Request(new HttpRequestMessage(method, uri), httpClient, requestId);
         }
     }
 }

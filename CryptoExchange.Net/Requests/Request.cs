@@ -22,11 +22,12 @@ namespace CryptoExchange.Net.Requests
         /// </summary>
         /// <param name="request"></param>
         /// <param name="client"></param>        
-        public Request(HttpRequestMessage request, HttpClient client)
+        /// <param name="requestId"></param>        
+        public Request(HttpRequestMessage request, HttpClient client, int requestId)
         {
             httpClient = client;
             this.request = request;
-            RequestId = Path.GetRandomFileName();
+            RequestId = requestId;
         }
         
         /// <inheritdoc />
@@ -48,7 +49,7 @@ namespace CryptoExchange.Net.Requests
         /// <inheritdoc />
         public Uri Uri => request.RequestUri;
         /// <inheritdoc />
-        public  string RequestId { get; }
+        public int RequestId { get; }
 
         /// <inheritdoc />
         public void SetContent(string data, string contentType)

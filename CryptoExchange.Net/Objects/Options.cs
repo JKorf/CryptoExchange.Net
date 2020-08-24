@@ -85,10 +85,12 @@ namespace CryptoExchange.Net.Objects
         /// The api credentials
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
+
         /// <summary>
-        /// ShoouldCheckObjects
+        /// Should check objects for missing properties based on the model and the received JSON
         /// </summary>
         public bool ShouldCheckObjects { get; set; } = true;
+
         /// <summary>
         /// Proxy to use
         /// </summary>
@@ -129,22 +131,24 @@ namespace CryptoExchange.Net.Objects
         /// The time the server has to respond to a request before timing out
         /// </summary>
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
         /// <summary>
-        /// http client
+        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
         /// </summary>
-        public  HttpClient? HttpClient;
+        public HttpClient? HttpClient { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseAddress"></param>
+        /// <param name="baseAddress">The base address of the API</param>
         public RestClientOptions(string baseAddress): base(baseAddress)
         {
         }
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseAddress"></param>
-        /// <param name="httpClient">Shared http client</param>
+        /// <param name="baseAddress">The base address of the API</param>
+        /// <param name="httpClient">Shared http client instance</param>
         public RestClientOptions(HttpClient httpClient, string baseAddress) : base(baseAddress)
         {
             HttpClient = httpClient;
