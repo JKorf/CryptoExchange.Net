@@ -224,6 +224,11 @@
             The auth provider
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.BaseClient.ShouldCheckObjects">
+            <summary>
+            Should check objects for missing properties based on the model and the received JSON
+            </summary>
+        </member>
         <member name="F:CryptoExchange.Net.BaseClient.lastId">
             <summary>
             The last used id
@@ -259,7 +264,7 @@
             <param name="data">The data to parse</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.String,System.Boolean,Newtonsoft.Json.JsonSerializer)">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.String,System.Nullable{System.Boolean},Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
             <summary>
             Deserialize a string into an object
             </summary>
@@ -267,9 +272,10 @@
             <param name="data">The data to deserialize</param>
             <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
+            <param name="requestId">Id of the request</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(Newtonsoft.Json.Linq.JToken,System.Boolean,Newtonsoft.Json.JsonSerializer)">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(Newtonsoft.Json.Linq.JToken,System.Nullable{System.Boolean},Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
             <summary>
             Deserialize a JToken into an object
             </summary>
@@ -279,13 +285,14 @@
             <param name="serializer">A specific serializer to use</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer)">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
             <summary>
             Deserialize a stream into an object
             </summary>
             <typeparam name="T">The type to deserialize into</typeparam>
             <param name="stream">The stream to deserialize</param>
             <param name="serializer">A specific serializer to use</param>
+            <param name="requestId">Id of the request</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.NextId">
@@ -588,6 +595,11 @@
             Uri
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.IRequest.RequestId">
+            <summary>
+            internal request id for tracing
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRequest.SetContent(System.Byte[])">
             <summary>
             Set byte content
@@ -620,20 +632,22 @@
             Request factory interface
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Create(System.Net.Http.HttpMethod,System.String)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Create(System.Net.Http.HttpMethod,System.String,System.Int32)">
             <summary>
             Create a request for an uri
             </summary>
             <param name="method"></param>
             <param name="uri"></param>
+            <param name="requestId"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Net.Http.HttpClient)">
             <summary>
             Configure the requests created by this factory
             </summary>
             <param name="requestTimeout">Request timeout to use</param>
-            <param name="proxy">Proxy settings to use</param>
+            <param name="proxy">Proxy settings to use</param>       
+            <param name="httpClient">Optional shared http client instance</param>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IResponse">
             <summary>
@@ -1582,6 +1596,11 @@
             The api credentials
             </summary>        
         </member>
+        <member name="P:CryptoExchange.Net.Objects.ClientOptions.ShouldCheckObjects">
+            <summary>
+            Should check objects for missing properties based on the model and the received JSON
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Objects.ClientOptions.Proxy">
             <summary>
             Proxy to use
@@ -1616,11 +1635,23 @@
             The time the server has to respond to a request before timing out
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Objects.RestClientOptions.HttpClient">
+            <summary>
+            Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Objects.RestClientOptions.#ctor(System.String)">
             <summary>
             ctor
             </summary>
-            <param name="baseAddress"></param>
+            <param name="baseAddress">The base address of the API</param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.RestClientOptions.#ctor(System.Net.Http.HttpClient,System.String)">
+            <summary>
+            ctor
+            </summary>
+            <param name="baseAddress">The base address of the API</param>
+            <param name="httpClient">Shared http client instance</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.RestClientOptions.Copy``1">
             <summary>
@@ -2024,12 +2055,13 @@
             Request object
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
+        <member name="M:CryptoExchange.Net.Requests.Request.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient,System.Int32)">
             <summary>
             Create request object for web request
             </summary>
             <param name="request"></param>
-            <param name="client"></param>
+            <param name="client"></param>        
+            <param name="requestId"></param>        
         </member>
         <member name="P:CryptoExchange.Net.Requests.Request.Content">
             <inheritdoc />
@@ -2041,6 +2073,9 @@
             <inheritdoc />
         </member>
         <member name="P:CryptoExchange.Net.Requests.Request.Uri">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Requests.Request.RequestId">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.Requests.Request.SetContent(System.String,System.String)">
@@ -2060,10 +2095,10 @@
             WebRequest factory
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy)">
+        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Configure(System.TimeSpan,CryptoExchange.Net.Objects.ApiProxy,System.Net.Http.HttpClient)">
             <inheritdoc />
         </member>
-        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Create(System.Net.Http.HttpMethod,System.String)">
+        <member name="M:CryptoExchange.Net.Requests.RequestFactory.Create(System.Net.Http.HttpMethod,System.String,System.Int32)">
             <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.Requests.Response">
@@ -2189,7 +2224,7 @@
             <param name="signed">Whether or not the request should be authenticated</param>
             <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
             <param name="postPosition">Where the post parameters should be placed</param>
-            <param name="arraySerialization">How array paramters should be serialized</param>
+            <param name="arraySerialization">How array parameters should be serialized</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.GetResponse``1(CryptoExchange.Net.Interfaces.IRequest,System.Threading.CancellationToken)">
@@ -2208,7 +2243,7 @@
             <param name="data">Received data</param>
             <returns>Null if not an error, Error otherwise</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
+        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization,System.Int32)">
             <summary>
             Creates a request object
             </summary>
@@ -2217,7 +2252,8 @@
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
             <param name="postPosition">Where the post parameters should be placed</param>
-            <param name="arraySerialization">How array paramters should be serialized</param>
+            <param name="arraySerialization">How array parameters should be serialized</param>
+            <param name="requestId">Unique id of a request</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.WriteParamBody(CryptoExchange.Net.Interfaces.IRequest,System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">

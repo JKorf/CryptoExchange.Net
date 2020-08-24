@@ -36,6 +36,10 @@ namespace CryptoExchange.Net
         /// The auth provider
         /// </summary>
         protected internal AuthenticationProvider? authProvider;
+        /// <summary>
+        /// Should check objects for missing properties based on the model and the received JSON
+        /// </summary>
+        public bool ShouldCheckObjects { get; set; }
 
         /// <summary>
         /// The last used id
@@ -73,6 +77,7 @@ namespace CryptoExchange.Net
             apiProxy = options.Proxy;
 
             log.Write(LogVerbosity.Debug, $"Client configuration: {options}");
+            ShouldCheckObjects = options.ShouldCheckObjects;
         }
 
         /// <summary>
@@ -127,8 +132,9 @@ namespace CryptoExchange.Net
         /// <param name="data">The data to deserialize</param>
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
+        /// <param name="requestId">Id of the request</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(string data, bool checkObject = true, JsonSerializer? serializer = null)
+        protected CallResult<T> Deserialize<T>(string data, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
         {
             var tokenResult = ValidateJson(data);
             if (!tokenResult)
@@ -137,7 +143,7 @@ namespace CryptoExchange.Net
                 return new CallResult<T>(default, tokenResult.Error);
             }
 
-            return Deserialize<T>(tokenResult.Data, checkObject, serializer);
+            return Deserialize<T>(tokenResult.Data, checkObject, serializer, requestId);
         }
 
         /// <summary>
@@ -148,30 +154,30 @@ namespace CryptoExchange.Net
         /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(JToken obj, bool checkObject = true, JsonSerializer? serializer = null)
+        protected CallResult<T> Deserialize<T>(JToken obj, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
 
             try
             {
-                if (checkObject && log.Level == LogVerbosity.Debug)
+                if ((checkObject ?? ShouldCheckObjects)&& log.Level == LogVerbosity.Debug)
                 {
                     try
                     {
                         if (obj is JObject o)
                         {
-                            CheckObject(typeof(T), o);
+                            CheckObject(typeof(T), o, requestId);
                         }
                         else if (obj is JArray j)
                         {
                             if (j.HasValues && j[0] is JObject jObject)
-                                CheckObject(typeof(T).GetElementType(), jObject);
+                                CheckObject(typeof(T).GetElementType(), jObject, requestId);
                         }
                     }
                     catch (Exception e)
                     {
-                        log.Write(LogVerbosity.Debug, "Failed to check response data: " + e.Message);
+                        log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Failed to check response data: " + e.Message);
                     }
                 }
 
@@ -179,19 +185,19 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info));
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize Unknown Exception: {ex.Message}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {ex.Message}. Received data: {obj}";
                 log.Write(LogVerbosity.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info));
             }
@@ -203,8 +209,9 @@ namespace CryptoExchange.Net
         /// <typeparam name="T">The type to deserialize into</typeparam>
         /// <param name="stream">The stream to deserialize</param>
         /// <param name="serializer">A specific serializer to use</param>
+        /// <param name="requestId">Id of the request</param>
         /// <returns></returns>
-        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null)
+        protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
@@ -215,8 +222,8 @@ namespace CryptoExchange.Net
                 if (log.Level == LogVerbosity.Debug)
                 {
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"Data received: {data}");
-                    return Deserialize<T>(data);
+                    log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Data received: {data}");
+                    return Deserialize<T>(data, null, serializer, requestId);
                 }
                 
                 using var jsonReader = new JsonTextReader(reader);
@@ -227,7 +234,7 @@ namespace CryptoExchange.Net
                 if(stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                log.Write(LogVerbosity.Error, $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
+                log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError(data));
             }
             catch (JsonSerializationException jse)
@@ -235,7 +242,7 @@ namespace CryptoExchange.Net
                 if (stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                log.Write(LogVerbosity.Error, $"Deserialize JsonSerializationException: {jse.Message}, data: {data}");
+                log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError(data));
             }
             catch (Exception ex)
@@ -243,7 +250,7 @@ namespace CryptoExchange.Net
                 if (stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
-                log.Write(LogVerbosity.Error, $"Deserialize Unknown Exception: {ex.Message}, data: {data}");
+                log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {ex.Message}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError(data));
             }
         }
@@ -254,8 +261,11 @@ namespace CryptoExchange.Net
             return await reader.ReadToEndAsync().ConfigureAwait(false);
         }
 
-        private void CheckObject(Type type, JObject obj)
+        private void CheckObject(Type type, JObject obj, int? requestId = null)
         {
+            if (type == null)
+                return;
+
             if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
                 // If type has a custom JsonConverter we assume this will handle property mapping
                 return;
@@ -265,7 +275,7 @@ namespace CryptoExchange.Net
 
             if (!obj.HasValues && type != typeof(object))
             {
-                log.Write(LogVerbosity.Warning, $"Expected `{type.Name}`, but received object was empty");
+                log.Write(LogVerbosity.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Expected `{type.Name}`, but received object was empty");
                 return;
             }
 
@@ -291,7 +301,7 @@ namespace CryptoExchange.Net
                     {
                         if (!(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                         {
-                            log.Write(LogVerbosity.Warning, $"Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
+                            log.Write(LogVerbosity.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
                             isDif = true;
                         }
                         continue;
@@ -306,9 +316,9 @@ namespace CryptoExchange.Net
                 if (!IsSimple(propType) && propType != typeof(DateTime))
                 {
                     if (propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
-                        CheckObject(propType.GetElementType(), (JObject)token.Value[0]);
+                        CheckObject(propType.GetElementType(), (JObject)token.Value[0], requestId);
                     else if (token.Value is JObject o)
-                        CheckObject(propType, o);
+                        CheckObject(propType, o, requestId);
                 }
             }
 
@@ -321,11 +331,11 @@ namespace CryptoExchange.Net
                     continue;
 
                 isDif = true;
-                log.Write(LogVerbosity.Warning, $"Local object has property `{prop}` but was not found in received object of type `{type.Name}`");
+                log.Write(LogVerbosity.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Local object has property `{prop}` but was not found in received object of type `{type.Name}`");
             }
 
             if (isDif)
-                log.Write(LogVerbosity.Debug, "Returned data: " + obj);
+                log.Write(LogVerbosity.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Returned data: " + obj);
         }
 
         private static PropertyInfo? GetProperty(string name, IEnumerable<PropertyInfo> props)

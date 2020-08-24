@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
@@ -85,6 +86,10 @@ namespace CryptoExchange.Net.Objects
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
 
+        /// <summary>
+        /// Should check objects for missing properties based on the model and the received JSON
+        /// </summary>
+        public bool ShouldCheckObjects { get; set; } = true;
 
         /// <summary>
         /// Proxy to use
@@ -128,13 +133,26 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
+        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
+        /// </summary>
+        public HttpClient? HttpClient { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseAddress"></param>
+        /// <param name="baseAddress">The base address of the API</param>
         public RestClientOptions(string baseAddress): base(baseAddress)
         {
         }
-
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress">The base address of the API</param>
+        /// <param name="httpClient">Shared http client instance</param>
+        public RestClientOptions(HttpClient httpClient, string baseAddress) : base(baseAddress)
+        {
+            HttpClient = httpClient;
+        }
         /// <summary>
         /// Create a copy of the options
         /// </summary>
@@ -150,7 +168,8 @@ namespace CryptoExchange.Net.Objects
                 LogWriters = LogWriters,
                 RateLimiters = RateLimiters,
                 RateLimitingBehaviour = RateLimitingBehaviour,
-                RequestTimeout = RequestTimeout
+                RequestTimeout = RequestTimeout,
+                HttpClient = HttpClient
             };
 
             if (ApiCredentials != null)

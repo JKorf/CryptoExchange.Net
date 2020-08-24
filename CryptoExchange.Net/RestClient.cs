@@ -24,13 +24,13 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class RestClient: BaseClient, IRestClient
+    public abstract class RestClient : BaseClient, IRestClient
     {
         /// <summary>
         /// The factory for creating requests. Used for unit testing
         /// </summary>
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
-        
+
         /// <summary>
         /// Where to place post parameters
         /// </summary>
@@ -77,13 +77,13 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeOptions"></param>
         /// <param name="authenticationProvider"></param>
-        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
+            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -134,10 +134,10 @@ namespace CryptoExchange.Net
             {
                 reply = await ping.SendPingAsync(uri.Host).ConfigureAwait(false);
             }
-            catch(PingException e)
+            catch (PingException e)
             {
                 if (e.InnerException == null)
-                    return new CallResult<long>(0, new CantConnectError {Message = "Ping failed: " + e.Message});
+                    return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + e.Message });
 
                 if (e.InnerException is SocketException exception)
                     return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + exception.SocketErrorCode });
@@ -149,7 +149,7 @@ namespace CryptoExchange.Net
                 ping.Dispose();
             }
 
-            if(ct.IsCancellationRequested)
+            if (ct.IsCancellationRequested)
                 return new CallResult<long>(0, new CancellationRequestedError());
 
             return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
@@ -166,38 +166,39 @@ namespace CryptoExchange.Net
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
         /// <param name="postPosition">Where the post parameters should be placed</param>
-        /// <param name="arraySerialization">How array paramters should be serialized</param>
+        /// <param name="arraySerialization">How array parameters should be serialized</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequest<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null) where T : class
         {
-            log.Write(LogVerbosity.Debug, "Creating request for " + uri);
+            var requestId = NextId();
+            log.Write(LogVerbosity.Debug, $"[{requestId}] Creating request for " + uri);
             if (signed && authProvider == null)
-            { 
-                log.Write(LogVerbosity.Warning, $"Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
+            {
+                log.Write(LogVerbosity.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
-            var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization);
+            var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization, requestId);
             foreach (var limiter in RateLimiters)
             {
                 var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
                 if (!limitResult.Success)
                 {
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} failed because of rate limit");
+                    log.Write(LogVerbosity.Debug, $"[{requestId}] Request {uri.AbsolutePath} failed because of rate limit");
                     return new WebCallResult<T>(null, null, null, limitResult.Error);
                 }
 
                 if (limitResult.Data > 0)
-                    log.Write(LogVerbosity.Debug, $"Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");                
+                    log.Write(LogVerbosity.Debug, $"[{requestId}] Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");
             }
 
-            string? paramString = null;            
-            if (method == HttpMethod.Post)            
+            string? paramString = null;
+            if (method == HttpMethod.Post)
                 paramString = " with request body " + request.Content;
 
-            log.Write(LogVerbosity.Debug, $"Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null? "": $" via proxy {apiProxy.Host}")}");
+            log.Write(LogVerbosity.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
             return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -224,21 +225,21 @@ namespace CryptoExchange.Net
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
-                        log.Write(LogVerbosity.Debug, $"Data received: {data}");
+                        log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Data received: {data}");
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
                         var error = await TryParseError(parseResult.Data);
-                        if(error != null)
+                        if (error != null)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
 
-                        var deserializeResult = Deserialize<T>(parseResult.Data);
+                        var deserializeResult = Deserialize<T>(parseResult.Data, null, null, request.RequestId);
                         return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, deserializeResult.Data, deserializeResult.Error);
                     }
                     else
                     {
-                        var desResult = await Deserialize<T>(responseStream).ConfigureAwait(false);
+                        var desResult = await Deserialize<T>(responseStream, null, request.RequestId).ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
 
@@ -249,31 +250,31 @@ namespace CryptoExchange.Net
                 {
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogVerbosity.Debug, $"Error received: {data}");
+                    log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Error received: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
-                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) :new ServerError(data));
+                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data));
                 }
             }
             catch (HttpRequestException requestException)
             {
-                log.Write(LogVerbosity.Warning, "Request exception: " + requestException.Message);
+                log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request exception: " + requestException.Message);
                 return new WebCallResult<T>(null, null, default, new ServerError(requestException.Message));
             }
             catch (TaskCanceledException canceledException)
             {
-                if(canceledException.CancellationToken == cancellationToken)
+                if (canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token cancelled
-                    log.Write(LogVerbosity.Warning, "Request cancel requested");
+                    log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request cancel requested");
                     return new WebCallResult<T>(null, null, default, new CancellationRequestedError());
                 }
                 else
                 {
                     // Request timed out
-                    log.Write(LogVerbosity.Warning, "Request timed out");
-                    return new WebCallResult<T>(null, null, default, new WebError("Request timed out"));
+                    log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request timed out");
+                    return new WebCallResult<T>(null, null, default, new WebError($"[{request.RequestId}] Request timed out"));
                 }
             }
         }
@@ -297,22 +298,23 @@ namespace CryptoExchange.Net
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="postPosition">Where the post parameters should be placed</param>
-        /// <param name="arraySerialization">How array paramters should be serialized</param>
+        /// <param name="arraySerialization">How array parameters should be serialized</param>
+        /// <param name="requestId">Unique id of a request</param>
         /// <returns></returns>
-        protected virtual IRequest ConstructRequest(Uri uri, HttpMethod method, Dictionary<string, object>? parameters, bool signed, PostParameters postPosition, ArrayParametersSerialization arraySerialization)
+        protected virtual IRequest ConstructRequest(Uri uri, HttpMethod method, Dictionary<string, object>? parameters, bool signed, PostParameters postPosition, ArrayParametersSerialization arraySerialization, int requestId)
         {
             if (parameters == null)
                 parameters = new Dictionary<string, object>();
 
             var uriString = uri.ToString();
-            if(authProvider != null)
+            if (authProvider != null)
                 parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, postPosition, arraySerialization);
 
-            if((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)            
+            if ((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
 
             var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-            var request = RequestFactory.Create(method, uriString);
+            var request = RequestFactory.Create(method, uriString, requestId);
             request.Accept = Constants.JsonContentHeader;
 
             var headers = new Dictionary<string, string>();
@@ -324,7 +326,7 @@ namespace CryptoExchange.Net
 
             if ((method == HttpMethod.Post || method == HttpMethod.Put) && postPosition != PostParameters.InUri)
             {
-                if(parameters?.Any() == true)
+                if (parameters?.Any() == true)
                     WriteParamBody(request, parameters, contentType);
                 else
                     request.SetContent(requestBodyEmptyContent, contentType);
@@ -346,7 +348,7 @@ namespace CryptoExchange.Net
                 var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
                 request.SetContent(stringData, contentType);
             }
-            else if(requestBodyFormat == RequestBodyFormat.FormData)
+            else if (requestBodyFormat == RequestBodyFormat.FormData)
             {
                 var formData = HttpUtility.ParseQueryString(string.Empty);
                 foreach (var kvp in parameters.OrderBy(p => p.Key))
@@ -354,7 +356,7 @@ namespace CryptoExchange.Net
                     if (kvp.Value.GetType().IsArray)
                     {
                         var array = (Array)kvp.Value;
-                        foreach(var value in array)
+                        foreach (var value in array)
                             formData.Add(kvp.Key, value.ToString());
                     }
                     else
@@ -363,7 +365,7 @@ namespace CryptoExchange.Net
                 var stringData = formData.ToString();
                 request.SetContent(stringData, contentType);
             }
-        }        
+        }
 
         /// <summary>
         /// Parse an error response from the server. Only used when server returns a status other than Success(200)

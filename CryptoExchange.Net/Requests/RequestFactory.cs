@@ -11,30 +11,37 @@ namespace CryptoExchange.Net.Requests
     /// </summary>
     public class RequestFactory : IRequestFactory
     {
-        private HttpClient? httpClient;
+        private HttpClient? httpClient;        
 
         /// <inheritdoc />
-        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy)
+        public void Configure(TimeSpan requestTimeout, ApiProxy? proxy, HttpClient? client = null)
         {
-            HttpMessageHandler handler = new HttpClientHandler()
+            if (client == null)
             {
-                Proxy = proxy == null ? null : new WebProxy
+                HttpMessageHandler handler = new HttpClientHandler()
                 {
-                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
-                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
-                }
-            };
+                    Proxy = proxy == null ? null : new WebProxy
+                    {
+                        Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                        Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                    }
+                };
 
-            httpClient = new HttpClient(handler) {Timeout = requestTimeout};
+                httpClient = new HttpClient(handler) { Timeout = requestTimeout };
+            }
+            else
+            {
+                httpClient = client;                
+            }
         }
 
         /// <inheritdoc />
-        public IRequest Create(HttpMethod method, string uri)
+        public IRequest Create(HttpMethod method, string uri, int requestId)
         {
             if (httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
-            return new Request(new HttpRequestMessage(method, uri), httpClient);
+            return new Request(new HttpRequestMessage(method, uri), httpClient, requestId);
         }
     }
 }

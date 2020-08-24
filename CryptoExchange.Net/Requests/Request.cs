@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -20,11 +21,13 @@ namespace CryptoExchange.Net.Requests
         /// Create request object for web request
         /// </summary>
         /// <param name="request"></param>
-        /// <param name="client"></param>
-        public Request(HttpRequestMessage request, HttpClient client)
+        /// <param name="client"></param>        
+        /// <param name="requestId"></param>        
+        public Request(HttpRequestMessage request, HttpClient client, int requestId)
         {
             httpClient = client;
             this.request = request;
+            RequestId = requestId;
         }
         
         /// <inheritdoc />
@@ -45,6 +48,8 @@ namespace CryptoExchange.Net.Requests
 
         /// <inheritdoc />
         public Uri Uri => request.RequestUri;
+        /// <inheritdoc />
+        public int RequestId { get; }
 
         /// <inheritdoc />
         public void SetContent(string data, string contentType)
