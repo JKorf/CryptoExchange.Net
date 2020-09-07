@@ -31,7 +31,8 @@ namespace CryptoExchange.Net.Requests
             }
             else
             {
-                httpClient = client;                
+                httpClient = client;
+                httpClient.Timeout = requestTimeout;
             }
         }
 
