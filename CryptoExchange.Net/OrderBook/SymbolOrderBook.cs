@@ -377,7 +377,7 @@ namespace CryptoExchange.Net.OrderBook
                         FirstUpdateId = item.StartUpdateId,
                         LastUpdateId = item.EndUpdateId,
                     });
-                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{Asks.Count()} asks, {Bids.Count()} bids]");
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{item.Asks.Count()} asks, {item.Bids.Count()} bids]");
                 }
                 else
                 {
