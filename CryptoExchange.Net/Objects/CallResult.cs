@@ -43,12 +43,45 @@ namespace CryptoExchange.Net.Objects
             return obj?.Success == true;
         }
     }
+    
+    /// <summary>
+    /// The result of an operation
+    /// </summary>
+    public class CallResult
+    {
+        /// <summary>
+        /// An error if the call didn't succeed
+        /// </summary>
+        public Error? Error { get; internal set; }
+        /// <summary>
+        /// Whether the call was successful
+        /// </summary>
+        public bool Success => Error == null;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="error"></param>
+        public CallResult(Error? error)
+        {
+            Error = error;
+        }
+
+        /// <summary>
+        /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+        /// </summary>
+        /// <param name="obj"></param>
+        public static implicit operator bool(CallResult obj)
+        {
+            return obj?.Success == true;
+        }
+    }
 
     /// <summary>
     /// The result of a request
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class WebCallResult<T>: CallResult<T>
+    public class WebCallResult<T> : CallResult<T>
     {
         /// <summary>
         /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
@@ -95,6 +128,58 @@ namespace CryptoExchange.Net.Objects
         public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error error)
         {
             return new WebCallResult<T>(code, responseHeaders, default!, error);
+        }
+    }
+
+    /// <summary>
+    /// The result of a request
+    /// </summary>
+    public class WebCallResult : CallResult
+    {
+        /// <summary>
+        /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+        /// </summary>
+        public HttpStatusCode? ResponseStatusCode { get; set; }
+
+        /// <summary>
+        /// The response headers
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="responseHeaders"></param>
+        /// <param name="error"></param>
+        public WebCallResult(HttpStatusCode? code, 
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error? error): base(error)
+        {
+            ResponseHeaders = responseHeaders;
+            ResponseStatusCode = code;
+        }
+
+        /// <summary>
+        /// Create an error result
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static WebCallResult CreateErrorResult(Error error)
+        {
+            return new WebCallResult(null, null, error);
+        }
+
+        /// <summary>
+        /// Create an error result
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="responseHeaders"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static WebCallResult CreateErrorResult(HttpStatusCode? code, 
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error error)
+        {
+            return new WebCallResult(code, responseHeaders, error);
         }
     }
 }

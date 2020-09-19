@@ -1233,6 +1233,33 @@
             </summary>
             <param name="obj"></param>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.CallResult">
+            <summary>
+            The result of an operation
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Error">
+            <summary>
+            An error if the call didn't succeed
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Success">
+            <summary>
+            Whether the call was successful
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.#ctor(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.op_Implicit(CryptoExchange.Net.Objects.CallResult)~System.Boolean">
+            <summary>
+            Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+            </summary>
+            <param name="obj"></param>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.WebCallResult`1">
             <summary>
             The result of a request
@@ -1266,6 +1293,45 @@
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Objects.WebCallResult">
+            <summary>
+            The result of a request
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseStatusCode">
+            <summary>
+            The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseHeaders">
+            <summary>
+            The response headers
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.#ctor(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
             <summary>
             Create an error result
             </summary>
@@ -2225,6 +2291,19 @@
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
             <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
+            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="arraySerialization">How array parameters should be serialized</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.RestClient.SendRequest(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization})">
+            <summary>
+            Execute a request
+            </summary>
+            <param name="uri">The uri to send the request to</param>
+            <param name="method">The method of the request</param>
+            <param name="cancellationToken">Cancellation token</param>
+            <param name="parameters">The parameters of the request</param>
+            <param name="signed">Whether or not the request should be authenticated</param>
             <param name="postPosition">Where the post parameters should be placed</param>
             <param name="arraySerialization">How array parameters should be serialized</param>
             <returns></returns>

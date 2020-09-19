@@ -203,6 +203,52 @@ namespace CryptoExchange.Net
             return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
+        
+        /// <summary>
+        /// Execute a request
+        /// </summary>
+        /// <param name="uri">The uri to send the request to</param>
+        /// <param name="method">The method of the request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="postPosition">Where the post parameters should be placed</param>
+        /// <param name="arraySerialization">How array parameters should be serialized</param>
+        /// <returns></returns>
+        [return: NotNull]
+        protected virtual async Task<WebCallResult> SendRequest(Uri uri, HttpMethod method, CancellationToken cancellationToken,
+            Dictionary<string, object>? parameters = null, bool signed = false, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null)
+        {
+            var requestId = NextId();
+            log.Write(LogVerbosity.Debug, $"[{requestId}] Creating request for " + uri);
+            if (signed && authProvider == null)
+            {
+                log.Write(LogVerbosity.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
+                return new WebCallResult(null, null, new NoApiCredentialsError());
+            }
+
+            var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization, requestId);
+            foreach (var limiter in RateLimiters)
+            {
+                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
+                if (!limitResult.Success)
+                {
+                    log.Write(LogVerbosity.Debug, $"[{requestId}] Request {uri.AbsolutePath} failed because of rate limit");
+                    return new WebCallResult(null, null, limitResult.Error);
+                }
+
+                if (limitResult.Data > 0)
+                    log.Write(LogVerbosity.Debug, $"[{requestId}] Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");
+            }
+
+            string? paramString = null;
+            if (method == HttpMethod.Post)
+                paramString = " with request body " + request.Content;
+
+            log.Write(LogVerbosity.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
+            return await GetResponse(request, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Executes the request and returns the string result
         /// </summary>
@@ -278,6 +324,55 @@ namespace CryptoExchange.Net
                     // Request timed out
                     log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request timed out");
                     return new WebCallResult<T>(null, null, default, new WebError($"[{request.RequestId}] Request timed out"));
+                }
+            }
+        }
+        
+        private async Task<WebCallResult> GetResponse(IRequest request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                TotalRequestsMade++;
+                var sw = Stopwatch.StartNew();
+                var response = await request.GetResponse(cancellationToken).ConfigureAwait(false);
+                sw.Stop();
+                var statusCode = response.StatusCode;
+                var headers = response.ResponseHeaders;
+                
+                using var responseStream = await response.GetResponseStream().ConfigureAwait(false);
+                using var reader = new StreamReader(responseStream);
+                var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms: {data}");
+                    return new WebCallResult(statusCode, headers, null);
+                }
+                else
+                {
+                    log.Write(LogVerbosity.Debug, $"[{request.RequestId}] Error received: {data}");
+                    var parseResult = ValidateJson(data);
+                    return new WebCallResult(statusCode, headers, parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data));
+                }
+            }
+            catch (HttpRequestException requestException)
+            {
+                log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request exception: " + (requestException.InnerException?.Message ?? requestException.Message));
+                return new WebCallResult(null, null, new ServerError(requestException.Message));
+            }
+            catch (TaskCanceledException canceledException)
+            {
+                if (canceledException.CancellationToken == cancellationToken)
+                {
+                    // Cancellation token cancelled
+                    log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request cancel requested");
+                    return new WebCallResult(null, null, new CancellationRequestedError());
+                }
+                else
+                {
+                    // Request timed out
+                    log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request timed out");
+                    return new WebCallResult(null, null, new WebError($"[{request.RequestId}] Request timed out"));
                 }
             }
         }
