@@ -35,6 +35,30 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Whether the call was successful or not.
+        /// </summary>
+        /// <param name="data">The data returned by the call.</param>
+        /// <param name="error"><see cref="Error"/> on failure.</param>
+        /// <returns><c>true</c> when <see cref="CallResult{T}"/> succeeded, <c>false</c> otherwise.</returns>
+        public bool GetResultOrError([MaybeNullWhen(false)] out T data, [NotNullWhen(false)] out Error? error)
+        {
+            if (Success)
+            {
+                data = Data!;
+                error = null;
+
+                return true;
+            }
+            else
+            {
+                data = default;
+                error = Error!;
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
         /// </summary>
         /// <param name="obj"></param>
@@ -68,7 +92,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="data"></param>
         /// <param name="error"></param>
         public WebCallResult(
-            HttpStatusCode? code, 
+            HttpStatusCode? code,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, [AllowNull] T data, Error? error): base(data, error)
         {
             ResponseHeaders = responseHeaders;
