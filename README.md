@@ -199,6 +199,9 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.0.15 - 06 Oct 2020
+    * Changed default ShouldCheckObjects to false to prevent spam in logging
+
 * Version 3.0.14 - 24 Aug 2020
     * Updated exception message logging
 
