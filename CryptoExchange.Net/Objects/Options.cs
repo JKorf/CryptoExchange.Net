@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Should check objects for missing properties based on the model and the received JSON
         /// </summary>
-        public bool ShouldCheckObjects { get; set; } = true;
+        public bool ShouldCheckObjects { get; set; } = false;
 
         /// <summary>
         /// Proxy to use
