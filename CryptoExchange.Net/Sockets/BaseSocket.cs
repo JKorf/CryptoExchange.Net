@@ -260,11 +260,11 @@ namespace CryptoExchange.Net.Sockets
 
                     var waitLock = new object();
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} closing");
-                    ManualResetEvent? evnt = new ManualResetEvent(false);
+                    using ManualResetEvent evnt = new ManualResetEvent(false);
                     var handler = new EventHandler((o, a) =>
                     {
                         lock(waitLock)
-                            evnt?.Set();
+                            evnt.Set();
                     });
                     socket.Closed += handler;
                     socket.Close();
@@ -272,8 +272,6 @@ namespace CryptoExchange.Net.Sockets
                     lock (waitLock)
                     {
                         socket.Closed -= handler;
-                        evnt.Dispose();
-                        evnt = null;
                     }
                     log?.Write(LogVerbosity.Debug, $"Socket {Id} closed");
                 }
