@@ -42,6 +42,30 @@ namespace CryptoExchange.Net.Objects
         {
             return obj?.Success == true;
         }
+
+        /// <summary>
+        /// Whether the call was successful or not. Useful for nullability checking.
+        /// </summary>
+        /// <param name="data">The data returned by the call.</param>
+        /// <param name="error"><see cref="Error"/> on failure.</param>
+        /// <returns><c>true</c> when <see cref="CallResult{T}"/> succeeded, <c>false</c> otherwise.</returns>
+        public bool GetResultOrError([MaybeNullWhen(false)] out T data, [NotNullWhen(false)] out Error? error)
+        {
+            if (Success)
+            {
+                data = Data!;
+                error = null;
+
+                return true;
+            }
+            else
+            {
+                data = default;
+                error = Error!;
+
+                return false;
+            }
+        }
     }
 
     /// <summary>
