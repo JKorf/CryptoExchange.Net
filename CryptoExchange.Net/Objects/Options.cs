@@ -76,10 +76,22 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ClientOptions : BaseOptions
     {
+        private string _baseAddress;
+
         /// <summary>
         /// The base address of the client
         /// </summary>
-        public string BaseAddress { get; set; }
+        public string BaseAddress
+        {
+            get => _baseAddress;
+            set
+            {
+                var newValue = value;
+                if (!newValue.EndsWith("/"))
+                    newValue += "/";
+                _baseAddress = newValue;
+            }
+        }
 
         /// <summary>
         /// The api credentials
