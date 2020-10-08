@@ -199,6 +199,12 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.1.0 - 08 Oct 2020
+    * Added CallResult without type parameter for calls which don't return data
+    * Added GetErrorOrResult method on CallResult to support proper nullability checking
+    * Fix for reading credentials from file
+    * Fix for setting custom base addresses in clients
+
 * Version 3.0.15 - 06 Oct 2020
     * Changed default ShouldCheckObjects to false to prevent spam in logging
 

@@ -6,12 +6,12 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>3.0.15</PackageVersion>
+    <PackageVersion>3.1.0</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0.15 - Changed default ShouldCheckObjects to false to prevent spam in logging</PackageReleaseNotes>
+    <PackageReleaseNotes>3.1.0 - Added CallResult without type parameter for calls which don't return data, Added GetErrorOrResult method on CallResult to support proper nullability checking, Fix for reading credentials from file, Fix for setting custom base addresses in clients</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
