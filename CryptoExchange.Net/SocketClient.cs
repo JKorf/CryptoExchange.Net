@@ -41,6 +41,10 @@ namespace CryptoExchange.Net
         public TimeSpan ResponseTimeout { get; }
         /// <inheritdoc cref="SocketClientOptions.SocketNoDataTimeout"/>
         public TimeSpan SocketNoDataTimeout { get; }
+
+        /// <inheritdoc cref="SocketClientOptions.ResubscribeOnReconnect"/>
+        public bool ResubscribeOnReconnect { get; }
+
         /// <summary>
         /// The max amount of concurrent socket connections
         /// </summary>
@@ -94,6 +98,7 @@ namespace CryptoExchange.Net
             ReconnectInterval = exchangeOptions.ReconnectInterval;
             ResponseTimeout = exchangeOptions.SocketResponseTimeout;
             SocketNoDataTimeout = exchangeOptions.SocketNoDataTimeout;
+            ResubscribeOnReconnect = exchangeOptions.ResubscribeOnReconnect;
             SocketCombineTarget = exchangeOptions.SocketSubscriptionsCombineTarget ?? 1;
         }
 

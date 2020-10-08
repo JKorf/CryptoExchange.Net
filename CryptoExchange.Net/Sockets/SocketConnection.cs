@@ -347,6 +347,12 @@ namespace CryptoExchange.Net.Sockets
                 log.Write(LogVerbosity.Debug, "Authentication succeeded on reconnected socket.");
             }
 
+            if (!socketClient.ResubscribeOnReconnect)
+            {
+                log.Write(LogVerbosity.Debug, "Skip resubscribing all subscriptions.");
+                return true;
+            }
+
             List<SocketSubscription> handlerList;
             lock (handlersLock)
                 handlerList = handlers.Where(h => h.Request != null).ToList();

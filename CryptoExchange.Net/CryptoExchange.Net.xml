@@ -1690,6 +1690,11 @@
             The time after which the connection is assumed to be dropped
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.ResubscribeOnReconnect">
+            <summary>
+            Whether subscriptions should be re-subscribed when connection is re-established.
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget">
             <summary>
             The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
@@ -2303,6 +2308,9 @@
         </member>
         <member name="P:CryptoExchange.Net.SocketClient.SocketNoDataTimeout">
             <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketNoDataTimeout"/>
+        </member>
+        <member name="P:CryptoExchange.Net.SocketClient.ResubscribeOnReconnect">
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.ResubscribeOnReconnect"/>
         </member>
         <member name="P:CryptoExchange.Net.SocketClient.MaxSocketConnections">
             <summary>

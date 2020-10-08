@@ -210,6 +210,11 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan SocketNoDataTimeout { get; set; }
 
         /// <summary>
+        /// Whether subscriptions should be re-subscribed when connection is re-established.
+        /// </summary>
+        public bool ResubscribeOnReconnect { get; set; } = true;
+
+        /// <summary>
         /// The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
         /// Setting this to a higher number increases subscription speed, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection.
         /// </summary>
