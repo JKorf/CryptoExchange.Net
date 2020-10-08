@@ -16,62 +16,49 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class SocketConnection
     {
-        /// <summary>
-        /// Connection lost event
-        /// </summary>
+        /// <summary>Connection lost event</summary>
         public event Action? ConnectionLost;
-        /// <summary>
-        /// Connecting restored event
-        /// </summary>
+
+        /// <summary>Connecting restored event</summary>
         public event Action<TimeSpan>? ConnectionRestored;
-        /// <summary>
-        /// The connection is paused event
-        /// </summary>
+
+        /// <summary>The connection is paused event</summary>
         public event Action? ActivityPaused;
-        /// <summary>
-        /// The connection is unpaused event
-        /// </summary>
+
+        /// <summary>The connection is unpaused event</summary>
         public event Action? ActivityUnpaused;
-        /// <summary>
-        /// Connecting closed event
-        /// </summary>
+
+        /// <summary>Connecting closed event</summary>
         public event Action? Closed;
 
-        /// <summary>
-        /// The amount of handlers
-        /// </summary>
+        /// <summary>The amount of handlers</summary>
         public int HandlerCount
         {
-            get { lock (handlersLock)
-                return handlers.Count(h => h.UserSubscription); }
+            get
+            {
+                lock (handlersLock)
+                {
+                    return handlers.Count(h => h.UserSubscription);
+                }
+            }
         }
 
-        /// <summary>
-        /// If connection is authenticated
-        /// </summary>
+        /// <summary>If connection is authenticated</summary>
         public bool Authenticated { get; set; }
-        /// <summary>
-        /// If connection is made
-        /// </summary>
+
+        /// <summary>If connection is made</summary>
         public bool Connected { get; private set; }
 
-        /// <summary>
-        /// The socket
-        /// </summary>
+        /// <summary>The socket</summary>
         public IWebsocket Socket { get; set; }
-        /// <summary>
-        /// If should reconnect upon closing
-        /// </summary>
+
+        /// <summary>If should reconnect upon closing</summary>
         public bool ShouldReconnect { get; set; }
 
-        /// <summary>
-        /// Time of disconnecting
-        /// </summary>
+        /// <summary>Time of disconnecting</summary>
         public DateTime? DisconnectTime { get; set; }
 
-        /// <summary>
-        /// If activity is paused
-        /// </summary>
+        /// <summary>If activity is paused</summary>
         public bool PausedActivity
         {
             get => pausedActivity;
@@ -121,7 +108,7 @@ namespace CryptoExchange.Net.Sockets
 
                 DisconnectTime = DateTime.UtcNow;
                 lostTriggered = true;
-                
+
                 if (ShouldReconnect)
                     ConnectionLost?.Invoke();
             };
@@ -132,7 +119,7 @@ namespace CryptoExchange.Net.Sockets
                 Connected = true;
             };
         }
-        
+
         private void ProcessMessage(string data)
         {
             log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} received data: " + data);
@@ -159,7 +146,7 @@ namespace CryptoExchange.Net.Sockets
                     break;
                 }
             }
-            
+
             if (!HandleData(tokenData) && !handledResponse)
             {
                 log.Write(LogVerbosity.Debug, "Message not handled: " + tokenData);
@@ -180,7 +167,7 @@ namespace CryptoExchange.Net.Sockets
         {
             SocketSubscription? currentSubscription = null;
             try
-            { 
+            {
                 var handled = false;
                 var sw = Stopwatch.StartNew();
                 lock (handlersLock)
@@ -373,7 +360,7 @@ namespace CryptoExchange.Net.Sockets
             log.Write(LogVerbosity.Debug, "All subscription successfully resubscribed on reconnected socket.");
             return true;
         }
-        
+
         /// <summary>
         /// Close the connection
         /// </summary>
@@ -384,7 +371,7 @@ namespace CryptoExchange.Net.Sockets
             ShouldReconnect = false;
             if (socketClient.sockets.ContainsKey(Socket.Id))
                 socketClient.sockets.TryRemove(Socket.Id, out _);
-            
+
             await Socket.Close().ConfigureAwait(false);
             Socket.Dispose();
         }
