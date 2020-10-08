@@ -1199,6 +1199,40 @@
             <param name="y"></param>
             <returns></returns>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.CallResult">
+            <summary>
+            The result of an operation
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Error">
+            <summary>
+            An error if the call didn't succeed
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Success">
+            <summary>
+            Whether the call was successful
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.#ctor(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.op_Implicit(CryptoExchange.Net.Objects.CallResult)~System.Boolean">
+            <summary>
+            Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.CallResult`1">
             <summary>
             The result of an operation
@@ -1208,16 +1242,6 @@
         <member name="P:CryptoExchange.Net.Objects.CallResult`1.Data">
             <summary>
             The data returned by the call
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Error">
-            <summary>
-            An error if the call didn't succeed
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Success">
-            <summary>
-            Whether the call was successful
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.CallResult`1.#ctor(`0,CryptoExchange.Net.Objects.Error)">
@@ -1238,8 +1262,47 @@
             Whether the call was successful or not. Useful for nullability checking.
             </summary>
             <param name="data">The data returned by the call.</param>
-            <param name="error"><see cref="P:CryptoExchange.Net.Objects.CallResult`1.Error"/> on failure.</param>
+            <param name="error"><see cref="T:CryptoExchange.Net.Objects.Error"/> on failure.</param>
             <returns><c>true</c> when <see cref="T:CryptoExchange.Net.Objects.CallResult`1"/> succeeded, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Objects.WebCallResult">
+            <summary>
+            The result of a request
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseStatusCode">
+            <summary>
+            The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseHeaders">
+            <summary>
+            The response headers
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.#ctor(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+            <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Objects.WebCallResult`1">
             <summary>
@@ -1265,13 +1328,6 @@
             <param name="responseHeaders"></param>
             <param name="data"></param>
             <param name="error"></param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
-            <summary>
-            Create an error result
-            </summary>
-            <param name="error"></param>
-            <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
             <summary>
@@ -2994,7 +3050,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+    </members>
+</doc>
+System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.
