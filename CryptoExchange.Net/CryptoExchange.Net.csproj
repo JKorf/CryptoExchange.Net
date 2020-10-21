@@ -7,6 +7,7 @@
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
     <PackageVersion>3.1.0</PackageVersion>
+    <AssemblyVersion>3.1.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
