@@ -258,7 +258,8 @@ namespace CryptoExchange.Net
                     response.Close();
                     var parseResult = ValidateJson(data);
                     var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : parseResult.Error!;
-                    error.Code = (int)response.StatusCode;
+                    if(error.Code == null || error.Code == 0)
+                        error.Code = (int)response.StatusCode;
                     return new WebCallResult<T>(statusCode, headers, default, error);
                 }
             }
