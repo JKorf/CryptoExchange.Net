@@ -203,6 +203,10 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.2.0 - 19 nov 2020
+    * Fix for multiple socket subscriptions re-using the same socket connection
+    * Updated errors
+
 * Version 3.1.0 - 08 Oct 2020
     * Added CallResult without type parameter for calls which don't return data
     * Added GetErrorOrResult method on CallResult to support proper nullability checking
