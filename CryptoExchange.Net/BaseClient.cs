@@ -101,7 +101,7 @@ namespace CryptoExchange.Net
             {
                 var info = "Empty data object received";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<JToken>(null, new DeserializeError(info));
+                return new CallResult<JToken>(null, new DeserializeError(info, data));
             }
 
             try
@@ -110,18 +110,18 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {data}";
-                return new CallResult<JToken>(null, new DeserializeError(info));
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
+                return new CallResult<JToken>(null, new DeserializeError(info, data));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {data}";
-                return new CallResult<JToken>(null, new DeserializeError(info));
+                var info = $"Deserialize JsonSerializationException: {jse.Message}";
+                return new CallResult<JToken>(null, new DeserializeError(info, data));
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}. Data: {data}";
-                return new CallResult<JToken>(null, new DeserializeError(info));
+                var info = $"Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}";
+                return new CallResult<JToken>(null, new DeserializeError(info, data));
             }
         }
 
@@ -186,21 +186,21 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info, obj));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info, obj));
             }
             catch (Exception ex)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}. Received data: {obj}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}";
                 log.Write(LogVerbosity.Error, info);
-                return new CallResult<T>(default, new DeserializeError(info));
+                return new CallResult<T>(default, new DeserializeError(info, obj));
             }
         }
 
@@ -211,7 +211,7 @@ namespace CryptoExchange.Net
         /// <param name="stream">The stream to deserialize</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <param name="requestId">Id of the request</param>
-        /// <param name="elapsedMilliseconds">Milliseconds reponse time</param>
+        /// <param name="elapsedMilliseconds">Milliseconds response time</param>
         /// <returns></returns>
         protected async Task<CallResult<T>> Deserialize<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
@@ -237,7 +237,7 @@ namespace CryptoExchange.Net
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
-                return new CallResult<T>(default, new DeserializeError(data));
+                return new CallResult<T>(default, new DeserializeError($"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}", data));
             }
             catch (JsonSerializationException jse)
             {
@@ -245,7 +245,7 @@ namespace CryptoExchange.Net
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
-                return new CallResult<T>(default, new DeserializeError(data));
+                return new CallResult<T>(default, new DeserializeError($"Deserialize JsonSerializationException: {jse.Message}", data));
             }
             catch (Exception ex)
             {
@@ -253,7 +253,7 @@ namespace CryptoExchange.Net
                     stream.Seek(0, SeekOrigin.Begin);
                 var data = await ReadStream(stream).ConfigureAwait(false);
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}, data: {data}");
-                return new CallResult<T>(default, new DeserializeError(data));
+                return new CallResult<T>(default, new DeserializeError($"Deserialize Unknown Exception: {(ex.InnerException?.Message ?? ex.Message)}", data));
             }
         }
 

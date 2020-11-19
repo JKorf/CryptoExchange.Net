@@ -232,7 +232,7 @@ namespace CryptoExchange.Net
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
-                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, parseResult.Error!);
                         var error = await TryParseError(parseResult.Data);
                         if (error != null)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
@@ -257,7 +257,9 @@ namespace CryptoExchange.Net
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
-                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data));
+                    var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : parseResult.Error!;
+                    error.Code = (int)response.StatusCode;
+                    return new WebCallResult<T>(statusCode, headers, default, error);
                 }
             }
             catch (HttpRequestException requestException)
