@@ -39,8 +39,8 @@ namespace CryptoExchange.Net.OrderBook
         private readonly bool strictLevels;
 
         private Task? _processTask;
-        private AutoResetEvent _queueEvent;
-        private ConcurrentQueue<object> _processQueue;
+        private readonly AutoResetEvent _queueEvent;
+        private readonly ConcurrentQueue<object> _processQueue;
 
         /// <summary>
         /// Order book implementation id

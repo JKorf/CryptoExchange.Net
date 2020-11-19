@@ -112,7 +112,9 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseAddress"></param>
+#pragma warning disable 8618
         public ClientOptions(string baseAddress)
+#pragma warning restore 8618
         {
             BaseAddress = baseAddress;
         }

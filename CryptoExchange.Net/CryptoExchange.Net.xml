@@ -1573,6 +1573,7 @@
             <summary>
             ctor
             </summary>
+            <param name="message">Error message</param>
             <param name="data">Error data</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.ArgumentError">

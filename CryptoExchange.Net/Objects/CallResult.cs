@@ -65,7 +65,9 @@ namespace CryptoExchange.Net.Objects
         /// <param name="error"></param>
         public CallResult([AllowNull]T data, Error? error): base(error)
         {
+#pragma warning disable 8601
             Data = data;
+#pragma warning disable 8601
         }
 
         /// <summary>
