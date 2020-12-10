@@ -441,6 +441,36 @@
         <member name="M:CryptoExchange.Net.Converters.UTCDateTimeConverter.CanConvert(System.Type)">
             <inheritdoc />
         </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade">
+            <summary>
+            Common trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonId">
+            <summary>
+            Id of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonPrice">
+            <summary>
+            Price of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonQuantity">
+            <summary>
+            Quantity of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonFee">
+            <summary>
+            Fee paid for the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonFeeAsset">
+            <summary>
+            The asset fee was paid in
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient">
             <summary>
             Shared interface for exchange wrappers based on the CryptoExchange.Net package
@@ -448,7 +478,7 @@
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolName(System.String,System.String)">
             <summary>
-            Get the symbol name basset on a base and quote asset
+            Get the symbol name based on a base and quote asset
             </summary>
             <param name="baseAsset"></param>
             <param name="quoteAsset"></param>
@@ -497,7 +527,7 @@
             <param name="type">The type of the order</param>
             <param name="quantity">The quantity of the order</param>
             <param name="price">The price of the order, only for limit orders</param>
-            <param name="accountId">[Optional] The account id to place the order on, required for some exchanges</param>
+            <param name="accountId">[Optional] The account id to place the order on, required for some exchanges, ignored otherwise</param>
             <returns>The id of the resulting order</returns>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOrderAsync(System.String,System.String)">
@@ -505,7 +535,7 @@
             Get an order by id
             </summary>
             <param name="orderId">The id</param>
-            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetTradesAsync(System.String,System.String)">
@@ -513,23 +543,21 @@
             Get trades for an order by id
             </summary>
             <param name="orderId">The id</param>
-            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOpenOrdersAsync(System.String)">
             <summary>
             Get a list of open orders
             </summary>
-            <param name="symbol">[Optional] The symbol to get open orders for, required for some exchanges. If the symbol is not required for the call,
-            the result will NOT be filtered by this</param>
+            <param name="symbol">[Optional] The symbol to get open orders for, required for some exchanges, ignored otherwise</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetClosedOrdersAsync(System.String)">
             <summary>
             Get a list of closed orders
             </summary>
-            <param name="symbol">[Optional] The symbol to get closed orders for, required for some exchanges. If the symbol is not required for the call,
-            the result will NOT be filtered by this</param>
+            <param name="symbol">[Optional] The symbol to get closed orders for, required for some exchanges, ignored otherwise</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.CancelOrderAsync(System.String,System.String)">
@@ -537,8 +565,193 @@
             Cancel an order by id
             </summary>
             <param name="orderId">The id</param>
-            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
             <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType">
+            <summary>
+            Common order id
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Limit">
+            <summary>
+            Limit type
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Market">
+            <summary>
+            Market type
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Other">
+            <summary>
+            Other order type
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide">
+            <summary>
+            Common order side
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide.Buy">
+            <summary>
+            Buy order
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide.Sell">
+            <summary>
+            Sell order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonKline">
+            <summary>
+            Common kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonHigh">
+            <summary>
+            High price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonLow">
+            <summary>
+            Low price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonOpen">
+            <summary>
+            Open price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonClose">
+            <summary>
+            Close price for this kline
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder">
+            <summary>
+            Common order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonSymbol">
+            <summary>
+            Symbol of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonPrice">
+            <summary>
+            Price of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonQuantity">
+            <summary>
+            Quantity of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonStatus">
+            <summary>
+            Status of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.IsActive">
+            <summary>
+            Whether the order is active
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonSide">
+            <summary>
+            Side of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonType">
+            <summary>
+            Type of the order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook">
+            <summary>
+            Common order book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook.CommonBids">
+            <summary>
+            Bids
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook.CommonAsks">
+            <summary>
+            Asks
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderId">
+            <summary>
+            Common order id
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderId.CommonId">
+            <summary>
+            Id of the order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade">
+            <summary>
+            Recent trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonPrice">
+            <summary>
+            Price of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonQuantity">
+            <summary>
+            Quantity of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonTradeTime">
+            <summary>
+            Trade time
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol">
+            <summary>
+            Common symbol
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonName">
+            <summary>
+            Symbol name
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonMinimumTradeSize">
+            <summary>
+            Minimum trade size
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker">
+            <summary>
+            Common ticker
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonSymbol">
+            <summary>
+            Symbol name
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonHigh">
+            <summary>
+            High price
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonLow">
+            <summary>
+            Low price
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonVolume">
+            <summary>
+            Volume
+            </summary>
         </member>
         <member name="T:CryptoExchange.Net.ExtensionMethods">
             <summary>
@@ -2191,6 +2404,11 @@
         <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
             <inheritdoc />
         </member>
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.RateLimiter.RateLimiterPerEndpoint">
             <summary>
             Limits the amount of requests per time period to a certain limit, counts the request per endpoint.
@@ -3186,149 +3404,6 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is allowed as an input even if the
-                corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is disallowed as an input even if the
-                corresponding type allows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
-            <summary>
-                Specifies that a method that will never return under any circumstance.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
-            <summary>
-                Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
-                parameter is passed the specified value.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
-            <summary>
-                Gets the condition parameter value.
-                Code after the method is considered unreachable by diagnostics if the argument
-                to the associated parameter matches this value.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute"/>
-                class with the specified parameter value.
-            </summary>
-            <param name="parameterValue">
-                The condition parameter value.
-                Code after the method is considered unreachable by diagnostics if the argument
-                to the associated parameter matches this value.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
-            <summary>
-                Specifies that an output may be <see langword="null"/> even if the
-                corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
-            <summary>
-                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, 
-                the parameter may be <see langword="null"/> even if the corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
-            <summary>
-                Gets the return value condition.
-                If the method returns this value, the associated parameter may be <see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
-            <summary>
-                 Initializes the attribute with the specified return value condition.
-            </summary>
-            <param name="returnValue">
-                The return value condition.
-                If the method returns this value, the associated parameter may be <see langword="null"/>.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
-            <summary>
-                Specifies that an output is not <see langword="null"/> even if the
-                corresponding type allows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.NotNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
-            <summary>
-                Specifies that the output will be non-<see langword="null"/> if the
-                named parameter is non-<see langword="null"/>.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
-            <summary>
-                Gets the associated parameter name.
-                The output will be non-<see langword="null"/> if the argument to the
-                parameter specified is non-<see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
-            <summary>
-                Initializes the attribute with the associated parameter name.
-            </summary>
-            <param name="parameterName">
-                The associated parameter name.
-                The output will be non-<see langword="null"/> if the argument to the
-                parameter specified is non-<see langword="null"/>.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
-            <summary>
-                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>,
-                the parameter will not be <see langword="null"/> even if the corresponding type allows it.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
-            <summary>
-                Gets the return value condition.
-                If the method returns this value, the associated parameter will not be <see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
-            <summary>
-                Initializes the attribute with the specified return value condition.
-            </summary>
-            <param name="returnValue">
-                The return value condition.
-                If the method returns this value, the associated parameter will not be <see langword="null"/>.
-            </param>
         </member>
     </members>
 </doc>
