@@ -294,7 +294,7 @@ namespace CryptoExchange.Net
 
             var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
             if (!connectResult)
-                return new CallResult<bool>(false, new CantConnectError());
+                return new CallResult<bool>(false, connectResult.Error);
 
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true, null);
@@ -427,7 +427,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual SocketConnection GetWebsocket(string address, bool authenticated)
         {
-            var socketResult = sockets.Where(s => s.Value.Socket.Url == address && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.HandlerCount).FirstOrDefault();
+            var socketResult = sockets.Where(s => s.Value.Socket.Url.TrimEnd('/') == address.TrimEnd('/') 
+                                                  && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.HandlerCount).FirstOrDefault();
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
             {

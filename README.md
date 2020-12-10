@@ -61,6 +61,10 @@ Implementations from third parties
 <br />
 <a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
 </td>
+<td><a href="https://github.com/intelligences/HitBTC.Net"><img src="https://github.com/intelligences/HitBTC.Net/blob/master/src/HitBTC.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/intelligences/HitBTC.Net">HitBTC</a>
+</td>
 </tr>
 </table>
 
@@ -199,6 +203,22 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.2.1 - 19 nov 2020
+    * Fixed error code parsing
+
+* Version 3.2.0 - 19 nov 2020
+    * Fix for multiple socket subscriptions re-using the same socket connection
+    * Updated errors
+
+* Version 3.1.0 - 08 Oct 2020
+    * Added CallResult without type parameter for calls which don't return data
+    * Added GetErrorOrResult method on CallResult to support proper nullability checking
+    * Fix for reading credentials from file
+    * Fix for setting custom base addresses in clients
+
+* Version 3.0.15 - 06 Oct 2020
+    * Changed default ShouldCheckObjects to false to prevent spam in logging
+
 * Version 3.0.14 - 24 Aug 2020
     * Updated exception message logging
 

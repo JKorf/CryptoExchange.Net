@@ -76,10 +76,22 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ClientOptions : BaseOptions
     {
+        private string _baseAddress;
+
         /// <summary>
         /// The base address of the client
         /// </summary>
-        public string BaseAddress { get; set; }
+        public string BaseAddress
+        {
+            get => _baseAddress;
+            set
+            {
+                var newValue = value;
+                if (!newValue.EndsWith("/"))
+                    newValue += "/";
+                _baseAddress = newValue;
+            }
+        }
 
         /// <summary>
         /// The api credentials
@@ -89,7 +101,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Should check objects for missing properties based on the model and the received JSON
         /// </summary>
-        public bool ShouldCheckObjects { get; set; } = true;
+        public bool ShouldCheckObjects { get; set; } = false;
 
         /// <summary>
         /// Proxy to use
@@ -100,7 +112,9 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseAddress"></param>
+#pragma warning disable 8618
         public ClientOptions(string baseAddress)
+#pragma warning restore 8618
         {
             BaseAddress = baseAddress;
         }

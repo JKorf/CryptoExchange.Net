@@ -294,7 +294,7 @@
             <param name="stream">The stream to deserialize</param>
             <param name="serializer">A specific serializer to use</param>
             <param name="requestId">Id of the request</param>
-            <param name="elapsedMilliseconds">Milliseconds reponse time</param>
+            <param name="elapsedMilliseconds">Milliseconds response time</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.NextId">
@@ -1199,6 +1199,40 @@
             <param name="y"></param>
             <returns></returns>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.CallResult">
+            <summary>
+            The result of an operation
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Error">
+            <summary>
+            An error if the call didn't succeed
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Success">
+            <summary>
+            Whether the call was successful
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.#ctor(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.op_Implicit(CryptoExchange.Net.Objects.CallResult)~System.Boolean">
+            <summary>
+            Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.CallResult`1">
             <summary>
             The result of an operation
@@ -1208,16 +1242,6 @@
         <member name="P:CryptoExchange.Net.Objects.CallResult`1.Data">
             <summary>
             The data returned by the call
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Error">
-            <summary>
-            An error if the call didn't succeed
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Success">
-            <summary>
-            Whether the call was successful
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.CallResult`1.#ctor(`0,CryptoExchange.Net.Objects.Error)">
@@ -1232,6 +1256,53 @@
             Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
             </summary>
             <param name="obj"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult`1.GetResultOrError(`0@,CryptoExchange.Net.Objects.Error@)">
+            <summary>
+            Whether the call was successful or not. Useful for nullability checking.
+            </summary>
+            <param name="data">The data returned by the call.</param>
+            <param name="error"><see cref="T:CryptoExchange.Net.Objects.Error"/> on failure.</param>
+            <returns><c>true</c> when <see cref="T:CryptoExchange.Net.Objects.CallResult`1"/> succeeded, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Objects.WebCallResult">
+            <summary>
+            The result of a request
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseStatusCode">
+            <summary>
+            The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseHeaders">
+            <summary>
+            The response headers
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.#ctor(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+            <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Objects.WebCallResult`1">
             <summary>
@@ -1257,13 +1328,6 @@
             <param name="responseHeaders"></param>
             <param name="data"></param>
             <param name="error"></param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
-            <summary>
-            Create an error result
-            </summary>
-            <param name="error"></param>
-            <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
             <summary>
@@ -1401,20 +1465,20 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Code">
             <summary>
-            The error code
+            The error code from the server
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Message">
             <summary>
-            The message for the error that occured
+            The message for the error that occurred
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Data">
             <summary>
-            Optional data for the error
+            The data which caused the error
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.Error.#ctor(System.Int32,System.String,System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.Error.#ctor(System.Nullable{System.Int32},System.String,System.Object)">
             <summary>
             ctor
             </summary>
@@ -1473,10 +1537,19 @@
             Web error returned by the server
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
+            <param name="message"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.Int32,System.String,System.Object)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="message"></param>
             <param name="data"></param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.DeserializeError">
@@ -1484,21 +1557,23 @@
             Error while deserializing data
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.DeserializeError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.DeserializeError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
-            <param name="data">Deserializing data</param>
+            <param name="message">The error message</param>
+            <param name="data">The data which caused the error</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.UnknownError">
             <summary>
             Unknown error
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.UnknownError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.UnknownError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
+            <param name="message">Error message</param>
             <param name="data">Error data</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.ArgumentError">
