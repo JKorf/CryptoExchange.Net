@@ -158,9 +158,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Create an error result
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="responseHeaders"></param>
-        /// <param name="error"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
         public static WebCallResult CreateErrorResult(WebCallResult result)
         {
@@ -199,12 +197,22 @@ namespace CryptoExchange.Net.Objects
             ResponseHeaders = responseHeaders;
         }
 
+        /// <summary>
+        /// Create new based on existing
+        /// </summary>
+        /// <param name="callResult"></param>
         public WebCallResult(WebCallResult<T> callResult): base(callResult.Data, callResult.Error)
         {
             ResponseHeaders = callResult.ResponseHeaders;
             ResponseStatusCode = callResult.ResponseStatusCode;
         }
 
+        /// <summary>
+        /// Create from a call result
+        /// </summary>
+        /// <typeparam name="Y"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
         public static WebCallResult<T> CreateFrom<Y>(WebCallResult<Y> source) where Y : T
         {
             return new WebCallResult<T>(source.ResponseStatusCode, source.ResponseHeaders, (T)source.Data, source.Error);

@@ -1636,9 +1636,7 @@
             <summary>
             Create an error result
             </summary>
-            <param name="code"></param>
-            <param name="responseHeaders"></param>
-            <param name="error"></param>
+            <param name="result"></param>
             <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Objects.WebCallResult`1">
@@ -1665,6 +1663,20 @@
             <param name="responseHeaders"></param>
             <param name="data"></param>
             <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.#ctor(CryptoExchange.Net.Objects.WebCallResult{`0})">
+            <summary>
+            Create new based on existing
+            </summary>
+            <param name="callResult"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateFrom``1(CryptoExchange.Net.Objects.WebCallResult{``0})">
+            <summary>
+            Create from a call result
+            </summary>
+            <typeparam name="Y"></typeparam>
+            <param name="source"></param>
+            <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
             <summary>
