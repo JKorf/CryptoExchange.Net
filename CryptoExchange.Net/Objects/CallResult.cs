@@ -154,6 +154,18 @@ namespace CryptoExchange.Net.Objects
         {
             return new WebCallResult(code, responseHeaders, error);
         }
+
+        /// <summary>
+        /// Create an error result
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="responseHeaders"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static WebCallResult CreateErrorResult(WebCallResult result)
+        {
+            return new WebCallResult(result.ResponseStatusCode, result.ResponseHeaders, result.Error);
+        }
     }
 
     /// <summary>
@@ -185,6 +197,17 @@ namespace CryptoExchange.Net.Objects
         {
             ResponseStatusCode = code;
             ResponseHeaders = responseHeaders;
+        }
+
+        public WebCallResult(WebCallResult<T> callResult): base(callResult.Data, callResult.Error)
+        {
+            ResponseHeaders = callResult.ResponseHeaders;
+            ResponseStatusCode = callResult.ResponseStatusCode;
+        }
+
+        public static WebCallResult<T> CreateFrom<Y>(WebCallResult<Y> source) where Y : T
+        {
+            return new WebCallResult<T>(source.ResponseStatusCode, source.ResponseHeaders, (T)source.Data, source.Error);
         }
 
         /// <summary>

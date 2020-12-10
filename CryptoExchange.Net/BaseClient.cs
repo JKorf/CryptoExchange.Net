@@ -25,6 +25,10 @@ namespace CryptoExchange.Net
         /// </summary>
         public string BaseAddress { get; }
         /// <summary>
+        /// The name of the client
+        /// </summary>
+        public string ClientName { get; }
+        /// <summary>
         /// The log object
         /// </summary>
         protected internal Log log;
@@ -64,15 +68,17 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="clientName"></param>
         /// <param name="options"></param>
         /// <param name="authenticationProvider"></param>
-        protected BaseClient(ClientOptions options, AuthenticationProvider? authenticationProvider)
+        protected BaseClient(string clientName, ClientOptions options, AuthenticationProvider? authenticationProvider)
         {
-            log = new Log();
+            log = new Log(clientName);
             authProvider = authenticationProvider;
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogVerbosity;
 
+            ClientName = clientName;
             BaseAddress = options.BaseAddress;
             apiProxy = options.Proxy;
 

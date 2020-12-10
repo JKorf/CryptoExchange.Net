@@ -209,6 +209,11 @@
             The address of the client
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.BaseClient.ClientName">
+            <summary>
+            The name of the client
+            </summary>
+        </member>
         <member name="F:CryptoExchange.Net.BaseClient.log">
             <summary>
             The log object
@@ -244,10 +249,11 @@
             Last is used
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.#ctor(CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.BaseClient.#ctor(System.String,CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
+            <param name="clientName"></param>
             <param name="options"></param>
             <param name="authenticationProvider"></param>
         </member>
@@ -434,6 +440,105 @@
         </member>
         <member name="M:CryptoExchange.Net.Converters.UTCDateTimeConverter.CanConvert(System.Type)">
             <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient">
+            <summary>
+            Shared interface for exchange wrappers based on the CryptoExchange.Net package
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolName(System.String,System.String)">
+            <summary>
+            Get the symbol name basset on a base and quote asset
+            </summary>
+            <param name="baseAsset"></param>
+            <param name="quoteAsset"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolsAsync">
+            <summary>
+            Get a list of symbols for the exchange
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetTickersAsync">
+            <summary>
+            Get a list of tickers for the exchange
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetKlinesAsync(System.String,System.TimeSpan)">
+            <summary>
+            Get a list of candles for a given symbol on the exchange
+            </summary>
+            <param name="symbol">The symbol to retrieve the candles for</param>
+            <param name="timespan">The timespan to retrieve the candles for. The supported value are dependent on the exchange</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOrderBookAsync(System.String)">
+            <summary>
+            Get the order book for a symbol
+            </summary>
+            <param name="symbol">The symbol to get the book for</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetRecentTradesAsync(System.String)">
+            <summary>
+            The recent trades for a symbol
+            </summary>
+            <param name="symbol">The symbol to get the trades for</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.PlaceOrderAsync(System.String,CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide,CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType,System.Decimal,System.Nullable{System.Decimal},System.String)">
+            <summary>
+            Place an order
+            </summary>
+            <param name="symbol">The symbol the order is for</param>
+            <param name="side">The side of the order</param>
+            <param name="type">The type of the order</param>
+            <param name="quantity">The quantity of the order</param>
+            <param name="price">The price of the order, only for limit orders</param>
+            <param name="accountId">[Optional] The account id to place the order on, required for some exchanges</param>
+            <returns>The id of the resulting order</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOrderAsync(System.String,System.String)">
+            <summary>
+            Get an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetTradesAsync(System.String,System.String)">
+            <summary>
+            Get trades for an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOpenOrdersAsync(System.String)">
+            <summary>
+            Get a list of open orders
+            </summary>
+            <param name="symbol">[Optional] The symbol to get open orders for, required for some exchanges. If the symbol is not required for the call,
+            the result will NOT be filtered by this</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetClosedOrdersAsync(System.String)">
+            <summary>
+            Get a list of closed orders
+            </summary>
+            <param name="symbol">[Optional] The symbol to get closed orders for, required for some exchanges. If the symbol is not required for the call,
+            the result will NOT be filtered by this</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.CancelOrderAsync(System.String,System.String)">
+            <summary>
+            Cancel an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges</param>
+            <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.ExtensionMethods">
             <summary>
@@ -710,6 +815,11 @@
         <member name="P:CryptoExchange.Net.Interfaces.IRestClient.BaseAddress">
             <summary>
             The base address of the API
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ClientName">
+            <summary>
+            Client name
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRestClient.AddRateLimiter(CryptoExchange.Net.Interfaces.IRateLimiter)">
@@ -1065,7 +1175,12 @@
             The verbosity of the logging
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Logging.Log.#ctor">
+        <member name="P:CryptoExchange.Net.Logging.Log.ClientName">
+            <summary>
+            Client name
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.Log.#ctor(System.String)">
             <summary>
             ctor
             </summary>
@@ -1296,6 +1411,15 @@
             <param name="error"></param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(CryptoExchange.Net.Objects.WebCallResult)">
             <summary>
             Create an error result
             </summary>
@@ -2259,10 +2383,11 @@
             Total requests made
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.#ctor(CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.RestClient.#ctor(System.String,CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
+            <param name="clientName"></param>
             <param name="exchangeOptions"></param>
             <param name="authenticationProvider"></param>
         </member>
@@ -2423,10 +2548,11 @@
             If false; data which is a response to a query won't get forwarded to subscriptions as well
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.#ctor(CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.SocketClient.#ctor(System.String,CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             Create a socket client
             </summary>
+            <param name="clientName">Client name</param>
             <param name="exchangeOptions">Client options</param>
             <param name="authenticationProvider">Authentication provider</param>
         </member>
@@ -3060,6 +3186,149 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is allowed as an input even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is disallowed as an input even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
+            <summary>
+                Specifies that a method that will never return under any circumstance.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+            <summary>
+                Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
+                parameter is passed the specified value.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
+            <summary>
+                Gets the condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute"/>
+                class with the specified parameter value.
+            </summary>
+            <param name="parameterValue">
+                The condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
+            <summary>
+                Specifies that an output may be <see langword="null"/> even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, 
+                the parameter may be <see langword="null"/> even if the corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                 Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>
+                Specifies that an output is not <see langword="null"/> even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.NotNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
+            <summary>
+                Specifies that the output will be non-<see langword="null"/> if the
+                named parameter is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
+            <summary>
+                Gets the associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
+            <summary>
+                Initializes the attribute with the associated parameter name.
+            </summary>
+            <param name="parameterName">
+                The associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>,
+                the parameter will not be <see langword="null"/> even if the corresponding type allows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </param>
         </member>
     </members>
 </doc>
