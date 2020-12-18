@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
         }
 
-        public TestSocketClient(SocketClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestSocketClient(SocketClientOptions exchangeOptions) : base("test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
             SocketFactory = new Mock<IWebsocketFactory>().Object;
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());

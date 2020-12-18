@@ -25,6 +25,10 @@ namespace CryptoExchange.Net
         /// </summary>
         public string BaseAddress { get; }
         /// <summary>
+        /// The name of the client
+        /// </summary>
+        public string ClientName { get; }
+        /// <summary>
         /// The log object
         /// </summary>
         protected internal Log log;
@@ -64,15 +68,17 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="clientName"></param>
         /// <param name="options"></param>
         /// <param name="authenticationProvider"></param>
-        protected BaseClient(ClientOptions options, AuthenticationProvider? authenticationProvider)
+        protected BaseClient(string clientName, ClientOptions options, AuthenticationProvider? authenticationProvider)
         {
-            log = new Log();
+            log = new Log(clientName);
             authProvider = authenticationProvider;
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogVerbosity;
 
+            ClientName = clientName;
             BaseAddress = options.BaseAddress;
             apiProxy = options.Proxy;
 
@@ -291,7 +297,8 @@ namespace CryptoExchange.Net
                 if (ignore != null)
                     continue;
 
-                properties.Add(attr == null ? prop.Name : ((JsonPropertyAttribute)attr).PropertyName);
+                var propertyName = ((JsonPropertyAttribute?) attr)?.PropertyName;
+                properties.Add(propertyName ?? prop.Name);
             }
             foreach (var token in obj)
             {
@@ -313,12 +320,12 @@ namespace CryptoExchange.Net
                 properties.Remove(d);
 
                 var propType = GetProperty(d, props)?.PropertyType;
-                if (propType == null)
+                if (propType == null || token.Value == null)
                     continue;
                 if (!IsSimple(propType) && propType != typeof(DateTime))
                 {
                     if (propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
-                        CheckObject(propType.GetElementType(), (JObject)token.Value[0], requestId);
+                        CheckObject(propType.GetElementType()!, (JObject)token.Value[0]!, requestId);
                     else if (token.Value is JObject o)
                         CheckObject(propType, o, requestId);
                 }

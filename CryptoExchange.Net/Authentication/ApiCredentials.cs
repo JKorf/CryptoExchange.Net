@@ -109,7 +109,7 @@ namespace CryptoExchange.Net.Authentication
         {
             if (data[key] == null)
                 return null;
-            return (string) data[key];
+            return (string) data[key]!;
         }       
 
         /// <summary>

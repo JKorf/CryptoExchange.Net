@@ -208,7 +208,7 @@ namespace CryptoExchange.Net.OrderBook
             asks = new SortedList<decimal, ISymbolOrderBookEntry>();
             bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 
-            log = new Log { Level = options.LogVerbosity };
+            log = new Log(options.OrderBookName) { Level = options.LogVerbosity };
             var writers = options.LogWriters ?? new List<TextWriter> { new DebugTextWriter() };
             log.UpdateWriters(writers.ToList());
         }

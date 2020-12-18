@@ -83,9 +83,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Create a socket client
         /// </summary>
+        /// <param name="clientName">Client name</param>
         /// <param name="exchangeOptions">Client options</param>
         /// <param name="authenticationProvider">Authentication provider</param>
-        protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected SocketClient(string clientName, SocketClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(clientName, exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));

@@ -9,20 +9,20 @@ namespace CryptoExchange.Net.Converters
     public class UTCDateTimeConverter: JsonConverter
     {
         /// <inheritdoc />
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             writer.WriteValue(JsonConvert.SerializeObject(value));
         }
 
         /// <inheritdoc />
-        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
                 return null;
 
             DateTime value;
             if (reader.Value is string s)
-                value = (DateTime)JsonConvert.DeserializeObject(s);
+                value = (DateTime)JsonConvert.DeserializeObject(s)!;
             else
                 value = (DateTime) reader.Value;
 

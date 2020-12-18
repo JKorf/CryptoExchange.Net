@@ -203,6 +203,11 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.3.0 - 10 dec 2020
+    * Added client name
+    * Added common interfaces
+    * Fixed api key plain text storing in RateLimitterApiKey
+
 * Version 3.2.1 - 19 nov 2020
     * Fixed error code parsing
 

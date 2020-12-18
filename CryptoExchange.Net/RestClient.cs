@@ -76,9 +76,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="clientName"></param>
         /// <param name="exchangeOptions"></param>
         /// <param name="authenticationProvider"></param>
-        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(exchangeOptions, authenticationProvider)
+        protected RestClient(string clientName, RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(clientName, exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));

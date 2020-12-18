@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestRestClient: RestClient
     {
-        public TestRestClient() : base(new RestClientOptions("http://testurl.url"), null)
+        public TestRestClient() : base("Test", new RestClientOptions("http://testurl.url"), null)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        public TestRestClient(RestClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestRestClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
