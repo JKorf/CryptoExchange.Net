@@ -150,7 +150,10 @@ namespace CryptoExchange.Net.Objects
         /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
         /// </summary>
         public HttpClient? HttpClient { get; set; }
-
+        /// <summary>
+        /// Http client factory
+        /// </summary>
+        public IHttpClientFactory? HttpClientFactory { get; set; }
         /// <summary>
         /// ctor
         /// </summary>
@@ -162,10 +165,10 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseAddress">The base address of the API</param>
-        /// <param name="httpClient">Shared http client instance</param>
-        public RestClientOptions(HttpClient httpClient, string baseAddress) : base(baseAddress)
+        /// <param name="httpClientFactory">Factory for creating http client instance</param>
+        public RestClientOptions(IHttpClientFactory httpClientFactory, string baseAddress) : base(baseAddress)
         {
-            HttpClient = httpClient;
+            HttpClientFactory = httpClientFactory;
         }
         /// <summary>
         /// Create a copy of the options
@@ -183,7 +186,8 @@ namespace CryptoExchange.Net.Objects
                 RateLimiters = RateLimiters,
                 RateLimitingBehaviour = RateLimitingBehaviour,
                 RequestTimeout = RequestTimeout,
-                HttpClient = HttpClient
+                HttpClient = HttpClient, 
+                HttpClientFactory = HttpClientFactory
             };
 
             if (ApiCredentials != null)

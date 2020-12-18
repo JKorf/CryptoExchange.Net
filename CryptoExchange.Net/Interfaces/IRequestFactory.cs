@@ -20,10 +20,16 @@ namespace CryptoExchange.Net.Interfaces
 
         /// <summary>
         /// Configure the requests created by this factory
-        /// </summary>
+        /// </summary>      
+        /// <param name="clientName">The client name</param>      
         /// <param name="requestTimeout">Request timeout to use</param>
-        /// <param name="proxy">Proxy settings to use</param>       
-        /// <param name="httpClient">Optional shared http client instance</param>
-        void Configure(TimeSpan requestTimeout, ApiProxy? proxy, HttpClient? httpClient=null);
+        /// <param name="proxy">Proxy settings to use</param>    
+        void Configure(string clientName, TimeSpan requestTimeout, ApiProxy? proxy);
+        /// <summary>
+        /// Configure the requests created by this factory using IHttpClientFactory
+        /// </summary>
+        /// <param name="clientName">The client name</param>       
+        /// <param name="httpClientFactory">Optional http client factory for creating client</param>
+        void Configure(string clientName, IHttpClientFactory httpClientFactory);
     }
 }

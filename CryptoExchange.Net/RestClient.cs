@@ -85,7 +85,14 @@ namespace CryptoExchange.Net
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
             RequestTimeout = exchangeOptions.RequestTimeout;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
+            if (exchangeOptions.HttpClientFactory == null)
+            {
+                RequestFactory.Configure(clientName, exchangeOptions.RequestTimeout, exchangeOptions.Proxy);
+            }
+            else
+            {
+                RequestFactory.Configure(clientName, exchangeOptions.HttpClientFactory);
+            }
             RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
@@ -259,7 +266,7 @@ namespace CryptoExchange.Net
                     response.Close();
                     var parseResult = ValidateJson(data);
                     var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : parseResult.Error!;
-                    if(error.Code == null || error.Code == 0)
+                    if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
                     return new WebCallResult<T>(statusCode, headers, default, error);
                 }
