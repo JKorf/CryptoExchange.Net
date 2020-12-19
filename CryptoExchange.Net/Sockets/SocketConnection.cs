@@ -153,6 +153,10 @@ namespace CryptoExchange.Net.Sockets
                 if (pendingRequest.Check(tokenData))
                 {
                     pendingRequests.Remove(pendingRequest);
+                    if (pendingRequest.Result == null)
+					{
+                        continue; // A previous timeout.
+					}
                     if (!socketClient.ContinueOnQueryResponse)
                         return;
                     handledResponse = true;
