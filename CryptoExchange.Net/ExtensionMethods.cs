@@ -172,7 +172,7 @@ namespace CryptoExchange.Net
                 tokenRegistration.Dispose();
             }
         }
-        
+
         /// <summary>
         /// Wait one async
         /// </summary>
@@ -225,7 +225,7 @@ namespace CryptoExchange.Net
         {
             if (!allowedValues.Contains(value))
                 throw new ArgumentException(
-                    $"{value} not allowed for parameter {argumentName}, allowed values: {string.Join(", ", allowedValues)}");
+                    $"{value} not allowed for parameter {argumentName}, allowed values: {string.Join(", ", allowedValues)}", argumentName);
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace CryptoExchange.Net
         {
             if (value < minValue || value > maxValue)
                 throw new ArgumentException(
-                    $"{value} not allowed for parameter {argumentName}, min: {minValue}, max: {maxValue}");
+                    $"{value} not allowed for parameter {argumentName}, min: {minValue}, max: {maxValue}", argumentName);
         }
 
         /// <summary>
@@ -250,7 +250,7 @@ namespace CryptoExchange.Net
         public static void ValidateNotNull(this string value, string argumentName)
         {
             if (string.IsNullOrEmpty(value))
-                throw new ArgumentException($"No value provided for parameter {argumentName}");
+                throw new ArgumentException($"No value provided for parameter {argumentName}", argumentName);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace CryptoExchange.Net
         public static void ValidateNotNull(this object value, string argumentName)
         {
             if (value == null)
-                throw new ArgumentException($"No value provided for parameter {argumentName}");
+                throw new ArgumentException($"No value provided for parameter {argumentName}", argumentName);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace CryptoExchange.Net
         public static void ValidateNotNull<T>(this IEnumerable<T> value, string argumentName)
         {
             if (value == null || !value.Any())
-                throw new ArgumentException($"No values provided for parameter {argumentName}");
+                throw new ArgumentException($"No values provided for parameter {argumentName}", argumentName);
         }
     }
 }

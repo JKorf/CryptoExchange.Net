@@ -209,6 +209,11 @@
             The address of the client
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.BaseClient.ClientName">
+            <summary>
+            The name of the client
+            </summary>
+        </member>
         <member name="F:CryptoExchange.Net.BaseClient.log">
             <summary>
             The log object
@@ -244,10 +249,11 @@
             Last is used
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.#ctor(CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.BaseClient.#ctor(System.String,CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
+            <param name="clientName"></param>
             <param name="options"></param>
             <param name="authenticationProvider"></param>
         </member>
@@ -294,7 +300,7 @@
             <param name="stream">The stream to deserialize</param>
             <param name="serializer">A specific serializer to use</param>
             <param name="requestId">Id of the request</param>
-            <param name="elapsedMilliseconds">Milliseconds reponse time</param>
+            <param name="elapsedMilliseconds">Milliseconds response time</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.NextId">
@@ -434,6 +440,318 @@
         </member>
         <member name="M:CryptoExchange.Net.Converters.UTCDateTimeConverter.CanConvert(System.Type)">
             <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade">
+            <summary>
+            Common trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonId">
+            <summary>
+            Id of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonPrice">
+            <summary>
+            Price of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonQuantity">
+            <summary>
+            Quantity of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonFee">
+            <summary>
+            Fee paid for the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonFeeAsset">
+            <summary>
+            The asset fee was paid in
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient">
+            <summary>
+            Shared interface for exchange wrappers based on the CryptoExchange.Net package
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolName(System.String,System.String)">
+            <summary>
+            Get the symbol name based on a base and quote asset
+            </summary>
+            <param name="baseAsset"></param>
+            <param name="quoteAsset"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolsAsync">
+            <summary>
+            Get a list of symbols for the exchange
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetTickersAsync">
+            <summary>
+            Get a list of tickers for the exchange
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetKlinesAsync(System.String,System.TimeSpan)">
+            <summary>
+            Get a list of candles for a given symbol on the exchange
+            </summary>
+            <param name="symbol">The symbol to retrieve the candles for</param>
+            <param name="timespan">The timespan to retrieve the candles for. The supported value are dependent on the exchange</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOrderBookAsync(System.String)">
+            <summary>
+            Get the order book for a symbol
+            </summary>
+            <param name="symbol">The symbol to get the book for</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetRecentTradesAsync(System.String)">
+            <summary>
+            The recent trades for a symbol
+            </summary>
+            <param name="symbol">The symbol to get the trades for</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.PlaceOrderAsync(System.String,CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide,CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType,System.Decimal,System.Nullable{System.Decimal},System.String)">
+            <summary>
+            Place an order
+            </summary>
+            <param name="symbol">The symbol the order is for</param>
+            <param name="side">The side of the order</param>
+            <param name="type">The type of the order</param>
+            <param name="quantity">The quantity of the order</param>
+            <param name="price">The price of the order, only for limit orders</param>
+            <param name="accountId">[Optional] The account id to place the order on, required for some exchanges, ignored otherwise</param>
+            <returns>The id of the resulting order</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOrderAsync(System.String,System.String)">
+            <summary>
+            Get an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetTradesAsync(System.String,System.String)">
+            <summary>
+            Get trades for an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetOpenOrdersAsync(System.String)">
+            <summary>
+            Get a list of open orders
+            </summary>
+            <param name="symbol">[Optional] The symbol to get open orders for, required for some exchanges, ignored otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetClosedOrdersAsync(System.String)">
+            <summary>
+            Get a list of closed orders
+            </summary>
+            <param name="symbol">[Optional] The symbol to get closed orders for, required for some exchanges, ignored otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.CancelOrderAsync(System.String,System.String)">
+            <summary>
+            Cancel an order by id
+            </summary>
+            <param name="orderId">The id</param>
+            <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType">
+            <summary>
+            Common order id
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Limit">
+            <summary>
+            Limit type
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Market">
+            <summary>
+            Market type
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderType.Other">
+            <summary>
+            Other order type
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide">
+            <summary>
+            Common order side
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide.Buy">
+            <summary>
+            Buy order
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderSide.Sell">
+            <summary>
+            Sell order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonKline">
+            <summary>
+            Common kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonHigh">
+            <summary>
+            High price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonLow">
+            <summary>
+            Low price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonOpen">
+            <summary>
+            Open price for this kline
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonClose">
+            <summary>
+            Close price for this kline
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder">
+            <summary>
+            Common order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonSymbol">
+            <summary>
+            Symbol of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonPrice">
+            <summary>
+            Price of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonQuantity">
+            <summary>
+            Quantity of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonStatus">
+            <summary>
+            Status of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.IsActive">
+            <summary>
+            Whether the order is active
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonSide">
+            <summary>
+            Side of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonType">
+            <summary>
+            Type of the order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook">
+            <summary>
+            Common order book
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook.CommonBids">
+            <summary>
+            Bids
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook.CommonAsks">
+            <summary>
+            Asks
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderId">
+            <summary>
+            Common order id
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderId.CommonId">
+            <summary>
+            Id of the order
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade">
+            <summary>
+            Recent trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonPrice">
+            <summary>
+            Price of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonQuantity">
+            <summary>
+            Quantity of the trade
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonRecentTrade.CommonTradeTime">
+            <summary>
+            Trade time
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol">
+            <summary>
+            Common symbol
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonName">
+            <summary>
+            Symbol name
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonMinimumTradeSize">
+            <summary>
+            Minimum trade size
+            </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker">
+            <summary>
+            Common ticker
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonSymbol">
+            <summary>
+            Symbol name
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonHigh">
+            <summary>
+            High price
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonLow">
+            <summary>
+            Low price
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonVolume">
+            <summary>
+            Volume
+            </summary>
         </member>
         <member name="T:CryptoExchange.Net.ExtensionMethods">
             <summary>
@@ -710,6 +1028,11 @@
         <member name="P:CryptoExchange.Net.Interfaces.IRestClient.BaseAddress">
             <summary>
             The base address of the API
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ClientName">
+            <summary>
+            Client name
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRestClient.AddRateLimiter(CryptoExchange.Net.Interfaces.IRateLimiter)">
@@ -1065,7 +1388,12 @@
             The verbosity of the logging
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Logging.Log.#ctor">
+        <member name="P:CryptoExchange.Net.Logging.Log.ClientName">
+            <summary>
+            Client name
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.Log.#ctor(System.String)">
             <summary>
             ctor
             </summary>
@@ -1199,6 +1527,40 @@
             <param name="y"></param>
             <returns></returns>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.CallResult">
+            <summary>
+            The result of an operation
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Error">
+            <summary>
+            An error if the call didn't succeed
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult.Success">
+            <summary>
+            Whether the call was successful
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.#ctor(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.op_Implicit(CryptoExchange.Net.Objects.CallResult)~System.Boolean">
+            <summary>
+            Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
+            </summary>
+            <param name="obj"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.CallResult`1">
             <summary>
             The result of an operation
@@ -1208,16 +1570,6 @@
         <member name="P:CryptoExchange.Net.Objects.CallResult`1.Data">
             <summary>
             The data returned by the call
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Error">
-            <summary>
-            An error if the call didn't succeed
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.CallResult`1.Success">
-            <summary>
-            Whether the call was successful
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.CallResult`1.#ctor(`0,CryptoExchange.Net.Objects.Error)">
@@ -1232,6 +1584,60 @@
             Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
             </summary>
             <param name="obj"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult`1.GetResultOrError(`0@,CryptoExchange.Net.Objects.Error@)">
+            <summary>
+            Whether the call was successful or not. Useful for nullability checking.
+            </summary>
+            <param name="data">The data returned by the call.</param>
+            <param name="error"><see cref="T:CryptoExchange.Net.Objects.Error"/> on failure.</param>
+            <returns><c>true</c> when <see cref="T:CryptoExchange.Net.Objects.CallResult`1"/> succeeded, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.CallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CryptoExchange.Net.Objects.WebCallResult">
+            <summary>
+            The result of a request
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseStatusCode">
+            <summary>
+            The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.WebCallResult.ResponseHeaders">
+            <summary>
+            The response headers
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.#ctor(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="code"></param>
+            <param name="responseHeaders"></param>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(CryptoExchange.Net.Objects.WebCallResult)">
+            <summary>
+            Create an error result
+            </summary>
+            <param name="result"></param>
+            <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Objects.WebCallResult`1">
             <summary>
@@ -1258,11 +1664,18 @@
             <param name="data"></param>
             <param name="error"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(CryptoExchange.Net.Objects.Error)">
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.#ctor(CryptoExchange.Net.Objects.WebCallResult{`0})">
             <summary>
-            Create an error result
+            Create new based on existing
             </summary>
-            <param name="error"></param>
+            <param name="callResult"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateFrom``1(CryptoExchange.Net.Objects.WebCallResult{``0})">
+            <summary>
+            Create from a call result
+            </summary>
+            <typeparam name="Y"></typeparam>
+            <param name="source"></param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
@@ -1401,20 +1814,20 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Code">
             <summary>
-            The error code
+            The error code from the server
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Message">
             <summary>
-            The message for the error that occured
+            The message for the error that occurred
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.Error.Data">
             <summary>
-            Optional data for the error
+            The data which caused the error
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.Error.#ctor(System.Int32,System.String,System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.Error.#ctor(System.Nullable{System.Int32},System.String,System.Object)">
             <summary>
             ctor
             </summary>
@@ -1473,10 +1886,19 @@
             Web error returned by the server
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
+            <param name="message"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.WebError.#ctor(System.Int32,System.String,System.Object)">
+            <summary>
+            ctor
+            </summary>
+            <param name="code"></param>
+            <param name="message"></param>
             <param name="data"></param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.DeserializeError">
@@ -1484,21 +1906,23 @@
             Error while deserializing data
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.DeserializeError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.DeserializeError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
-            <param name="data">Deserializing data</param>
+            <param name="message">The error message</param>
+            <param name="data">The data which caused the error</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.UnknownError">
             <summary>
             Unknown error
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.UnknownError.#ctor(System.Object)">
+        <member name="M:CryptoExchange.Net.Objects.UnknownError.#ctor(System.String,System.Object)">
             <summary>
             ctor
             </summary>
+            <param name="message">Error message</param>
             <param name="data">Error data</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.ArgumentError">
@@ -1992,6 +2416,11 @@
         <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
             <inheritdoc />
         </member>
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.Dispose">
+            <summary>
+            Dispose
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.RateLimiter.RateLimiterPerEndpoint">
             <summary>
             Limits the amount of requests per time period to a certain limit, counts the request per endpoint.
@@ -2184,10 +2613,11 @@
             Total requests made
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.#ctor(CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.RestClient.#ctor(System.String,CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
+            <param name="clientName"></param>
             <param name="exchangeOptions"></param>
             <param name="authenticationProvider"></param>
         </member>
@@ -2348,10 +2778,11 @@
             If false; data which is a response to a query won't get forwarded to subscriptions as well
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.#ctor(CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
+        <member name="M:CryptoExchange.Net.SocketClient.#ctor(System.String,CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             Create a socket client
             </summary>
+            <param name="clientName">Client name</param>
             <param name="exchangeOptions">Client options</param>
             <param name="authenticationProvider">Authentication provider</param>
         </member>

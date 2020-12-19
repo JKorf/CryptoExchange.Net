@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
         public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
         {
-            using var reader = new StreamReader(inputStream, Encoding.ASCII, false, 512, true);
+            using var reader = new StreamReader(inputStream, Encoding.UTF8, false, 512, true);
             
             var stringData = reader.ReadToEnd();
             var jsonData = stringData.ToJToken();
@@ -109,7 +109,7 @@ namespace CryptoExchange.Net.Authentication
         {
             if (data[key] == null)
                 return null;
-            return (string) data[key];
+            return (string) data[key]!;
         }       
 
         /// <summary>

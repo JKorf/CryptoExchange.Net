@@ -76,9 +76,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="clientName"></param>
         /// <param name="exchangeOptions"></param>
         /// <param name="authenticationProvider"></param>
-        protected RestClient(RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(exchangeOptions, authenticationProvider)
+        protected RestClient(string clientName, RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(clientName, exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
@@ -232,7 +233,7 @@ namespace CryptoExchange.Net
 
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
-                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, new ServerError(data));
+                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, parseResult.Error!);
                         var error = await TryParseError(parseResult.Data);
                         if (error != null)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
@@ -257,7 +258,10 @@ namespace CryptoExchange.Net
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);
-                    return new WebCallResult<T>(statusCode, headers, default, parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data));
+                    var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : parseResult.Error!;
+                    if(error.Code == null || error.Code == 0)
+                        error.Code = (int)response.StatusCode;
+                    return new WebCallResult<T>(statusCode, headers, default, error);
                 }
             }
             catch (HttpRequestException requestException)

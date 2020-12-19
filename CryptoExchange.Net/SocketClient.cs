@@ -83,9 +83,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Create a socket client
         /// </summary>
+        /// <param name="clientName">Client name</param>
         /// <param name="exchangeOptions">Client options</param>
         /// <param name="authenticationProvider">Authentication provider</param>
-        protected SocketClient(SocketClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(exchangeOptions, authenticationProvider)
+        protected SocketClient(string clientName, SocketClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider): base(clientName, exchangeOptions, authenticationProvider)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
@@ -294,7 +295,7 @@ namespace CryptoExchange.Net
 
             var connectResult = await ConnectSocket(socket).ConfigureAwait(false);
             if (!connectResult)
-                return new CallResult<bool>(false, new CantConnectError());
+                return new CallResult<bool>(false, connectResult.Error);
 
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true, null);
@@ -427,7 +428,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual SocketConnection GetWebsocket(string address, bool authenticated)
         {
-            var socketResult = sockets.Where(s => s.Value.Socket.Url == address && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.HandlerCount).FirstOrDefault();
+            var socketResult = sockets.Where(s => s.Value.Socket.Url.TrimEnd('/') == address.TrimEnd('/') 
+                                                  && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.HandlerCount).FirstOrDefault();
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
             {

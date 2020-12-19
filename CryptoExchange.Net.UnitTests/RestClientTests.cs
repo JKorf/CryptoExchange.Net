@@ -113,7 +113,7 @@ namespace CryptoExchange.Net.UnitTests
 
 
             // assert
-            Assert.IsTrue(client.BaseAddress == "http://test.address.com");
+            Assert.IsTrue(client.BaseAddress == "http://test.address.com/");
             Assert.IsTrue(client.RateLimiters.Count() == 1);
             Assert.IsTrue(client.RateLimitBehaviour == RateLimitingBehaviour.Fail);
             Assert.IsTrue(client.RequestTimeout == TimeSpan.FromMinutes(1));

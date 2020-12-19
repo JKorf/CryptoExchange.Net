@@ -28,9 +28,9 @@ namespace CryptoExchange.Net.Converters
         }
 
         /// <inheritdoc />
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var stringValue = GetValue((T) value);
+            var stringValue = value == null? null: GetValue((T) value);
             if (quotes)
                 writer.WriteValue(stringValue);
             else
@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Converters
         }
 
         /// <inheritdoc />
-        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
                 return null;

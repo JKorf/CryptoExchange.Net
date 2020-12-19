@@ -9,11 +9,11 @@ namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base(new RestClientOptions("http://testurl.url"), null)
+        public TestBaseClient(): base("Test", new RestClientOptions("http://testurl.url"), null)
         {
         }
 
-        public TestBaseClient(RestClientOptions exchangeOptions) : base(exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestBaseClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
         {
         }
 

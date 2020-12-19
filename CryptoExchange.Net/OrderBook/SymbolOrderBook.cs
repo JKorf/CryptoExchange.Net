@@ -39,8 +39,8 @@ namespace CryptoExchange.Net.OrderBook
         private readonly bool strictLevels;
 
         private Task? _processTask;
-        private AutoResetEvent _queueEvent;
-        private ConcurrentQueue<object> _processQueue;
+        private readonly AutoResetEvent _queueEvent;
+        private readonly ConcurrentQueue<object> _processQueue;
 
         /// <summary>
         /// Order book implementation id
@@ -208,7 +208,7 @@ namespace CryptoExchange.Net.OrderBook
             asks = new SortedList<decimal, ISymbolOrderBookEntry>();
             bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 
-            log = new Log { Level = options.LogVerbosity };
+            log = new Log(options.OrderBookName) { Level = options.LogVerbosity };
             var writers = options.LogWriters ?? new List<TextWriter> { new DebugTextWriter() };
             log.UpdateWriters(writers.ToList());
         }
@@ -377,7 +377,7 @@ namespace CryptoExchange.Net.OrderBook
                         FirstUpdateId = item.StartUpdateId,
                         LastUpdateId = item.EndUpdateId,
                     });
-                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{Asks.Count()} asks, {Bids.Count()} bids]");
+                    log.Write(LogVerbosity.Debug, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{item.Asks.Count()} asks, {item.Bids.Count()} bids]");
                 }
                 else
                 {

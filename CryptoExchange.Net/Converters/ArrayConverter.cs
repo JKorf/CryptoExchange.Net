@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Converters
         }
         
         /// <inheritdoc />
-        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (objectType == typeof(JToken))
                 return JToken.Load(reader);
@@ -115,8 +115,11 @@ namespace CryptoExchange.Net.Converters
         }
 
         /// <inheritdoc />
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
+            if (value == null)
+                return;
+
             writer.WriteStartArray();
             var props = value.GetType().GetProperties();
             var ordered = props.OrderBy(p => p.GetCustomAttribute<ArrayPropertyAttribute>()?.Index);

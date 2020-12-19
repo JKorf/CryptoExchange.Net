@@ -18,10 +18,16 @@ namespace CryptoExchange.Net.Logging
         public LogVerbosity Level { get; set; } = LogVerbosity.Info;
 
         /// <summary>
+        /// Client name
+        /// </summary>
+        public string ClientName { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public Log()
+        public Log(string clientName)
         {
+            ClientName = clientName;
             writers = new List<TextWriter>();
         }
 
@@ -44,7 +50,7 @@ namespace CryptoExchange.Net.Logging
             if ((int)logType < (int)Level)
                 return;
 
-            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logType} | {message}";
+            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {ClientName.PadRight(10)} | {logType} | {message}";
             foreach (var writer in writers.ToList())
             {
                 try
