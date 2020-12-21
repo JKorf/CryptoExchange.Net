@@ -31,12 +31,22 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         Task<WebCallResult<IEnumerable<ICommonTicker>>> GetTickersAsync();
 
         /// <summary>
+        /// Get a ticker for the exchange
+        /// </summary>
+        /// <param name="symbol">The symbol to get klines for</param>
+        /// <returns></returns>
+        Task<WebCallResult<ICommonTicker>> GetTickerAsync(string symbol);
+
+        /// <summary>
         /// Get a list of candles for a given symbol on the exchange
         /// </summary>
         /// <param name="symbol">The symbol to retrieve the candles for</param>
         /// <param name="timespan">The timespan to retrieve the candles for. The supported value are dependent on the exchange</param>
+        /// <param name="startTime">[Optional] Start time to retrieve klines for</param>
+        /// <param name="endTime">[Optional] End time to retrieve klines for</param>
+        /// <param name="limit">[Optional] Max number of results</param>
         /// <returns></returns>
-        Task<WebCallResult<IEnumerable<ICommonKline>>> GetKlinesAsync(string symbol, TimeSpan timespan);
+        Task<WebCallResult<IEnumerable<ICommonKline>>> GetKlinesAsync(string symbol, TimeSpan timespan, DateTime? startTime = null, DateTime? endTime = null, int? limit = null);
         /// <summary>
         /// Get the order book for a symbol
         /// </summary>
@@ -80,21 +90,28 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// </summary>
         /// <param name="symbol">[Optional] The symbol to get open orders for, required for some exchanges, ignored otherwise</param>
         /// <returns></returns>
-        Task<WebCallResult<IEnumerable<ICommonOrder>>> GetOpenOrdersAsync(string? symbol);
+        Task<WebCallResult<IEnumerable<ICommonOrder>>> GetOpenOrdersAsync(string? symbol = null);
 
         /// <summary>
         /// Get a list of closed orders
         /// </summary>
         /// <param name="symbol">[Optional] The symbol to get closed orders for, required for some exchanges, ignored otherwise</param>
         /// <returns></returns>
-        Task<WebCallResult<IEnumerable<ICommonOrder>>> GetClosedOrdersAsync(string? symbol);
+        Task<WebCallResult<IEnumerable<ICommonOrder>>> GetClosedOrdersAsync(string? symbol = null);
         /// <summary>
         /// Cancel an order by id
         /// </summary>
         /// <param name="orderId">The id</param>
         /// <param name="symbol">[Optional] The symbol the order is on, required for some exchanges, ignored otherwise</param>
         /// <returns></returns>
-        Task<WebCallResult<ICommonOrderId>> CancelOrderAsync(string orderId, string? symbol);
+        Task<WebCallResult<ICommonOrderId>> CancelOrderAsync(string orderId, string? symbol = null);
+
+        /// <summary>
+        /// Get balances
+        /// </summary>
+        /// <param name="accountId">[Optional] The account id to retrieve balances for, required for some exchanges, ignored otherwise</param>
+        /// <returns></returns>
+        Task<WebCallResult<IEnumerable<ICommonBalance>>> GetBalancesAsync(string? accountId = null);
 
         /// <summary>
         /// Common order id

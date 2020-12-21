@@ -36,6 +36,10 @@ namespace CryptoExchange.Net.Sockets
         /// Connecting closed event
         /// </summary>
         public event Action? Closed;
+        /// <summary>
+        /// Unhandled message event
+        /// </summary>
+        public event Action<JToken>? UnhandledMessage;
 
         /// <summary>
         /// The amount of handlers
@@ -162,7 +166,8 @@ namespace CryptoExchange.Net.Sockets
             
             if (!HandleData(tokenData) && !handledResponse)
             {
-                log.Write(LogVerbosity.Debug, "Message not handled: " + tokenData);
+                log.Write(LogVerbosity.Warning, "Message not handled: " + tokenData);
+                UnhandledMessage?.Invoke(tokenData);
             }
         }
 

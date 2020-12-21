@@ -443,6 +443,7 @@ namespace CryptoExchange.Net
             // Create new socket
             var socket = CreateSocket(address);
             var socketWrapper = new SocketConnection(this, socket);
+            socketWrapper.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {
                 var handler = SocketSubscription.CreateForIdentifier(kvp.Key, false, kvp.Value);
@@ -450,6 +451,14 @@ namespace CryptoExchange.Net
             }
 
             return socketWrapper;
+        }
+
+        /// <summary>
+        /// Process an unhandled message
+        /// </summary>
+        /// <param name="token">The token that wasn't processed</param>
+        protected virtual void HandleUnhandledMessage(JToken token)
+        {
         }
 
         /// <summary>
