@@ -203,6 +203,11 @@ The order book will automatically reconnect when the connection is lost and resy
 To stop synchronizing an order book use the `Stop` method.
 
 ## Release notes
+* Version 3.4.0 - 21 dec 2020
+    * Updated IExchangeClient interface
+    * Fix for dropping message after timeout on socket
+    * Added virtual HandleUnhandledMessage method in SocketClient
+
 * Version 3.3.0 - 10 dec 2020
     * Added client name
     * Added common interfaces
