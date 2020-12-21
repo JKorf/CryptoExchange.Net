@@ -148,11 +148,23 @@ namespace CryptoExchange.Net.Sockets
             }
 
             var handledResponse = false;
-            foreach (var pendingRequest in pendingRequests.ToList())
+            PendingRequest[] requests;
+            lock(pendingRequests)
+			{
+                requests = pendingRequests.ToArray();
+			}
+            foreach (var pendingRequest in requests)
             {
                 if (pendingRequest.Check(tokenData))
                 {
-                    pendingRequests.Remove(pendingRequest);
+                    lock (pendingRequests)
+                    {
+                        pendingRequests.Remove(pendingRequest);
+                    }
+                    if (pendingRequest.Result == null)
+					{
+                        continue; // A previous timeout.
+					}
                     if (!socketClient.ContinueOnQueryResponse)
                         return;
                     handledResponse = true;
@@ -233,7 +245,10 @@ namespace CryptoExchange.Net.Sockets
         public virtual Task SendAndWait<T>(T obj, TimeSpan timeout, Func<JToken, bool> handler)
         {
             var pending = new PendingRequest(handler, timeout);
-            pendingRequests.Add(pending);
+            lock (pendingRequests)
+            {
+                pendingRequests.Add(pending);
+            }
             Send(obj);
             return pending.Event.WaitOneAsync(timeout);
         }
