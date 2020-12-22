@@ -113,7 +113,7 @@ For example:
 ```C#
 using(var client = new BinanceClient())
 {
-	var result = client.GetServerTime();
+	var result = client.Spot.System.GetServerTime();
 	if (result.Success)
 		Console.WriteLine($"Server time: {result.Data}");
 	else
@@ -212,33 +212,34 @@ To stop synchronizing an order book use the `Stop` method.
 Most implementations have an implementation of the `IExchangeClient` interface. It is a shared interface, which makes it easier to re-use the same code for multiple exchanges. It offers basic functionality only, for exchange specific calls use the actual client interface, for example `IBinanceClient` or `IBitfinexClient`.
 
 The IExchangeClient interface supports the following methods:
+
 `string GetSymbolName(string baseAsset, string quoteAsset);` - Based on a base and quote asset return the symbol name for the exchange.
 
-`Task<WebCallResult<IEnumerable<ICommonSymbol>>> GetSymbolsAsync();` - Get a list of supported symbols.
+`GetSymbolsAsync();` - Get a list of supported symbols.
 
-`Task<WebCallResult<IEnumerable<ICommonTicker>>> GetTickersAsync();` - Get a list of tickers (High/Low/volume data for the last 24 hours) for all symbols.
+`GetTickersAsync();` - Get a list of tickers (High/Low/volume data for the last 24 hours) for all symbols.
 
-`Task<WebCallResult<ICommonTicker>> GetTickerAsync(string symbol);` - Get a specific ticker.
+`GetTickerAsync(string symbol);` - Get a specific ticker.
 
-`Task<WebCallResult<IEnumerable<ICommonKline>>> GetKlinesAsync(string symbol, TimeSpan timespan, DateTime? startTime = null, DateTime? endTime = null, int? limit = null);` - Get candlestick data for a symbol.
+`GetKlinesAsync(string symbol, TimeSpan timespan, DateTime? startTime = null, DateTime? endTime = null, int? limit = null);` - Get candlestick data for a symbol.
 
-`Task<WebCallResult<ICommonOrderBook>> GetOrderBookAsync(string symbol);` - Get the order book for a symbol.
+`GetOrderBookAsync(string symbol);` - Get the order book for a symbol.
 
-`Task<WebCallResult<IEnumerable<ICommonRecentTrade>>> GetRecentTradesAsync(string symbol);` - Get a list of the most recent trades for a symbol.
+`GetRecentTradesAsync(string symbol);` - Get a list of the most recent trades for a symbol.
 
-`Task<WebCallResult<ICommonOrderId>> PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, string? accountId = null);` - \[Authenticated\] Place an order.
+`PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, string? accountId = null);` - \[Authenticated\] Place an order.
 
-`Task<WebCallResult<ICommonOrder>> GetOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get details on an order.
+`GetOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get details on an order.
 
-`Task<WebCallResult<IEnumerable<ICommonTrade>>> GetTradesAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get executed trades for an order.
+`GetTradesAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get executed trades for an order.
 
-`Task<WebCallResult<IEnumerable<ICommonOrder>>> GetOpenOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of open orders.
+`GetOpenOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of open orders.
 
-`Task<WebCallResult<IEnumerable<ICommonOrder>>> GetClosedOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of closed orders.
+`GetClosedOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of closed orders.
 
-`Task<WebCallResult<ICommonOrderId>> CancelOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Cancel an order.
+`CancelOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Cancel an order.
 
-`Task<WebCallResult<IEnumerable<ICommonBalance>>> GetBalancesAsync(string? accountId = null);` - \[Authenticated\] Get a list of balances.
+`GetBalancesAsync(string? accountId = null);` - \[Authenticated\] Get a list of balances.
 
 
 Example usage:
