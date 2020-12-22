@@ -52,11 +52,14 @@ Implementations from third parties
 <br />
 <a href="https://github.com/Zaliro/Switcheo.Net">Switcheo</a>
 </td>
-	<td><a href="https://github.com/ridicoulous/LiquidQuoine.Net"><img src="https://github.com/ridicoulous/LiquidQuoine.Net/blob/master/Resources/icon.png?raw=true"></a>
+<td><a href="https://github.com/ridicoulous/LiquidQuoine.Net"><img src="https://github.com/ridicoulous/LiquidQuoine.Net/blob/master/Resources/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/ridicoulous/LiquidQuoine.Net">Liquid</a>
 </td>
-	</td>
+<td><a href="https://github.com/burakoner/OKEx.Net"><img src="https://raw.githubusercontent.com/burakoner/OKEx.Net/master/Okex.Net/Icon/icon.png"></a>
+<br />
+<a href="https://github.com/burakoner/OKEx.Net">OKEx</a>
+</td>
 	<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png"></a>
 <br />
 <a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
@@ -65,11 +68,14 @@ Implementations from third parties
 <br />
 <a href="https://github.com/intelligences/HitBTC.Net">HitBTC</a>
 </td>
+<td><a href="https://github.com/EricGarnier/LiveCoin.Net"><img src="https://github.com/EricGarnier/LiveCoin.Net/blob/master/LiveCoin.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/EricGarnier/LiveCoin.Net">LiveCoin</a>
+</td>
 </tr>
 </table>
 
 Planned implementations (no timeline or specific order):
-* BitMEX
 * Bitstamp
 * CoinFalcon
 * Binance DEX
@@ -88,7 +94,7 @@ public void NonAsyncMethod()
 {
     using(var client = new BinanceClient())
     {
-        var result = client.Ping();
+        var result = client.Spot.Market.Get24HPrices();
     }
 }
 
@@ -96,7 +102,7 @@ public async Task AsyncMethod()
 {
     using(var client = new BinanceClient())
     {
-        var result2 = await client.PingAsync();
+        var result2 = await client.Spot.Market.Get24HPricesAsync();
     }
 }
 ````
@@ -168,7 +174,7 @@ To unsubscribe use the client.Unsubscribe method and pass the UpdateSubscription
 ````C#
 // Subscribe
 var client = new BinanceSocketClient();
-var subResult = client.SubscribeToOrderBookUpdates("BTCUSDT", data => {});
+var subResult = client.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {});
 
 // Unsubscribe
 client.Unsubscribe(subResult.Data);
@@ -201,6 +207,56 @@ var bestAsk = orderBook.BestAsk; // The best ask available in the book
 The order book will automatically reconnect when the connection is lost and resync if it detects the sequence is off. Make sure to check the Status property to see it the book is currently in sync.
 
 To stop synchronizing an order book use the `Stop` method.
+
+## Shared IExchangeClient interface
+Most implementations have an implementation of the `IExchangeClient` interface. It is a shared interface, which makes it easier to re-use the same code for multiple exchanges. It offers basic functionality only, for exchange specific calls use the actual client interface, for example `IBinanceClient` or `IBitfinexClient`.
+
+The IExchangeClient interface supports the following methods:
+`string GetSymbolName(string baseAsset, string quoteAsset);` - Based on a base and quote asset return the symbol name for the exchange.
+`Task<WebCallResult<IEnumerable<ICommonSymbol>>> GetSymbolsAsync();` - Get a list of supported symbols.
+`Task<WebCallResult<IEnumerable<ICommonTicker>>> GetTickersAsync();` - Get a list of tickers (High/Low/volume data for the last 24 hours) for all symbols.
+`Task<WebCallResult<ICommonTicker>> GetTickerAsync(string symbol);` - Get a specific ticker.
+`Task<WebCallResult<IEnumerable<ICommonKline>>> GetKlinesAsync(string symbol, TimeSpan timespan, DateTime? startTime = null, DateTime? endTime = null, int? limit = null);` - Get candlestick data for a symbol.
+`Task<WebCallResult<ICommonOrderBook>> GetOrderBookAsync(string symbol);` - Get the order book for a symbol.
+`Task<WebCallResult<IEnumerable<ICommonRecentTrade>>> GetRecentTradesAsync(string symbol);` - Get a list of the most recent trades for a symbol.
+`Task<WebCallResult<ICommonOrderId>> PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, string? accountId = null);` - \[Authenticated\] Place an order.
+`Task<WebCallResult<ICommonOrder>> GetOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get details on an order.
+`Task<WebCallResult<IEnumerable<ICommonTrade>>> GetTradesAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get executed trades for an order.
+`Task<WebCallResult<IEnumerable<ICommonOrder>>> GetOpenOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of open orders.
+`Task<WebCallResult<IEnumerable<ICommonOrder>>> GetClosedOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of closed orders.
+`Task<WebCallResult<ICommonOrderId>> CancelOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Cancel an order.
+`Task<WebCallResult<IEnumerable<ICommonBalance>>> GetBalancesAsync(string? accountId = null);` - \[Authenticated\] Get a list of balances.
+
+Example usage:
+````C#
+static async Task Main(string[] args)
+{
+	var clients = new List<IExchangeClient>()
+	{
+		{ new BinanceClient(new BinanceClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BinanceKey", "BinanceSecret") }) },
+		{ new BitfinexClient(new BitfinexClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BitfinexKey", "BitfinexSecret")  }) },
+		{ new BittrexClientV3(new BittrexClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BittrexKey", "BittrexSecret")  }) },
+	};
+
+	await Task.WhenAll(clients.Select(GetExchangeData));
+	Console.WriteLine("Done");
+	Console.ReadLine();
+}
+
+static async Task GetExchangeData(IExchangeClient client)
+{
+	var symbols = await client.GetSymbolsAsync();
+	Console.WriteLine($"{((RestClient)client).ClientName}: {symbols.Data?.Count()} symbols returned, first = {symbols.Data?.First().CommonName}");
+
+	var balances = await client.GetBalancesAsync();
+	var btcBalance = balances.Data?.Where(b => b.CommonAsset.ToUpperInvariant() == "BTC").FirstOrDefault();
+	Console.WriteLine($"{((RestClient)client).ClientName}: {balances.Data?.Count()} balance returned, BTC balance = {btcBalance?.CommonTotal}");
+
+	var symbolName = client.GetSymbolName("BTC", "USDT");
+	var klines = await client.GetKlinesAsync(symbolName, TimeSpan.FromHours(1));
+	Console.WriteLine($"{((RestClient)client).ClientName}: {klines.Data?.Count()} klines returned, first klines @ {klines.Data?.First().CommonClose}");
+}
+````
 
 ## Release notes
 * Version 3.4.0 - 21 dec 2020
