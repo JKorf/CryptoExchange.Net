@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.RateLimiter
         }
 
         /// <inheritdoc />
-        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour)
+        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour, int credits = 1)
         {
             var sw = Stopwatch.StartNew();
             lock (requestLock)
