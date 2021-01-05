@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -13,7 +13,8 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="client"></param>
         /// <param name="url"></param>
         /// <param name="limitBehaviour"></param>
+        /// <param name="credits"></param>
         /// <returns></returns>
-        CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour);
+        CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour, int credits=1);
     }
 }
