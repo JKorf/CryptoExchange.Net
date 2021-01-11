@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -172,7 +172,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequest<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null) where T : class
+            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null, int credits=1) where T : class
         {
             var requestId = NextId();
             log.Write(LogVerbosity.Debug, $"[{requestId}] Creating request for " + uri);
@@ -185,7 +185,7 @@ namespace CryptoExchange.Net
             var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization, requestId);
             foreach (var limiter in RateLimiters)
             {
-                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour);
+                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour, credits);
                 if (!limitResult.Success)
                 {
                     log.Write(LogVerbosity.Debug, $"[{requestId}] Request {uri.AbsolutePath} failed because of rate limit");

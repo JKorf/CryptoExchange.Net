@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.RateLimiter
     /// <summary>
     /// Limits the amount of requests per time period to a certain limit, counts the total amount of requests.
     /// </summary>
-    public class RateLimiterTotal: IRateLimiter
+    public class RateLimiterCredit : IRateLimiter
     {
         internal List<DateTime> history = new List<DateTime>();
 
@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.RateLimiter
         /// </summary>
         /// <param name="limit">The amount to limit to</param>
         /// <param name="perTimePeriod">The time period over which the limit counts</param>
-        public RateLimiterTotal(int limit, TimeSpan perTimePeriod)
+        public RateLimiterCredit(int limit, TimeSpan perTimePeriod)
         {
             this.limit = limit;
             this.perTimePeriod = perTimePeriod;
@@ -54,7 +54,9 @@ namespace CryptoExchange.Net.RateLimiter
                     }
                 }
 
-                history.Add(DateTime.UtcNow);
+                for (int i = 1; i <= credits; i++)
+                    history.Add(DateTime.UtcNow);
+
                 history.Sort();
                 return new CallResult<double>(waitTime, null);
             }

@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.RateLimiter
         }
 
         /// <inheritdoc />
-        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitingBehaviour)
+        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitingBehaviour, int credits = 1)
         {
             int waitTime;
             RateLimitObject rlo;
