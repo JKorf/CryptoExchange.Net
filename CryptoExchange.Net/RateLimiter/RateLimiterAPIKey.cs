@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.RateLimiter
         }
 
         /// <inheritdoc />
-        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour)
+        public CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour, int credits = 1)
         {
             if(client.authProvider?.Credentials?.Key == null)
                 return new CallResult<double>(0, null);
