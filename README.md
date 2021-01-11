@@ -286,6 +286,10 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.5.0 - 11 jan 2021
+    * Additional info on exception messages
+    * Added support for rate limiting using credits
+
 * Version 3.4.0 - 21 dec 2020
     * Updated IExchangeClient interface
     * Fix for dropping message after timeout on socket

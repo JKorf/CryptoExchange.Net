@@ -6,13 +6,13 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>3.4.0</PackageVersion>
-    <AssemblyVersion>3.4.0</AssemblyVersion>
+    <PackageVersion>3.5.0</PackageVersion>
+    <AssemblyVersion>3.5.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.4.0 - Updated IExchangeClient interface, Fix for dropping message after timeout on socket, Added virtual HandleUnhandledMessage method in SocketClient</PackageReleaseNotes>
+    <PackageReleaseNotes>3.5.0 - Additional info on exception messages, Added support for rate limiting using credits</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

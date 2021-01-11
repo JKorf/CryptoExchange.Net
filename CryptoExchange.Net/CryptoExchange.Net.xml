@@ -925,13 +925,14 @@
             Rate limiter interface
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRateLimiter.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRateLimiter.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour,System.Int32)">
             <summary>
             Limit the request if needed
             </summary>
             <param name="client"></param>
             <param name="url"></param>
             <param name="limitBehaviour"></param>
+            <param name="credits"></param>
             <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IRequest">
@@ -2457,13 +2458,28 @@
             <param name="limitPerApiKey">The amount to limit to</param>
             <param name="perTimePeriod">The time period over which the limit counts</param>
         </member>
-        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour,System.Int32)">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterAPIKey.Dispose">
             <summary>
             Dispose
             </summary>
+        </member>
+        <member name="T:CryptoExchange.Net.RateLimiter.RateLimiterCredit">
+            <summary>
+            Limits the amount of requests per time period to a certain limit, counts the total amount of requests.
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterCredit.#ctor(System.Int32,System.TimeSpan)">
+            <summary>
+            Create a new RateLimiterTotal. This rate limiter limits the amount of requests per time period to a certain limit, counts the total amount of requests.
+            </summary>
+            <param name="limit">The amount to limit to</param>
+            <param name="perTimePeriod">The time period over which the limit counts</param>
+        </member>
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterCredit.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour,System.Int32)">
+            <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.RateLimiter.RateLimiterPerEndpoint">
             <summary>
@@ -2477,7 +2493,7 @@
             <param name="limitPerEndpoint">The amount to limit to</param>
             <param name="perTimePeriod">The time period over which the limit counts</param>
         </member>
-        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterPerEndpoint.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterPerEndpoint.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour,System.Int32)">
             <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.RateLimiter.RateLimiterTotal">
@@ -2492,7 +2508,7 @@
             <param name="limit">The amount to limit to</param>
             <param name="perTimePeriod">The time period over which the limit counts</param>
         </member>
-        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterTotal.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour)">
+        <member name="M:CryptoExchange.Net.RateLimiter.RateLimiterTotal.LimitRequest(CryptoExchange.Net.RestClient,System.String,CryptoExchange.Net.Objects.RateLimitingBehaviour,System.Int32)">
             <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.RateLimiter.RateLimitObject">
@@ -2688,7 +2704,7 @@
             </summary>
             <returns>The roundtrip time of the ping request</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization})">
+        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32)">
             <summary>
             Execute a request
             </summary>
