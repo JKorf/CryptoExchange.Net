@@ -266,8 +266,9 @@ namespace CryptoExchange.Net
             }
             catch (HttpRequestException requestException)
             {
-                log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request exception: " + (requestException.InnerException?.Message ?? requestException.Message));
-                return new WebCallResult<T>(null, null, default, new ServerError(requestException.Message));
+                var exceptionInfo = GetExceptionInfo(requestException);
+                log.Write(LogVerbosity.Warning, $"[{request.RequestId}] Request exception: " + exceptionInfo);
+                return new WebCallResult<T>(null, null, default, new WebError(exceptionInfo));
             }
             catch (TaskCanceledException canceledException)
             {

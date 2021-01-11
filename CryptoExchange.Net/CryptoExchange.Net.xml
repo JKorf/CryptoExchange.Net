@@ -317,6 +317,13 @@
             <param name="values">The values to fill</param>
             <returns></returns>
         </member>
+        <member name="M:CryptoExchange.Net.BaseClient.GetExceptionInfo(System.Exception)">
+            <summary>
+            Get's all exception messages from a nested exception
+            </summary>
+            <param name="ex"></param>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.BaseClient.Dispose">
             <summary>
             Dispose
