@@ -25,5 +25,13 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// Close price for this kline
         /// </summary>
         decimal CommonClose { get; }
+        /// <summary>
+        /// Open time for this kline
+        /// </summary>
+        DateTime CommonOpenTime { get; }
+        /// <summary>
+        /// Volume of this kline
+        /// </summary>
+        decimal CommonVolume { get; }
     }
 }
