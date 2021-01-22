@@ -286,6 +286,9 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.6.0 - 22 jan 2021
+    * Added CommonVolume and CommonOpenTime to ICommonKline interface
+
 * Version 3.5.0 - 11 jan 2021
     * Additional info on exception messages
     * Added support for rate limiting using credits
