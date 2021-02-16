@@ -402,7 +402,19 @@ namespace CryptoExchange.Net.OrderBook
         {
             lock (bookLock)
             {
-                var checksumResult = DoChecksum(ci.Checksum);
+                bool checksumResult = false;
+                try
+                {
+                    checksumResult = DoChecksum(ci.Checksum);
+                }
+                catch (Exception)
+                {
+                    // If the status is not synced it can be expected a checksum is failing
+
+                    if (Status == OrderBookStatus.Synced)
+                        throw;
+                }
+
                 if(!checksumResult)
                 {
                     log.Write(LogVerbosity.Warning, $"{Id} order book {Symbol} out of sync. Resyncing");
