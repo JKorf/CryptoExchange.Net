@@ -6,13 +6,13 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>3.6.0</PackageVersion>
+    <PackageVersion>3.6.1</PackageVersion>
     <AssemblyVersion>3.6.0</AssemblyVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.6.0 - Added CommonVolume and CommonOpenTime to ICommonKline interface</PackageReleaseNotes>
+    <PackageReleaseNotes>3.6.1 - Fix for timing related exception when stopping an symbol order book</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

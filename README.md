@@ -286,6 +286,9 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.6.1 - 16 feb 2021
+    * Fix for timing related exception when stopping an symbol order book
+
 * Version 3.6.0 - 22 jan 2021
     * Added CommonVolume and CommonOpenTime to ICommonKline interface
 
