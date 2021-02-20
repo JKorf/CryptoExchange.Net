@@ -25,7 +25,12 @@ namespace CryptoExchange.Net.Authentication
         /// The private key to authenticate requests
         /// </summary>
         public PrivateKey? PrivateKey { get; }
-
+        
+        public ApiCredentials() 
+        {
+         
+        }
+        
         /// <summary>
         /// Create Api credentials providing a private key for authentication
         /// </summary>
