@@ -210,7 +210,7 @@ namespace CryptoExchange.Net
         /// <param name="request">The request object to execute</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        private async Task<WebCallResult<T>> GetResponse<T>(IRequest request, CancellationToken cancellationToken)
+        protected virtual async Task<WebCallResult<T>> GetResponse<T>(IRequest request, CancellationToken cancellationToken)
         {
             try
             {
