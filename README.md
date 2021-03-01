@@ -286,6 +286,10 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.7.0 - 01 mrt 2021
+    * Changed GetResponse in RestClient to protected
+    * Added configuration for deterministic build
+
 * Version 3.6.1 - 16 feb 2021
     * Fix for timing related exception when stopping an symbol order book
 
