@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +15,9 @@ namespace CryptoExchange.Net.Converters
     /// </summary>
     public class ArrayConverter : JsonConverter
     {
+        private static readonly ConcurrentDictionary<(MemberInfo, Type), Attribute> attributeByMemberInfoAndTypeCache = new ConcurrentDictionary<(MemberInfo, Type), Attribute>();
+        private static readonly ConcurrentDictionary<(Type, Type), Attribute> attributeByTypeAndTypeCache = new ConcurrentDictionary<(Type, Type), Attribute>();
+
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
@@ -35,15 +39,15 @@ namespace CryptoExchange.Net.Converters
         {
             foreach (var property in objectType.GetProperties())
             {
-                var attribute =
-                    (ArrayPropertyAttribute)property.GetCustomAttribute(typeof(ArrayPropertyAttribute));
+                var attribute = GetCustomAttribute<ArrayPropertyAttribute>(property);
+
                 if (attribute == null)
                     continue;
 
                 if (attribute.Index >= arr.Count)
                     continue;
 
-                if(property.PropertyType.BaseType == typeof(Array))
+                if (property.PropertyType.BaseType == typeof(Array))
                 {
                     var objType = property.PropertyType.GetElementType();
                     var innerArray = (JArray)arr[attribute.Index];
@@ -74,8 +78,9 @@ namespace CryptoExchange.Net.Converters
                     continue;
                 }
 
-                var converterAttribute = (JsonConverterAttribute)property.GetCustomAttribute(typeof(JsonConverterAttribute)) ?? (JsonConverterAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConverterAttribute));
-                var conversionAttribute = (JsonConversionAttribute)property.GetCustomAttribute(typeof(JsonConversionAttribute)) ?? (JsonConversionAttribute)property.PropertyType.GetCustomAttribute(typeof(JsonConversionAttribute));
+                var converterAttribute = GetCustomAttribute<JsonConverterAttribute>(property) ?? GetCustomAttribute<JsonConverterAttribute>(property.PropertyType);
+                var conversionAttribute = GetCustomAttribute<JsonConversionAttribute>(property) ?? GetCustomAttribute<JsonConversionAttribute>(property.PropertyType);
+
                 object? value;
                 if (converterAttribute != null)
                 {
@@ -122,12 +127,12 @@ namespace CryptoExchange.Net.Converters
 
             writer.WriteStartArray();
             var props = value.GetType().GetProperties();
-            var ordered = props.OrderBy(p => p.GetCustomAttribute<ArrayPropertyAttribute>()?.Index);
+            var ordered = props.OrderBy(p => GetCustomAttribute<ArrayPropertyAttribute>(p)?.Index);
 
             var last = -1;
             foreach (var prop in ordered)
             {
-                var arrayProp = prop.GetCustomAttribute<ArrayPropertyAttribute>();
+                var arrayProp = GetCustomAttribute<ArrayPropertyAttribute>(prop);
                 if (arrayProp == null)
                     continue;
 
@@ -141,7 +146,7 @@ namespace CryptoExchange.Net.Converters
                 }
 
                 last = arrayProp.Index;
-                var converterAttribute = (JsonConverterAttribute)prop.GetCustomAttribute(typeof(JsonConverterAttribute));
+                var converterAttribute = GetCustomAttribute<JsonConverterAttribute>(prop);
                 if (converterAttribute != null)
                     writer.WriteRawValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)));
                 else if (!IsSimple(prop.PropertyType))
@@ -164,6 +169,12 @@ namespace CryptoExchange.Net.Converters
               || type == typeof(string)
               || type == typeof(decimal);
         }
+
+        private static T? GetCustomAttribute<T>(MemberInfo memberInfo) where T : Attribute =>
+            (T?)attributeByMemberInfoAndTypeCache.GetOrAdd((memberInfo, typeof(T)), tuple => memberInfo.GetCustomAttribute(typeof(T)));
+
+        private static T? GetCustomAttribute<T>(Type type) where T : Attribute =>
+            (T?)attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
     }
 
     /// <summary>
