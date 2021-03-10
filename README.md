@@ -290,6 +290,9 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.7.1 - 10 mrt 2021
+    * Performance improvemnt for the ArrayConverter
+
 * Version 3.7.0 - 01 mrt 2021
     * Changed GetResponse in RestClient to protected
     * Added configuration for deterministic build
