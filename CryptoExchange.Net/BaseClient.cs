@@ -241,27 +241,42 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                if(stream.CanSeek)
+                string data;
+                if (stream.CanSeek)
+                {
                     stream.Seek(0, SeekOrigin.Begin);
-                var data = await ReadStream(stream).ConfigureAwait(false);
+                    data = await ReadStream(stream).ConfigureAwait(false);
+                }
+                else
+                    data = "[Data only available in Debug LogVerbosity]";
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError($"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}", data));
             }
             catch (JsonSerializationException jse)
             {
+                string data;
                 if (stream.CanSeek)
+                {
                     stream.Seek(0, SeekOrigin.Begin);
-                var data = await ReadStream(stream).ConfigureAwait(false);
+                    data = await ReadStream(stream).ConfigureAwait(false);
+                }
+                else
+                    data = "[Data only available in Debug LogVerbosity]";
+
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError($"Deserialize JsonSerializationException: {jse.Message}", data));
             }
             catch (Exception ex)
             {
-                if (stream.CanSeek)
+                string data;
+                if (stream.CanSeek) { 
                     stream.Seek(0, SeekOrigin.Begin);
+                    data = await ReadStream(stream).ConfigureAwait(false);
+                }
+                else
+                    data = "[Data only available in Debug LogVerbosity]";
 
                 var exceptionInfo = GetExceptionInfo(ex);
-                var data = await ReadStream(stream).ConfigureAwait(false);
                 log.Write(LogVerbosity.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {data}");
                 return new CallResult<T>(default, new DeserializeError($"Deserialize Unknown Exception: {exceptionInfo}", data));
             }
