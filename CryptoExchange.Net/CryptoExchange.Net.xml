@@ -434,6 +434,20 @@
         <member name="M:CryptoExchange.Net.Converters.TimestampSecondsConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
             <inheritdoc />
         </member>
+        <member name="T:CryptoExchange.Net.Converters.TimestampStringConverter">
+            <summary>
+            converter for datetime string (yyyymmdd) to datetime
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.TimestampStringConverter.CanConvert(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.TimestampStringConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.TimestampStringConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">
+            <inheritdoc />
+        </member>
         <member name="T:CryptoExchange.Net.Converters.UTCDateTimeConverter">
             <summary>
             Converter for utc datetime
@@ -3498,7 +3512,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+    </members>
+</doc>
+System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.
