@@ -37,9 +37,33 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
+        /// <param name="converter"></param>
+        public static void AddParameter(this Dictionary<string, object> parameters, string key, string value, JsonConverter converter)
+        {
+            parameters.Add(key, JsonConvert.SerializeObject(value, converter));
+        }
+
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddParameter(this Dictionary<string, object> parameters, string key, object value)
         {
             parameters.Add(key, value);
+        }
+
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="converter"></param>
+        public static void AddParameter(this Dictionary<string, object> parameters, string key, object value, JsonConverter converter)
+        {
+            parameters.Add(key, JsonConvert.SerializeObject(value, converter));
         }
 
         /// <summary>
@@ -60,10 +84,36 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
+        /// <param name="converter"></param>
+        public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value, JsonConverter converter)
+        {
+            if (value != null)
+                parameters.Add(key, JsonConvert.SerializeObject(value, converter));
+        }
+
+        /// <summary>
+        /// Add an optional parameter. Not added if value is null
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public static void AddOptionalParameter(this Dictionary<string, string> parameters, string key, string? value)
         {
             if (value != null)
                 parameters.Add(key, value);
+        }
+
+        /// <summary>
+        /// Add an optional parameter. Not added if value is null
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <param name="converter"></param>
+        public static void AddOptionalParameter(this Dictionary<string, string> parameters, string key, string? value, JsonConverter converter)
+        {
+            if (value != null)
+                parameters.Add(key, JsonConvert.SerializeObject(value, converter));
         }
 
         /// <summary>
