@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>3.8.0</PackageVersion>
+    <PackageVersion>3.8.1</PackageVersion>
     <AssemblyVersion>3.8.0</AssemblyVersion>
-    <FileVersion>3.8.0</FileVersion>
+    <FileVersion>3.8.1</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.8.0 - Better handling of json errors while deserializing stream, Added string datetime converter</PackageReleaseNotes>
+    <PackageReleaseNotes>3.8.1 - Added ValidateNullOrNotEmpty method extension</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
