@@ -2905,6 +2905,11 @@
             If false; data which is a response to a query won't get forwarded to subscriptions as well
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.SocketClient.UnhandledMessageExpected">
+            <summary>
+            If a message is received on the socket which is not handled by a handler this boolean determines whether this logs an error message
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.SocketClient.#ctor(System.String,CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             Create a socket client
