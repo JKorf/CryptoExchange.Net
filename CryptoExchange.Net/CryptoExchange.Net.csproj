@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.8.1 - Added ValidateNullOrNotEmpty method extension</PackageReleaseNotes>
+    <PackageReleaseNotes>3.8.1 - Added additional debug messages, Added ValidateNullOrNotEmpty method extension</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
