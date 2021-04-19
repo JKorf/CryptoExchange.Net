@@ -290,6 +290,10 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.8.1 - 19 apr 2021
+    * Added debug logs
+	* Added ValidateNullOrNotEmpty extension method
+
 * Version 3.8.0 - 30 mrt 2021
     * Better handling of json errors while deserializing stream
     * Added string datetime converter
