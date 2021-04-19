@@ -966,6 +966,13 @@
             <param name="value">The value of the string</param>
             <param name="argumentName">Name of the parameter</param>
         </member>
+        <member name="M:CryptoExchange.Net.ExtensionMethods.ValidateNullOrNotEmpty(System.String,System.String)">
+            <summary>
+            Validates a string is null or not empty
+            </summary>
+            <param name="value"></param>
+            <param name="argumentName"></param>
+        </member>
         <member name="M:CryptoExchange.Net.ExtensionMethods.ValidateNotNull(System.Object,System.String)">
             <summary>
             Validates an object is not null
@@ -3548,9 +3555,7 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-    </members>
-</doc>
-System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.

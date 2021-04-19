@@ -304,6 +304,17 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Validates a string is null or not empty
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="argumentName"></param>
+        public static void ValidateNullOrNotEmpty(this string value, string argumentName)
+        {
+            if (value != null && string.IsNullOrEmpty(value))
+                throw new ArgumentException($"No value provided for parameter {argumentName}", argumentName);
+        }
+
+        /// <summary>
         /// Validates an object is not null
         /// </summary>
         /// <param name="value">The value of the object</param>
