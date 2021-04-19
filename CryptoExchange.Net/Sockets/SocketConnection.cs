@@ -178,7 +178,8 @@ namespace CryptoExchange.Net.Sockets
             
             if (!HandleData(tokenData) && !handledResponse)
             {
-                log.Write(LogVerbosity.Warning, "Message not handled: " + tokenData);
+                if (!socketClient.UnhandledMessageExpected)
+                    log.Write(LogVerbosity.Warning, "Message not handled: " + tokenData);
                 UnhandledMessage?.Invoke(tokenData);
             }
         }
@@ -229,6 +230,8 @@ namespace CryptoExchange.Net.Sockets
                 if (sw.ElapsedMilliseconds > 500)
                     log.Write(LogVerbosity.Warning, $"Socket {Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
                                                     "Data from this socket may arrive late or not at all if message processing is continuously slow.");
+                else
+                    log.Write(LogVerbosity.Debug, $"Socket {Socket.Id} message processed in {sw.ElapsedMilliseconds}ms");
                 return handled;
             }
             catch (Exception ex)

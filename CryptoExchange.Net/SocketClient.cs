@@ -10,6 +10,7 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
@@ -78,6 +79,11 @@ namespace CryptoExchange.Net
         /// If false; data which is a response to a query won't get forwarded to subscriptions as well
         /// </summary>
         protected internal bool ContinueOnQueryResponse { get; protected set; }
+
+        /// <summary>
+        /// If a message is received on the socket which is not handled by a handler this boolean determines whether this logs an error message
+        /// </summary>
+        protected internal bool UnhandledMessageExpected { get; set; }
         #endregion
 
         /// <summary>
@@ -150,9 +156,14 @@ namespace CryptoExchange.Net
                     released = true;
                 }
 
+                var needsconnecting = !socket.Connected;
+
                 var connectResult = await ConnectIfNeeded(socket, authenticated).ConfigureAwait(false);
                 if (!connectResult)
                     return new CallResult<UpdateSubscription>(null, connectResult.Error);
+
+                if (needsconnecting)
+                    log.Write(LogVerbosity.Debug, $"Socket {socket.Socket.Id} connected to {url} {(request == null ? "with topic " + identifier: "with request " + JsonConvert.SerializeObject(request))}");
             }
             finally
             {
