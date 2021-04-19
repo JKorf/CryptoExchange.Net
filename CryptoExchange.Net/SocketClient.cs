@@ -163,7 +163,7 @@ namespace CryptoExchange.Net
                     return new CallResult<UpdateSubscription>(null, connectResult.Error);
 
                 if (needsconnecting)
-                    log.Write(LogVerbosity.Debug, $"Socket {socket.Socket.Id} connected to {url} {(request == null ? "with topic " + identifier: "with request " + JsonConvert.SerializeObject(request))}");
+                    log.Write(LogVerbosity.Debug, $"Socket {socket.Socket.Id} connected to {url} {(request == null ? "": "with request " + JsonConvert.SerializeObject(request))}");
             }
             finally
             {
