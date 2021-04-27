@@ -424,14 +424,13 @@ namespace CryptoExchange.Net.Sockets
 
             var shouldCloseWrapper = false;
             lock (handlersLock)
-            {
-                handlers.Remove(subscription);
-                if (handlers.Count(r => r.UserSubscription) == 0)
-                    shouldCloseWrapper = true;
-            }
+                shouldCloseWrapper = handlers.Count(r => r.UserSubscription && subscription != r) == 0;
 
             if (shouldCloseWrapper)
                 await Close().ConfigureAwait(false);
+
+            lock (handlersLock)            
+                handlers.Remove(subscription);            
         }
     }
 
