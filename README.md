@@ -290,6 +290,10 @@ static async Task GetExchangeData(IExchangeClient client)
 ````
 
 ## Release notes
+* Version 3.9.0 - 28 apr 2021
+    * Added optional JsonSerializer parameter to SendRequest to use during deserialization
+    * Fix for unhandled message warning when unsubscribing a socket subscription
+
 * Version 3.8.1 - 19 apr 2021
     * Added debug logs
 	* Added ValidateNullOrNotEmpty extension method
