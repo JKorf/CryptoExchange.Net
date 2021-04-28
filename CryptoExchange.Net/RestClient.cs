@@ -169,10 +169,14 @@ namespace CryptoExchange.Net
         /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
         /// <param name="postPosition">Where the post parameters should be placed</param>
         /// <param name="arraySerialization">How array parameters should be serialized</param>
+        /// <param name="credits">Credits used for the request</param>
+        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequest<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null, int credits=1) where T : class
+            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, 
+            PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null, int credits = 1,
+            JsonSerializer? deserializer = null) where T : class
         {
             var requestId = NextId();
             log.Write(LogVerbosity.Debug, $"[{requestId}] Creating request for " + uri);
@@ -201,16 +205,17 @@ namespace CryptoExchange.Net
                 paramString = " with request body " + request.Content;
 
             log.Write(LogVerbosity.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
-            return await GetResponse<T>(request, cancellationToken).ConfigureAwait(false);
+            return await GetResponse<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Executes the request and returns the string result
         /// </summary>
         /// <param name="request">The request object to execute</param>
+        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> GetResponse<T>(IRequest request, CancellationToken cancellationToken)
+        protected virtual async Task<WebCallResult<T>> GetResponse<T>(IRequest request, JsonSerializer? deserializer, CancellationToken cancellationToken)
         {
             try
             {
@@ -238,12 +243,12 @@ namespace CryptoExchange.Net
                         if (error != null)
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
 
-                        var deserializeResult = Deserialize<T>(parseResult.Data, null, null, request.RequestId);
+                        var deserializeResult = Deserialize<T>(parseResult.Data, null, deserializer, request.RequestId);
                         return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, deserializeResult.Data, deserializeResult.Error);
                     }
                     else
                     {
-                        var desResult = await Deserialize<T>(responseStream, null, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
+                        var desResult = await Deserialize<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
 
