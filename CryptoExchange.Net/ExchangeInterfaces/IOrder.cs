@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// <summary>
         /// Status of the order
         /// </summary>
-        public string CommonStatus { get; }
+        public IExchangeClient.OrderStatus CommonStatus { get; }
         /// <summary>
         /// Whether the order is active
         /// </summary>
