@@ -37,5 +37,9 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// Type of the order
         /// </summary>
         public IExchangeClient.OrderType CommonType { get; }
+        /// <summary>
+        /// order time
+        /// </summary>
+        DateTime CommonOrderTime { get; }
     }
 }
