@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Objects
     /// Base for order book options
     /// </summary>
     public class OrderBookOptions : BaseOptions
-    {  
+    {
         /// <summary>
         /// The name of the order book implementation
         /// </summary>
@@ -50,24 +50,30 @@ namespace CryptoExchange.Net.Objects
         /// when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed
         /// </summary>
         public bool StrictLevels { get; }
-        
+
+        /// <summary>
+        /// price tick, e.g. for BTCUSDT pair at most exchanges it would be 0.01
+        /// </summary>
+        public decimal? TickSize { get; }
         /// <summary>
         /// </summary>
         /// <param name="name">The name of the order book implementation</param>
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
         /// <param name="strictLevels">Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
         /// when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed</param>
-        public OrderBookOptions(string name, bool sequencesAreConsecutive, bool strictLevels)
-        {            
+        /// <param name="tickSize">price tick, e.g. for BTCUSDT pair at most exchanges it would be 0.01</param>
+        public OrderBookOptions(string name, bool sequencesAreConsecutive, bool strictLevels, decimal? tickSize=null)
+        {
             OrderBookName = name;
             SequenceNumbersAreConsecutive = sequencesAreConsecutive;
             StrictLevels = strictLevels;
+            TickSize = tickSize;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, OrderBookName: {OrderBookName}, SequenceNumbersAreConsequtive: {SequenceNumbersAreConsecutive}, StrictLevels: {StrictLevels}";
+            return $"{base.ToString()}, OrderBookName: {OrderBookName}, SequenceNumbersAreConsequtive: {SequenceNumbersAreConsecutive}, StrictLevels: {StrictLevels}, TickSize: {(TickSize.HasValue?TickSize.Value.ToString():"not setted")}";
         }
     }
 
@@ -122,7 +128,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-": "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null? "-": Proxy.Host)}";
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
         }
     }
 
@@ -155,7 +161,7 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseAddress">The base address of the API</param>
-        public RestClientOptions(string baseAddress): base(baseAddress)
+        public RestClientOptions(string baseAddress) : base(baseAddress)
         {
         }
         /// <summary>

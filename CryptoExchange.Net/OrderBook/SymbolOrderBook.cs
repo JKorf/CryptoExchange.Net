@@ -89,6 +89,10 @@ namespace CryptoExchange.Net.OrderBook
         public string Symbol { get; }
 
         /// <summary>
+        /// price tick, e.g. for BTCUSDT pair at most exchanges it would be 0.01
+        /// </summary>
+        public decimal? TickSize { get; }
+        /// <summary>
         /// Event when the state changes
         /// </summary>
         public event Action<OrderBookStatus, OrderBookStatus>? OnStatusChange;
@@ -204,7 +208,7 @@ namespace CryptoExchange.Net.OrderBook
             strictLevels = options.StrictLevels;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
-
+            TickSize = options.TickSize;
             asks = new SortedList<decimal, ISymbolOrderBookEntry>();
             bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 

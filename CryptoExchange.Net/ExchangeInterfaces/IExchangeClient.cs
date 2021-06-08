@@ -11,6 +11,10 @@ namespace CryptoExchange.Net.ExchangeInterfaces
     public interface IExchangeClient
     {
         /// <summary>
+        /// Client's exchange name 
+        /// </summary>
+        string ExchangeName { get; }
+        /// <summary>
         /// Should be triggered on order placing
         /// </summary>
         event Action<ICommonOrderId> OnOrderPlaced;

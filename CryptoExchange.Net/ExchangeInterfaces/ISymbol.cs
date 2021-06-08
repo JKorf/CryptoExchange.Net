@@ -10,6 +10,15 @@ namespace CryptoExchange.Net.ExchangeInterfaces
     public interface ICommonSymbol
     {
         /// <summary>
+        /// base asset name e.g. ETH
+        /// </summary>
+        public string CommonBaseAsset { get; }
+        /// <summary>
+        /// quote asset name e.g. BTC
+        /// </summary>
+        public string CommonQuoteAsset { get; }
+
+        /// <summary>
         /// Symbol name
         /// </summary>
         public string CommonName { get; }
