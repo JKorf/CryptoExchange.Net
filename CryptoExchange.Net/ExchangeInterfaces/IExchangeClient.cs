@@ -72,6 +72,12 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// <param name="symbol">The symbol to get the trades for</param>
         /// <returns></returns>
         Task<WebCallResult<IEnumerable<ICommonRecentTrade>>> GetRecentTradesAsync(string symbol);
+        /// <summary>
+        /// The recent user's trades 
+        /// </summary>
+        /// <param name="symbol">The symbol to get the trades for</param>
+        /// <returns></returns>
+        Task<WebCallResult<IEnumerable<ICommonRecentTrade>>> GetRecentUserTradesAsync(string? symbol=null);
 
         /// <summary>
         /// Place an order
