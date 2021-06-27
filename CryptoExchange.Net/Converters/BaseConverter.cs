@@ -71,7 +71,7 @@ namespace CryptoExchange.Net.Converters
 
         private bool GetValue(string value, out T result)
         {
-            var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value));
             if (!mapping.Equals(default(KeyValuePair<T, string>)))
             {
                 result = mapping.Key;
