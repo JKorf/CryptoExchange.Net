@@ -23,6 +23,10 @@ namespace CryptoExchange.Net.Interfaces
         /// The symbol of the order book
         /// </summary>
         string Symbol { get; }
+        /// <summary>
+        /// price tick, e.g. for BTCUSDT pair at most exchanges it would be 0.01
+        /// </summary>
+        decimal? TickSize { get; }
 
         /// <summary>
         /// Event when the state changes
