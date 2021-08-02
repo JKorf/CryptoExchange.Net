@@ -71,7 +71,11 @@ namespace CryptoExchange.Net.Converters
 
         private bool GetValue(string value, out T result)
         {
-            var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            //check for exact match first, then if not found fallback to a case insensitive match 
+            var mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
+            if(mapping.Equals(default(KeyValuePair<T, string>)))
+                mapping = Mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+
             if (!mapping.Equals(default(KeyValuePair<T, string>)))
             {
                 result = mapping.Key;
