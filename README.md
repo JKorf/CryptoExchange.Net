@@ -261,7 +261,7 @@ An implementation of an automatically synchronized order book. Implement exchang
 `DoReset`: Reset the state of the orderbook, called when the connection is lost.  
 `DoChecksum`: [Optional] Validate the order book with a checksum.
 
-**[Exchange]AuthenticationProvider**
+**[Exchange]AuthenticationProvider**  
 An implementation of the AuthenticationProvider base class. Should contain the logic for authenticating requests from the RestClient on protected endpoints. Override these methods as needed:  
 `AddAuthenticationToParameters`: Will be called before `AddAuthenticationToHeaders`, allows the implementation to add specific parameters to the request which are needed for protected endpoints.  
 `AddAuthenticationToHeaders`: Will be called after `AddAuthenticationToParameters`, allows the implementation to add specific headers to the request message.  
