@@ -1,11 +1,10 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.UnitTests.TestImplementations;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -30,54 +29,58 @@ namespace CryptoExchange.Net.UnitTests
         public void SettingLogOutput_Should_RedirectLogOutput()
         {
             // arrange
-            var stringBuilder = new StringBuilder();
+            var logger = new TestStringLogger();
             var client = new TestBaseClient(new RestClientOptions("")
             {
-                LogWriters = new List<TextWriter> { new StringWriter(stringBuilder) }
+                LogWriters = new List<ILogger> { logger }
             });
 
             // act
-            client.Log(LogVerbosity.Info, "Test");
+            client.Log(LogLevel.Information, "Test");
 
             // assert
-            Assert.IsFalse(string.IsNullOrEmpty(stringBuilder.ToString()));
+            Assert.IsFalse(string.IsNullOrEmpty(logger.GetLogs()));
         }
 
-        [TestCase(LogVerbosity.None, LogVerbosity.Error, false)]
-        [TestCase(LogVerbosity.None, LogVerbosity.Warning, false)]
-        [TestCase(LogVerbosity.None, LogVerbosity.Info, false)]
-        [TestCase(LogVerbosity.None, LogVerbosity.Debug, false)]
-        [TestCase(LogVerbosity.Error, LogVerbosity.Error, true)]
-        [TestCase(LogVerbosity.Error, LogVerbosity.Warning, false)]
-        [TestCase(LogVerbosity.Error, LogVerbosity.Info, false)]
-        [TestCase(LogVerbosity.Error, LogVerbosity.Debug, false)]
-        [TestCase(LogVerbosity.Warning, LogVerbosity.Error, true)]
-        [TestCase(LogVerbosity.Warning, LogVerbosity.Warning, true)]
-        [TestCase(LogVerbosity.Warning, LogVerbosity.Info, false)]
-        [TestCase(LogVerbosity.Warning, LogVerbosity.Debug, false)]
-        [TestCase(LogVerbosity.Info, LogVerbosity.Error, true)]
-        [TestCase(LogVerbosity.Info, LogVerbosity.Warning, true)]
-        [TestCase(LogVerbosity.Info, LogVerbosity.Info, true)]
-        [TestCase(LogVerbosity.Info, LogVerbosity.Debug, false)]
-        [TestCase(LogVerbosity.Debug, LogVerbosity.Error, true)]
-        [TestCase(LogVerbosity.Debug, LogVerbosity.Warning, true)]
-        [TestCase(LogVerbosity.Debug, LogVerbosity.Info, true)]
-        [TestCase(LogVerbosity.Debug, LogVerbosity.Debug, true)]
-        public void SettingLogVerbosity_Should_RestrictLogging(LogVerbosity verbosity, LogVerbosity testVerbosity, bool expected)
+        [TestCase(LogLevel.None, LogLevel.Error, false)]
+        [TestCase(LogLevel.None, LogLevel.Warning, false)]
+        [TestCase(LogLevel.None, LogLevel.Information, false)]
+        [TestCase(LogLevel.None, LogLevel.Debug, false)]
+        [TestCase(LogLevel.Error, LogLevel.Error, true)]
+        [TestCase(LogLevel.Error, LogLevel.Warning, false)]
+        [TestCase(LogLevel.Error, LogLevel.Information, false)]
+        [TestCase(LogLevel.Error, LogLevel.Debug, false)]
+        [TestCase(LogLevel.Warning, LogLevel.Error, true)]
+        [TestCase(LogLevel.Warning, LogLevel.Warning, true)]
+        [TestCase(LogLevel.Warning, LogLevel.Information, false)]
+        [TestCase(LogLevel.Warning, LogLevel.Debug, false)]
+        [TestCase(LogLevel.Information, LogLevel.Error, true)]
+        [TestCase(LogLevel.Information, LogLevel.Warning, true)]
+        [TestCase(LogLevel.Information, LogLevel.Information, true)]
+        [TestCase(LogLevel.Information, LogLevel.Debug, false)]
+        [TestCase(LogLevel.Debug, LogLevel.Error, true)]
+        [TestCase(LogLevel.Debug, LogLevel.Warning, true)]
+        [TestCase(LogLevel.Debug, LogLevel.Information, true)]
+        [TestCase(LogLevel.Debug, LogLevel.Debug, true)]
+        [TestCase(null, LogLevel.Error, true)]
+        [TestCase(null, LogLevel.Warning, true)]
+        [TestCase(null, LogLevel.Information, true)]
+        [TestCase(null, LogLevel.Debug, true)]
+        public void SettingLogLevel_Should_RestrictLogging(LogLevel? verbosity, LogLevel testVerbosity, bool expected)
         {
             // arrange
-            var stringBuilder = new StringBuilder();
+            var logger = new TestStringLogger();
             var client = new TestBaseClient(new RestClientOptions("")
             {
-                LogWriters = new List<TextWriter> { new StringWriter(stringBuilder) },
-                LogVerbosity = verbosity
+                LogWriters = new List<ILogger> { logger },
+                LogLevel = verbosity
             });
 
             // act
             client.Log(testVerbosity, "Test");
 
             // assert
-            Assert.AreEqual(!string.IsNullOrEmpty(stringBuilder.ToString()), expected);
+            Assert.AreEqual(!string.IsNullOrEmpty(logger.GetLogs()), expected);
         }
 
         [TestCase]

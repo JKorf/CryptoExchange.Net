@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.ExchangeInterfaces
 {
@@ -24,7 +22,7 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// <summary>
         /// Status of the order
         /// </summary>
-        public string CommonStatus { get; }
+        public IExchangeClient.OrderStatus CommonStatus { get; }
         /// <summary>
         /// Whether the order is active
         /// </summary>
@@ -37,5 +35,9 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// Type of the order
         /// </summary>
         public IExchangeClient.OrderType CommonType { get; }
+        /// <summary>
+        /// order time
+        /// </summary>
+        DateTime CommonOrderTime { get; }
     }
 }

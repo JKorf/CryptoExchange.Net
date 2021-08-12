@@ -11,6 +11,15 @@ namespace CryptoExchange.Net.ExchangeInterfaces
     public interface IExchangeClient
     {
         /// <summary>
+        /// Should be triggered on order placing
+        /// </summary>
+        event Action<ICommonOrderId> OnOrderPlaced;
+        /// <summary>
+        /// Should be triggered on order cancelling
+        /// </summary>
+        event Action<ICommonOrderId> OnOrderCanceled;
+
+        /// <summary>
         /// Get the symbol name based on a base and quote asset
         /// </summary>
         /// <param name="baseAsset"></param>
@@ -145,6 +154,24 @@ namespace CryptoExchange.Net.ExchangeInterfaces
             /// Sell order
             /// </summary>
             Sell
+        }
+        /// <summary>
+        /// Common order status
+        /// </summary>
+        public enum OrderStatus
+        {
+            /// <summary>
+            /// placed and not fully filled order
+            /// </summary>
+            Active,
+            /// <summary>
+            /// cancelled order
+            /// </summary>
+            Canceled,
+            /// <summary>
+            /// filled order
+            /// </summary>
+            Filled
         }
     }
 }

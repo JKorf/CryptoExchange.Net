@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.ExchangeInterfaces
+﻿namespace CryptoExchange.Net.ExchangeInterfaces
 {
     /// <summary>
     /// Common balance

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -14,19 +14,24 @@ namespace CryptoExchange.Net.Objects
     public class BaseOptions
     {
         /// <summary>
-        /// The log verbosity
+        /// The minimum log level to output. Setting it to null will send all messages to the registered ILoggers. 
         /// </summary>
-        public LogVerbosity LogVerbosity { get; set; } = LogVerbosity.Info;
+        public LogLevel? LogLevel { get; set; } = Microsoft.Extensions.Logging.LogLevel.Information;
 
         /// <summary>
         /// The log writers
         /// </summary>
-        public List<TextWriter> LogWriters { get; set; } = new List<TextWriter> { new DebugTextWriter() };
+        public List<ILogger> LogWriters { get; set; } = new List<ILogger> { new DebugLogger() };
+
+        /// <summary>
+        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
+        /// </summary>
+        public bool OutputOriginalData { get; set; } = false;
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"LogVerbosity: {LogVerbosity}, Writers: {LogWriters.Count}";
+            return $"LogLevel: {LogLevel}, Writers: {LogWriters.Count}, OutputOriginalData: {OutputOriginalData}";
         }
     }
 
@@ -47,11 +52,12 @@ namespace CryptoExchange.Net.Objects
 
         /// <summary>
         /// Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-        /// when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed
+        /// when a new bid level is added which makes the total amount of bids 11, should the last bid entry be removed
         /// </summary>
         public bool StrictLevels { get; }
         
         /// <summary>
+        /// ctor
         /// </summary>
         /// <param name="name">The name of the order book implementation</param>
         /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
@@ -111,7 +117,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseAddress"></param>
+        /// <param name="baseAddress">The base address to use</param>
 #pragma warning disable 8618
         public ClientOptions(string baseAddress)
 #pragma warning restore 8618
@@ -122,7 +128,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-": "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null? "-": Proxy.Host)}";
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
         }
     }
 
@@ -147,7 +153,7 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
+        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored in requests and should be set on the provided HttpClient instance
         /// </summary>
         public HttpClient? HttpClient { get; set; }
 
@@ -177,7 +183,7 @@ namespace CryptoExchange.Net.Objects
             var copy = new T
             {
                 BaseAddress = BaseAddress,
-                LogVerbosity = LogVerbosity,
+                LogLevel = LogLevel,
                 Proxy = Proxy,
                 LogWriters = LogWriters,
                 RateLimiters = RateLimiters,
@@ -215,24 +221,25 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// The time to wait for a socket response
+        /// The time to wait for a socket response before giving a timeout
         /// </summary>
         public TimeSpan SocketResponseTimeout { get; set; } = TimeSpan.FromSeconds(10);
         /// <summary>
-        /// The time after which the connection is assumed to be dropped
+        /// The time after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected.
         /// </summary>
         public TimeSpan SocketNoDataTimeout { get; set; }
 
         /// <summary>
         /// The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
-        /// Setting this to a higher number increases subscription speed, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection.
+        /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
+        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
         /// </summary>
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseAddress"></param>
+        /// <param name="baseAddress">The base address to use</param>
         public SocketClientOptions(string baseAddress) : base(baseAddress)
         {
         }
@@ -247,7 +254,7 @@ namespace CryptoExchange.Net.Objects
             var copy = new T
             {
                 BaseAddress = BaseAddress,
-                LogVerbosity = LogVerbosity,
+                LogLevel = LogLevel,
                 Proxy = Proxy,
                 LogWriters = LogWriters,
                 AutoReconnect = AutoReconnect,

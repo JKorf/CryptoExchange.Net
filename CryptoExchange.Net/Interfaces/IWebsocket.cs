@@ -1,7 +1,8 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Security.Authentication;
+using System.Text;
 using System.Threading.Tasks;
-using WebSocket4Net;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -36,6 +37,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         string? Origin { get; set; }
         /// <summary>
+        /// Encoding to use
+        /// </summary>
+        Encoding? Encoding { get; set; }
+        /// <summary>
         /// Reconnecting
         /// </summary>
         bool Reconnecting { get; set; }
@@ -51,10 +56,6 @@ namespace CryptoExchange.Net.Interfaces
         /// Socket url
         /// </summary>
         string Url { get; }
-        /// <summary>
-        /// State
-        /// </summary>
-        WebSocketState SocketState { get; }
         /// <summary>
         /// Is closed
         /// </summary>
@@ -75,7 +76,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Connect the socket
         /// </summary>
         /// <returns></returns>
-        Task<bool> Connect();
+        Task<bool> ConnectAsync();
         /// <summary>
         /// Send data
         /// </summary>
@@ -89,12 +90,11 @@ namespace CryptoExchange.Net.Interfaces
         /// Close the connecting
         /// </summary>
         /// <returns></returns>
-        Task Close();
+        Task CloseAsync();
         /// <summary>
         /// Set proxy
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="port"></param>
-        void SetProxy(string host, int port);
+        /// <param name="proxy"></param>
+        void SetProxy(ApiProxy proxy);
     }
 }

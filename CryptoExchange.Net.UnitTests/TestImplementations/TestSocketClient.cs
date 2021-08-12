@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
         {
-            return ConnectSocket(sub).Result;
+            return ConnectSocketAsync(sub).Result;
         }
 
         protected internal override bool HandleQueryResponse<T>(SocketConnection s, object request, JToken data, out CallResult<T> callResult)
@@ -53,12 +53,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return true;
         }
 
-        protected internal override Task<CallResult<bool>> AuthenticateSocket(SocketConnection s)
+        protected internal override Task<CallResult<bool>> AuthenticateSocketAsync(SocketConnection s)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override Task<bool> Unsubscribe(SocketConnection connection, SocketSubscription s)
+        protected internal override Task<bool> UnsubscribeAsync(SocketConnection connection, SocketSubscription s)
         {
             throw new NotImplementedException();
         }

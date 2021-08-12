@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Security.Authentication;
+using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
-using WebSocket4Net;
+using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -23,12 +24,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public Func<byte[], string> DataInterpreterBytes { get; set; }
         public DateTime? DisconnectTime { get; set; }
         public string Url { get; }
-        public WebSocketState SocketState { get; }
         public bool IsClosed => !Connected;
         public bool IsOpen => Connected;
         public bool PingConnection { get; set; }
         public TimeSpan PingInterval { get; set; }
         public SslProtocols SSLProtocols { get; set; }
+        public Encoding Encoding { get; set; }
 
         public int ConnectCalls { get; private set; }
         public bool Reconnecting { get; set; }
@@ -46,7 +47,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             }
         }
 
-        public Task<bool> Connect()
+        public Task<bool> ConnectAsync()
         {
             Connected = CanConnect;
             ConnectCalls++;
@@ -65,7 +66,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
         }
 
-        public Task Close()
+        public Task CloseAsync()
         {
             Connected = false;
             DisconnectTime = DateTime.UtcNow;
@@ -96,6 +97,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public void InvokeMessage(string data)
         {
             OnMessage?.Invoke(data);
+        }
+
+        public void SetProxy(ApiProxy proxy)
+        {
+            throw new NotImplementedException();
         }
     }
 }

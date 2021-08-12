@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using Newtonsoft.Json;
@@ -10,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.RateLimiter;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -175,7 +175,7 @@ namespace CryptoExchange.Net.UnitTests
             {
                 RateLimiters = new List<IRateLimiter> { new RateLimiterAPIKey(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Wait,
-                LogVerbosity = LogVerbosity.Debug,
+                LogLevel = LogLevel.Debug,
                 ApiCredentials = new ApiCredentials("TestKey", "TestSecret")
             });
             client.SetResponse("{\"property\": 123}");

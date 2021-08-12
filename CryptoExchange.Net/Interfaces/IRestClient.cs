@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Client name
         /// </summary>
-        string ClientName { get; }
+        string ExchangeName { get; }
 
         /// <summary>
         /// Adds a rate limiter to the client. There are 2 choices, the <see cref="RateLimiterTotal"/> and the <see cref="RateLimiterPerEndpoint"/>.

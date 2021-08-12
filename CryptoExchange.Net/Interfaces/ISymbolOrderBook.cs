@@ -51,6 +51,11 @@ namespace CryptoExchange.Net.Interfaces
         int BidCount { get; }
 
         /// <summary>
+        /// Get a snapshot of the book at this moment
+        /// </summary>
+        (IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks) Book { get; }
+
+        /// <summary>
         /// The list of asks
         /// </summary>
         IEnumerable<ISymbolOrderBookEntry> Asks { get; }
@@ -79,24 +84,21 @@ namespace CryptoExchange.Net.Interfaces
         /// Start connecting and synchronizing the order book
         /// </summary>
         /// <returns></returns>
-        CallResult<bool> Start();
-
-        /// <summary>
-        /// Start connecting and synchronizing the order book
-        /// </summary>
-        /// <returns></returns>
         Task<CallResult<bool>> StartAsync();
 
         /// <summary>
         /// Stop syncing the order book
         /// </summary>
         /// <returns></returns>
-        void Stop();
+        Task StopAsync();
 
         /// <summary>
-        /// Stop syncing the order book
+        /// Get the average price that a market order would fill at at the current order book state. This is no guarentee that an order of that quantity would actually be filled
+        /// at that price since between this calculation and the order placement the book can have changed.
         /// </summary>
-        /// <returns></returns>
-        Task StopAsync();
+        /// <param name="quantity">The quantity in base asset to fill</param>
+        /// <param name="type">The type</param>
+        /// <returns>Average fill price</returns>
+        CallResult<decimal> CalculateAverageFillPrice(decimal quantity, OrderBookEntryType type);
     }
 }

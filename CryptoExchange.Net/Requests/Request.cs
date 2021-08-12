@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -71,7 +70,7 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public async Task<IResponse> GetResponse(CancellationToken cancellationToken)
+        public async Task<IResponse> GetResponseAsync(CancellationToken cancellationToken)
         {
             return new Response(await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false));
         }

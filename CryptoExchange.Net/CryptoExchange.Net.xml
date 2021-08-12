@@ -42,14 +42,14 @@
         </member>
         <member name="M:CryptoExchange.Net.Authentication.ApiCredentials.#ctor(System.Security.SecureString,System.Security.SecureString)">
             <summary>
-            Create Api credentials providing a api key and secret for authentication
+            Create Api credentials providing an api key and secret for authentication
             </summary>
             <param name="key">The api key used for identification</param>
             <param name="secret">The api secret used for signing</param>
         </member>
         <member name="M:CryptoExchange.Net.Authentication.ApiCredentials.#ctor(System.String,System.String)">
             <summary>
-            Create Api credentials providing a api key and secret for authentication
+            Create Api credentials providing an api key and secret for authentication
             </summary>
             <param name="key">The api key used for identification</param>
             <param name="secret">The api secret used for signing</param>
@@ -99,27 +99,27 @@
         </member>
         <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
-            Add authentication to the parameter list
+            Add authentication to the parameter list based on the provided credentials
             </summary>
-            <param name="uri"></param>
-            <param name="method"></param>
-            <param name="parameters"></param>
-            <param name="signed"></param>
-            <param name="postParameterPosition"></param>
-            <param name="arraySerialization"></param>
-            <returns></returns>
+            <param name="uri">The uri the request is for</param>
+            <param name="method">The HTTP method of the request</param>
+            <param name="parameters">The provided parameters for the request</param>
+            <param name="signed">Wether or not the request needs to be signed. If not typically the parameters list can just be returned</param>
+            <param name="postParameterPosition">Where post parameters are placed, in the URI or in the request body</param>
+            <param name="arraySerialization">How array parameters are serialized</param>
+            <returns>Should return the original parameter list including any authentication parameters needed</returns>
         </member>
         <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
-            Add authentication to the header dictionary
+            Add authentication to the header dictionary based on the provided credentials
             </summary>
-            <param name="uri"></param>
-            <param name="method"></param>
-            <param name="parameters"></param>
-            <param name="signed"></param>
-            <param name="postParameterPosition"></param>
-            <param name="arraySerialization"></param>
-            <returns></returns>
+            <param name="uri">The uri the request is for</param>
+            <param name="method">The HTTP method of the request</param>
+            <param name="parameters">The provided parameters for the request</param>
+            <param name="signed">Wether or not the request needs to be signed. If not typically the parameters list can just be returned</param>
+            <param name="postParameterPosition">Where post parameters are placed, in the URI or in the request body</param>
+            <param name="arraySerialization">How array parameters are serialized</param>
+            <returns>Should return a dictionary containing any header key/value pairs needed for authenticating the request</returns>
         </member>
         <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.Sign(System.String)">
             <summary>
@@ -201,7 +201,7 @@
         </member>
         <member name="T:CryptoExchange.Net.BaseClient">
             <summary>
-            The base for all clients
+            The base for all clients, websocket client and rest client
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.BaseClient.BaseAddress">
@@ -209,9 +209,9 @@
             The address of the client
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.BaseClient.ClientName">
+        <member name="P:CryptoExchange.Net.BaseClient.ExchangeName">
             <summary>
-            The name of the client
+            The name of the exchange the client is for
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.BaseClient.log">
@@ -226,7 +226,7 @@
         </member>
         <member name="F:CryptoExchange.Net.BaseClient.authProvider">
             <summary>
-            The auth provider
+            The authentication provider
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.BaseClient.ShouldCheckObjects">
@@ -234,9 +234,14 @@
             Should check objects for missing properties based on the model and the received JSON
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.BaseClient.OutputOriginalData">
+            <summary>
+            If true, the CallResult and DataEvent objects should also contain the originally received json data in the OriginalDaa property
+            </summary>
+        </member>
         <member name="F:CryptoExchange.Net.BaseClient.lastId">
             <summary>
-            The last used id
+            The last used id, use NextId() to get the next id and up this
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.BaseClient.idLock">
@@ -244,28 +249,33 @@
             Lock for id generating
             </summary>
         </member>
+        <member name="F:CryptoExchange.Net.BaseClient.defaultSerializer">
+            <summary>
+            A default serializer
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.BaseClient.LastId">
             <summary>
-            Last is used
+            Last id used
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.#ctor(System.String,CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
-            <param name="clientName"></param>
-            <param name="options"></param>
-            <param name="authenticationProvider"></param>
+            <param name="exchangeName">The name of the exchange this client is for</param>
+            <param name="options">The options for this client</param>
+            <param name="authenticationProvider">The authentication provider for this client (can be null if no credentials are provided)</param>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.SetAuthenticationProvider(CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
-            Set the authentication provider
+            Set the authentication provider, can be used when manually setting the API credentials
             </summary>
             <param name="authenticationProvider"></param>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.ValidateJson(System.String)">
             <summary>
-            Tries to parse the json data and returns a token
+            Tries to parse the json data and returns a JToken, validating the input not being empty and being valid json
             </summary>
             <param name="data">The data to parse</param>
             <returns></returns>
@@ -278,7 +288,7 @@
             <param name="data">The data to deserialize</param>
             <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
-            <param name="requestId">Id of the request</param>
+            <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(Newtonsoft.Json.Linq.JToken,System.Nullable{System.Boolean},Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
@@ -289,23 +299,23 @@
             <param name="obj">The data to deserialize</param>
             <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
-            <param name="requestId">A request identifier</param>
+            <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32},System.Nullable{System.Int64})">
+        <member name="M:CryptoExchange.Net.BaseClient.DeserializeAsync``1(System.IO.Stream,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32},System.Nullable{System.Int64})">
             <summary>
             Deserialize a stream into an object
             </summary>
             <typeparam name="T">The type to deserialize into</typeparam>
             <param name="stream">The stream to deserialize</param>
             <param name="serializer">A specific serializer to use</param>
-            <param name="requestId">Id of the request</param>
-            <param name="elapsedMilliseconds">Milliseconds response time</param>
+            <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
+            <param name="elapsedMilliseconds">Milliseconds response time for the request this stream is a response for</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.NextId">
             <summary>
-            Generate a unique id
+            Generate a new unique id. The id is staticly stored so it is guarenteed to be unique across different client instances
             </summary>
             <returns></returns>
         </member>
@@ -317,13 +327,6 @@
             <param name="values">The values to fill</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.GetExceptionInfo(System.Exception)">
-            <summary>
-            Get's all exception messages from a nested exception
-            </summary>
-            <param name="ex"></param>
-            <returns></returns>
-        </member>
         <member name="M:CryptoExchange.Net.BaseClient.Dispose">
             <summary>
             Dispose
@@ -331,7 +334,8 @@
         </member>
         <member name="T:CryptoExchange.Net.Converters.ArrayConverter">
             <summary>
-            Converter for arrays to properties
+            Converter for arrays to objects. Can deserialize data like [0.1, 0.2, "test"] to an object. Mapping is done by marking the class with [JsonConverter(typeof(ArrayConverter))] and the properties
+            with [ArrayProperty(x)] where x is the index of the property in the array
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Converters.ArrayConverter.CanConvert(System.Type)">
@@ -462,6 +466,66 @@
         <member name="M:CryptoExchange.Net.Converters.UTCDateTimeConverter.CanConvert(System.Type)">
             <inheritdoc />
         </member>
+        <member name="T:CryptoExchange.Net.ExchangeHelpers">
+            <summary>
+            General helpers functions
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.ClampValue(System.Decimal,System.Decimal,System.Decimal)">
+            <summary>
+            Clamp a value between a min and max
+            </summary>
+            <param name="min"></param>
+            <param name="max"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.AdjustValueStep(System.Decimal,System.Decimal,System.Nullable{System.Decimal},CryptoExchange.Net.Objects.RoundingType,System.Decimal)">
+            <summary>
+            Adjust a value to be between the min and max parameters and rounded to the closest step.
+            </summary>
+            <param name="min">The min value</param>
+            <param name="max">The max value</param>
+            <param name="step">The step size the value should be floored to. For example, value 2.548 with a step size of 0.01 will output 2.54</param>
+            <param name="roundingType">How to round</param>
+            <param name="value">The input value</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.AdjustValuePrecision(System.Decimal,System.Decimal,System.Nullable{System.Int32},CryptoExchange.Net.Objects.RoundingType,System.Decimal)">
+            <summary>
+            Adjust a value to be between the min and max parameters and rounded to the closest precision.
+            </summary>
+            <param name="min">The min value</param>
+            <param name="max">The max value</param>
+            <param name="precision">The precision the value should be rounded to. For example, value 2.554215 with a precision of 5 will output 2.5542</param>
+            <param name="roundingType">How to round</param>
+            <param name="value">The input value</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.RoundToSignificantDigits(System.Decimal,System.Int32,CryptoExchange.Net.Objects.RoundingType)">
+            <summary>
+            Round a value to have the provided total number of digits. For example, value 253.12332 with 5 digits would be 253.12 
+            </summary>
+            <param name="value">The value to round</param>
+            <param name="digits">The total amount of digits (NOT decimal places) to round to</param>
+            <param name="roundingType">How to round</param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.RoundDown(System.Decimal,System.Double)">
+            <summary>
+            Rounds a value down to 
+            </summary>
+            <param name="i"></param>
+            <param name="decimalPlaces"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.ExchangeHelpers.Normalize(System.Decimal)">
+            <summary>
+            Strips any trailing zero's of a decimal value, useful when converting the value to string.
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonBalance">
             <summary>
             Common balance
@@ -512,9 +576,24 @@
             The asset fee was paid in
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade.CommonTradeTime">
+            <summary>
+            Trade time
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient">
             <summary>
             Shared interface for exchange wrappers based on the CryptoExchange.Net package
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OnOrderPlaced">
+            <summary>
+            Should be triggered on order placing
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OnOrderCanceled">
+            <summary>
+            Should be triggered on order cancelling
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.GetSymbolName(System.String,System.String)">
@@ -661,6 +740,26 @@
             Sell order
             </summary>
         </member>
+        <member name="T:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus">
+            <summary>
+            Common order status
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus.Active">
+            <summary>
+            placed and not fully filled order
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus.Canceled">
+            <summary>
+            cancelled order
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus.Filled">
+            <summary>
+            filled order
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonKline">
             <summary>
             Common kline
@@ -734,6 +833,11 @@
         <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonType">
             <summary>
             Type of the order
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonOrder.CommonOrderTime">
+            <summary>
+            order time
             </summary>
         </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonOrderBook">
@@ -987,6 +1091,13 @@
             <param name="value">The value of the object</param>
             <param name="argumentName">Name of the parameter</param>
         </member>
+        <member name="M:CryptoExchange.Net.ExtensionMethods.ToLogString(System.Exception)">
+            <summary>
+            Format an exception and inner exception to a readable string
+            </summary>
+            <param name="exception"></param>
+            <returns></returns>
+        </member>
         <member name="T:CryptoExchange.Net.Interfaces.IRateLimiter">
             <summary>
             Rate limiter interface
@@ -1052,7 +1163,7 @@
             <param name="key"></param>
             <param name="value"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRequest.GetResponse(System.Threading.CancellationToken)">
+        <member name="M:CryptoExchange.Net.Interfaces.IRequest.GetResponseAsync(System.Threading.CancellationToken)">
             <summary>
             Get the response
             </summary>
@@ -1101,7 +1212,7 @@
             The response headers
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IResponse.GetResponseStream">
+        <member name="M:CryptoExchange.Net.Interfaces.IResponse.GetResponseStreamAsync">
             <summary>
             Get the response stream
             </summary>
@@ -1142,7 +1253,7 @@
             The base address of the API
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ClientName">
+        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ExchangeName">
             <summary>
             Client name
             </summary>
@@ -1209,14 +1320,14 @@
         <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.SocketCombineTarget">
             <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.Unsubscribe(CryptoExchange.Net.Sockets.UpdateSubscription)">
+        <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.UpdateSubscription)">
             <summary>
             Unsubscribe from a stream
             </summary>
             <param name="subscription">The subscription to unsubscribe</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.UnsubscribeAll">
+        <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.UnsubscribeAllAsync">
             <summary>
             Unsubscribe all subscriptions
             </summary>
@@ -1272,6 +1383,11 @@
             The number of bids in the book
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Book">
+            <summary>
+            Get a snapshot of the book at this moment
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Asks">
             <summary>
             The list of asks
@@ -1297,21 +1413,9 @@
             BestBid/BesAsk returned as a pair
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Start">
-            <summary>
-            Start connecting and synchronizing the order book
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.StartAsync">
             <summary>
             Start connecting and synchronizing the order book
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.Stop">
-            <summary>
-            Stop syncing the order book
             </summary>
             <returns></returns>
         </member>
@@ -1320,6 +1424,15 @@
             Stop syncing the order book
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.CalculateAverageFillPrice(System.Decimal,CryptoExchange.Net.Objects.OrderBookEntryType)">
+            <summary>
+            Get the average price that a market order would fill at at the current order book state. This is no guarentee that an order of that quantity would actually be filled
+            at that price since between this calculation and the order placement the book can have changed.
+            </summary>
+            <param name="quantity">The quantity in base asset to fill</param>
+            <param name="type">The type</param>
+            <returns>Average fill price</returns>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry">
             <summary>
@@ -1381,6 +1494,11 @@
             Origin
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.IWebsocket.Encoding">
+            <summary>
+            Encoding to use
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Interfaces.IWebsocket.Reconnecting">
             <summary>
             Reconnecting
@@ -1399,11 +1517,6 @@
         <member name="P:CryptoExchange.Net.Interfaces.IWebsocket.Url">
             <summary>
             Socket url
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IWebsocket.SocketState">
-            <summary>
-            State
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Interfaces.IWebsocket.IsClosed">
@@ -1426,7 +1539,7 @@
             Timeout
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.Connect">
+        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.ConnectAsync">
             <summary>
             Connect the socket
             </summary>
@@ -1443,18 +1556,17 @@
             Reset socket
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.Close">
+        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.CloseAsync">
             <summary>
             Close the connecting
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.SetProxy(System.String,System.Int32)">
+        <member name="M:CryptoExchange.Net.Interfaces.IWebsocket.SetProxy(CryptoExchange.Net.Objects.ApiProxy)">
             <summary>
             Set proxy
             </summary>
-            <param name="host"></param>
-            <param name="port"></param>
+            <param name="proxy"></param>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.IWebsocketFactory">
             <summary>
@@ -1479,15 +1591,32 @@
             <param name="headers"></param>
             <returns></returns>
         </member>
-        <member name="T:CryptoExchange.Net.Logging.DebugTextWriter">
+        <member name="T:CryptoExchange.Net.Logging.ConsoleLogger">
+            <summary>
+            Log to console
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.ConsoleLogger.BeginScope``1(``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.ConsoleLogger.IsEnabled(Microsoft.Extensions.Logging.LogLevel)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.ConsoleLogger.Log``1(Microsoft.Extensions.Logging.LogLevel,Microsoft.Extensions.Logging.EventId,``0,System.Exception,System.Func{``0,System.Exception,System.String})">
+            <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.Logging.DebugLogger">
             <summary>
             Default log writer, writes to debug
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Logging.DebugTextWriter.Encoding">
+        <member name="M:CryptoExchange.Net.Logging.DebugLogger.BeginScope``1(``0)">
             <inheritdoc />
         </member>
-        <member name="M:CryptoExchange.Net.Logging.DebugTextWriter.WriteLine(System.String)">
+        <member name="M:CryptoExchange.Net.Logging.DebugLogger.IsEnabled(Microsoft.Extensions.Logging.LogLevel)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Logging.DebugLogger.Log``1(Microsoft.Extensions.Logging.LogLevel,Microsoft.Extensions.Logging.EventId,``0,System.Exception,System.Func{``0,System.Exception,System.String})">
             <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.Logging.Log">
@@ -1495,9 +1624,14 @@
             Log implementation
             </summary>
         </member>
+        <member name="F:CryptoExchange.Net.Logging.Log.writers">
+            <summary>
+            List of ILogger implementations to forward the message to
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Logging.Log.Level">
             <summary>
-            The verbosity of the logging
+            The verbosity of the logging, anything more verbose will not be forwarded to the writers
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Logging.Log.ClientName">
@@ -1509,72 +1643,20 @@
             <summary>
             ctor
             </summary>
+            <param name="clientName">The name of the client the logging is used in</param>
         </member>
-        <member name="M:CryptoExchange.Net.Logging.Log.UpdateWriters(System.Collections.Generic.List{System.IO.TextWriter})">
+        <member name="M:CryptoExchange.Net.Logging.Log.UpdateWriters(System.Collections.Generic.List{Microsoft.Extensions.Logging.ILogger})">
             <summary>
             Set the writers
             </summary>
             <param name="textWriters"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Logging.Log.Write(CryptoExchange.Net.Logging.LogVerbosity,System.String)">
+        <member name="M:CryptoExchange.Net.Logging.Log.Write(Microsoft.Extensions.Logging.LogLevel,System.String)">
             <summary>
             Write a log entry
             </summary>
-            <param name="logType"></param>
-            <param name="message"></param>
-        </member>
-        <member name="T:CryptoExchange.Net.Logging.LogVerbosity">
-            <summary>
-            The log verbosity
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Logging.LogVerbosity.Debug">
-            <summary>
-            Debug logging
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Logging.LogVerbosity.Info">
-            <summary>
-            Info logging
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Logging.LogVerbosity.Warning">
-            <summary>
-            Warning logging
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Logging.LogVerbosity.Error">
-            <summary>
-            Error logging
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Logging.LogVerbosity.None">
-            <summary>
-            None, used for disabling logging
-            </summary>
-        </member>
-        <member name="T:CryptoExchange.Net.Logging.ThreadSafeFileWriter">
-            <summary>
-            File writer
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Logging.ThreadSafeFileWriter.Encoding">
-            <inheritdoc />
-        </member>
-        <member name="M:CryptoExchange.Net.Logging.ThreadSafeFileWriter.#ctor(System.String)">
-            <summary>
-            ctor
-            </summary>
-            <param name="path"></param>
-        </member>
-        <member name="M:CryptoExchange.Net.Logging.ThreadSafeFileWriter.WriteLine(System.String)">
-            <inheritdoc />
-        </member>
-        <member name="M:CryptoExchange.Net.Logging.ThreadSafeFileWriter.Dispose(System.Boolean)">
-            <summary>
-            Dispose
-            </summary>
-            <param name="disposing"></param>
+            <param name="logLevel">The verbosity of the message</param>
+            <param name="message">The message to log</param>
         </member>
         <member name="T:CryptoExchange.Net.Objects.ApiProxy">
             <summary>
@@ -1646,7 +1728,7 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.CallResult.Error">
             <summary>
-            An error if the call didn't succeed
+            An error if the call didn't succeed, will always be filled if Success = false
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.CallResult.Success">
@@ -1681,7 +1763,12 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.CallResult`1.Data">
             <summary>
-            The data returned by the call
+            The data returned by the call, only available when Success = true
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.CallResult`1.OriginalData">
+            <summary>
+            The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.CallResult`1.#ctor(`0,CryptoExchange.Net.Objects.Error)">
@@ -1731,17 +1818,17 @@
             <summary>
             ctor
             </summary>
-            <param name="code"></param>
-            <param name="responseHeaders"></param>
-            <param name="error"></param>
+            <param name="code">Status code</param>
+            <param name="responseHeaders">Response headers</param>
+            <param name="error">Error</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
             <summary>
             Create an error result
             </summary>
-            <param name="code"></param>
-            <param name="responseHeaders"></param>
-            <param name="error"></param>
+            <param name="code">Status code</param>
+            <param name="responseHeaders">Response headers</param>
+            <param name="error">Error</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult.CreateErrorResult(CryptoExchange.Net.Objects.WebCallResult)">
@@ -1776,18 +1863,22 @@
             <param name="data"></param>
             <param name="error"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.#ctor(CryptoExchange.Net.Objects.WebCallResult{`0})">
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.#ctor(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},System.String,`0,CryptoExchange.Net.Objects.Error)">
             <summary>
-            Create new based on existing
+            ctor
             </summary>
-            <param name="callResult"></param>
+            <param name="code"></param>
+            <param name="originalData"></param>
+            <param name="responseHeaders"></param>
+            <param name="data"></param>
+            <param name="error"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateFrom``1(CryptoExchange.Net.Objects.WebCallResult{``0})">
+        <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.As``1(``0)">
             <summary>
-            Create from a call result
+            Copy the WebCallResult to a new data type
             </summary>
-            <typeparam name="Y"></typeparam>
-            <param name="source"></param>
+            <typeparam name="K">The new type</typeparam>
+            <param name="data">The data of the new type</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Objects.WebCallResult`1.CreateErrorResult(System.Nullable{System.Net.HttpStatusCode},System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},CryptoExchange.Net.Objects.Error)">
@@ -1831,7 +1922,7 @@
         </member>
         <member name="T:CryptoExchange.Net.Objects.PostParameters">
             <summary>
-            Where the post parameters should be added
+            Where the parameters for a post request should be added
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.Objects.PostParameters.InBody">
@@ -1919,6 +2010,21 @@
             Create an []=value array
             </summary>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.RoundingType">
+            <summary>
+            How to round
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Objects.RoundingType.Down">
+            <summary>
+            Round down (flooring)
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Objects.RoundingType.Closest">
+            <summary>
+            Round to closest value
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.Error">
             <summary>
             Base class for errors
@@ -1965,7 +2071,7 @@
         </member>
         <member name="T:CryptoExchange.Net.Objects.NoApiCredentialsError">
             <summary>
-            No api credentials provided while trying to access private endpoint
+            No api credentials provided while trying to access a private endpoint
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.NoApiCredentialsError.#ctor">
@@ -2069,19 +2175,35 @@
             ctor
             </summary>
         </member>
+        <member name="T:CryptoExchange.Net.Objects.InvalidOperationError">
+            <summary>
+            Invalid operation requested
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Objects.InvalidOperationError.#ctor(System.String)">
+            <summary>
+            ctor
+            </summary>
+            <param name="message"></param>
+        </member>
         <member name="T:CryptoExchange.Net.Objects.BaseOptions">
             <summary>
             Base options
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Objects.BaseOptions.LogVerbosity">
+        <member name="P:CryptoExchange.Net.Objects.BaseOptions.LogLevel">
             <summary>
-            The log verbosity
+            The minimum log level to output. Setting it to null will send all messages to the registered ILoggers. 
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.BaseOptions.LogWriters">
             <summary>
             The log writers
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.BaseOptions.OutputOriginalData">
+            <summary>
+            If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.BaseOptions.ToString">
@@ -2105,11 +2227,12 @@
         <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.StrictLevels">
             <summary>
             Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-            when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed
+            when a new bid level is added which makes the total amount of bids 11, should the last bid entry be removed
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.#ctor(System.String,System.Boolean,System.Boolean)">
             <summary>
+            ctor
             </summary>
             <param name="name">The name of the order book implementation</param>
             <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
@@ -2148,7 +2271,7 @@
             <summary>
             ctor
             </summary>
-            <param name="baseAddress"></param>
+            <param name="baseAddress">The base address to use</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.ClientOptions.ToString">
             <inheritdoc />
@@ -2175,7 +2298,7 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.RestClientOptions.HttpClient">
             <summary>
-            Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored and should be set on the provided HttpClient instance
+            Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored in requests and should be set on the provided HttpClient instance
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.RestClientOptions.#ctor(System.String)">
@@ -2218,25 +2341,26 @@
         </member>
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketResponseTimeout">
             <summary>
-            The time to wait for a socket response
+            The time to wait for a socket response before giving a timeout
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketNoDataTimeout">
             <summary>
-            The time after which the connection is assumed to be dropped
+            The time after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected.
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget">
             <summary>
             The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
-            Setting this to a higher number increases subscription speed, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection.
+            Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
+            single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.#ctor(System.String)">
             <summary>
             ctor
             </summary>
-            <param name="baseAddress"></param>
+            <param name="baseAddress">The base address to use</param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.Copy``1">
             <summary>
@@ -2368,6 +2492,11 @@
             The list of bids
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.Book">
+            <summary>
+            Get a snapshot of the book at this moment
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.BestBid">
             <summary>
             The best bid currently in the order book
@@ -2390,23 +2519,20 @@
             <param name="symbol"></param>
             <param name="options"></param>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.Start">
-            <summary>
-            Start connecting and synchronizing the order book
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.StartAsync">
             <summary>
             Start connecting and synchronizing the order book
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.Stop">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.CalculateAverageFillPrice(System.Decimal,CryptoExchange.Net.Objects.OrderBookEntryType)">
             <summary>
-            Stop syncing the order book
+            Get the average price that a market order would fill at at the current order book state. This is no guarentee that an order of that quantity would actually be filled
+            at that price since between this calculation and the order placement the book can have changed.
             </summary>
-            <returns></returns>
+            <param name="quantity">The quantity in base asset to fill</param>
+            <param name="type">The type</param>
+            <returns>Average fill price</returns>
         </member>
         <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.StopAsync">
             <summary>
@@ -2414,7 +2540,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.DoStart">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.DoStartAsync">
             <summary>
             Start the order book
             </summary>
@@ -2425,7 +2551,7 @@
             Reset the order book
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.DoResync">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.DoResyncAsync">
             <summary>
             Resync the order book
             </summary>
@@ -2489,7 +2615,7 @@
             <param name="type">Type of entry</param>
             <param name="entry">The entry</param>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.WaitForSetOrderBook(System.Int32)">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.WaitForSetOrderBookAsync(System.Int32)">
             <summary>
             Wait until the order book has been set
             </summary>
@@ -2645,7 +2771,7 @@
         <member name="M:CryptoExchange.Net.Requests.Request.SetContent(System.Byte[])">
             <inheritdoc />
         </member>
-        <member name="M:CryptoExchange.Net.Requests.Request.GetResponse(System.Threading.CancellationToken)">
+        <member name="M:CryptoExchange.Net.Requests.Request.GetResponseAsync(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.Requests.RequestFactory">
@@ -2679,7 +2805,7 @@
             </summary>
             <param name="response">The actual response</param>
         </member>
-        <member name="M:CryptoExchange.Net.Requests.Response.GetResponseStream">
+        <member name="M:CryptoExchange.Net.Requests.Response.GetResponseStreamAsync">
             <inheritdoc />
         </member>
         <member name="M:CryptoExchange.Net.Requests.Response.Close">
@@ -2697,7 +2823,7 @@
         </member>
         <member name="F:CryptoExchange.Net.RestClient.postParametersPosition">
             <summary>
-            Where to place post parameters
+            Where to place post parameters by default
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.RestClient.requestBodyFormat">
@@ -2712,22 +2838,22 @@
         </member>
         <member name="F:CryptoExchange.Net.RestClient.arraySerialization">
             <summary>
-            How to serialize array parameters
+            How to serialize array parameters when making requests
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.RestClient.requestBodyEmptyContent">
             <summary>
-            What request body should be when no data is send
+            What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RequestTimeout">
             <summary>
-            Timeout for requests
+            Timeout for requests. This setting is ignored when injecting a HttpClient in the options, requests timeouts should be set on the client then.
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RateLimitBehaviour">
             <summary>
-            Rate limiting behaviour
+            What should happen when running into a rate limit
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.RestClient.RateLimiters">
@@ -2737,16 +2863,16 @@
         </member>
         <member name="P:CryptoExchange.Net.RestClient.TotalRequestsMade">
             <summary>
-            Total requests made
+            Total requests made by this client
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.#ctor(System.String,CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
             </summary>
-            <param name="clientName"></param>
-            <param name="exchangeOptions"></param>
-            <param name="authenticationProvider"></param>
+            <param name="exchangeName">The name of the exchange this client is for</param>
+            <param name="exchangeOptions">The options for this client</param>
+            <param name="authenticationProvider">The authentication provider for this client (can be null if no credentials are provided)</param>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.AddRateLimiter(CryptoExchange.Net.Interfaces.IRateLimiter)">
             <summary>
@@ -2771,36 +2897,37 @@
             </summary>
             <returns>The roundtrip time of the ping request</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.SendRequest``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32,Newtonsoft.Json.JsonSerializer)">
+        <member name="M:CryptoExchange.Net.RestClient.SendRequestAsync``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32,Newtonsoft.Json.JsonSerializer)">
             <summary>
-            Execute a request
+            Execute a request to the uri and deserialize the response into the provided type parameter
             </summary>
-            <typeparam name="T">The expected result type</typeparam>
+            <typeparam name="T">The type to deserialize into</typeparam>
             <param name="uri">The uri to send the request to</param>
             <param name="method">The method of the request</param>
             <param name="cancellationToken">Cancellation token</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
             <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
-            <param name="postPosition">Where the post parameters should be placed</param>
-            <param name="arraySerialization">How array parameters should be serialized</param>
+            <param name="postPosition">Where the post parameters should be placed, overwrites the value set in the client</param>
+            <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
             <param name="credits">Credits used for the request</param>
             <param name="deserializer">The JsonSerializer to use for deserialization</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.GetResponse``1(CryptoExchange.Net.Interfaces.IRequest,Newtonsoft.Json.JsonSerializer,System.Threading.CancellationToken)">
+        <member name="M:CryptoExchange.Net.RestClient.GetResponseAsync``1(CryptoExchange.Net.Interfaces.IRequest,Newtonsoft.Json.JsonSerializer,System.Threading.CancellationToken)">
             <summary>
-            Executes the request and returns the string result
+            Executes the request and returns the result deserialized into the type parameter class
             </summary>
             <param name="request">The request object to execute</param>
             <param name="deserializer">The JsonSerializer to use for deserialization</param>
             <param name="cancellationToken">Cancellation token</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.TryParseError(Newtonsoft.Json.Linq.JToken)">
+        <member name="M:CryptoExchange.Net.RestClient.TryParseErrorAsync(Newtonsoft.Json.Linq.JToken)">
             <summary>
             Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
-            This can be used together with ManualParseError to check if it is an error before deserializing to an object
+            When setting manualParseError to true this method will be called for each response to be able to check if the response is an error or not.
+            If the response is an error this method should return the parsed error, else it should return null
             </summary>
             <param name="data">Received data</param>
             <returns>Null if not an error, Error otherwise</returns>
@@ -2820,11 +2947,11 @@
         </member>
         <member name="M:CryptoExchange.Net.RestClient.WriteParamBody(CryptoExchange.Net.Interfaces.IRequest,System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
             <summary>
-            Writes the parameters of the request to the request object, either in the query string or the request body
+            Writes the parameters of the request to the request object body
             </summary>
-            <param name="request"></param>
-            <param name="parameters"></param>
-            <param name="contentType"></param>
+            <param name="request">The request to set the parameters on</param>
+            <param name="parameters">The parameters to set</param>
+            <param name="contentType">The content type of the data</param>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.ParseErrorResponse(Newtonsoft.Json.Linq.JToken)">
             <summary>
@@ -2850,6 +2977,7 @@
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.semaphoreSlim">
             <summary>
+            Semaphore used while creating sockets
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.SocketClient.ReconnectInterval">
@@ -2874,32 +3002,32 @@
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.dataInterpreterBytes">
             <summary>
-            Handler for byte data
+            Delegate used for processing byte data received from socket connections before it is processed by handlers
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.dataInterpreterString">
             <summary>
-            Handler for string data
+            Delegate used for processing string data received from socket connections before it is processed by handlers
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.genericHandlers">
             <summary>
-            Generic handlers
+            Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.periodicTask">
             <summary>
-            Periodic task
+            The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.periodicEvent">
             <summary>
-            Periodic task event
+            Wait event for the periodicTask
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.disposing">
             <summary>
-            Is disposing
+            If client is disposing
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.SocketClient.ContinueOnQueryResponse">
@@ -2915,63 +3043,63 @@
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.#ctor(System.String,CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
-            Create a socket client
+            ctor
             </summary>
-            <param name="clientName">Client name</param>
-            <param name="exchangeOptions">Client options</param>
-            <param name="authenticationProvider">Authentication provider</param>
+            <param name="exchangeName">The name of the exchange this client is for</param>
+            <param name="exchangeOptions">The options for this client</param>
+            <param name="authenticationProvider">The authentication provider for this client (can be null if no credentials are provided)</param>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.SetDataInterpreter(System.Func{System.Byte[],System.String},System.Func{System.String,System.String})">
             <summary>
-            Set a function to interpret the data, used when the data is received as bytes instead of a string
+            Set a delegate to be used for processing data received from socket connections before it is processed by handlers
             </summary>
             <param name="byteHandler">Handler for byte data</param>
             <param name="stringHandler">Handler for string data</param>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Subscribe``1(System.Object,System.String,System.Boolean,System.Action{``0})">
+        <member name="M:CryptoExchange.Net.SocketClient.SubscribeAsync``1(System.Object,System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.DataEvent{``0}})">
             <summary>
-            Subscribe
+            Connect to an url and listen for data on the BaseAddress
             </summary>
-            <typeparam name="T">The expected return data</typeparam>
-            <param name="request">The request to send</param>
-            <param name="identifier">The identifier to use</param>
-            <param name="authenticated">If the subscription should be authenticated</param>
+            <typeparam name="T">The type of the expected data</typeparam>
+            <param name="request">The optional request object to send, will be serialized to json</param>
+            <param name="identifier">The identifier to use, necessary if no request object is sent</param>
+            <param name="authenticated">If the subscription is to an authenticated endpoint</param>
             <param name="dataHandler">The handler of update data</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Subscribe``1(System.String,System.Object,System.String,System.Boolean,System.Action{``0})">
+        <member name="M:CryptoExchange.Net.SocketClient.SubscribeAsync``1(System.String,System.Object,System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.DataEvent{``0}})">
             <summary>
-            Subscribe using a specif URL
+            Connect to an url and listen for data
             </summary>
             <typeparam name="T">The type of the expected data</typeparam>
             <param name="url">The URL to connect to</param>
-            <param name="request">The request to send</param>
-            <param name="identifier">The identifier to use</param>
-            <param name="authenticated">If the subscription should be authenticated</param>
+            <param name="request">The optional request object to send, will be serialized to json</param>
+            <param name="identifier">The identifier to use, necessary if no request object is sent</param>
+            <param name="authenticated">If the subscription is to an authenticated endpoint</param>
             <param name="dataHandler">The handler of update data</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.SubscribeAndWait(CryptoExchange.Net.Sockets.SocketConnection,System.Object,CryptoExchange.Net.Sockets.SocketSubscription)">
+        <member name="M:CryptoExchange.Net.SocketClient.SubscribeAndWaitAsync(CryptoExchange.Net.Sockets.SocketConnection,System.Object,CryptoExchange.Net.Sockets.SocketSubscription)">
             <summary>
             Sends the subscribe request and waits for a response to that request
             </summary>
-            <param name="socket">The connection to send the request on</param>
-            <param name="request">The request to send</param>
+            <param name="socketConnection">The connection to send the request on</param>
+            <param name="request">The request to send, will be serialized to json</param>
             <param name="subscription">The subscription the request is for</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Query``1(System.Object,System.Boolean)">
+        <member name="M:CryptoExchange.Net.SocketClient.QueryAsync``1(System.Object,System.Boolean)">
             <summary>
-            Query for data
+            Send a query on a socket connection to the BaseAddress and wait for the response
             </summary>
             <typeparam name="T">Expected result type</typeparam>
-            <param name="request">The request to send</param>
-            <param name="authenticated">Whether the socket should be authenticated</param>
+            <param name="request">The request to send, will be serialized to json</param>
+            <param name="authenticated">If the query is to an authenticated endpoint</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Query``1(System.String,System.Object,System.Boolean)">
+        <member name="M:CryptoExchange.Net.SocketClient.QueryAsync``1(System.String,System.Object,System.Boolean)">
             <summary>
-            Query for data
+            Send a query on a socket connection and wait for the response
             </summary>
             <typeparam name="T">The expected result type</typeparam>
             <param name="url">The url for the request</param>
@@ -2979,7 +3107,7 @@
             <param name="authenticated">Whether the socket should be authenticated</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.QueryAndWait``1(CryptoExchange.Net.Sockets.SocketConnection,System.Object)">
+        <member name="M:CryptoExchange.Net.SocketClient.QueryAndWaitAsync``1(CryptoExchange.Net.Sockets.SocketConnection,System.Object)">
             <summary>
             Sends the query request and waits for the result
             </summary>
@@ -2988,9 +3116,9 @@
             <param name="request">The request to send</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.ConnectIfNeeded(CryptoExchange.Net.Sockets.SocketConnection,System.Boolean)">
+        <member name="M:CryptoExchange.Net.SocketClient.ConnectIfNeededAsync(CryptoExchange.Net.Sockets.SocketConnection,System.Boolean)">
             <summary>
-            Checks if a socket needs to be connected and does so if needed
+            Checks if a socket needs to be connected and does so if needed. Also authenticates on the socket if needed
             </summary>
             <param name="socket">The connection to check</param>
             <param name="authenticated">Whether the socket should authenticated</param>
@@ -2998,55 +3126,65 @@
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.HandleQueryResponse``1(CryptoExchange.Net.Sockets.SocketConnection,System.Object,Newtonsoft.Json.Linq.JToken,CryptoExchange.Net.Objects.CallResult{``0}@)">
             <summary>
-            Needs to check if a received message was an answer to a query request (preferable by id) and set the callResult out to whatever the response is
+            The socketConnection received data (the data JToken parameter). The implementation of this method should check if the received data is a response to the query that was send (the request parameter).
+            For example; A query is sent in a request message with an Id parameter with value 10. The socket receives data and calls this method to see if the data it received is an
+            anwser to any query that was done. The implementation of this method should check if the response.Id == request.Id to see if they match (assuming the api has some sort of Id tracking on messages,
+            if not some other method has be implemented to match the messages).
+            If the messages match, the callResult out parameter should be set with the deserialized data in the from of (T) and return true.
             </summary>
-            <typeparam name="T">The type of response</typeparam>
-            <param name="s">The socket connection</param>
+            <typeparam name="T">The type of response that is expected on the query</typeparam>
+            <param name="socketConnection">The socket connection</param>
             <param name="request">The request that a response is awaited for</param>
-            <param name="data">The message</param>
+            <param name="data">The message received from the server</param>
             <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
             <returns>True if the message was a response to the query</returns>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.HandleSubscriptionResponse(CryptoExchange.Net.Sockets.SocketConnection,CryptoExchange.Net.Sockets.SocketSubscription,System.Object,Newtonsoft.Json.Linq.JToken,CryptoExchange.Net.Objects.CallResult{System.Object}@)">
             <summary>
-            Needs to check if a received message was an answer to a subscription request (preferable by id) and set the callResult out to whatever the response is
+            The socketConnection received data (the data JToken parameter). The implementation of this method should check if the received data is a response to the subscription request that was send (the request parameter).
+            For example; A subscribe request message is send with an Id parameter with value 10. The socket receives data and calls this method to see if the data it received is an
+            anwser to any subscription request that was done. The implementation of this method should check if the response.Id == request.Id to see if they match (assuming the api has some sort of Id tracking on messages,
+            if not some other method has be implemented to match the messages).
+            If the messages match, the callResult out parameter should be set with the deserialized data in the from of (T) and return true.
             </summary>
-            <param name="s">The socket connection</param>
-            <param name="subscription"></param>
-            <param name="request">The request that a response is awaited for</param>
-            <param name="message">The message</param>
+            <param name="socketConnection">The socket connection</param>
+            <param name="subscription">A subscription that waiting for a subscription response</param>
+            <param name="request">The request that the subscription sent</param>
+            <param name="data">The message received from the server</param>
             <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
             <returns>True if the message was a response to the subscription request</returns>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.MessageMatchesHandler(Newtonsoft.Json.Linq.JToken,System.Object)">
             <summary>
-            Needs to check if a received message matches a handler. Typically if an update message matches the request
+            Needs to check if a received message matches a handler by request. After subscribing data message will come in. These data messages need to be matched to a specific connection
+            to pass the correct data to the correct handler. The implementation of this method should check if the message received matches the subscribe request that was sent.
             </summary>
             <param name="message">The received data</param>
             <param name="request">The subscription request</param>
-            <returns></returns>
+            <returns>True if the message is for the subscription which sent the request</returns>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.MessageMatchesHandler(Newtonsoft.Json.Linq.JToken,System.String)">
             <summary>
-            Needs to check if a received message matches a handler. Typically if an received message matches a ping request or a other information pushed from the the server
+            Needs to check if a received message matches a handler by identifier. Generally used by GenericHandlers. For example; a generic handler is registered which handles ping messages
+            from the server. This method should check if the message received is a ping message and the identifer is the identifier of the GenericHandler
             </summary>
             <param name="message">The received data</param>
             <param name="identifier">The string identifier of the handler</param>
-            <returns></returns>
+            <returns>True if the message is for the handler which has the identifier</returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.AuthenticateSocket(CryptoExchange.Net.Sockets.SocketConnection)">
+        <member name="M:CryptoExchange.Net.SocketClient.AuthenticateSocketAsync(CryptoExchange.Net.Sockets.SocketConnection)">
             <summary>
             Needs to authenticate the socket so authenticated queries/subscriptions can be made on this socket connection
             </summary>
-            <param name="s"></param>
+            <param name="socketConnection">The socket connection that should be authenticated</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Unsubscribe(CryptoExchange.Net.Sockets.SocketConnection,CryptoExchange.Net.Sockets.SocketSubscription)">
+        <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.SocketConnection,CryptoExchange.Net.Sockets.SocketSubscription)">
             <summary>
             Needs to unsubscribe a subscription, typically by sending an unsubscribe request. If multiple subscriptions per socket is not allowed this can just return since the socket will be closed anyway
             </summary>
             <param name="connection">The connection on which to unsubscribe</param>
-            <param name="s">The subscription to unsubscribe</param>
+            <param name="subscriptionToUnsub">The subscription to unsubscribe</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.ProcessTokenData(Newtonsoft.Json.Linq.JToken)">
@@ -3056,9 +3194,9 @@
             <param name="message"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.AddHandler``1(System.Object,System.String,System.Boolean,CryptoExchange.Net.Sockets.SocketConnection,System.Action{``0})">
+        <member name="M:CryptoExchange.Net.SocketClient.AddSubscription``1(System.Object,System.String,System.Boolean,CryptoExchange.Net.Sockets.SocketConnection,System.Action{CryptoExchange.Net.Sockets.DataEvent{``0}})">
             <summary>
-            Add a handler for a subscription
+            Add a subscription to a connection
             </summary>
             <typeparam name="T">The type of data the subscription expects</typeparam>
             <param name="request">The request of the subscription</param>
@@ -3068,14 +3206,14 @@
             <param name="dataHandler">The handler of the data received</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.AddGenericHandler(System.String,System.Action{CryptoExchange.Net.Sockets.SocketConnection,Newtonsoft.Json.Linq.JToken})">
+        <member name="M:CryptoExchange.Net.SocketClient.AddGenericHandler(System.String,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
             <summary>
             Adds a generic message handler. Used for example to reply to ping requests
             </summary>
             <param name="identifier">The name of the request handler. Needs to be unique</param>
             <param name="action">The action to execute when receiving a message for this handler (checked by <see cref="M:CryptoExchange.Net.SocketClient.MessageMatchesHandler(Newtonsoft.Json.Linq.JToken,System.String)"/>)</param>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.GetWebsocket(System.String,System.Boolean)">
+        <member name="M:CryptoExchange.Net.SocketClient.GetSocketConnection(System.String,System.Boolean)">
             <summary>
             Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
             </summary>
@@ -3089,7 +3227,7 @@
             </summary>
             <param name="token">The token that wasn't processed</param>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.ConnectSocket(CryptoExchange.Net.Sockets.SocketConnection)">
+        <member name="M:CryptoExchange.Net.SocketClient.ConnectSocketAsync(CryptoExchange.Net.Sockets.SocketConnection)">
             <summary>
             Connect a socket
             </summary>
@@ -3105,19 +3243,19 @@
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.SendPeriodic(System.TimeSpan,System.Func{CryptoExchange.Net.Sockets.SocketConnection,System.Object})">
             <summary>
-            Periodically sends an object to a socket
+            Periodically sends data over a socket connection
             </summary>
             <param name="interval">How often</param>
             <param name="objGetter">Method returning the object to send</param>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.Unsubscribe(CryptoExchange.Net.Sockets.UpdateSubscription)">
+        <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.UpdateSubscription)">
             <summary>
-            Unsubscribe from a stream
+            Unsubscribe an update subscription
             </summary>
             <param name="subscription">The subscription to unsubscribe</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAll">
+        <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAllAsync">
             <summary>
             Unsubscribe all subscriptions
             </summary>
@@ -3128,191 +3266,300 @@
             Dispose the client
             </summary>
         </member>
-        <member name="T:CryptoExchange.Net.Sockets.BaseSocket">
+        <member name="T:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient">
             <summary>
-            Socket implementation
+            A wrapper around the ClientWebSocket
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.socket">
-            <summary>
-            Socket
-            </summary>
-        </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.log">
+        <member name="F:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.log">
             <summary>
             Log
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.errorHandlers">
+        <member name="F:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.errorHandlers">
             <summary>
-            Error handlers
+            Handlers for when an error happens on the socket
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.openHandlers">
+        <member name="F:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.openHandlers">
             <summary>
-            Open handlers
+            Handlers for when the socket connection is opened
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.closeHandlers">
+        <member name="F:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.closeHandlers">
             <summary>
-            Close handlers
+            Handlers for when the connection is closed
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Sockets.BaseSocket.messageHandlers">
+        <member name="F:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.messageHandlers">
             <summary>
-            Message handlers
+            Handlers for when a message is received
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.Id">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Id">
             <summary>
-            Id
+            The id of this socket
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.Reconnecting">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Origin">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Reconnecting">
             <summary>
-            If is reconnecting
+            Whether this socket is currently reconnecting
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.Origin">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.LastActionTime">
             <summary>
-            Origin
+            The timestamp this socket has been active for the last time
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.Url">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.DataInterpreterBytes">
             <summary>
-            Url
+            Delegate used for processing byte data received from socket connections before it is processed by handlers
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.IsClosed">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.DataInterpreterString">
             <summary>
-            Is closed
+            Delegate used for processing string data received from socket connections before it is processed by handlers
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.IsOpen">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Url">
             <summary>
-            Is open
+            Url this socket connects to
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.SSLProtocols">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.IsClosed">
             <summary>
-            Protocols
+            If the connection is closed
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.DataInterpreterBytes">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.IsOpen">
             <summary>
-            Interpreter for bytes
+            If the connection is open
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.DataInterpreterString">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.SSLProtocols">
             <summary>
-            Interpreter for strings
+            Ssl protocols supported. NOT USED BY THIS IMPLEMENTATION
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.LastActionTime">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Encoding">
             <summary>
-            Last action time
+            Encoding used for decoding the received bytes into a string
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.Timeout">
+        <member name="P:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Timeout">
             <summary>
-            Timeout
+            The timespan no data is received on the socket. If no data is received within this time an error is generated
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.BaseSocket.SocketState">
+        <member name="E:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.OnClose">
             <summary>
-            Socket state
+            Socket closed event
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.#ctor(CryptoExchange.Net.Logging.Log,System.String)">
+        <member name="E:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.OnMessage">
+            <summary>
+            Socket message received event
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.OnError">
+            <summary>
+            Socket error event
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.OnOpen">
+            <summary>
+            Socket opened event
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.#ctor(CryptoExchange.Net.Logging.Log,System.String)">
             <summary>
             ctor
             </summary>
-            <param name="log"></param>
-            <param name="url"></param>
+            <param name="log">The log object to use</param>
+            <param name="url">The url the socket should connect to</param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.#ctor(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.#ctor(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
             ctor
             </summary>
-            <param name="log"></param>
-            <param name="url"></param>
-            <param name="cookies"></param>
-            <param name="headers"></param>
+            <param name="log">The log object to use</param>
+            <param name="url">The url the socket should connect to</param>
+            <param name="cookies">Cookies to sent in the socket connection request</param>
+            <param name="headers">Headers to sent in the socket connection request</param>
         </member>
-        <member name="E:CryptoExchange.Net.Sockets.BaseSocket.OnClose">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.SetProxy(CryptoExchange.Net.Objects.ApiProxy)">
             <summary>
-            On close
+            Set a proxy to use. Should be set before connecting
+            </summary>
+            <param name="proxy"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.ConnectAsync">
+            <summary>
+            Connect the websocket
+            </summary>
+            <returns>True if successfull</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Send(System.String)">
+            <summary>
+            Send data over the websocket
+            </summary>
+            <param name="data">Data to send</param>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.CloseAsync">
+            <summary>
+            Close the websocket
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.CloseInternalAsync(System.Boolean,System.Boolean)">
+            <summary>
+            Internal close method, will wait for each task to complete to gracefully close
+            </summary>
+            <param name="waitSend"></param>
+            <param name="waitReceive"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Dispose">
+            <summary>
+            Dispose the socket
             </summary>
         </member>
-        <member name="E:CryptoExchange.Net.Sockets.BaseSocket.OnMessage">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Reset">
             <summary>
-            On message
+            Reset the socket so a new connection can be attempted after it has been connected before
             </summary>
         </member>
-        <member name="E:CryptoExchange.Net.Sockets.BaseSocket.OnError">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.CreateSocket">
             <summary>
-            On error
+            Create the socket object
             </summary>
         </member>
-        <member name="E:CryptoExchange.Net.Sockets.BaseSocket.OnOpen">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.SendLoopAsync">
             <summary>
-            On open
+            Loop for sending data
             </summary>
+            <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Handle(System.Collections.Generic.List{System.Action})">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.ReceiveLoopAsync">
             <summary>
-            Handle
+            Loop for receiving and reassembling data
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.HandleMessage(System.Byte[],System.Int32,System.Int32,System.Net.WebSockets.WebSocketMessageType)">
+            <summary>
+            Handles the message
+            </summary>
+            <param name="data"></param>
+            <param name="offset"></param>
+            <param name="count"></param>
+            <param name="messageType"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.CheckTimeoutAsync">
+            <summary>
+            Checks if there is no data received for a period longer than the specified timeout
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Handle(System.Collections.Generic.List{System.Action})">
+            <summary>
+            Helper to invoke handlers
             </summary>
             <param name="handlers"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Handle``1(System.Collections.Generic.List{System.Action{``0}},``0)">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.Handle``1(System.Collections.Generic.List{System.Action{``0}},``0)">
             <summary>
-            Handle
+            Helper to invoke handlers
             </summary>
             <typeparam name="T"></typeparam>
             <param name="handlers"></param>
             <param name="data"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.CheckTimeout">
+        <member name="M:CryptoExchange.Net.Sockets.CryptoExchangeWebSocketClient.NextStreamId">
             <summary>
-            Checks if timed out
+            Get the next identifier
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Close">
+        <member name="T:CryptoExchange.Net.Sockets.DataEvent`1">
             <summary>
-            Close socket
+            An update received from a socket update subscription
             </summary>
+            <typeparam name="T">The type of the data</typeparam>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.Timestamp">
+            <summary>
+            The timestamp the data was received
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.Topic">
+            <summary>
+            The topic of the update, what symbol/asset etc..
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.OriginalData">
+            <summary>
+            The original data that was received, only available when OutputOriginalData is set to true in the client options
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.Data">
+            <summary>
+            The received data deserialized into an object
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0)">
+            <summary>
+            Create a new DataEvent with data in the from of type K based on the current DataEvent. Topic, OriginalData and Timestamp will be copied over
+            </summary>
+            <typeparam name="K">The type of the new data</typeparam>
+            <param name="data">The new data</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Reset">
+        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0,System.String)">
             <summary>
-            Reset socket
+            Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
             </summary>
-        </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Send(System.String)">
-            <summary>
-            Send data
-            </summary>
-            <param name="data"></param>
-        </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Connect">
-            <summary>
-            Connect socket
-            </summary>
+            <typeparam name="K">The type of the new data</typeparam>
+            <param name="data">The new data</param>
+            <param name="topic">The new topic</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.SetProxy(System.String,System.Int32)">
+        <member name="T:CryptoExchange.Net.Sockets.MessageEvent">
             <summary>
-            Set a proxy
+            Message received event
             </summary>
-            <param name="host"></param>
-            <param name="port"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.BaseSocket.Dispose">
+        <member name="P:CryptoExchange.Net.Sockets.MessageEvent.Connection">
             <summary>
-            Dispose
+            The connection the message was received on
             </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.MessageEvent.JsonData">
+            <summary>
+            The json object of the data
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.MessageEvent.OriginalData">
+            <summary>
+            The originally received string data
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.MessageEvent.ReceivedTimestamp">
+            <summary>
+            The timestamp of when the data was received
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.MessageEvent.#ctor(CryptoExchange.Net.Sockets.SocketConnection,Newtonsoft.Json.Linq.JToken,System.String,System.DateTime)">
+            <summary>
+            
+            </summary>
+            <param name="connection"></param>
+            <param name="jsonData"></param>
+            <param name="originalData"></param>
+            <param name="timestamp"></param>
         </member>
         <member name="T:CryptoExchange.Net.Sockets.SocketConnection">
             <summary>
@@ -3349,9 +3596,9 @@
             Unhandled message event
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.SocketConnection.HandlerCount">
+        <member name="P:CryptoExchange.Net.Sockets.SocketConnection.SubscriptionCount">
             <summary>
-            The amount of handlers
+            The amount of subscriptions on this connection
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Sockets.SocketConnection.Authenticated">
@@ -3366,12 +3613,12 @@
         </member>
         <member name="P:CryptoExchange.Net.Sockets.SocketConnection.Socket">
             <summary>
-            The socket
+            The underlying socket
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Sockets.SocketConnection.ShouldReconnect">
             <summary>
-            If should reconnect upon closing
+            If the socket should be reconnected upon closing
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Sockets.SocketConnection.DisconnectTime">
@@ -3391,17 +3638,23 @@
             <param name="client">The socket client</param>
             <param name="socket">The socket</param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.AddHandler(CryptoExchange.Net.Sockets.SocketSubscription)">
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.ProcessMessage(System.String)">
             <summary>
-            Add handler
+            Process a message received by the socket
             </summary>
-            <param name="handler"></param>
+            <param name="data"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.SendAndWait``1(``0,System.TimeSpan,System.Func{Newtonsoft.Json.Linq.JToken,System.Boolean})">
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.AddSubscription(CryptoExchange.Net.Sockets.SocketSubscription)">
             <summary>
-            Send data
+            Add subscription to this connection
             </summary>
-            <typeparam name="T">The data type</typeparam>
+            <param name="subscription"></param>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.SendAndWaitAsync``1(``0,System.TimeSpan,System.Func{Newtonsoft.Json.Linq.JToken,System.Boolean})">
+            <summary>
+            Send data and wait for an answer
+            </summary>
+            <typeparam name="T">The data type expected in response</typeparam>
             <param name="obj">The object to send</param>
             <param name="timeout">The timeout for response</param>
             <param name="handler">The response handler</param>
@@ -3409,7 +3662,7 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketConnection.Send``1(``0,Newtonsoft.Json.NullValueHandling)">
             <summary>
-            Send data to the websocket
+            Send data over the websocket connection
             </summary>
             <typeparam name="T">The type of the object to send</typeparam>
             <param name="obj">The object to send</param>
@@ -3417,7 +3670,7 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketConnection.Send(System.String)">
             <summary>
-            Send string data to the websocket
+            Send string data over the websocket connection
             </summary>
             <param name="data">The data to send</param>
         </member>
@@ -3426,15 +3679,15 @@
             Handler for a socket closing. Reconnects the socket if needed, or removes it from the active socket list if not
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.Close">
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.CloseAsync">
             <summary>
             Close the connection
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.Close(CryptoExchange.Net.Sockets.SocketSubscription)">
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.CloseAsync(CryptoExchange.Net.Sockets.SocketSubscription)">
             <summary>
-            Close the subscription
+            Close a subscription on this connection. If all subscriptions on this connection are closed the connection gets closed as well
             </summary>
             <param name="subscription">Subscription to close</param>
             <returns></returns>
@@ -3474,7 +3727,7 @@
             If the subscription has been confirmed
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForRequest(System.Object,System.Boolean,System.Action{CryptoExchange.Net.Sockets.SocketConnection,Newtonsoft.Json.Linq.JToken})">
+        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForRequest(System.Object,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
             <summary>
             Create SocketSubscription for a request
             </summary>
@@ -3483,7 +3736,7 @@
             <param name="dataHandler"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForIdentifier(System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.SocketConnection,Newtonsoft.Json.Linq.JToken})">
+        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForIdentifier(System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
             <summary>
             Create SocketSubscription for an identifier
             </summary>
@@ -3500,7 +3753,7 @@
         </member>
         <member name="T:CryptoExchange.Net.Sockets.UpdateSubscription">
             <summary>
-            Subscription
+            Subscription to a data stream
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionLost">
@@ -3510,22 +3763,24 @@
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionRestored">
             <summary>
-            Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting
+            Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting. 
+            Note that when the executing code is suspended and resumed at a later period (for example laptop going to sleep) the disconnect time will be incorrect as the diconnect
+            will only be detected after resuming. This will lead to an incorrect disconnected timespan.
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ActivityPaused">
             <summary>
-            Event when the connection to the server is paused. No operations can be performed while paused
+            Event when the connection to the server is paused based on a server indication. No operations can be performed while paused
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ActivityUnpaused">
             <summary>
-            Event when the connection to the server is unpaused
+            Event when the connection to the server is unpaused after being paused
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.Exception">
             <summary>
-            Event when an exception happened
+            Event when an exception happens during the handling of the data
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Sockets.UpdateSubscription.Id">
@@ -3537,16 +3792,16 @@
             <summary>
             ctor
             </summary>
-            <param name="connection"></param>
-            <param name="subscription"></param>
+            <param name="connection">The socket connection the subscription is on</param>
+            <param name="subscription">The subscription</param>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.Close">
+        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.CloseAsync">
             <summary>
             Close the subscription
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.Reconnect">
+        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.ReconnectAsync">
             <summary>
             Close the socket to cause a reconnect
             </summary>
@@ -3554,7 +3809,7 @@
         </member>
         <member name="T:CryptoExchange.Net.Sockets.WebsocketFactory">
             <summary>
-            Factory implementation
+            Default weboscket factory implementation
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String)">

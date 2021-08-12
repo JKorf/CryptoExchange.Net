@@ -1,17 +1,10 @@
-# CryptoExchange.Net 
+# CryptoExchange.Net
+![Build status](https://travis-ci.org/JKorf/CryptoExchange.Net.svg?branch=master) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
 
-![Build status](https://travis-ci.org/JKorf/CryptoExchange.Net.svg?branch=master)
+CryptoExchange.Net is a base package which can be used to easily implement crypto currency exchange API's in C#. This library offers base classes for creating rest and websocket clients, and includes additional features like an automatically synchronizing order book implementation, error handling and automatic reconnects on websocket connections.
 
-A base library for easy implementation of cryptocurrency API's. Include:
-* REST API calls and error handling
-* Websocket subscriptions, error handling and automatic reconnecting
-* Order book implementations automatically synchronizing and updating
-* Automatic rate limiting
-
-**If you think something is broken, something is missing or have any questions, please open an [Issue](https://github.com/JKorf/CryptoExchange.Net/issues)**
-
----
 ## Implementations
+By me:
 <table>
 <tr>
 <td><a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>
@@ -21,10 +14,6 @@ A base library for easy implementation of cryptocurrency API's. Include:
 <td><a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Bitfinex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Bitfinex.Net">Bitfinex</a>
-</td>
-<td><a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Binance.Net/Icon/icon.png?raw=true"></a>
-<br />
-<a href="https://github.com/JKorf/Binance.Net">Binance</a>
 </td>
 <td><a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>
 <br />
@@ -44,8 +33,7 @@ A base library for easy implementation of cryptocurrency API's. Include:
 </td>
 </tr>
 </table>
-
-Implementations from third parties
+By third parties:
 <table>
 <tr>
 <td><a href="https://github.com/Zaliro/Switcheo.Net"><img src="https://github.com/Zaliro/Switcheo.Net/blob/master/Resources/switcheo-coin.png?raw=true"></a>
@@ -56,7 +44,7 @@ Implementations from third parties
 <br />
 <a href="https://github.com/ridicoulous/LiquidQuoine.Net">Liquid</a>
 </td>
-<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png"></a>
+<td><a href="https://github.com/ridicoulous/Bitmex.Net"><img src="https://github.com/ridicoulous/Bitmex.Net/blob/master/Bitmex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/ridicoulous/Bitmex.Net">Bitmex</a>
 </td>
@@ -80,7 +68,7 @@ Implementations from third parties
 <br />
 <a href="https://github.com/burakoner/BtcTurk.Net">BtcTurk</a>
 </td>
-<td><a href="https://github.com/burakoner/Thodex.Net"><img src="https://github.com/burakoner/Thodex.Net/blob/main/Thodex.Net/Icon/icon.png?raw=true"></a>
+<td><a href="https://github.com/burakoner/Thodex.Net"><img src="https://github.com/burakoner/Thodex.Net/blob/master/Thodex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/burakoner/Thodex.Net">Thodex</a>
 </td>
@@ -95,105 +83,80 @@ Implementations from third parties
 </tr>
 </table>
 
-Planned implementations (no timeline or specific order):
-* Bitstamp
-* CoinFalcon
-* Binance DEX
+## Discord
+A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.
 
 ## Donations
-Donations are greatly appreciated and a motivation to keep improving.
+I develop and maintain this package on my own for free in my spare time. Donations are greatly appreciated. If you prefer to donate any other currency please contact me.
 
 **Btc**:  12KwZk3r2Y3JZ2uMULcjqqBvXmpDwjhhQS  
 **Eth**:  0x069176ca1a4b1d6e0b7901a6bc0dbf3bb0bf5cc2  
 **Nano**: xrb_1ocs3hbp561ef76eoctjwg85w5ugr8wgimkj8mfhoyqbx4s1pbc74zggw7gs  
 
-## Discord
-A Discord server is available [here](https://discord.gg/MSpeEtSY8t). For discussion and/or questions around the CryptoExchange.Net and implementation libraries, feel free to join.
+## Implementation usage
+### Clients
+The CryptoExchange.Net library offers 2 base clients which should be implemented in each implementation library. The `RestClient` and the `SocketClient`.
 
-## Usage
-Most API methods are available in two flavors, sync and async, see the example using the `BinanceClient`:
+**RestClient**
+
+The `RestClient`, as the name suggests, handles requests to the exchange REST API. Typically the `RestClient` implementation name is [ExchangeName]Client. So for the Binance exchange this would be called the `BinanceClient`, and for Bittrex the client type name is `BittrexClient`.
+
+The `RestClient` implementations can be used in either a `using` or with a static instance:
 ````C#
-public void NonAsyncMethod()
+using (var binanceClient = new BinanceClient())
 {
-    using(var client = new BinanceClient())
-    {
-        var result = client.Spot.Market.Get24HPrices();
-    }
+  var exchangeInfoResult = binanceClient.Spot.System.GetExchangeInfoAsync();
 }
-
-public async Task AsyncMethod()
-{
-    using(var client = new BinanceClient())
-    {
-        var result2 = await client.Spot.Market.Get24HPricesAsync();
-    }
-}
-````
-
-## Response handling
-All API requests will respond with a (Web)CallResult object. This object contains whether the call was successful, the data returned from the call and an error if the call wasn't successful. As such, one should always check the Success flag when processing a response.
-For example:
-```C#
-using(var client = new BinanceClient())
-{
-	var result = client.Spot.System.GetServerTime();
-	if (result.Success)
-		Console.WriteLine($"Server time: {result.Data}");
-	else
-		Console.WriteLine($"Error: {result.Error}");
-}
-```
-
-## Options & Authentication
-The default behavior of the clients can be changed by providing options to the constructor, or using the `SetDefaultOptions` before creating a new client. Api credentials can be provided in the options.
-Credentials can be provided 2 ways:
-* Providing key and secret:
+```` 
+or 
 ````C#
-	BinanceClient.SetDefaultOptions(new BinanceClientOptions
-	{
-		ApiCredentials = new ApiCredentials("apiKey", "apiSecret")
-	});
+var client = new BinanceClient();
+var exchangeInfoResult = client.Spot.System.GetExchangeInfoAsync();
 ````
-* Providing a (file)stream containing the key/secret
+If you're opting for the `using` syntax, a `HttpClient` should be provided in the client options to prevent each client creating it's own `HttpClient` instance.
+
+Calls made on the `RestClient` will return a `WebCallResult<T>` object which will contain the following properties:
+|Property|Description|Available when
+|---|---|---|
+|`Success`|Whether or not the call was successfully executed.|Always
+|`Data`|The data the server sent us as response.| When `Success` is `true`
+|`Error`|Details on the error that happened during the call.| When `Success` is `false`
+|`OriginalData`|The originally received Json data which was received before being deserialized into an object.| When `OutputOriginalData` is enabled in the client options
+|`ResponseStatusCode`|The Http status code received as answer on the request.|Always
+|`ResponseHeaders`|The headers received in the response.|Always
+
+The `RestClient` implementation should implement the `IExchangeClient` interface, which offers some basic methods for interacting with an exchange without having to know the implementation.
+
+**SocketClient**
+
+The `SocketClient` can be used to connect to websocket streams offered by the API, and receive callbacks whenever new data is received. `SocketClient` implementations are typically named [ExchangeName]SocketClient, so in case of Binance this would be `BinanceSocketClient`.  
+
+To use the `SocketClient` to connect to a stream simply call the `SubscribeXXX` method for the data you're interested in and pass in a delegate for handling updates. For example, to subscribe to the Binance ticker stream call `SubscribeToAllSymbolTickerUpdatesAsync` method:
 ````C#
-using (var stream = File.OpenRead("/path/to/credential-file"))
-{
-	BinanceClient.SetDefaultOptions(new BinanceClientOptions
-	{
-		ApiCredentials = new ApiCredentials(stream)
-	});
-}
+var socketClient = new BinanceSocketClient();
+var subscribeResult = socketClient.Spot.SubscribeToAllSymbolTickerUpdatesAsync(data => {
+  // Handle updates received here
+});
 ````
-Note that when using a file it can provide credentials for multiple exchanges by providing the identifierKey and identifierSecret parameters:
-````
-// File content:
-{
-	"binanceKey": "actualBinanceApiKey",
-	"binanceSecret": "actualBinanceApiSecret",
-	"bittrexKey": "actualBittrexApiKey",
-	"bittrexSecret": "actualBittrexApiSecret",
-}
+or
+````C#
+var socketClient = new BinanceSocketClient();
+var subscribeResult = socketClient.Spot.SubscribeToAllSymbolTickerUpdatesAsync(HandleData);
 
-// Loading:
-using (var stream = File.OpenRead("/path/to/credential-file"))
+private void HandleData(DataEvent<IEnumerable<BinanceTick>> data)
 {
-	BinanceClient.SetDefaultOptions(new BinanceClientOptions
-	{
-		ApiCredentials = new ApiCredentials(stream, "binanceKey", "binanceSecret")
-	});
-	BittrexClient.SetDefaultOptions(new BittrexClientOptions
-	{
-		ApiCredentials = new ApiCredentials(stream, "bittrexKey", "bittrexSecret")
-	});
+  // Handle updates received here
 }
 ````
 
-## Websockets
-Most implementations have a websocket client. The client will manage the websocket connection for you, all you have to do is call a subscribe method. The client will automatically handle reconnecting when losing a connection.
+Make sure to check the result of the subscribe call to ensure it was successful. The Subscribe methods will return a `CallResult<UpdateSubscription>` object with the following properties:
+|Property|Description|Available when
+|---|---|---|
+|`Success`|Whether or not the call was successfully executed.|Always
+|`Data`|The `UpdateSubscription` object for this stream. This can be used to for listening to connection changed events and unsubscribing | When `Success` is `true`
+|`Error`|Details on the error that happened during the subscription. | When `Success` is `false`
 
-When using a subscribe method it will return an `UpdateSubscription` object. This object has 3 events: ConnectionLost/ConnectionRestored and Exception. Use the connection lost/restored to be notified when the socket has lost it's connection and when it was reconnected. The Exception event is thrown when there was an exception within the data handling callback.
-
-To unsubscribe use the client.Unsubscribe method and pass the UpdateSubscription received when subscribing:
+To unsubscribe from a stream `Unsubscribe()` method can be used, with the `UpdateSubscription` received in the `SubscribeXXX` call as parameter, or use the `UnsubscribeAll()` method to close all subscriptions:
 ````C#
 // Subscribe
 var client = new BinanceSocketClient();
@@ -202,15 +165,59 @@ var subResult = client.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {});
 // Unsubscribe
 client.Unsubscribe(subResult.Data);
 ````
-To unsubscribe all subscriptions the `client.UnsubscribeAll()` method can be used.
+The `SocketClient` handles connection management to the server internally and will close a connection if there are no more subscriptions on that connection.
 
-## Order books
-The library implementations provide a `SymbolOrderBook` implementation. This implementation can be used to keep an updated order book without having to think about synchronizing it. This example is from the Binance.Net library, 
-but the implementation is similar for each library:
+*[WARNING] Do not use `using` statements in combination with constructing a `SocketClient`. Doing so will dispose the `SocketClient` instance when the subscription is done, which will result in the connection getting closed. Instead assign the socket client to a variable outside of the method scope.*
+
+### Client options
+Options for a client can be provided in the constructor or using the static SetDefaultOptions method.
+````C#
+var client = new BinanceClient(new BinanceClientOptions()
+{
+});
+````
+or
+````C#
+BinanceClient.SetDefaultOptions(new BinanceClientOptions()
+{
+});
+````
+When providing options in the constructor the options will only apply for that specific client. When using the `SetDefaultOptions` method the options will be applied to any client created after that call which doesn't have any options provided to it via the constructor. Providing options in the constructor means any options set using the `SetDefaultOptions` method will be reset to default unless overwritten in the provided options.
+
+**Options for all clients**
+
+| Property | Description | Default |
+| ----------- | ----------- | ---------|
+| `LogWriters`| A list of `ILogger`s to handle log messages. | `new List<ILogger> { new DebugLogger() }` |
+| `LogLevel`| The minimum log level before passing messages to the `LogWriters`. Messages with a more verbose level than the one specified here will be ignored. Setting this to `null` will pass all messages to the `LogWriters`.| `LogLevel.Information`
+|`OutputOriginalData`|If set to `true` the originally received Json data will be output as well as the deserialized object. For `RestClient` calls the data will be in the `WebCallResult<T>.OriginalData` property, for `SocketClient` subscriptions the data will be available in the `DataEvent<T>.OriginalData` property when receiving an update. | `false`
+|`BaseAddress`|The base address to the API. All calls to the API will use this base address as basis for the endpoints. This allows for swapping to test API's or swapping to a different cluster for example.| Depends on implementation
+|`ApiCredentials`| The API credentials to use for accessing protected endpoints. Typically a key/secret combination.| `null`
+|`Proxy`|The proxy to use for connecting to the API.| `null`
+
+**Options for RestClients**
+| Property | Description | Default |
+| ----------- | ----------- | ---------|
+| `RateLimiters`| A list of `IRateLimiter`s to use.| `new List<IRateLimiter>()` |
+| `RateLimitingBehaviour`| What should happen when a rate limit is reached.| `RateLimitingBehaviour.Wait` |
+| `RequestTimeout`| The time out to use for requests.| `TimeSpan.FromSeconds(30)` |
+| `HttpClient`| The `HttpClient` instance to use for making requests. When creating multiple `RestClient` instances a single `HttpClient` should be provided to prevent each client instance from creating its own. *[WARNING] When providing the `HttpClient` instance in the options both the `RequestTimeout` and `Proxy` client options will be ignored and should be set on the provided `HttpClient` instance.*| `null` |
+
+**Options for SocketClients**
+| Property | Description | Default |
+| ----------- | ----------- | ---------|
+|`AutoReconnect`|Whether or not the socket should automatically reconnect when disconnected.|`true`
+|`ReconnectInterval`|The time to wait between connection tries when reconnecting.|`TimeSpan.FromSeconds(5)`
+|`SocketResponseTimeout`|The time in which a response is expected on a request before giving a timeout.|`TimeSpan.FromSeconds(10)`
+|`SocketNoDataTimeout`|If no data is received after this timespan then assume the connection is dropped. This is mainly used for API's which have some sort of ping/keepalive system. For example; the Bitfinex API will sent a heartbeat message every 15 seconds, so the `SocketNoDataTimeout` could be set to 20 seconds. On API's without such a mechanism this might not work because there just might not be any update while still being fully connected. | `default(TimeSpan)` (no timeout)
+|`SocketSubscriptionsCombineTarget`|The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket. Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection, potentially leading to issues.| Depends on implementation
+
+### Order book
+The library implementations provide a `SymbolOrderBook` implementation. This implementation can be used to keep an updated order book without having to think about synchronization. This example is from the Binance.Net library, but the implementation is similar for each library:
 ````C#
 var orderBook = new BinanceSymbolOrderBook("BTCUSDT", new BinanceOrderBookOptions(20));
 orderBook.OnStatusChange += (oldStatus, newStatus) => Console.WriteLine($"Book state changed from {oldStatus} to {newStatus}");
-orderBook.OnOrderBookUpdate += (changedBids, changedAsks) => Console.WriteLine("Book updated");
+orderBook.OnOrderBookUpdate += ((changedBids, changedAsks)) => Console.WriteLine("Book updated");
 var startResult = await orderBook.StartAsync();
 if(!startResult.Success)
 {
@@ -218,85 +225,171 @@ if(!startResult.Success)
 	return;
 }
 
-var status = orderBook.Status; // The current status. Note that the order book is only current when the status is Synced
+var status = orderBook.Status; // The current status. Note that the order book is only up to date when the status is Synced
 var askCount = orderBook.AskCount; // The current number of asks in the book
 var bidCount = orderBook.BidCount; // The current number of bids in the book
 var asks = orderBook.Asks; // All asks
 var bids = orderBook.Bids; // All bids
 var bestBid = orderBook.BestBid; // The best bid available in the book
 var bestAsk = orderBook.BestAsk; // The best ask available in the book
-
 ````
-The order book will automatically reconnect when the connection is lost and resync if it detects the sequence is off. Make sure to check the Status property to see it the book is currently in sync.
+The order book will automatically reconnect when the connection is lost and resync if it detects that it is out of sync. Make sure to check the Status property to see it the book is currently in sync.
 
 To stop synchronizing an order book use the `Stop` method.
 
-## Shared IExchangeClient interface
-Most implementations have an implementation of the `IExchangeClient` interface. It is a shared interface, which makes it easier to re-use the same code for multiple exchanges. It offers basic functionality only, for exchange specific calls use the actual client interface, for example `IBinanceClient` or `IBitfinexClient`.
+## Helper methods
+The static `ExchangeHelpers` class offers some helper methods for adjusting value like rounding and adjusting values to fit a certain step size or precision. 
 
-The IExchangeClient interface supports the following methods:
+## Creating an implementation
+Implementations should implement at least the following:  
+**[Exchange]Client based on the RestClient base class**  
+Containing calls to the different endpoints, internally using the `SendRequest<T>` method of the `RestClient`.
 
-`string GetSymbolName(string baseAsset, string quoteAsset);` - Based on a base and quote asset return the symbol name for the exchange.
+**[Exchange]SocketClient based on the SocketClient base class**  
+Containing methods to subscribe to different streams using the `Subscribe<T>` method of the `SocketClient`.
+Implement exchange specific handling of requests/messages by overriding these methods:  
+`HandleQueryResponse`: Check if the data received from the websocket matches the sent query.  
+`HandleSubscriptionResponse`: Check if the data received from the websocket matches the subscription request.  
+`MessageMatchesHandler`: Check if the data received from the websocket matches the handler/subscription.  
+`AuthenticateSocket`: Authenticate the connection to be able to subscribe to protected streams.  
+`Unsubscribe`: Unsubscribe from a stream, typically by sending an Unsubscribe message.  
 
-`GetSymbolsAsync();` - Get a list of supported symbols.
+**[Exchange]SymbolOrderBook based on the SymbolOrderBook base class**  
+An implementation of an automatically synchronized order book. Implement exchange specific behavior by implementing these methods:  
+`DoStart`: Start the order book and sync process  
+`DoResync`: Resync the order book after a reconnection  
+`DoReset`: Reset the state of the orderbook, called when the connection is lost.  
+`DoChecksum`: [Optional] Validate the order book with a checksum.
 
-`GetTickersAsync();` - Get a list of tickers (High/Low/volume data for the last 24 hours) for all symbols.
+**[Exchange]AuthenticationProvider**
+An implementation of the AuthenticationProvider base class. Should contain the logic for authenticating requests from the RestClient on protected endpoints. Override these methods as needed:  
+`AddAuthenticationToParameters`: Will be called before `AddAuthenticationToHeaders`, allows the implementation to add specific parameters to the request which are needed for protected endpoints.  
+`AddAuthenticationToHeaders`: Will be called after `AddAuthenticationToParameters`, allows the implementation to add specific headers to the request message.  
+If you have any issues or questions regarding implementing an exchange using CryptoExchange.Net hop into the Discord or open an issue.
 
-`GetTickerAsync(string symbol);` - Get a specific ticker.
-
-`GetKlinesAsync(string symbol, TimeSpan timespan, DateTime? startTime = null, DateTime? endTime = null, int? limit = null);` - Get candlestick data for a symbol.
-
-`GetOrderBookAsync(string symbol);` - Get the order book for a symbol.
-
-`GetRecentTradesAsync(string symbol);` - Get a list of the most recent trades for a symbol.
-
-`PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, string? accountId = null);` - \[Authenticated\] Place an order.
-
-`GetOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get details on an order.
-
-`GetTradesAsync(string orderId, string? symbol = null);` - \[Authenticated\] Get executed trades for an order.
-
-`GetOpenOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of open orders.
-
-`GetClosedOrdersAsync(string? symbol = null);` - \[Authenticated\] Get a list of closed orders.
-
-`CancelOrderAsync(string orderId, string? symbol = null);` - \[Authenticated\] Cancel an order.
-
-`GetBalancesAsync(string? accountId = null);` - \[Authenticated\] Get a list of balances.
-
-
-Example usage:
+## FAQ
+**I sometimes get NullReferenceException, what's wrong?**  
+You probably don't check the result status of a call and just assume the data is always there. `NullReferenceExecption`s will happen when you have code like this `var symbol = client.GetTickersAync().Result.Data.Symbol` because the `Data` property is null when the call fails. Instead check if the call is successful like this:
 ````C#
-static async Task Main(string[] args)
+var tickerResult = await client.GetTickersAync();
+if(!tickerResult.Success)
 {
-	var clients = new List<IExchangeClient>()
-	{
-		{ new BinanceClient(new BinanceClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BinanceKey", "BinanceSecret") }) },
-		{ new BitfinexClient(new BitfinexClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BitfinexKey", "BitfinexSecret")  }) },
-		{ new BittrexClientV3(new BittrexClientOptions(){ LogVerbosity = LogVerbosity.Debug, ApiCredentials = new ApiCredentials("BittrexKey", "BittrexSecret")  }) },
-	};
+  // Handle error
+}
+else
+{
+  // Handle data, it is now safe to access the data
+  var symbol = tickerResult.Data.Symbol;
+}
+````
+**The socket client stops sending updates after a little while**  
+You probably didn't keep a reference to the socket client and it got disposed.
+Instead of subscribing like this:
+````C#
+private void SomeMethod()
+{
+  var socketClient = new BinanceSocketClient();
+  socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
+	// Handle data
+  });
+}
+````
+Subscribe like this:
+````C#
+private BinanceSocketClient _socketClient;
 
-	await Task.WhenAll(clients.Select(GetExchangeData));
-	Console.WriteLine("Done");
-	Console.ReadLine();
+// .. rest of the class
+
+private void SomeMethod()
+{
+  if(_socketClient == null)
+    _socketClient = new BinanceSocketClient();
+
+  _socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
+	// Handle data
+  });
 }
 
-static async Task GetExchangeData(IExchangeClient client)
-{
-	var symbols = await client.GetSymbolsAsync();
-	Console.WriteLine($"{((RestClient)client).ClientName}: {symbols.Data?.Count()} symbols returned, first = {symbols.Data?.First().CommonName}");
-
-	var balances = await client.GetBalancesAsync();
-	var btcBalance = balances.Data?.Where(b => b.CommonAsset.ToUpperInvariant() == "BTC").FirstOrDefault();
-	Console.WriteLine($"{((RestClient)client).ClientName}: {balances.Data?.Count()} balance returned, BTC balance = {btcBalance?.CommonTotal}");
-
-	var symbolName = client.GetSymbolName("BTC", "USDT");
-	var klines = await client.GetKlinesAsync(symbolName, TimeSpan.FromHours(1));
-	Console.WriteLine($"{((RestClient)client).ClientName}: {klines.Data?.Count()} klines returned, first klines @ {klines.Data?.First().CommonClose}");
-}
 ````
 
 ## Release notes
+* Version 4.0.0 - 12 Aug 2020
+	* Release version, summed up changes from previous beta releases:
+		* Removed `Websocket4Net` dependency in favor of a `ClientWebSocket` native implementation for websocket connections
+		* Socket events now always come wrapped in a `DataEvent<>` object which contain the timestamp of the data, and optionally the originally received json string
+		* Implemented usage of the `Microsoft.Extensions.Logging.Abstractions` `ILogger` interface instead of a custom implementation
+		* Added some properties to the `IExchangeClient` interface
+			* `ICommonOrder.CommonOrderTime`
+			* `ICommonOrder.CommonOrderStatus` enum
+			* `ICommonTrade.CommonTradeTime`
+		* Added `OnOrderPlaced` and `OnOrderCanceled` events on the `IExchangeClient` interface
+		* Added `ExchangeHelpers` static class for various helper methods
+		* Removed non-async methods due to too much overhead in development/maintainance
+			* If you were previously using non-async methods you can add `.Result` to the end of the async call to get the same result
+		* Added `Book` property to `SymbolOrderBook` for a book snapshot
+		* Added `CalculateAverageFillPrice` to `SymbolOrderBook` to calculate the average fill price for an order with the current order book state
+		* Various fixes
+
+* Version 4.0.0-beta15 - 12 Aug 2021
+    * Conditional version Logging.Abstractions
+
+* Version 4.0.0-beta14 - 09 Aug 2021
+    * Fix for bug in processing order in SymbolOrderBook
+
+* Version 4.0.0-beta13 - 31 Jul 2021
+    * Fix for socket connection
+
+* Version 4.0.0-beta12 - 26 Jul 2021
+    * Fix for socket connection
+
+* Version 4.0.0-beta11 - 09 Jul 2021
+    * Added CalculateAverageFillPrice to SymbolOrderBook
+    * Added Book property to SymbolOrderBook
+    * Added Async postfix to async methods
+
+* Version 4.0.0-beta10 - 07 Jul 2021
+    * Updated BaseConverter to be case sensitive
+    * Added ExchangeHelpers class containing some helper methods
+    * Fixed responses not being logged on Trace log level
+    * Added some code docs
+
+* Version 4.0.0-beta9 - 17 Jun 2021
+    * Small fixes
+
+* Version 4.0.0-beta8 - 08 Jun 2021
+    * Fixed exception socket buffer size in .net framework
+
+* Version 4.0.0-beta7 - 07 Jun 2021
+    * Added CommonOrderTime to IOrder
+    * Added OrderStatus enum for IOrder
+    * Added OnOrderPlaced and OnOrderCanceled events on IExchangeClient
+    * Added CommonTradeTime to ICommonTrade
+
+* Version 4.0.0-beta6 - 01 jun 2021
+    * Some logging adjustments
+    * Fixed some async issues
+
+* Version 4.0.0-beta5 - 26 May 2021
+    * Added DataEvent wrapper for socket updates
+    * Added optional original json output
+    * Changed logging implementation to use ILogger
+
+* Version 4.0.0-beta4 - 06 mei 2021
+    * Added analyzers
+    * Fixed some warnings
+
+* Version 4.0.0-beta3 - 30 Apr 2021
+    * Updated socket closing
+
+* Version 4.0.0-beta2 - 30 apr 2021
+    * Fix for closing socket without timeout task
+
+* Version 4.0.0-beta1 - 30 apr 2021
+    * Removed Websocket4Net dependency
+    * Added custom ClientWebSocket implementation
+    * Renamed handler -> subscription internally
+    * Renamed socket -> socketConenction when type is socketConnection
+
 * Version 3.9.0 - 28 apr 2021
     * Added optional JsonSerializer parameter to SendRequest to use during deserialization
     * Fix for unhandled message warning when unsubscribing a socket subscription

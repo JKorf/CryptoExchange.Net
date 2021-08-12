@@ -55,7 +55,7 @@
     }
 
     /// <summary>
-    /// No api credentials provided while trying to access private endpoint
+    /// No api credentials provided while trying to access a private endpoint
     /// </summary>
     public class NoApiCredentialsError : Error
     {
@@ -168,5 +168,17 @@
         /// ctor
         /// </summary>
         public CancellationRequestedError() : base(null, "Cancellation requested", null) { }
+    }
+
+    /// <summary>
+    /// Invalid operation requested
+    /// </summary>
+    public class InvalidOperationError: Error
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="message"></param>
+        public InvalidOperationError(string message) : base(null, message, null) { }
     }
 }

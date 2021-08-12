@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// Subscription
+    /// Subscription to a data stream
     /// </summary>
     public class UpdateSubscription
     {
@@ -21,7 +21,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting
+        /// Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting. 
+        /// Note that when the executing code is suspended and resumed at a later period (for example laptop going to sleep) the disconnect time will be incorrect as the diconnect
+        /// will only be detected after resuming. This will lead to an incorrect disconnected timespan.
         /// </summary>
         public event Action<TimeSpan> ConnectionRestored
         {
@@ -30,7 +32,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Event when the connection to the server is paused. No operations can be performed while paused
+        /// Event when the connection to the server is paused based on a server indication. No operations can be performed while paused
         /// </summary>
         public event Action ActivityPaused
         {
@@ -39,7 +41,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Event when the connection to the server is unpaused
+        /// Event when the connection to the server is unpaused after being paused
         /// </summary>
         public event Action ActivityUnpaused
         {
@@ -48,7 +50,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Event when an exception happened
+        /// Event when an exception happens during the handling of the data
         /// </summary>
         public event Action<Exception> Exception
         {
@@ -64,8 +66,8 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="subscription"></param>
+        /// <param name="connection">The socket connection the subscription is on</param>
+        /// <param name="subscription">The subscription</param>
         public UpdateSubscription(SocketConnection connection, SocketSubscription subscription)
         {
             this.connection = connection;
@@ -76,18 +78,18 @@ namespace CryptoExchange.Net.Sockets
         /// Close the subscription
         /// </summary>
         /// <returns></returns>
-        public async Task Close()
+        public Task CloseAsync()
         {
-            await connection.Close(subscription).ConfigureAwait(false);
+            return connection.CloseAsync(subscription);
         }
 
         /// <summary>
         /// Close the socket to cause a reconnect
         /// </summary>
         /// <returns></returns>
-        internal Task Reconnect()
+        internal Task ReconnectAsync()
         {
-            return connection.Socket.Close();
+            return connection.Socket.CloseAsync();
         }
     }
 }

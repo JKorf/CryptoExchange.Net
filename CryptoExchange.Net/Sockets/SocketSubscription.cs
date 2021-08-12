@@ -1,5 +1,4 @@
 ﻿using System;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -16,7 +15,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Message handlers for this subscription. Should return true if the message is handled and should not be distributed to the other handlers
         /// </summary>
-        public Action<SocketConnection, JToken> MessageHandler { get; set; }
+        public Action<MessageEvent> MessageHandler { get; set; }
 
         /// <summary>
         /// Request object
@@ -36,7 +35,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
 
-        private SocketSubscription(object? request, string? identifier, bool userSubscription, Action<SocketConnection, JToken> dataHandler)
+        private SocketSubscription(object? request, string? identifier, bool userSubscription, Action<MessageEvent> dataHandler)
         {
             UserSubscription = userSubscription;
             MessageHandler = dataHandler;
@@ -52,7 +51,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForRequest(object request, bool userSubscription,
-            Action<SocketConnection, JToken> dataHandler)
+            Action<MessageEvent> dataHandler)
         {
             return new SocketSubscription(request, null, userSubscription, dataHandler);
         }
@@ -65,7 +64,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForIdentifier(string identifier, bool userSubscription,
-            Action<SocketConnection, JToken> dataHandler)
+            Action<MessageEvent> dataHandler)
         {
             return new SocketSubscription(null, identifier, userSubscription, dataHandler);
         }

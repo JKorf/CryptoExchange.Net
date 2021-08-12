@@ -49,12 +49,12 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="subscription">The subscription to unsubscribe</param>
         /// <returns></returns>
-        Task Unsubscribe(UpdateSubscription subscription);
+        Task UnsubscribeAsync(UpdateSubscription subscription);
 
         /// <summary>
         /// Unsubscribe all subscriptions
         /// </summary>
         /// <returns></returns>
-        Task UnsubscribeAll();
+        Task UnsubscribeAllAsync();
     }
 }

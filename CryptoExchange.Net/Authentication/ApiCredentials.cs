@@ -36,18 +36,21 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Create Api credentials providing a api key and secret for authentication
+        /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
         public ApiCredentials(SecureString key, SecureString secret)
         {
+            if (key == null || secret == null)
+                throw new ArgumentException("Key and secret can't be null/empty");
+
             Key = key;
             Secret = secret;
         }
 
         /// <summary>
-        /// Create Api credentials providing a api key and secret for authentication
+        /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>

@@ -53,6 +53,6 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IResponse> GetResponse(CancellationToken cancellationToken);
+        Task<IResponse> GetResponseAsync(CancellationToken cancellationToken);
     }
 }

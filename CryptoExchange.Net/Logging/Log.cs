@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace CryptoExchange.Net.Logging
@@ -11,11 +11,15 @@ namespace CryptoExchange.Net.Logging
     /// </summary>
     public class Log
     {
-        private List<TextWriter> writers;
         /// <summary>
-        /// The verbosity of the logging
+        /// List of ILogger implementations to forward the message to
         /// </summary>
-        public LogVerbosity Level { get; set; } = LogVerbosity.Info;
+        private List<ILogger> writers;
+
+        /// <summary>
+        /// The verbosity of the logging, anything more verbose will not be forwarded to the writers
+        /// </summary>
+        public LogLevel? Level { get; set; } = LogLevel.Information;
 
         /// <summary>
         /// Client name
@@ -25,17 +29,18 @@ namespace CryptoExchange.Net.Logging
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="clientName">The name of the client the logging is used in</param>
         public Log(string clientName)
         {
             ClientName = clientName;
-            writers = new List<TextWriter>();
+            writers = new List<ILogger>();
         }
 
         /// <summary>
         /// Set the writers
         /// </summary>
         /// <param name="textWriters"></param>
-        public void UpdateWriters(List<TextWriter> textWriters)
+        public void UpdateWriters(List<ILogger> textWriters)
         {
             writers = textWriters;
         }
@@ -43,52 +48,26 @@ namespace CryptoExchange.Net.Logging
         /// <summary>
         /// Write a log entry
         /// </summary>
-        /// <param name="logType"></param>
-        /// <param name="message"></param>
-        public void Write(LogVerbosity logType, string message)
+        /// <param name="logLevel">The verbosity of the message</param>
+        /// <param name="message">The message to log</param>
+        public void Write(LogLevel logLevel, string message)
         {
-            if ((int)logType < (int)Level)
+            if (Level != null && (int)logLevel < (int)Level)
                 return;
 
-            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {ClientName.PadRight(10)} | {logType} | {message}";
+            var logMessage = $"{ClientName,-10} | {message}";
             foreach (var writer in writers.ToList())
             {
                 try
                 {
-                    writer.WriteLine(logMessage);
+                    writer.Log(logLevel, logMessage);
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + (e.InnerException?.Message ?? e.Message));
+                    // Can't write to the logging so where else to output..
+                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + e.ToLogString());
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// The log verbosity
-    /// </summary>
-    public enum LogVerbosity
-    {
-        /// <summary>
-        /// Debug logging
-        /// </summary>
-        Debug,
-        /// <summary>
-        /// Info logging
-        /// </summary>
-        Info,
-        /// <summary>
-        /// Warning logging
-        /// </summary>
-        Warning,
-        /// <summary>
-        /// Error logging
-        /// </summary>
-        Error,
-        /// <summary>
-        /// None, used for disabling logging
-        /// </summary>
-        None
     }
 }

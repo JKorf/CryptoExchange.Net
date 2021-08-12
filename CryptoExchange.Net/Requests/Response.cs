@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetResponseStream()
+        public async Task<Stream> GetResponseStreamAsync()
         {
             return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }

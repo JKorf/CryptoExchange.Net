@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Get the response stream
         /// </summary>
         /// <returns></returns>
-        Task<Stream> GetResponseStream();
+        Task<Stream> GetResponseStreamAsync();
 
         /// <summary>
         /// Close the response

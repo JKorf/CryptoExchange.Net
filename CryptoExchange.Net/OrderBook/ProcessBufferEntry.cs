@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace CryptoExchange.Net.OrderBook
@@ -19,10 +20,10 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// List of asks
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = new List<ISymbolOrderBookEntry>();
+        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
         /// <summary>
         /// List of bids
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = new List<ISymbolOrderBookEntry>();
+        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
     }
 }

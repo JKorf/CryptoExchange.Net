@@ -40,11 +40,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var response = new Mock<IResponse>();
             response.Setup(c => c.IsSuccessStatusCode).Returns(true);
-            response.Setup(c => c.GetResponseStream()).Returns(Task.FromResult((Stream)responseStream));
+            response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
             
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
+            request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             typeof(HttpRequestException).GetField("_message", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(we, message);
            
             var request = new Mock<IRequest>();
-            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Throws(we);
+            request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
@@ -73,11 +73,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var response = new Mock<IResponse>();
             response.Setup(c => c.IsSuccessStatusCode).Returns(false);
-            response.Setup(c => c.GetResponseStream()).Returns(Task.FromResult((Stream)responseStream));
+            response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
 
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetResponse(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
+            request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
             var factory = Mock.Get(RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
@@ -86,7 +86,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T:class
         {
-            return await SendRequest<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
+            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
     }
 
