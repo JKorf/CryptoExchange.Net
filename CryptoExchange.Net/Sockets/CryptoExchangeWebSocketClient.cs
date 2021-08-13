@@ -339,7 +339,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     // cancelled
                     break;
@@ -377,9 +377,9 @@ namespace CryptoExchange.Net.Sockets
                         receiveResult = await _socket.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
                         received += receiveResult.Count;
                     }
-                    catch (TaskCanceledException)
+                    catch (OperationCanceledException)
                     {
-                        // Cancelled
+                        // cancelled
                         break;
                     }
                     catch (WebSocketException wse)
@@ -513,10 +513,10 @@ namespace CryptoExchange.Net.Sockets
                 {
                     await Task.Delay(500, _ctsSource.Token).ConfigureAwait(false);
                 }
-                catch(TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     // cancelled
-                    return;
+                    break;
                 }
             }
         }

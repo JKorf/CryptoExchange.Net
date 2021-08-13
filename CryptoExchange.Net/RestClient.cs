@@ -284,7 +284,7 @@ namespace CryptoExchange.Net
                 log.Write(LogLevel.Warning, $"[{request.RequestId}] Request exception: " + exceptionInfo);
                 return new WebCallResult<T>(null, null, default, new WebError(exceptionInfo));
             }
-            catch (TaskCanceledException canceledException)
+            catch (OperationCanceledException canceledException)
             {
                 if (canceledException.CancellationToken == cancellationToken)
                 {
