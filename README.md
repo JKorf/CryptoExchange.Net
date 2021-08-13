@@ -1,5 +1,5 @@
 # CryptoExchange.Net
-![Build status](https://travis-ci.org/JKorf/CryptoExchange.Net.svg?branch=master) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
+![Build status](https://travis-ci.com/JKorf/CryptoExchange.Net.svg?branch=master) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
 
 CryptoExchange.Net is a base package which can be used to easily implement crypto currency exchange API's in C#. This library offers base classes for creating rest and websocket clients, and includes additional features like an automatically synchronizing order book implementation, error handling and automatic reconnects on websocket connections.
 
