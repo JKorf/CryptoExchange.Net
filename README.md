@@ -313,6 +313,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.1 - 13 Aug 2021
+    * Fixed OperationCancelledException when closing socket from a project targeting .net framework
+
 * Version 4.0.0 - 12 Aug 2020
 	* Release version, summed up changes from previous beta releases:
 		* Removed `Websocket4Net` dependency in favor of a `ClientWebSocket` native implementation for websocket connections
