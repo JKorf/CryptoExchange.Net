@@ -237,7 +237,10 @@ namespace CryptoExchange.Net.OrderBook
 
             var startResult = await DoStartAsync().ConfigureAwait(false);
             if (!startResult)
+            {
+                Status = OrderBookStatus.Disconnected;
                 return new CallResult<bool>(false, startResult.Error);
+            }
 
             subscription = startResult.Data;
             subscription.ConnectionLost += Reset;

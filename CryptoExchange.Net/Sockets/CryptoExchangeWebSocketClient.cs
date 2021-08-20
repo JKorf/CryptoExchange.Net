@@ -33,6 +33,8 @@ namespace CryptoExchange.Net.Sockets
         private readonly IDictionary<string, string> headers;
         private CancellationTokenSource _ctsSource;
         private bool _closing;
+        private bool _startedSent;
+        private bool _startedReceive;
 
         /// <summary>
         /// Log
@@ -213,11 +215,15 @@ namespace CryptoExchange.Net.Sockets
                 return false;
             }
 
-            log.Write(LogLevel.Debug, $"Socket {Id} connected");
-            _sendTask = Task.Run(async () => await SendLoopAsync().ConfigureAwait(false));
+            _sendTask = Task.Run(SendLoopAsync);
             _receiveTask = Task.Run(ReceiveLoopAsync);
             if (Timeout != default)
                 _timeoutTask = Task.Run(CheckTimeoutAsync);
+
+            while (!_startedSent || !_startedReceive)
+                // Wait for the tasks to have actually started
+                await Task.Delay(10).ConfigureAwait(false);
+            log.Write(LogLevel.Debug, $"Socket {Id} connected");
             return true;
         }
 
@@ -256,6 +262,8 @@ namespace CryptoExchange.Net.Sockets
             if (_closing)
                 return;
 
+            _startedSent = false;
+            _startedReceive = false;
             _closing = true;
             var tasksToAwait = new List<Task>();
             if (_socket.State == WebSocketState.Open)
@@ -325,6 +333,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task SendLoopAsync()
         {
+            _startedSent = true;
             while (true)
             {
                 _sendEvent.WaitOne();
@@ -360,6 +369,8 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task ReceiveLoopAsync()
         {
+            _startedReceive = true;
+
             var buffer = new ArraySegment<byte>(new byte[4096]);
             var received = 0;
             while (true)
