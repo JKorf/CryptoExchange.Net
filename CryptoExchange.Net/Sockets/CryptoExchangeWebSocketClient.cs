@@ -336,29 +336,33 @@ namespace CryptoExchange.Net.Sockets
             _startedSent = true;
             while (true)
             {
+                if (_closing)
+                    break;
+
                 _sendEvent.WaitOne();
 
                 if (_closing)                
-                    break;                
-
-                if (!_sendBuffer.TryDequeue(out var data))
-                    continue;
-
-                try
-                {
-                    await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    // cancelled
                     break;
-                }
-                catch (WebSocketException wse)
+
+                while (_sendBuffer.TryDequeue(out var data))
                 {
-                    // Connection closed unexpectedly                        
-                    Handle(errorHandlers, wse);
-                    await CloseInternalAsync(false, true).ConfigureAwait(false);
-                    break;
+                    try
+                    {
+                        log.Write(LogLevel.Debug, "Sending " + Encoding.UTF8.GetString(data));
+                        await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // cancelled
+                        break;
+                    }
+                    catch (WebSocketException wse)
+                    {
+                        // Connection closed unexpectedly                        
+                        Handle(errorHandlers, wse);
+                        await CloseInternalAsync(false, true).ConfigureAwait(false);
+                        break;
+                    }
                 }
             }
         }

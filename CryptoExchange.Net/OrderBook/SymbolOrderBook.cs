@@ -463,6 +463,9 @@ namespace CryptoExchange.Net.OrderBook
 
                 if(!checksumResult)
                 {
+                    // Reconnects the socket, also closing other subscriptions on that socket.
+                    // Should maybe only reconnect the specific subscription?
+
                     log.Write(LogLevel.Warning, $"{Id} order book {Symbol} out of sync. Resyncing");
                     _ = subscription?.ReconnectAsync();
                     return;
