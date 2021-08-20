@@ -313,6 +313,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.2 - 20 Aug 2021
+    * Fixed socket client continuing before the send/receive loops have been started, which could cause issues when doing concurrent connections
+
 * Version 4.0.1 - 13 Aug 2021
     * Fixed OperationCancelledException when closing socket from a project targeting .net framework
 
