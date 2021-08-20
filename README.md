@@ -313,6 +313,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.3 - 20 Aug 2021
+    * Fix for concurrent sent socket issue
+
 * Version 4.0.2 - 20 Aug 2021
     * Fixed socket client continuing before the send/receive loops have been started, which could cause issues when doing concurrent connections
 
