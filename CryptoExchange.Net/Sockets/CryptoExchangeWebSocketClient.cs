@@ -227,8 +227,6 @@ namespace CryptoExchange.Net.Sockets
                 // Wait for the tasks to have actually started
                 await Task.Delay(10).ConfigureAwait(false);
 
-            log.Write(LogLevel.Warning, $"Socket {Id} waited for {sw.ElapsedMilliseconds}ms for tasks to start");
-
             log.Write(LogLevel.Debug, $"Socket {Id} connected");
             return true;
         }

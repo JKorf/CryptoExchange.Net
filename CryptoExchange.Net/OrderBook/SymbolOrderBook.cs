@@ -393,7 +393,6 @@ namespace CryptoExchange.Net.OrderBook
         {
             lock (bookLock)
             {
-                log.Write(LogLevel.Warning, $"{Symbol} bookSet");
                 bookSet = true;
                 asks.Clear();
                 foreach (var ask in item.Asks)
