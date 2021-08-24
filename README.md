@@ -316,6 +316,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.5 - 24 Aug 2021
+    * Added ConnectionClosed event on UpdateSubscriptions to signal the connection was closed and no reconnecting is happening
+
 * Version 4.0.4 - 24 Aug 2021
     * Websocket connection fixes/improvements
     * Added ChecksumValidationEnabled option for controlling checksum validation in SymbolOrderBook
