@@ -3036,7 +3036,7 @@
             <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/>
         </member>
         <member name="P:CryptoExchange.Net.SocketClient.MaxConcurrentResubscriptionsPerSocket">
-            <inheritdoc cref="!:SocketClientOptions.MaxConcurrentResubscriptions"/>
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.dataInterpreterBytes">
             <summary>
@@ -3609,6 +3609,11 @@
             Connection lost event
             </summary>
         </member>
+        <member name="E:CryptoExchange.Net.Sockets.SocketConnection.ConnectionClosed">
+            <summary>
+            Connection closed and no reconnect is happening
+            </summary>
+        </member>
         <member name="E:CryptoExchange.Net.Sockets.SocketConnection.ConnectionRestored">
             <summary>
             Connecting restored event
@@ -3807,6 +3812,12 @@
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionLost">
             <summary>
             Event when the connection is lost. The socket will automatically reconnect when possible.
+            </summary>
+        </member>
+        <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionClosed">
+            <summary>
+            Event when the connection is closed. This event happens when reconnecting/resubscribing has failed too often based on the <see cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries"/> and <see cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/> options,
+            or <see cref="P:CryptoExchange.Net.Objects.SocketClientOptions.AutoReconnect"/> is false
             </summary>
         </member>
         <member name="E:CryptoExchange.Net.Sockets.UpdateSubscription.ConnectionRestored">

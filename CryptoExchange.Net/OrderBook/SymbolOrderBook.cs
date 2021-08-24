@@ -247,10 +247,15 @@ namespace CryptoExchange.Net.OrderBook
             subscription = startResult.Data;
             subscription.ConnectionLost += () =>
             {
-
                 log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
                 Status = OrderBookStatus.Reconnecting;
                 Reset();
+            };
+            subscription.ConnectionClosed += () =>
+            {
+                log.Write(LogLevel.Warning, $"{Id} order book {Symbol} disconnected");
+                Status = OrderBookStatus.Disconnected;
+                StopAsync();
             };
 
             subscription.ConnectionRestored += async time => await ResyncAsync().ConfigureAwait(false);
@@ -336,6 +341,7 @@ namespace CryptoExchange.Net.OrderBook
 
             if(subscription != null)
                 await subscription.CloseAsync().ConfigureAwait(false);
+            log.Write(LogLevel.Debug, $"{Id} order book {Symbol} stopped");
         }
 
         /// <summary>

@@ -23,6 +23,10 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action? ConnectionLost;
         /// <summary>
+        /// Connection closed and no reconnect is happening
+        /// </summary>
+        public event Action? ConnectionClosed;
+        /// <summary>
         /// Connecting restored event
         /// </summary>
         public event Action<TimeSpan>? ConnectionRestored;
@@ -127,17 +131,6 @@ namespace CryptoExchange.Net.Sockets
 
             Socket.Timeout = client.SocketNoDataTimeout;
             Socket.OnMessage += ProcessMessage;
-            Socket.OnClose += () =>
-            {
-                if (lostTriggered)
-                    return;
-
-                DisconnectTime = DateTime.UtcNow;
-                lostTriggered = true;
-                
-                if (ShouldReconnect)
-                    ConnectionLost?.Invoke();
-            };
             Socket.OnClose += SocketOnClose;
             Socket.OnOpen += () =>
             {
@@ -315,6 +308,13 @@ namespace CryptoExchange.Net.Sockets
                 if (Socket.Reconnecting)
                     return; // Already reconnecting
 
+                DisconnectTime = DateTime.UtcNow;
+                if (!lostTriggered)
+                {
+                    lostTriggered = true;
+                    ConnectionLost?.Invoke();
+                }
+
                 Socket.Reconnecting = true;
 
                 log.Write(LogLevel.Information, $"Socket {Socket.Id} Connection lost, will try to reconnect after {socketClient.ReconnectInterval}");
@@ -345,6 +345,7 @@ namespace CryptoExchange.Net.Sockets
                                     socketClient.sockets.TryRemove(Socket.Id, out _);
 
                                 Closed?.Invoke();
+                                _ = Task.Run(() => ConnectionClosed?.Invoke());
                                 break;
                             }
 
@@ -373,6 +374,7 @@ namespace CryptoExchange.Net.Sockets
                                     socketClient.sockets.TryRemove(Socket.Id, out _);
 
                                 Closed?.Invoke();
+                                _ = Task.Run(() => ConnectionClosed?.Invoke());
                             }
                             else
                                 log.Write(LogLevel.Debug, $"Socket {Socket.Id} resubscribing all subscriptions failed on reconnected socket{(socketClient.MaxResubscribeTries != null ? $", try {ResubscribeTry}/{socketClient.MaxResubscribeTries}" : "")}. Disconnecting and reconnecting.");
@@ -397,6 +399,9 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
+                if (!socketClient.AutoReconnect && ShouldReconnect)
+                    _ = Task.Run(() => ConnectionClosed?.Invoke());
+
                 // No reconnecting needed
                 log.Write(LogLevel.Information, $"Socket {Socket.Id} closed");
                 if (socketClient.sockets.ContainsKey(Socket.Id))

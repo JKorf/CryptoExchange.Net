@@ -53,7 +53,7 @@ namespace CryptoExchange.Net
         public int? MaxReconnectTries { get; protected set; }
         /// <inheritdoc cref="SocketClientOptions.MaxResubscribeTries"/>
         public int? MaxResubscribeTries { get; protected set; }
-        /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptions"/>
+        /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
         public int MaxConcurrentResubscriptionsPerSocket { get; protected set; }
         /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers

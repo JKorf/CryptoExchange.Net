@@ -22,6 +22,16 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Event when the connection is closed. This event happens when reconnecting/resubscribing has failed too often based on the <see cref="SocketClientOptions.MaxReconnectTries"/> and <see cref="SocketClientOptions.MaxResubscribeTries"/> options,
+        /// or <see cref="SocketClientOptions.AutoReconnect"/> is false
+        /// </summary>
+        public event Action ConnectionClosed
+        {
+            add => connection.ConnectionClosed += value;
+            remove => connection.ConnectionClosed -= value;
+        }
+
+        /// <summary>
         /// Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting. 
         /// Note that when the executing code is suspended and resumed at a later period (for example laptop going to sleep) the disconnect time will be incorrect as the diconnect
         /// will only be detected after resuming. This will lead to an incorrect disconnected timespan.
