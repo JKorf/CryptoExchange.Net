@@ -316,6 +316,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.6 - 24 Aug 2021
+    * Removed some debug logging
+
 * Version 4.0.5 - 24 Aug 2021
     * Added ConnectionClosed event on UpdateSubscriptions to signal the connection was closed and no reconnecting is happening
 

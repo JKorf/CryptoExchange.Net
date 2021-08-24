@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>4.0.5</PackageVersion>
+    <PackageVersion>4.0.6</PackageVersion>
     <AssemblyVersion>4.0.0</AssemblyVersion>
-    <FileVersion>4.0.5</FileVersion>
+    <FileVersion>4.0.6</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>4.0.5 - Added ConnectionClosed event on UpdateSubscriptions to signal the connection was closed and no reconnecting is happening</PackageReleaseNotes>
+    <PackageReleaseNotes>4.0.6 - Removed some debug logging</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
