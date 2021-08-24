@@ -46,6 +46,11 @@ namespace CryptoExchange.Net.Objects
         public string OrderBookName { get; }
 
         /// <summary>
+        /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
+        /// </summary>
+        public bool ChecksumValidationEnabled { get; set; } = true;
+
+        /// <summary>
         /// Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
         /// </summary>
         public bool SequenceNumbersAreConsecutive { get; }
@@ -219,6 +224,21 @@ namespace CryptoExchange.Net.Objects
         /// Time to wait between reconnect attempts
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// The maximum number of times to try to reconnect
+        /// </summary>
+        public int? MaxReconnectTries { get; set; }
+
+        /// <summary>
+        /// The maximum number of times to try to resubscribe after reconnecting
+        /// </summary>
+        public int? MaxResubscribeTries { get; set; } = 5;
+
+        /// <summary>
+        /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
+        /// </summary>
+        public int MaxConcurrentResubscriptionsPerSocket { get; set; } = 5;
 
         /// <summary>
         /// The time to wait for a socket response before giving a timeout

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
@@ -90,6 +91,24 @@ namespace CryptoExchange.Net.Sockets
         internal Task ReconnectAsync()
         {
             return connection.Socket.CloseAsync();
+        }
+
+        /// <summary>
+        /// Unsubscribe a subscription
+        /// </summary>
+        /// <returns></returns>
+        internal async Task UnsubscribeAsync()
+        {
+            await connection.UnsubscribeAsync(subscription).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Resubscribe this subscription
+        /// </summary>
+        /// <returns></returns>
+        internal async Task<CallResult<bool>> ResubscribeAsync()
+        {
+            return await connection.ResubscribeAsync(subscription).ConfigureAwait(false);
         }
     }
 }

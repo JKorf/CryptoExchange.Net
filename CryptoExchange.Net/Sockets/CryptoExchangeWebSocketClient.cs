@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
@@ -215,14 +216,19 @@ namespace CryptoExchange.Net.Sockets
                 return false;
             }
 
-            _sendTask = Task.Run(SendLoopAsync);
-            _receiveTask = Task.Run(ReceiveLoopAsync);
+            log.Write(LogLevel.Trace, $"Socket {Id} connection succeeded, starting communication");
+            _sendTask = Task.Factory.StartNew(SendLoopAsync, TaskCreationOptions.LongRunning);
+            _receiveTask = Task.Factory.StartNew(ReceiveLoopAsync, TaskCreationOptions.LongRunning);
             if (Timeout != default)
                 _timeoutTask = Task.Run(CheckTimeoutAsync);
 
+            var sw = Stopwatch.StartNew();
             while (!_startedSent || !_startedReceive)
                 // Wait for the tasks to have actually started
                 await Task.Delay(10).ConfigureAwait(false);
+
+            log.Write(LogLevel.Warning, $"Socket {Id} waited for {sw.ElapsedMilliseconds}ms for tasks to start");
+
             log.Write(LogLevel.Debug, $"Socket {Id} connected");
             return true;
         }
@@ -237,6 +243,7 @@ namespace CryptoExchange.Net.Sockets
                 throw new InvalidOperationException("Can't send data when socket is not connected");
 
             var bytes = _encoding.GetBytes(data);
+            log.Write(LogLevel.Trace, $"Socket {Id} Adding {bytes.Length} to sent buffer");
             _sendBuffer.Enqueue(bytes);
             _sendEvent.Set();
         }
@@ -278,6 +285,7 @@ namespace CryptoExchange.Net.Sockets
             if (_timeoutTask != null)
                 tasksToAwait.Add(_timeoutTask);
 
+            log.Write(LogLevel.Trace, $"Socket {Id} waiting for communication loops to finish");
             await Task.WhenAll(tasksToAwait).ConfigureAwait(false);
             log.Write(LogLevel.Debug, $"Socket {Id} closed");
             Handle(closeHandlers);
@@ -296,6 +304,7 @@ namespace CryptoExchange.Net.Sockets
             openHandlers.Clear();
             closeHandlers.Clear();
             messageHandlers.Clear();
+            log.Write(LogLevel.Trace, $"Socket {Id} disposed");
         }
 
         /// <summary>

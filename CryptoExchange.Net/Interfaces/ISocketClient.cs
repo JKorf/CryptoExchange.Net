@@ -43,6 +43,12 @@ namespace CryptoExchange.Net.Interfaces
 
         /// <inheritdoc cref="SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         int SocketCombineTarget { get; }
+        /// <inheritdoc cref="SocketClientOptions.MaxReconnectTries"/>
+        int? MaxReconnectTries { get; }
+        /// <inheritdoc cref="SocketClientOptions.MaxResubscribeTries"/>
+        int? MaxResubscribeTries { get; }
+        /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
+        int MaxConcurrentResubscriptionsPerSocket { get; }
 
         /// <summary>
         /// Unsubscribe from a stream

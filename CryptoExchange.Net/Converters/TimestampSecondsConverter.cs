@@ -25,7 +25,8 @@ namespace CryptoExchange.Net.Converters
                 return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(d);
 
             var t = double.Parse(reader.Value.ToString(), CultureInfo.InvariantCulture);
-            return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(t);
+            // Set ticks instead of seconds or milliseconds, because AddSeconds/AddMilliseconds rounds to nearest millisecond
+            return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks((long)(t * TimeSpan.TicksPerSecond)); 
         }
 
         /// <inheritdoc />

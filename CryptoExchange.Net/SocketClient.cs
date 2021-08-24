@@ -49,6 +49,12 @@ namespace CryptoExchange.Net
         public int MaxSocketConnections { get; protected set; } = 9999;
         /// <inheritdoc cref="SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         public int SocketCombineTarget { get; protected set; }
+        /// <inheritdoc cref="SocketClientOptions.MaxReconnectTries"/>
+        public int? MaxReconnectTries { get; protected set; }
+        /// <inheritdoc cref="SocketClientOptions.MaxResubscribeTries"/>
+        public int? MaxResubscribeTries { get; protected set; }
+        /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptions"/>
+        public int MaxConcurrentResubscriptionsPerSocket { get; protected set; }
         /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
@@ -102,6 +108,9 @@ namespace CryptoExchange.Net
             ResponseTimeout = exchangeOptions.SocketResponseTimeout;
             SocketNoDataTimeout = exchangeOptions.SocketNoDataTimeout;
             SocketCombineTarget = exchangeOptions.SocketSubscriptionsCombineTarget ?? 1;
+            MaxReconnectTries = exchangeOptions.MaxReconnectTries;
+            MaxResubscribeTries = exchangeOptions.MaxResubscribeTries;
+            MaxConcurrentResubscriptionsPerSocket = exchangeOptions.MaxConcurrentResubscriptionsPerSocket;
         }
 
         /// <summary>

@@ -37,6 +37,7 @@ namespace CryptoExchange.Net.OrderBook
         private UpdateSubscription? subscription;
         private readonly bool sequencesAreConsecutive;
         private readonly bool strictLevels;
+        private readonly bool validateChecksum;
 
         private Task? _processTask;
         private readonly AutoResetEvent _queueEvent;
@@ -214,6 +215,7 @@ namespace CryptoExchange.Net.OrderBook
 
             sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
             strictLevels = options.StrictLevels;
+            validateChecksum = options.ChecksumValidationEnabled;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
 
@@ -233,7 +235,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             log.Write(LogLevel.Debug, $"{Id} order book {Symbol} starting");
             Status = OrderBookStatus.Connecting;
-            _processTask = Task.Run(ProcessQueue);
+            _processTask = Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
 
             var startResult = await DoStartAsync().ConfigureAwait(false);
             if (!startResult)
@@ -243,7 +245,14 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             subscription = startResult.Data;
-            subscription.ConnectionLost += Reset;
+            subscription.ConnectionLost += () =>
+            {
+
+                log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
+                Status = OrderBookStatus.Reconnecting;
+                Reset();
+            };
+
             subscription.ConnectionRestored += async time => await ResyncAsync().ConfigureAwait(false);
             Status = OrderBookStatus.Synced;
             return new CallResult<bool>(true, null);
@@ -288,8 +297,6 @@ namespace CryptoExchange.Net.OrderBook
 
         private void Reset()
         {
-            log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
-            Status = OrderBookStatus.Reconnecting;
             _queueEvent.Set();
             // Clear queue
             while (_processQueue.TryDequeue(out _)) { }
@@ -380,9 +387,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             lock (bookLock)
             {
-                if (Status == OrderBookStatus.Connecting || Status == OrderBookStatus.Disconnected)
-                    return;
-
+                log.Write(LogLevel.Warning, $"{Symbol} bookSet");
                 bookSet = true;
                 asks.Clear();
                 foreach (var ask in item.Asks)
@@ -408,9 +413,6 @@ namespace CryptoExchange.Net.OrderBook
         {
             lock (bookLock)
             {
-                if (Status == OrderBookStatus.Connecting || Status == OrderBookStatus.Disconnected)
-                    return;
-
                 if (!bookSet)
                 {
                     processBuffer.Add(new ProcessBufferRangeSequenceEntry()
@@ -434,7 +436,7 @@ namespace CryptoExchange.Net.OrderBook
                     if (asks.First().Key < bids.First().Key)
                     {
                         log.Write(LogLevel.Warning, $"{Id} order book {Symbol} detected out of sync order book. Resyncing");
-                        _ = subscription?.ReconnectAsync();
+                        Resubscribe();
                         return;
                     }                    
 
@@ -448,6 +450,9 @@ namespace CryptoExchange.Net.OrderBook
         {
             lock (bookLock)
             {
+                if (!validateChecksum)
+                    return;
+                                
                 bool checksumResult = false;
                 try
                 {
@@ -467,10 +472,29 @@ namespace CryptoExchange.Net.OrderBook
                     // Should maybe only reconnect the specific subscription?
 
                     log.Write(LogLevel.Warning, $"{Id} order book {Symbol} out of sync. Resyncing");
-                    _ = subscription?.ReconnectAsync();
+                    Resubscribe();
                     return;
                 }
             }
+        }
+
+        private void Resubscribe()
+        {
+            Status = OrderBookStatus.Syncing;
+            _ = Task.Run(async () =>
+            {
+                await subscription!.UnsubscribeAsync().ConfigureAwait(false);
+                Reset();
+                if (!await subscription!.ResubscribeAsync().ConfigureAwait(false))
+                {
+                    // Resubscribing failed, reconnect the socket
+                    log.Write(LogLevel.Warning, $"{Id} order book {Symbol} resync failed, reconnecting socket");
+                    Status = OrderBookStatus.Reconnecting;
+                    _ = subscription!.ReconnectAsync();
+                }
+                else
+                    await ResyncAsync().ConfigureAwait(false);
+            });
         }
 
         /// <summary>
@@ -591,9 +615,6 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="entry">The entry</param>
         protected virtual bool ProcessUpdate(long sequence, OrderBookEntryType type, ISymbolOrderBookEntry entry)
         {
-            if (Status != OrderBookStatus.Syncing && Status != OrderBookStatus.Synced)
-                return false;
-
             if (sequence <= LastSequenceNumber)
             {
                 log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update skipped #{sequence}");
@@ -604,7 +625,7 @@ namespace CryptoExchange.Net.OrderBook
             {
                 // Out of sync
                 log.Write(LogLevel.Warning, $"{Id} order book {Symbol} out of sync (expected { LastSequenceNumber + 1}, was {sequence}), reconnecting");
-                subscription?.ReconnectAsync();
+                Resubscribe();
                 return false;
             }
 

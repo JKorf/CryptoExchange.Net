@@ -1320,6 +1320,12 @@
         <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.SocketCombineTarget">
             <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxReconnectTries">
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries"/>
+        </member>
+        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxResubscribeTries">
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.UpdateSubscription)">
             <summary>
             Unsubscribe from a stream
@@ -2219,6 +2225,11 @@
             The name of the order book implementation
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.ChecksumValidationEnabled">
+            <summary>
+            Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.SequenceNumbersAreConsecutive">
             <summary>
             Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
@@ -2337,6 +2348,21 @@
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.ReconnectInterval">
             <summary>
             Time to wait between reconnect attempts
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries">
+            <summary>
+            The maximum number of times to try to reconnect
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries">
+            <summary>
+            The maximum number of times to try to resubscribe after reconnecting
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxConcurrentResubscriptionsPerSocket">
+            <summary>
+            Max number of concurrent resubscription tasks per socket after reconnecting a socket
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketResponseTimeout">
@@ -3000,6 +3026,15 @@
         <member name="P:CryptoExchange.Net.SocketClient.SocketCombineTarget">
             <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget"/>
         </member>
+        <member name="P:CryptoExchange.Net.SocketClient.MaxReconnectTries">
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries"/>
+        </member>
+        <member name="P:CryptoExchange.Net.SocketClient.MaxResubscribeTries">
+            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/>
+        </member>
+        <member name="P:CryptoExchange.Net.SocketClient.MaxConcurrentResubscriptionsPerSocket">
+            <inheritdoc cref="!:SocketClientOptions.MaxConcurrentResubscriptions"/>
+        </member>
         <member name="F:CryptoExchange.Net.SocketClient.dataInterpreterBytes">
             <summary>
             Delegate used for processing byte data received from socket connections before it is processed by handlers
@@ -3621,6 +3656,16 @@
             If the socket should be reconnected upon closing
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Sockets.SocketConnection.ReconnectTry">
+            <summary>
+            Current reconnect try
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.SocketConnection.ResubscribeTry">
+            <summary>
+            Current resubscribe try
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Sockets.SocketConnection.DisconnectTime">
             <summary>
             Time of disconnecting
@@ -3804,6 +3849,18 @@
         <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.ReconnectAsync">
             <summary>
             Close the socket to cause a reconnect
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.UnsubscribeAsync">
+            <summary>
+            Unsubscribe a subscription
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.ResubscribeAsync">
+            <summary>
+            Resubscribe this subscription
             </summary>
             <returns></returns>
         </member>
