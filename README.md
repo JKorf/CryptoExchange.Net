@@ -211,6 +211,9 @@ When providing options in the constructor the options will only apply for that s
 |`SocketResponseTimeout`|The time in which a response is expected on a request before giving a timeout.|`TimeSpan.FromSeconds(10)`
 |`SocketNoDataTimeout`|If no data is received after this timespan then assume the connection is dropped. This is mainly used for API's which have some sort of ping/keepalive system. For example; the Bitfinex API will sent a heartbeat message every 15 seconds, so the `SocketNoDataTimeout` could be set to 20 seconds. On API's without such a mechanism this might not work because there just might not be any update while still being fully connected. | `default(TimeSpan)` (no timeout)
 |`SocketSubscriptionsCombineTarget`|The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket. Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection, potentially leading to issues.| Depends on implementation
+|`MaxReconnectTries`|The maximum amount of tries for reconnecting|`null` (infinite)
+|`MaxResubscribeTries`|The maximum amount of tries for resubscribing after successfully reconnecting the socket|5
+|`MaxConcurrentResubscriptionsPerSocket`|The maximum number of concurrent resubscriptions per socket when resubscribing after reconnecting|5
 
 ### Order book
 The library implementations provide a `SymbolOrderBook` implementation. This implementation can be used to keep an updated order book without having to think about synchronization. This example is from the Binance.Net library, but the implementation is similar for each library:
@@ -313,6 +316,14 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.4 - 24 Aug 2021
+    * Websocket connection fixes/improvements
+    * Added ChecksumValidationEnabled option for controlling checksum validation in SymbolOrderBook
+    * Added MaxReconnectTries option
+    * Added MaxResubscribeTries option
+    * Added MaxConcurrentResubscriptionsPerSocket option
+    * Fix for TimestampSecondsConverter rounding to nearest millisecond
+
 * Version 4.0.3 - 20 Aug 2021
     * Fix for concurrent sent socket issue
 
