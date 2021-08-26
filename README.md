@@ -320,6 +320,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.8 - 26 Aug 2021
+    * Added rate limiting option for outgoing messages per socket
+
 * Version 4.0.7 - 24 Aug 2021
     * Additional error info on websocket exception
 

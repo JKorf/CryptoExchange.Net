@@ -34,6 +34,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public int ConnectCalls { get; private set; }
         public bool Reconnecting { get; set; }
         public string Origin { get; set; }
+        public int? RatelimitPerSecond { get; set; }
 
         public static int lastId = 0;
         public static object lastIdLock = new object();
