@@ -7,6 +7,10 @@ CryptoExchange.Net is a base package which can be used to easily implement crypt
 By me:
 <table>
 <tr>
+<td><a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Binance.Net/Icon/icon.png?raw=true"></a>
+<br />
+<a href="https://github.com/JKorf/Binance.Net">Binance</a>
+</td>
 <td><a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/Bittrex.Net">Bittrex</a>
@@ -316,6 +320,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.0.7 - 24 Aug 2021
+    * Additional error info on websocket exception
+
 * Version 4.0.6 - 24 Aug 2021
     * Removed some debug logging
 

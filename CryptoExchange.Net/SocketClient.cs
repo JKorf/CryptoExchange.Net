@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
@@ -532,7 +533,10 @@ namespace CryptoExchange.Net
             socket.DataInterpreterString = dataInterpreterString;
             socket.OnError += e =>
             {
-                log.Write(LogLevel.Warning, $"Socket {socket.Id} error: " + e);
+                if(e is WebSocketException wse)
+                    log.Write(LogLevel.Warning, $"Socket {socket.Id} error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
+                else
+                    log.Write(LogLevel.Warning, $"Socket {socket.Id} error: " + e.ToLogString());
             };
             return socket;
         }
