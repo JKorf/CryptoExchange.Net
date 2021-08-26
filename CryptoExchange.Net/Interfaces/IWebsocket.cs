@@ -45,6 +45,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         bool Reconnecting { get; set; }
         /// <summary>
+        /// The max amount of outgoing messages per second
+        /// </summary>
+        public int? RatelimitPerSecond { get; set; }
+        /// <summary>
         /// Handler for byte data
         /// </summary>
         Func<byte[], string>? DataInterpreterBytes { get; set; }

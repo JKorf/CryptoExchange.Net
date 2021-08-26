@@ -91,6 +91,11 @@ namespace CryptoExchange.Net
         /// If a message is received on the socket which is not handled by a handler this boolean determines whether this logs an error message
         /// </summary>
         protected internal bool UnhandledMessageExpected { get; set; }
+
+        /// <summary>
+        /// The max amount of outgoing messages per socket per second
+        /// </summary>
+        protected internal int? RateLimitPerSocketPerSecond { get; set; }
         #endregion
 
         /// <summary>
@@ -531,6 +536,7 @@ namespace CryptoExchange.Net
             socket.Timeout = SocketNoDataTimeout;
             socket.DataInterpreterBytes = dataInterpreterBytes;
             socket.DataInterpreterString = dataInterpreterString;
+            socket.RatelimitPerSecond = RateLimitPerSocketPerSecond;
             socket.OnError += e =>
             {
                 if(e is WebSocketException wse)

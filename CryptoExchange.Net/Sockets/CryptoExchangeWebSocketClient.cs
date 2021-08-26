@@ -36,6 +36,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _closing;
         private bool _startedSent;
         private bool _startedReceive;
+        private readonly List<DateTime> outgoingMessages;
 
         /// <summary>
         /// Log
@@ -115,6 +116,10 @@ namespace CryptoExchange.Net.Sockets
                     _encoding = value;
             }
         }
+        /// <summary>
+        /// The max amount of outgoing messages per second
+        /// </summary>
+        public int? RatelimitPerSecond { get; set; }
 
         /// <summary>
         /// The timespan no data is received on the socket. If no data is received within this time an error is generated
@@ -178,6 +183,7 @@ namespace CryptoExchange.Net.Sockets
             this.cookies = cookies;
             this.headers = headers;
 
+            outgoingMessages = new List<DateTime>();
             _sendEvent = new AutoResetEvent(false);
             _sendBuffer = new ConcurrentQueue<byte[]>();
             _ctsSource = new CancellationTokenSource();
@@ -353,9 +359,24 @@ namespace CryptoExchange.Net.Sockets
 
                 while (_sendBuffer.TryDequeue(out var data))
                 {
+                    if(RatelimitPerSecond != null)
+                    {
+                        // Wait for rate limit
+                        DateTime? start = null;
+                        while (MessagesSentLastSecond() >= RatelimitPerSecond)
+                        {
+                            start = DateTime.UtcNow;
+                            await Task.Delay(10).ConfigureAwait(false);
+                        }
+
+                        if (start != null)                        
+                            log.Write(LogLevel.Trace, $"Websocket sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
+                        
+                        outgoingMessages.Add(DateTime.UtcNow);                        
+                    }
+
                     try
                     {
-                        log.Write(LogLevel.Debug, "Sending " + Encoding.UTF8.GetString(data));
                         await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
@@ -578,6 +599,13 @@ namespace CryptoExchange.Net.Sockets
                 lastStreamId++;
                 return lastStreamId;
             }
+        }
+
+        private int MessagesSentLastSecond()
+        {
+            var testTime = DateTime.UtcNow;
+            outgoingMessages.RemoveAll(r => testTime - r > TimeSpan.FromSeconds(1));
+            return outgoingMessages.Count;            
         }
     }
 }
