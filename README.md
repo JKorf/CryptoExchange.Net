@@ -35,7 +35,7 @@ By me:
 <br />
 <a href="https://github.com/JKorf/Kraken.Net">Kraken</a>
 </td>
-<td><a href="https://github.com/JKorf/FTX.Net"><img src="https://github.com/JKorf/FTX.Net/blob/master/FTX.Net/Icon/icon.png?raw=true"></a>
+<td><a href="https://github.com/JKorf/FTX.Net"><img src="https://github.com/JKorf/FTX.Net/blob/main/FTX.Net/Icon/icon.png?raw=true"></a>
 <br />
 <a href="https://github.com/JKorf/FTX.Net">FTX</a>
 </td>
