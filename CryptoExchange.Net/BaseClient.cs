@@ -203,20 +203,20 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message} Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {obj}";
                 log.Write(LogLevel.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info, obj));
             }
             catch (JsonSerializationException jse)
             {
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message} data: {obj}";
                 log.Write(LogLevel.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info, obj));
             }
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToLogString();
-                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}";
+                var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {obj}";
                 log.Write(LogLevel.Error, info);
                 return new CallResult<T>(default, new DeserializeError(info, obj));
             }
