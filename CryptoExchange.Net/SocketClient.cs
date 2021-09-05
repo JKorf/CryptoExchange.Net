@@ -443,8 +443,8 @@ namespace CryptoExchange.Net
             }
 
             var subscription = request == null
-                ? SocketSubscription.CreateForIdentifier(identifier!, userSubscription, InternalHandler)
-                : SocketSubscription.CreateForRequest(request, userSubscription, InternalHandler);
+                ? SocketSubscription.CreateForIdentifier(NextId(), identifier!, userSubscription, InternalHandler)
+                : SocketSubscription.CreateForRequest(NextId(), request, userSubscription, InternalHandler);
             connection.AddSubscription(subscription);
             return subscription;
         }
@@ -457,7 +457,7 @@ namespace CryptoExchange.Net
         protected void AddGenericHandler(string identifier, Action<MessageEvent> action)
         {
             genericHandlers.Add(identifier, action);
-            var subscription = SocketSubscription.CreateForIdentifier(identifier, false, action);
+            var subscription = SocketSubscription.CreateForIdentifier(NextId(), identifier, false, action);
             foreach (var connection in sockets.Values)
                 connection.AddSubscription(subscription);
         }
@@ -488,7 +488,7 @@ namespace CryptoExchange.Net
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {
-                var handler = SocketSubscription.CreateForIdentifier(kvp.Key, false, kvp.Value);
+                var handler = SocketSubscription.CreateForIdentifier(NextId(), kvp.Key, false, kvp.Value);
                 socketConnection.AddSubscription(handler);
             }
 
@@ -590,7 +590,33 @@ namespace CryptoExchange.Net
                 }
             });
         }
-        
+
+        /// <summary>
+        /// Unsubscribe an update subscription
+        /// </summary>
+        /// <param name="subscriptionId">The id of the subscription to unsubscribe</param>
+        /// <returns></returns>
+        public virtual async Task UnsubscribeAsync(int subscriptionId)
+        {
+
+            SocketSubscription? subscription = null;
+            SocketConnection? connection = null;
+            foreach(var socket in sockets.Values.ToList())
+            {
+                subscription = socket.GetSubscription(subscriptionId);
+                if (subscription != null)
+                {
+                    connection = socket;
+                    break;
+                }
+            }
+
+            if (subscription == null || connection == null)
+                return;
+
+            log.Write(LogLevel.Information, "Closing subscription " + subscriptionId);
+            await connection.CloseAsync(subscription).ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Unsubscribe an update subscription
@@ -602,7 +628,7 @@ namespace CryptoExchange.Net
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            log.Write(LogLevel.Information, "Closing subscription");
+            log.Write(LogLevel.Information, "Closing subscription " + subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 

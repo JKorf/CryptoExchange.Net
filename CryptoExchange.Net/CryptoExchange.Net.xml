@@ -3296,6 +3296,13 @@
             <param name="interval">How often</param>
             <param name="objGetter">Method returning the object to send</param>
         </member>
+        <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAsync(System.Int32)">
+            <summary>
+            Unsubscribe an update subscription
+            </summary>
+            <param name="subscriptionId">The id of the subscription to unsubscribe</param>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.SocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.UpdateSubscription)">
             <summary>
             Unsubscribe an update subscription
@@ -3718,6 +3725,12 @@
             </summary>
             <param name="subscription"></param>
         </member>
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.GetSubscription(System.Int32)">
+            <summary>
+            Get a subscription on this connection
+            </summary>
+            <param name="id"></param>
+        </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketConnection.SendAndWaitAsync``1(``0,System.TimeSpan,System.Func{Newtonsoft.Json.Linq.JToken,System.Boolean})">
             <summary>
             Send data and wait for an answer
@@ -3795,19 +3808,21 @@
             If the subscription has been confirmed
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForRequest(System.Object,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
+        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForRequest(System.Int32,System.Object,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
             <summary>
             Create SocketSubscription for a request
             </summary>
+            <param name="id"></param>
             <param name="request"></param>
             <param name="userSubscription"></param>
             <param name="dataHandler"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForIdentifier(System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
+        <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForIdentifier(System.Int32,System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
             <summary>
             Create SocketSubscription for an identifier
             </summary>
+            <param name="id"></param>
             <param name="identifier"></param>
             <param name="userSubscription"></param>
             <param name="dataHandler"></param>
@@ -3857,9 +3872,14 @@
             Event when an exception happens during the handling of the data
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.UpdateSubscription.Id">
+        <member name="P:CryptoExchange.Net.Sockets.UpdateSubscription.SocketId">
             <summary>
             The id of the socket
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Sockets.UpdateSubscription.Id">
+            <summary>
+            The id of the subscription
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Sockets.UpdateSubscription.#ctor(CryptoExchange.Net.Sockets.SocketConnection,CryptoExchange.Net.Sockets.SocketSubscription)">
@@ -3904,9 +3924,7 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-    </members>
-</doc>
-System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.

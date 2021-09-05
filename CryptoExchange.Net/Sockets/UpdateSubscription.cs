@@ -72,7 +72,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The id of the socket
         /// </summary>
-        public int Id => connection.Socket.Id;
+        public int SocketId => connection.Socket.Id;
+
+        /// <summary>
+        /// The id of the subscription
+        /// </summary>
+        public int Id => subscription.Id;
 
         /// <summary>
         /// ctor
