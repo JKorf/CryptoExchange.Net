@@ -7,6 +7,7 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class SocketSubscription
     {
+        public int Id { get; }
         /// <summary>
         /// Exception event
         /// </summary>
@@ -35,8 +36,9 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
 
-        private SocketSubscription(object? request, string? identifier, bool userSubscription, Action<MessageEvent> dataHandler)
+        private SocketSubscription(int id, object? request, string? identifier, bool userSubscription, Action<MessageEvent> dataHandler)
         {
+            Id = id;
             UserSubscription = userSubscription;
             MessageHandler = dataHandler;
             Request = request;
@@ -46,27 +48,29 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create SocketSubscription for a request
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="request"></param>
         /// <param name="userSubscription"></param>
         /// <param name="dataHandler"></param>
         /// <returns></returns>
-        public static SocketSubscription CreateForRequest(object request, bool userSubscription,
+        public static SocketSubscription CreateForRequest(int id, object request, bool userSubscription,
             Action<MessageEvent> dataHandler)
         {
-            return new SocketSubscription(request, null, userSubscription, dataHandler);
+            return new SocketSubscription(id, request, null, userSubscription, dataHandler);
         }
 
         /// <summary>
         /// Create SocketSubscription for an identifier
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="identifier"></param>
         /// <param name="userSubscription"></param>
         /// <param name="dataHandler"></param>
         /// <returns></returns>
-        public static SocketSubscription CreateForIdentifier(string identifier, bool userSubscription,
+        public static SocketSubscription CreateForIdentifier(int id, string identifier, bool userSubscription,
             Action<MessageEvent> dataHandler)
         {
-            return new SocketSubscription(null, identifier, userSubscription, dataHandler);
+            return new SocketSubscription(id, null, identifier, userSubscription, dataHandler);
         }
 
         /// <summary>

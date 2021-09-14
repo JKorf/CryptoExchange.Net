@@ -205,6 +205,16 @@ namespace CryptoExchange.Net.Sockets
                 subscriptions.Add(subscription);
         }
 
+        /// <summary>
+        /// Get a subscription on this connection
+        /// </summary>
+        /// <param name="id"></param>
+        public SocketSubscription GetSubscription(int id)
+        {
+            lock (subscriptionLock)
+                return subscriptions.SingleOrDefault(s => s.Id == id);
+        }
+
         private bool HandleData(MessageEvent messageEvent)
         {
             SocketSubscription? currentSubscription = null;
