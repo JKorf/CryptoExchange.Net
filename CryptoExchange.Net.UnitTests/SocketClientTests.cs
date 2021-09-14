@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.UnitTests
             var sub = new SocketConnection(client, socket);
             var rstEvent = new ManualResetEvent(false);
             JToken result = null;
-            sub.AddSubscription(SocketSubscription.CreateForIdentifier("TestHandler", true, (messageEvent) =>
+            sub.AddSubscription(SocketSubscription.CreateForIdentifier(10, "TestHandler", true, (messageEvent) =>
             {
                 result = messageEvent.JsonData;
                 rstEvent.Set();
@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.UnitTests
             var sub = new SocketConnection(client, socket);
             var rstEvent = new ManualResetEvent(false);
             string original = null;
-            sub.AddSubscription(SocketSubscription.CreateForIdentifier("TestHandler", true, (messageEvent) =>
+            sub.AddSubscription(SocketSubscription.CreateForIdentifier(10, "TestHandler", true, (messageEvent) =>
             {
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
@@ -137,7 +137,7 @@ namespace CryptoExchange.Net.UnitTests
             socket.CanConnect = true;
             var sub = new SocketConnection(client, socket);
             client.ConnectSocketSub(sub);
-            var ups = new UpdateSubscription(sub, SocketSubscription.CreateForIdentifier("Test", true, (e) => {}));
+            var ups = new UpdateSubscription(sub, SocketSubscription.CreateForIdentifier(10, "Test", true, (e) => {}));
 
             // act
             client.UnsubscribeAsync(ups).Wait();
