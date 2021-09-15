@@ -324,6 +324,13 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.1.0 - 15 Sep 2021
+    * Added overload for UnsubscribeAsync with id parameter
+    * Added parameter position configuration per HttpMethod type
+    * Added option to send custom headers with each requets
+    * Added option to send custom headers with individual requests
+    * Added debug data on error
+
 * Version 4.0.8 - 26 Aug 2021
     * Added rate limiting option for outgoing messages per socket
 
