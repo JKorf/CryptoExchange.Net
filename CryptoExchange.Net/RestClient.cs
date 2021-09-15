@@ -32,9 +32,15 @@ namespace CryptoExchange.Net
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
         /// <summary>
-        /// Where to place post parameters by default
+        /// Where to put the parameters for requests with different Http methods
         /// </summary>
-        protected PostParameters postParametersPosition = PostParameters.InBody;
+        protected Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
+        { 
+            { HttpMethod.Get, HttpMethodParameterPosition.InUri },
+            { HttpMethod.Post, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
+        };
 
         /// <summary>
         /// Request body content type
@@ -72,6 +78,11 @@ namespace CryptoExchange.Net
         /// Total requests made by this client
         /// </summary>
         public int TotalRequestsMade { get; private set; }
+
+        /// <summary>
+        /// Request headers to be sent with each request
+        /// </summary>
+        protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
 
         /// <summary>
         /// ctor
@@ -167,16 +178,25 @@ namespace CryptoExchange.Net
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
-        /// <param name="postPosition">Where the post parameters should be placed, overwrites the value set in the client</param>
+        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="credits">Credits used for the request</param>
         /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
+        /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
         [return: NotNull]
-        protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(Uri uri, HttpMethod method, CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null, bool signed = false, bool checkResult = true, 
-            PostParameters? postPosition = null, ArrayParametersSerialization? arraySerialization = null, int credits = 1,
-            JsonSerializer? deserializer = null) where T : class
+        protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
+            Uri uri, 
+            HttpMethod method, 
+            CancellationToken cancellationToken,
+            Dictionary<string, object>? parameters = null, 
+            bool signed = false, 
+            bool checkResult = true,
+            HttpMethodParameterPosition? parameterPosition = null,
+            ArrayParametersSerialization? arraySerialization = null, 
+            int credits = 1,
+            JsonSerializer? deserializer = null,
+            Dictionary<string, string>? additionalHeaders = null) where T : class
         {
             var requestId = NextId();
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
@@ -186,7 +206,8 @@ namespace CryptoExchange.Net
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
-            var request = ConstructRequest(uri, method, parameters, signed, postPosition ?? postParametersPosition, arraySerialization ?? this.arraySerialization, requestId);
+            var paramsPosition = parameterPosition ?? ParameterPositions[method];
+            var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
             foreach (var limiter in RateLimiters)
             {
                 var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour, credits);
@@ -201,8 +222,15 @@ namespace CryptoExchange.Net
             }
 
             string? paramString = null;
-            if (method == HttpMethod.Post)
+            if (parameterPosition == HttpMethodParameterPosition.InBody)
                 paramString = " with request body " + request.Content;
+
+            if (log.Level == LogLevel.Trace)
+            {
+                var headers = request.GetHeaders();
+                if (headers.Any())
+                    paramString = " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
+            }
 
             log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
@@ -320,20 +348,29 @@ namespace CryptoExchange.Net
         /// <param name="method">The method of the request</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="postPosition">Where the post parameters should be placed</param>
+        /// <param name="parameterPosition">Where the parameters should be placed</param>
         /// <param name="arraySerialization">How array parameters should be serialized</param>
         /// <param name="requestId">Unique id of a request</param>
+        /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
-        protected virtual IRequest ConstructRequest(Uri uri, HttpMethod method, Dictionary<string, object>? parameters, bool signed, PostParameters postPosition, ArrayParametersSerialization arraySerialization, int requestId)
+        protected virtual IRequest ConstructRequest(
+            Uri uri,
+            HttpMethod method,
+            Dictionary<string, object>? parameters,
+            bool signed,
+            HttpMethodParameterPosition parameterPosition,
+            ArrayParametersSerialization arraySerialization,
+            int requestId,
+            Dictionary<string, string>? additionalHeaders)
         {
             if (parameters == null)
                 parameters = new Dictionary<string, object>();
 
             var uriString = uri.ToString();
             if (authProvider != null)
-                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, postPosition, arraySerialization);
+                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
 
-            if ((method == HttpMethod.Get || method == HttpMethod.Delete || postPosition == PostParameters.InUri) && parameters?.Any() == true)
+            if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
 
             var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
@@ -342,12 +379,26 @@ namespace CryptoExchange.Net
 
             var headers = new Dictionary<string, string>();
             if (authProvider != null)
-                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, postPosition, arraySerialization);
+                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
 
             foreach (var header in headers)
                 request.AddHeader(header.Key, header.Value);
 
-            if ((method == HttpMethod.Post || method == HttpMethod.Put) && postPosition != PostParameters.InUri)
+            if (additionalHeaders != null) 
+            { 
+                foreach (var header in additionalHeaders)
+                    request.AddHeader(header.Key, header.Value);
+            }
+
+            if(StandardRequestHeaders != null)
+            {
+                foreach (var header in StandardRequestHeaders)
+                    // Only add it if it isn't overwritten
+                    if(additionalHeaders?.ContainsKey(header.Key) != true)
+                        request.AddHeader(header.Key, header.Value);
+            }
+
+            if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 if (parameters?.Any() == true)
                     WriteParamBody(request, parameters, contentType);

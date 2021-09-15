@@ -16,16 +16,16 @@
     }
 
     /// <summary>
-    /// Where the parameters for a post request should be added
+    /// Where the parameters for a HttpMethod should be added in a request
     /// </summary>
-    public enum PostParameters
+    public enum HttpMethodParameterPosition
     {
         /// <summary>
-        /// Post parameters in body
+        /// Parameters in body
         /// </summary>
         InBody,
         /// <summary>
-        /// Post parameters in url
+        /// Parameters in url
         /// </summary>
         InUri
     }

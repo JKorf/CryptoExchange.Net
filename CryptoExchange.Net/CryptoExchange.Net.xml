@@ -97,7 +97,7 @@
             </summary>
             <param name="credentials"></param>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToParameters(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.HttpMethodParameterPosition,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the parameter list based on the provided credentials
             </summary>
@@ -105,11 +105,11 @@
             <param name="method">The HTTP method of the request</param>
             <param name="parameters">The provided parameters for the request</param>
             <param name="signed">Wether or not the request needs to be signed. If not typically the parameters list can just be returned</param>
-            <param name="postParameterPosition">Where post parameters are placed, in the URI or in the request body</param>
+            <param name="parameterPosition">Where parameters are placed, in the URI or in the request body</param>
             <param name="arraySerialization">How array parameters are serialized</param>
             <returns>Should return the original parameter list including any authentication parameters needed</returns>
         </member>
-        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
+        <member name="M:CryptoExchange.Net.Authentication.AuthenticationProvider.AddAuthenticationToHeaders(System.String,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.HttpMethodParameterPosition,CryptoExchange.Net.Objects.ArrayParametersSerialization)">
             <summary>
             Add authentication to the header dictionary based on the provided credentials
             </summary>
@@ -117,7 +117,7 @@
             <param name="method">The HTTP method of the request</param>
             <param name="parameters">The provided parameters for the request</param>
             <param name="signed">Wether or not the request needs to be signed. If not typically the parameters list can just be returned</param>
-            <param name="postParameterPosition">Where post parameters are placed, in the URI or in the request body</param>
+            <param name="parameterPosition">Where post parameters are placed, in the URI or in the request body</param>
             <param name="arraySerialization">How array parameters are serialized</param>
             <returns>Should return a dictionary containing any header key/value pairs needed for authenticating the request</returns>
         </member>
@@ -1163,6 +1163,12 @@
             <param name="key"></param>
             <param name="value"></param>
         </member>
+        <member name="M:CryptoExchange.Net.Interfaces.IRequest.GetHeaders">
+            <summary>
+            Get all headers
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRequest.GetResponseAsync(System.Threading.CancellationToken)">
             <summary>
             Get the response
@@ -1934,19 +1940,19 @@
             Wait till the request can be send
             </summary>
         </member>
-        <member name="T:CryptoExchange.Net.Objects.PostParameters">
+        <member name="T:CryptoExchange.Net.Objects.HttpMethodParameterPosition">
             <summary>
-            Where the parameters for a post request should be added
+            Where the parameters for a HttpMethod should be added in a request
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Objects.PostParameters.InBody">
+        <member name="F:CryptoExchange.Net.Objects.HttpMethodParameterPosition.InBody">
             <summary>
-            Post parameters in body
+            Parameters in body
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.Objects.PostParameters.InUri">
+        <member name="F:CryptoExchange.Net.Objects.HttpMethodParameterPosition.InUri">
             <summary>
-            Post parameters in url
+            Parameters in url
             </summary>
         </member>
         <member name="T:CryptoExchange.Net.Objects.RequestBodyFormat">
@@ -2802,6 +2808,9 @@
         <member name="M:CryptoExchange.Net.Requests.Request.AddHeader(System.String,System.String)">
             <inheritdoc />
         </member>
+        <member name="M:CryptoExchange.Net.Requests.Request.GetHeaders">
+            <inheritdoc />
+        </member>
         <member name="M:CryptoExchange.Net.Requests.Request.SetContent(System.Byte[])">
             <inheritdoc />
         </member>
@@ -2855,9 +2864,9 @@
             The factory for creating requests. Used for unit testing
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.RestClient.postParametersPosition">
+        <member name="P:CryptoExchange.Net.RestClient.ParameterPositions">
             <summary>
-            Where to place post parameters by default
+            Where to put the parameters for requests with different Http methods
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.RestClient.requestBodyFormat">
@@ -2900,6 +2909,11 @@
             Total requests made by this client
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.RestClient.StandardRequestHeaders">
+            <summary>
+            Request headers to be sent with each request
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.RestClient.#ctor(System.String,CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
             <summary>
             ctor
@@ -2931,7 +2945,7 @@
             </summary>
             <returns>The roundtrip time of the ping request</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.SendRequestAsync``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.PostParameters},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32,Newtonsoft.Json.JsonSerializer)">
+        <member name="M:CryptoExchange.Net.RestClient.SendRequestAsync``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.HttpMethodParameterPosition},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32,Newtonsoft.Json.JsonSerializer,System.Collections.Generic.Dictionary{System.String,System.String})">
             <summary>
             Execute a request to the uri and deserialize the response into the provided type parameter
             </summary>
@@ -2942,10 +2956,11 @@
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
             <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
-            <param name="postPosition">Where the post parameters should be placed, overwrites the value set in the client</param>
+            <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
             <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
             <param name="credits">Credits used for the request</param>
             <param name="deserializer">The JsonSerializer to use for deserialization</param>
+            <param name="additionalHeaders">Additional headers to send with the request</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.GetResponseAsync``1(CryptoExchange.Net.Interfaces.IRequest,Newtonsoft.Json.JsonSerializer,System.Threading.CancellationToken)">
@@ -2966,7 +2981,7 @@
             <param name="data">Received data</param>
             <returns>Null if not an error, Error otherwise</returns>
         </member>
-        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.PostParameters,CryptoExchange.Net.Objects.ArrayParametersSerialization,System.Int32)">
+        <member name="M:CryptoExchange.Net.RestClient.ConstructRequest(System.Uri,System.Net.Http.HttpMethod,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,CryptoExchange.Net.Objects.HttpMethodParameterPosition,CryptoExchange.Net.Objects.ArrayParametersSerialization,System.Int32,System.Collections.Generic.Dictionary{System.String,System.String})">
             <summary>
             Creates a request object
             </summary>
@@ -2974,9 +2989,10 @@
             <param name="method">The method of the request</param>
             <param name="parameters">The parameters of the request</param>
             <param name="signed">Whether or not the request should be authenticated</param>
-            <param name="postPosition">Where the post parameters should be placed</param>
+            <param name="parameterPosition">Where the parameters should be placed</param>
             <param name="arraySerialization">How array parameters should be serialized</param>
             <param name="requestId">Unique id of a request</param>
+            <param name="additionalHeaders">Additional headers to send with the request</param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.WriteParamBody(CryptoExchange.Net.Interfaces.IRequest,System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
@@ -3923,149 +3939,6 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is allowed as an input even if the
-                corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
-            <summary>
-                Specifies that <see langword="null"/> is disallowed as an input even if the
-                corresponding type allows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
-            <summary>
-                Specifies that a method that will never return under any circumstance.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
-            <summary>
-                Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
-                parameter is passed the specified value.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
-            <summary>
-                Gets the condition parameter value.
-                Code after the method is considered unreachable by diagnostics if the argument
-                to the associated parameter matches this value.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute"/>
-                class with the specified parameter value.
-            </summary>
-            <param name="parameterValue">
-                The condition parameter value.
-                Code after the method is considered unreachable by diagnostics if the argument
-                to the associated parameter matches this value.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
-            <summary>
-                Specifies that an output may be <see langword="null"/> even if the
-                corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
-            <summary>
-                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, 
-                the parameter may be <see langword="null"/> even if the corresponding type disallows it.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
-            <summary>
-                Gets the return value condition.
-                If the method returns this value, the associated parameter may be <see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
-            <summary>
-                 Initializes the attribute with the specified return value condition.
-            </summary>
-            <param name="returnValue">
-                The return value condition.
-                If the method returns this value, the associated parameter may be <see langword="null"/>.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
-            <summary>
-                Specifies that an output is not <see langword="null"/> even if the
-                corresponding type allows it.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullAttribute.#ctor">
-            <summary>
-                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.NotNullAttribute"/> class.
-            </summary>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
-            <summary>
-                Specifies that the output will be non-<see langword="null"/> if the
-                named parameter is non-<see langword="null"/>.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
-            <summary>
-                Gets the associated parameter name.
-                The output will be non-<see langword="null"/> if the argument to the
-                parameter specified is non-<see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
-            <summary>
-                Initializes the attribute with the associated parameter name.
-            </summary>
-            <param name="parameterName">
-                The associated parameter name.
-                The output will be non-<see langword="null"/> if the argument to the
-                parameter specified is non-<see langword="null"/>.
-            </param>
-        </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
-            <summary>
-                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>,
-                the parameter will not be <see langword="null"/> even if the corresponding type allows it.
-            </summary>
-        </member>
-        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
-            <summary>
-                Gets the return value condition.
-                If the method returns this value, the associated parameter will not be <see langword="null"/>.
-            </summary>
-        </member>
-        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
-            <summary>
-                Initializes the attribute with the specified return value condition.
-            </summary>
-            <param name="returnValue">
-                The return value condition.
-                If the method returns this value, the associated parameter will not be <see langword="null"/>.
-            </param>
         </member>
     </members>
 </doc>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,13 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="key"></param>
         /// <param name="value"></param>
         void AddHeader(string key, string value);
+
+        /// <summary>
+        /// Get all headers
+        /// </summary>
+        /// <returns></returns>
+        Dictionary<string, IEnumerable<string>> GetHeaders();
+
         /// <summary>
         /// Get the response
         /// </summary>

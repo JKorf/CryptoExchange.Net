@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -61,6 +63,12 @@ namespace CryptoExchange.Net.Requests
         public void AddHeader(string key, string value)
         {
             request.Headers.Add(key, value);
+        }
+
+        /// <inheritdoc />
+        public Dictionary<string, IEnumerable<string>> GetHeaders()
+        {
+            return request.Headers.ToDictionary(h => h.Key, h => h.Value);
         }
 
         /// <inheritdoc />

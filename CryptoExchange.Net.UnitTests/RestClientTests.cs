@@ -10,6 +10,8 @@ using System.Linq;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.RateLimiter;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -22,7 +24,7 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var client = new TestRestClient();
             var expected = new TestObject() { DecimalData = 1.23M, IntData = 10, StringData = "Some data" };
-            client.SetResponse(JsonConvert.SerializeObject(expected));
+            client.SetResponse(JsonConvert.SerializeObject(expected), out _);
 
             // act
             var result = client.Request<TestObject>().Result;
@@ -37,7 +39,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var client = new TestRestClient();
-            client.SetResponse("{\"property\": 123");
+            client.SetResponse("{\"property\": 123", out _);
 
             // act
             var result = client.Request<TestObject>().Result;
@@ -119,6 +121,46 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(client.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
+        [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
+        [TestCase("POST", HttpMethodParameterPosition.InBody)]
+        [TestCase("POST", HttpMethodParameterPosition.InUri)]
+        [TestCase("DELETE", HttpMethodParameterPosition.InBody)]
+        [TestCase("DELETE", HttpMethodParameterPosition.InUri)]
+        [TestCase("PUT", HttpMethodParameterPosition.InUri)]
+        [TestCase("PUT", HttpMethodParameterPosition.InBody)]
+        public async Task Setting_Should_ResultInOptionsSet(string method, HttpMethodParameterPosition pos)
+        {
+            // arrange
+            // act
+            var client = new TestRestClient(new RestClientOptions("")
+            {
+                BaseAddress = "http://test.address.com",
+            });
+
+            client.SetParameterPosition(new HttpMethod(method), pos);
+
+            client.SetResponse("{}", out var request);
+
+            await client.RequestWithParams<TestObject>(new HttpMethod(method), new Dictionary<string, object>
+            {
+                { "TestParam1", "Value1" },
+                { "TestParam2", 2 },
+            },
+            new Dictionary<string, string>
+            {
+                { "TestHeader", "123" }
+            });
+
+            // assert
+            Assert.AreEqual(request.Method, new HttpMethod(method));
+            Assert.AreEqual(request.Content?.Contains("TestParam1") == true, pos == HttpMethodParameterPosition.InBody);
+            Assert.AreEqual(request.Uri.ToString().Contains("TestParam1"), pos == HttpMethodParameterPosition.InUri);
+            Assert.AreEqual(request.Content?.Contains("TestParam2") == true, pos == HttpMethodParameterPosition.InBody);
+            Assert.AreEqual(request.Uri.ToString().Contains("TestParam2"), pos == HttpMethodParameterPosition.InUri);
+            Assert.AreEqual(request.GetHeaders().First().Key, "TestHeader");
+            Assert.IsTrue(request.GetHeaders().First().Value.Contains("123"));
+        }
+
         [TestCase]
         public void SettingRateLimitingBehaviourToFail_Should_FailLimitedRequests()
         {
@@ -128,12 +170,12 @@ namespace CryptoExchange.Net.UnitTests
                 RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Fail
             });
-            client.SetResponse("{\"property\": 123}");
+            client.SetResponse("{\"property\": 123}", out _);
 
 
             // act
             var result1 = client.Request<TestObject>().Result;
-            client.SetResponse("{\"property\": 123}");
+            client.SetResponse("{\"property\": 123}", out _);
             var result2 = client.Request<TestObject>().Result;
 
 
@@ -151,13 +193,13 @@ namespace CryptoExchange.Net.UnitTests
                 RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Wait
             });
-            client.SetResponse("{\"property\": 123}");
+            client.SetResponse("{\"property\": 123}", out _);
 
 
             // act
             var sw = Stopwatch.StartNew();
             var result1 = client.Request<TestObject>().Result;
-            client.SetResponse("{\"property\": 123}"); // reset response stream
+            client.SetResponse("{\"property\": 123}", out _); // reset response stream
             var result2 = client.Request<TestObject>().Result;
             sw.Stop();
 
@@ -178,17 +220,17 @@ namespace CryptoExchange.Net.UnitTests
                 LogLevel = LogLevel.Debug,
                 ApiCredentials = new ApiCredentials("TestKey", "TestSecret")
             });
-            client.SetResponse("{\"property\": 123}");
+            client.SetResponse("{\"property\": 123}", out _);
 
 
             // act
             var sw = Stopwatch.StartNew();
             var result1 = client.Request<TestObject>().Result;
             client.SetKey("TestKey2", "TestSecret2"); // set to different key
-            client.SetResponse("{\"property\": 123}"); // reset response stream
+            client.SetResponse("{\"property\": 123}", out _); // reset response stream
             var result2 = client.Request<TestObject>().Result;
             client.SetKey("TestKey", "TestSecret"); // set back to original key, should delay
-            client.SetResponse("{\"property\": 123}"); // reset response stream
+            client.SetResponse("{\"property\": 123}", out _); // reset response stream
             var result3 = client.Request<TestObject>().Result;
             sw.Stop();
 

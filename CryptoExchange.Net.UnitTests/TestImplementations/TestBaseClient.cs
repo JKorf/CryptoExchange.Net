@@ -38,12 +38,12 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, PostParameters postParameters, ArrayParametersSerialization arraySerialization)
+        public override Dictionary<string, string> AddAuthenticationToHeaders(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, HttpMethodParameterPosition postParameters, ArrayParametersSerialization arraySerialization)
         {
             return base.AddAuthenticationToHeaders(uri, method, parameters, signed, postParameters, arraySerialization);
         }
 
-        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, PostParameters postParameters, ArrayParametersSerialization arraySerialization)
+        public override Dictionary<string, object> AddAuthenticationToParameters(string uri, HttpMethod method, Dictionary<string, object> parameters, bool signed, HttpMethodParameterPosition postParameters, ArrayParametersSerialization arraySerialization)
         {
             return base.AddAuthenticationToParameters(uri, method, parameters, signed, postParameters, arraySerialization);
         }
