@@ -7,6 +7,9 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class SocketSubscription
     {
+        /// <summary>
+        /// Subscription id
+        /// </summary>
         public int Id { get; }
         /// <summary>
         /// Exception event

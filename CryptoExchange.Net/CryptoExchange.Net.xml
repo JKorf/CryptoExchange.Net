@@ -3576,6 +3576,11 @@
             The topic of the update, what symbol/asset etc..
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.Event">
+            <summary>
+            The event that triggered the update
+            </summary>
+        </member>
         <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.OriginalData">
             <summary>
             The original data that was received, only available when OutputOriginalData is set to true in the client options
@@ -3594,13 +3599,14 @@
             <param name="data">The new data</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0,System.String)">
+        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0,System.String,System.String)">
             <summary>
             Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
             </summary>
             <typeparam name="K">The type of the new data</typeparam>
             <param name="data">The new data</param>
             <param name="topic">The new topic</param>
+            <param name="event">The new event</param>
             <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Sockets.MessageEvent">
@@ -3794,6 +3800,11 @@
             Socket subscription
             </summary>
         </member>
+        <member name="P:CryptoExchange.Net.Sockets.SocketSubscription.Id">
+            <summary>
+            Subscription id
+            </summary>
+        </member>
         <member name="E:CryptoExchange.Net.Sockets.SocketSubscription.Exception">
             <summary>
             Exception event
@@ -3940,7 +3951,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+    </members>
+</doc>
+System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.

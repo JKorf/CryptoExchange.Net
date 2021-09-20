@@ -39,6 +39,7 @@ namespace CryptoExchange.Net.OrderBook
         private readonly bool strictLevels;
         private readonly bool validateChecksum;
 
+        private bool _stopProcessing;
         private Task? _processTask;
         private readonly AutoResetEvent _queueEvent;
         private readonly ConcurrentQueue<object> _processQueue;
@@ -255,7 +256,7 @@ namespace CryptoExchange.Net.OrderBook
             {
                 log.Write(LogLevel.Warning, $"{Id} order book {Symbol} disconnected");
                 Status = OrderBookStatus.Disconnected;
-                StopAsync();
+                _ = StopAsync();
             };
 
             subscription.ConnectionRestored += async time => await ResyncAsync().ConfigureAwait(false);
@@ -379,6 +380,12 @@ namespace CryptoExchange.Net.OrderBook
                     if (Status == OrderBookStatus.Disconnected)
                         break;
 
+                    if (_stopProcessing)
+                    {
+                        log.Write(LogLevel.Trace, $"Skipping message because of resubscribing");
+                        continue;
+                    }
+
                     if (item is InitialOrderBookItem iobi)
                         ProcessInitialOrderBookItem(iobi);
                     if (item is ProcessQueueItem pqi)
@@ -473,10 +480,8 @@ namespace CryptoExchange.Net.OrderBook
 
                 if(!checksumResult)
                 {
-                    // Reconnects the socket, also closing other subscriptions on that socket.
-                    // Should maybe only reconnect the specific subscription?
-
                     log.Write(LogLevel.Warning, $"{Id} order book {Symbol} out of sync. Resyncing");
+                    _stopProcessing = true;
                     Resubscribe();
                     return;
                 }
@@ -490,6 +495,7 @@ namespace CryptoExchange.Net.OrderBook
             {
                 await subscription!.UnsubscribeAsync().ConfigureAwait(false);
                 Reset();
+                _stopProcessing = false;
                 if (!await subscription!.ResubscribeAsync().ConfigureAwait(false))
                 {
                     // Resubscribing failed, reconnect the socket
