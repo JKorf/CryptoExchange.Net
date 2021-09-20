@@ -100,5 +100,11 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="type">The type</param>
         /// <returns>Average fill price</returns>
         CallResult<decimal> CalculateAverageFillPrice(decimal quantity, OrderBookEntryType type);
+
+        /// <summary>
+        /// String representation of the top x entries
+        /// </summary>
+        /// <returns></returns>
+        string ToString(int rows);
     }
 }

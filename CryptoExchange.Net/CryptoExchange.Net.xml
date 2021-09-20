@@ -142,6 +142,20 @@
             <param name="buff"></param>
             <returns></returns>
         </member>
+        <member name="T:CryptoExchange.Net.Authentication.DefaultNonceProvider">
+            <summary>
+            Default nonce provider
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Authentication.DefaultNonceProvider.#ctor(System.Nullable{System.Int64})">
+            <summary>
+            Create a new default nonce provider
+            </summary>
+            <param name="startNonce">Start with an incremental value from this start nonce. If not provided `DataTime.UtcNow.Ticks` will be used</param>
+        </member>
+        <member name="M:CryptoExchange.Net.Authentication.DefaultNonceProvider.GetNonce">
+            <inheritdoc />
+        </member>
         <member name="T:CryptoExchange.Net.Authentication.PrivateKey">
             <summary>
             Private key info
@@ -1098,6 +1112,17 @@
             <param name="exception"></param>
             <returns></returns>
         </member>
+        <member name="T:CryptoExchange.Net.Interfaces.INonceProvider">
+            <summary>
+            A provider for a nonce value used when signing requests
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.INonceProvider.GetNonce">
+            <summary>
+            Get nonce value. Nonce value should be unique and incremental for each call
+            </summary>
+            <returns>Nonce value</returns>
+        </member>
         <member name="T:CryptoExchange.Net.Interfaces.IRateLimiter">
             <summary>
             Rate limiter interface
@@ -1448,6 +1473,12 @@
             <param name="quantity">The quantity in base asset to fill</param>
             <param name="type">The type</param>
             <returns>Average fill price</returns>
+        </member>
+        <member name="M:CryptoExchange.Net.Interfaces.ISymbolOrderBook.ToString(System.Int32)">
+            <summary>
+            String representation of the top x entries
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.ISymbolOrderBookEntry">
             <summary>
@@ -3576,11 +3607,6 @@
             The topic of the update, what symbol/asset etc..
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.Event">
-            <summary>
-            The event that triggered the update
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.Sockets.DataEvent`1.OriginalData">
             <summary>
             The original data that was received, only available when OutputOriginalData is set to true in the client options
@@ -3599,14 +3625,13 @@
             <param name="data">The new data</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0,System.String,System.String)">
+        <member name="M:CryptoExchange.Net.Sockets.DataEvent`1.As``1(``0,System.String)">
             <summary>
             Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
             </summary>
             <typeparam name="K">The type of the new data</typeparam>
             <param name="data">The new data</param>
             <param name="topic">The new topic</param>
-            <param name="event">The new event</param>
             <returns></returns>
         </member>
         <member name="T:CryptoExchange.Net.Sockets.MessageEvent">
@@ -3951,9 +3976,7 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-    </members>
-</doc>
-System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.
