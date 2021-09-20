@@ -324,6 +324,10 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.0 - 20 Sep 2021
+    * Prevent reconnect spamming when invalid checksum is calculated in SymbolOrderBook
+    * Added default nonce provider implementation
+
 * Version 4.1.0 - 15 Sep 2021
     * Added overload for UnsubscribeAsync with id parameter
     * Added parameter position configuration per HttpMethod type
