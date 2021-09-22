@@ -384,6 +384,13 @@ namespace CryptoExchange.Net.Sockets
                         // cancelled
                         break;
                     }
+                    catch (IOException ioe)
+                    {
+                        // Connection closed unexpectedly, .NET framework                      
+                        Handle(errorHandlers, ioe);
+                        await CloseInternalAsync(false, true).ConfigureAwait(false);
+                        break;
+                    }
                     catch (WebSocketException wse)
                     {
                         // Connection closed unexpectedly                        
@@ -429,6 +436,13 @@ namespace CryptoExchange.Net.Sockets
                     {
                         // Connection closed unexpectedly        
                         Handle(errorHandlers, wse);
+                        await CloseInternalAsync(true, false).ConfigureAwait(false);
+                        break;
+                    }
+                    catch (IOException ioe)
+                    {
+                        // Connection closed unexpectedly, .NET framework
+                        Handle(errorHandlers, ioe);
                         await CloseInternalAsync(true, false).ConfigureAwait(false);
                         break;
                     }
