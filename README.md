@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.1 - 22 Sep 2021
+    * Fìx for websocket not automatically reconnecting when connection is closed unexpectedly
+
 * Version 4.2.0 - 20 Sep 2021
     * Prevent reconnect spamming when invalid checksum is calculated in SymbolOrderBook
     * Added default nonce provider implementation
