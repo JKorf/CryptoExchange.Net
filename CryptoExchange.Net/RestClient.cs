@@ -222,7 +222,7 @@ namespace CryptoExchange.Net
             }
 
             string? paramString = null;
-            if (parameterPosition == HttpMethodParameterPosition.InBody)
+            if (paramsPosition == HttpMethodParameterPosition.InBody)
                 paramString = " with request body " + request.Content;
 
             if (log.Level == LogLevel.Trace)
