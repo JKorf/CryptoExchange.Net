@@ -221,7 +221,7 @@ namespace CryptoExchange.Net
                     log.Write(LogLevel.Information, $"[{requestId}] Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");
             }
 
-            string? paramString = null;
+            string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
                 paramString = " with request body " + request.Content;
 
@@ -229,7 +229,7 @@ namespace CryptoExchange.Net
             {
                 var headers = request.GetHeaders();
                 if (headers.Any())
-                    paramString = " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
+                    paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
             }
 
             log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
