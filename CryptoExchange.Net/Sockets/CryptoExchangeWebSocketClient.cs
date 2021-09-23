@@ -352,7 +352,7 @@ namespace CryptoExchange.Net.Sockets
                 if (_closing)
                     break;
 
-                _sendEvent.WaitOne();
+                await _sendEvent.WaitOneAsync().ConfigureAwait(false);
 
                 if (_closing)                
                     break;
@@ -365,7 +365,8 @@ namespace CryptoExchange.Net.Sockets
                         DateTime? start = null;
                         while (MessagesSentLastSecond() >= RatelimitPerSecond)
                         {
-                            start = DateTime.UtcNow;
+                            if (start == null)
+                                start = DateTime.UtcNow;
                             await Task.Delay(10).ConfigureAwait(false);
                         }
 

@@ -227,6 +227,16 @@ namespace CryptoExchange.Net
         /// Wait one async
         /// </summary>
         /// <param name="handle"></param>
+        /// <returns></returns>
+        public static Task<bool> WaitOneAsync(this WaitHandle handle)
+        {
+            return handle.WaitOneAsync(-1, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Wait one async
+        /// </summary>
+        /// <param name="handle"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
         public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout)
