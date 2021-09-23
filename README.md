@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.2 - 23 Sep 2021
+    * Restored missing request parameters log
+
 * Version 4.2.1 - 22 Sep 2021
     * Fìx for websocket not automatically reconnecting when connection is closed unexpectedly
 
