@@ -1030,6 +1030,13 @@
             <param name="cancellationToken"></param>
             <returns></returns>
         </member>
+        <member name="M:CryptoExchange.Net.ExtensionMethods.WaitOneAsync(System.Threading.WaitHandle)">
+            <summary>
+            Wait one async
+            </summary>
+            <param name="handle"></param>
+            <returns></returns>
+        </member>
         <member name="M:CryptoExchange.Net.ExtensionMethods.WaitOneAsync(System.Threading.WaitHandle,System.TimeSpan)">
             <summary>
             Wait one async

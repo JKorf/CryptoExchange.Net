@@ -224,31 +224,32 @@ namespace CryptoExchange.Net.Sockets
                 var sw = Stopwatch.StartNew();
 
                 // Loop the subscriptions to check if any of them signal us that the message is for them
+                List<SocketSubscription> subscriptionsCopy;
                 lock (subscriptionLock)
+                    subscriptionsCopy = subscriptions.ToList();
+
+                foreach (var subscription in subscriptionsCopy)
                 {
-                    foreach (var subscription in subscriptions.ToList())
+                    currentSubscription = subscription;
+                    if (subscription.Request == null)
                     {
-                        currentSubscription = subscription;
-                        if (subscription.Request == null)
+                        if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Identifier!))
                         {
-                            if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Identifier!))
-                            {
-                                handled = true;
-                                subscription.MessageHandler(messageEvent);
-                            }
+                            handled = true;
+                            subscription.MessageHandler(messageEvent);
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Request))
                         {
-                            if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Request))
-                            {
-                                handled = true;
-                                messageEvent.JsonData = socketClient.ProcessTokenData(messageEvent.JsonData);
-                                subscription.MessageHandler(messageEvent);
-                            }
+                            handled = true;
+                            messageEvent.JsonData = socketClient.ProcessTokenData(messageEvent.JsonData);
+                            subscription.MessageHandler(messageEvent);
                         }
                     }
                 }
-
+                
                 sw.Stop();
                 if (sw.ElapsedMilliseconds > 500)
                     log.Write(LogLevel.Warning, $"Socket {Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
