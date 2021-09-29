@@ -47,7 +47,11 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The max amount of outgoing messages per second
         /// </summary>
-        public int? RatelimitPerSecond { get; set; }
+        int? RatelimitPerSecond { get; set; }
+        /// <summary>
+        /// The current kilobytes per second of data being received, averaged over the last 3 seconds
+        /// </summary>
+        double IncomingKbps { get; }
         /// <summary>
         /// Handler for byte data
         /// </summary>

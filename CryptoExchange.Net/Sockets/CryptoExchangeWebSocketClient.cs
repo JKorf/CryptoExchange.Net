@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
 using System.Security.Authentication;
@@ -36,7 +37,11 @@ namespace CryptoExchange.Net.Sockets
         private bool _closing;
         private bool _startedSent;
         private bool _startedReceive;
-        private readonly List<DateTime> outgoingMessages;
+
+        private readonly List<DateTime> _outgoingMessages;
+        protected readonly Dictionary<DateTime, int> _receivedMessages;
+        private DateTime _lastReceivedMessagesUpdate;
+        protected readonly object _receivedMessagesLock;
 
         /// <summary>
         /// Log
@@ -127,6 +132,25 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan Timeout { get; set; }
 
         /// <summary>
+        /// The current kilobytes per second of data being received, averaged over the last 3 seconds
+        /// </summary>
+        public double IncomingKbps
+        {
+            get
+            {
+                UpdateReceivedMessages();
+
+                lock (_receivedMessagesLock)
+                {
+                    if (!_receivedMessages.Any())
+                        return 0;
+
+                    return Math.Round(_receivedMessages.Values.Sum(v => v) / 1000 / 3d);
+                }
+            }
+        }
+
+        /// <summary>
         /// Socket closed event
         /// </summary>
         public event Action OnClose
@@ -183,10 +207,12 @@ namespace CryptoExchange.Net.Sockets
             this.cookies = cookies;
             this.headers = headers;
 
-            outgoingMessages = new List<DateTime>();
+            _outgoingMessages = new List<DateTime>();
+            _receivedMessages = new Dictionary<DateTime, int>();
             _sendEvent = new AutoResetEvent(false);
             _sendBuffer = new ConcurrentQueue<byte[]>();
             _ctsSource = new CancellationTokenSource();
+            _receivedMessagesLock = new object();
 
             _socket = CreateSocket();
         }
@@ -244,7 +270,7 @@ namespace CryptoExchange.Net.Sockets
         public virtual void Send(string data)
         {
             if (_closing)
-                throw new InvalidOperationException("Can't send data when socket is not connected");
+                throw new InvalidOperationException($"Socket {Id} Can't send data when socket is not connected");
 
             var bytes = _encoding.GetBytes(data);
             log.Write(LogLevel.Trace, $"Socket {Id} Adding {bytes.Length} to sent buffer");
@@ -371,14 +397,14 @@ namespace CryptoExchange.Net.Sockets
                         }
 
                         if (start != null)                        
-                            log.Write(LogLevel.Trace, $"Websocket sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
-                        
-                        outgoingMessages.Add(DateTime.UtcNow);                        
+                            log.Write(LogLevel.Trace, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");                        
                     }
 
                     try
                     {
                         await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
+                        _outgoingMessages.Add(DateTime.UtcNow);                        
+                        log.Write(LogLevel.Trace, $"Socket {Id} sent {data.Length} bytes");
                     }
                     catch (OperationCanceledException)
                     {
@@ -427,6 +453,8 @@ namespace CryptoExchange.Net.Sockets
                     {
                         receiveResult = await _socket.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
                         received += receiveResult.Count;
+                        lock(_receivedMessagesLock)
+                            _receivedMessages.Add(DateTime.UtcNow, receiveResult.Count);
                     }
                     catch (OperationCanceledException)
                     {
@@ -462,19 +490,29 @@ namespace CryptoExchange.Net.Sockets
                         multiPartMessage = true;
                         if (memoryStream == null)
                             memoryStream = new MemoryStream();
+                        log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                         await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                     }
                     else
                     {
                         if (!multiPartMessage)
+                        {
                             // Received a complete message and it's not multi part
+                            log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
                             HandleMessage(buffer.Array, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
+                        }
                         else
+                        {
                             // Received the end of a multipart message, write to memory stream for reassembling
+                            log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                             await memoryStream!.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
+                        }
                         break;
                     }
                 }
+
+                lock (_receivedMessagesLock)                
+                    UpdateReceivedMessages();
 
                 if (receiveResult?.MessageType == WebSocketMessageType.Close)
                 {
@@ -491,6 +529,7 @@ namespace CryptoExchange.Net.Sockets
                 if (multiPartMessage)
                 {
                     // Reassemble complete message from memory stream
+                    log.Write(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
                     HandleMessage(memoryStream!.ToArray(), 0, (int)memoryStream.Length, receiveResult.MessageType);
                     memoryStream.Dispose();
                 }
@@ -514,7 +553,9 @@ namespace CryptoExchange.Net.Sockets
 
                 try
                 {
-                    strData = DataInterpreterBytes(data);
+                    var relevantData = new byte[count];
+                    Array.Copy(data, offset, relevantData, 0, count);
+                    strData = DataInterpreterBytes(relevantData);
                 }
                 catch(Exception e)
                 {
@@ -619,8 +660,21 @@ namespace CryptoExchange.Net.Sockets
         private int MessagesSentLastSecond()
         {
             var testTime = DateTime.UtcNow;
-            outgoingMessages.RemoveAll(r => testTime - r > TimeSpan.FromSeconds(1));
-            return outgoingMessages.Count;            
+            _outgoingMessages.RemoveAll(r => testTime - r > TimeSpan.FromSeconds(1));
+            return _outgoingMessages.Count;            
+        }
+
+        protected void UpdateReceivedMessages()
+        {
+            var checkTime = DateTime.UtcNow;
+            if (checkTime - _lastReceivedMessagesUpdate > TimeSpan.FromSeconds(1))
+            {
+                foreach (var msgTime in _receivedMessages.Keys)
+                    if (checkTime - msgTime > TimeSpan.FromSeconds(3))
+                        _receivedMessages.Remove(msgTime);
+
+                _lastReceivedMessagesUpdate = checkTime;
+            }
         }
     }
 }

@@ -120,6 +120,17 @@ namespace CryptoExchange.Net.Objects
         {
             return new WebCallResult<T>(null, null, default, error);
         }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="data">The data of the new type</param>
+        /// <returns></returns>
+        public CallResult<K> As<K>([AllowNull] K data)
+        {
+            return new CallResult<K>(data, Error);
+        }
     }
 
     /// <summary>

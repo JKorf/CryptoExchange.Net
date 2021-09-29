@@ -49,6 +49,10 @@ namespace CryptoExchange.Net.Interfaces
         int? MaxResubscribeTries { get; }
         /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
         int MaxConcurrentResubscriptionsPerSocket { get; }
+        /// <summary>
+        /// The current kilobytes per second of data being received by all connection from this client, averaged over the last 3 seconds
+        /// </summary>
+        double IncomingKbps { get; }
 
         /// <summary>
         /// Unsubscribe from a stream

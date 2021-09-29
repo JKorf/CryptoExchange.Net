@@ -97,7 +97,7 @@ namespace CryptoExchange.Net.Sockets
                 if (pausedActivity != value)
                 {
                     pausedActivity = value;
-                    log.Write(LogLevel.Debug, "Paused activity: " + value);
+                    log.Write(LogLevel.Debug, $"Socket {Socket.Id} Paused activity: " + value);
                     if(pausedActivity) ActivityPaused?.Invoke();
                     else ActivityUnpaused?.Invoke();
                 }

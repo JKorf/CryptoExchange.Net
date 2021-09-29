@@ -96,6 +96,20 @@ namespace CryptoExchange.Net
         /// The max amount of outgoing messages per socket per second
         /// </summary>
         protected internal int? RateLimitPerSocketPerSecond { get; set; }
+
+        /// <summary>
+        /// The current kilobytes per second of data being received by all connection from this client, averaged over the last 3 seconds
+        /// </summary>
+        public double IncomingKbps
+        {
+            get
+            {
+                if (!sockets.Any())
+                    return 0;
+
+                return sockets.Sum(s => s.Value.Socket.IncomingKbps);
+            }
+        }
         #endregion
 
         /// <summary>
@@ -193,7 +207,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                log.Write(LogLevel.Information, "Socket has been paused, can't subscribe at this moment");
+                log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't subscribe at this moment");
                 return new CallResult<UpdateSubscription>(default, new ServerError("Socket is paused"));
             }
 
@@ -284,7 +298,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                log.Write(LogLevel.Information, "Socket has been paused, can't send query at this moment");
+                log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't send query at this moment");
                 return new CallResult<T>(default, new ServerError("Socket is paused"));
             }
 
@@ -334,7 +348,7 @@ namespace CryptoExchange.Net
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
             {
-                log.Write(LogLevel.Warning, "Socket authentication failed");
+                log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} authentication failed");
                 result.Error!.Message = "Authentication failed: " + result.Error.Message;
                 return new CallResult<bool>(false, result.Error);
             }
@@ -435,7 +449,7 @@ namespace CryptoExchange.Net
                 var desResult = Deserialize<T>(messageEvent.JsonData, false);
                 if (!desResult)
                 {
-                    log.Write(LogLevel.Warning, $"Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
+                    log.Write(LogLevel.Warning, $"Socket {connection.Socket.Id} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
                     return;
                 }
 
@@ -528,7 +542,7 @@ namespace CryptoExchange.Net
         protected virtual IWebsocket CreateSocket(string address)
         {
             var socket = SocketFactory.CreateWebsocket(log, address);
-            log.Write(LogLevel.Debug, "Created new socket for " + address);
+            log.Write(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
 
             if (apiProxy != null)
                 socket.SetProxy(apiProxy);
@@ -566,9 +580,6 @@ namespace CryptoExchange.Net
                     if (disposing)
                         break;
                     
-                    if (sockets.Any())
-                        log.Write(LogLevel.Debug, "Sending periodic");
-
                     foreach (var socket in sockets.Values)
                     {
                         if (disposing)
@@ -578,13 +589,15 @@ namespace CryptoExchange.Net
                         if (obj == null)
                             continue;
 
+                        log.Write(LogLevel.Trace, $"Socket {socket.Socket.Id} sending periodic");
+
                         try
                         {
                             socket.Send(obj);
                         }
                         catch (Exception ex)
                         {
-                            log.Write(LogLevel.Warning, "Periodic send failed: " + ex);
+                            log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} Periodic send failed: " + ex);
                         }
                     }
                 }
