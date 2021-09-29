@@ -324,6 +324,11 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.3 - 29 Sep 2021
+    * Added IncomingKbps property to socket/socket client
+    * Updated logging
+    * Socket performance improvements
+
 * Version 4.2.2 - 23 Sep 2021
     * Restored missing request parameters log
 
