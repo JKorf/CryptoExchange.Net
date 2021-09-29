@@ -444,7 +444,7 @@ namespace CryptoExchange.Net.Sockets
         {
             _startedReceive = true;
 
-            var buffer = new ArraySegment<byte>(new byte[4096]);
+            var buffer = new ArraySegment<byte>(new byte[65536]);
             var received = 0;
             while (true)
             {
