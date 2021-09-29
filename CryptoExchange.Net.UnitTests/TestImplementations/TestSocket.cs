@@ -36,6 +36,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public string Origin { get; set; }
         public int? RatelimitPerSecond { get; set; }
 
+        public double IncomingKbps => throw new NotImplementedException();
+
         public static int lastId = 0;
         public static object lastIdLock = new object();
 

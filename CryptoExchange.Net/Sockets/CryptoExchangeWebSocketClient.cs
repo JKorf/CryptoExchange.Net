@@ -39,8 +39,15 @@ namespace CryptoExchange.Net.Sockets
         private bool _startedReceive;
 
         private readonly List<DateTime> _outgoingMessages;
-        protected readonly Dictionary<DateTime, int> _receivedMessages;
         private DateTime _lastReceivedMessagesUpdate;
+
+        /// <summary>
+        /// Received messages time -> size
+        /// </summary>
+        protected readonly Dictionary<DateTime, int> _receivedMessages;
+        /// <summary>
+        /// Received messages lock
+        /// </summary>
         protected readonly object _receivedMessagesLock;
 
         /// <summary>
@@ -664,6 +671,9 @@ namespace CryptoExchange.Net.Sockets
             return _outgoingMessages.Count;            
         }
 
+        /// <summary>
+        /// Update the received messages list, removing messages received longer than 3s ago
+        /// </summary>
         protected void UpdateReceivedMessages()
         {
             var checkTime = DateTime.UtcNow;
