@@ -145,10 +145,10 @@ namespace CryptoExchange.Net.Sockets
         {
             get
             {
-                UpdateReceivedMessages();
-
                 lock (_receivedMessagesLock)
                 {
+                    UpdateReceivedMessages();
+
                     if (!_receivedMessages.Any())
                         return 0;
 
@@ -679,7 +679,7 @@ namespace CryptoExchange.Net.Sockets
             var checkTime = DateTime.UtcNow;
             if (checkTime - _lastReceivedMessagesUpdate > TimeSpan.FromSeconds(1))
             {
-                foreach (var msgTime in _receivedMessages.Keys)
+                foreach (var msgTime in _receivedMessages.Keys.ToList())
                     if (checkTime - msgTime > TimeSpan.FromSeconds(3))
                         _receivedMessages.Remove(msgTime);
 
