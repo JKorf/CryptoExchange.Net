@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.4 - 30 Sep 2021
+    * Fix for InvalidOperationExceptions when running socket connections from .Net framework
+
 * Version 4.2.3 - 29 Sep 2021
     * Added IncomingKbps property to socket/socket client
     * Updated logging
