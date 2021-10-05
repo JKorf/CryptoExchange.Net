@@ -282,7 +282,7 @@ namespace CryptoExchange.Net.Sockets
                 pendingRequests.Add(pending);
             }
             Send(obj);
-            return pending.Event.WaitOneAsync(timeout);
+            return pending.Event.WaitAsync(timeout);
         }
 
         /// <summary>
@@ -525,7 +525,7 @@ namespace CryptoExchange.Net.Sockets
     {
         public Func<JToken, bool> Handler { get; }
         public JToken? Result { get; private set; }
-        public ManualResetEvent Event { get; }
+        public AsyncResetEvent Event { get; }
         public TimeSpan Timeout { get; }
 
         private readonly DateTime startTime;
@@ -533,7 +533,7 @@ namespace CryptoExchange.Net.Sockets
         public PendingRequest(Func<JToken, bool> handler, TimeSpan timeout)
         {
             Handler = handler;
-            Event = new ManualResetEvent(false);
+            Event = new AsyncResetEvent(false, false);
             Timeout = timeout;
             startTime = DateTime.UtcNow;
         }

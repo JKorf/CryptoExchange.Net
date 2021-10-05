@@ -75,7 +75,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Wait event for the periodicTask
         /// </summary>
-        protected AutoResetEvent? periodicEvent;
+        protected AsyncResetEvent? periodicEvent;
         /// <summary>
         /// If client is disposing
         /// </summary>
@@ -571,12 +571,12 @@ namespace CryptoExchange.Net
             if (objGetter == null)
                 throw new ArgumentNullException(nameof(objGetter));
 
-            periodicEvent = new AutoResetEvent(false);
+            periodicEvent = new AsyncResetEvent();
             periodicTask = Task.Run(async () =>
             {
                 while (!disposing)
                 {
-                    await periodicEvent.WaitOneAsync(interval).ConfigureAwait(false);
+                    await periodicEvent.WaitAsync(interval).ConfigureAwait(false);
                     if (disposing)
                         break;
                     

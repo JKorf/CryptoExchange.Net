@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Sockets
         private Task? _sendTask;
         private Task? _receiveTask;
         private Task? _timeoutTask;
-        private readonly AutoResetEvent _sendEvent;
+        private readonly AsyncResetEvent _sendEvent;
         private readonly ConcurrentQueue<byte[]> _sendBuffer;
         private readonly IDictionary<string, string> cookies;
         private readonly IDictionary<string, string> headers;
@@ -216,7 +216,7 @@ namespace CryptoExchange.Net.Sockets
 
             _outgoingMessages = new List<DateTime>();
             _receivedMessages = new Dictionary<DateTime, int>();
-            _sendEvent = new AutoResetEvent(false);
+            _sendEvent = new AsyncResetEvent();
             _sendBuffer = new ConcurrentQueue<byte[]>();
             _ctsSource = new CancellationTokenSource();
             _receivedMessagesLock = new object();
@@ -385,7 +385,7 @@ namespace CryptoExchange.Net.Sockets
                 if (_closing)
                     break;
 
-                await _sendEvent.WaitOneAsync().ConfigureAwait(false);
+                await _sendEvent.WaitAsync().ConfigureAwait(false);
 
                 if (_closing)                
                     break;

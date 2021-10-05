@@ -192,59 +192,6 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Wait one async
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <param name="millisecondsTimeout"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken)
-        {
-            RegisteredWaitHandle? registeredHandle = null;
-            CancellationTokenRegistration tokenRegistration = default;
-            try
-            {
-                var tcs = new TaskCompletionSource<bool>();
-                registeredHandle = ThreadPool.RegisterWaitForSingleObject(
-                    handle,
-                    (state, timedOut) => ((TaskCompletionSource<bool>)state).TrySetResult(!timedOut),
-                    tcs,
-                    millisecondsTimeout,
-                    true);
-                tokenRegistration = cancellationToken.Register(
-                    state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
-                    tcs);
-                return await tcs.Task.ConfigureAwait(false);
-            }
-            finally
-            {
-                registeredHandle?.Unregister(null);
-                tokenRegistration.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Wait one async
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <returns></returns>
-        public static Task<bool> WaitOneAsync(this WaitHandle handle)
-        {
-            return handle.WaitOneAsync(-1, CancellationToken.None);
-        }
-
-        /// <summary>
-        /// Wait one async
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
-        public static Task<bool> WaitOneAsync(this WaitHandle handle, TimeSpan timeout)
-        {
-            return handle.WaitOneAsync((int)timeout.TotalMilliseconds, CancellationToken.None);
-        }
-
-        /// <summary>
         /// String to JToken
         /// </summary>
         /// <param name="stringData"></param>
