@@ -106,5 +106,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             throw new NotImplementedException();
         }
+
+        public void InvokeError(Exception error)
+        {
+            OnError?.Invoke(error);
+        }
     }
 }
