@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.5 - 05 Oct 2021
+    * Added custom async wait event implementation as previous method seems to not work 100% of the time
+
 * Version 4.2.4 - 30 Sep 2021
     * Fix for InvalidOperationExceptions when running socket connections from .Net framework
 
