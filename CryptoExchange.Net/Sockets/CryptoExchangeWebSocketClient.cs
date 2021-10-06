@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Received messages time -> size
         /// </summary>
-        internal readonly List<ReceiveItem> _receivedMessages;
+        protected readonly List<ReceiveItem> _receivedMessages;
         /// <summary>
         /// Received messages lock
         /// </summary>
@@ -721,11 +721,25 @@ namespace CryptoExchange.Net.Sockets
         }
     }
 
-    internal struct ReceiveItem
+    /// <summary>
+    /// Received message info
+    /// </summary>
+    public struct ReceiveItem
     {
+        /// <summary>
+        /// Timestamp of the received data
+        /// </summary>
         public DateTime Timestamp { get; set; }
+        /// <summary>
+        /// Number of bytes received
+        /// </summary>
         public int Bytes { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="timestamp"></param>
+        /// <param name="bytes"></param>
         public ReceiveItem(DateTime timestamp, int bytes)
         {
             Timestamp = timestamp;
