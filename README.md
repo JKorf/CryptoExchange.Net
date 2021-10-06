@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.6 - 06 Oct 2021
+    * Fixed an issue causing socket client to stop processing data in .NET Framework
+
 * Version 4.2.5 - 05 Oct 2021
     * Added custom async wait event implementation as previous method seems to not work 100% of the time
 
