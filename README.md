@@ -324,6 +324,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.7 - 06 Oct 2021
+    * Made receivedMessages protected again to allow implementations with custom transport (Bittrex) to use it again
+
 * Version 4.2.6 - 06 Oct 2021
     * Fixed an issue causing socket client to stop processing data in .NET Framework
 

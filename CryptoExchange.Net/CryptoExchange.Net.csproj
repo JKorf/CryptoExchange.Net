@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>4.2.6</PackageVersion>
-    <AssemblyVersion>4.2.6</AssemblyVersion>
-    <FileVersion>4.2.6</FileVersion>
+    <PackageVersion>4.2.7</PackageVersion>
+    <AssemblyVersion>4.2.7</AssemblyVersion>
+    <FileVersion>4.2.7</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>4.2.6 - Fixed an issue causing socket client to stop processing data in .NET Framework</PackageReleaseNotes>
+    <PackageReleaseNotes>4.2.7 - Made receivedMessages protected again to allow implementations with custom transport (Bittrex) to use it again</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
