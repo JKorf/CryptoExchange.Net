@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// If the connection is open
         /// </summary>
-        public bool IsOpen => _socket.State == WebSocketState.Open;
+        public bool IsOpen => _socket.State == WebSocketState.Open && !_closing;
 
         /// <summary>
         /// Ssl protocols supported. NOT USED BY THIS IMPLEMENTATION

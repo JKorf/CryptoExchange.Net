@@ -452,6 +452,9 @@ namespace CryptoExchange.Net.Sockets
         {
             if (Authenticated)
             {
+                if (!Socket.IsOpen)
+                    return false;
+
                 // If we reconnected a authenticated connection we need to re-authenticate
                 var authResult = await socketClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
                 if (!authResult)
@@ -475,6 +478,9 @@ namespace CryptoExchange.Net.Sockets
                 var taskList = new List<Task>();
                 foreach (var subscription in subscriptionList.Skip(i).Take(socketClient.MaxConcurrentResubscriptionsPerSocket))
                 {
+                    if (!Socket.IsOpen)
+                        continue;
+
                     var task = socketClient.SubscribeAndWaitAsync(this, subscription.Request!, subscription).ContinueWith(t =>
                     {
                         if (!t.Result)
@@ -484,7 +490,7 @@ namespace CryptoExchange.Net.Sockets
                 }
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
-                if (!success)
+                if (!success || !Socket.IsOpen)
                     return false;
             }        
 
@@ -499,6 +505,9 @@ namespace CryptoExchange.Net.Sockets
 
         internal async Task<CallResult<bool>> ResubscribeAsync(SocketSubscription socketSubscription)
         {
+            if (!Socket.IsOpen)
+                return new CallResult<bool>(false, new UnknownError("Socket is not connected"));
+
             return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
         }
         

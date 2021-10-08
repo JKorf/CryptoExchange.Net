@@ -585,6 +585,9 @@ namespace CryptoExchange.Net
                         if (disposing)
                             break;
 
+                        if (!socket.Socket.IsOpen)
+                            continue;
+
                         var obj = objGetter(socket);
                         if (obj == null)
                             continue;
