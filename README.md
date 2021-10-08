@@ -324,6 +324,11 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 4.2.8 - 08 Oct 2021
+    * Fixed deadlock in socket receive
+    * Fixed issue in reconnection handling when the client is disconnected again during resubscribing
+    * Added some additional checking of socket state to prevent sending/expecting data when socket is not connected
+
 * Version 4.2.7 - 06 Oct 2021
     * Made receivedMessages protected again to allow implementations with custom transport (Bittrex) to use it again
 
