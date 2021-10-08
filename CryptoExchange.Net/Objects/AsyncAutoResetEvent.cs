@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.Objects
                 }
                 else
                 {
-                    var tcs = new TaskCompletionSource<bool>();
+                    var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     if(timeout != null)
                     {
                         var cancellationSource = new CancellationTokenSource(timeout.Value);
