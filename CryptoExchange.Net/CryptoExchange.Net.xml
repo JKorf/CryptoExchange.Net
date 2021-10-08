@@ -3865,6 +3865,11 @@
             </summary>
             <param name="data">The data to send</param>
         </member>
+        <member name="M:CryptoExchange.Net.Sockets.SocketConnection.SocketOnOpen">
+            <summary>
+            Handler for a socket opening
+            </summary>
+        </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketConnection.SocketOnClose">
             <summary>
             Handler for a socket closing. Reconnects the socket if needed, or removes it from the active socket list if not
