@@ -538,12 +538,12 @@
         </member>
         <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonBalance.CommonAvailable">
             <summary>
-            Amount available
+            Quantity available
             </summary>
         </member>
         <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonBalance.CommonTotal">
             <summary>
-            Total amount
+            Total quantity
             </summary>
         </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTrade">
@@ -752,7 +752,7 @@
         </member>
         <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus.Canceled">
             <summary>
-            cancelled order
+            canceled order
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.ExchangeInterfaces.IExchangeClient.OrderStatus.Filled">
@@ -765,22 +765,22 @@
             Common kline
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonHigh">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonHighPrice">
             <summary>
             High price for this kline
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonLow">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonLowPrice">
             <summary>
             Low price for this kline
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonOpen">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonOpenPrice">
             <summary>
             Open price for this kline
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonClose">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonKline.CommonClosePrice">
             <summary>
             Close price for this kline
             </summary>
@@ -895,9 +895,9 @@
             Symbol name
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonMinimumTradeSize">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonSymbol.CommonMinimumTradeQuantity">
             <summary>
-            Minimum trade size
+            Minimum trade quantity
             </summary>
         </member>
         <member name="T:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker">
@@ -910,12 +910,12 @@
             Symbol name
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonHigh">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonHighPrice">
             <summary>
             High price
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonLow">
+        <member name="P:CryptoExchange.Net.ExchangeInterfaces.ICommonTicker.CommonLowPrice">
             <summary>
             Low price
             </summary>
@@ -1382,7 +1382,7 @@
             Event when the BestBid or BestAsk changes ie a Pricing Tick
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.LastOrderBookUpdate">
+        <member name="P:CryptoExchange.Net.Interfaces.ISymbolOrderBook.UpdateTime">
             <summary>
             Timestamp of the last update
             </summary>
@@ -2554,7 +2554,7 @@
             Event when order book was updated, containing the changed bids and asks. Be careful! It can generate a lot of events at high-liquidity markets 
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.LastOrderBookUpdate">
+        <member name="P:CryptoExchange.Net.OrderBook.SymbolOrderBook.UpdateTime">
             <summary>
             Timestamp of the last update
             </summary>
@@ -4044,7 +4044,9 @@
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
         </member>
-        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+    </members>
+</doc>
+System.Diagnostics.CodeAnalysis.AllowNullAttribute">
             <summary>
                 Specifies that <see langword="null"/> is allowed as an input even if the
                 corresponding type disallows it.

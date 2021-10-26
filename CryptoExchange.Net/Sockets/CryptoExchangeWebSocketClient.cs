@@ -417,7 +417,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException)
                         {
-                            // cancelled
+                            // canceled
                             break;
                         }
                         catch (IOException ioe)
@@ -478,7 +478,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException)
                         {
-                            // cancelled
+                            // canceled
                             break;
                         }
                         catch (WebSocketException wse)
@@ -645,7 +645,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (OperationCanceledException)
                     {
-                        // cancelled
+                        // canceled
                         break;
                     }
                 }

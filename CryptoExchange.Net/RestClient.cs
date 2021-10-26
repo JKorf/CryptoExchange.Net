@@ -316,7 +316,7 @@ namespace CryptoExchange.Net
             {
                 if (canceledException.CancellationToken == cancellationToken)
                 {
-                    // Cancellation token cancelled by caller
+                    // Cancellation token canceled by caller
                     log.Write(LogLevel.Warning, $"[{request.RequestId}] Request cancel requested");
                     return new WebCallResult<T>(null, null, default, new CancellationRequestedError());
                 }

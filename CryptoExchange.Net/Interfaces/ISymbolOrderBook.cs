@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Timestamp of the last update
         /// </summary>
-        DateTime LastOrderBookUpdate { get; }
+        DateTime UpdateTime { get; }
 
         /// <summary>
         /// The number of asks in the book

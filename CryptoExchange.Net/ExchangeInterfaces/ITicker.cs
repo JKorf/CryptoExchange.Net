@@ -12,11 +12,11 @@
         /// <summary>
         /// High price
         /// </summary>
-        public decimal CommonHigh { get; }
+        public decimal CommonHighPrice { get; }
         /// <summary>
         /// Low price
         /// </summary>
-        public decimal CommonLow { get; }
+        public decimal CommonLowPrice { get; }
         /// <summary>
         /// Volume
         /// </summary>

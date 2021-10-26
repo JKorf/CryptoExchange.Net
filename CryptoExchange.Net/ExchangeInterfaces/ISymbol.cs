@@ -10,8 +10,8 @@
         /// </summary>
         public string CommonName { get; }
         /// <summary>
-        /// Minimum trade size
+        /// Minimum trade quantity
         /// </summary>
-        public decimal CommonMinimumTradeSize { get; }
+        public decimal CommonMinimumTradeQuantity { get; }
     }
 }

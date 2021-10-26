@@ -10,19 +10,19 @@ namespace CryptoExchange.Net.ExchangeInterfaces
         /// <summary>
         /// High price for this kline
         /// </summary>
-        decimal CommonHigh { get; }
+        decimal CommonHighPrice { get; }
         /// <summary>
         /// Low price for this kline
         /// </summary>
-        decimal CommonLow { get; }
+        decimal CommonLowPrice { get; }
         /// <summary>
         /// Open price for this kline
         /// </summary>
-        decimal CommonOpen { get; }
+        decimal CommonOpenPrice { get; }
         /// <summary>
         /// Close price for this kline
         /// </summary>
-        decimal CommonClose { get; }
+        decimal CommonClosePrice { get; }
         /// <summary>
         /// Open time for this kline
         /// </summary>

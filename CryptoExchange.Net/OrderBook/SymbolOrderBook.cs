@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// Timestamp of the last update
         /// </summary>
-        public DateTime LastOrderBookUpdate { get; private set; }
+        public DateTime UpdateTime { get; private set; }
 
         /// <summary>
         /// The number of asks in the book
@@ -416,7 +416,7 @@ namespace CryptoExchange.Net.OrderBook
                 AskCount = asks.Count;
                 BidCount = bids.Count;
 
-                LastOrderBookUpdate = DateTime.UtcNow;
+                UpdateTime = DateTime.UtcNow;
                 log.Write(LogLevel.Debug, $"{Id} order book {Symbol} data set: {BidCount} bids, {AskCount} asks. #{item.EndUpdateId}");
                 CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke((item.Bids, item.Asks));
@@ -645,7 +645,7 @@ namespace CryptoExchange.Net.OrderBook
                 return false;
             }
 
-            LastOrderBookUpdate = DateTime.UtcNow;
+            UpdateTime = DateTime.UtcNow;
             var listToChange = type == OrderBookEntryType.Ask ? asks : bids;
             if (entry.Quantity == 0)
             {

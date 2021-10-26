@@ -10,11 +10,11 @@
         /// </summary>
         public string CommonAsset { get; }
         /// <summary>
-        /// Amount available
+        /// Quantity available
         /// </summary>
         public decimal CommonAvailable { get; }
         /// <summary>
-        /// Total amount
+        /// Total quantity
         /// </summary>
         public decimal CommonTotal { get; }
     }

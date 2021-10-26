@@ -20,6 +20,9 @@ namespace CryptoExchange.Net.Converters
             if (reader.Value == null)
                 return null;
 
+            if (reader.Value is double d)
+                return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(d);
+
             var t = long.Parse(reader.Value.ToString());
             return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(t);
         }

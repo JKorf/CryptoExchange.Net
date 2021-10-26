@@ -165,7 +165,7 @@ namespace CryptoExchange.Net.ExchangeInterfaces
             /// </summary>
             Active,
             /// <summary>
-            /// cancelled order
+            /// canceled order
             /// </summary>
             Canceled,
             /// <summary>
