@@ -152,10 +152,11 @@ namespace CryptoExchange.Net
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
         /// <param name="authenticated">If the subscription is to an authenticated endpoint</param>
         /// <param name="dataHandler">The handler of update data</param>
+        /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler)
+        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
-            return SubscribeAsync(BaseAddress, request, identifier, authenticated, dataHandler);
+            return SubscribeAsync(BaseAddress, request, identifier, authenticated, dataHandler, ct);
         }
 
         /// <summary>
@@ -167,8 +168,9 @@ namespace CryptoExchange.Net
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
         /// <param name="authenticated">If the subscription is to an authenticated endpoint</param>
         /// <param name="dataHandler">The handler of update data</param>
+        /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler)
+        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
             SocketConnection socketConnection;
             SocketSubscription subscription;
@@ -182,7 +184,7 @@ namespace CryptoExchange.Net
                 socketConnection = GetSocketConnection(url, authenticated);
 
                 // Add a subscription on the socket connection
-                subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler);
+                subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler, ct);
                 if (SocketCombineTarget == 1)
                 {
                     // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
@@ -228,6 +230,14 @@ namespace CryptoExchange.Net
             }
 
             socketConnection.ShouldReconnect = true;
+            if (ct != default)
+            {
+                subscription.CancellationTokenRegistration = ct.Register(async () =>
+                {
+                    log.Write(LogLevel.Debug, $"Socket {socketConnection.Socket.Id} Cancellation token set, closing subscription");
+                    await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
+                }, false);
+            }
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription), null);
         }
 
@@ -435,7 +445,7 @@ namespace CryptoExchange.Net
         /// <param name="connection">The socket connection the handler is on</param>
         /// <param name="dataHandler">The handler of the data received</param>
         /// <returns></returns>
-        protected virtual SocketSubscription AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler)
+        protected virtual SocketSubscription AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
             void InternalHandler(MessageEvent messageEvent)
             {

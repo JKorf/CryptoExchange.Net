@@ -521,7 +521,15 @@ namespace CryptoExchange.Net.Sockets
             ShouldReconnect = false;
             if (socketClient.sockets.ContainsKey(Socket.Id))
                 socketClient.sockets.TryRemove(Socket.Id, out _);
-            
+
+            lock (subscriptionLock) 
+            {
+                foreach (var subscription in subscriptions)
+                {
+                    if (subscription.CancellationTokenRegistration.HasValue)
+                        subscription.CancellationTokenRegistration.Value.Dispose();
+                }
+            }
             await Socket.CloseAsync().ConfigureAwait(false);
             Socket.Dispose();
         }
@@ -535,6 +543,9 @@ namespace CryptoExchange.Net.Sockets
         {
             if (!Socket.IsOpen)
                 return;
+
+            if (subscription.CancellationTokenRegistration.HasValue)
+                subscription.CancellationTokenRegistration.Value.Dispose();
 
             if (subscription.Confirmed)
                 await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);

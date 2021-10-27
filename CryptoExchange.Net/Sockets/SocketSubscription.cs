@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -39,6 +40,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
 
+        /// <summary>
+        /// Cancellation token registration, should be disposed when subscription is closed
+        /// </summary>
+        public CancellationTokenRegistration? CancellationTokenRegistration { get; set; }
+
         private SocketSubscription(int id, object? request, string? identifier, bool userSubscription, Action<MessageEvent> dataHandler)
         {
             Id = id;
@@ -55,6 +61,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="request"></param>
         /// <param name="userSubscription"></param>
         /// <param name="dataHandler"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForRequest(int id, object request, bool userSubscription,
             Action<MessageEvent> dataHandler)
@@ -69,6 +76,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="identifier"></param>
         /// <param name="userSubscription"></param>
         /// <param name="dataHandler"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForIdentifier(int id, string identifier, bool userSubscription,
             Action<MessageEvent> dataHandler)
