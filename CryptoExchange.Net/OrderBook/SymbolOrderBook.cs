@@ -35,8 +35,7 @@ namespace CryptoExchange.Net.OrderBook
 
         private OrderBookStatus status;
         private UpdateSubscription? subscription;
-        private readonly bool sequencesAreConsecutive;
-        private readonly bool strictLevels;
+        
         private readonly bool validateChecksum;
 
         private bool _stopProcessing;
@@ -52,6 +51,16 @@ namespace CryptoExchange.Net.OrderBook
         /// The log
         /// </summary>
         protected Log log;
+
+        /// <summary>
+        /// Whether update numbers are consecutive
+        /// </summary>
+        protected bool sequencesAreConsecutive;
+        
+        /// <summary>
+        /// Whether levels should be strictly enforced
+        /// </summary>
+        protected bool strictLevels;
 
         /// <summary>
         /// If order book is set
@@ -199,9 +208,10 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="symbol"></param>
         /// <param name="options"></param>
-        protected SymbolOrderBook(string symbol, OrderBookOptions options)
+        protected SymbolOrderBook(string id, string symbol, OrderBookOptions options)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
@@ -209,13 +219,11 @@ namespace CryptoExchange.Net.OrderBook
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            Id = options.OrderBookName;
+            Id = id;
             processBuffer = new List<ProcessBufferRangeSequenceEntry>();
             _processQueue = new ConcurrentQueue<object>();
             _queueEvent = new AutoResetEvent(false);
 
-            sequencesAreConsecutive = options.SequenceNumbersAreConsecutive;
-            strictLevels = options.StrictLevels;
             validateChecksum = options.ChecksumValidationEnabled;
             Symbol = symbol;
             Status = OrderBookStatus.Disconnected;
@@ -223,7 +231,7 @@ namespace CryptoExchange.Net.OrderBook
             asks = new SortedList<decimal, ISymbolOrderBookEntry>();
             bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 
-            log = new Log(options.OrderBookName) { Level = options.LogLevel };
+            log = new Log(id) { Level = options.LogLevel };
             var writers = options.LogWriters ?? new List<ILogger> { new DebugLogger() };
             log.UpdateWriters(writers.ToList());
         }

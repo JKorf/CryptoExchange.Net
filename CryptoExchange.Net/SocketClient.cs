@@ -35,27 +35,10 @@ namespace CryptoExchange.Net
         /// Semaphore used while creating sockets
         /// </summary>
         protected internal readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
-
-        /// <inheritdoc cref="SocketClientOptions.ReconnectInterval"/>
-        public TimeSpan ReconnectInterval { get; }
-        /// <inheritdoc cref="SocketClientOptions.AutoReconnect"/>
-        public bool AutoReconnect { get; }
-        /// <inheritdoc cref="SocketClientOptions.SocketResponseTimeout"/>
-        public TimeSpan ResponseTimeout { get; }
-        /// <inheritdoc cref="SocketClientOptions.SocketNoDataTimeout"/>
-        public TimeSpan SocketNoDataTimeout { get; }
         /// <summary>
         /// The max amount of concurrent socket connections
         /// </summary>
-        public int MaxSocketConnections { get; protected set; } = 9999;
-        /// <inheritdoc cref="SocketClientOptions.SocketSubscriptionsCombineTarget"/>
-        public int SocketCombineTarget { get; protected set; }
-        /// <inheritdoc cref="SocketClientOptions.MaxReconnectTries"/>
-        public int? MaxReconnectTries { get; protected set; }
-        /// <inheritdoc cref="SocketClientOptions.MaxResubscribeTries"/>
-        public int? MaxResubscribeTries { get; protected set; }
-        /// <inheritdoc cref="SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
-        public int MaxConcurrentResubscriptionsPerSocket { get; protected set; }
+        protected int MaxSocketConnections { get; set; } = 9999;        
         /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
@@ -110,6 +93,12 @@ namespace CryptoExchange.Net
                 return sockets.Sum(s => s.Value.Socket.IncomingKbps);
             }
         }
+
+        /// <summary>
+        /// Client options
+        /// </summary>
+        public new SocketClientOptions ClientOptions { get; }
+
         #endregion
 
         /// <summary>
@@ -123,14 +112,7 @@ namespace CryptoExchange.Net
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
-            AutoReconnect = exchangeOptions.AutoReconnect;
-            ReconnectInterval = exchangeOptions.ReconnectInterval;
-            ResponseTimeout = exchangeOptions.SocketResponseTimeout;
-            SocketNoDataTimeout = exchangeOptions.SocketNoDataTimeout;
-            SocketCombineTarget = exchangeOptions.SocketSubscriptionsCombineTarget ?? 1;
-            MaxReconnectTries = exchangeOptions.MaxReconnectTries;
-            MaxResubscribeTries = exchangeOptions.MaxResubscribeTries;
-            MaxConcurrentResubscriptionsPerSocket = exchangeOptions.MaxConcurrentResubscriptionsPerSocket;
+            ClientOptions = exchangeOptions;
         }
 
         /// <summary>
@@ -156,7 +138,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
-            return SubscribeAsync(BaseAddress, request, identifier, authenticated, dataHandler, ct);
+            return SubscribeAsync(ClientOptions.BaseAddress, request, identifier, authenticated, dataHandler, ct);
         }
 
         /// <summary>
@@ -184,8 +166,8 @@ namespace CryptoExchange.Net
                 socketConnection = GetSocketConnection(url, authenticated);
 
                 // Add a subscription on the socket connection
-                subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler, ct);
-                if (SocketCombineTarget == 1)
+                subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler);
+                if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
                 {
                     // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
                     semaphoreSlim.Release();
@@ -251,7 +233,7 @@ namespace CryptoExchange.Net
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWaitAsync(SocketConnection socketConnection, object request, SocketSubscription subscription)
         {
             CallResult<object>? callResult = null;
-            await socketConnection.SendAndWaitAsync(request, ResponseTimeout, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
+            await socketConnection.SendAndWaitAsync(request, ClientOptions.SocketResponseTimeout, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
                 subscription.Confirmed = true;
@@ -268,7 +250,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual Task<CallResult<T>> QueryAsync<T>(object request, bool authenticated)
         {
-            return QueryAsync<T>(BaseAddress, request, authenticated);
+            return QueryAsync<T>(ClientOptions.BaseAddress, request, authenticated);
         }
 
         /// <summary>
@@ -287,7 +269,7 @@ namespace CryptoExchange.Net
             try
             {
                 socketConnection = GetSocketConnection(url, authenticated);
-                if (SocketCombineTarget == 1)
+                if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
                 {
                     // Can release early when only a single sub per connection
                     semaphoreSlim.Release();
@@ -325,7 +307,7 @@ namespace CryptoExchange.Net
         protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request)
         {
             var dataResult = new CallResult<T>(default, new ServerError("No response on query received"));
-            await socket.SendAndWaitAsync(request, ResponseTimeout, data =>
+            await socket.SendAndWaitAsync(request, ClientOptions.SocketResponseTimeout, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
                     return false;
@@ -445,25 +427,25 @@ namespace CryptoExchange.Net
         /// <param name="connection">The socket connection the handler is on</param>
         /// <param name="dataHandler">The handler of the data received</param>
         /// <returns></returns>
-        protected virtual SocketSubscription AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler, CancellationToken ct)
+        protected virtual SocketSubscription AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler)
         {
             void InternalHandler(MessageEvent messageEvent)
             {
                 if (typeof(T) == typeof(string))
                 {
                     var stringData = (T)Convert.ChangeType(messageEvent.JsonData.ToString(), typeof(T));
-                    dataHandler(new DataEvent<T>(stringData, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                    dataHandler(new DataEvent<T>(stringData, null, ClientOptions.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
                     return;
                 }
 
-                var desResult = Deserialize<T>(messageEvent.JsonData, false);
+                var desResult = Deserialize<T>(messageEvent.JsonData);
                 if (!desResult)
                 {
                     log.Write(LogLevel.Warning, $"Socket {connection.Socket.Id} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
                     return;
                 }
 
-                dataHandler(new DataEvent<T>(desResult.Data, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                dataHandler(new DataEvent<T>(desResult.Data, null, ClientOptions.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
             }
 
             var subscription = request == null
@@ -499,7 +481,7 @@ namespace CryptoExchange.Net
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
             {
-                if (result.SubscriptionCount < SocketCombineTarget || (sockets.Count >= MaxSocketConnections && sockets.All(s => s.Value.SubscriptionCount >= SocketCombineTarget)))
+                if (result.SubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || (sockets.Count >= MaxSocketConnections && sockets.All(s => s.Value.SubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     return result;
@@ -554,10 +536,10 @@ namespace CryptoExchange.Net
             var socket = SocketFactory.CreateWebsocket(log, address);
             log.Write(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
 
-            if (apiProxy != null)
-                socket.SetProxy(apiProxy);
+            if (ClientOptions.Proxy != null)
+                socket.SetProxy(ClientOptions.Proxy);
 
-            socket.Timeout = SocketNoDataTimeout;
+            socket.Timeout = ClientOptions.SocketNoDataTimeout;
             socket.DataInterpreterBytes = dataInterpreterBytes;
             socket.DataInterpreterString = dataInterpreterString;
             socket.RatelimitPerSecond = RateLimitPerSocketPerSecond;

@@ -204,11 +204,6 @@
             The base for all clients, websocket client and rest client
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.BaseClient.BaseAddress">
-            <summary>
-            The address of the client
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.BaseClient.ExchangeName">
             <summary>
             The name of the exchange the client is for
@@ -219,24 +214,9 @@
             The log object
             </summary>
         </member>
-        <member name="F:CryptoExchange.Net.BaseClient.apiProxy">
-            <summary>
-            The api proxy
-            </summary>
-        </member>
         <member name="F:CryptoExchange.Net.BaseClient.authProvider">
             <summary>
             The authentication provider
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.BaseClient.ShouldCheckObjects">
-            <summary>
-            Should check objects for missing properties based on the model and the received JSON
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.BaseClient.OutputOriginalData">
-            <summary>
-            If true, the CallResult and DataEvent objects should also contain the originally received json data in the OriginalDaa property
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.BaseClient.lastId">
@@ -254,9 +234,9 @@
             A default serializer
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.BaseClient.LastId">
+        <member name="P:CryptoExchange.Net.BaseClient.ClientOptions">
             <summary>
-            Last id used
+            Provided client options
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.BaseClient.#ctor(System.String,CryptoExchange.Net.Objects.ClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
@@ -280,24 +260,22 @@
             <param name="data">The data to parse</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.String,System.Nullable{System.Boolean},Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(System.String,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
             <summary>
             Deserialize a string into an object
             </summary>
             <typeparam name="T">The type to deserialize into</typeparam>
             <param name="data">The data to deserialize</param>
-            <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
             <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(Newtonsoft.Json.Linq.JToken,System.Nullable{System.Boolean},Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
+        <member name="M:CryptoExchange.Net.BaseClient.Deserialize``1(Newtonsoft.Json.Linq.JToken,Newtonsoft.Json.JsonSerializer,System.Nullable{System.Int32})">
             <summary>
             Deserialize a JToken into an object
             </summary>
             <typeparam name="T">The type to deserialize into</typeparam>
             <param name="obj">The data to deserialize</param>
-            <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
             <param name="serializer">A specific serializer to use</param>
             <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
             <returns></returns>
@@ -1233,29 +1211,9 @@
             The factory for creating requests. Used for unit testing
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.RateLimitBehaviour">
-            <summary>
-            What should happen when hitting a rate limit
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.RateLimiters">
-            <summary>
-            List of active rate limiters
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.Interfaces.IRestClient.TotalRequestsMade">
             <summary>
             The total amount of requests made
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.BaseAddress">
-            <summary>
-            The base address of the API
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ExchangeName">
-            <summary>
-            Client name
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Interfaces.IRestClient.AddRateLimiter(CryptoExchange.Net.Interfaces.IRateLimiter)">
@@ -1269,69 +1227,24 @@
             Removes all rate limiters from this client
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRestClient.Ping(System.Threading.CancellationToken)">
+        <member name="P:CryptoExchange.Net.Interfaces.IRestClient.ClientOptions">
             <summary>
-            Ping to see if the server is reachable
+            Client options
             </summary>
-            <returns>The roundtrip time of the ping request</returns>
-        </member>
-        <member name="M:CryptoExchange.Net.Interfaces.IRestClient.PingAsync(System.Threading.CancellationToken)">
-            <summary>
-            Ping to see if the server is reachable
-            </summary>
-            <returns>The roundtrip time of the ping request</returns>
         </member>
         <member name="T:CryptoExchange.Net.Interfaces.ISocketClient">
             <summary>
             Base class for socket API implementations
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.SocketFactory">
+        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.ClientOptions">
             <summary>
-            The factory for creating sockets. Used for unit testing
+            Client options
             </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.ReconnectInterval">
-            <summary>
-            The time in between reconnect attempts
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.AutoReconnect">
-            <summary>
-            Whether the client should try to auto reconnect when losing connection
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.BaseAddress">
-            <summary>
-            The base address of the API
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.ResponseTimeout">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketResponseTimeout"/>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.SocketNoDataTimeout">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketNoDataTimeout"/>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxSocketConnections">
-            <summary>
-            The max amount of concurrent socket connections
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.SocketCombineTarget">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget"/>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxReconnectTries">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries"/>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxResubscribeTries">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/>
-        </member>
-        <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.MaxConcurrentResubscriptionsPerSocket">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
         </member>
         <member name="P:CryptoExchange.Net.Interfaces.ISocketClient.IncomingKbps">
             <summary>
-            The current kilobytes per second of data being received by all connection from this client, averaged over the last 3 seconds
+            Incoming kilobytes per second of data
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.Interfaces.ISocketClient.UnsubscribeAsync(CryptoExchange.Net.Sockets.UpdateSubscription)">
@@ -2273,6 +2186,14 @@
             If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
             </summary>
         </member>
+        <member name="M:CryptoExchange.Net.Objects.BaseOptions.Copy``1(``0,``0)">
+            <summary>
+            Copy the values of the def to the input
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="input"></param>
+            <param name="def"></param>
+        </member>
         <member name="M:CryptoExchange.Net.Objects.BaseOptions.ToString">
             <inheritdoc />
         </member>
@@ -2281,38 +2202,10 @@
             Base for order book options
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.OrderBookName">
-            <summary>
-            The name of the order book implementation
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.ChecksumValidationEnabled">
             <summary>
             Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
             </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.SequenceNumbersAreConsecutive">
-            <summary>
-            Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.Objects.OrderBookOptions.StrictLevels">
-            <summary>
-            Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-            when a new bid level is added which makes the total amount of bids 11, should the last bid entry be removed
-            </summary>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.#ctor(System.String,System.Boolean,System.Boolean)">
-            <summary>
-            ctor
-            </summary>
-            <param name="name">The name of the order book implementation</param>
-            <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
-            <param name="strictLevels">Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-            when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed</param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.OrderBookOptions.ToString">
-            <inheritdoc />
         </member>
         <member name="T:CryptoExchange.Net.Objects.ClientOptions">
             <summary>
@@ -2329,21 +2222,18 @@
             The api credentials
             </summary>        
         </member>
-        <member name="P:CryptoExchange.Net.Objects.ClientOptions.ShouldCheckObjects">
-            <summary>
-            Should check objects for missing properties based on the model and the received JSON
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.Objects.ClientOptions.Proxy">
             <summary>
             Proxy to use
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.ClientOptions.#ctor(System.String)">
+        <member name="M:CryptoExchange.Net.Objects.ClientOptions.Copy``1(``0,``0)">
             <summary>
-            ctor
+            Copy the values of the def to the input
             </summary>
-            <param name="baseAddress">The base address to use</param>
+            <typeparam name="T"></typeparam>
+            <param name="input"></param>
+            <param name="def"></param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.ClientOptions.ToString">
             <inheritdoc />
@@ -2373,25 +2263,13 @@
             Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored in requests and should be set on the provided HttpClient instance
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.RestClientOptions.#ctor(System.String)">
+        <member name="M:CryptoExchange.Net.Objects.RestClientOptions.Copy``1(``0,``0)">
             <summary>
-            ctor
-            </summary>
-            <param name="baseAddress">The base address of the API</param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.RestClientOptions.#ctor(System.Net.Http.HttpClient,System.String)">
-            <summary>
-            ctor
-            </summary>
-            <param name="baseAddress">The base address of the API</param>
-            <param name="httpClient">Shared http client instance</param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.RestClientOptions.Copy``1">
-            <summary>
-            Create a copy of the options
+            Copy the values of the def to the input
             </summary>
             <typeparam name="T"></typeparam>
-            <returns></returns>
+            <param name="input"></param>
+            <param name="def"></param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.RestClientOptions.ToString">
             <inheritdoc />
@@ -2443,18 +2321,13 @@
             single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.#ctor(System.String)">
+        <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.Copy``1(``0,``0)">
             <summary>
-            ctor
-            </summary>
-            <param name="baseAddress">The base address to use</param>
-        </member>
-        <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.Copy``1">
-            <summary>
-            Create a copy of the options
+            Copy the values of the def to the input
             </summary>
             <typeparam name="T"></typeparam>
-            <returns></returns>
+            <param name="input"></param>
+            <param name="def"></param>
         </member>
         <member name="M:CryptoExchange.Net.Objects.SocketClientOptions.ToString">
             <inheritdoc />
@@ -2512,6 +2385,16 @@
         <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.log">
             <summary>
             The log
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.sequencesAreConsecutive">
+            <summary>
+            Whether update numbers are consecutive
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.strictLevels">
+            <summary>
+            Whether levels should be strictly enforced
             </summary>
         </member>
         <member name="F:CryptoExchange.Net.OrderBook.SymbolOrderBook.bookSet">
@@ -2599,10 +2482,11 @@
             BestBid/BesAsk returned as a pair
             </summary>
         </member>
-        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.#ctor(System.String,CryptoExchange.Net.Objects.OrderBookOptions)">
+        <member name="M:CryptoExchange.Net.OrderBook.SymbolOrderBook.#ctor(System.String,System.String,CryptoExchange.Net.Objects.OrderBookOptions)">
             <summary>
             ctor
             </summary>
+            <param name="id"></param>
             <param name="symbol"></param>
             <param name="options"></param>
         </member>
@@ -2936,16 +2820,6 @@
             What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.RestClient.RequestTimeout">
-            <summary>
-            Timeout for requests. This setting is ignored when injecting a HttpClient in the options, requests timeouts should be set on the client then.
-            </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.RestClient.RateLimitBehaviour">
-            <summary>
-            What should happen when running into a rate limit
-            </summary>
-        </member>
         <member name="P:CryptoExchange.Net.RestClient.RateLimiters">
             <summary>
             List of rate limiters
@@ -2959,6 +2833,11 @@
         <member name="P:CryptoExchange.Net.RestClient.StandardRequestHeaders">
             <summary>
             Request headers to be sent with each request
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.RestClient.ClientOptions">
+            <summary>
+            Client options
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.#ctor(System.String,CryptoExchange.Net.Objects.RestClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
@@ -2979,18 +2858,6 @@
             <summary>
             Removes all rate limiters from this client
             </summary>
-        </member>
-        <member name="M:CryptoExchange.Net.RestClient.Ping(System.Threading.CancellationToken)">
-            <summary>
-            Ping to see if the server is reachable
-            </summary>
-            <returns>The roundtrip time of the ping request</returns>
-        </member>
-        <member name="M:CryptoExchange.Net.RestClient.PingAsync(System.Threading.CancellationToken)">
-            <summary>
-            Ping to see if the server is reachable
-            </summary>
-            <returns>The roundtrip time of the ping request</returns>
         </member>
         <member name="M:CryptoExchange.Net.RestClient.SendRequestAsync``1(System.Uri,System.Net.Http.HttpMethod,System.Threading.CancellationToken,System.Collections.Generic.Dictionary{System.String,System.Object},System.Boolean,System.Boolean,System.Nullable{CryptoExchange.Net.Objects.HttpMethodParameterPosition},System.Nullable{CryptoExchange.Net.Objects.ArrayParametersSerialization},System.Int32,Newtonsoft.Json.JsonSerializer,System.Collections.Generic.Dictionary{System.String,System.String})">
             <summary>
@@ -3077,34 +2944,10 @@
             Semaphore used while creating sockets
             </summary>
         </member>
-        <member name="P:CryptoExchange.Net.SocketClient.ReconnectInterval">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.ReconnectInterval"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.AutoReconnect">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.AutoReconnect"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.ResponseTimeout">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketResponseTimeout"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.SocketNoDataTimeout">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketNoDataTimeout"/>
-        </member>
         <member name="P:CryptoExchange.Net.SocketClient.MaxSocketConnections">
             <summary>
             The max amount of concurrent socket connections
             </summary>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.SocketCombineTarget">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.SocketSubscriptionsCombineTarget"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.MaxReconnectTries">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxReconnectTries"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.MaxResubscribeTries">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxResubscribeTries"/>
-        </member>
-        <member name="P:CryptoExchange.Net.SocketClient.MaxConcurrentResubscriptionsPerSocket">
-            <inheritdoc cref="P:CryptoExchange.Net.Objects.SocketClientOptions.MaxConcurrentResubscriptionsPerSocket"/>
         </member>
         <member name="F:CryptoExchange.Net.SocketClient.dataInterpreterBytes">
             <summary>
@@ -3155,6 +2998,11 @@
         <member name="P:CryptoExchange.Net.SocketClient.IncomingKbps">
             <summary>
             The current kilobytes per second of data being received by all connection from this client, averaged over the last 3 seconds
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.SocketClient.ClientOptions">
+            <summary>
+            Client options
             </summary>
         </member>
         <member name="M:CryptoExchange.Net.SocketClient.#ctor(System.String,CryptoExchange.Net.Objects.SocketClientOptions,CryptoExchange.Net.Authentication.AuthenticationProvider)">
@@ -3312,7 +3160,7 @@
             <param name="message"></param>
             <returns></returns>
         </member>
-        <member name="M:CryptoExchange.Net.SocketClient.AddSubscription``1(System.Object,System.String,System.Boolean,CryptoExchange.Net.Sockets.SocketConnection,System.Action{CryptoExchange.Net.Sockets.DataEvent{``0}},System.Threading.CancellationToken)">
+        <member name="M:CryptoExchange.Net.SocketClient.AddSubscription``1(System.Object,System.String,System.Boolean,CryptoExchange.Net.Sockets.SocketConnection,System.Action{CryptoExchange.Net.Sockets.DataEvent{``0}})">
             <summary>
             Add a subscription to a connection
             </summary>
@@ -3943,7 +3791,6 @@
             <param name="request"></param>
             <param name="userSubscription"></param>
             <param name="dataHandler"></param>
-            <param name="ct"></param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.CreateForIdentifier(System.Int32,System.String,System.Boolean,System.Action{CryptoExchange.Net.Sockets.MessageEvent})">
@@ -3954,7 +3801,6 @@
             <param name="identifier"></param>
             <param name="userSubscription"></param>
             <param name="dataHandler"></param>
-            <param name="ct"></param>
             <returns></returns>
         </member>
         <member name="M:CryptoExchange.Net.Sockets.SocketSubscription.InvokeExceptionHandler(System.Exception)">
@@ -4052,6 +3898,149 @@
         </member>
         <member name="M:CryptoExchange.Net.Sockets.WebsocketFactory.CreateWebsocket(CryptoExchange.Net.Logging.Log,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String})">
             <inheritdoc />
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is allowed as an input even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.AllowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.AllowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute">
+            <summary>
+                Specifies that <see langword="null"/> is disallowed as an input even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DisallowNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute">
+            <summary>
+                Specifies that a method that will never return under any circumstance.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute">
+            <summary>
+                Specifies that the method will not return if the associated <see cref="T:System.Boolean"/>
+                parameter is passed the specified value.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.ParameterValue">
+            <summary>
+                Gets the condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute"/>
+                class with the specified parameter value.
+            </summary>
+            <param name="parameterValue">
+                The condition parameter value.
+                Code after the method is considered unreachable by diagnostics if the argument
+                to the associated parameter matches this value.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute">
+            <summary>
+                Specifies that an output may be <see langword="null"/> even if the
+                corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue"/>, 
+                the parameter may be <see langword="null"/> even if the corresponding type disallows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                 Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter may be <see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullAttribute">
+            <summary>
+                Specifies that an output is not <see langword="null"/> even if the
+                corresponding type allows it.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullAttribute.#ctor">
+            <summary>
+                Initializes a new instance of the <see cref="T:System.Diagnostics.CodeAnalysis.NotNullAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute">
+            <summary>
+                Specifies that the output will be non-<see langword="null"/> if the
+                named parameter is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.ParameterName">
+            <summary>
+                Gets the associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute.#ctor(System.String)">
+            <summary>
+                Initializes the attribute with the associated parameter name.
+            </summary>
+            <param name="parameterName">
+                The associated parameter name.
+                The output will be non-<see langword="null"/> if the argument to the
+                parameter specified is non-<see langword="null"/>.
+            </param>
+        </member>
+        <member name="T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute">
+            <summary>
+                Specifies that when a method returns <see cref="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue"/>,
+                the parameter will not be <see langword="null"/> even if the corresponding type allows it.
+            </summary>
+        </member>
+        <member name="P:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue">
+            <summary>
+                Gets the return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="M:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.#ctor(System.Boolean)">
+            <summary>
+                Initializes the attribute with the specified return value condition.
+            </summary>
+            <param name="returnValue">
+                The return value condition.
+                If the method returns this value, the associated parameter will not be <see langword="null"/>.
+            </param>
         </member>
     </members>
 </doc>

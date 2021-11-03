@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
@@ -16,7 +17,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The minimum log level to output. Setting it to null will send all messages to the registered ILoggers. 
         /// </summary>
-        public LogLevel? LogLevel { get; set; } = Microsoft.Extensions.Logging.LogLevel.Information;
+        public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
         /// <summary>
         /// The log writers
@@ -27,6 +28,19 @@ namespace CryptoExchange.Net.Objects
         /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
         /// </summary>
         public bool OutputOriginalData { get; set; } = false;
+
+        /// <summary>
+        /// Copy the values of the def to the input
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public void Copy<T>(T input, T def) where T : BaseOptions
+        {
+            input.LogLevel = def.LogLevel;
+            input.LogWriters = def.LogWriters.ToList();
+            input.OutputOriginalData = def.OutputOriginalData;
+        }
 
         /// <inheritdoc />
         public override string ToString()
@@ -39,47 +53,11 @@ namespace CryptoExchange.Net.Objects
     /// Base for order book options
     /// </summary>
     public class OrderBookOptions : BaseOptions
-    {  
-        /// <summary>
-        /// The name of the order book implementation
-        /// </summary>
-        public string OrderBookName { get; }
-
+    {
         /// <summary>
         /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
         /// </summary>
         public bool ChecksumValidationEnabled { get; set; } = true;
-
-        /// <summary>
-        /// Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.
-        /// </summary>
-        public bool SequenceNumbersAreConsecutive { get; }
-
-        /// <summary>
-        /// Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-        /// when a new bid level is added which makes the total amount of bids 11, should the last bid entry be removed
-        /// </summary>
-        public bool StrictLevels { get; }
-        
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="name">The name of the order book implementation</param>
-        /// <param name="sequencesAreConsecutive">Whether each update should have a consecutive id number. Used to identify and reconnect when numbers are skipped.</param>
-        /// <param name="strictLevels">Whether or not a level should be removed from the book when it's pushed out of scope of the limit. For example with a book of limit 10,
-        /// when a new bid is added which makes the total amount of bids 11, should the last bid entry be removed</param>
-        public OrderBookOptions(string name, bool sequencesAreConsecutive, bool strictLevels)
-        {            
-            OrderBookName = name;
-            SequenceNumbersAreConsecutive = sequencesAreConsecutive;
-            StrictLevels = strictLevels;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, OrderBookName: {OrderBookName}, SequenceNumbersAreConsequtive: {SequenceNumbersAreConsecutive}, StrictLevels: {StrictLevels}";
-        }
     }
 
     /// <summary>
@@ -87,7 +65,7 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ClientOptions : BaseOptions
     {
-        private string _baseAddress;
+        private string _baseAddress = string.Empty;
 
         /// <summary>
         /// The base address of the client
@@ -97,6 +75,9 @@ namespace CryptoExchange.Net.Objects
             get => _baseAddress;
             set
             {
+                if (value == null)
+                    return;
+
                 var newValue = value;
                 if (!newValue.EndsWith("/"))
                     newValue += "/";
@@ -110,24 +91,23 @@ namespace CryptoExchange.Net.Objects
         public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
-        /// Should check objects for missing properties based on the model and the received JSON
-        /// </summary>
-        public bool ShouldCheckObjects { get; set; } = false;
-
-        /// <summary>
         /// Proxy to use
         /// </summary>
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// ctor
+        /// Copy the values of the def to the input
         /// </summary>
-        /// <param name="baseAddress">The base address to use</param>
-#pragma warning disable 8618
-        public ClientOptions(string baseAddress)
-#pragma warning restore 8618
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : ClientOptions
         {
-            BaseAddress = baseAddress;
+            base.Copy(input, def);
+
+            input.BaseAddress = def.BaseAddress;
+            input.ApiCredentials = def.ApiCredentials?.Copy();
+            input.Proxy = def.Proxy;
         }
 
         /// <inheritdoc />
@@ -163,44 +143,19 @@ namespace CryptoExchange.Net.Objects
         public HttpClient? HttpClient { get; set; }
 
         /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseAddress">The base address of the API</param>
-        public RestClientOptions(string baseAddress): base(baseAddress)
-        {
-        }
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseAddress">The base address of the API</param>
-        /// <param name="httpClient">Shared http client instance</param>
-        public RestClientOptions(HttpClient httpClient, string baseAddress) : base(baseAddress)
-        {
-            HttpClient = httpClient;
-        }
-        /// <summary>
-        /// Create a copy of the options
+        /// Copy the values of the def to the input
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T Copy<T>() where T : RestClientOptions, new()
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : RestClientOptions
         {
-            var copy = new T
-            {
-                BaseAddress = BaseAddress,
-                LogLevel = LogLevel,
-                Proxy = Proxy,
-                LogWriters = LogWriters,
-                RateLimiters = RateLimiters,
-                RateLimitingBehaviour = RateLimitingBehaviour,
-                RequestTimeout = RequestTimeout,
-                HttpClient = HttpClient
-            };
-
-            if (ApiCredentials != null)
-                copy.ApiCredentials = ApiCredentials.Copy();
-
-            return copy;
+            base.Copy(input, def);
+                        
+            input.HttpClient = def.HttpClient;
+            input.RateLimiters = def.RateLimiters.ToList();
+            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
+            input.RequestTimeout = def.RequestTimeout;
         }
 
         /// <inheritdoc />
@@ -257,36 +212,23 @@ namespace CryptoExchange.Net.Objects
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseAddress">The base address to use</param>
-        public SocketClientOptions(string baseAddress) : base(baseAddress)
-        {
-        }
-
-        /// <summary>
-        /// Create a copy of the options
+        /// Copy the values of the def to the input
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T Copy<T>() where T : SocketClientOptions, new()
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : SocketClientOptions
         {
-            var copy = new T
-            {
-                BaseAddress = BaseAddress,
-                LogLevel = LogLevel,
-                Proxy = Proxy,
-                LogWriters = LogWriters,
-                AutoReconnect = AutoReconnect,
-                ReconnectInterval = ReconnectInterval,
-                SocketResponseTimeout = SocketResponseTimeout,
-                SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget
-            };
+            base.Copy(input, def);
 
-            if (ApiCredentials != null)
-                copy.ApiCredentials = ApiCredentials.Copy();
-
-            return copy;
+            input.AutoReconnect = def.AutoReconnect;
+            input.ReconnectInterval = def.ReconnectInterval;
+            input.MaxReconnectTries = def.MaxReconnectTries;
+            input.MaxResubscribeTries = def.MaxResubscribeTries;
+            input.MaxConcurrentResubscriptionsPerSocket = def.MaxConcurrentResubscriptionsPerSocket;
+            input.SocketResponseTimeout = def.SocketResponseTimeout;
+            input.SocketNoDataTimeout = def.SocketNoDataTimeout;
+            input.SocketSubscriptionsCombineTarget = def.SocketSubscriptionsCombineTarget;
         }
 
         /// <inheritdoc />

@@ -61,19 +61,12 @@ namespace CryptoExchange.Net
         /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
         /// </summary>
         protected string requestBodyEmptyContent = "{}";
-
-        /// <summary>
-        /// Timeout for requests. This setting is ignored when injecting a HttpClient in the options, requests timeouts should be set on the client then.
-        /// </summary>
-        public TimeSpan RequestTimeout { get; }
-        /// <summary>
-        /// What should happen when running into a rate limit
-        /// </summary>
-        public RateLimitingBehaviour RateLimitBehaviour { get; }
+                
         /// <summary>
         /// List of rate limiters
         /// </summary>
-        public IEnumerable<IRateLimiter> RateLimiters { get; private set; }
+        protected IEnumerable<IRateLimiter> RateLimiters { get; private set; }
+
         /// <summary>
         /// Total requests made by this client
         /// </summary>
@@ -83,6 +76,11 @@ namespace CryptoExchange.Net
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
+
+        /// <summary>
+        /// Client options
+        /// </summary>
+        public new RestClientOptions ClientOptions { get; }
 
         /// <summary>
         /// ctor
@@ -95,9 +93,9 @@ namespace CryptoExchange.Net
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
 
-            RequestTimeout = exchangeOptions.RequestTimeout;
+            ClientOptions = exchangeOptions;
             RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
-            RateLimitBehaviour = exchangeOptions.RateLimitingBehaviour;
+
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
@@ -124,48 +122,6 @@ namespace CryptoExchange.Net
         public void RemoveRateLimiters()
         {
             RateLimiters = new List<IRateLimiter>();
-        }
-
-        /// <summary>
-        /// Ping to see if the server is reachable
-        /// </summary>
-        /// <returns>The roundtrip time of the ping request</returns>
-        public virtual CallResult<long> Ping(CancellationToken ct = default) => PingAsync(ct).Result;
-
-        /// <summary>
-        /// Ping to see if the server is reachable
-        /// </summary>
-        /// <returns>The roundtrip time of the ping request</returns>
-        public virtual async Task<CallResult<long>> PingAsync(CancellationToken ct = default)
-        {
-            var ping = new Ping();
-            var uri = new Uri(BaseAddress);
-            PingReply reply;
-
-            var ctRegistration = ct.Register(() => ping.SendAsyncCancel());
-            try
-            {
-                reply = await ping.SendPingAsync(uri.Host).ConfigureAwait(false);
-            }
-            catch (PingException e)
-            {
-                if (e.InnerException == null)
-                    return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + e.Message });
-
-                if (e.InnerException is SocketException exception)
-                    return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + exception.SocketErrorCode });
-                return new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + e.InnerException.Message });
-            }
-            finally
-            {
-                ctRegistration.Dispose();
-                ping.Dispose();
-            }
-
-            if (ct.IsCancellationRequested)
-                return new CallResult<long>(0, new CancellationRequestedError());
-
-            return reply.Status == IPStatus.Success ? new CallResult<long>(reply.RoundtripTime, null) : new CallResult<long>(0, new CantConnectError { Message = "Ping failed: " + reply.Status });
         }
 
         /// <summary>
@@ -210,7 +166,7 @@ namespace CryptoExchange.Net
             var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
             foreach (var limiter in RateLimiters)
             {
-                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, RateLimitBehaviour, credits);
+                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, ClientOptions.RateLimitingBehaviour, credits);
                 if (!limitResult.Success)
                 {
                     log.Write(LogLevel.Information, $"[{requestId}] Request {uri.AbsolutePath} failed because of rate limit");
@@ -232,7 +188,7 @@ namespace CryptoExchange.Net
                     paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
             }
 
-            log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(apiProxy == null ? "" : $" via proxy {apiProxy.Host}")}");
+            log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
 
@@ -277,8 +233,8 @@ namespace CryptoExchange.Net
                             return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
 
                         // Not an error, so continue deserializing
-                        var deserializeResult = Deserialize<T>(parseResult.Data, null, deserializer, request.RequestId);
-                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, OutputOriginalData ? data: null, deserializeResult.Data, deserializeResult.Error);
+                        var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
+                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, ClientOptions.OutputOriginalData ? data: null, deserializeResult.Data, deserializeResult.Error);
                     }
                     else
                     {
@@ -287,7 +243,7 @@ namespace CryptoExchange.Net
                         responseStream.Close();
                         response.Close();
 
-                        return new WebCallResult<T>(statusCode, headers, OutputOriginalData ? desResult.OriginalData : null, desResult.Data, desResult.Error);
+                        return new WebCallResult<T>(statusCode, headers, ClientOptions.OutputOriginalData ? desResult.OriginalData : null, desResult.Data, desResult.Error);
                     }
                 }
                 else

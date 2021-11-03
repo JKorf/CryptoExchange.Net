@@ -22,33 +22,17 @@ namespace CryptoExchange.Net
     public abstract class BaseClient : IDisposable
     {
         /// <summary>
-        /// The address of the client
-        /// </summary>
-        public string BaseAddress { get; }
-        /// <summary>
         /// The name of the exchange the client is for
         /// </summary>
-        public string ExchangeName { get; }
+        internal string ExchangeName { get; }
         /// <summary>
         /// The log object
         /// </summary>
         protected internal Log log;
         /// <summary>
-        /// The api proxy
-        /// </summary>
-        protected ApiProxy? apiProxy;
-        /// <summary>
         /// The authentication provider
         /// </summary>
         protected internal AuthenticationProvider? authProvider;
-        /// <summary>
-        /// Should check objects for missing properties based on the model and the received JSON
-        /// </summary>
-        public bool ShouldCheckObjects { get; set; }
-        /// <summary>
-        /// If true, the CallResult and DataEvent objects should also contain the originally received json data in the OriginalDaa property
-        /// </summary>
-        public bool OutputOriginalData { get; private set; }
         /// <summary>
         /// The last used id, use NextId() to get the next id and up this
         /// </summary>
@@ -68,9 +52,9 @@ namespace CryptoExchange.Net
         });
 
         /// <summary>
-        /// Last id used
+        /// Provided client options
         /// </summary>
-        public static int LastId => lastId;
+        public ClientOptions ClientOptions { get; }
 
         /// <summary>
         /// ctor
@@ -85,13 +69,12 @@ namespace CryptoExchange.Net
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogLevel;
 
+            ClientOptions = options;
+
             ExchangeName = exchangeName;
-            OutputOriginalData = options.OutputOriginalData;
-            BaseAddress = options.BaseAddress;
-            apiProxy = options.Proxy;
+            //BaseAddress = options.BaseAddress;
 
             log.Write(LogLevel.Debug, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
-            ShouldCheckObjects = options.ShouldCheckObjects;
         }
 
         /// <summary>
@@ -145,11 +128,10 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <typeparam name="T">The type to deserialize into</typeparam>
         /// <param name="data">The data to deserialize</param>
-        /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(string data, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
+        protected CallResult<T> Deserialize<T>(string data, JsonSerializer? serializer = null, int? requestId = null)
         {
             var tokenResult = ValidateJson(data);
             if (!tokenResult)
@@ -158,7 +140,7 @@ namespace CryptoExchange.Net
                 return new CallResult<T>(default, tokenResult.Error);
             }
 
-            return Deserialize<T>(tokenResult.Data, checkObject, serializer, requestId);
+            return Deserialize<T>(tokenResult.Data, serializer, requestId);
         }
 
         /// <summary>
@@ -166,39 +148,16 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <typeparam name="T">The type to deserialize into</typeparam>
         /// <param name="obj">The data to deserialize</param>
-        /// <param name="checkObject">Whether or not the parsing should be checked for missing properties (will output data to the logging if log verbosity is Debug)</param>
         /// <param name="serializer">A specific serializer to use</param>
         /// <param name="requestId">Id of the request the data is returned from (used for grouping logging by request)</param>
         /// <returns></returns>
-        protected CallResult<T> Deserialize<T>(JToken obj, bool? checkObject = null, JsonSerializer? serializer = null, int? requestId = null)
+        protected CallResult<T> Deserialize<T>(JToken obj, JsonSerializer? serializer = null, int? requestId = null)
         {
             if (serializer == null)
                 serializer = defaultSerializer;
 
             try
             {
-                if ((checkObject ?? ShouldCheckObjects)&& log.Level <= LogLevel.Debug)
-                {
-                    // This checks the input JToken object against the class it is being serialized into and outputs any missing fields
-                    // in either the input or the class
-                    try
-                    {
-                        if (obj is JObject o)
-                        {
-                            CheckObject(typeof(T), o, requestId);
-                        }
-                        else if (obj is JArray j)
-                        {
-                            if (j.HasValues && j[0] is JObject jObject)
-                                CheckObject(typeof(T).GetElementType(), jObject, requestId);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Failed to check response data: " + (e.InnerException?.Message ?? e.Message));
-                    }
-                }
-
                 return new CallResult<T>(obj.ToObject<T>(serializer), null);
             }
             catch (JsonReaderException jre)
@@ -243,12 +202,12 @@ namespace CryptoExchange.Net
 
                 // If we have to output the original json data or output the data into the logging we'll have to read to full response
                 // in order to log/return the json data
-                if (OutputOriginalData || log.Level <= LogLevel.Debug)
+                if (ClientOptions.OutputOriginalData || log.Level <= LogLevel.Debug)
                 {
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                     log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: {data}");
-                    var result = Deserialize<T>(data, null, serializer, requestId);
-                    if(OutputOriginalData)
+                    var result = Deserialize<T>(data, serializer, requestId);
+                    if(ClientOptions.OutputOriginalData)
                         result.OriginalData = data;
                     return result;
                 }
@@ -306,116 +265,6 @@ namespace CryptoExchange.Net
         { 
             using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
             return await reader.ReadToEndAsync().ConfigureAwait(false);
-        }
-
-        private void CheckObject(Type type, JObject obj, int? requestId = null)
-        {
-            if (type == null)
-                return;
-
-            if (type.GetCustomAttribute<JsonConverterAttribute>(true) != null)
-                // If type has a custom JsonConverter we assume this will handle property mapping
-                return;
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
-                return;
-
-            if (!obj.HasValues && type != typeof(object))
-            {
-                log.Write(LogLevel.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Expected `{type.Name}`, but received object was empty");
-                return;
-            }
-
-            var isDif = false;
-            var properties = new List<string>();
-            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-            foreach (var prop in props)
-            {
-                var attr = prop.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault();
-                var ignore = prop.GetCustomAttributes(typeof(JsonIgnoreAttribute), false).FirstOrDefault();
-                if (ignore != null)
-                    continue;
-
-                var propertyName = ((JsonPropertyAttribute?) attr)?.PropertyName;
-                properties.Add(propertyName ?? prop.Name);
-            }
-            foreach (var token in obj)
-            {
-                var d = properties.FirstOrDefault(p => p == token.Key);
-                if (d == null)
-                {
-                    d = properties.SingleOrDefault(p => string.Equals(p, token.Key, StringComparison.CurrentCultureIgnoreCase));
-                    if (d == null)
-                    {
-                        if (!(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
-                        {
-                            log.Write(LogLevel.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Local object doesn't have property `{token.Key}` expected in type `{type.Name}`");
-                            isDif = true;
-                        }
-                        continue;
-                    }
-                }
-
-                properties.Remove(d);
-
-                var propType = GetProperty(d, props)?.PropertyType;
-                if (propType == null || token.Value == null)
-                    continue;
-                if (!IsSimple(propType) && propType != typeof(DateTime))
-                {
-                    if (propType.IsArray && token.Value.HasValues && ((JArray)token.Value).Any() && ((JArray)token.Value)[0] is JObject)
-                        CheckObject(propType.GetElementType()!, (JObject)token.Value[0]!, requestId);
-                    else if (token.Value is JObject o)
-                        CheckObject(propType, o, requestId);
-                }
-            }
-
-            foreach (var prop in properties)
-            {
-                var propInfo = props.First(p => p.Name == prop ||
-                    ((JsonPropertyAttribute)p.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault())?.PropertyName == prop);
-                var optional = propInfo.GetCustomAttributes(typeof(JsonOptionalPropertyAttribute), false).FirstOrDefault();
-                if (optional != null)
-                    continue;
-
-                isDif = true;
-                log.Write(LogLevel.Warning, $"{(requestId != null ? $"[{requestId}] " : "")}Local object has property `{prop}` but was not found in received object of type `{type.Name}`");
-            }
-
-            if (isDif)
-                log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{ requestId}] " : "")}Returned data: " + obj);
-        }
-
-        private static PropertyInfo? GetProperty(string name, IEnumerable<PropertyInfo> props)
-        {
-            foreach (var prop in props)
-            {
-                var attr = prop.GetCustomAttributes(typeof(JsonPropertyAttribute), false).FirstOrDefault();
-                if (attr == null)
-                {
-                    if (string.Equals(prop.Name, name, StringComparison.CurrentCultureIgnoreCase))
-                        return prop;
-                }
-                else
-                {
-                    if (((JsonPropertyAttribute)attr).PropertyName == name)
-                        return prop;
-                }
-            }
-            return null;
-        }
-
-        private static bool IsSimple(Type type)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                // nullable type, check if the nested type is simple.
-                return IsSimple(type.GetGenericArguments()[0]);
-            }
-            return type.IsPrimitive
-                   || type.IsEnum
-                   || type == typeof(string)
-                   || type == typeof(decimal);
         }
 
         /// <summary>

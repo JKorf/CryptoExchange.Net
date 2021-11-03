@@ -129,7 +129,7 @@ namespace CryptoExchange.Net.Sockets
             subscriptions = new List<SocketSubscription>();
             Socket = socket;
 
-            Socket.Timeout = client.SocketNoDataTimeout;
+            Socket.Timeout = client.ClientOptions.SocketNoDataTimeout;
             Socket.OnMessage += ProcessMessage;
             Socket.OnClose += SocketOnClose;
             Socket.OnOpen += SocketOnOpen;
@@ -183,7 +183,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             // Message was not a request response, check data handlers
-            var messageEvent = new MessageEvent(this, tokenData, socketClient.OutputOriginalData ? data: null, timestamp);
+            var messageEvent = new MessageEvent(this, tokenData, socketClient.ClientOptions.OutputOriginalData ? data: null, timestamp);
             if (!HandleData(messageEvent) && !handledResponse)
             {
                 if (!socketClient.UnhandledMessageExpected)
@@ -330,7 +330,7 @@ namespace CryptoExchange.Net.Sockets
                 }
             }
 
-            if (socketClient.AutoReconnect && ShouldReconnect)
+            if (socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
             {
                 if (Socket.Reconnecting)
                     return; // Already reconnecting
@@ -338,7 +338,7 @@ namespace CryptoExchange.Net.Sockets
                 Socket.Reconnecting = true;
 
                 DisconnectTime = DateTime.UtcNow;
-                log.Write(LogLevel.Information, $"Socket {Socket.Id} Connection lost, will try to reconnect after {socketClient.ReconnectInterval}");
+                log.Write(LogLevel.Information, $"Socket {Socket.Id} Connection lost, will try to reconnect after {socketClient.ClientOptions.ReconnectInterval}");
                 if (!lostTriggered)
                 {
                     lostTriggered = true;
@@ -350,7 +350,7 @@ namespace CryptoExchange.Net.Sockets
                     while (ShouldReconnect)
                     {
                         // Wait a bit before attempting reconnect
-                        await Task.Delay(socketClient.ReconnectInterval).ConfigureAwait(false);
+                        await Task.Delay(socketClient.ClientOptions.ReconnectInterval).ConfigureAwait(false);
                         if (!ShouldReconnect)
                         {
                             // Should reconnect changed to false while waiting to reconnect
@@ -363,8 +363,8 @@ namespace CryptoExchange.Net.Sockets
                         {
                             ReconnectTry++;
                             ResubscribeTry = 0;
-                            if (socketClient.MaxReconnectTries != null
-                            && ReconnectTry >= socketClient.MaxReconnectTries)
+                            if (socketClient.ClientOptions.MaxReconnectTries != null
+                            && ReconnectTry >= socketClient.ClientOptions.MaxReconnectTries)
                             {
                                 log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect after {ReconnectTry} tries, closing");
                                 ShouldReconnect = false;
@@ -377,7 +377,7 @@ namespace CryptoExchange.Net.Sockets
                                 break;
                             }
 
-                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.MaxReconnectTries}": "")}");
+                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.ClientOptions.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.ClientOptions.MaxReconnectTries}": "")}");
                             continue;
                         }
 
@@ -392,8 +392,8 @@ namespace CryptoExchange.Net.Sockets
                         {
                             ResubscribeTry++;
 
-                            if (socketClient.MaxResubscribeTries != null &&
-                            ResubscribeTry >= socketClient.MaxResubscribeTries)
+                            if (socketClient.ClientOptions.MaxResubscribeTries != null &&
+                            ResubscribeTry >= socketClient.ClientOptions.MaxResubscribeTries)
                             {
                                 log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to resubscribe after {ResubscribeTry} tries, closing");
                                 ShouldReconnect = false;
@@ -405,7 +405,7 @@ namespace CryptoExchange.Net.Sockets
                                 _ = Task.Run(() => ConnectionClosed?.Invoke());
                             }
                             else
-                                log.Write(LogLevel.Debug, $"Socket {Socket.Id} resubscribing all subscriptions failed on reconnected socket{(socketClient.MaxResubscribeTries != null ? $", try {ResubscribeTry}/{socketClient.MaxResubscribeTries}" : "")}. Disconnecting and reconnecting.");
+                                log.Write(LogLevel.Debug, $"Socket {Socket.Id} resubscribing all subscriptions failed on reconnected socket{(socketClient.ClientOptions.MaxResubscribeTries != null ? $", try {ResubscribeTry}/{socketClient.ClientOptions.MaxResubscribeTries}" : "")}. Disconnecting and reconnecting.");
 
                             if (Socket.IsOpen)                            
                                 await Socket.CloseAsync().ConfigureAwait(false);                            
@@ -431,7 +431,7 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
-                if (!socketClient.AutoReconnect && ShouldReconnect)
+                if (!socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
                     _ = Task.Run(() => ConnectionClosed?.Invoke());
 
                 // No reconnecting needed
@@ -472,11 +472,11 @@ namespace CryptoExchange.Net.Sockets
                 subscriptionList = subscriptions.Where(h => h.Request != null).ToList();
 
             // Foreach subscription which is subscribed by a subscription request we will need to resend that request to resubscribe
-            for (var i = 0; i < subscriptionList.Count; i += socketClient.MaxConcurrentResubscriptionsPerSocket)
+            for (var i = 0; i < subscriptionList.Count; i += socketClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
             {
                 var success = true;
                 var taskList = new List<Task>();
-                foreach (var subscription in subscriptionList.Skip(i).Take(socketClient.MaxConcurrentResubscriptionsPerSocket))
+                foreach (var subscription in subscriptionList.Skip(i).Take(socketClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
                 {
                     if (!Socket.IsOpen)
                         continue;
