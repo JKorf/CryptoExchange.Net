@@ -43,7 +43,11 @@ namespace CryptoExchange.Net.Converters
             if (reader.Value == null)
                 return null;
 
-            if (!GetValue(reader.Value.ToString(), out var result))
+            var stringValue = reader.Value.ToString();
+            if (string.IsNullOrWhiteSpace(stringValue))
+                return null;
+
+            if (!GetValue(stringValue, out var result))
             {
                 Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {reader.Value}");
                 return null;

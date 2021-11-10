@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.Authentication
         /// Copy the credentials
         /// </summary>
         /// <returns></returns>
-        public ApiCredentials Copy()
+        public virtual ApiCredentials Copy()
         {
             if (PrivateKey == null)
                 return new ApiCredentials(Key!.GetString(), Secret!.GetString());

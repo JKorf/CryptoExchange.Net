@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestRestClient: RestClient
     {
-        public TestRestClient() : base("Test", new RestClientOptions("http://testurl.url"), null)
+        public TestRestClient() : base("Test", new RestClientOptions(), null)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }

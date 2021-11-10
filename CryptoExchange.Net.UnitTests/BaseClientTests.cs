@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             // act
             // assert
-            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new RestClientOptions("") { ApiCredentials = new ApiCredentials(key, secret) }));
+            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new RestClientOptions() { ApiCredentials = new ApiCredentials(key, secret) }));
         }
 
         [TestCase]
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new RestClientOptions("")
+            var client = new TestBaseClient(new RestClientOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             });
@@ -65,16 +65,18 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(null, LogLevel.Error, true)]
         [TestCase(null, LogLevel.Warning, true)]
         [TestCase(null, LogLevel.Information, true)]
-        [TestCase(null, LogLevel.Debug, true)]
+        [TestCase(null, LogLevel.Debug, false)]
         public void SettingLogLevel_Should_RestrictLogging(LogLevel? verbosity, LogLevel testVerbosity, bool expected)
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new RestClientOptions("")
+            var options = new RestClientOptions()
             {
-                LogWriters = new List<ILogger> { logger },
-                LogLevel = verbosity
-            });
+                LogWriters = new List<ILogger> { logger }
+            };
+            if (verbosity != null)
+                options.LogLevel = verbosity.Value;
+            var client = new TestBaseClient(options);
 
             // act
             client.Log(testVerbosity, "Test");

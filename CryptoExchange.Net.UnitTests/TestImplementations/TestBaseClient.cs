@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base("Test", new RestClientOptions("http://testurl.url"), null)
+        public TestBaseClient(): base("Test", new RestClientOptions(), null)
         {
         }
 
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.UnitTests
 
         public CallResult<T> Deserialize<T>(string data)
         {
-            return Deserialize<T>(data, false);
+            return Deserialize<T>(data, null, null);
         }
 
         public string FillParameters(string path, params string[] values)

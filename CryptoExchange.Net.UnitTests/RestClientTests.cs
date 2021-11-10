@@ -105,7 +105,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new RestClientOptions("")
+            var client = new TestRestClient(new RestClientOptions()
             {
                 BaseAddress = "http://test.address.com",
                 RateLimiters = new List<IRateLimiter>{new RateLimiterTotal(1, TimeSpan.FromSeconds(1))},
@@ -115,10 +115,10 @@ namespace CryptoExchange.Net.UnitTests
 
 
             // assert
-            Assert.IsTrue(client.BaseAddress == "http://test.address.com/");
-            Assert.IsTrue(client.RateLimiters.Count() == 1);
-            Assert.IsTrue(client.RateLimitBehaviour == RateLimitingBehaviour.Fail);
-            Assert.IsTrue(client.RequestTimeout == TimeSpan.FromMinutes(1));
+            Assert.IsTrue(client.ClientOptions.BaseAddress == "http://test.address.com/");
+            Assert.IsTrue(client.ClientOptions.RateLimiters.Count() == 1);
+            Assert.IsTrue(client.ClientOptions.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
+            Assert.IsTrue(client.ClientOptions.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
@@ -132,7 +132,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new RestClientOptions("")
+            var client = new TestRestClient(new RestClientOptions()
             {
                 BaseAddress = "http://test.address.com",
             });
@@ -165,7 +165,7 @@ namespace CryptoExchange.Net.UnitTests
         public void SettingRateLimitingBehaviourToFail_Should_FailLimitedRequests()
         {
             // arrange
-            var client = new TestRestClient(new RestClientOptions("")
+            var client = new TestRestClient(new RestClientOptions()
             {
                 RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Fail
@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.UnitTests
         public void SettingRateLimitingBehaviourToWait_Should_DelayLimitedRequests()
         {
             // arrange
-            var client = new TestRestClient(new RestClientOptions("")
+            var client = new TestRestClient(new RestClientOptions()
             {
                 RateLimiters = new List<IRateLimiter> { new RateLimiterTotal(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Wait
@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.UnitTests
         public void SettingApiKeyRateLimiter_Should_DelayRequestsFromSameKey()
         {
             // arrange
-            var client = new TestRestClient(new RestClientOptions("")
+            var client = new TestRestClient(new RestClientOptions()
             {
                 RateLimiters = new List<IRateLimiter> { new RateLimiterAPIKey(1, TimeSpan.FromSeconds(1)) },
                 RateLimitingBehaviour = RateLimitingBehaviour.Wait,

@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestSocketClient: SocketClient
     {
-        public TestSocketClient() : this(new SocketClientOptions("http://testurl.url"))
+        public TestSocketClient() : this(new SocketClientOptions())
         {
         }
 
@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestSocket CreateSocket()
         {
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
-            return (TestSocket)CreateSocket(BaseAddress);
+            return (TestSocket)CreateSocket(ClientOptions.BaseAddress);
         }
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
