@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace CryptoExchange.Net.Logging
 {
     /// <summary>
-    /// Default log writer, writes to debug
+    /// Default log writer, uses Trace.WriteLine
     /// </summary>
     public class DebugLogger: ILogger
     {

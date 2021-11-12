@@ -14,7 +14,7 @@ using CryptoExchange.Net.Objects;
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// Socket connecting
+    /// A single socket connection to the server
     /// </summary>
     public class SocketConnection
     {
@@ -22,26 +22,32 @@ namespace CryptoExchange.Net.Sockets
         /// Connection lost event
         /// </summary>
         public event Action? ConnectionLost;
+
         /// <summary>
         /// Connection closed and no reconnect is happening
         /// </summary>
         public event Action? ConnectionClosed;
+
         /// <summary>
         /// Connecting restored event
         /// </summary>
         public event Action<TimeSpan>? ConnectionRestored;
+
         /// <summary>
         /// The connection is paused event
         /// </summary>
         public event Action? ActivityPaused;
+
         /// <summary>
         /// The connection is unpaused event
         /// </summary>
         public event Action? ActivityUnpaused;
+
         /// <summary>
         /// Connecting closed event
         /// </summary>
         public event Action? Closed;
+
         /// <summary>
         /// Unhandled message event
         /// </summary>
@@ -57,30 +63,35 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// If connection is authenticated
+        /// If the connection has been authenticated
         /// </summary>
         public bool Authenticated { get; set; }
+
         /// <summary>
         /// If connection is made
         /// </summary>
         public bool Connected { get; private set; }
 
         /// <summary>
-        /// The underlying socket
+        /// The underlying websocket
         /// </summary>
         public IWebsocket Socket { get; set; }
+
         /// <summary>
         /// If the socket should be reconnected upon closing
         /// </summary>
         public bool ShouldReconnect { get; set; }
+
         /// <summary>
-        /// Current reconnect try
+        /// Current reconnect try, reset when a successful connection is made
         /// </summary>
         public int ReconnectTry { get; set; }
+
         /// <summary>
-        /// Current resubscribe try
+        /// Current resubscribe try, reset when a successful connection is made
         /// </summary>
         public int ResubscribeTry { get; set; }
+
         /// <summary>
         /// Time of disconnecting
         /// </summary>
@@ -138,7 +149,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Process a message received by the socket
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The received data</param>
         private void ProcessMessage(string data)
         {
             var timestamp = DateTime.UtcNow;
@@ -193,7 +204,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Add subscription to this connection
+        /// Add a subscription to this connection
         /// </summary>
         /// <param name="subscription"></param>
         public void AddSubscription(SocketSubscription subscription)
@@ -203,15 +214,20 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Get a subscription on this connection
+        /// Get a subscription on this connection by id
         /// </summary>
         /// <param name="id"></param>
-        public SocketSubscription GetSubscription(int id)
+        public SocketSubscription? GetSubscription(int id)
         {
             lock (subscriptionLock)
                 return subscriptions.SingleOrDefault(s => s.Id == id);
         }
 
+        /// <summary>
+        /// Process data
+        /// </summary>
+        /// <param name="messageEvent"></param>
+        /// <returns>True if the data was successfully handled</returns>
         private bool HandleData(MessageEvent messageEvent)
         {
             SocketSubscription? currentSubscription = null;
@@ -249,7 +265,7 @@ namespace CryptoExchange.Net.Sockets
                 
                 sw.Stop();
                 if (sw.ElapsedMilliseconds > 500)
-                    log.Write(LogLevel.Warning, $"Socket {Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
+                    log.Write(LogLevel.Debug, $"Socket {Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
                                                     "Data from this socket may arrive late or not at all if message processing is continuously slow.");
                 else
                     log.Write(LogLevel.Trace, $"Socket {Socket.Id} message processed in {sw.ElapsedMilliseconds}ms");
@@ -269,7 +285,7 @@ namespace CryptoExchange.Net.Sockets
         /// <typeparam name="T">The data type expected in response</typeparam>
         /// <param name="obj">The object to send</param>
         /// <param name="timeout">The timeout for response</param>
-        /// <param name="handler">The response handler</param>
+        /// <param name="handler">The response handler, should return true if the received JToken was the response to the request</param>
         /// <returns></returns>
         public virtual Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, Func<JToken, bool> handler)
         {
@@ -391,6 +407,7 @@ namespace CryptoExchange.Net.Sockets
                         if (!reconnectResult)
                         {
                             ResubscribeTry++;
+                            DisconnectTime = time;
 
                             if (socketClient.ClientOptions.MaxResubscribeTries != null &&
                             ResubscribeTry >= socketClient.ClientOptions.MaxResubscribeTries)
@@ -419,7 +436,7 @@ namespace CryptoExchange.Net.Sockets
                             if (lostTriggered)
                             {
                                 lostTriggered = false;
-                                InvokeConnectionRestored(time);
+                                _ = Task.Run(() => ConnectionRestored?.Invoke(time.HasValue ? DateTime.UtcNow - time.Value : TimeSpan.FromSeconds(0))).ConfigureAwait(false);
                             }
 
                             break;
@@ -441,11 +458,6 @@ namespace CryptoExchange.Net.Sockets
 
                 Closed?.Invoke();
             }
-        }
-
-        private async void InvokeConnectionRestored(DateTime? disconnectTime)
-        {
-            await Task.Run(() => ConnectionRestored?.Invoke(disconnectTime.HasValue ? DateTime.UtcNow - disconnectTime.Value : TimeSpan.FromSeconds(0))).ConfigureAwait(false);
         }
 
         private async Task<bool> ProcessReconnectAsync()

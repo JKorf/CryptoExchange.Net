@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Interfaces
         IRequestFactory RequestFactory { get; set; }
 
         /// <summary>
-        /// The total amount of requests made
+        /// The total amount of requests made with this client
         /// </summary>
         int TotalRequestsMade { get; }
 
@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Interfaces
         void RemoveRateLimiters();
 
         /// <summary>
-        /// Client options
+        /// The options provided for this client
         /// </summary>
         RestClientOptions ClientOptions { get; }
     }

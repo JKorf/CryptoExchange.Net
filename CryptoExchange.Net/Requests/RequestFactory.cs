@@ -7,7 +7,7 @@ using CryptoExchange.Net.Objects;
 namespace CryptoExchange.Net.Requests
 {
     /// <summary>
-    /// WebRequest factory
+    /// Request factory
     /// </summary>
     public class RequestFactory : IRequestFactory
     {

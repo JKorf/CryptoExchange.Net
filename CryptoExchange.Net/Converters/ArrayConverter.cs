@@ -181,6 +181,7 @@ namespace CryptoExchange.Net.Converters
     /// <summary>
     /// Mark property as an index in the array
     /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
     public class ArrayPropertyAttribute: Attribute
     {
         /// <summary>

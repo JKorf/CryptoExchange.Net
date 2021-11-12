@@ -67,9 +67,7 @@ namespace CryptoExchange.Net
         /// </summary>
         protected IEnumerable<IRateLimiter> RateLimiters { get; private set; }
 
-        /// <summary>
-        /// Total requests made by this client
-        /// </summary>
+        /// <inheritdoc />
         public int TotalRequestsMade { get; private set; }
 
         /// <summary>
@@ -133,7 +131,6 @@ namespace CryptoExchange.Net
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="checkResult">Whether or not the resulting object should be checked for missing properties in the mapping (only outputs if log verbosity is Debug)</param> 
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="credits">Credits used for the request</param>
@@ -147,7 +144,6 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null, 
             bool signed = false, 
-            bool checkResult = true,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null, 
             int credits = 1,

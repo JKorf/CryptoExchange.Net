@@ -4,7 +4,7 @@ using System;
 namespace CryptoExchange.Net.Logging
 {
     /// <summary>
-    /// Log to console
+    /// ILogger implementation for logging to the console
     /// </summary>
     public class ConsoleLogger : ILogger
     {

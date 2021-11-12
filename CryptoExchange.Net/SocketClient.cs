@@ -80,9 +80,7 @@ namespace CryptoExchange.Net
         /// </summary>
         protected internal int? RateLimitPerSocketPerSecond { get; set; }
 
-        /// <summary>
-        /// The current kilobytes per second of data being received by all connection from this client, averaged over the last 3 seconds
-        /// </summary>
+        /// <inheritdoc />
         public double IncomingKbps
         {
             get

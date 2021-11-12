@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.Sockets
         public DateTime ReceivedTimestamp { get; set; }
 
         /// <summary>
-        /// 
+        /// ctor
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="jsonData"></param>

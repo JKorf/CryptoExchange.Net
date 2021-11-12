@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 namespace CryptoExchange.Net.Authentication
 {
     /// <summary>
-    /// Api credentials info
+    /// Api credentials, used to sign requests accessing private endpoints
     /// </summary>
     public class ApiCredentials: IDisposable
     {

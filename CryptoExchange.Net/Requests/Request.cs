@@ -11,7 +11,7 @@ using CryptoExchange.Net.Interfaces;
 namespace CryptoExchange.Net.Requests
 {
     /// <summary>
-    /// Request object
+    /// Request object, wrapper for HttpRequestMessage
     /// </summary>
     public class Request : IRequest
     {
@@ -49,6 +49,7 @@ namespace CryptoExchange.Net.Requests
 
         /// <inheritdoc />
         public Uri Uri => request.RequestUri;
+
         /// <inheritdoc />
         public int RequestId { get; }
 

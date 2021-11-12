@@ -11,17 +11,17 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Create a websocket for an url
         /// </summary>
-        /// <param name="log"></param>
-        /// <param name="url"></param>
+        /// <param name="log">The logger</param>
+        /// <param name="url">The url the socket is fo</param>
         /// <returns></returns>
         IWebsocket CreateWebsocket(Log log, string url);
         /// <summary>
         /// Create a websocket for an url
         /// </summary>
-        /// <param name="log"></param>
-        /// <param name="url"></param>
-        /// <param name="cookies"></param>
-        /// <param name="headers"></param>
+        /// <param name="log">The logger</param>
+        /// <param name="url">The url the socket is fo</param>
+        /// <param name="cookies">Cookies to be send in the initial request</param>
+        /// <param name="headers">Headers to be send in the initial request</param>
         /// <returns></returns>
         IWebsocket CreateWebsocket(Log log, string url, IDictionary<string, string> cookies, IDictionary<string, string> headers);
     }

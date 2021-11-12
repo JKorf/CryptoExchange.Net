@@ -30,7 +30,7 @@ namespace CryptoExchange.Net
         /// </summary>
         protected internal Log log;
         /// <summary>
-        /// The authentication provider
+        /// The authentication provider when api credentials have been provided
         /// </summary>
         protected internal AuthenticationProvider? authProvider;
         /// <summary>
@@ -72,7 +72,6 @@ namespace CryptoExchange.Net
             ClientOptions = options;
 
             ExchangeName = exchangeName;
-            //BaseAddress = options.BaseAddress;
 
             log.Write(LogLevel.Debug, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
         }
@@ -88,7 +87,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Tries to parse the json data and returns a JToken, validating the input not being empty and being valid json
+        /// Tries to parse the json data and return a JToken, validating the input not being empty and being valid json
         /// </summary>
         /// <param name="data">The data to parse</param>
         /// <returns></returns>

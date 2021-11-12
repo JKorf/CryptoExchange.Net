@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.IsTrue(client.ClientOptions.BaseAddress == "http://test.address.com/");
-            Assert.IsTrue(client.ClientOptions.RateLimiters.Count() == 1);
+            Assert.IsTrue(client.ClientOptions.RateLimiters.Count == 1);
             Assert.IsTrue(client.ClientOptions.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
             Assert.IsTrue(client.ClientOptions.RequestTimeout == TimeSpan.FromMinutes(1));
         }

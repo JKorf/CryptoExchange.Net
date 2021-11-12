@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace CryptoExchange.Net.Converters
 {
     /// <summary>
-    /// converter for milliseconds to datetime
+    /// Converter for milliseconds to datetime
     /// </summary>
     public class TimestampConverter : JsonConverter
     {

@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Objects
     public class BaseOptions
     {
         /// <summary>
-        /// The minimum log level to output. Setting it to null will send all messages to the registered ILoggers. 
+        /// The minimum log level to output
         /// </summary>
         public LogLevel LogLevel { get; set; } = LogLevel.Information;
 
@@ -86,12 +86,12 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// The api credentials
+        /// The api credentials used for signing requests
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
-        /// Proxy to use
+        /// Proxy to use when connecting
         /// </summary>
         public ApiProxy? Proxy { get; set; }
 
@@ -161,7 +161,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, RequestTimeout: {RequestTimeout:c}";
+            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-": "set")}";
         }
     }
 
@@ -181,7 +181,7 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// The maximum number of times to try to reconnect
+        /// The maximum number of times to try to reconnect, default null will retry indefinitely 
         /// </summary>
         public int? MaxReconnectTries { get; set; }
 
@@ -196,11 +196,13 @@ namespace CryptoExchange.Net.Objects
         public int MaxConcurrentResubscriptionsPerSocket { get; set; } = 5;
 
         /// <summary>
-        /// The time to wait for a socket response before giving a timeout
+        /// The max time to wait for a response after sending a request on the socket before giving a timeout
         /// </summary>
         public TimeSpan SocketResponseTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
         /// <summary>
-        /// The time after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected.
+        /// The max time of not receiving any data after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected,
+        /// for example when the server sends intermittent ping requests
         /// </summary>
         public TimeSpan SocketNoDataTimeout { get; set; }
 
@@ -234,7 +236,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxReconnectTries: {MaxReconnectTries}, MaxResubscribeTries: {MaxResubscribeTries}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
         }
     }
 }

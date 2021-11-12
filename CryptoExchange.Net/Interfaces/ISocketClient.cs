@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Interfaces
     public interface ISocketClient: IDisposable
     {
         /// <summary>
-        /// Client options
+        /// The options provided for this client
         /// </summary>
         SocketClientOptions ClientOptions { get; }
 
@@ -19,6 +19,13 @@ namespace CryptoExchange.Net.Interfaces
         /// Incoming kilobytes per second of data
         /// </summary>
         public double IncomingKbps { get; }
+
+        /// <summary>
+        /// Unsubscribe from a stream using the subscription id received when starting the subscription
+        /// </summary>
+        /// <param name="subscriptionId">The id of the subscription to unsubscribe</param>
+        /// <returns></returns>
+        Task UnsubscribeAsync(int subscriptionId);
 
         /// <summary>
         /// Unsubscribe from a stream
