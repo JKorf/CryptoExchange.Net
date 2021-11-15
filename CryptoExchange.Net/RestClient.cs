@@ -13,7 +13,6 @@ using System.Web;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiter;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -133,7 +132,7 @@ namespace CryptoExchange.Net
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
-        /// <param name="credits">Credits used for the request</param>
+        /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
@@ -146,7 +145,7 @@ namespace CryptoExchange.Net
             bool signed = false, 
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null, 
-            int credits = 1,
+            int requestWeight = 1,
             JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null) where T : class
         {
@@ -162,15 +161,9 @@ namespace CryptoExchange.Net
             var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
             foreach (var limiter in RateLimiters)
             {
-                var limitResult = limiter.LimitRequest(this, uri.AbsolutePath, ClientOptions.RateLimitingBehaviour, credits);
-                if (!limitResult.Success)
-                {
-                    log.Write(LogLevel.Information, $"[{requestId}] Request {uri.AbsolutePath} failed because of rate limit");
+                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, ClientOptions.ApiCredentials?.Key, ClientOptions.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                if (!limitResult.Success)                
                     return new WebCallResult<T>(null, null, null, limitResult.Error);
-                }
-
-                if (limitResult.Data > 0)
-                    log.Write(LogLevel.Information, $"[{requestId}] Request {uri.AbsolutePath} was limited by {limitResult.Data}ms by {limiter.GetType().Name}");
             }
 
             string? paramString = "";
