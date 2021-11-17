@@ -157,7 +157,15 @@ namespace CryptoExchange.Net
             var released = false;
             // Wait for a semaphore here, so we only connect 1 socket at a time.
             // This is necessary for being able to see if connections can be combined
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                await semaphoreSlim.WaitAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return new CallResult<UpdateSubscription>(null, new CancellationRequestedError());
+            }
+
             try
             {
                 // Get a new or existing socket connection

@@ -562,7 +562,7 @@ namespace CryptoExchange.Net.Sockets
             if (subscription.Confirmed)
                 await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
 
-            var shouldCloseConnection = false;
+            bool shouldCloseConnection;
             lock (subscriptionLock)
                 shouldCloseConnection = !subscriptions.Any(r => r.UserSubscription && subscription != r);
 

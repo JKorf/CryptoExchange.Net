@@ -1,16 +1,12 @@
-﻿using CryptoExchange.Net.Attributes;
-using CryptoExchange.Net.Authentication;
+﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -152,8 +148,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(JToken obj, JsonSerializer? serializer = null, int? requestId = null)
         {
-            if (serializer == null)
-                serializer = defaultSerializer;
+            serializer ??= defaultSerializer;
 
             try
             {
@@ -191,8 +186,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected async Task<CallResult<T>> DeserializeAsync<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
-            if (serializer == null)
-                serializer = defaultSerializer;
+            serializer ??= defaultSerializer;
 
             try
             {

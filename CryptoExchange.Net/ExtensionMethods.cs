@@ -5,8 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
@@ -333,7 +331,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exception"></param>
         /// <returns></returns>
-        public static string ToLogString(this Exception exception)
+        public static string ToLogString(this Exception? exception)
         {
             var message = new StringBuilder();
             var indent = 0;

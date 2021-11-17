@@ -1,6 +1,5 @@
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
-using System;
 using System.Net.Http;
 using System.Security;
 using System.Threading;

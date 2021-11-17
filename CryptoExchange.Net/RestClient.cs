@@ -5,8 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -64,7 +62,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// List of rate limiters
         /// </summary>
-        protected IEnumerable<IRateLimiter> RateLimiters { get; private set; }
+        protected IEnumerable<IRateLimiter> RateLimiters { get; }
 
         /// <inheritdoc />
         public int TotalRequestsMade { get; private set; }
@@ -97,28 +95,6 @@ namespace CryptoExchange.Net
             foreach (var rateLimiter in exchangeOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
             RateLimiters = rateLimiters;
-        }
-
-        /// <summary>
-        /// Adds a rate limiter to the client. There are 2 choices, the <see cref="RateLimiterTotal"/> and the <see cref="RateLimiterPerEndpoint"/>.
-        /// </summary>
-        /// <param name="limiter">The limiter to add</param>
-        public void AddRateLimiter(IRateLimiter limiter)
-        {
-            if (limiter == null)
-                throw new ArgumentNullException(nameof(limiter));
-
-            var rateLimiters = RateLimiters.ToList();
-            rateLimiters.Add(limiter);
-            RateLimiters = rateLimiters;
-        }
-
-        /// <summary>
-        /// Removes all rate limiters from this client
-        /// </summary>
-        public void RemoveRateLimiters()
-        {
-            RateLimiters = new List<IRateLimiter>();
         }
 
         /// <summary>
@@ -308,8 +284,7 @@ namespace CryptoExchange.Net
             int requestId,
             Dictionary<string, string>? additionalHeaders)
         {
-            if (parameters == null)
-                parameters = new Dictionary<string, object>();
+            parameters ??= new Dictionary<string, object>();
 
             var uriString = uri.ToString();
             if (authProvider != null)

@@ -1,6 +1,5 @@
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
-using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -106,7 +105,7 @@ namespace CryptoExchange.Net.Objects
         {
             int totalWaitTime = 0;
 
-            EndpointRateLimiter endpointLimit;
+            EndpointRateLimiter? endpointLimit;
             lock (_limiterLock)
                 endpointLimit = Limiters.OfType<EndpointRateLimiter>().SingleOrDefault(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method));
             if(endpointLimit != null)
@@ -128,7 +127,7 @@ namespace CryptoExchange.Net.Objects
             {
                 if (partialEndpointLimit.CountPerEndpoint)
                 {
-                    SingleTopicRateLimiter thisEndpointLimit;
+                    SingleTopicRateLimiter? thisEndpointLimit;
                     lock (_limiterLock)
                     {
                         thisEndpointLimit = Limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.PartialEndpoint && (string)h.Topic == endpoint);
@@ -158,7 +157,7 @@ namespace CryptoExchange.Net.Objects
             if(partialEndpointLimits.Any(p => p.IgnoreOtherRateLimits))
                 return new CallResult<int>(totalWaitTime, null);
 
-            ApiKeyRateLimiter apiLimit;
+            ApiKeyRateLimiter? apiLimit;
             lock (_limiterLock)
                 apiLimit = Limiters.OfType<ApiKeyRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey);
             if (apiLimit != null)
@@ -176,7 +175,7 @@ namespace CryptoExchange.Net.Objects
                 }
                 else if (signed || !apiLimit.OnlyForSignedRequests)
                 {
-                    SingleTopicRateLimiter thisApiLimit;
+                    SingleTopicRateLimiter? thisApiLimit;
                     lock (_limiterLock)
                     {
                         thisApiLimit = Limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey && ((SecureString)h.Topic).IsEqualTo(apiKey));
@@ -198,7 +197,7 @@ namespace CryptoExchange.Net.Objects
             if ((signed || apiLimit?.OnlyForSignedRequests == false) && apiLimit?.IgnoreTotalRateLimit == true)
                 return new CallResult<int>(totalWaitTime, null);
 
-            TotalRateLimiter totalLimit;
+            TotalRateLimiter? totalLimit;
             lock (_limiterLock)
                 totalLimit = Limiters.OfType<TotalRateLimiter>().SingleOrDefault();
             if (totalLimit != null)

@@ -142,7 +142,7 @@ namespace CryptoExchange.Net.Sockets
                     if (!_receivedMessages.Any())
                         return 0;
 
-                    return Math.Round(_receivedMessages.Sum(v => v.Bytes) / 1000 / 3d);
+                    return Math.Round(_receivedMessages.Sum(v => v.Bytes) / 1000d / 3d);
                 }
             }
         }
@@ -371,8 +371,7 @@ namespace CryptoExchange.Net.Sockets
                             DateTime? start = null;
                             while (MessagesSentLastSecond() >= RatelimitPerSecond)
                             {
-                                if (start == null)
-                                    start = DateTime.UtcNow;
+                                start ??= DateTime.UtcNow;
                                 await Task.Delay(10).ConfigureAwait(false);
                             }
 
@@ -479,8 +478,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
-                            if (memoryStream == null)
-                                memoryStream = new MemoryStream();
+                            memoryStream ??= new MemoryStream();
                             log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                             await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                         }
@@ -490,7 +488,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
-                                HandleMessage(buffer.Array, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
+                                HandleMessage(buffer.Array!, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
                             }
                             else
                             {
@@ -586,7 +584,6 @@ namespace CryptoExchange.Net.Sockets
             catch(Exception e)
             {
                 log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during message processing: " + e.ToLogString());
-                return;
             }
         }
 
