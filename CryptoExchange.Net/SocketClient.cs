@@ -346,6 +346,7 @@ namespace CryptoExchange.Net
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
             {
+                await socket.CloseAsync().ConfigureAwait(false);
                 log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} authentication failed");
                 result.Error!.Message = "Authentication failed: " + result.Error.Message;
                 return new CallResult<bool>(false, result.Error);
