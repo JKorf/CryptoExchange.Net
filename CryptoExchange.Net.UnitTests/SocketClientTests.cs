@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.UnitTests
 
 
             //assert
-            Assert.IsTrue(client.ClientOptions.BaseAddress == "http://test.address.com/");
+            Assert.IsTrue(client.ClientOptions.BaseAddress == "http://test.address.com");
             Assert.IsTrue(client.ClientOptions.ReconnectInterval.TotalSeconds == 6);
         }
 

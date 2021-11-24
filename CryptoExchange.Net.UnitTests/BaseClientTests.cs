@@ -124,5 +124,18 @@ namespace CryptoExchange.Net.UnitTests
             // assert
             Assert.IsTrue(result == "http://test.api/1/path/test");
         }
+
+        [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1", "/path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1/", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1/", "/path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api/", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com", new[] { "test-path/test-path" }, "https://api.test.com/test-path/test-path")]
+        [TestCase("https://api.test.com/", new[] { "test-path/test-path" }, "https://api.test.com/test-path/test-path")]
+        public void AppendPathTests(string baseUrl, string[] path, string expected)
+        {
+            var result = baseUrl.AppendPath(path);
+            Assert.AreEqual(expected, result);
+        }
     }
 }

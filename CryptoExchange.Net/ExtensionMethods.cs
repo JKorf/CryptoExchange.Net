@@ -352,6 +352,23 @@ namespace CryptoExchange.Net
 
             return message.ToString();
         }
+
+        /// <summary>
+        /// Append a base url with provided path
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string AppendPath(this string url, params string[] path)
+        {
+            if (!url.EndsWith("/"))
+                url += "/";
+
+            foreach (var item in path)
+                url += item.Trim('/') + "/";
+
+            return url.TrimEnd('/');
+        }
     }
 }
 

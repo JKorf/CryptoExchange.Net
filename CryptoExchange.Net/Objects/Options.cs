@@ -78,14 +78,6 @@ namespace CryptoExchange.Net.Objects
                 if (value == null)
                     return;
 
-                // TODO addresses can't always be forced to end with '/', bybit websocket doesn't work with it.
-                // Should be fixed in the GetUrl methods?
-
-                //var newValue = value;
-                //if (!newValue.EndsWith("/"))
-                //    newValue += "/";
-                //_baseAddress = newValue;
-
                 _baseAddress = value;
             }
         }
