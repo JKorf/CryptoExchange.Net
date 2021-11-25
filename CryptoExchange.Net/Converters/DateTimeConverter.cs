@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace CryptoExchange.Net.Converters
 {
@@ -28,6 +29,8 @@ namespace CryptoExchange.Net.Converters
             if(reader.TokenType is JsonToken.Integer)
             {
                 var longValue = (long)reader.Value;
+                if (longValue == 0)
+                    return null;
                 if (longValue < 1999999999)
                     return ConvertFromSeconds(longValue);
                 if (longValue < 1999999999999)
@@ -48,6 +51,9 @@ namespace CryptoExchange.Net.Converters
             else if(reader.TokenType is JsonToken.String)
             {
                 var stringValue = (string)reader.Value;
+                if (string.IsNullOrWhiteSpace(stringValue))
+                    return null;
+
                 if (stringValue.Length == 8)
                 {
                     // Parse 20211103 format
@@ -74,7 +80,7 @@ namespace CryptoExchange.Net.Converters
                     return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
                 }
 
-                if (double.TryParse(stringValue, out var doubleValue))
+                if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
                 {
                     // Parse 1637745563.000 format
                     if (doubleValue < 1999999999)
@@ -110,20 +116,63 @@ namespace CryptoExchange.Net.Converters
             }
         }
 
+        /// <summary>
+        /// Convert a seconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <returns></returns>
         public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddSeconds(seconds);
-        public static DateTime ConvertFromMilliseconds(double milliseconds) => _epoch.AddMilliseconds(milliseconds);
+        /// <summary>
+        /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <returns></returns>
+        public static DateTime ConvertFromMilliseconds(double milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
+        /// <summary>
+        /// Convert a microseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="microseconds"></param>
+        /// <returns></returns>
         public static DateTime ConvertFromMicroseconds(long microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * ticksPerMicrosecond));
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="nanoseconds"></param>
+        /// <returns></returns>
         public static DateTime ConvertFromNanoseconds(long nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * ticksPerNanosecond));
-        public static long ConvertToSeconds(DateTime time) => (long)Math.Round((time - _epoch).TotalSeconds);
-        public static long ConvertToMilliseconds(DateTime time) => (long)Math.Round((time - _epoch).TotalMilliseconds);
-        public static long ConvertToMicroseconds(DateTime time) => (long)Math.Round((time - _epoch).Ticks / ticksPerMicrosecond);
-        public static long ConvertToNanoseconds(DateTime time) => (long)Math.Round((time - _epoch).Ticks / ticksPerNanosecond);
+        /// <summary>
+        /// Convert a DateTime value to seconds since epoch (01-01-1970) value
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static long? ConvertToSeconds(DateTime? time) => time == null ? null: (long)Math.Round((time.Value - _epoch).TotalSeconds);
+        /// <summary>
+        /// Convert a DateTime value to milliseconds since epoch (01-01-1970) value
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static long? ConvertToMilliseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).TotalMilliseconds);
+        /// <summary>
+        /// Convert a DateTime value to microseconds since epoch (01-01-1970) value
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static long? ConvertToMicroseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerMicrosecond);
+        /// <summary>
+        /// Convert a DateTime value to nanoseconds since epoch (01-01-1970) value
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerNanosecond);
 
 
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            if (value == null)
+            var datetimeValue = (DateTime?)value;
+            if (datetimeValue == null)
+                writer.WriteValue((DateTime?)null);
+            if(datetimeValue == default(DateTime))
                 writer.WriteValue((DateTime?)null);
             else
                 writer.WriteValue((long)Math.Round(((DateTime)value - new DateTime(1970, 1, 1)).TotalMilliseconds));

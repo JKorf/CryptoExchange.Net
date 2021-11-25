@@ -18,10 +18,12 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("1620777600.000")]
         [TestCase("1620777600000")]
         [TestCase("2021-05-12T00:00:00.000Z")]
-        public void TestDateTimeConverterString(string input)
+        [TestCase("", true)]
+        [TestCase("  ", true)]
+        public void TestDateTimeConverterString(string input, bool expectNull = false)
         {
             var output = JsonConvert.DeserializeObject<TimeObject>($"{{ \"time\": \"{input}\" }}");
-            Assert.AreEqual(output.Time, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.AreEqual(output.Time, expectNull ? null: new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [TestCase(1620777600.000)]
@@ -36,13 +38,14 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(1620777600000)]
         [TestCase(1620777600000000)]
         [TestCase(1620777600000000000)]
-        public void TestDateTimeConverterLong(long input)
+        [TestCase(0, true)]
+        public void TestDateTimeConverterLong(long input, bool expectNull = false)
         {
             var output = JsonConvert.DeserializeObject<TimeObject>($"{{ \"time\": {input} }}");
-            Assert.AreEqual(output.Time, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.AreEqual(output.Time, expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
-        [Test]
+        [TestCase()]
         public void TestDateTimeConverterNull()
         {
             var output = JsonConvert.DeserializeObject<TimeObject>($"{{ \"time\": null }}");
