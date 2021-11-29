@@ -60,33 +60,42 @@ namespace CryptoExchange.Net.Objects
         public bool ChecksumValidationEnabled { get; set; } = true;
     }
 
-    /// <summary>
-    /// Base client options
-    /// </summary>
-    public class ClientOptions : BaseOptions
+    public class SubClientOptions
     {
-        private string _baseAddress = string.Empty;
-
         /// <summary>
-        /// The base address of the client
+        /// The base address of the sub client
         /// </summary>
-        public string BaseAddress
-        {
-            get => _baseAddress;
-            set
-            {
-                if (value == null)
-                    return;
-
-                _baseAddress = value;
-            }
-        }
+        public string BaseAddress { get; set; }
 
         /// <summary>
         /// The api credentials used for signing requests
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
 
+        /// <summary>
+        /// Copy the values of the def to the input
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : SubClientOptions
+        {
+            input.BaseAddress = def.BaseAddress;
+            input.ApiCredentials = def.ApiCredentials?.Copy();
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
+        }
+    }
+
+    /// <summary>
+    /// Base client options
+    /// </summary>
+    public class ClientOptions : BaseOptions
+    {
         /// <summary>
         /// Proxy to use when connecting
         /// </summary>
@@ -102,22 +111,17 @@ namespace CryptoExchange.Net.Objects
         {
             base.Copy(input, def);
 
-            input.BaseAddress = def.BaseAddress;
-            input.ApiCredentials = def.ApiCredentials?.Copy();
             input.Proxy = def.Proxy;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
+            return $"{base.ToString()}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
         }
     }
 
-    /// <summary>
-    /// Base for rest client options
-    /// </summary>
-    public class RestClientOptions : ClientOptions
+    public class RestSubClientOptions: SubClientOptions
     {
         /// <summary>
         /// List of rate limiters to use
@@ -129,6 +133,32 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
 
+        /// <summary>
+        /// Copy the values of the def to the input
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : RestSubClientOptions
+        {
+            base.Copy(input, def);
+
+            input.RateLimiters = def.RateLimiters.ToList();
+            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}";
+        }
+    }
+
+    /// <summary>
+    /// Base for rest client options
+    /// </summary>
+    public class RestClientOptions : ClientOptions
+    {
         /// <summary>
         /// The time the server has to respond to a request before timing out
         /// </summary>
@@ -150,16 +180,19 @@ namespace CryptoExchange.Net.Objects
             base.Copy(input, def);
                         
             input.HttpClient = def.HttpClient;
-            input.RateLimiters = def.RateLimiters.ToList();
-            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
             input.RequestTimeout = def.RequestTimeout;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-": "set")}";
+            return $"{base.ToString()}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-": "set")}";
         }
+    }
+
+    public class SocketSubClientOptions: SubClientOptions
+    {
+        // TODO do we need this?
     }
 
     /// <summary>

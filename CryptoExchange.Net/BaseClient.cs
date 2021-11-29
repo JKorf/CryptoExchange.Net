@@ -26,10 +26,6 @@ namespace CryptoExchange.Net
         /// </summary>
         protected internal Log log;
         /// <summary>
-        /// The authentication provider when api credentials have been provided
-        /// </summary>
-        protected internal AuthenticationProvider? authProvider;
-        /// <summary>
         /// The last used id, use NextId() to get the next id and up this
         /// </summary>
         protected static int lastId;
@@ -57,11 +53,9 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeName">The name of the exchange this client is for</param>
         /// <param name="options">The options for this client</param>
-        /// <param name="authenticationProvider">The authentication provider for this client (can be null if no credentials are provided)</param>
-        protected BaseClient(string exchangeName, ClientOptions options, AuthenticationProvider? authenticationProvider)
+        protected BaseClient(string exchangeName, ClientOptions options)
         {
             log = new Log(exchangeName);
-            authProvider = authenticationProvider;
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogLevel;
 
@@ -70,16 +64,6 @@ namespace CryptoExchange.Net
             ExchangeName = exchangeName;
 
             log.Write(LogLevel.Debug, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
-        }
-
-        /// <summary>
-        /// Set the authentication provider, can be used when manually setting the API credentials
-        /// </summary>
-        /// <param name="authenticationProvider"></param>
-        protected void SetAuthenticationProvider(AuthenticationProvider authenticationProvider)
-        {
-            log.Write(LogLevel.Debug, "Setting api credentials");
-            authProvider = authenticationProvider;
         }
 
         /// <summary>
@@ -274,31 +258,12 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Fill parameters in a path. Parameters are specified by '{}' and should be specified in occuring sequence
-        /// </summary>
-        /// <param name="path">The total path string</param>
-        /// <param name="values">The values to fill</param>
-        /// <returns></returns>
-        protected static string FillPathParameter(string path, params string[] values)
-        {
-            foreach (var value in values)
-            {
-                var index = path.IndexOf("{}", StringComparison.Ordinal);
-                if (index >= 0)
-                {
-                    path = path.Remove(index, 2);
-                    path = path.Insert(index, value);
-                }
-            }
-            return path;
-        }
-
-        /// <summary>
         /// Dispose
         /// </summary>
         public virtual void Dispose()
         {
-            authProvider?.Credentials?.Dispose();
+            // TODO
+            //authProvider?.Credentials?.Dispose();
             log.Write(LogLevel.Debug, "Disposing exchange client");
         }
     }

@@ -59,11 +59,6 @@ namespace CryptoExchange.Net
         /// </summary>
         protected string requestBodyEmptyContent = "{}";
                 
-        /// <summary>
-        /// List of rate limiters
-        /// </summary>
-        protected IEnumerable<IRateLimiter> RateLimiters { get; }
-
         /// <inheritdoc />
         public int TotalRequestsMade { get; private set; }
 
@@ -82,8 +77,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeName">The name of the exchange this client is for</param>
         /// <param name="exchangeOptions">The options for this client</param>
-        /// <param name="authenticationProvider">The authentication provider for this client (can be null if no credentials are provided)</param>
-        protected RestClient(string exchangeName, RestClientOptions exchangeOptions, AuthenticationProvider? authenticationProvider) : base(exchangeName, exchangeOptions, authenticationProvider)
+        protected RestClient(string exchangeName, RestClientOptions exchangeOptions) : base(exchangeName, exchangeOptions)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
@@ -91,10 +85,6 @@ namespace CryptoExchange.Net
             ClientOptions = exchangeOptions;
             RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
 
-            var rateLimiters = new List<IRateLimiter>();
-            foreach (var rateLimiter in exchangeOptions.RateLimiters)
-                rateLimiters.Add(rateLimiter);
-            RateLimiters = rateLimiters;
         }
 
         /// <summary>
@@ -114,30 +104,32 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
+            RestSubClient subClient,
             Uri uri, 
             HttpMethod method, 
-            CancellationToken cancellationToken,
+            CancellationToken cancellationToken,            
             Dictionary<string, object>? parameters = null, 
             bool signed = false, 
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null, 
             int requestWeight = 1,
             JsonSerializer? deserializer = null,
-            Dictionary<string, string>? additionalHeaders = null) where T : class
+            Dictionary<string, string>? additionalHeaders = null
+            ) where T : class
         {
             var requestId = NextId();
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
-            if (signed && authProvider == null)
+            if (signed && subClient.AuthenticationProvider == null)
             {
                 log.Write(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
-            foreach (var limiter in RateLimiters)
+            var request = ConstructRequest(subClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
+            foreach (var limiter in subClient.RateLimiters)
             {
-                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, ClientOptions.ApiCredentials?.Key, ClientOptions.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, subClient.Options.ApiCredentials?.Key, subClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
                 if (!limitResult.Success)                
                     return new WebCallResult<T>(null, null, null, limitResult.Error);
             }
@@ -275,6 +267,7 @@ namespace CryptoExchange.Net
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
         protected virtual IRequest ConstructRequest(
+            SubClient subClient,
             Uri uri,
             HttpMethod method,
             Dictionary<string, object>? parameters,
@@ -287,8 +280,8 @@ namespace CryptoExchange.Net
             parameters ??= new Dictionary<string, object>();
 
             var uriString = uri.ToString();
-            if (authProvider != null)
-                parameters = authProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
+            if (subClient.AuthenticationProvider != null)
+                parameters = subClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
 
             if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
@@ -298,8 +291,8 @@ namespace CryptoExchange.Net
             request.Accept = Constants.JsonContentHeader;
 
             var headers = new Dictionary<string, string>();
-            if (authProvider != null)
-                headers = authProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
+            if (subClient.AuthenticationProvider != null)
+                headers = subClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
 
             foreach (var header in headers)
                 request.AddHeader(header.Key, header.Value);

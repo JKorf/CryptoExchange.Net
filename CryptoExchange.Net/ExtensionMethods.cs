@@ -72,7 +72,7 @@ namespace CryptoExchange.Net
         /// <param name="value"></param>
         public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value)
         {
-            if(value != null)
+            if (value != null)
                 parameters.Add(key, value);
         }
 
@@ -127,7 +127,7 @@ namespace CryptoExchange.Net
             var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
             foreach (var arrayEntry in arraysParameters)
             {
-                if(serializationType == ArrayParametersSerialization.Array)
+                if (serializationType == ArrayParametersSerialization.Array)
                     uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? Uri.EscapeDataString(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
                 else
                 {
@@ -368,6 +368,26 @@ namespace CryptoExchange.Net
                 url += item.Trim('/') + "/";
 
             return url.TrimEnd('/');
+        }
+
+        /// <summary>
+        /// Fill parameters in a path. Parameters are specified by '{}' and should be specified in occuring sequence
+        /// </summary>
+        /// <param name="path">The total path string</param>
+        /// <param name="values">The values to fill</param>
+        /// <returns></returns>
+        public static string FillPathParameters(this string path, params string[] values)
+        {
+            foreach (var value in values)
+            {
+                var index = path.IndexOf("{}", StringComparison.Ordinal);
+                if (index >= 0)
+                {
+                    path = path.Remove(index, 2);
+                    path = path.Insert(index, value);
+                }
+            }
+            return path;
         }
     }
 }

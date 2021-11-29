@@ -224,7 +224,7 @@ namespace CryptoExchange.Net.Sockets
             try
             {
                 using CancellationTokenSource tcs = new CancellationTokenSource(TimeSpan.FromSeconds(10));                
-                await _socket.ConnectAsync(new Uri(Url), default).ConfigureAwait(false);
+                await _socket.ConnectAsync(new Uri(Url), tcs.Token).ConfigureAwait(false);
                 
                 Handle(openHandlers);
             }

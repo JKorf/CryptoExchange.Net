@@ -85,7 +85,12 @@ namespace CryptoExchange.Net.Converters
                     // Parse 1637745563.000 format
                     if (doubleValue < 1999999999)
                         return ConvertFromSeconds(doubleValue);
-                    return ConvertFromMilliseconds(doubleValue);
+                    if (doubleValue < 1999999999999)
+                        return ConvertFromMilliseconds((long)doubleValue);
+                    if (doubleValue < 1999999999999999)
+                        return ConvertFromMicroseconds((long)doubleValue);
+
+                    return ConvertFromNanoseconds((long)doubleValue);
                 }
 
                 if(stringValue.Length == 10)

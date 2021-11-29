@@ -77,6 +77,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public IWebsocket Socket { get; set; }
 
+        public SocketSubClient SubClient { get; set; }
+
         /// <summary>
         /// If the socket should be reconnected upon closing
         /// </summary>
@@ -96,6 +98,11 @@ namespace CryptoExchange.Net.Sockets
         /// Time of disconnecting
         /// </summary>
         public DateTime? DisconnectTime { get; set; }
+
+        /// <summary>
+        /// Tag for identificaion
+        /// </summary>
+        public string? Tag { get; set; }
 
         /// <summary>
         /// If activity is paused
@@ -130,10 +137,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="client">The socket client</param>
         /// <param name="socket">The socket</param>
-        public SocketConnection(SocketClient client, IWebsocket socket)
+        public SocketConnection(SocketClient client, SocketSubClient subClient, IWebsocket socket)
         {
             log = client.log;
             socketClient = client;
+            SubClient = subClient;
 
             pendingRequests = new List<PendingRequest>();
 
