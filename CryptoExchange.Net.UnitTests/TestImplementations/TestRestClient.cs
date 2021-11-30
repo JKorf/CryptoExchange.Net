@@ -17,24 +17,21 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestRestClient: RestClient
     {
-        public TestRestClient() : base("Test", new RestClientOptions(), null)
+        public TestRestSubClient SubClient { get; }
+
+        public TestRestClient() : this(new TestRestClientOptions())
         {
-            RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        public TestRestClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestRestClient(TestRestClientOptions exchangeOptions) : base("Test", exchangeOptions)
         {
+            SubClient = new TestRestSubClient(exchangeOptions);
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
         public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
         {
             ParameterPositions[method] = position;
-        }
-
-        public void SetKey(string key, string secret)
-        {
-            SetAuthenticationProvider(new UnitTests.TestAuthProvider(new ApiCredentials(key, secret)));
         }
 
         public void SetResponse(string responseData, out IRequest requestObj)
@@ -106,13 +103,26 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T:class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
+            return await SendRequestAsync<T>(SubClient, new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
 
         public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
+            return await SendRequestAsync<T>(SubClient, new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
         }
+    }
+
+    public class TestRestSubClient: RestSubClient
+    {
+        public TestRestSubClient(TestRestClientOptions options): base(options.SubOptions, null)
+        {
+
+        }
+    }
+
+    public class TestRestClientOptions: RestClientOptions
+    {
+        public RestSubClientOptions SubOptions { get; set; } = new RestSubClientOptions();
     }
 
     public class TestAuthProvider : AuthenticationProvider
@@ -125,7 +135,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     public class ParseErrorTestRestClient: TestRestClient
     {
         public ParseErrorTestRestClient() { }
-        public ParseErrorTestRestClient(RestClientOptions exchangeOptions) : base(exchangeOptions) { }
+        public ParseErrorTestRestClient(TestRestClientOptions exchangeOptions) : base(exchangeOptions) { }
 
         protected override Error ParseErrorResponse(JToken error)
         {

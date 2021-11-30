@@ -8,11 +8,11 @@ namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base("Test", new RestClientOptions(), null)
+        public TestBaseClient(): base("Test", new RestClientOptions())
         {
         }
 
-        public TestBaseClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestBaseClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions)
         {
         }
 
@@ -24,11 +24,6 @@ namespace CryptoExchange.Net.UnitTests
         public CallResult<T> Deserialize<T>(string data)
         {
             return Deserialize<T>(data, null, null);
-        }
-
-        public string FillParameters(string path, params string[] values)
-        {
-            return FillPathParameter(path, values);
         }
     }
 

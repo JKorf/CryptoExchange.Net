@@ -21,7 +21,7 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class SubClient
+    public abstract class SubClient: IDisposable
     {
         public AuthenticationProvider? AuthenticationProvider { get; }
         protected string BaseAddress { get; }
@@ -32,5 +32,12 @@ namespace CryptoExchange.Net
             BaseAddress = options.BaseAddress;
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose()
+        {
+            AuthenticationProvider?.Credentials?.Dispose();
+        }
     }
 }

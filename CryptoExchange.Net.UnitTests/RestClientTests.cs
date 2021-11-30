@@ -106,19 +106,22 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new RestClientOptions()
+            var client = new TestRestClient(new TestRestClientOptions()
             {
-                BaseAddress = "http://test.address.com",
-                RateLimiters = new List<IRateLimiter>{new RateLimiter()},
-                RateLimitingBehaviour = RateLimitingBehaviour.Fail,
+                SubOptions = new RestSubClientOptions
+                {
+                    BaseAddress = "http://test.address.com",
+                    RateLimiters = new List<IRateLimiter> { new RateLimiter() },
+                    RateLimitingBehaviour = RateLimitingBehaviour.Fail
+                },
                 RequestTimeout = TimeSpan.FromMinutes(1)
             });
 
 
             // assert
-            Assert.IsTrue(client.ClientOptions.BaseAddress == "http://test.address.com");
-            Assert.IsTrue(client.ClientOptions.RateLimiters.Count == 1);
-            Assert.IsTrue(client.ClientOptions.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
+            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.BaseAddress == "http://test.address.com");
+            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.RateLimiters.Count == 1);
+            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
             Assert.IsTrue(client.ClientOptions.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
@@ -133,9 +136,12 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new RestClientOptions()
+            var client = new TestRestClient(new TestRestClientOptions()
             {
-                BaseAddress = "http://test.address.com",
+                SubOptions = new RestSubClientOptions
+                {
+                    BaseAddress = "http://test.address.com"
+                }
             });
 
             client.SetParameterPosition(new HttpMethod(method), pos);

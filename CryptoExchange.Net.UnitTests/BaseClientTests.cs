@@ -22,7 +22,8 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             // act
             // assert
-            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new RestClientOptions() { ApiCredentials = new ApiCredentials(key, secret) }));
+            Assert.Throws(typeof(ArgumentException),
+                () => new RestSubClientOptions() { ApiCredentials = new ApiCredentials(key, secret) });
         }
 
         [TestCase]
@@ -110,19 +111,6 @@ namespace CryptoExchange.Net.UnitTests
             // assert
             Assert.IsFalse(result.Success);
             Assert.IsTrue(result.Error != null);
-        }
-
-        [TestCase]
-        public void FillingPathParameters_Should_ResultInValidUrl()
-        {
-            // arrange
-            var client = new TestBaseClient();
-
-            // act
-            var result = client.FillParameters("http://test.api/{}/path/{}", "1", "test");
-
-            // assert
-            Assert.IsTrue(result == "http://test.api/1/path/test");
         }
 
         [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]

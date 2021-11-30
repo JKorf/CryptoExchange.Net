@@ -262,8 +262,6 @@ namespace CryptoExchange.Net
         /// </summary>
         public virtual void Dispose()
         {
-            // TODO
-            //authProvider?.Credentials?.Dispose();
             log.Write(LogLevel.Debug, "Disposing exchange client");
         }
     }

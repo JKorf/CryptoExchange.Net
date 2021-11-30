@@ -23,9 +23,9 @@ namespace CryptoExchange.Net
     /// </summary>
     public abstract class SocketSubClient : SubClient
     {
-        internal SocketSubClientOptions Options { get; }
+        internal SubClientOptions Options { get; }
 
-        public SocketSubClient(SocketSubClientOptions options, AuthenticationProvider? authProvider): base(options,authProvider)
+        public SocketSubClient(SubClientOptions options, AuthenticationProvider? authProvider): base(options,authProvider)
         {
             Options = options;
         }

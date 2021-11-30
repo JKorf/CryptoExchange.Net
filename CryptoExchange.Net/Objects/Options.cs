@@ -190,11 +190,6 @@ namespace CryptoExchange.Net.Objects
         }
     }
 
-    public class SocketSubClientOptions: SubClientOptions
-    {
-        // TODO do we need this?
-    }
-
     /// <summary>
     /// Base for socket client options
     /// </summary>

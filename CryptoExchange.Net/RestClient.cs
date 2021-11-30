@@ -365,5 +365,11 @@ namespace CryptoExchange.Net
         {
             return new ServerError(error.ToString());
         }
+
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            base.Dispose();
+        }
     }
 }

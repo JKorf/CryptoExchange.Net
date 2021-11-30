@@ -11,12 +11,15 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     public class TestSocketClient: SocketClient
     {
-        public TestSocketClient() : this(new SocketClientOptions())
+        public TestSubSocketClient SubClient { get; }
+
+        public TestSocketClient() : this(new TestOptions())
         {
         }
 
-        public TestSocketClient(SocketClientOptions exchangeOptions) : base("test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestSocketClient(TestOptions exchangeOptions) : base("test", exchangeOptions)
         {
+            SubClient = new TestSubSocketClient(exchangeOptions.SubOptions);
             SocketFactory = new Mock<IWebsocketFactory>().Object;
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
         }
@@ -24,7 +27,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestSocket CreateSocket()
         {
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
-            return (TestSocket)CreateSocket(ClientOptions.BaseAddress);
+            return (TestSocket)CreateSocket("123");
         }
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
@@ -61,6 +64,20 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         protected internal override Task<bool> UnsubscribeAsync(SocketConnection connection, SocketSubscription s)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class TestOptions: SocketClientOptions
+    {
+        public SubClientOptions SubOptions { get; set; } = new SubClientOptions();
+    }
+
+    public class TestSubSocketClient : SocketSubClient
+    {
+
+        public TestSubSocketClient(SubClientOptions options): base(options, options.ApiCredentials == null ? null: new TestAuthProvider(options.ApiCredentials))
+        {
+
         }
     }
 }
