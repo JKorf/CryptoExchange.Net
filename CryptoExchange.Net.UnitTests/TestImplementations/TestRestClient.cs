@@ -15,17 +15,19 @@ using System.Collections.Generic;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
-    public class TestRestClient: RestClient
+    public class TestRestClient: BaseRestClient
     {
-        public TestRestSubClient SubClient { get; }
+        public TestRestApi1Client Api1 { get; }
+        public TestRestApi2Client Api2 { get; }
 
-        public TestRestClient() : this(new TestRestClientOptions())
+        public TestRestClient() : this(new TestClientOptions())
         {
         }
 
-        public TestRestClient(TestRestClientOptions exchangeOptions) : base("Test", exchangeOptions)
+        public TestRestClient(TestClientOptions exchangeOptions) : base("Test", exchangeOptions)
         {
-            SubClient = new TestRestSubClient(exchangeOptions);
+            Api1 = new TestRestApi1Client(exchangeOptions);
+            Api2 = new TestRestApi2Client(exchangeOptions);
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
@@ -103,26 +105,35 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T:class
         {
-            return await SendRequestAsync<T>(SubClient, new Uri("http://www.test.com"), HttpMethod.Get, ct);
+            return await SendRequestAsync<T>(Api1, new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
 
         public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
         {
-            return await SendRequestAsync<T>(SubClient, new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
+            return await SendRequestAsync<T>(Api1, new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
         }
     }
 
-    public class TestRestSubClient: RestSubClient
+    public class TestRestApi1Client : RestApiClient
     {
-        public TestRestSubClient(TestRestClientOptions options): base(options.SubOptions, null)
+        public TestRestApi1Client(TestClientOptions options): base(options, options.Api1Options)
         {
 
         }
+
+        public override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+            => new TestAuthProvider(credentials);
     }
 
-    public class TestRestClientOptions: RestClientOptions
+    public class TestRestApi2Client : RestApiClient
     {
-        public RestSubClientOptions SubOptions { get; set; } = new RestSubClientOptions();
+        public TestRestApi2Client(TestClientOptions options) : base(options, options.Api2Options)
+        {
+
+        }
+
+        public override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+            => new TestAuthProvider(credentials);
     }
 
     public class TestAuthProvider : AuthenticationProvider
@@ -135,7 +146,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     public class ParseErrorTestRestClient: TestRestClient
     {
         public ParseErrorTestRestClient() { }
-        public ParseErrorTestRestClient(TestRestClientOptions exchangeOptions) : base(exchangeOptions) { }
+        public ParseErrorTestRestClient(TestClientOptions exchangeOptions) : base(exchangeOptions) { }
 
         protected override Error ParseErrorResponse(JToken error)
         {

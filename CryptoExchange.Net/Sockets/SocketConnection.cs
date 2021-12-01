@@ -77,7 +77,10 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public IWebsocket Socket { get; set; }
 
-        public SocketSubClient SubClient { get; set; }
+        /// <summary>
+        /// The API client the connection is for
+        /// </summary>
+        public SocketApiClient ApiClient { get; set; }
 
         /// <summary>
         /// If the socket should be reconnected upon closing
@@ -128,7 +131,7 @@ namespace CryptoExchange.Net.Sockets
 
         private bool lostTriggered;
         private readonly Log log;
-        private readonly SocketClient socketClient;
+        private readonly BaseSocketClient socketClient;
 
         private readonly List<PendingRequest> pendingRequests;
 
@@ -136,12 +139,13 @@ namespace CryptoExchange.Net.Sockets
         /// New socket connection
         /// </summary>
         /// <param name="client">The socket client</param>
+        /// <param name="apiClient">The api client</param>
         /// <param name="socket">The socket</param>
-        public SocketConnection(SocketClient client, SocketSubClient subClient, IWebsocket socket)
+        public SocketConnection(BaseSocketClient client, SocketApiClient apiClient, IWebsocket socket)
         {
             log = client.log;
             socketClient = client;
-            SubClient = subClient;
+            ApiClient = apiClient;
 
             pendingRequests = new List<PendingRequest>();
 

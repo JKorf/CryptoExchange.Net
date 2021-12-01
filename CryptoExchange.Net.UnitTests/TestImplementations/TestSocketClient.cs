@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
@@ -9,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
-    public class TestSocketClient: SocketClient
+    public class TestSocketClient: BaseSocketClient
     {
         public TestSubSocketClient SubClient { get; }
 
@@ -19,7 +20,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public TestSocketClient(TestOptions exchangeOptions) : base("test", exchangeOptions)
         {
-            SubClient = new TestSubSocketClient(exchangeOptions.SubOptions);
+            SubClient = new TestSubSocketClient(exchangeOptions, exchangeOptions.SubOptions);
             SocketFactory = new Mock<IWebsocketFactory>().Object;
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
         }
@@ -67,17 +68,20 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
     }
 
-    public class TestOptions: SocketClientOptions
+    public class TestOptions: BaseSocketClientOptions
     {
-        public SubClientOptions SubOptions { get; set; } = new SubClientOptions();
+        public ApiClientOptions SubOptions { get; set; } = new ApiClientOptions();
     }
 
-    public class TestSubSocketClient : SocketSubClient
+    public class TestSubSocketClient : SocketApiClient
     {
 
-        public TestSubSocketClient(SubClientOptions options): base(options, options.ApiCredentials == null ? null: new TestAuthProvider(options.ApiCredentials))
+        public TestSubSocketClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
         {
 
         }
+
+        public override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+            => new TestAuthProvider(credentials);
     }
 }

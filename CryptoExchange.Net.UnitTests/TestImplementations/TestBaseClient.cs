@@ -8,11 +8,11 @@ namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base("Test", new RestClientOptions())
+        public TestBaseClient(): base("Test", new BaseClientOptions())
         {
         }
 
-        public TestBaseClient(RestClientOptions exchangeOptions) : base("Test", exchangeOptions)
+        public TestBaseClient(BaseRestClientOptions exchangeOptions) : base("Test", exchangeOptions)
         {
         }
 

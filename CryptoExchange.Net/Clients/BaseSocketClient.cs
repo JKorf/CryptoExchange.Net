@@ -19,7 +19,7 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base for socket client implementations
     /// </summary>
-    public abstract class SocketClient: BaseClient, ISocketClient
+    public abstract class BaseSocketClient: BaseClient, ISocketClient
     {
         #region fields
         /// <summary>
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Client options
         /// </summary>
-        public new SocketClientOptions ClientOptions { get; }
+        public new BaseSocketClientOptions ClientOptions { get; }
 
         #endregion
 
@@ -104,7 +104,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exchangeName">The name of the exchange this client is for</param>
         /// <param name="exchangeOptions">The options for this client</param>
-        protected SocketClient(string exchangeName, SocketClientOptions exchangeOptions): base(exchangeName, exchangeOptions)
+        protected BaseSocketClient(string exchangeName, BaseSocketClientOptions exchangeOptions): base(exchangeName, exchangeOptions)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
@@ -133,9 +133,9 @@ namespace CryptoExchange.Net
         /// <param name="dataHandler">The handler of update data</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketSubClient subClient, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
+        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketApiClient apiClient, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
-            return SubscribeAsync(subClient, subClient.Options.BaseAddress, request, identifier, authenticated, dataHandler, ct);
+            return SubscribeAsync(apiClient, apiClient.Options.BaseAddress, request, identifier, authenticated, dataHandler, ct);
         }
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace CryptoExchange.Net
         /// <param name="dataHandler">The handler of update data</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketSubClient subClient, string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
+        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketApiClient apiClient, string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
             SocketConnection socketConnection;
             SocketSubscription subscription;
@@ -168,7 +168,7 @@ namespace CryptoExchange.Net
             try
             {
                 // Get a new or existing socket connection
-                socketConnection = GetSocketConnection(subClient, url, authenticated);
+                socketConnection = GetSocketConnection(apiClient, url, authenticated);
 
                 // Add a subscription on the socket connection
                 subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler);
@@ -253,9 +253,9 @@ namespace CryptoExchange.Net
         /// <param name="request">The request to send, will be serialized to json</param>
         /// <param name="authenticated">If the query is to an authenticated endpoint</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<T>> QueryAsync<T>(SocketSubClient subClient, object request, bool authenticated)
+        protected virtual Task<CallResult<T>> QueryAsync<T>(SocketApiClient apiClient, object request, bool authenticated)
         {
-            return QueryAsync<T>(subClient, subClient.Options.BaseAddress, request, authenticated);
+            return QueryAsync<T>(apiClient, apiClient.Options.BaseAddress, request, authenticated);
         }
 
         /// <summary>
@@ -266,14 +266,14 @@ namespace CryptoExchange.Net
         /// <param name="request">The request to send</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<T>> QueryAsync<T>(SocketSubClient subClient, string url, object request, bool authenticated)
+        protected virtual async Task<CallResult<T>> QueryAsync<T>(SocketApiClient apiClient, string url, object request, bool authenticated)
         {
             SocketConnection socketConnection;
             var released = false;
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                socketConnection = GetSocketConnection(subClient, url, authenticated);
+                socketConnection = GetSocketConnection(apiClient, url, authenticated);
                 if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
                 {
                     // Can release early when only a single sub per connection
@@ -480,10 +480,10 @@ namespace CryptoExchange.Net
         /// <param name="address">The address the socket is for</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>
-        protected virtual SocketConnection GetSocketConnection(SocketSubClient subClient, string address, bool authenticated)
+        protected virtual SocketConnection GetSocketConnection(SocketApiClient apiClient, string address, bool authenticated)
         {
             var socketResult = sockets.Where(s => s.Value.Socket.Url.TrimEnd('/') == address.TrimEnd('/')
-                                                  && (s.Value.SubClient.GetType() == subClient.GetType())
+                                                  && (s.Value.ApiClient.GetType() == apiClient.GetType())
                                                   && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.SubscriptionCount).FirstOrDefault();
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
@@ -497,7 +497,7 @@ namespace CryptoExchange.Net
 
             // Create new socket
             var socket = CreateSocket(address);
-            var socketConnection = new SocketConnection(this, subClient, socket);
+            var socketConnection = new SocketConnection(this, apiClient, socket);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {

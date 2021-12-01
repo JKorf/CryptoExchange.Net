@@ -106,9 +106,9 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new TestRestClientOptions()
+            var client = new TestRestClient(new TestClientOptions()
             {
-                SubOptions = new RestSubClientOptions
+                Api1Options = new RestApiClientOptions
                 {
                     BaseAddress = "http://test.address.com",
                     RateLimiters = new List<IRateLimiter> { new RateLimiter() },
@@ -119,9 +119,9 @@ namespace CryptoExchange.Net.UnitTests
 
 
             // assert
-            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.BaseAddress == "http://test.address.com");
-            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.RateLimiters.Count == 1);
-            Assert.IsTrue(((TestRestClientOptions)client.ClientOptions).SubOptions.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
+            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.BaseAddress == "http://test.address.com");
+            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
+            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
             Assert.IsTrue(client.ClientOptions.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
@@ -136,9 +136,9 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new TestRestClientOptions()
+            var client = new TestRestClient(new TestClientOptions()
             {
-                SubOptions = new RestSubClientOptions
+                Api1Options = new RestApiClientOptions
                 {
                     BaseAddress = "http://test.address.com"
                 }

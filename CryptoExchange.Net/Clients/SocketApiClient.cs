@@ -21,13 +21,13 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class SocketSubClient : SubClient
+    public abstract class SocketApiClient : BaseApiClient
     {
-        internal SubClientOptions Options { get; }
+        internal ApiClientOptions Options { get; }
 
-        public SocketSubClient(SubClientOptions options, AuthenticationProvider? authProvider): base(options,authProvider)
+        public SocketApiClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
         {
-            Options = options;
+            Options = apiOptions;
         }
 
     }

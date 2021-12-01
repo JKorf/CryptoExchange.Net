@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.UnitTests
             //act
             var client = new TestSocketClient(new TestOptions()
             {
-                SubOptions = new SubClientOptions
+                SubOptions = new RestApiClientOptions
                 {
                     BaseAddress = "http://test.address.com"
                 },

@@ -50,26 +50,18 @@ namespace CryptoExchange.Net.Objects
     }
 
     /// <summary>
-    /// Base for order book options
+    /// Base client options
     /// </summary>
-    public class OrderBookOptions : BaseOptions
+    public class BaseClientOptions : BaseOptions
     {
         /// <summary>
-        /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
+        /// Proxy to use when connecting
         /// </summary>
-        public bool ChecksumValidationEnabled { get; set; } = true;
-    }
-
-    public class SubClientOptions
-    {
-        /// <summary>
-        /// The base address of the sub client
-        /// </summary>
-        public string BaseAddress { get; set; }
+        public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// The api credentials used for signing requests
-        /// </summary>        
+        /// Api credentials to be used for all api clients unless overriden
+        /// </summary>
         public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
@@ -78,40 +70,12 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
         /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : SubClientOptions
-        {
-            input.BaseAddress = def.BaseAddress;
-            input.ApiCredentials = def.ApiCredentials?.Copy();
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
-        }
-    }
-
-    /// <summary>
-    /// Base client options
-    /// </summary>
-    public class ClientOptions : BaseOptions
-    {
-        /// <summary>
-        /// Proxy to use when connecting
-        /// </summary>
-        public ApiProxy? Proxy { get; set; }
-
-        /// <summary>
-        /// Copy the values of the def to the input
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : ClientOptions
+        public new void Copy<T>(T input, T def) where T : BaseClientOptions
         {
             base.Copy(input, def);
 
             input.Proxy = def.Proxy;
+            input.ApiCredentials = def.ApiCredentials?.Copy();
         }
 
         /// <inheritdoc />
@@ -121,43 +85,10 @@ namespace CryptoExchange.Net.Objects
         }
     }
 
-    public class RestSubClientOptions: SubClientOptions
-    {
-        /// <summary>
-        /// List of rate limiters to use
-        /// </summary>
-        public List<IRateLimiter> RateLimiters { get; set; } = new List<IRateLimiter>();
-
-        /// <summary>
-        /// What to do when a call would exceed the rate limit
-        /// </summary>
-        public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
-
-        /// <summary>
-        /// Copy the values of the def to the input
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : RestSubClientOptions
-        {
-            base.Copy(input, def);
-
-            input.RateLimiters = def.RateLimiters.ToList();
-            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters.Count}, RateLimitBehaviour: {RateLimitingBehaviour}";
-        }
-    }
-
     /// <summary>
     /// Base for rest client options
     /// </summary>
-    public class RestClientOptions : ClientOptions
+    public class BaseRestClientOptions : BaseClientOptions
     {
         /// <summary>
         /// The time the server has to respond to a request before timing out
@@ -175,10 +106,10 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
         /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : RestClientOptions
+        public new void Copy<T>(T input, T def) where T : BaseRestClientOptions
         {
             base.Copy(input, def);
-                        
+
             input.HttpClient = def.HttpClient;
             input.RequestTimeout = def.RequestTimeout;
         }
@@ -186,14 +117,14 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-": "set")}";
+            return $"{base.ToString()}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-" : "set")}";
         }
     }
 
     /// <summary>
     /// Base for socket client options
     /// </summary>
-    public class SocketClientOptions : ClientOptions
+    public class BaseSocketClientOptions : BaseClientOptions
     {
         /// <summary>
         /// Whether or not the socket should automatically reconnect when losing connection
@@ -244,7 +175,7 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="T"></typeparam>
         /// <param name="input"></param>
         /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : SocketClientOptions
+        public new void Copy<T>(T input, T def) where T : BaseSocketClientOptions
         {
             base.Copy(input, def);
 
@@ -264,4 +195,110 @@ namespace CryptoExchange.Net.Objects
             return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxReconnectTries: {MaxReconnectTries}, MaxResubscribeTries: {MaxResubscribeTries}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
         }
     }
+
+    public class ApiClientOptions
+    {
+        /// <summary>
+        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
+        /// </summary>
+        public string BaseAddress { get; set; }
+
+        /// <summary>
+        /// The api credentials used for signing requests
+        /// </summary>        
+        public ApiCredentials? ApiCredentials { get; set; }
+
+
+        public ApiClientOptions()
+        {
+        }
+
+        public ApiClientOptions(string baseAddres)
+        {
+            BaseAddress = baseAddres;
+        }
+
+        public ApiClientOptions(ApiClientOptions baseOn)
+        {
+            Copy(this, baseOn);
+        }
+
+        /// <summary>
+        /// Copy the values of the def to the input
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public void Copy<T>(T input, T def) where T : ApiClientOptions
+        {
+            if (def.BaseAddress != null)
+                input.BaseAddress = def.BaseAddress;
+            input.ApiCredentials = def.ApiCredentials?.Copy();
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
+        }
+    }
+    
+    public class RestApiClientOptions: ApiClientOptions
+    {
+        /// <summary>
+        /// List of rate limiters to use
+        /// </summary>
+        public List<IRateLimiter> RateLimiters { get; set; } = new List<IRateLimiter>();
+
+        /// <summary>
+        /// What to do when a call would exceed the rate limit
+        /// </summary>
+        public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+
+        public RestApiClientOptions()
+        {
+        }
+
+        public RestApiClientOptions(string baseAddress): base(baseAddress)
+        {
+        }
+
+        public RestApiClientOptions(RestApiClientOptions baseOn)
+        {
+            Copy(this, baseOn);
+        }
+
+        /// <summary>
+        /// Copy the values of the def to the input
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="def"></param>
+        public new void Copy<T>(T input, T def) where T : RestApiClientOptions
+        {
+            base.Copy(input, def);
+
+            if(def.RateLimiters != null)
+                input.RateLimiters = def.RateLimiters.ToList();
+            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}";
+        }
+    }
+
+    /// <summary>
+    /// Base for order book options
+    /// </summary>
+    public class OrderBookOptions : BaseOptions
+    {
+        /// <summary>
+        /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
+        /// </summary>
+        public bool ChecksumValidationEnabled { get; set; } = true;
+    }
+
 }

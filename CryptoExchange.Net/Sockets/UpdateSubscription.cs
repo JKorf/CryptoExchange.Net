@@ -22,8 +22,8 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Event when the connection is closed. This event happens when reconnecting/resubscribing has failed too often based on the <see cref="SocketClientOptions.MaxReconnectTries"/> and <see cref="SocketClientOptions.MaxResubscribeTries"/> options,
-        /// or <see cref="SocketClientOptions.AutoReconnect"/> is false. The socket will not be reconnected
+        /// Event when the connection is closed. This event happens when reconnecting/resubscribing has failed too often based on the <see cref="BaseSocketClientOptions.MaxReconnectTries"/> and <see cref="BaseSocketClientOptions.MaxResubscribeTries"/> options,
+        /// or <see cref="BaseSocketClientOptions.AutoReconnect"/> is false. The socket will not be reconnected
         /// </summary>
         public event Action ConnectionClosed
         {

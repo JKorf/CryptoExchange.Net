@@ -21,23 +21,24 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class SubClient: IDisposable
+    public abstract class RestApiClient: BaseApiClient
     {
-        public AuthenticationProvider? AuthenticationProvider { get; }
-        protected string BaseAddress { get; }
-
-        public SubClient(SubClientOptions options, AuthenticationProvider? authProvider)
-        {
-            AuthenticationProvider = authProvider;
-            BaseAddress = options.BaseAddress;
-        }
+        internal RestApiClientOptions Options { get; }
 
         /// <summary>
-        /// Dispose
+        /// List of rate limiters
         /// </summary>
-        public void Dispose()
+        internal IEnumerable<IRateLimiter> RateLimiters { get; }
+
+        public RestApiClient(BaseRestClientOptions options, RestApiClientOptions apiOptions): base(options, apiOptions)
         {
-            AuthenticationProvider?.Credentials?.Dispose();
+            Options = apiOptions;
+
+            var rateLimiters = new List<IRateLimiter>();
+            foreach (var rateLimiter in apiOptions.RateLimiters)
+                rateLimiters.Add(rateLimiter);
+            RateLimiters = rateLimiters;
         }
+
     }
 }

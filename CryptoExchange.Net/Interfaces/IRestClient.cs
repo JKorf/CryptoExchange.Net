@@ -21,6 +21,6 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The options provided for this client
         /// </summary>
-        RestClientOptions ClientOptions { get; }
+        BaseRestClientOptions ClientOptions { get; }
     }
 }

@@ -21,7 +21,7 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest client
     /// </summary>
-    public abstract class RestClient : BaseClient, IRestClient
+    public abstract class BaseRestClient : BaseClient, IRestClient
     {
         /// <summary>
         /// The factory for creating requests. Used for unit testing
@@ -70,14 +70,14 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Client options
         /// </summary>
-        public new RestClientOptions ClientOptions { get; }
+        public new BaseRestClientOptions ClientOptions { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="exchangeName">The name of the exchange this client is for</param>
         /// <param name="exchangeOptions">The options for this client</param>
-        protected RestClient(string exchangeName, RestClientOptions exchangeOptions) : base(exchangeName, exchangeOptions)
+        protected BaseRestClient(string exchangeName, BaseRestClientOptions exchangeOptions) : base(exchangeName, exchangeOptions)
         {
             if (exchangeOptions == null)
                 throw new ArgumentNullException(nameof(exchangeOptions));
@@ -104,7 +104,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
-            RestSubClient subClient,
+            RestApiClient apiClient,
             Uri uri, 
             HttpMethod method, 
             CancellationToken cancellationToken,            
@@ -119,17 +119,17 @@ namespace CryptoExchange.Net
         {
             var requestId = NextId();
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
-            if (signed && subClient.AuthenticationProvider == null)
+            if (signed && apiClient.AuthenticationProvider == null)
             {
                 log.Write(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
             }
 
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(subClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
-            foreach (var limiter in subClient.RateLimiters)
+            var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
+            foreach (var limiter in apiClient.RateLimiters)
             {
-                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, subClient.Options.ApiCredentials?.Key, subClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, apiClient.Options.ApiCredentials?.Key, apiClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
                 if (!limitResult.Success)                
                     return new WebCallResult<T>(null, null, null, limitResult.Error);
             }
@@ -267,7 +267,7 @@ namespace CryptoExchange.Net
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
         protected virtual IRequest ConstructRequest(
-            SubClient subClient,
+            RestApiClient apiClient,
             Uri uri,
             HttpMethod method,
             Dictionary<string, object>? parameters,
@@ -280,8 +280,8 @@ namespace CryptoExchange.Net
             parameters ??= new Dictionary<string, object>();
 
             var uriString = uri.ToString();
-            if (subClient.AuthenticationProvider != null)
-                parameters = subClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
+            if (apiClient.AuthenticationProvider != null)
+                parameters = apiClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
 
             if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
                 uriString += "?" + parameters.CreateParamString(true, arraySerialization);
@@ -291,8 +291,8 @@ namespace CryptoExchange.Net
             request.Accept = Constants.JsonContentHeader;
 
             var headers = new Dictionary<string, string>();
-            if (subClient.AuthenticationProvider != null)
-                headers = subClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
+            if (apiClient.AuthenticationProvider != null)
+                headers = apiClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
 
             foreach (var header in headers)
                 request.AddHeader(header.Key, header.Value);

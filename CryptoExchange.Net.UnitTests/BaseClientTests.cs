@@ -11,27 +11,12 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture()]
     public class BaseClientTests
     {
-        [TestCase(null, null)]
-        [TestCase("", "")]
-        [TestCase("test", null)]
-        [TestCase("test", "")]
-        [TestCase(null, "test")]
-        [TestCase("", "test")]
-        public void SettingEmptyValuesForAPICredentials_Should_ThrowException(string key, string secret)
-        {
-            // arrange
-            // act
-            // assert
-            Assert.Throws(typeof(ArgumentException),
-                () => new RestSubClientOptions() { ApiCredentials = new ApiCredentials(key, secret) });
-        }
-
         [TestCase]
         public void SettingLogOutput_Should_RedirectLogOutput()
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new RestClientOptions()
+            var client = new TestBaseClient(new BaseRestClientOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             });
@@ -71,7 +56,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var logger = new TestStringLogger();
-            var options = new RestClientOptions()
+            var options = new BaseRestClientOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             };
