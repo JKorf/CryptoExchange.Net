@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Requests;
@@ -91,6 +90,7 @@ namespace CryptoExchange.Net
         /// Execute a request to the uri and deserialize the response into the provided type parameter
         /// </summary>
         /// <typeparam name="T">The type to deserialize into</typeparam>
+        /// <param name="apiClient">The API client the request is for</param>
         /// <param name="uri">The uri to send the request to</param>
         /// <param name="method">The method of the request</param>
         /// <param name="cancellationToken">Cancellation token</param>
@@ -257,6 +257,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Creates a request object
         /// </summary>
+        /// <param name="apiClient">The API client the request is for</param>
         /// <param name="uri">The uri to send the request to</param>
         /// <param name="method">The method of the request</param>
         /// <param name="parameters">The parameters of the request</param>

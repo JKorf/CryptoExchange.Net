@@ -19,12 +19,15 @@ using Newtonsoft.Json.Linq;
 namespace CryptoExchange.Net
 {
     /// <summary>
-    /// Base rest client
+    /// Base API for all API clients
     /// </summary>
     public abstract class BaseApiClient: IDisposable
     {
-        private ApiCredentials? _apiCredentials;
-        private AuthenticationProvider _authenticationProvider;
+        private readonly ApiCredentials? _apiCredentials;
+        private AuthenticationProvider? _authenticationProvider;
+        /// <summary>
+        /// The authentication provider for this API client. (null if no credentials are set)
+        /// </summary>
         public AuthenticationProvider? AuthenticationProvider
         {
             get 
@@ -36,14 +39,27 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <summary>
+        /// The base address for this API client
+        /// </summary>
         internal protected string BaseAddress { get; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="options">Client options</param>
+        /// <param name="apiOptions">Api client options</param>
         public BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
         {
             _apiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
             BaseAddress = apiOptions.BaseAddress;
         }
 
+        /// <summary>
+        /// Create an AuthenticationProvider implementation instance based on the provided credentials
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <returns></returns>
         public abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <summary>

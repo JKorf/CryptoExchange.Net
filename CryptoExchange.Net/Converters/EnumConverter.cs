@@ -8,15 +8,20 @@ using System.Linq;
 
 namespace CryptoExchange.Net.Converters
 {
+    /// <summary>
+    /// Converter for enum values. Enums entries should be noted with a MapAttribute to map the enum value to a string value
+    /// </summary>
     public class EnumConverter : JsonConverter
     {
-        private static ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new ConcurrentDictionary<Type, List<KeyValuePair<object, string>>>();
+        private static readonly ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new();
 
+        /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
             return objectType.IsEnum;
         }
 
+        /// <inheritdoc />
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
@@ -56,7 +61,7 @@ namespace CryptoExchange.Net.Converters
             return mapping;
         }
 
-        private bool GetValue(Type objectType, List<KeyValuePair<object, string>> enumMapping, string value, out object? result)
+        private static bool GetValue(Type objectType, List<KeyValuePair<object, string>> enumMapping, string value, out object? result)
         {
             // Check for exact match first, then if not found fallback to a case insensitive match 
             var mapping = enumMapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
@@ -81,6 +86,12 @@ namespace CryptoExchange.Net.Converters
             }
         }
 
+        /// <summary>
+        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="enumValue"></param>
+        /// <returns></returns>
         public static string? GetString<T>(T enumValue)
         {
             var objectType = typeof(T);
@@ -92,6 +103,7 @@ namespace CryptoExchange.Net.Converters
             return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());            
         }
 
+        /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             var stringValue = GetString(value);

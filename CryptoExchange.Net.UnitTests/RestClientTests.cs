@@ -51,14 +51,14 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public void ReceivingErrorCode_Should_ResultInError()
+        public async Task ReceivingErrorCode_Should_ResultInError()
         {
             // arrange
             var client = new TestRestClient();
             client.SetErrorWithoutResponse(System.Net.HttpStatusCode.BadRequest, "Invalid request");
 
             // act
-            var result = client.Request<TestObject>().Result;
+            var result = await client.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -66,14 +66,14 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public void ReceivingErrorAndNotParsingError_Should_ResultInFlatError()
+        public async Task ReceivingErrorAndNotParsingError_Should_ResultInFlatError()
         {
             // arrange
             var client = new TestRestClient();
             client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = client.Request<TestObject>().Result;
+            var result = await client.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -84,14 +84,14 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public void ReceivingErrorAndParsingError_Should_ResultInParsedError()
+        public async Task ReceivingErrorAndParsingError_Should_ResultInParsedError()
         {
             // arrange
             var client = new ParseErrorTestRestClient();
             client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = client.Request<TestObject>().Result;
+            var result = await client.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);

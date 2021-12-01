@@ -238,7 +238,7 @@ namespace CryptoExchange.Net
             }
         }
 
-        private async Task<string> ReadStreamAsync(Stream stream)
+        private static async Task<string> ReadStreamAsync(Stream stream)
         { 
             using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
             return await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -248,7 +248,7 @@ namespace CryptoExchange.Net
         /// Generate a new unique id. The id is staticly stored so it is guarenteed to be unique across different client instances
         /// </summary>
         /// <returns></returns>
-        protected int NextId()
+        protected static int NextId()
         {
             lock (idLock)
             {

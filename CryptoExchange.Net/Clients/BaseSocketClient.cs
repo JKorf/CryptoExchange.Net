@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
@@ -30,11 +29,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// List of socket connections currently connecting/connected
         /// </summary>
-        protected internal ConcurrentDictionary<int, SocketConnection> sockets = new ConcurrentDictionary<int, SocketConnection>();
+        protected internal ConcurrentDictionary<int, SocketConnection> sockets = new();
         /// <summary>
         /// Semaphore used while creating sockets
         /// </summary>
-        protected internal readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        protected internal readonly SemaphoreSlim semaphoreSlim = new(1);
         /// <summary>
         /// The max amount of concurrent socket connections
         /// </summary>
@@ -50,7 +49,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
         /// </summary>
-        protected Dictionary<string, Action<MessageEvent>> genericHandlers = new Dictionary<string, Action<MessageEvent>>();
+        protected Dictionary<string, Action<MessageEvent>> genericHandlers = new();
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
         /// </summary>
@@ -127,6 +126,7 @@ namespace CryptoExchange.Net
         /// Connect to an url and listen for data on the BaseAddress
         /// </summary>
         /// <typeparam name="T">The type of the expected data</typeparam>
+        /// <param name="apiClient">The API client the subscription is for</param>
         /// <param name="request">The optional request object to send, will be serialized to json</param>
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
         /// <param name="authenticated">If the subscription is to an authenticated endpoint</param>
@@ -142,6 +142,7 @@ namespace CryptoExchange.Net
         /// Connect to an url and listen for data
         /// </summary>
         /// <typeparam name="T">The type of the expected data</typeparam>
+        /// <param name="apiClient">The API client the subscription is for</param>
         /// <param name="url">The URL to connect to</param>
         /// <param name="request">The optional request object to send, will be serialized to json</param>
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
@@ -250,6 +251,7 @@ namespace CryptoExchange.Net
         /// Send a query on a socket connection to the BaseAddress and wait for the response
         /// </summary>
         /// <typeparam name="T">Expected result type</typeparam>
+        /// <param name="apiClient">The API client the query is for</param>
         /// <param name="request">The request to send, will be serialized to json</param>
         /// <param name="authenticated">If the query is to an authenticated endpoint</param>
         /// <returns></returns>
@@ -262,6 +264,7 @@ namespace CryptoExchange.Net
         /// Send a query on a socket connection and wait for the response
         /// </summary>
         /// <typeparam name="T">The expected result type</typeparam>
+        /// <param name="apiClient">The API client the query is for</param>
         /// <param name="url">The url for the request</param>
         /// <param name="request">The request to send</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
@@ -477,6 +480,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
         /// </summary>
+        /// <param name="apiClient">The API client the connection is for</param>
         /// <param name="address">The address the socket is for</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>

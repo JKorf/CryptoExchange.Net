@@ -14,6 +14,14 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture()]
     public class OptionsTests
     {
+        [TearDown]
+        public void Init()
+        {
+            TestClientOptions.Default = new TestClientOptions
+            {
+            };
+        }
+
         [TestCase(null, null)]
         [TestCase("", "")]
         [TestCase("test", null)]

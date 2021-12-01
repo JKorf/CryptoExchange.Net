@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace CryptoExchange.Net.Objects
 {
     /// <summary>
-    /// Base options
+    /// Base options, applicable to everything
     /// </summary>
     public class BaseOptions
     {
@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.Objects
     }
 
     /// <summary>
-    /// Base client options
+    /// Client options, for both the socket and rest clients
     /// </summary>
     public class BaseClientOptions : BaseOptions
     {
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.Objects
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// Api credentials to be used for all api clients unless overriden
+        /// Api credentials to be used for signing requests to private endpoints. These credentials will be used for each API in the client, unless overriden in the API options 
         /// </summary>
         public ApiCredentials? ApiCredentials { get; set; }
 
@@ -86,7 +86,7 @@ namespace CryptoExchange.Net.Objects
     }
 
     /// <summary>
-    /// Base for rest client options
+    /// Rest client options
     /// </summary>
     public class BaseRestClientOptions : BaseClientOptions
     {
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options will be ignored in requests and should be set on the provided HttpClient instance
+        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options provided in these options will be ignored in requests and should be set on the provided HttpClient instance
         /// </summary>
         public HttpClient? HttpClient { get; set; }
 
@@ -122,7 +122,7 @@ namespace CryptoExchange.Net.Objects
     }
 
     /// <summary>
-    /// Base for socket client options
+    /// Socket client options
     /// </summary>
     public class BaseSocketClientOptions : BaseClientOptions
     {
@@ -196,32 +196,49 @@ namespace CryptoExchange.Net.Objects
         }
     }
 
+    /// <summary>
+    /// API client options
+    /// </summary>
     public class ApiClientOptions
     {
         /// <summary>
-        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
+        /// The base address of the API
         /// </summary>
         public string BaseAddress { get; set; }
 
         /// <summary>
-        /// The api credentials used for signing requests
+        /// The api credentials used for signing requests to this API. Overrides API credentials provided in the client options
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
 
-
+        /// <summary>
+        /// ctor
+        /// </summary>
+#pragma warning disable 8618 // Will always get filled by the implementation
         public ApiClientOptions()
         {
         }
+#pragma warning restore 8618
 
-        public ApiClientOptions(string baseAddres)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress">Base address for the API</param>
+        public ApiClientOptions(string baseAddress)
         {
-            BaseAddress = baseAddres;
+            BaseAddress = baseAddress;
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOn">Copy values for the provided options</param>
+#pragma warning disable 8618 // Will always get filled by the provided options
         public ApiClientOptions(ApiClientOptions baseOn)
         {
             Copy(this, baseOn);
         }
+#pragma warning restore 8618
 
         /// <summary>
         /// Copy the values of the def to the input
@@ -243,6 +260,9 @@ namespace CryptoExchange.Net.Objects
         }
     }
     
+    /// <summary>
+    /// Rest API client options
+    /// </summary>
     public class RestApiClientOptions: ApiClientOptions
     {
         /// <summary>
@@ -255,14 +275,25 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public RestApiClientOptions()
         {
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress">Base address for the API</param>
         public RestApiClientOptions(string baseAddress): base(baseAddress)
         {
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOn">Copy values for the provided options</param>
         public RestApiClientOptions(RestApiClientOptions baseOn)
         {
             Copy(this, baseOn);

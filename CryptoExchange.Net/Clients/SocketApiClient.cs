@@ -1,30 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Requests;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
     /// <summary>
-    /// Base rest client
+    /// Base socket API client for interaction with a websocket API
     /// </summary>
     public abstract class SocketApiClient : BaseApiClient
     {
+        /// <summary>
+        /// The options for this client
+        /// </summary>
         internal ApiClientOptions Options { get; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="options">The base client options</param>
+        /// <param name="apiOptions">The Api client options</param>
         public SocketApiClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
         {
             Options = apiOptions;

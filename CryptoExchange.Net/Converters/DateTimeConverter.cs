@@ -6,11 +6,11 @@ using System.Globalization;
 namespace CryptoExchange.Net.Converters
 {
     /// <summary>
-    /// Datetime converter
+    /// Datetime converter. Supports converting from string/long/double to DateTime and back. Numbers are assumed to be the time since 1970-01-01.
     /// </summary>
     public class DateTimeConverter: JsonConverter
     {
-        private static DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const decimal ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
         private const decimal ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
 
@@ -180,7 +180,7 @@ namespace CryptoExchange.Net.Converters
             if(datetimeValue == default(DateTime))
                 writer.WriteValue((DateTime?)null);
             else
-                writer.WriteValue((long)Math.Round(((DateTime)value - new DateTime(1970, 1, 1)).TotalMilliseconds));
+                writer.WriteValue((long)Math.Round(((DateTime)value! - new DateTime(1970, 1, 1)).TotalMilliseconds));
         }
     }
 }
