@@ -49,7 +49,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="options">Client options</param>
         /// <param name="apiOptions">Api client options</param>
-        public BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
+        protected BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
         {
             _apiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
             BaseAddress = apiOptions.BaseAddress;
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="credentials"></param>
         /// <returns></returns>
-        public abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
+        protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <summary>
         /// Dispose

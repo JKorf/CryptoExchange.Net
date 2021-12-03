@@ -122,7 +122,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
-        public override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
     }
 
@@ -133,7 +133,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
-        public override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
     }
 

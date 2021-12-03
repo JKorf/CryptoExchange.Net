@@ -258,7 +258,7 @@ namespace CryptoExchange.Net.Sockets
                     currentSubscription = subscription;
                     if (subscription.Request == null)
                     {
-                        if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Identifier!))
+                        if (socketClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Identifier!))
                         {
                             handled = true;
                             subscription.MessageHandler(messageEvent);
@@ -266,7 +266,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     else
                     {
-                        if (socketClient.MessageMatchesHandler(messageEvent.JsonData, subscription.Request))
+                        if (socketClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Request))
                         {
                             handled = true;
                             messageEvent.JsonData = socketClient.ProcessTokenData(messageEvent.JsonData);

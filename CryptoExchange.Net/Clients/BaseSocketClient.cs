@@ -393,7 +393,7 @@ namespace CryptoExchange.Net
         /// <param name="message">The received data</param>
         /// <param name="request">The subscription request</param>
         /// <returns>True if the message is for the subscription which sent the request</returns>
-        protected internal abstract bool MessageMatchesHandler(JToken message, object request);
+        protected internal abstract bool MessageMatchesHandler(SocketConnection socketConnection, JToken message, object request);
         /// <summary>
         /// Needs to check if a received message matches a handler by identifier. Generally used by GenericHandlers. For example; a generic handler is registered which handles ping messages
         /// from the server. This method should check if the message received is a ping message and the identifer is the identifier of the GenericHandler
@@ -401,7 +401,7 @@ namespace CryptoExchange.Net
         /// <param name="message">The received data</param>
         /// <param name="identifier">The string identifier of the handler</param>
         /// <returns>True if the message is for the handler which has the identifier</returns>
-        protected internal abstract bool MessageMatchesHandler(JToken message, string identifier);
+        protected internal abstract bool MessageMatchesHandler(SocketConnection socketConnection, JToken message, string identifier);
         /// <summary>
         /// Needs to authenticate the socket so authenticated queries/subscriptions can be made on this socket connection
         /// </summary>
