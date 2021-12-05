@@ -136,7 +136,7 @@ namespace CryptoExchange.Net
 
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
-                paramString = " with request body " + request.Content;
+                paramString = $" with request body '{request.Content}'";
 
             if (log.Level == LogLevel.Trace)
             {
