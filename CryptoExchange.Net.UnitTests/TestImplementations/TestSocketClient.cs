@@ -47,12 +47,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             throw new NotImplementedException();
         }
 
-        protected internal override bool MessageMatchesHandler(JToken message, object request)
+        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, object request)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override bool MessageMatchesHandler(JToken message, string identifier)
+        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, string identifier)
         {
             return true;
         }

@@ -567,9 +567,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Periodically sends data over a socket connection
         /// </summary>
+        /// <param name="identifier">Identifier for the periodic send</param>
         /// <param name="interval">How often</param>
         /// <param name="objGetter">Method returning the object to send</param>
-        public virtual void SendPeriodic(TimeSpan interval, Func<SocketConnection, object> objGetter)
+        public virtual void SendPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, object> objGetter)
         {
             if (objGetter == null)
                 throw new ArgumentNullException(nameof(objGetter));
@@ -595,7 +596,7 @@ namespace CryptoExchange.Net
                         if (obj == null)
                             continue;
 
-                        log.Write(LogLevel.Trace, $"Socket {socket.Socket.Id} sending periodic");
+                        log.Write(LogLevel.Trace, $"Socket {socket.Socket.Id} sending periodic {identifier}");
 
                         try
                         {
@@ -603,7 +604,7 @@ namespace CryptoExchange.Net
                         }
                         catch (Exception ex)
                         {
-                            log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} Periodic send failed: " + ex);
+                            log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} Periodic send {identifier} failed: " + ex);
                         }
                     }
                 }
