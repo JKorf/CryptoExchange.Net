@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace CryptoExchange.Net.Converters
@@ -150,24 +151,28 @@ namespace CryptoExchange.Net.Converters
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("time")]
         public static long? ConvertToSeconds(DateTime? time) => time == null ? null: (long)Math.Round((time.Value - _epoch).TotalSeconds);
         /// <summary>
         /// Convert a DateTime value to milliseconds since epoch (01-01-1970) value
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("time")]
         public static long? ConvertToMilliseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).TotalMilliseconds);
         /// <summary>
         /// Convert a DateTime value to microseconds since epoch (01-01-1970) value
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("time")]
         public static long? ConvertToMicroseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerMicrosecond);
         /// <summary>
         /// Convert a DateTime value to nanoseconds since epoch (01-01-1970) value
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("time")]
         public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerNanosecond);
 
 

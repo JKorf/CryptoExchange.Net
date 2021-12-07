@@ -390,6 +390,7 @@ namespace CryptoExchange.Net
         /// Needs to check if a received message matches a handler by request. After subscribing data message will come in. These data messages need to be matched to a specific connection
         /// to pass the correct data to the correct handler. The implementation of this method should check if the message received matches the subscribe request that was sent.
         /// </summary>
+        /// <param name="socketConnection">The socket connection the message was recieved on</param>
         /// <param name="message">The received data</param>
         /// <param name="request">The subscription request</param>
         /// <returns>True if the message is for the subscription which sent the request</returns>
@@ -398,6 +399,7 @@ namespace CryptoExchange.Net
         /// Needs to check if a received message matches a handler by identifier. Generally used by GenericHandlers. For example; a generic handler is registered which handles ping messages
         /// from the server. This method should check if the message received is a ping message and the identifer is the identifier of the GenericHandler
         /// </summary>
+        /// <param name="socketConnection">The socket connection the message was recieved on</param>
         /// <param name="message">The received data</param>
         /// <param name="identifier">The string identifier of the handler</param>
         /// <returns>True if the message is for the handler which has the identifier</returns>
@@ -468,7 +470,7 @@ namespace CryptoExchange.Net
         /// Adds a generic message handler. Used for example to reply to ping requests
         /// </summary>
         /// <param name="identifier">The name of the request handler. Needs to be unique</param>
-        /// <param name="action">The action to execute when receiving a message for this handler (checked by <see cref="MessageMatchesHandler(Newtonsoft.Json.Linq.JToken,string)"/>)</param>
+        /// <param name="action">The action to execute when receiving a message for this handler (checked by <see cref="MessageMatchesHandler(SocketConnection, Newtonsoft.Json.Linq.JToken,string)"/>)</param>
         protected void AddGenericHandler(string identifier, Action<MessageEvent> action)
         {
             genericHandlers.Add(identifier, action);

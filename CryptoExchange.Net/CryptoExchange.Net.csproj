@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>5.0.0</PackageVersion>
+    <PackageVersion>5.0.0-alpha1</PackageVersion>
     <AssemblyVersion>5.0.0</AssemblyVersion>
-    <FileVersion>5.0.0</FileVersion>
+    <FileVersion>5.0.0-alpha1</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>5.0.0</PackageReleaseNotes>
+    <PackageReleaseNotes>5.0.0.1-alpha - New client structures, multiple improvements and changes. Details will be available later</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
