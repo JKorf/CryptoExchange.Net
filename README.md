@@ -326,7 +326,7 @@ private void SomeMethod()
 ````
 
 ## Release notes
-* Version 5.0.0.1-alpha - 07 Dec 2021
+* Version 5.0.0-alpha1 - 07 Dec 2021
     * New client structures, multiple improvements and changes. Details will be available later
 
 * Version 4.2.8 - 08 Oct 2021
