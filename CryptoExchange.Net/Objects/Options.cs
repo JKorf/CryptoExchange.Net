@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Whether or not to automatically sync the local time with the server time
         /// </summary>
-        public bool AutoTimestamp { get; set; } = true;
+        public bool AutoTimestamp { get; set; }
 
         /// <summary>
         /// ctor

@@ -300,7 +300,7 @@ namespace CryptoExchange.Net
             if (apiClient.AuthenticationProvider != null)
             {
                 if(parameterPosition == HttpMethodParameterPosition.InUri)
-                    apiClient.AuthenticationProvider.AuthenticateUriRequest(apiClient, ref uri, method, sortedParameters, headers, signed, arraySerialization);
+                    apiClient.AuthenticationProvider.AuthenticateUriRequest(apiClient, uri, method, sortedParameters, headers, signed, arraySerialization);
                 else
                     apiClient.AuthenticationProvider.AuthenticateBodyRequest(apiClient, uri, method, sortedParameters, headers, signed, arraySerialization);
             }
@@ -309,15 +309,7 @@ namespace CryptoExchange.Net
             {
                 // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters
                 if (sortedParameters.Count != length)
-                {
-                    var uriBuilder = new UriBuilder();
-                    uriBuilder.Scheme = uri.Scheme;
-                    uriBuilder.Host = uri.Host;
-                    uriBuilder.Path = uri.AbsolutePath;
-                    uri = uriBuilder.Uri;
-                    foreach(var parameter in sortedParameters)                    
-                        uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());                    
-                }
+                    uri = uri.SetParameters(sortedParameters);
             }
 
             var request = RequestFactory.Create(method, uri, requestId);

@@ -165,26 +165,6 @@ namespace CryptoExchange.Net
             return formData.ToString();
         }
         
-        /// <summary>
-        /// Add parameter to URI
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Uri AddQueryParmeter(this Uri uri, string name, string value)
-        {
-            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
-
-            httpValueCollection.Remove(name);
-            httpValueCollection.Add(name, value);
-
-            var ub = new UriBuilder(uri);
-            ub.Query = httpValueCollection.ToString();
-
-            return ub.Uri;
-        }
-        
 
         /// <summary>
         /// Get the string the secure string is representing
@@ -433,6 +413,47 @@ namespace CryptoExchange.Net
             }
             return path;
         }
+
+        /// <summary>
+        /// Create a new uri with the provided parameters as query
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static Uri SetParameters(this Uri baseUri, SortedDictionary<string, object> parameters)
+        {
+            var uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = baseUri.Scheme;
+            uriBuilder.Host = baseUri.Host;
+            uriBuilder.Path = baseUri.AbsolutePath;
+            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var parameter in parameters)
+                httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
+            uriBuilder.Query = httpValueCollection.ToString();
+            return uriBuilder.Uri;
+        }
+
+
+        /// <summary>
+        /// Add parameter to URI
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Uri AddQueryParmeter(this Uri uri, string name, string value)
+        {
+            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
+
+            httpValueCollection.Remove(name);
+            httpValueCollection.Add(name, value);
+
+            var ub = new UriBuilder(uri);
+            ub.Query = httpValueCollection.ToString();
+
+            return ub.Uri;
+        }
+
     }
 }
 

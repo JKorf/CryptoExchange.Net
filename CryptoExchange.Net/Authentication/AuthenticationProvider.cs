@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         public abstract void AuthenticateUriRequest(
             RestApiClient apiClient,
-            ref Uri uri,
+            Uri uri,
             HttpMethod method,
             SortedDictionary<string, object> parameters,
             Dictionary<string, string> headers,
