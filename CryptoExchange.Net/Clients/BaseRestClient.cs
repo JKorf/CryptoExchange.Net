@@ -83,8 +83,8 @@ namespace CryptoExchange.Net
 
             ClientOptions = exchangeOptions;
             RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
-
         }
+
 
         /// <summary>
         /// Execute a request to the uri and deserialize the response into the provided type parameter
@@ -118,6 +118,11 @@ namespace CryptoExchange.Net
             ) where T : class
         {
             var requestId = NextId();
+
+            var syncTimeResult = await apiClient.SyncTimeAsync().ConfigureAwait(false);
+            if (!syncTimeResult)
+                return syncTimeResult.As<T>(default);
+            
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
             if (signed && apiClient.AuthenticationProvider == null)
             {
@@ -145,6 +150,9 @@ namespace CryptoExchange.Net
                     paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
             }
 
+            apiClient.TotalRequestsMade++;
+            TotalRequestsMade++;
+
             log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
@@ -160,7 +168,6 @@ namespace CryptoExchange.Net
         {
             try
             {
-                TotalRequestsMade++;
                 var sw = Stopwatch.StartNew();
                 var response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
@@ -278,50 +285,116 @@ namespace CryptoExchange.Net
             int requestId,
             Dictionary<string, string>? additionalHeaders)
         {
-            parameters ??= new Dictionary<string, object>();
+            SortedDictionary<string, object> sortedParameters = new SortedDictionary<string, object>(GetParameterComparer());
+            if (parameters != null)
+                sortedParameters = new SortedDictionary<string, object>(parameters, GetParameterComparer());
 
-            var uriString = uri.ToString();
-            if (apiClient.AuthenticationProvider != null)
-                parameters = apiClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
+            if (parameterPosition == HttpMethodParameterPosition.InUri)
+            {
+                foreach (var parameter in sortedParameters)
+                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());
+            }
 
-            if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
-                uriString += "?" + parameters.CreateParamString(true, arraySerialization);
-
-            var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-            var request = RequestFactory.Create(method, uriString, requestId);
-            request.Accept = Constants.JsonContentHeader;
-
+            var length = sortedParameters.Count;
             var headers = new Dictionary<string, string>();
             if (apiClient.AuthenticationProvider != null)
-                headers = apiClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
+            {
+                if(parameterPosition == HttpMethodParameterPosition.InUri)
+                    apiClient.AuthenticationProvider.AuthenticateUriRequest(apiClient, ref uri, method, sortedParameters, headers, signed, arraySerialization);
+                else
+                    apiClient.AuthenticationProvider.AuthenticateBodyRequest(apiClient, uri, method, sortedParameters, headers, signed, arraySerialization);
+            }
+
+            if (parameterPosition == HttpMethodParameterPosition.InUri)
+            {
+                // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters
+                if (sortedParameters.Count != length)
+                {
+                    var uriBuilder = new UriBuilder();
+                    uriBuilder.Scheme = uri.Scheme;
+                    uriBuilder.Host = uri.Host;
+                    uriBuilder.Path = uri.AbsolutePath;
+                    uri = uriBuilder.Uri;
+                    foreach(var parameter in sortedParameters)                    
+                        uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());                    
+                }
+            }
+
+            var request = RequestFactory.Create(method, uri, requestId);
+            request.Accept = Constants.JsonContentHeader;
 
             foreach (var header in headers)
                 request.AddHeader(header.Key, header.Value);
 
-            if (additionalHeaders != null) 
-            { 
+            if (additionalHeaders != null)
+            {
                 foreach (var header in additionalHeaders)
                     request.AddHeader(header.Key, header.Value);
             }
 
-            if(StandardRequestHeaders != null)
+            if (StandardRequestHeaders != null)
             {
                 foreach (var header in StandardRequestHeaders)
                     // Only add it if it isn't overwritten
-                    if(additionalHeaders?.ContainsKey(header.Key) != true)
+                    if (additionalHeaders?.ContainsKey(header.Key) != true)
                         request.AddHeader(header.Key, header.Value);
             }
 
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
-                if (parameters?.Any() == true)
-                    WriteParamBody(request, parameters, contentType);
+                var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+                if (sortedParameters?.Any() == true)
+                    WriteParamBody(request, sortedParameters, contentType);
                 else
                     request.SetContent(requestBodyEmptyContent, contentType);
             }
 
             return request;
+
+            //var uriString = uri.ToString();
+            //if (apiClient.AuthenticationProvider != null)
+            //    parameters = apiClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
+
+            //if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
+            //    uriString += "?" + parameters.CreateParamString(true, arraySerialization);
+
+            //var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+            //var request = RequestFactory.Create(method, uriString, requestId);
+            //request.Accept = Constants.JsonContentHeader;
+
+            //var headers = new Dictionary<string, string>();
+            //if (apiClient.AuthenticationProvider != null)
+            //    headers = apiClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
+
+            //foreach (var header in headers)
+            //    request.AddHeader(header.Key, header.Value);
+
+            //if (additionalHeaders != null) 
+            //{ 
+            //    foreach (var header in additionalHeaders)
+            //        request.AddHeader(header.Key, header.Value);
+            //}
+
+            //if(StandardRequestHeaders != null)
+            //{
+            //    foreach (var header in StandardRequestHeaders)
+            //        // Only add it if it isn't overwritten
+            //        if(additionalHeaders?.ContainsKey(header.Key) != true)
+            //            request.AddHeader(header.Key, header.Value);
+            //}
+
+            //if (parameterPosition == HttpMethodParameterPosition.InBody)
+            //{
+            //    if (parameters?.Any() == true)
+            //        WriteParamBody(request, parameters, contentType);
+            //    else
+            //        request.SetContent(requestBodyEmptyContent, contentType);
+            //}
+
+            //return request;
         }
+
+        protected virtual IComparer<string> GetParameterComparer() => null;
 
         /// <summary>
         /// Writes the parameters of the request to the request object body
@@ -329,30 +402,18 @@ namespace CryptoExchange.Net
         /// <param name="request">The request to set the parameters on</param>
         /// <param name="parameters">The parameters to set</param>
         /// <param name="contentType">The content type of the data</param>
-        protected virtual void WriteParamBody(IRequest request, Dictionary<string, object> parameters, string contentType)
+        protected virtual void WriteParamBody(IRequest request, SortedDictionary<string, object> parameters, string contentType)
         {
             if (requestBodyFormat == RequestBodyFormat.Json)
             {
                 // Write the parameters as json in the body
-                var stringData = JsonConvert.SerializeObject(parameters.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value));
+                var stringData = JsonConvert.SerializeObject(parameters);
                 request.SetContent(stringData, contentType);
             }
             else if (requestBodyFormat == RequestBodyFormat.FormData)
             {
                 // Write the parameters as form data in the body
-                var formData = HttpUtility.ParseQueryString(string.Empty);
-                foreach (var kvp in parameters.OrderBy(p => p.Key))
-                {
-                    if (kvp.Value.GetType().IsArray)
-                    {
-                        var array = (Array)kvp.Value;
-                        foreach (var value in array)
-                            formData.Add(kvp.Key, value.ToString());
-                    }
-                    else
-                        formData.Add(kvp.Key, kvp.Value.ToString());
-                }
-                var stringData = formData.ToString();
+                var stringData = parameters.ToFormData();
                 request.SetContent(stringData, contentType);
             }
         }

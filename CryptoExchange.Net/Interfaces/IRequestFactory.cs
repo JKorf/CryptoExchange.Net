@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="uri"></param>
         /// <param name="requestId"></param>
         /// <returns></returns>
-        IRequest Create(HttpMethod method, string uri, int requestId);
+        IRequest Create(HttpMethod method, Uri uri, int requestId);
 
         /// <summary>
         /// Configure the requests created by this factory

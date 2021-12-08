@@ -276,6 +276,11 @@ namespace CryptoExchange.Net.Objects
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
 
         /// <summary>
+        /// Whether or not to automatically sync the local time with the server time
+        /// </summary>
+        public bool AutoTimestamp { get; set; } = true;
+
+        /// <summary>
         /// ctor
         /// </summary>
         public RestApiClientOptions()
@@ -312,12 +317,13 @@ namespace CryptoExchange.Net.Objects
             if(def.RateLimiters != null)
                 input.RateLimiters = def.RateLimiters.ToList();
             input.RateLimitingBehaviour = def.RateLimitingBehaviour;
+            input.AutoTimestamp = def.AutoTimestamp;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}";
+            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, AutoTimestamp: {AutoTimestamp}";
         }
     }
 

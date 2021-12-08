@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Web;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
@@ -141,6 +142,49 @@ namespace CryptoExchange.Net
             uriString = uriString.TrimEnd('&');
             return uriString;
         }
+
+        /// <summary>
+        /// Convert a dictionary to formdata string
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static string ToFormData(this SortedDictionary<string, object> parameters)
+        {
+            var formData = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var kvp in parameters.OrderBy(p => p.Key))
+            {
+                if (kvp.Value.GetType().IsArray)
+                {
+                    var array = (Array)kvp.Value;
+                    foreach (var value in array)
+                        formData.Add(kvp.Key, value.ToString());
+                }
+                else
+                    formData.Add(kvp.Key, kvp.Value.ToString());
+            }
+            return formData.ToString();
+        }
+        
+        /// <summary>
+        /// Add parameter to URI
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Uri AddQueryParmeter(this Uri uri, string name, string value)
+        {
+            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
+
+            httpValueCollection.Remove(name);
+            httpValueCollection.Add(name, value);
+
+            var ub = new UriBuilder(uri);
+            ub.Query = httpValueCollection.ToString();
+
+            return ub.Uri;
+        }
+        
 
         /// <summary>
         /// Get the string the secure string is representing
