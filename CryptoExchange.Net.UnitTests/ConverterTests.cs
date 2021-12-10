@@ -140,10 +140,10 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("four", TestEnum.Four)]
         [TestCase("Four1", null)]
         [TestCase(null, null)]
-        public void TestEnumConverterNullableDeserializeTests(string? value, TestEnum? expected)
+        public void TestEnumConverterNullableDeserializeTests(string value, TestEnum? expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
-            var output = JsonConvert.DeserializeObject<EnumObject?>($"{{ \"Value\": {val} }}");
+            var output = JsonConvert.DeserializeObject<EnumObject>($"{{ \"Value\": {val} }}");
             Assert.AreEqual(output.Value, expected);
         }
     }

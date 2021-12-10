@@ -119,10 +119,13 @@ namespace CryptoExchange.Net
         {
             var requestId = NextId();
 
-            var syncTimeResult = await apiClient.SyncTimeAsync().ConfigureAwait(false);
-            if (!syncTimeResult)
-                return syncTimeResult.As<T>(default);
-            
+            if (signed)
+            {
+                var syncTimeResult = await apiClient.SyncTimeAsync().ConfigureAwait(false);
+                if (!syncTimeResult)
+                    return syncTimeResult.As<T>(default);
+            }
+
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
             if (signed && apiClient.AuthenticationProvider == null)
             {
@@ -285,33 +288,40 @@ namespace CryptoExchange.Net
             int requestId,
             Dictionary<string, string>? additionalHeaders)
         {
-            SortedDictionary<string, object> sortedParameters = new SortedDictionary<string, object>(GetParameterComparer());
-            if (parameters != null)
-                sortedParameters = new SortedDictionary<string, object>(parameters, GetParameterComparer());
-
+            parameters ??= new Dictionary<string, object>();
             if (parameterPosition == HttpMethodParameterPosition.InUri)
             {
-                foreach (var parameter in sortedParameters)
+                foreach (var parameter in parameters)
                     uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());
             }
 
-            var length = sortedParameters.Count;
             var headers = new Dictionary<string, string>();
+            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
+            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
             if (apiClient.AuthenticationProvider != null)
+                apiClient.AuthenticationProvider.AuthenticateRequest(
+                    apiClient, 
+                    uri, 
+                    method, 
+                    parameters, 
+                    signed, 
+                    arraySerialization,
+                    parameterPosition,
+                    out uriParameters, 
+                    out bodyParameters, 
+                    out headers);
+                 
+            // Sanity check
+            foreach(var param in parameters)
             {
-                if(parameterPosition == HttpMethodParameterPosition.InUri)
-                    apiClient.AuthenticationProvider.AuthenticateUriRequest(apiClient, uri, method, sortedParameters, headers, signed, arraySerialization);
-                else
-                    apiClient.AuthenticationProvider.AuthenticateBodyRequest(apiClient, uri, method, sortedParameters, headers, signed, arraySerialization);
+                if (!uriParameters.ContainsKey(param.Key) && !bodyParameters.ContainsKey(param.Key))
+                    throw new Exception($"Missing parameter {param.Key} after authentication processing. AuthenticationProvider implementation " +
+                        $"should return provided parameters in either the uri or body parameters output");
             }
 
-            if (parameterPosition == HttpMethodParameterPosition.InUri)
-            {
-                // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters
-                if (sortedParameters.Count != length)
-                    uri = uri.SetParameters(sortedParameters);
-            }
-
+            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
+            uri = uri.SetParameters(uriParameters);
+        
             var request = RequestFactory.Create(method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
 
@@ -335,8 +345,8 @@ namespace CryptoExchange.Net
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (sortedParameters?.Any() == true)
-                    WriteParamBody(request, sortedParameters, contentType);
+                if (bodyParameters.Any())
+                    WriteParamBody(request, bodyParameters, contentType);
                 else
                     request.SetContent(requestBodyEmptyContent, contentType);
             }
@@ -385,8 +395,6 @@ namespace CryptoExchange.Net
 
             //return request;
         }
-
-        protected virtual IComparer<string> GetParameterComparer() => null;
 
         /// <summary>
         /// Writes the parameters of the request to the request object body

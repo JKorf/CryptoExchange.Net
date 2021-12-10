@@ -151,7 +151,7 @@ namespace CryptoExchange.Net
         public static string ToFormData(this SortedDictionary<string, object> parameters)
         {
             var formData = HttpUtility.ParseQueryString(string.Empty);
-            foreach (var kvp in parameters.OrderBy(p => p.Key))
+            foreach (var kvp in parameters)
             {
                 if (kvp.Value.GetType().IsArray)
                 {
@@ -421,6 +421,25 @@ namespace CryptoExchange.Net
         /// <param name="baseUri"></param>
         /// <returns></returns>
         public static Uri SetParameters(this Uri baseUri, SortedDictionary<string, object> parameters)
+        {
+            var uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = baseUri.Scheme;
+            uriBuilder.Host = baseUri.Host;
+            uriBuilder.Path = baseUri.AbsolutePath;
+            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var parameter in parameters)
+                httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
+            uriBuilder.Query = httpValueCollection.ToString();
+            return uriBuilder.Uri;
+        }
+
+        /// <summary>
+        /// Create a new uri with the provided parameters as query
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static Uri SetParameters(this Uri baseUri, IOrderedEnumerable<KeyValuePair<string, object>> parameters)
         {
             var uriBuilder = new UriBuilder();
             uriBuilder.Scheme = baseUri.Scheme;

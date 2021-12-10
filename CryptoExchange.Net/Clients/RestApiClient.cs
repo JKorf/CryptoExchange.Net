@@ -14,8 +14,16 @@ namespace CryptoExchange.Net
     /// </summary>
     public abstract class RestApiClient: BaseApiClient
     {
-        protected abstract TimeSyncModel GetTimeSyncParameters();
-        protected abstract void UpdateTimeOffset(TimeSpan offset);
+        /// <summary>
+        /// Get time sync info for an API client
+        /// </summary>
+        /// <returns></returns>
+        protected abstract TimeSyncInfo GetTimeSyncInfo();
+        
+        /// <summary>
+        /// Get time offset for an API client
+        /// </summary>
+        /// <returns></returns>
         public abstract TimeSpan GetTimeOffset();
 
         /// <summary>
@@ -32,8 +40,6 @@ namespace CryptoExchange.Net
         /// List of rate limiters
         /// </summary>
         internal IEnumerable<IRateLimiter> RateLimiters { get; }
-
-        private Log _log;
 
         /// <summary>
         /// ctor
@@ -58,12 +64,12 @@ namespace CryptoExchange.Net
 
         internal async Task<WebCallResult<bool>> SyncTimeAsync()
         {
-            var timeSyncParams = GetTimeSyncParameters();
-            if (await timeSyncParams.Semaphore.WaitAsync(0).ConfigureAwait(false))
+            var timeSyncParams = GetTimeSyncInfo();
+            if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
-                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.LastSyncTime < TimeSpan.FromHours(1)))
+                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < TimeSpan.FromHours(1)))
                 {
-                    timeSyncParams.Semaphore.Release();
+                    timeSyncParams.TimeSyncState.Semaphore.Release();
                     return new WebCallResult<bool>(null, null, true, null);
                 }
 
@@ -71,7 +77,7 @@ namespace CryptoExchange.Net
                 var result = await GetServerTimestampAsync().ConfigureAwait(false);
                 if (!result)
                 {
-                    timeSyncParams.Semaphore.Release();
+                    timeSyncParams.TimeSyncState.Semaphore.Release();
                     return result.As(false);
                 }
 
@@ -82,7 +88,7 @@ namespace CryptoExchange.Net
                     result = await GetServerTimestampAsync().ConfigureAwait(false);
                     if (!result)
                     {
-                        timeSyncParams.Semaphore.Release();
+                        timeSyncParams.TimeSyncState.Semaphore.Release();
                         return result.As(false);
                     }
                 }
@@ -92,13 +98,13 @@ namespace CryptoExchange.Net
                 if (offset.TotalMilliseconds >= 0 && offset.TotalMilliseconds < 500)
                 {
                     // Small offset, probably mainly due to ping. Don't adjust time
-                    UpdateTimeOffset(offset);
-                    timeSyncParams.Semaphore.Release();
+                    timeSyncParams.UpdateTimeOffset(offset);
+                    timeSyncParams.TimeSyncState.Semaphore.Release();
                 }
                 else
                 {
-                    UpdateTimeOffset(offset);
-                    timeSyncParams.Semaphore.Release();
+                    timeSyncParams.UpdateTimeOffset(offset);
+                    timeSyncParams.TimeSyncState.Semaphore.Release();
                 }
             }
 

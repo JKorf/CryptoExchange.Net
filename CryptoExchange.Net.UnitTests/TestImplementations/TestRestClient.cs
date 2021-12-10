@@ -56,10 +56,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetHeaders()).Returns(() => headers);
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Callback<HttpMethod, string, int>((method, uri, id) => 
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
+                .Callback<HttpMethod, Uri, int>((method, uri, id) => 
                 { 
-                    request.Setup(a => a.Uri).Returns(new Uri(uri));
+                    request.Setup(a => a.Uri).Returns(uri);
                     request.Setup(a => a.Method).Returns(method); 
                 })
                 .Returns(request.Object);
@@ -76,7 +76,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
                 .Returns(request.Object);
         }
 
@@ -99,8 +99,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetHeaders()).Returns(headers);
 
             var factory = Mock.Get(RequestFactory);
-            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Callback<HttpMethod, string, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(new Uri(uri)))
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
+                .Callback<HttpMethod, Uri, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
                 .Returns(request.Object);
         }
 
@@ -122,8 +122,23 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
+        public override TimeSpan GetTimeOffset()
+        {
+            throw new NotImplementedException();
+        }
+
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
+
+        protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override TimeSyncInfo GetTimeSyncInfo()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class TestRestApi2Client : RestApiClient
@@ -133,14 +148,36 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
+        public override TimeSpan GetTimeOffset()
+        {
+            throw new NotImplementedException();
+        }
+
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
+
+        protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override TimeSyncInfo GetTimeSyncInfo()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class TestAuthProvider : AuthenticationProvider
     {
         public TestAuthProvider(ApiCredentials credentials) : base(credentials)
         {
+        }
+
+        public override void AuthenticateRequest(RestApiClient apiClient, Uri uri, HttpMethod method, Dictionary<string, object> providedParameters, bool auth, ArrayParametersSerialization arraySerialization, HttpMethodParameterPosition parameterPosition, out SortedDictionary<string, object> uriParameters, out SortedDictionary<string, object> bodyParameters, out Dictionary<string, string> headers)
+        {
+            uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(providedParameters) : new SortedDictionary<string, object>();
+            bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(providedParameters) : new SortedDictionary<string, object>();
+            headers = new Dictionary<string, string>();
         }
     }
 
