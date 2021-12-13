@@ -25,6 +25,8 @@ namespace CryptoExchange.Net
     {
         private readonly ApiCredentials? _apiCredentials;
         private AuthenticationProvider? _authenticationProvider;
+        private bool _created;
+
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
@@ -32,8 +34,11 @@ namespace CryptoExchange.Net
         {
             get 
             {
-                if (_authenticationProvider == null && _apiCredentials != null)
+                if (!_created && _apiCredentials != null)
+                {
                     _authenticationProvider = CreateAuthenticationProvider(_apiCredentials);
+                    _created = true;
+                }
 
                 return _authenticationProvider;
             }
@@ -51,7 +56,7 @@ namespace CryptoExchange.Net
         /// <param name="apiOptions">Api client options</param>
         protected BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
         {
-            _apiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+            _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? options.ApiCredentials?.Copy();
             BaseAddress = apiOptions.BaseAddress;
         }
 

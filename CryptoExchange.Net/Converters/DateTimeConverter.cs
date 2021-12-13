@@ -12,6 +12,7 @@ namespace CryptoExchange.Net.Converters
     public class DateTimeConverter: JsonConverter
     {
         private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private const long ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
         private const decimal ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
         private const decimal ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
 
@@ -127,7 +128,7 @@ namespace CryptoExchange.Net.Converters
         /// </summary>
         /// <param name="seconds"></param>
         /// <returns></returns>
-        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddSeconds(seconds);
+        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * ticksPerSecond));
         /// <summary>
         /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
         /// </summary>

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
@@ -493,15 +494,15 @@ namespace CryptoExchange.Net.OrderBook
         /// <returns></returns>
         public string ToString(int numberOfEntries)
         {
-            var result = string.Empty;
-            result += $"Asks ({AskCount}): {Environment.NewLine}";
-            foreach (var entry in Asks.Take(numberOfEntries).Reverse())
-                result += $"  {entry.Price.ToString(CultureInfo.InvariantCulture).PadLeft(8)} | {entry.Quantity.ToString(CultureInfo.InvariantCulture).PadRight(8)}{Environment.NewLine}";
-
-            result += $"Bids ({BidCount}): {Environment.NewLine}";
-            foreach (var entry in Bids.Take(numberOfEntries))
-                result += $"  {entry.Price.ToString(CultureInfo.InvariantCulture).PadLeft(8)} | {entry.Quantity.ToString(CultureInfo.InvariantCulture).PadRight(8)}{Environment.NewLine}";
-            return result;
+            var stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine($"   Ask quantity       Ask price | Bid price       Bid quantity");
+            for(var i = 0; i < numberOfEntries; i++)
+            {
+                var ask = asks.Count > i ? asks.ElementAt(i).Value: null;
+                var bid = bids.Count > i ? bids.ElementAt(i).Value: null;
+                stringBuilder.AppendLine($"[{ask?.Quantity.ToString(CultureInfo.InvariantCulture),14}] {ask?.Price.ToString(CultureInfo.InvariantCulture),14} | {bid?.Price.ToString(CultureInfo.InvariantCulture),-14} [{bid?.Quantity.ToString(CultureInfo.InvariantCulture),-14}]");
+            }
+            return stringBuilder.ToString();
         }
 
         private void CheckBestOffersChanged(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
