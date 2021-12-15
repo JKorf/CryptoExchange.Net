@@ -288,3 +288,4 @@ __pycache__/
 *.xsd.cs
 CryptoExchange.Net/CryptoExchange.Net.xml
 /Docs/*
+Docs/
