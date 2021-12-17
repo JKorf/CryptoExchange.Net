@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -21,6 +22,10 @@ namespace CryptoExchange.Net
         /// The name of the exchange the client is for
         /// </summary>
         internal string ExchangeName { get; }
+        /// <summary>
+        /// Api clients in this client
+        /// </summary>
+        internal List<BaseApiClient> ApiClients { get; } = new List<BaseApiClient>();
         /// <summary>
         /// The log object
         /// </summary>
@@ -64,6 +69,16 @@ namespace CryptoExchange.Net
             ExchangeName = exchangeName;
 
             log.Write(LogLevel.Debug, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
+        }
+
+        /// <summary>
+        /// Register an API client
+        /// </summary>
+        /// <param name="apiClient">The client</param>
+        protected T AddApiClient<T>(T apiClient) where T:  BaseApiClient
+        {
+            ApiClients.Add(apiClient);
+            return apiClient;
         }
 
         /// <summary>
@@ -263,6 +278,8 @@ namespace CryptoExchange.Net
         public virtual void Dispose()
         {
             log.Write(LogLevel.Debug, "Disposing exchange client");
+            foreach (var client in ApiClients)
+                client.Dispose();
         }
     }
 }

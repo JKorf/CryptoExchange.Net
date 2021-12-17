@@ -1,20 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Requests;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
@@ -23,7 +9,7 @@ namespace CryptoExchange.Net
     /// </summary>
     public abstract class BaseApiClient: IDisposable
     {
-        private readonly ApiCredentials? _apiCredentials;
+        private ApiCredentials? _apiCredentials;
         private AuthenticationProvider? _authenticationProvider;
         private bool _created;
 
@@ -66,6 +52,14 @@ namespace CryptoExchange.Net
         /// <param name="credentials"></param>
         /// <returns></returns>
         protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
+
+        /// <inheritdoc />
+        public void SetApiCredentials(ApiCredentials credentials)
+        {
+            _apiCredentials = credentials;
+            _created = false;
+            _authenticationProvider = null;
+        }
 
         /// <summary>
         /// Dispose

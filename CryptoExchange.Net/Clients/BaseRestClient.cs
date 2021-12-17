@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Requests;
@@ -57,9 +57,9 @@ namespace CryptoExchange.Net
         /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
         /// </summary>
         protected string requestBodyEmptyContent = "{}";
-                
+
         /// <inheritdoc />
-        public int TotalRequestsMade { get; private set; }
+        public int TotalRequestsMade => ApiClients.OfType<RestApiClient>().Sum(s => s.TotalRequestsMade);
 
         /// <summary>
         /// Request headers to be sent with each request
@@ -85,6 +85,12 @@ namespace CryptoExchange.Net
             RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
         }
 
+        /// <inheritdoc />
+        public void SetApiCredentials(ApiCredentials credentials)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetApiCredentials(credentials);
+        }
 
         /// <summary>
         /// Execute a request to the uri and deserialize the response into the provided type parameter
@@ -154,8 +160,6 @@ namespace CryptoExchange.Net
             }
 
             apiClient.TotalRequestsMade++;
-            TotalRequestsMade++;
-
             log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
@@ -352,48 +356,6 @@ namespace CryptoExchange.Net
             }
 
             return request;
-
-            //var uriString = uri.ToString();
-            //if (apiClient.AuthenticationProvider != null)
-            //    parameters = apiClient.AuthenticationProvider.AddAuthenticationToParameters(uriString, method, parameters, signed, parameterPosition, arraySerialization);
-
-            //if (parameterPosition == HttpMethodParameterPosition.InUri && parameters?.Any() == true)
-            //    uriString += "?" + parameters.CreateParamString(true, arraySerialization);
-
-            //var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-            //var request = RequestFactory.Create(method, uriString, requestId);
-            //request.Accept = Constants.JsonContentHeader;
-
-            //var headers = new Dictionary<string, string>();
-            //if (apiClient.AuthenticationProvider != null)
-            //    headers = apiClient.AuthenticationProvider.AddAuthenticationToHeaders(uriString, method, parameters!, signed, parameterPosition, arraySerialization);
-
-            //foreach (var header in headers)
-            //    request.AddHeader(header.Key, header.Value);
-
-            //if (additionalHeaders != null) 
-            //{ 
-            //    foreach (var header in additionalHeaders)
-            //        request.AddHeader(header.Key, header.Value);
-            //}
-
-            //if(StandardRequestHeaders != null)
-            //{
-            //    foreach (var header in StandardRequestHeaders)
-            //        // Only add it if it isn't overwritten
-            //        if(additionalHeaders?.ContainsKey(header.Key) != true)
-            //            request.AddHeader(header.Key, header.Value);
-            //}
-
-            //if (parameterPosition == HttpMethodParameterPosition.InBody)
-            //{
-            //    if (parameters?.Any() == true)
-            //        WriteParamBody(request, parameters, contentType);
-            //    else
-            //        request.SetContent(requestBodyEmptyContent, contentType);
-            //}
-
-            //return request;
         }
 
         /// <summary>
@@ -426,12 +388,6 @@ namespace CryptoExchange.Net
         protected virtual Error ParseErrorResponse(JToken error)
         {
             return new ServerError(error.ToString());
-        }
-
-        /// <inheritdoc />
-        public override void Dispose()
-        {
-            base.Dispose();
         }
     }
 }
