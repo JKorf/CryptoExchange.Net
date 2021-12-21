@@ -326,6 +326,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-alpha2 - 21 Dec 2021
+    * Rework authentication provider, support for time syncing, various internal updates
+
 * Version 5.0.0-alpha1 - 07 Dec 2021
     * New client structures, multiple improvements and changes. Details will be available later
 
