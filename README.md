@@ -326,6 +326,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-alpha3 - 27 Dec 2021
+    * Added ExchangeName to IExchangeClient interface
+
 * Version 5.0.0-alpha2 - 21 Dec 2021
     * Rework authentication provider, support for time syncing, various internal updates
 
