@@ -326,6 +326,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-alpha5 - 01 Jan 2022
+    * Reverted conditional dependencies, not working as expected
+
 * Version 5.0.0-alpha4 - 01 Jan 2022
     * New comon interface structure
     * Added Microsoft.Extensions.DependencyInjection.Abstractions to allow a AddXXX extension method on IServiceCollection for implementations
