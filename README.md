@@ -326,6 +326,10 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-alpha4 - 01 Jan 2022
+    * New comon interface structure
+    * Added Microsoft.Extensions.DependencyInjection.Abstractions to allow a AddXXX extension method on IServiceCollection for implementations
+
 * Version 5.0.0-alpha3 - 27 Dec 2021
     * Added ExchangeName to IExchangeClient interface
 
