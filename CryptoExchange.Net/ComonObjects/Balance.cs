@@ -1,21 +1,21 @@
-﻿namespace CryptoExchange.Net.ExchangeInterfaces
+﻿namespace CryptoExchange.Net.ComonObjects
 {
     /// <summary>
-    /// Common balance
+    /// Balance data
     /// </summary>
-    public interface ICommonBalance
+    public class Balance: BaseComonObject
     {
         /// <summary>
         /// The asset name
         /// </summary>
-        public string CommonAsset { get; }
+        public string Asset { get; set;  } = string.Empty;
         /// <summary>
         /// Quantity available
         /// </summary>
-        public decimal CommonAvailable { get; }
+        public decimal? Available { get; set; }
         /// <summary>
         /// Total quantity
         /// </summary>
-        public decimal CommonTotal { get; }
+        public decimal? Total { get; set;  }
     }
 }
