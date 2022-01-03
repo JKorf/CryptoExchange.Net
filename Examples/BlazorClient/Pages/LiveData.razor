@@ -22,7 +22,7 @@
 @implements IDisposable
 
 <h3>ETH-BTC prices, live updates:</h3>
-@foreach(var price in _prices)
+@foreach(var price in _prices.OrderBy(p => p.Key))
 {
     <div>@price.Key: @price.Value</div>
 }

@@ -1,4 +1,4 @@
-﻿@page "/ExchangeClient"
+﻿@page "/SpotClient"
 @inject IBinanceClient binanceClient
 @inject IBitfinexClient bitfinexClient
 @inject IBittrexClient bittrexClient
@@ -13,34 +13,34 @@
 @using Bittrex.Net.Clients.SpotApi
 @using Bybit.Net.Clients.SpotApi
 @using CoinEx.Net.Clients.SpotApi
-@using CryptoExchange.Net.ExchangeInterfaces
+@using CryptoExchange.Net.Interfaces
 @using FTX.Net.Clients.TradeApi
 @using Huobi.Net.Clients.SpotApi
 @using Kraken.Net.Clients.SpotApi
 @using Kucoin.Net.Clients.SpotApi
 
 <h3>ETH-BTC prices:</h3>
-@foreach(var price in _prices)
+@foreach(var price in _prices.OrderBy(p => p.Key))
 {
     <div>@price.Key: @price.Value</div>
 }
 
 @code{
-    private Dictionary<string, decimal> _prices = new Dictionary<string, decimal>();
+    private Dictionary<string, decimal?> _prices = new Dictionary<string, decimal?>();
 
     protected override async Task OnInitializedAsync()
     {
-        var clients = new IExchangeClient[]
+        var clients = new ISpotClient[]
             {
-                binanceClient.SpotApi.AsExchangeClient(), 
-                bitfinexClient.SpotApi.AsExchangeClient(),
-                bittrexClient.SpotApi.AsExchangeClient(), 
-                bybitClient.SpotApi.AsExchangeClient(), 
-                coinexClient.SpotApi.AsExchangeClient(), 
-                ftxClient.TradeApi.AsExchangeClient(), 
-                huobiClient.SpotApi.AsExchangeClient(), 
-                krakenClient.SpotApi.AsExchangeClient(), 
-                kucoinClient.SpotApi.AsExchangeClient()
+                binanceClient.SpotApi.ComonSpotClient, 
+                bitfinexClient.SpotApi.ComonSpotClient,
+                bittrexClient.SpotApi.ComonSpotClient, 
+                bybitClient.SpotApi.ComonSpotClient, 
+                coinexClient.SpotApi.ComonSpotClient, 
+                ftxClient.TradeApi.ComonSpotClient, 
+                huobiClient.SpotApi.ComonSpotClient, 
+                krakenClient.SpotApi.ComonSpotClient, 
+                kucoinClient.SpotApi.ComonSpotClient
             };
 
         var tasks = clients.Select(c => (c.ExchangeName, c.GetTickerAsync(c.GetSymbolName("ETH", "BTC"))));
@@ -49,7 +49,7 @@
         {
             if(task.Item2.Result.Success)
                 // TODO new version
-                _prices.Add(task.Item1, task.Item2.Result.Data.CommonHighPrice);
+                _prices.Add(task.Item1, task.Item2.Result.Data.HighPrice);
         }
     }
 

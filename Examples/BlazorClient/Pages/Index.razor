@@ -10,7 +10,7 @@
 @inject IKucoinClient kucoinClient
 
 <h3>BTC-USD prices:</h3>
-@foreach(var price in _prices)
+@foreach(var price in _prices.OrderBy(p => p.Key))
 {
     <div>@price.Key: @price.Value</div>
 }
