@@ -29,7 +29,7 @@
 
 @code{
     private ConcurrentDictionary<string, decimal> _prices = new ConcurrentDictionary<string, decimal>();
-    private UpdateSubscription[] _subs;
+    private UpdateSubscription[] _subs = Array.Empty<UpdateSubscription>();
 
     protected override async Task OnInitializedAsync()
     {
