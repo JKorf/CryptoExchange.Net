@@ -1,9 +1,9 @@
-﻿namespace CryptoExchange.Net.ComonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
-    /// Base class for comon objects
+    /// Base class for common objects
     /// </summary>
-    public class BaseComonObject
+    public class BaseCommonObject
     {
         /// <summary>
         /// The source object the data is derived from

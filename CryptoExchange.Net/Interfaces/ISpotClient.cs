@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.ComonObjects;
+﻿using CryptoExchange.Net.CommonObjects;
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
-    /// Comon rest client endpoints
+    /// Common rest client endpoints
     /// </summary>
     public interface IBaseRestClient
     {
@@ -68,7 +68,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="symbol">The symbol to get the book for</param>
         /// <returns></returns>
-        Task<WebCallResult<ComonObjects.OrderBook>> GetOrderBookAsync(string symbol);
+        Task<WebCallResult<CommonObjects.OrderBook>> GetOrderBookAsync(string symbol);
 
         /// <summary>
         /// The recent trades for a symbol
@@ -124,7 +124,7 @@ namespace CryptoExchange.Net.Interfaces
     }
 
     /// <summary>
-    /// Comon futures endpoints
+    /// Common futures endpoints
     /// </summary>
     public interface IFuturesClient: IBaseRestClient
     {
@@ -149,7 +149,7 @@ namespace CryptoExchange.Net.Interfaces
     }
 
     /// <summary>
-    /// Comon spot endpoints
+    /// Common spot endpoints
     /// </summary>
     public interface ISpotClient: IBaseRestClient
     {

@@ -1,9 +1,9 @@
-﻿namespace CryptoExchange.Net.ComonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Symbol data
     /// </summary>
-    public class Symbol: BaseComonObject
+    public class Symbol: BaseCommonObject
     {
         /// <summary>
         /// Name of the symbol

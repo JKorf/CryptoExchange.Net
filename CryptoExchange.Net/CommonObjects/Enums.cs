@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Order type

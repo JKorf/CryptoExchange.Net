@@ -1,9 +1,9 @@
-﻿namespace CryptoExchange.Net.ComonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Balance data
     /// </summary>
-    public class Balance: BaseComonObject
+    public class Balance: BaseCommonObject
     {
         /// <summary>
         /// The asset name

@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.ComonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Order book entry

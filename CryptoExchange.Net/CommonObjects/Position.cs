@@ -1,9 +1,9 @@
-﻿namespace CryptoExchange.Net.ComonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Position data
     /// </summary>
-    public class Position: BaseComonObject
+    public class Position: BaseCommonObject
     {
         /// <summary>
         /// Id of the position

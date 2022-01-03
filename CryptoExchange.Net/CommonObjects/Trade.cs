@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Trade data
     /// </summary>
-    public class Trade: BaseComonObject
+    public class Trade: BaseCommonObject
     {
         /// <summary>
         /// Symbol of the trade

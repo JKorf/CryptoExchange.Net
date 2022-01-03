@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Ticker data
     /// </summary>
-    public class Ticker: BaseComonObject
+    public class Ticker: BaseCommonObject
     {
         /// <summary>
         /// Symbol

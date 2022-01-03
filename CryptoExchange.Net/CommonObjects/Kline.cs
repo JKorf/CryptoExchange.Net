@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Kline data
     /// </summary>
-    public class Kline: BaseComonObject
+    public class Kline: BaseCommonObject
     {
         /// <summary>
         /// Opening time of the kline

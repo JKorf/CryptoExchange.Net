@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Order book data
     /// </summary>
-    public class OrderBook: BaseComonObject
+    public class OrderBook: BaseCommonObject
     {
         /// <summary>
         /// List of bids

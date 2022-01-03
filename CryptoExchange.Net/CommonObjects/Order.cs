@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.ComonObjects
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Order data
     /// </summary>
-    public class Order: BaseComonObject
+    public class Order: BaseCommonObject
     {
         /// <summary>
         /// Id of the order
