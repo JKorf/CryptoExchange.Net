@@ -68,7 +68,7 @@ namespace CryptoExchange.Net
 
             ExchangeName = exchangeName;
 
-            log.Write(LogLevel.Debug, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
+            log.Write(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
         }
 
         /// <summary>
@@ -77,6 +77,7 @@ namespace CryptoExchange.Net
         /// <param name="apiClient">The client</param>
         protected T AddApiClient<T>(T apiClient) where T:  BaseApiClient
         {
+            log.Write(LogLevel.Trace, $"  {apiClient.GetType().Name} configuration: {apiClient.Options}");
             ApiClients.Add(apiClient);
             return apiClient;
         }

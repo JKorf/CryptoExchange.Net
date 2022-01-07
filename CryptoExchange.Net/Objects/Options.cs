@@ -81,7 +81,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
+            return $"{base.ToString()}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}, Base.ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
         }
     }
 
@@ -178,7 +178,7 @@ namespace CryptoExchange.Net.Objects
         public new void Copy<T>(T input, T def) where T : BaseSocketClientOptions
         {
             base.Copy(input, def);
-
+                
             input.AutoReconnect = def.AutoReconnect;
             input.ReconnectInterval = def.ReconnectInterval;
             input.MaxReconnectTries = def.MaxReconnectTries;
@@ -256,7 +256,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
+            return $"Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
         }
     }
     

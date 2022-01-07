@@ -36,12 +36,18 @@ namespace CryptoExchange.Net
         internal protected string BaseAddress { get; }
 
         /// <summary>
+        /// Api client options
+        /// </summary>
+        internal ApiClientOptions Options { get; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="options">Client options</param>
         /// <param name="apiOptions">Api client options</param>
         protected BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
         {
+            Options = apiOptions.;
             _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? options.ApiCredentials?.Copy();
             BaseAddress = apiOptions.BaseAddress;
         }
