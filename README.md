@@ -326,6 +326,9 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-alpha7 - 07 Jan 2022
+    * Fixed SymbolOrderBook ToString() not being threadsafe, Potential fix request timeout unclear error message
+
 * Version 5.0.0-alpha6 - 03 Jan 2022
     * Fixed typo Comon -> Common
 
