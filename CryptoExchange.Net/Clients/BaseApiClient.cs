@@ -47,7 +47,7 @@ namespace CryptoExchange.Net
         /// <param name="apiOptions">Api client options</param>
         protected BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
         {
-            Options = apiOptions.;
+            Options = apiOptions;
             _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? options.ApiCredentials?.Copy();
             BaseAddress = apiOptions.BaseAddress;
         }
