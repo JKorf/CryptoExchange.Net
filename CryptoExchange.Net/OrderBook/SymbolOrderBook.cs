@@ -495,11 +495,12 @@ namespace CryptoExchange.Net.OrderBook
         public string ToString(int numberOfEntries)
         {
             var stringBuilder = new StringBuilder();
+            var book = Book;
             stringBuilder.AppendLine($"   Ask quantity       Ask price | Bid price       Bid quantity");
             for(var i = 0; i < numberOfEntries; i++)
             {
-                var ask = asks.Count > i ? asks.ElementAt(i).Value: null;
-                var bid = bids.Count > i ? bids.ElementAt(i).Value: null;
+                var ask = book.asks.Count() > i ? book.asks.ElementAt(i): null;
+                var bid = book.bids.Count() > i ? book.bids.ElementAt(i): null;
                 stringBuilder.AppendLine($"[{ask?.Quantity.ToString(CultureInfo.InvariantCulture),14}] {ask?.Price.ToString(CultureInfo.InvariantCulture),14} | {bid?.Price.ToString(CultureInfo.InvariantCulture),-14} [{bid?.Quantity.ToString(CultureInfo.InvariantCulture),-14}]");
             }
             return stringBuilder.ToString();

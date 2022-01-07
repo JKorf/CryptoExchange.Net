@@ -241,16 +241,16 @@ namespace CryptoExchange.Net
             }
             catch (OperationCanceledException canceledException)
             {
-                if (canceledException.CancellationToken == cancellationToken)
+                if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    log.Write(LogLevel.Warning, $"[{request.RequestId}] Request cancel requested");
+                    log.Write(LogLevel.Warning, $"[{request.RequestId}] Request canceled by cancellation token");
                     return new WebCallResult<T>(null, null, default, new CancellationRequestedError());
                 }
                 else
                 {
                     // Request timed out
-                    log.Write(LogLevel.Warning, $"[{request.RequestId}] Request timed out");
+                    log.Write(LogLevel.Warning, $"[{request.RequestId}] Request timed out: " + canceledException.ToLogString());
                     return new WebCallResult<T>(null, null, default, new WebError($"[{request.RequestId}] Request timed out"));
                 }
             }
