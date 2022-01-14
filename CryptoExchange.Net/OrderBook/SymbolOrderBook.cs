@@ -233,7 +233,7 @@ namespace CryptoExchange.Net.OrderBook
             if (!startResult)
             {
                 Status = OrderBookStatus.Disconnected;
-                return new CallResult<bool>(false, startResult.Error);
+                return new CallResult<bool>(startResult.Error!);
             }
 
             _subscription = startResult.Data;
@@ -252,7 +252,7 @@ namespace CryptoExchange.Net.OrderBook
 
             _subscription.ConnectionRestored += async time => await ResyncAsync().ConfigureAwait(false);
             Status = OrderBookStatus.Synced;
-            return new CallResult<bool>(true, null);
+            return new CallResult<bool>(true);
         }
 
         /// <inheritdoc/>
@@ -273,7 +273,7 @@ namespace CryptoExchange.Net.OrderBook
         public CallResult<decimal> CalculateAverageFillPrice(decimal quantity, OrderBookEntryType type)
         {
             if (Status != OrderBookStatus.Synced)
-                return new CallResult<decimal>(0, new InvalidOperationError($"{nameof(CalculateAverageFillPrice)} is not available when book is not in Synced state"));
+                return new CallResult<decimal>(new InvalidOperationError($"{nameof(CalculateAverageFillPrice)} is not available when book is not in Synced state"));
 
             var totalCost = 0m;
             var totalAmount = 0m;
@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.OrderBook
                 while (amountLeft > 0)
                 {
                     if (step == list.Count)
-                        return new CallResult<decimal>(0, new InvalidOperationError("Quantity is larger than order in the order book"));
+                        return new CallResult<decimal>(new InvalidOperationError("Quantity is larger than order in the order book"));
 
                     var element = list.ElementAt(step);
                     var stepAmount = Math.Min(element.Value.Quantity, amountLeft);
@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.OrderBook
                 }
             }
 
-            return new CallResult<decimal>(Math.Round(totalCost / totalAmount, 8), null);
+            return new CallResult<decimal>(Math.Round(totalCost / totalAmount, 8));
         }
 
         /// <summary>
@@ -466,12 +466,12 @@ namespace CryptoExchange.Net.OrderBook
             while (!bookSet && Status == OrderBookStatus.Syncing)
             {
                 if ((DateTime.UtcNow - startWait).TotalMilliseconds > timeout)
-                    return new CallResult<bool>(false, new ServerError("Timeout while waiting for data"));
+                    return new CallResult<bool>(new ServerError("Timeout while waiting for data"));
 
                 await Task.Delay(10).ConfigureAwait(false);
             }
 
-            return new CallResult<bool>(true, null);
+            return new CallResult<bool>(true);
         }
 
         /// <summary>

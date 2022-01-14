@@ -8,19 +8,12 @@ namespace CryptoExchange.Net
     public abstract class SocketApiClient : BaseApiClient
     {
         /// <summary>
-        /// The options for this client
-        /// </summary>
-        internal ApiClientOptions Options { get; }
-
-        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
         public SocketApiClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
         {
-            Options = apiOptions;
         }
-
     }
 }

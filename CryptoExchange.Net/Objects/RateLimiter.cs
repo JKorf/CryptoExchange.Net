@@ -118,7 +118,7 @@ namespace CryptoExchange.Net.Objects
             }
 
             if (endpointLimit?.IgnoreOtherRateLimits == true)
-                return new CallResult<int>(totalWaitTime, null);
+                return new CallResult<int>(totalWaitTime);
 
             List<PartialEndpointRateLimiter> partialEndpointLimits;
             lock (_limiterLock)
@@ -155,7 +155,7 @@ namespace CryptoExchange.Net.Objects
             }
 
             if(partialEndpointLimits.Any(p => p.IgnoreOtherRateLimits))
-                return new CallResult<int>(totalWaitTime, null);
+                return new CallResult<int>(totalWaitTime);
 
             ApiKeyRateLimiter? apiLimit;
             lock (_limiterLock)
@@ -195,7 +195,7 @@ namespace CryptoExchange.Net.Objects
             }
 
             if ((signed || apiLimit?.OnlyForSignedRequests == false) && apiLimit?.IgnoreTotalRateLimit == true)
-                return new CallResult<int>(totalWaitTime, null);
+                return new CallResult<int>(totalWaitTime);
 
             TotalRateLimiter? totalLimit;
             lock (_limiterLock)
@@ -209,7 +209,7 @@ namespace CryptoExchange.Net.Objects
                 totalWaitTime += waitResult.Data;
             }
 
-            return new CallResult<int>(totalWaitTime, null);
+            return new CallResult<int>(totalWaitTime);
         }
 
         private static async Task<CallResult<int>> ProcessTopic(Log log, Limiter historyTopic, string endpoint, int requestWeight, RateLimitingBehaviour limitBehaviour, CancellationToken ct)
@@ -221,7 +221,7 @@ namespace CryptoExchange.Net.Objects
             }
             catch (OperationCanceledException)
             {
-                return new CallResult<int>(0, new CancellationRequestedError());
+                return new CallResult<int>(new CancellationRequestedError());
             }
             sw.Stop();
 
@@ -253,7 +253,7 @@ namespace CryptoExchange.Net.Objects
                             historyTopic.Semaphore.Release();
                             var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
                             log.Write(LogLevel.Warning, msg);
-                            return new CallResult<int>(thisWaitTime, new RateLimitError(msg));
+                            return new CallResult<int>(new RateLimitError(msg));
                         }
 
                         log.Write(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
@@ -263,7 +263,7 @@ namespace CryptoExchange.Net.Objects
                         }
                         catch (OperationCanceledException)
                         {
-                            return new CallResult<int>(0, new CancellationRequestedError());
+                            return new CallResult<int>(new CancellationRequestedError());
                         }
                         totalWaitTime += thisWaitTime;
                     }
@@ -277,7 +277,7 @@ namespace CryptoExchange.Net.Objects
             var newTime = DateTime.UtcNow;
             historyTopic.Entries.Add(new LimitEntry(newTime, requestWeight));
             historyTopic.Semaphore.Release();
-            return new CallResult<int>(totalWaitTime, null);
+            return new CallResult<int>(totalWaitTime);
         }
 
         internal struct LimitEntry

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -36,16 +38,6 @@ namespace CryptoExchange.Net.Objects
         {
             return obj?.Success == true;
         }
-        
-        /// <summary>
-        /// Create an error result
-        /// </summary>
-        /// <param name="error"></param>
-        /// <returns></returns>
-        public static WebCallResult CreateErrorResult(Error error)
-        {
-            return new WebCallResult(null, null, error);
-        }
     }
 
     /// <summary>
@@ -62,21 +54,35 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
         /// </summary>
-        public string? OriginalData { get; set; }
+        public string? OriginalData { get; internal set; }
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="originalData"></param>
         /// <param name="error"></param>
 #pragma warning disable 8618
-        public CallResult([AllowNull]T data, Error? error): base(error)
+        protected CallResult([AllowNull]T data, string? originalData, Error? error): base(error)
 #pragma warning restore 8618
         {
+            OriginalData = originalData;
 #pragma warning disable 8601
             Data = data;
 #pragma warning restore 8601
         }
+
+        /// <summary>
+        /// Create a new data result
+        /// </summary>
+        /// <param name="data">The data to return</param>
+        public CallResult(T data) : this(data, null, null) { }
+
+        /// <summary>
+        /// Create a new error result
+        /// </summary>
+        /// <param name="error">The erro rto return</param>
+        public CallResult(Error error) : this(default, null, error) { }
 
         /// <summary>
         /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
@@ -112,16 +118,6 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Create an error result
-        /// </summary>
-        /// <param name="error"></param>
-        /// <returns></returns>
-        public new static WebCallResult<T> CreateErrorResult(Error error)
-        {
-            return new WebCallResult<T>(null, null, default, error);
-        }
-
-        /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
@@ -129,7 +125,18 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public CallResult<K> As<K>([AllowNull] K data)
         {
-            return new CallResult<K>(data, Error);
+            return new CallResult<K>(data, OriginalData, Error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error to return</param>
+        /// <returns></returns>
+        public CallResult<K> AsError<K>(Error error)
+        {
+            return new CallResult<K>(default, OriginalData, error);
         }
     }
 
@@ -154,34 +161,23 @@ namespace CryptoExchange.Net.Objects
         /// <param name="code">Status code</param>
         /// <param name="responseHeaders">Response headers</param>
         /// <param name="error">Error</param>
-        public WebCallResult(
+        private WebCallResult(
             HttpStatusCode? code,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error? error) : base(error)
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, 
+            Error? error) : base(error)
         {
             ResponseHeaders = responseHeaders;
             ResponseStatusCode = code;
         }
 
         /// <summary>
-        /// Create an error result
+        /// Return the result as an error result
         /// </summary>
-        /// <param name="code">Status code</param>
-        /// <param name="responseHeaders">Response headers</param>
-        /// <param name="error">Error</param>
+        /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public static WebCallResult CreateErrorResult(HttpStatusCode? code, IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error error)
+        public WebCallResult AsError(Error error)
         {
-            return new WebCallResult(code, responseHeaders, error);
-        }
-
-        /// <summary>
-        /// Create an error result
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        public static WebCallResult CreateErrorResult(WebCallResult result)
-        {
-            return new WebCallResult(result.ResponseStatusCode, result.ResponseHeaders, result.Error);
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, error);
         }
     }
 
@@ -192,6 +188,26 @@ namespace CryptoExchange.Net.Objects
     public class WebCallResult<T>: CallResult<T>
     {
         /// <summary>
+        /// The request http method
+        /// </summary>
+        public HttpMethod? RequestMethod { get; set; }
+
+        /// <summary>
+        /// The headers sent with the request
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
+
+        /// <summary>
+        /// The url which was requested
+        /// </summary>
+        public string? RequestUrl { get; set; }
+
+        /// <summary>
+        /// The body of the request
+        /// </summary>
+        public string? RequestBody { get; set; }
+
+        /// <summary>
         /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
         /// </summary>
         public HttpStatusCode? ResponseStatusCode { get; set; }
@@ -200,43 +216,48 @@ namespace CryptoExchange.Net.Objects
         /// The response headers
         /// </summary>
         public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
-        
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="responseHeaders"></param>
-        /// <param name="data"></param>
-        /// <param name="error"></param>
-        public WebCallResult(
-            HttpStatusCode? code, 
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, 
-            [AllowNull] T data, 
-            Error? error): base(data, error)
-        {
-            ResponseStatusCode = code;
-            ResponseHeaders = responseHeaders;
-        }
 
         /// <summary>
-        /// ctor
+        /// The time between sending the request and receiving the response
+        /// </summary>
+        public TimeSpan? ResponseTime { get; set; }
+
+        /// <summary>
+        /// Create a new result
         /// </summary>
         /// <param name="code"></param>
-        /// <param name="originalData"></param>
         /// <param name="responseHeaders"></param>
+        /// <param name="originalData"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="requestBody"></param>
+        /// <param name="requestMethod"></param>
+        /// <param name="requestHeaders"></param>
         /// <param name="data"></param>
         /// <param name="error"></param>
         public WebCallResult(
             HttpStatusCode? code,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
             string? originalData,
+            string? requestUrl,
+            string? requestBody,
+            HttpMethod? requestMethod,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? requestHeaders,
             [AllowNull] T data,
-            Error? error) : base(data, error)
+            Error? error) : base(data, originalData, error)
         {
-            OriginalData = originalData;
             ResponseStatusCode = code;
             ResponseHeaders = responseHeaders;
+            RequestUrl = requestUrl;
+            RequestBody = requestBody;
+            RequestHeaders = requestHeaders;
+            RequestMethod = requestMethod;
         }
+
+        /// <summary>
+        /// Create a new error result
+        /// </summary>
+        /// <param name="error">The error</param>
+        public WebCallResult(Error? error) : this(null, null, null, null, null, null, null, default, error) { }
 
         /// <summary>
         /// Copy the WebCallResult to a new data type
@@ -246,19 +267,18 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> As<K>([AllowNull] K data)
         {
-            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, OriginalData, data, Error);
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, data, Error);
         }
 
         /// <summary>
-        /// Create an error result
+        /// Copy the WebCallResult to a new data type
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="responseHeaders"></param>
-        /// <param name="error"></param>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public static WebCallResult<T> CreateErrorResult(HttpStatusCode? code, IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, Error error)
+        public new WebCallResult<K> AsError<K>(Error error)
         {
-            return new WebCallResult<T>(code, responseHeaders, default, error);
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, default, error);
         }
     }
 }

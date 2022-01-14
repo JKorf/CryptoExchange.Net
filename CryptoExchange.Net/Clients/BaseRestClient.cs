@@ -136,7 +136,7 @@ namespace CryptoExchange.Net
             if (signed && apiClient.AuthenticationProvider == null)
             {
                 log.Write(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
-                return new WebCallResult<T>(null, null, null, new NoApiCredentialsError());
+                return new WebCallResult<T>(new NoApiCredentialsError());
             }
 
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
@@ -145,7 +145,7 @@ namespace CryptoExchange.Net
             {
                 var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, apiClient.Options.ApiCredentials?.Key, apiClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
                 if (!limitResult.Success)                
-                    return new WebCallResult<T>(null, null, null, limitResult.Error);
+                    return new WebCallResult<T>(limitResult.Error!);
             }
 
             string? paramString = "";
@@ -196,16 +196,16 @@ namespace CryptoExchange.Net
                         // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
                         var parseResult = ValidateJson(data);
                         if (!parseResult.Success)
-                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, parseResult.Error!);
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
 
                         // Let the library implementation see if it is an error response, and if so parse the error
                         var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
                         if (error != null)
-                            return WebCallResult<T>.CreateErrorResult(response.StatusCode, response.ResponseHeaders, error);
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
 
                         // Not an error, so continue deserializing
                         var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
-                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, ClientOptions.OutputOriginalData ? data: null, deserializeResult.Data, deserializeResult.Error);
+                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, ClientOptions.OutputOriginalData ? data: null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
                     }
                     else
                     {
@@ -214,7 +214,7 @@ namespace CryptoExchange.Net
                         responseStream.Close();
                         response.Close();
 
-                        return new WebCallResult<T>(statusCode, headers, ClientOptions.OutputOriginalData ? desResult.OriginalData : null, desResult.Data, desResult.Error);
+                        return new WebCallResult<T>(statusCode, headers, ClientOptions.OutputOriginalData ? desResult.OriginalData : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
                     }
                 }
                 else
@@ -229,7 +229,7 @@ namespace CryptoExchange.Net
                     var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : parseResult.Error!;
                     if(error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
-                    return new WebCallResult<T>(statusCode, headers, default, error);
+                    return new WebCallResult<T>(statusCode, headers, data, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
             }
             catch (HttpRequestException requestException)
@@ -237,7 +237,7 @@ namespace CryptoExchange.Net
                 // Request exception, can't reach server for instance
                 var exceptionInfo = requestException.ToLogString();
                 log.Write(LogLevel.Warning, $"[{request.RequestId}] Request exception: " + exceptionInfo);
-                return new WebCallResult<T>(null, null, default, new WebError(exceptionInfo));
+                return new WebCallResult<T>(null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError(exceptionInfo));
             }
             catch (OperationCanceledException canceledException)
             {
@@ -245,13 +245,13 @@ namespace CryptoExchange.Net
                 {
                     // Cancellation token canceled by caller
                     log.Write(LogLevel.Warning, $"[{request.RequestId}] Request canceled by cancellation token");
-                    return new WebCallResult<T>(null, null, default, new CancellationRequestedError());
+                    return new WebCallResult<T>(null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new CancellationRequestedError());
                 }
                 else
                 {
                     // Request timed out
                     log.Write(LogLevel.Warning, $"[{request.RequestId}] Request timed out: " + canceledException.ToLogString());
-                    return new WebCallResult<T>(null, null, default, new WebError($"[{request.RequestId}] Request timed out"));
+                    return new WebCallResult<T>(null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError($"[{request.RequestId}] Request timed out"));
                 }
             }
         }

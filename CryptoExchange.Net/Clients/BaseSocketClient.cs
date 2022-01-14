@@ -163,7 +163,7 @@ namespace CryptoExchange.Net
             }
             catch (OperationCanceledException)
             {
-                return new CallResult<UpdateSubscription>(null, new CancellationRequestedError());
+                return new CallResult<UpdateSubscription>(new CancellationRequestedError());
             }
 
             try
@@ -184,7 +184,7 @@ namespace CryptoExchange.Net
 
                 var connectResult = await ConnectIfNeededAsync(socketConnection, authenticated).ConfigureAwait(false);
                 if (!connectResult)
-                    return new CallResult<UpdateSubscription>(null, connectResult.Error);
+                    return new CallResult<UpdateSubscription>(connectResult.Error!);
 
                 if (needsConnecting)
                     log.Write(LogLevel.Debug, $"Socket {socketConnection.Socket.Id} connected to {url} {(request == null ? "": "with request " + JsonConvert.SerializeObject(request))}");
@@ -198,7 +198,7 @@ namespace CryptoExchange.Net
             if (socketConnection.PausedActivity)
             {
                 log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't subscribe at this moment");
-                return new CallResult<UpdateSubscription>(default, new ServerError("Socket is paused"));
+                return new CallResult<UpdateSubscription>( new ServerError("Socket is paused"));
             }
 
             if (request != null)
@@ -208,7 +208,7 @@ namespace CryptoExchange.Net
                 if (!subResult)
                 {
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
-                    return new CallResult<UpdateSubscription>(null, subResult.Error);
+                    return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace CryptoExchange.Net
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
-            return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription), null);
+            return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
         /// <summary>
@@ -242,9 +242,15 @@ namespace CryptoExchange.Net
             await socketConnection.SendAndWaitAsync(request, ClientOptions.SocketResponseTimeout, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
+            {
                 subscription.Confirmed = true;
+                return new CallResult<bool>(true);
+            }
 
-            return new CallResult<bool>(callResult?.Success ?? false, callResult == null ? new ServerError("No response on subscription request received"): callResult.Error);
+            if(callResult== null)
+                return new CallResult<bool>(new ServerError("No response on subscription request received"));
+
+            return new CallResult<bool>(callResult.Error!);
         }
 
         /// <summary>
@@ -286,7 +292,7 @@ namespace CryptoExchange.Net
 
                 var connectResult = await ConnectIfNeededAsync(socketConnection, authenticated).ConfigureAwait(false);
                 if (!connectResult)
-                    return new CallResult<T>(default, connectResult.Error);
+                    return new CallResult<T>(connectResult.Error!);
             }
             finally
             {
@@ -299,7 +305,7 @@ namespace CryptoExchange.Net
             if (socketConnection.PausedActivity)
             {
                 log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't send query at this moment");
-                return new CallResult<T>(default, new ServerError("Socket is paused"));
+                return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
             return await QueryAndWaitAsync<T>(socketConnection, request).ConfigureAwait(false);
@@ -314,7 +320,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request)
         {
-            var dataResult = new CallResult<T>(default, new ServerError("No response on query received"));
+            var dataResult = new CallResult<T>(new ServerError("No response on query received"));
             await socket.SendAndWaitAsync(request, ClientOptions.SocketResponseTimeout, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
@@ -336,14 +342,14 @@ namespace CryptoExchange.Net
         protected virtual async Task<CallResult<bool>> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
         {
             if (socket.Connected)
-                return new CallResult<bool>(true, null);
+                return new CallResult<bool>(true);
 
             var connectResult = await ConnectSocketAsync(socket).ConfigureAwait(false);
             if (!connectResult)
-                return new CallResult<bool>(false, connectResult.Error);
+                return new CallResult<bool>(connectResult.Error!);
 
             if (!authenticated || socket.Authenticated)
-                return new CallResult<bool>(true, null);
+                return new CallResult<bool>(true);
 
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
@@ -351,11 +357,11 @@ namespace CryptoExchange.Net
                 await socket.CloseAsync().ConfigureAwait(false);
                 log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} authentication failed");
                 result.Error!.Message = "Authentication failed: " + result.Error.Message;
-                return new CallResult<bool>(false, result.Error);
+                return new CallResult<bool>(result.Error);
             }
 
             socket.Authenticated = true;
-            return new CallResult<bool>(true, null);
+            return new CallResult<bool>(true);
         }
 
         /// <summary>
@@ -532,11 +538,11 @@ namespace CryptoExchange.Net
             if (await socketConnection.Socket.ConnectAsync().ConfigureAwait(false))
             {
                 sockets.TryAdd(socketConnection.Socket.Id, socketConnection);
-                return new CallResult<bool>(true, null);
+                return new CallResult<bool>(true);
             }
 
             socketConnection.Socket.Dispose();
-            return new CallResult<bool>(false, new CantConnectError());
+            return new CallResult<bool>(new CantConnectError());
         }
 
         /// <summary>

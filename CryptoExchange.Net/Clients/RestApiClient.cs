@@ -34,7 +34,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Options for this client
         /// </summary>
-        public RestApiClientOptions Options { get; }
+        public new RestApiClientOptions Options => (RestApiClientOptions)base.Options;
 
         /// <summary>
         /// List of rate limiters
@@ -48,8 +48,6 @@ namespace CryptoExchange.Net
         /// <param name="apiOptions">The Api client options</param>
         public RestApiClient(BaseRestClientOptions options, RestApiClientOptions apiOptions): base(options, apiOptions)
         {
-            Options = apiOptions;
-
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in apiOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
@@ -70,7 +68,7 @@ namespace CryptoExchange.Net
                 if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < TimeSpan.FromHours(1)))
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return new WebCallResult<bool>(null, null, true, null);
+                    return new WebCallResult<bool>(null, null, null, null, null, null, null, true, null);
                 }
 
                 var localTime = DateTime.UtcNow;
@@ -108,7 +106,7 @@ namespace CryptoExchange.Net
                 }
             }
 
-            return new WebCallResult<bool>(null, null, true, null);
+            return new WebCallResult<bool>(null, null, null, null, null, null, null, true, null);
         }
     }
 }

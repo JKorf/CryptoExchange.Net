@@ -530,7 +530,7 @@ namespace CryptoExchange.Net.Sockets
         internal async Task<CallResult<bool>> ResubscribeAsync(SocketSubscription socketSubscription)
         {
             if (!Socket.IsOpen)
-                return new CallResult<bool>(false, new UnknownError("Socket is not connected"));
+                return new CallResult<bool>(new UnknownError("Socket is not connected"));
 
             return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
         }
