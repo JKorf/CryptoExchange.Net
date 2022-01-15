@@ -326,6 +326,11 @@ private void SomeMethod()
 ````
 
 ## Release notes
+* Version 5.0.0-beta1 - 15 Jan 2022
+    * Added additional properties to WebCallResult
+    * Added CallResult unit tests
+    * Updated some logging for client options
+
 * Version 5.0.0-alpha7 - 07 Jan 2022
     * Fixed SymbolOrderBook ToString() not being threadsafe, Potential fix request timeout unclear error message
 
