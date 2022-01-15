@@ -146,6 +146,26 @@ namespace CryptoExchange.Net.Objects
     public class WebCallResult : CallResult
     {
         /// <summary>
+        /// The request http method
+        /// </summary>
+        public HttpMethod? RequestMethod { get; set; }
+
+        /// <summary>
+        /// The headers sent with the request
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
+
+        /// <summary>
+        /// The url which was requested
+        /// </summary>
+        public string? RequestUrl { get; set; }
+
+        /// <summary>
+        /// The body of the request
+        /// </summary>
+        public string? RequestBody { get; set; }
+
+        /// <summary>
         /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
         /// </summary>
         public HttpStatusCode? ResponseStatusCode { get; set; }
@@ -156,19 +176,46 @@ namespace CryptoExchange.Net.Objects
         public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
 
         /// <summary>
+        /// The time between sending the request and receiving the response
+        /// </summary>
+        public TimeSpan? ResponseTime { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code">Status code</param>
-        /// <param name="responseHeaders">Response headers</param>
-        /// <param name="error">Error</param>
-        private WebCallResult(
+        /// <param name="code"></param>
+        /// <param name="responseHeaders"></param>
+        /// <param name="responseTime"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="requestBody"></param>
+        /// <param name="requestMethod"></param>
+        /// <param name="requestHeaders"></param>
+        /// <param name="error"></param>
+        public WebCallResult(
             HttpStatusCode? code,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders, 
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
+            TimeSpan? responseTime,
+            string? requestUrl,
+            string? requestBody,
+            HttpMethod? requestMethod,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? requestHeaders,
             Error? error) : base(error)
         {
-            ResponseHeaders = responseHeaders;
             ResponseStatusCode = code;
+            ResponseHeaders = responseHeaders;
+            ResponseTime = responseTime;
+
+            RequestUrl = requestUrl;
+            RequestBody = requestBody;
+            RequestHeaders = requestHeaders;
+            RequestMethod = requestMethod;
         }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="error"></param>
+        public WebCallResult(Error error): base(error) { }
 
         /// <summary>
         /// Return the result as an error result
@@ -177,7 +224,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public WebCallResult AsError(Error error)
         {
-            return new WebCallResult(ResponseStatusCode, ResponseHeaders, error);
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
     }
 
@@ -227,6 +274,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="code"></param>
         /// <param name="responseHeaders"></param>
+        /// <param name="responseTime"></param>
         /// <param name="originalData"></param>
         /// <param name="requestUrl"></param>
         /// <param name="requestBody"></param>
@@ -237,6 +285,7 @@ namespace CryptoExchange.Net.Objects
         public WebCallResult(
             HttpStatusCode? code,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
+            TimeSpan? responseTime,
             string? originalData,
             string? requestUrl,
             string? requestBody,
@@ -247,6 +296,8 @@ namespace CryptoExchange.Net.Objects
         {
             ResponseStatusCode = code;
             ResponseHeaders = responseHeaders;
+            ResponseTime = responseTime;
+
             RequestUrl = requestUrl;
             RequestBody = requestBody;
             RequestHeaders = requestHeaders;
@@ -257,7 +308,7 @@ namespace CryptoExchange.Net.Objects
         /// Create a new error result
         /// </summary>
         /// <param name="error">The error</param>
-        public WebCallResult(Error? error) : this(null, null, null, null, null, null, null, default, error) { }
+        public WebCallResult(Error? error) : this(null, null, null, null, null, null, null, null, default, error) { }
 
         /// <summary>
         /// Copy the WebCallResult to a new data type
@@ -267,7 +318,25 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> As<K>([AllowNull] K data)
         {
-            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, data, Error);
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, data, Error);
+        }
+
+        /// <summary>
+        /// Copy as a dataless result
+        /// </summary>
+        /// <returns></returns>
+        public WebCallResult AsDataless()
+        {
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestUrl, RequestBody, RequestMethod, RequestHeaders, Error);
+        }
+
+        /// <summary>
+        /// Copy as a dataless result
+        /// </summary>
+        /// <returns></returns>
+        public WebCallResult AsDatalessError(Error error)
+        {
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
 
         /// <summary>
@@ -278,7 +347,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> AsError<K>(Error error)
         {
-            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, default, error);
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, OriginalData, RequestUrl, RequestBody, RequestMethod, RequestHeaders, default, error);
         }
     }
 }
