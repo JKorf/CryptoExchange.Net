@@ -8,7 +8,7 @@ nav_order: 3
 Each implementation can be configured using client options. There are 2 ways to provide these, either via `[client].SetDefaultOptions([options]);`, or in the constructor of the client. The examples here use the `BinanceClient`, but usage is the same for each client.
 
 *Set the default options to use for new clients*
-````C#
+```csharp
 
 BinanceClient.SetDefaultOptions(new BinanceClientOptions
 {
@@ -16,10 +16,10 @@ BinanceClient.SetDefaultOptions(new BinanceClientOptions
 	ApiCredentials = new ApiCredentials("KEY", "SECRET")
 });
 
-````
+```
 
 *Set the options to use for a single new client*
-````C#
+```csharp
 
 var client = new BinanceClient(new BinanceClientOptions
 {
@@ -27,10 +27,10 @@ var client = new BinanceClient(new BinanceClientOptions
 	ApiCredentials = new ApiCredentials("KEY", "SECRET")
 });
 
-````
+```
 
 When calling `SetDefaultOptions` each client created after that will use the options that were set, unless the specific option is overriden in the options that were provided to the client. Consider the following example:
-````C#
+```csharp
 
 BinanceClient.SetDefaultOptions(new BinanceClientOptions
 {
@@ -44,7 +44,7 @@ var client = new BinanceClient(new BinanceClientOptions
 	ApiCredentials = new ApiCredentials("KEY", "SECRET")
 });
 
-````
+```
 
 The client instance will have the following options:  
 `LogLevel = Debug`  
@@ -54,7 +54,7 @@ The client instance will have the following options:
 ## Api options
 The options are divided in two categories. The basic options, which will apply to everything the client does, and the Api options, which is limited to the specific API client (see [Clients](https://github.com/JKorf/CryptoExchange.Net/wiki/Clients)).
 
-````C#
+```csharp
 
 var client = new BinanceClient(new BinanceClientOptions
 {
@@ -67,7 +67,7 @@ var client = new BinanceClient(new BinanceClientOptions
 	}
 });
 
-````
+```
 
 The options provided in the SpotApiOptions are only applied to the SpotApi (`client.SpotApi.XXX` endpoints), while the base options are applied to everything. This means that the spot endpoints will use the "SPOT-KEY" credentials, while all other endpoints (`client.UsdFuturesApi.XXX` / `client.CoinFuturesApi.XXX`) will use the "GENERAL-KEY" credentials.
 

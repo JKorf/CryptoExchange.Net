@@ -23,7 +23,7 @@ Socket clients are restructured as `client.[Api]Streams.Method()`:
 The options have been changed in 2 categories, options for the whole client, and options only for a specific sub Api. Some options might no longer be available on the base level and should be set on the Api options instead, for example the `BaseAddress`. 
 The following example sets some basic options, and specifically overwrites the USD futures Api options to use the test net address and different Api credentials:
 *V4*
-````C#
+```csharp
 var binanceClient = new BinanceClient(new BinanceApiClientOptions{
 	LogLevel = LogLevel.Trace,
 	RequestTimeout = TimeSpan.FromSeconds(60),
@@ -31,10 +31,10 @@ var binanceClient = new BinanceClient(new BinanceApiClientOptions{
 	BaseAddressUsdtFutures = new ApiCredentials("OTHER API KEY ONLY FOR USD FUTURES", "OTHER API SECRET ONLY FOR USD FUTURES")
 	// No way to set separate credentials for the futures API
 });
-````
+```
 
 *V5*
-````C#
+```csharp
 var binanceClient = new BinanceClient(new BinanceClientOptions()
 {
 	// Client options
@@ -49,14 +49,14 @@ var binanceClient = new BinanceClient(new BinanceClientOptions()
 		ApiCredentials = new ApiCredentials("OTHER API KEY ONLY FOR USD FUTURES", "OTHER API SECRET ONLY FOR USD FUTURES")
 	}
 });
-````
+```
 See [Client options](https://github.com/JKorf/CryptoExchange.Net/wiki/Options) for more details on the specific options.
 
 ## IExchangeClient
 The `IExchangeClient` has been replaced by the `ISpotClient` and `IFuturesClient`. Where previously the `IExchangeClient` was implemented on the base client level, the `ISpotClient`/`IFuturesClient` have been implemented on the sub-Api level.
 This, in combination with the client restructuring, allows for more logically implemented interfaces, see this example:  
 *V4*
-````C#
+```csharp
 var spotClients = new [] {
 	(IExhangeClient)binanceClient,
 	(IExchangeClient)bittrexClient,
@@ -64,10 +64,10 @@ var spotClients = new [] {
 };
 
 // There was no common implementation for futures client
-````
+```
 
 *V5*
-````C#
+```csharp
 var spotClients = new [] {
 	binanceClient.SpotApi.ComonSpotClient,
 	bittrexClient.SpotApi.ComonSpotClient,
@@ -78,18 +78,18 @@ var futuresClients = new [] {
 	binanceClient.UsdFuturesApi.ComonFuturesClient,
 	kucoinClient.FuturesApi.ComonFuturesClient
 };
-````
+```
 
 Where the IExchangeClient was returning interfaces which were implemented by models from the exchange, the `ISpotClient`/`IFuturesClient` returns actual objects defined in the `CryptoExchange.Net` library. This shifts the responsibility of parsing 
 the library model to a shared model from the model class to the client class, which makes more sense and removes the need for separate library models to implement the same mapping logic. It also removes the need for the `Common` prefix on properties:  
 *V4*
-````C#
+```csharp
 var kline = await ((IExhangeClient)binanceClient).GetKlinesAysnc(/*params*/);
 var closePrice = kline.CommonClose;
-````
+```
 
 *V5*
-````C#
+```csharp
 var kline = await binanceClient.SpotApi.ComonSpotClient.GetKlinesAysnc(/*params*/);
 var closePrice = kline.ClosePrice;
-````
+```

@@ -10,7 +10,7 @@ Order book implementations are named as `[ExchangeName][Type]SymbolOrderBook`, f
 Start the book synchronization by calling the `StartAsync` method. This returns a success state whether the book is successfully synchronized and started. You can listen to the `OnStatusChange` event to be notified of when the status of a book changes. Note that the order book is only synchronized with the server when the state is `Synced`.
 
 *Start an order book and print the top 3 rows*
-````C#
+```csharp
 
 var book = new BinanceSpotSymbolOrderBook("BTCUSDT");
 book.OnStatusChange += (oldState, newState) => Console.WriteLine($"State changed from {oldState} to {newState}");
@@ -27,7 +27,7 @@ while(true)
 	await Task.Delay(500);
 }
 
-````
+```
 
 ### Accessing bids/asks
 You can access the current Bid/Ask lists using the responding properties:  
@@ -47,10 +47,10 @@ The following events are available on the symbol order book:
 `book.OnOrderBookUpdate`: The book has changed, the arguments contain the changed entries.  
 `book.OnBestOffersChanged`: The best offer (best bid, best ask) has changed.
 
-````C#
+```csharp
 
 book.OnStatusChange += (oldStatus, newStatus) => { Console.WriteLine($"State changed from {oldStatus} to {newStatus}"); };
 book.OnOrderBookUpdate += (bidsAsks) => { Console.WriteLine($"Order book changed: {bidsAsks.Asks.Count()} asks, {bidsAsks.Bids.Count()} bids"); };
 book.OnBestOffersChanged += (bestOffer) => { Console.WriteLine($"Best offer changed, best bid: {bestOffer.BestBid.Price}, best ask: {bestOffer.BestAsk.Price}"); };
 
-````
+```
