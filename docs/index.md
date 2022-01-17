@@ -1,17 +1,22 @@
+---
+title: Home
+nav_order: 1
+---
+
 The CryptoExchange.Net library is a base package for exchange API implementations.
 
-[Client usage](https://github.com/JKorf/CryptoExchange.Net/wiki/Clients)
+[Client usage](Clients.html)
 
-[Client options](https://github.com/JKorf/CryptoExchange.Net/wiki/Options)
+[Client options](Options.html)
 
-[Configure logging](https://github.com/JKorf/CryptoExchange.Net/wiki/Logging)
+[Configure logging](Logging.html)
 
-[Order book implementations](https://github.com/JKorf/CryptoExchange.Net/wiki/Orderbooks)
+[Order book implementations](Orderbooks.html)
 
-[Common interfaces](https://github.com/JKorf/CryptoExchange.Net/wiki/Interfaces)
+[Common interfaces](Interfaces.html)
 
-[Implementing a new exchange](https://github.com/JKorf/CryptoExchange.Net/wiki/Implementations)
+[Implementing a new exchange](Implementations.html)
 
-[Glossary](https://github.com/JKorf/CryptoExchange.Net/wiki/Glossary)
+[Glossary](Glossary.html)
 
-[FAQ](https://github.com/JKorf/CryptoExchange.Net/wiki/FAQ)
+[FAQ](FAQ.html)

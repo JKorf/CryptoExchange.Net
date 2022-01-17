@@ -1,3 +1,8 @@
+---
+title: Glossary
+nav_order: 8
+---
+
 |Definition|Synonyms|Meaning|
 |----------|--------|-------|
 |Symbol|Market|An asset pair, for example `BTC-ETH`|

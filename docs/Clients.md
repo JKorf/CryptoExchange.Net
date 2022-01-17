@@ -1,3 +1,8 @@
+---
+title: General usage
+nav_order: 2
+---
+
 Each implementation generally provides two different clients, which will be the access point for the API's. First of the rest client, which is typically available via [ExchangeName]Client, and a socket client, which is generally named [ExchangeName]SocketClient. For example `BinanceClient` and `BinanceSocketClient`.
 
 ## Rest client
@@ -15,10 +20,10 @@ The rest client gives access to the Rest endpoint of the API. Rest endpoints are
 		
 This rest client has 2 different API clients, the `SpotApi` and the `FuturesApi`, each offering their own set of endpoints.
 *Requesting ticker info on the spot API*
-````C#
+```csharp
 var client = new KucoinClient();
 var tickersResult = kucoinClient.SpotApi.ExchangeData.GetTickersAsync();
-````
+```
 
 Structuring the client like this should make it easier to find endpoints and allows for separate options and functionality for different API clients. For example, some API's have totally separate API's for futures, with different base addresses and different API credentials, while other API's have implemented this in the same API. Either way, this structure can facilitate a similar interface.
 
@@ -46,7 +51,7 @@ Each request will return a WebCallResult<T> with the following properties:
 When processing the result of a call it should always be checked for success. Not doing so will result in `NullReference` exceptions.
 
 *Check call result*
-````C#
+```csharp
 var callResult = await kucoinClient.SpotApi.ExchangeData.GetTickersAsync();
 if(!callResult.Success)
 {
@@ -55,43 +60,43 @@ if(!callResult.Success)
 }
 
 Console.WriteLine("Result: " + callResult.Data);
-````
+```
 
 ## Socket client
 The socket client gives access to the websocket API of an exchange. Websocket API's offer streams to which updates are pushed to which a client can listen. Some exchanges also offer some degree of functionality by allowing clients to give commands via the websocket, but most exchanges only allow this via the Rest API.
 Just like the Rest client is divided in Rest Api clients, the Socket client is divided into Socket Api clients, each with their own range of API functionality. Socket Api clients are generally not divided into topics since the number of methods isn't as big as with the Rest client. To use the Kucoin client as example again, it looks like this:
 
-````C#
+```csharp
 
 - KucoinSocketClient
 	- SpotStreams
 	- FuturesStreams
 
-````
+```
 *Subscribing to updates for all tickers on the Spot Api*
-````C#
+```csharp
 var subscribeResult = kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
-````
+```
 
 Subscribe methods require a data handler parameter, which is the method which will be called when an update is received from the server. This can be the name of a method or a lambda expression.  
 
 *Method reference*
-````C#
+```csharp
 await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 
 private static void DataHandler(DataEvent<KucoinStreamTick> updateData)
 {
 	// Process updateData
 }
-````
+```
 
 *Lambda*
-````C#
+```csharp
 await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(updateData =>
 {
 	// Process updateData
 });
-````
+```
 
 All updates are wrapped in a `DataEvent<>` object, which contain a `Timestamp`, `OriginalData`, `Topic`, and a `Data` property. The `Timestamp` is the timestamp when the data was received (not send!). `OriginalData` will contain the originally received data if this has been enabled in the client options. `Topic` will contain the topic of the update, which is typically the symbol or asset the update is for. The `Data` property contains the received update data.
 
@@ -99,7 +104,7 @@ All updates are wrapped in a `DataEvent<>` object, which contain a `Timestamp`, 
 
 ### Processing subscribe responses
 Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. This should be checked for success the same was as the [rest client](#processing-request-responses). The `UpdateSubscription` object can be used to listen for connection events of the socket connection. 
-````C#
+```csharp
 
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 if(!subscriptionResult.Success)
@@ -116,44 +121,44 @@ subscriptionResult.Data.ConnectionRestored += (time) =>
 	Console.WriteLine("Connection restored");
 };
 
-````
+```
 
 ### Unsubscribing
 When no longer interested in specific updates there are a few ways to unsubscribe. 
 
 **Close subscription**
 Subscribing to an update stream will respond with an `UpdateSubscription` object. You can call the `CloseAsync()` method on this to no longer receive updates from that subscription:
-````C#
+```csharp
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 await subscriptionResult.Data.CloseAsync();
-````
+```
 
 **Cancellation token**
 Passing in a `CancellationToken` as parameter in the subscribe method will allow you to cancel subscriptions by canceling the token. This can be useful when you need to cancel some streams but not others. In this example, both `BTC-USDT` and `ETH-USDT` streams get canceled, while the `KCS-USDT` stream remains active.
-````C#
+```csharp
 var cts = new CancellationTokenSource();
 var subscriptionResult1 = await kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("BTC-USDT", DataHandler, cts.Token);
 var subscriptionResult2 = await kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETH-USDT", DataHandler, cts.Token);
 var subscriptionResult3 = await kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("KCS-USDT", DataHandler);
 Console.ReadLine();
 cts.Cancel();
-````
+```
 
 **Client unsubscribe**
 Subscriptions can also be closed by calling the `UnsubscribeAsync` method on the client, while providing either the `UpdateSubscription` object or the subscription id:
-````C#
+```csharp
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("BTC-USDT", DataHandler);
 await kucoinSocketClient.UnsubscribeAsync(subscriptionResult.Data);
 // OR
 await kucoinSocketClient.UnsubscribeAsync(subscriptionResult.Data.Id);
-````
+```
 
 When you need to unsubscribe all current subscriptions on a client you can call `UnsubscribeAllAsync` on the client to unsubscribe all streams and close all connections.
 
 
 ## Dependency injection
 Each library offers a `Add[Library]` extension method for `IServiceCollection`, which allows you to add the clients to the service collection. It also provides a callback for setting the client options. See this example for adding the `BinanceClient`:
-````C#
+```csharp
 public void ConfigureServices(IServiceCollection services)
 {
 	services.AddBinance((restClientOptions, socketClientOptions) => {
@@ -163,11 +168,11 @@ public void ConfigureServices(IServiceCollection services)
 		socketClientOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
 	});
 }
-````
+```
 Doing client registration this way will add the `IBinanceClient` as a transient service, and the `IBinanceSocketClient` as a scoped service.
 
 Alternatively, the clients can be registered manually:
-````C#
+```csharp
 BinanceClient.SetDefaultOptions(new BinanceClientOptions
 {
 	ApiCredentials = new ApiCredentials("KEY", "SECRET"),
@@ -181,4 +186,4 @@ BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions
 
 services.AddTransient<IBinanceClient, BinanceClient>();
 services.AddScoped<IBinanceSocketClient, BinanceSocketClient>();
-````
+```

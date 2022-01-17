@@ -1,6 +1,11 @@
+---
+title: FAQ
+nav_order: 9
+---
+
 ### I occasionally get a NullReferenceException, what's wrong?
 You probably don't check the result status of a call and just assume the data is always there. `NullReferenceExecption`s will happen when you have code like this `var symbol = client.GetTickersAync().Result.Data.Symbol` because the `Data` property is null when the call fails. Instead check if the call is successful like this:
-````C#
+```csharp
 var tickerResult = await client.GetTickersAync();
 if(!tickerResult.Success)
 {
@@ -11,12 +16,12 @@ else
   // Handle result, it is now safe to access the Data property
   var symbol = tickerResult.Data.Symbol;
 }
-````
+```
 
 ### The socket client stops sending updates after a little while
 You probably didn't keep a reference to the socket client and it got disposed.
 Instead of subscribing like this:
-````C#
+```csharp
 private void SomeMethod()
 {
   var socketClient = new BinanceSocketClient();
@@ -24,9 +29,9 @@ private void SomeMethod()
 	// Handle data
   });
 }
-````
+```
 Subscribe like this:
-````C#
+```csharp
 private BinanceSocketClient _socketClient = new BinanceSocketClient();
 
 // .. rest of the class
@@ -38,4 +43,4 @@ private void SomeMethod()
   });
 }
 
-````
+```

@@ -1,3 +1,8 @@
+---
+title: Migrate v4 to v5
+nav_order: 7
+---
+
 Changes from 4.x to 5.x:
 
 ## Client structure
