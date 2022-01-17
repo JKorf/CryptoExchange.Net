@@ -7,16 +7,16 @@ The library offers extensive logging, for which you can supply your own logging 
 
 Logging is based on the `Microsoft.Extensions.Logging.ILogger` interface. This should provide ease of use when connecting the library logging to your existing logging implementation.
 
-### Serilog
+## Serilog
 To make the CryptoExchange.Net logging write to the Serilog logger you can use the following methods, depending on the type of project you're using. The following examples assume that the `Serilog.Sinks.Console` package is already installed.
 
-#### Dotnet hosting
+### Dotnet hosting
 
 With for example an ASP.Net Core or Blazor project the logging can be added to the dependency container, which you can then use to inject it into the client. Make sure to install the `Serilog.AspNetCore` package (https://github.com/serilog/serilog-aspnetcore).
 
 <Details>
 <Summary>
-<b>Using ILogger injection</b>
+Using ILogger injection
 
 </Summary>
 <BlockQuote>
@@ -71,7 +71,7 @@ public class BinanceDataProvider
 
 <Details>
 <Summary>
-<b>Using Add[Library] extension method</b>
+Using Add[Library] extension method
 
 </Summary>
 <BlockQuote>
@@ -132,7 +132,7 @@ public class Startup
 </BlockQuote>
 </Details>
 
-#### Console application
+### Console application
 If you don't have a dependency injection service available because you are for example working on a simple console application you can use a slightly different approach.  
 
 *Configuring Serilog as ILogger:*
@@ -159,7 +159,7 @@ var client = new BinanceClient(new BinanceClientOptions
 
 The `BinanceClient` will now write the logging it produces to the Serilog logger.
 
-### Log4Net
+## Log4Net
 
 To make the CryptoExchange.Net logging write to the Log4Net logge with for example an ASP.Net Core or Blazor project the logging can be added to the dependency container, which you can then use to inject it into the client you're using. Make sure to install the `Microsoft.Extensions.Logging.Log4Net.AspNetCore` package (https://github.com/huorswords/Microsoft.Extensions.Logging.Log4Net.AspNetCore). 
 Adding `AddLog4Net()` in the `ConfigureLogging` call will add the Log4Net implementation as an ILogger which you can inject into implementations. Make sure you have a log4net.config configuration file in your project.
@@ -201,10 +201,10 @@ public class BinanceDataProvider
 
 If you don't have the Dotnet dependency container available you'll need to provide your own ILogger implementation. See [Custom logger](#custom-logger).
 
-### NLog
+## NLog
 To make the CryptoExchange.Net logging write to the NLog logger you can use the following ways, depending on the type of project you're using.
 
-#### Dotnet hosting
+### Dotnet hosting
 
 With for example an ASP.Net Core or Blazor project the logging can be added to the dependency container, which you can then use to inject it into the client you're using. Make sure to install the `NLog.Web.AspNetCore` package (https://github.com/NLog/NLog/wiki/Getting-started-with-ASP.NET-Core-5). 
 Adding `UseNLog()` to the `CreateHostBuilder()` method will add the NLog implementation as an ILogger which you can inject into implementations. Make sure you have a nlog.config configuration file in your project.
@@ -247,7 +247,7 @@ public class BinanceDataProvider
 
 If you don't have the Dotnet dependency container available you'll need to provide your own ILogger implementation. See [Custom logger](#custom-logger).
 
-### Custom logger
+## Custom logger
 If you're using a different framework or for some other reason these methods don't work for you you can create a custom ILogger implementation to receive the logging. All you need to do is create an implementation of the ILogger interface and provide that to the client.
 
 *A simple console logging implementation (note that the ConsoleLogger is already available in the CryptoExchange.Net library)*:

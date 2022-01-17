@@ -74,7 +74,7 @@ The options provided in the SpotApiOptions are only applied to the SpotApi (`cli
 ## CryptoExchange.Net options definitions
 All clients have access to the following options, specific implementations might have additional options.
 
-**Base client options**
+**Base client options**  
 |Option|Description|Default|
 |------|-----------|-------|
 |`LogWriters`| A list of `ILogger`s to handle log messages. | `new List<ILogger> { new DebugLogger() }` |
@@ -83,13 +83,13 @@ All clients have access to the following options, specific implementations might
 |`ApiCredentials`| The API credentials to use for accessing protected endpoints. Typically a key/secret combination. Note that this is a `default` value for all API clients, and can be overridden per API client. See the `Base Api client options`| `null`
 |`Proxy`|The proxy to use for connecting to the API.| `null`
 
-**Rest client options (extension of base client options)**
+**Rest client options (extension of base client options)**  
 |Option|Description|Default|
 |------|-----------|-------|
 |`RequestTimeout`|The time out to use for requests.|`TimeSpan.FromSeconds(30)`|
 |`HttpClient`|The `HttpClient` instance to use for making requests. When creating multiple `RestClient` instances a single `HttpClient` should be provided to prevent each client instance from creating its own. *[WARNING] When providing the `HttpClient` instance in the options both the `RequestTimeout` and `Proxy` client options will be ignored and should be set on the provided `HttpClient` instance.*| `null` |
 
-**Socket client options (extension of base client options)**
+**Socket client options (extension of base client options)**  
 |Option|Description|Default|
 |------|-----------|-------|
 |`AutoReconnect`|Whether or not the socket should automatically reconnect when disconnected.|`true`
@@ -101,13 +101,13 @@ All clients have access to the following options, specific implementations might
 |`MaxResubscribeTries`|The maximum amount of tries for resubscribing after successfully reconnecting the socket|5
 |`MaxConcurrentResubscriptionsPerSocket`|The maximum number of concurrent resubscriptions per socket when resubscribing after reconnecting|5
 
-**Base Api client options**
+**Base Api client options**  
 |Option|Description|Default|
 |------|-----------|-------|
 |`ApiCredentials`|The API credentials to use for this specific API client. Will override any credentials provided in the base client options|
 |`BaseAddress`|The base address to the API. All calls to the API will use this base address as basis for the endpoints. This allows for swapping to test API's or swapping to a different cluster for example.|Depends on implementation
 
-**Options for Rest Api Client (extension of base api client options)**
+**Options for Rest Api Client (extension of base api client options)**  
 |Option|Description|Default|
 |------|-----------|-------|
 |`RateLimiters`|A list of `IRateLimiter`s to use.|`new List<IRateLimiter>()`|
