@@ -283,7 +283,7 @@ var client = new BinanceClient(new BinanceClientOptions
 A big debugging tool when opening an issue on Github is providing logging of what data caused the issue. This can be provided two ways, via the `OriginalData` property of the call result or data event, or collecting the Trace logging.
 ### OriginalData
 This is only useful when there is an issue in deserialization. So either a call result is giving a Deserialization error, or the result has a value that is unexpected. If that is the issue, please provide the original data that is received so the deserialization issue can be resolved based on the received data.
-By default the `OriginalData` property in the `WebCallResult`/`DataEvent` object is not filled as saving the original data has a (very small) performance penalty. To save the original data in the `OriginalData` property the `OutputOriginalData` option should be set to `true` in the client options.
+By default the `OriginalData` property in the `WebCallResult`/`DataEvent` object is not filled as saving the original data has a (very small) performance penalty. To save the original data in the `OriginalData` property the `OutputOriginalData` option should be set to `true` in the client options.  
 *Enabled output data*
 ```csharp
 var client = new BinanceClient(new BinanceClientOptions
@@ -305,7 +305,7 @@ client.SpotStreams.SubscribeToAllTickerUpdatesAsync(update => {
 ```
 
 ### Trace logging
-Trace logging, which is the most verbose log level, can be enabled in the client options.
+Trace logging, which is the most verbose log level, can be enabled in the client options.  
 *Enabled output data*
 ```csharp
 var client = new BinanceClient(new BinanceClientOptions

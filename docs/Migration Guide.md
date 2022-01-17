@@ -21,7 +21,7 @@ Socket clients are restructured as `client.[Api]Streams.Method()`:
 
 ## Options structure
 The options have been changed in 2 categories, options for the whole client, and options only for a specific sub Api. Some options might no longer be available on the base level and should be set on the Api options instead, for example the `BaseAddress`. 
-The following example sets some basic options, and specifically overwrites the USD futures Api options to use the test net address and different Api credentials:
+The following example sets some basic options, and specifically overwrites the USD futures Api options to use the test net address and different Api credentials:  
 *V4*
 ```csharp
 var binanceClient = new BinanceClient(new BinanceApiClientOptions{

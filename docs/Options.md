@@ -118,5 +118,5 @@ All clients have access to the following options, specific implementations might
 |`RateLimiters`|A list of `IRateLimiter`s to use.|`new List<IRateLimiter>()`|
 |`RateLimitingBehaviour`|What should happen when a rate limit is reached.|`RateLimitingBehaviour.Wait`|
 
-**Options for Socket Api Client (extension of base api client options)**
+**Options for Socket Api Client (extension of base api client options)**  
 There are currently no specific options for socket API clients, the base API options are still available.

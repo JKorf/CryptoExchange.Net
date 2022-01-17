@@ -18,7 +18,7 @@ The rest client gives access to the Rest endpoint of the API. Rest endpoints are
 		- ExchangeData
 		- Trading
 		
-This rest client has 2 different API clients, the `SpotApi` and the `FuturesApi`, each offering their own set of endpoints.
+This rest client has 2 different API clients, the `SpotApi` and the `FuturesApi`, each offering their own set of endpoints.  
 *Requesting ticker info on the spot API*
 ```csharp
 var client = new KucoinClient();
@@ -126,14 +126,14 @@ subscriptionResult.Data.ConnectionRestored += (time) =>
 ### Unsubscribing
 When no longer interested in specific updates there are a few ways to unsubscribe. 
 
-**Close subscription**
+**Close subscription**  
 Subscribing to an update stream will respond with an `UpdateSubscription` object. You can call the `CloseAsync()` method on this to no longer receive updates from that subscription:
 ```csharp
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 await subscriptionResult.Data.CloseAsync();
 ```
 
-**Cancellation token**
+**Cancellation token**  
 Passing in a `CancellationToken` as parameter in the subscribe method will allow you to cancel subscriptions by canceling the token. This can be useful when you need to cancel some streams but not others. In this example, both `BTC-USDT` and `ETH-USDT` streams get canceled, while the `KCS-USDT` stream remains active.
 ```csharp
 var cts = new CancellationTokenSource();
@@ -144,7 +144,7 @@ Console.ReadLine();
 cts.Cancel();
 ```
 
-**Client unsubscribe**
+**Client unsubscribe**  
 Subscriptions can also be closed by calling the `UnsubscribeAsync` method on the client, while providing either the `UpdateSubscription` object or the subscription id:
 ```csharp
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("BTC-USDT", DataHandler);
