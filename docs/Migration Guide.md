@@ -1,6 +1,6 @@
 ---
 title: Migrate v4 to v5
-nav_order: 7
+nav_order: 9
 ---
 
 Changes from 4.x to 5.x:
