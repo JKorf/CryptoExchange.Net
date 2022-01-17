@@ -38,7 +38,7 @@ Note that these will return copies of the internally synced lists when accessing
 When you need both lists in sync you should access the `Book` property.  
 `var (currentBidList, currentAskList) = book.Book;`  
 
-Because copies of the lists are made when accessing the bids/asks properties the performance impact should be considered. When only the current best ask/bid info is needed you can access the `BestOffers` property.
+Because copies of the lists are made when accessing the bids/asks properties the performance impact should be considered. When only the current best ask/bid info is needed you can access the `BestOffers` property.  
 `var (bestBid, bestAsk) = book.BestOffers;`  
 
 ### Events

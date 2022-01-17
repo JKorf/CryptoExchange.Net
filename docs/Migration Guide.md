@@ -93,3 +93,5 @@ var closePrice = kline.CommonClose;
 var kline = await binanceClient.SpotApi.ComonSpotClient.GetKlinesAysnc(/*params*/);
 var closePrice = kline.ClosePrice;
 ```
+
+For more details on the interfaces see [Common interfaces](interfaces.html)
