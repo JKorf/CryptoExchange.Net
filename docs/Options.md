@@ -3,7 +3,7 @@ title: Client options
 nav_order: 3
 ---
 
-## Setting options
+## Setting client options
 
 Each implementation can be configured using client options. There are 2 ways to provide these, either via `[client].SetDefaultOptions([options]);`, or in the constructor of the client. The examples here use the `BinanceClient`, but usage is the same for each client.
 

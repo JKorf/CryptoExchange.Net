@@ -3,6 +3,8 @@ title: FAQ
 nav_order: 11
 ---
 
+## Frequently asked questions
+
 ### I occasionally get a NullReferenceException, what's wrong?
 You probably don't check the result status of a call and just assume the data is always there. `NullReferenceExecption`s will happen when you have code like this `var symbol = client.GetTickersAync().Result.Data.Symbol` because the `Data` property is null when the call fails. Instead check if the call is successful like this:
 ```csharp

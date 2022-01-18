@@ -3,6 +3,7 @@ title: Order books
 nav_order: 6
 ---
 
+## Locally synced order book
 Each implementation provides an order book implementation. These implementations will provide a client side order book and will take care of synchronization with the server, and will handle reconnecting and resynchronizing in case of a dropped connection.
 Order book implementations are named as `[ExchangeName][Type]SymbolOrderBook`, for example `BinanceSpotSymbolOrderBook`. 
 

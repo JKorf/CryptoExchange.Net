@@ -3,6 +3,8 @@ title: General usage
 nav_order: 2
 ---
 
+## How to use the library
+
 Each implementation generally provides two different clients, which will be the access point for the API's. First of the rest client, which is typically available via [ExchangeName]Client, and a socket client, which is generally named [ExchangeName]SocketClient. For example `BinanceClient` and `BinanceSocketClient`.
 
 ## Rest client

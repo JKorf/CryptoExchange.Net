@@ -3,7 +3,10 @@ title: Migrate v4 to v5
 nav_order: 9
 ---
 
-Changes from 4.x to 5.x:
+## Migrating from version 4 to version 5
+When updating your code from version 4 implementations to version 5 implementations you will encounter a fair bit of breaking changes. Here is the general outline for changes made in the CryptoExchange.Net library. For more specific changes for each library visit the library migration guide.
+
+*NOTE when updating it is not possible to have some client implementations use a V4 version and some clients a V5. When updating all libraries should be migrated*
 
 ## Client structure
 The client structure has been changed to make clients more consistent across different implementations. Clients using V4 either had `client.Method()`, `client.[Api].Method()` or `client.[Api].[Topic].Method()`.  

@@ -3,6 +3,7 @@ title: Log config
 nav_order: 4
 ---
 
+## Configuring logging
 The library offers extensive logging, for which you can supply your own logging implementation. The logging can be configured via the client options (see [Client options](https://github.com/JKorf/CryptoExchange.Net/wiki/Options)). The examples here are using the `BinanceClient` but they should be the same for each implementation.
 
 Logging is based on the `Microsoft.Extensions.Logging.ILogger` interface. This should provide ease of use when connecting the library logging to your existing logging implementation.

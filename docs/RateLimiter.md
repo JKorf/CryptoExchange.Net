@@ -3,6 +3,7 @@ title: Rate limiting
 nav_order: 7
 ---
 
+## Rate limiting
 The library has build in rate limiting. These rate limits can be configured per client. Some client implementations where the exchange has clear rate limits will also have a default rate limiter already set up.
 Rate limiting is configured in the client options, and can be set on a specific client or for all clients by either providing it in the constructor for a client, or by using the `SetDefaultOptions` on a client.
 
@@ -51,6 +52,8 @@ A rate limit for the total amount of requests for all requests send from the cli
 A rate limit for all requests send to a specific endpoint. Requests that do not fully match the endpoint will not be counted to this limit.
 
 ### AddPartialEndpointLimit
+|Parameter|Description|
+|---------|-----------|
 |endpoint|The partial endpoint this limit is for. Partial means that a request will match this limiter when a part of the request URI path matches this endpoint|
 |limit|The request weight limit per time period. Note that requests can have a weight specified. Default requests will have a weight of 1|
 |perTimePeriod|The time period over which the limit is enforced|
@@ -61,6 +64,8 @@ A rate limit for all requests send to a specific endpoint. Requests that do not 
 A rate limit for a partial endpoint. Requests will be counted towards this limit if the request path contains the endpoint. For example request `/api/v2/test` will match when the partial endpoint limit is set for `/api/v2`.
 
 ### AddApiKeyLimit
+|Parameter|Description|
+|---------|-----------|
 |limit|The request weight limit per time period. Note that requests can have a weight specified. Default requests will have a weight of 1|
 |perTimePeriod|The time period over which the limit is enforced|
 |onlyForSignedRequests|Whether this rate limit should only be counter for signed/authenticated requests|

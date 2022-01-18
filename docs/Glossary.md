@@ -2,6 +2,7 @@
 title: Glossary
 nav_order: 10
 ---
+## Terms and definitions
 
 |Definition|Synonyms|Meaning|
 |----------|--------|-------|
@@ -19,7 +20,7 @@ nav_order: 10
 |Ticker|Stats|Statistics over the last 24 hours|
 |Client implementation|Library|An implementation of the `CrytpoExchange.Net` library. For example `Binance.Net` or `FTX.Net`|
 
-### Other naming constraints
+### Other naming conventions
 #### PlaceOrderAsync
 Methods for creating an order are always named `PlaceOrderAsync`, with and optional additional name for the type of order, for example `PlaceMarginOrderAsync`.
 
