@@ -5,21 +5,23 @@ nav_order: 1
 
 The CryptoExchange.Net library is a base package for exchange API implementations. It offers base classes for creating clients for exchange API's. Basing exchange implementation on the common CryptoExchange.Net library allows for ease of implementation for new exchanges, as only the endpoints and models have to implemented, but not all systems around requests and connections, and it makes it easier for users to implement a new library in their code base as all base principles and configuration are the same for different exchanges.
 
-Implementations by me, these will always be on the latest CryptoExchange.Net version and the latest versions will always work together  
+**Implementations by me**  
+These will always be on the latest CryptoExchange.Net version and the latest versions will always work together  
 
 ||Exchange|Documentation|
 |-|-|-|
 |<a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Binance.Net/Icon/icon.png?raw=true"></a>|Binance|https://jkorf.github.io/Binance.Net/|
 |<a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Bitfinex.Net/Icon/icon.png?raw=true"></a>|Bitfinex|https://jkorf.github.io/Bitfinex.Net/|
 |<a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>|Bittrex|https://jkorf.github.io/Bittrex.Net/|
-|<a href="https://github.com/JKorf/Bybit.Net"><img src="https://github.com/JKorf/Bybit.Net/blob/master/Bybit.Net/Icon/icon.png?raw=true"></a>|Bybit|https://jkorf.github.io/Bybit.Net/|
+|<a href="https://github.com/JKorf/Bybit.Net"><img src="https://github.com/JKorf/Bybit.Net/blob/main/Bybit.Net/Icon/icon.png?raw=true"></a>|Bybit|https://jkorf.github.io/Bybit.Net/|
 |<a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>|CoinEx|https://jkorf.github.io/CoinEx.Net/|
 |<a href="https://github.com/JKorf/FTX.Net"><img src="https://github.com/JKorf/FTX.Net/blob/main/FTX.Net/Icon/icon.png?raw=true"></a>|FTX|https://jkorf.github.io/FTX.Net/|
 |<a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>|Huobi|https://jkorf.github.io/Huobi.Net/|
 |<a href="https://github.com/JKorf/Kraken.Net"><img src="https://github.com/JKorf/Kraken.Net/blob/master/Kraken.Net/Icon/icon.png?raw=true"></a>|Kraken|https://jkorf.github.io/Kraken.Net/|
 |<a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Kucoin.Net/Icon/icon.png?raw=true"></a>|Kucoin|https://jkorf.github.io/Kucoin.Net/|
 
-Implementations by third parties. These might not be compatible with other libraries, make sure to check the CryptoExchange.Net version.  
+**Implementations by third parties**  
+These might not be compatible with other libraries, make sure to check the CryptoExchange.Net version.  
 
 ||Exchange|
 |-|-|
