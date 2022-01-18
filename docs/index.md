@@ -13,7 +13,7 @@ These will always be on the latest CryptoExchange.Net version and the latest ver
 |<a href="https://github.com/JKorf/Binance.Net"><img src="https://github.com/JKorf/Binance.Net/blob/master/Binance.Net/Icon/icon.png?raw=true"></a>|Binance|https://jkorf.github.io/Binance.Net/|
 |<a href="https://github.com/JKorf/Bitfinex.Net"><img src="https://github.com/JKorf/Bitfinex.Net/blob/master/Bitfinex.Net/Icon/icon.png?raw=true"></a>|Bitfinex|https://jkorf.github.io/Bitfinex.Net/|
 |<a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>|Bittrex|https://jkorf.github.io/Bittrex.Net/|
-|<a href="https://github.com/JKorf/Bybit.Net"><img src="https://github.com/JKorf/Bybit.Net/blob/main/Bybit.Net/Icon/icon.png?raw=true"></a>|Bybit|https://jkorf.github.io/Bybit.Net/|
+|<a href="https://github.com/JKorf/Bybit.Net"><img src="https://github.com/JKorf/Bybit.Net/blob/main/ByBit.Net/Icon/icon.png?raw=true"></a>|Bybit|https://jkorf.github.io/Bybit.Net/|
 |<a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>|CoinEx|https://jkorf.github.io/CoinEx.Net/|
 |<a href="https://github.com/JKorf/FTX.Net"><img src="https://github.com/JKorf/FTX.Net/blob/main/FTX.Net/Icon/icon.png?raw=true"></a>|FTX|https://jkorf.github.io/FTX.Net/|
 |<a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>|Huobi|https://jkorf.github.io/Huobi.Net/|
