@@ -36,12 +36,12 @@
                 binanceClient.SpotApi.ComonSpotClient, 
                 bitfinexClient.SpotApi.ComonSpotClient,
                 bittrexClient.SpotApi.ComonSpotClient, 
-                bybitClient.SpotApi.ComonSpotClient, 
+                bybitClient.SpotApi.CommonSpotClient, 
                 coinexClient.SpotApi.ComonSpotClient, 
                 ftxClient.TradeApi.ComonSpotClient, 
                 huobiClient.SpotApi.ComonSpotClient, 
                 krakenClient.SpotApi.ComonSpotClient, 
-                kucoinClient.SpotApi.ComonSpotClient
+                kucoinClient.SpotApi.CommonSpotClient
             };
 
         var tasks = clients.Select(c => (c.ExchangeName, c.GetTickerAsync(c.GetSymbolName("ETH", "BTC"))));

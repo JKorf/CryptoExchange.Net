@@ -17,19 +17,21 @@
 @implements IDisposable
 
 <h3>ETH-BTC books, live updates:</h3>
-@foreach(var book in _books.OrderBy(p => p.Key))
-{
-    <div style="margin-bottom: 20px;">
-        <h4>@book.Key</h4>
-        @if (book.Value.AskCount >= 3 && book.Value.BidCount >= 3)
-        {
-            for (var i = 0; i < 3; i++)
+<div style="display:flex; flex-wrap: wrap;">
+    @foreach(var book in _books.OrderBy(p => p.Key))
+    {
+        <div style="margin-bottom: 20px; flex: 1; min-width: 300px;">
+            <h4>@book.Key</h4>
+            @if (book.Value.AskCount >= 3 && book.Value.BidCount >= 3)
             {
-                <div>@book.Value.Bids.ElementAt(i).Price - @book.Value.Asks.ElementAt(i).Price</div>
+                for (var i = 0; i < 3; i++)
+                {
+                    <div>@book.Value.Bids.ElementAt(i).Price - @book.Value.Asks.ElementAt(i).Price</div>
+                }
             }
-        }
-    </div>
-}
+        </div>
+    }
+</div>
 
 @code{
     private Dictionary<string, ISymbolOrderBook> _books = new Dictionary<string, ISymbolOrderBook>();

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Binance.Net" Version="8.0.0-beta1" />
+	<PackageReference Include="Bitfinex.Net" Version="5.0.0-beta1" />
+	<PackageReference Include="Bittrex.Net" Version="7.0.0-beta1" />
+	<PackageReference Include="Bybit.Net" Version="0.0.1-beta2" />
+	<PackageReference Include="CoinEx.Net" Version="5.0.0-beta1" />
+	<PackageReference Include="FTX.Net" Version="1.0.0-beta1" />
+	<PackageReference Include="Huobi.Net" Version="4.0.0-beta1" />
+	<PackageReference Include="KrakenExchange.Net" Version="3.0.0-beta1" />
+		<PackageReference Include="Kucoin.Net" Version="4.0.0-beta3" />
+	</ItemGroup>
+
+</Project>
