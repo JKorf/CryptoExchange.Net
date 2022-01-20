@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Converters
                         || !int.TryParse(stringValue.Substring(4, 2), out var month)
                         || !int.TryParse(stringValue.Substring(6, 2), out var day))
                     {
-                        Debug.WriteLine("Unknown DateTime format: " + reader.Value);
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
                         return default;
                     }
                     return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -76,7 +76,7 @@ namespace CryptoExchange.Net.Converters
                         || !int.TryParse(stringValue.Substring(2, 2), out var month)
                         || !int.TryParse(stringValue.Substring(4, 2), out var day))
                     {
-                        Debug.WriteLine("Unknown DateTime format: " + reader.Value);
+                        Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
                         return default;
                     }
                     return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.Converters
                         || !int.TryParse(values[1], out var month)
                         || !int.TryParse(values[2], out var day))
                     {
-                        Debug.WriteLine("Unknown DateTime format: " + reader.Value);
+                        Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
                         return default;
                     }
 
@@ -118,7 +118,7 @@ namespace CryptoExchange.Net.Converters
             }
             else
             {
-                Debug.WriteLine("Unknown DateTime format: " + reader.Value);
+                Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
                 return default;
             }
         }

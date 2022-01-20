@@ -267,14 +267,14 @@ namespace CryptoExchange.Net
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
                 log?.Write(LogLevel.Error, info);
-                if (log == null) Debug.WriteLine(info);
+                if (log == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
                 return null;
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
                 log?.Write(LogLevel.Error, info);
-                if (log == null) Debug.WriteLine(info);
+                if (log == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
                 return null;
             }
         }

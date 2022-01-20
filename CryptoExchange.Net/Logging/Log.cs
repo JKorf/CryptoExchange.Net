@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Logging
                 catch (Exception e)
                 {
                     // Can't write to the logging so where else to output..
-                    Debug.WriteLine($"Failed to write log to writer {writer.GetType()}: " + e.ToLogString());
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Failed to write log to writer {writer.GetType()}: " + e.ToLogString());
                 }
             }
         }

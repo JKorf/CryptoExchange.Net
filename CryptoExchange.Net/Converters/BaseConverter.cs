@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Converters
 
             if (!GetValue(stringValue, out var result))
             {
-                Debug.WriteLine($"Cannot map enum. Type: {typeof(T)}, Value: {reader.Value}");
+                Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {typeof(T)}, Value: {reader.Value}, Known values: {string.Join(", ", Mapping.Select(m => m.Value))}. If you think {reader.Value} should added please open an issue on the Github repo");
                 return null;
             }
 
