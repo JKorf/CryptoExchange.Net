@@ -22,6 +22,13 @@ namespace ConsoleClient.Exchanges
             return result.AsDataless();
         }
 
+        public async Task<Dictionary<string, decimal>> GetBalances()
+        {
+            using var client = new BinanceClient();
+            var result = await client.SpotApi.Account.GetAccountInfoAsync();
+            return result.Data.Balances.ToDictionary(b => b.Asset, b => b.Total);
+        }
+
         public async Task<IEnumerable<OpenOrder>> GetOpenOrders()
         {
             using var client = new BinanceClient();

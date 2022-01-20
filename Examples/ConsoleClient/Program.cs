@@ -8,6 +8,8 @@ using Binance.Net.Objects;
 using ConsoleClient.Exchanges;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Sockets;
+using FTX.Net.Clients;
+using FTX.Net.Objects;
 using Microsoft.Extensions.Logging;
 
 namespace ConsoleClient
@@ -16,7 +18,8 @@ namespace ConsoleClient
     {
         static Dictionary<string, IExchange> _exchanges = new Dictionary<string, IExchange>
         {
-            { "Binance", new BinanceExchange() }
+            { "Binance", new BinanceExchange() },
+            { "FTX", new FTXExchange() }
         };
 
         static async Task Main(string[] args)
@@ -26,16 +29,24 @@ namespace ConsoleClient
                 LogLevel = LogLevel.Trace,
                 ApiCredentials = new ApiCredentials("APIKEY", "APISECRET")
             });
+            FTXClient.SetDefaultOptions(new FTXClientOptions
+            {
+                LogLevel = LogLevel.Trace,
+                ApiCredentials = new ApiCredentials("APIKEY", "APISECRET")
+            });
 
             while (true)
             {
-                Console.WriteLine("> Available commands: PlaceOrder, GetOpenOrders, CancelOrder, GetPrice, SubscribePrice");
+                Console.WriteLine("> Available commands: PlaceOrder, GetBalances, GetOpenOrders, CancelOrder, GetPrice, SubscribePrice");
                 var input = Console.ReadLine();
 
                 switch (input)
                 {
                     case "PlaceOrder":
                         await ProcessPlaceOrder();
+                        break;
+                    case "GetBalances":
+                        await ProcessGetBalances();
                         break;
                     case "GetOpenOrders":
                         await ProcessGetOpenOrders();
@@ -73,6 +84,15 @@ namespace ConsoleClient
                 Console.WriteLine("Order placed, ID: " + result.Data);
             else
                 Console.WriteLine("Failed to place order: " + result.Error);
+        }
+
+        static async Task ProcessGetBalances()
+        {
+            var exchange = GetInput("Exchange?");
+            Console.WriteLine("Requesting balances...");
+            var balances = await _exchanges[exchange].GetBalances();
+            foreach (var balance in balances.Where(b => b.Value != 0))
+                Console.WriteLine($"> {balance.Key}: {balance.Value}");            
         }
 
         static async Task ProcessGetOpenOrders()
