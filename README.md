@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.0.0-beta2 - 21 Jan 2022
+    * Replaced Debug.WriteLine with Trace.WriteLine
+
 * Version 5.0.0-beta1 - 15 Jan 2022
     * Added additional properties to WebCallResult
     * Added CallResult unit tests
