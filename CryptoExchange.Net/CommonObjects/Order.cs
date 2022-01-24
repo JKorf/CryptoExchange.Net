@@ -30,15 +30,15 @@ namespace CryptoExchange.Net.CommonObjects
         /// <summary>
         /// Status of the order
         /// </summary>
-        public OrderStatus Status { get; set; }
+        public CommonOrderStatus Status { get; set; }
         /// <summary>
         /// Side of the order
         /// </summary>
-        public OrderSide Side { get; set; }
+        public CommonOrderSide Side { get; set; }
         /// <summary>
         /// Type of the order
         /// </summary>
-        public OrderType Type { get; set; }
+        public CommonOrderType Type { get; set; }
         /// <summary>
         /// Order time
         /// </summary>

@@ -52,7 +52,7 @@
         /// <summary>
         /// Position side
         /// </summary>
-        public PositionSide? Side { get; set; }
+        public CommonPositionSide? Side { get; set; }
         /// <summary>
         /// Is isolated
         /// </summary>

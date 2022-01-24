@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.CommonObjects
     /// <summary>
     /// Order type
     /// </summary>
-    public enum OrderType
+    public enum CommonOrderType
     {
         /// <summary>
         /// Limit type
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.CommonObjects
     /// <summary>
     /// Order side
     /// </summary>
-    public enum OrderSide
+    public enum CommonOrderSide
     {
         /// <summary>
         /// Buy order
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.CommonObjects
     /// <summary>
     /// Order status
     /// </summary>
-    public enum OrderStatus
+    public enum CommonOrderStatus
     {
         /// <summary>
         /// placed and not fully filled order
@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.CommonObjects
     /// <summary>
     /// Position side
     /// </summary>
-    public enum PositionSide
+    public enum CommonPositionSide
     {
         /// <summary>
         /// Long position

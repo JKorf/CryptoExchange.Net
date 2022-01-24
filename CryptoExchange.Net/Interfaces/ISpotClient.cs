@@ -139,7 +139,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="accountId">[Optional] The account id to place the order on, required for some exchanges, ignored otherwise</param>
         /// <param name="leverage">[Optional] Leverage for this order. This is needed for some exchanges. For exchanges where this is not needed this parameter is ignored (and should be set before hand)</param>
         /// <returns>The id of the resulting order</returns>
-        Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, int? leverage = null, string? accountId = null);
+        Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, CommonOrderSide side, CommonOrderType type, decimal quantity, decimal? price = null, int? leverage = null, string? accountId = null);
 
         /// <summary>
         /// Get position
@@ -163,6 +163,6 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="price">The price of the order, only for limit orders</param>
         /// <param name="accountId">[Optional] The account id to place the order on, required for some exchanges, ignored otherwise</param>
         /// <returns>The id of the resulting order</returns>
-        Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, OrderSide side, OrderType type, decimal quantity, decimal? price = null, string? accountId = null);
+        Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, CommonOrderSide side, CommonOrderType type, decimal quantity, decimal? price = null, string? accountId = null);
     }
 }
