@@ -58,6 +58,9 @@ Task<WebCallResult<IEnumerable<Trade>>> GetRecentTradesAsync(string symbol);
 // Get balances
 Task<WebCallResult<IEnumerable<Balance>>> GetBalancesAsync(string? accountId = null);
 
+// Place an order
+Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, CommonOrderSide side, CommonOrderType type, decimal quantity, decimal? price = null, string? accountId = null);
+
 // Get order by order id
 Task<WebCallResult<Order>> GetOrderAsync(string orderId, string? symbol = null);
 
@@ -121,6 +124,9 @@ Task<WebCallResult<IEnumerable<Balance>>> GetBalancesAsync(string? accountId = n
 
 // Get current open positions
 Task<WebCallResult<IEnumerable<Position>>> GetPositionsAsync();
+
+// Place an order
+Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, CommonOrderSide side, CommonOrderType type, decimal quantity, decimal? price = null, int? leverage = null, string? accountId = null);
 
 // Get order by order id
 Task<WebCallResult<Order>> GetOrderAsync(string orderId, string? symbol = null);

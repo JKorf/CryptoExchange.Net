@@ -72,14 +72,14 @@ var spotClients = new [] {
 *V5*
 ```csharp
 var spotClients = new [] {
-	binanceClient.SpotApi.ComonSpotClient,
-	bittrexClient.SpotApi.ComonSpotClient,
-	kucoinClient.SpotApi.ComonSpotClient
+	binanceClient.SpotApi.CommonSpotClient,
+	bittrexClient.SpotApi.CommonSpotClient,
+	kucoinClient.SpotApi.CommonSpotClient
 };
 
 var futuresClients = new [] {
-	binanceClient.UsdFuturesApi.ComonFuturesClient,
-	kucoinClient.FuturesApi.ComonFuturesClient
+	binanceClient.UsdFuturesApi.CommonFuturesClient,
+	kucoinClient.FuturesApi.CommonFuturesClient
 };
 ```
 
