@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency exchange API's</Description>
-    <PackageVersion>5.0.0-beta4</PackageVersion>
+    <PackageVersion>5.0.0-beta5</PackageVersion>
     <AssemblyVersion>5.0.0</AssemblyVersion>
-    <FileVersion>5.0.0-beta4</FileVersion>
+    <FileVersion>5.0.0-beta5</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>5.0.0-beta4 - Fixed dependencies</PackageReleaseNotes>
+    <PackageReleaseNotes>5.0.0-beta5 - Fixed DateTime string including nanoseconds deserialization in DateTimeConverter, Refactored SymbolOrderBook to use AsyncResetEvent instead of AutoResetEvent to prevent thread blocking</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
