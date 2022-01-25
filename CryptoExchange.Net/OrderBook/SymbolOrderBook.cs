@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.OrderBook
         private bool _stopProcessing;
         private Task? _processTask;
 
-        private readonly AutoResetEvent _queueEvent;
+        private readonly AsyncResetEvent _queueEvent;
         private readonly ConcurrentQueue<object> _processQueue;
         private readonly bool _validateChecksum;
 
@@ -205,7 +205,7 @@ namespace CryptoExchange.Net.OrderBook
             Id = id;
             processBuffer = new List<ProcessBufferRangeSequenceEntry>();
             _processQueue = new ConcurrentQueue<object>();
-            _queueEvent = new AutoResetEvent(false);
+            _queueEvent = new AsyncResetEvent(false, true);
 
             _validateChecksum = options.ChecksumValidationEnabled;
             Symbol = symbol;
@@ -541,11 +541,11 @@ namespace CryptoExchange.Net.OrderBook
             Status = OrderBookStatus.Synced;
         }
 
-        private void ProcessQueue()
+        private async Task ProcessQueue()
         {
             while (Status != OrderBookStatus.Disconnected)
             {
-                _queueEvent.WaitOne();
+                await _queueEvent.WaitAsync().ConfigureAwait(false);
 
                 while (_processQueue.TryDequeue(out var item))
                 {
