@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("1620777600.000")]
         [TestCase("1620777600000")]
         [TestCase("2021-05-12T00:00:00.000Z")]
+        [TestCase("2021-05-12T00:00:00.000000000Z")]
         [TestCase("", true)]
         [TestCase("  ", true)]
         public void TestDateTimeConverterString(string input, bool expectNull = false)

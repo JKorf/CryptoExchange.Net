@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -110,7 +111,7 @@ namespace CryptoExchange.Net.Converters
                     return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
                 }
 
-                return JsonConvert.DeserializeObject(stringValue);
+                return DateTime.Parse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
             }
             else if(reader.TokenType == JsonToken.Date)
             {
