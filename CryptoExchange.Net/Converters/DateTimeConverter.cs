@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Converters
             {
                 var longValue = (long)reader.Value;
                 if (longValue == 0)
-                    return null;
+                    return objectType == typeof(DateTime) ? default(DateTime): null;
                 if (longValue < 1999999999)
                     return ConvertFromSeconds(longValue);
                 if (longValue < 1999999999999)
