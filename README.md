@@ -18,6 +18,11 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.0.0-beta7 - 05 Feb 2022
+    * Added CancellationToken support on Common client interfaces
+    * Added CancellationToken support on SymbolOrderBook
+    * Improved SymbolOrderBook Start/Stop robustness
+
 * Version 5.0.0-beta6 - 02 Feb 2022
     * Fix for deserialization of DateTime string "0" to a non-nullable DateTime property in .net framework
 

@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.OrderBook
         
         private bool _stopProcessing;
         private Task? _processTask;
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource? _cts;
 
         private readonly AsyncResetEvent _queueEvent;
         private readonly ConcurrentQueue<object> _processQueue;
@@ -281,7 +281,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             log.Write(LogLevel.Debug, $"{Id} order book {Symbol} stopping");
             Status = OrderBookStatus.Disconnected;
-            _cts.Cancel();
+            _cts?.Cancel();
             _queueEvent.Set();
             if (_processTask != null)
                 await _processTask.ConfigureAwait(false);
@@ -564,7 +564,7 @@ namespace CryptoExchange.Net.OrderBook
                 if (Status != OrderBookStatus.Syncing)
                     return;
 
-                var resyncResult = await DoResyncAsync(_cts.Token).ConfigureAwait(false);
+                var resyncResult = await DoResyncAsync(_cts!.Token).ConfigureAwait(false);
                 success = resyncResult;
             }
 
