@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
 
@@ -88,8 +89,9 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Start connecting and synchronizing the order book
         /// </summary>
+        /// <param name="ct">A cancellation token to stop the order book when canceled</param>
         /// <returns></returns>
-        Task<CallResult<bool>> StartAsync();
+        Task<CallResult<bool>> StartAsync(CancellationToken? ct = null);
 
         /// <summary>
         /// Stop syncing the order book

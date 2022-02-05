@@ -26,6 +26,7 @@ namespace CryptoExchange.Net.OrderBook
         
         private bool _stopProcessing;
         private Task? _processTask;
+        private CancellationTokenSource _cts;
 
         private readonly AsyncResetEvent _queueEvent;
         private readonly ConcurrentQueue<object> _processQueue;
@@ -220,20 +221,40 @@ namespace CryptoExchange.Net.OrderBook
         }
 
         /// <inheritdoc/>
-        public async Task<CallResult<bool>> StartAsync()
+        public async Task<CallResult<bool>> StartAsync(CancellationToken? ct = null)
         {
             if (Status != OrderBookStatus.Disconnected)
                 throw new InvalidOperationException($"Can't start book unless state is {OrderBookStatus.Connecting}. Was {Status}");
 
             log.Write(LogLevel.Debug, $"{Id} order book {Symbol} starting");
+            _cts = new CancellationTokenSource();
+            ct?.Register(async () =>
+            {
+                _cts.Cancel();
+                await StopAsync().ConfigureAwait(false);
+            }, false);
+
+            // Clear any previous messages
+            while (_processQueue.TryDequeue(out _)) { }
+            processBuffer.Clear();
+            bookSet = false;
+
             Status = OrderBookStatus.Connecting;
             _processTask = Task.Factory.StartNew(ProcessQueue, TaskCreationOptions.LongRunning);
 
-            var startResult = await DoStartAsync().ConfigureAwait(false);
+            var startResult = await DoStartAsync(_cts.Token).ConfigureAwait(false);
             if (!startResult)
             {
                 Status = OrderBookStatus.Disconnected;
                 return new CallResult<bool>(startResult.Error!);
+            }
+
+            if (_cts.IsCancellationRequested)
+            {
+                log.Write(LogLevel.Debug, $"{Id} order book {Symbol} stopped while starting");
+                await startResult.Data.CloseAsync().ConfigureAwait(false);
+                Status = OrderBookStatus.Disconnected;
+                return new CallResult<bool>(new CancellationRequestedError());
             }
 
             _subscription = startResult.Data;
@@ -260,6 +281,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             log.Write(LogLevel.Debug, $"{Id} order book {Symbol} stopping");
             Status = OrderBookStatus.Disconnected;
+            _cts.Cancel();
             _queueEvent.Set();
             if (_processTask != null)
                 await _processTask.ConfigureAwait(false);
@@ -305,7 +327,7 @@ namespace CryptoExchange.Net.OrderBook
         /// and setting the initial order book
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<CallResult<UpdateSubscription>> DoStartAsync();
+        protected abstract Task<CallResult<UpdateSubscription>> DoStartAsync(CancellationToken ct);
 
         /// <summary>
         /// Reset the order book
@@ -316,7 +338,7 @@ namespace CryptoExchange.Net.OrderBook
         /// Resync the order book
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<CallResult<bool>> DoResyncAsync();
+        protected abstract Task<CallResult<bool>> DoResyncAsync(CancellationToken ct);
 
         /// <summary>
         /// Implementation for validating a checksum value with the current order book. If checksum validation fails (returns false)
@@ -459,16 +481,25 @@ namespace CryptoExchange.Net.OrderBook
         /// Wait until the order book snapshot has been set
         /// </summary>
         /// <param name="timeout">Max wait time</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected async Task<CallResult<bool>> WaitForSetOrderBookAsync(int timeout)
+        protected async Task<CallResult<bool>> WaitForSetOrderBookAsync(int timeout, CancellationToken ct)
         {
             var startWait = DateTime.UtcNow;
             while (!bookSet && Status == OrderBookStatus.Syncing)
             {
+                if(ct.IsCancellationRequested)
+                    return new CallResult<bool>(new CancellationRequestedError());
+
                 if ((DateTime.UtcNow - startWait).TotalMilliseconds > timeout)
                     return new CallResult<bool>(new ServerError("Timeout while waiting for data"));
 
-                await Task.Delay(10).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(10, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                { }
             }
 
             return new CallResult<bool>(true);
@@ -533,7 +564,7 @@ namespace CryptoExchange.Net.OrderBook
                 if (Status != OrderBookStatus.Syncing)
                     return;
 
-                var resyncResult = await DoResyncAsync().ConfigureAwait(false);
+                var resyncResult = await DoResyncAsync(_cts.Token).ConfigureAwait(false);
                 success = resyncResult;
             }
 
@@ -665,6 +696,12 @@ namespace CryptoExchange.Net.OrderBook
             Status = OrderBookStatus.Syncing;
             _ = Task.Run(async () =>
             {
+                if(_subscription == null)
+                {
+                    Status = OrderBookStatus.Disconnected;
+                    return;
+                }
+
                 await _subscription!.UnsubscribeAsync().ConfigureAwait(false);
                 Reset();
                 _stopProcessing = false;
