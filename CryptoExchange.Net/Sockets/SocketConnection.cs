@@ -236,6 +236,17 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Get a subscription on this connection by its subscribe request
+        /// </summary>
+        /// <param name="predicate">Filter for a request</param>
+        /// <returns></returns>
+        public SocketSubscription? GetSubscriptionByRequest(Func<object?, bool> predicate)
+        {
+            lock(subscriptionLock)
+                return subscriptions.SingleOrDefault(s => predicate(s.Request));
+        }
+
+        /// <summary>
         /// Process data
         /// </summary>
         /// <param name="messageEvent"></param>
