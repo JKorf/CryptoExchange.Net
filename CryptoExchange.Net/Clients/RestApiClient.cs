@@ -93,17 +93,8 @@ namespace CryptoExchange.Net
 
                 // Calculate time offset between local and server
                 var offset = result.Data - localTime;
-                if (offset.TotalMilliseconds >= 0 && offset.TotalMilliseconds < 500)
-                {
-                    // Small offset, probably mainly due to ping. Don't adjust time
-                    timeSyncParams.UpdateTimeOffset(offset);
-                    timeSyncParams.TimeSyncState.Semaphore.Release();
-                }
-                else
-                {
-                    timeSyncParams.UpdateTimeOffset(offset);
-                    timeSyncParams.TimeSyncState.Semaphore.Release();
-                }
+                timeSyncParams.UpdateTimeOffset(offset);
+                timeSyncParams.TimeSyncState.Semaphore.Release();                
             }
 
             return new WebCallResult<bool>(null, null, null, null, null, null, null, null, true, null);

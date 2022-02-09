@@ -129,7 +129,10 @@ namespace CryptoExchange.Net
             {
                 var syncTimeResult = await apiClient.SyncTimeAsync().ConfigureAwait(false);
                 if (!syncTimeResult)
+                {
+                    log.Write(LogLevel.Debug, $"[{requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
                     return syncTimeResult.As<T>(default);
+                }
             }
 
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
