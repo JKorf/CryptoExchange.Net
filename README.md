@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.0.0-beta8 - 09 Feb 2022
+    * Fix for time offset calculation not updating the time offset when time offset is smaller than 500ms
+
 * Version 5.0.0-beta7 - 05 Feb 2022
     * Added CancellationToken support on Common client interfaces
     * Added CancellationToken support on SymbolOrderBook
