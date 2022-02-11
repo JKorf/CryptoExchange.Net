@@ -65,7 +65,7 @@ namespace CryptoExchange.Net
             var timeSyncParams = GetTimeSyncInfo();
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
-                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < TimeSpan.FromHours(1)))
+                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval))
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
                     return new WebCallResult<bool>(null, null, null, null, null, null, null, null, true, null);

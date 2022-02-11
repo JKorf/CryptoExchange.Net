@@ -281,6 +281,11 @@ namespace CryptoExchange.Net.Objects
         public bool AutoTimestamp { get; set; }
 
         /// <summary>
+        /// How often the timestamp adjustment between client and server is recalculated. If you need a very small TimeSpan here you're probably better of syncing your server time more often
+        /// </summary>
+        public TimeSpan TimestampRecalculationInterval { get; set; } = TimeSpan.FromHours(1);
+
+        /// <summary>
         /// ctor
         /// </summary>
         public RestApiClientOptions()
@@ -318,12 +323,13 @@ namespace CryptoExchange.Net.Objects
                 input.RateLimiters = def.RateLimiters.ToList();
             input.RateLimitingBehaviour = def.RateLimitingBehaviour;
             input.AutoTimestamp = def.AutoTimestamp;
+            input.TimestampRecalculationInterval = def.TimestampRecalculationInterval;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, AutoTimestamp: {AutoTimestamp}";
+            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, AutoTimestamp: {AutoTimestamp}, TimestampRecalculationInterval: {TimestampRecalculationInterval}";
         }
     }
 

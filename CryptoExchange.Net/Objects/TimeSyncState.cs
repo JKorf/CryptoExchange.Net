@@ -46,6 +46,10 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public bool SyncTime { get; }
         /// <summary>
+        /// Timestamp recalulcation interval
+        /// </summary>
+        public TimeSpan RecalculationInterval { get; }
+        /// <summary>
         /// Time sync state for the API client
         /// </summary>
         public TimeSyncState TimeSyncState { get; }
