@@ -109,7 +109,7 @@ All clients have access to the following options, specific implementations might
 |Option|Description|Default|
 |------|-----------|-------|
 |`ApiCredentials`|The API credentials to use for this specific API client. Will override any credentials provided in the base client options|
-|`BaseAddress`|The base address to the API. All calls to the API will use this base address as basis for the endpoints. This allows for swapping to test API's or swapping to a different cluster for example.|Depends on implementation
+|`BaseAddress`|The base address to the API. All calls to the API will use this base address as basis for the endpoints. This allows for swapping to test API's or swapping to a different cluster for example. Available base addresses are defined in the [Library]ApiAddresses helper class, for example `KucoinApiAddresses`|Depends on implementation
 
 **Options for Rest Api Client (extension of base api client options)**  
 

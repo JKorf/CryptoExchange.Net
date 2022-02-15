@@ -46,3 +46,19 @@ private void SomeMethod()
 }
 
 ```
+
+### Can I use the TestNet/US/other API with this library
+Yes, generally these are all supported and can be configured by setting the BaseAddress in the client options. Some known API addresses should be available in the [Exchange]ApiAddresses class. For example:
+```csharp
+var client = new BinanceClient(new BinanceClientOptions
+{
+	SpotApiOptions = new BinanceApiClientOptions
+	{
+		BaseAddress = BinanceApiAddresses.TestNet.RestClientAddress
+	},
+	UsdFuturesApiOptions = new BinanceApiClientOptions
+	{
+		BaseAddress = BinanceApiAddresses.TestNet.UsdFuturesRestClientAddress
+	}
+});
+```
