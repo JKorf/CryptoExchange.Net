@@ -377,7 +377,7 @@ namespace CryptoExchange.Net.Sockets
                 Socket.Reconnecting = true;
 
                 DisconnectTime = DateTime.UtcNow;
-                log.Write(LogLevel.Information, $"Socket {Socket.Id} Connection lost, will try to reconnect after {socketClient.ClientOptions.ReconnectInterval}");
+                log.Write(LogLevel.Information, $"Socket {Socket.Id} Connection lost, will try to reconnect{(ReconnectTry == 0 ? "": $" after {socketClient.ClientOptions.ReconnectInterval}")}");
                 if (!lostTriggered)
                 {
                     lostTriggered = true;
@@ -388,8 +388,12 @@ namespace CryptoExchange.Net.Sockets
                 {
                     while (ShouldReconnect)
                     {
-                        // Wait a bit before attempting reconnect
-                        await Task.Delay(socketClient.ClientOptions.ReconnectInterval).ConfigureAwait(false);
+                        if (ReconnectTry > 0)
+                        {
+                            // Wait a bit before attempting reconnect
+                            await Task.Delay(socketClient.ClientOptions.ReconnectInterval).ConfigureAwait(false);
+                        }
+
                         if (!ShouldReconnect)
                         {
                             // Should reconnect changed to false while waiting to reconnect
@@ -416,7 +420,7 @@ namespace CryptoExchange.Net.Sockets
                                 break;
                             }
 
-                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.ClientOptions.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.ClientOptions.MaxReconnectTries}": "")}");
+                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.ClientOptions.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.ClientOptions.MaxReconnectTries}": "")}, will try again in {socketClient.ClientOptions.ReconnectInterval}");
                             continue;
                         }
 
