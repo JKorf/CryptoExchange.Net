@@ -18,6 +18,10 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.0.0-beta9 - 15 Feb 2022
+    * Re-added the TimestampRecalculationInterval option
+    * Changed socket reconnection so it immediately tries to reconnect the moment the connection is lost. After the initial try the ReconnectInterval is used again
+
 * Version 5.0.0-beta8 - 09 Feb 2022
     * Fix for time offset calculation not updating the time offset when time offset is smaller than 500ms
 
