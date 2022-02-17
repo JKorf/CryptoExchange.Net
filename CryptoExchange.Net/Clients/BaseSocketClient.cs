@@ -101,14 +101,14 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="exchangeName">The name of the exchange this client is for</param>
-        /// <param name="exchangeOptions">The options for this client</param>
-        protected BaseSocketClient(string exchangeName, BaseSocketClientOptions exchangeOptions): base(exchangeName, exchangeOptions)
+        /// <param name="name">The name of the API this client is for</param>
+        /// <param name="options">The options for this client</param>
+        protected BaseSocketClient(string name, BaseSocketClientOptions options) : base(name, options)
         {
-            if (exchangeOptions == null)
-                throw new ArgumentNullException(nameof(exchangeOptions));
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
 
-            ClientOptions = exchangeOptions;
+            ClientOptions = options;
         }
 
         /// <summary>

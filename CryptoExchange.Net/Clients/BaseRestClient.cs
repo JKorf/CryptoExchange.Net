@@ -74,15 +74,15 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="exchangeName">The name of the exchange this client is for</param>
-        /// <param name="exchangeOptions">The options for this client</param>
-        protected BaseRestClient(string exchangeName, BaseRestClientOptions exchangeOptions) : base(exchangeName, exchangeOptions)
+        /// <param name="name">The name of the API this client is for</param>
+        /// <param name="options">The options for this client</param>
+        protected BaseRestClient(string name, BaseRestClientOptions options) : base(name, options)
         {
-            if (exchangeOptions == null)
-                throw new ArgumentNullException(nameof(exchangeOptions));
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
 
-            ClientOptions = exchangeOptions;
-            RequestFactory.Configure(exchangeOptions.RequestTimeout, exchangeOptions.Proxy, exchangeOptions.HttpClient);
+            ClientOptions = options;
+            RequestFactory.Configure(options.RequestTimeout, options.Proxy, options.HttpClient);
         }
 
         /// <inheritdoc />

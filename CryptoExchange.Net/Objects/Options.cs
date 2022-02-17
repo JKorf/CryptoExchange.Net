@@ -163,7 +163,7 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan SocketNoDataTimeout { get; set; }
 
         /// <summary>
-        /// The amount of subscriptions that should be made on a single socket connection. Not all exchanges support multiple subscriptions on a single socket.
+        /// The amount of subscriptions that should be made on a single socket connection. Not all API's support multiple subscriptions on a single socket.
         /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
         /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
         /// </summary>

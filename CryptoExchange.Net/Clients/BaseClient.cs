@@ -19,9 +19,9 @@ namespace CryptoExchange.Net
     public abstract class BaseClient : IDisposable
     {
         /// <summary>
-        /// The name of the exchange the client is for
+        /// The name of the API the client is for
         /// </summary>
-        internal string ExchangeName { get; }
+        internal string Name { get; }
         /// <summary>
         /// Api clients in this client
         /// </summary>
@@ -56,19 +56,19 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="exchangeName">The name of the exchange this client is for</param>
+        /// <param name="name">The name of the API this client is for</param>
         /// <param name="options">The options for this client</param>
-        protected BaseClient(string exchangeName, BaseClientOptions options)
+        protected BaseClient(string name, BaseClientOptions options)
         {
-            log = new Log(exchangeName);
+            log = new Log(name);
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogLevel;
 
             ClientOptions = options;
 
-            ExchangeName = exchangeName;
+            Name = name;
 
-            log.Write(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {ExchangeName}.Net: v{GetType().Assembly.GetName().Version}");
+            log.Write(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {name}.Net: v{GetType().Assembly.GetName().Version}");
         }
 
         /// <summary>
@@ -278,7 +278,7 @@ namespace CryptoExchange.Net
         /// </summary>
         public virtual void Dispose()
         {
-            log.Write(LogLevel.Debug, "Disposing exchange client");
+            log.Write(LogLevel.Debug, "Disposing client");
             foreach (var client in ApiClients)
                 client.Dispose();
         }

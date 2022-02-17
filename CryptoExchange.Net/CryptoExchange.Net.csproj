@@ -5,7 +5,7 @@
   <PropertyGroup>
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
-    <Description>A base package for implementing cryptocurrency exchange API's</Description>
+    <Description>A base package for implementing cryptocurrency API's</Description>
     <PackageVersion>5.0.0-beta9</PackageVersion>
     <AssemblyVersion>5.0.0</AssemblyVersion>
     <FileVersion>5.0.0-beta9</FileVersion>
