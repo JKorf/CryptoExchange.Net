@@ -49,7 +49,6 @@
         foreach(var task in tasks)
         {
             if(task.Item2.Result.Success)
-                // TODO new version
                 _prices.Add(task.Item1, task.Item2.Result.Data.HighPrice);
         }
     }
