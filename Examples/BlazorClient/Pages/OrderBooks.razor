@@ -1,0 +1,77 @@
+﻿@page "/OrderBooks"
+@using Binance.Net.SymbolOrderBooks
+@using Bitfinex.Net.SymbolOrderBooks
+@using Bittrex.Net.SymbolOrderBooks
+@using Bybit.Net.SymbolOrderBooks
+@using CryptoExchange.Net.Interfaces
+@using CryptoExchange.Net.Objects
+@using CryptoExchange.Net.Sockets
+@using CoinEx.Net.SymbolOrderBooks
+@using FTX.Net.SymbolOrderBooks
+@using Huobi.Net.SymbolOrderBooks
+@using Kraken.Net.SymbolOrderBooks
+@using Kucoin.Net.Clients
+@using Kucoin.Net.SymbolOrderBooks
+@using System.Collections.Concurrent
+@using System.Timers
+@implements IDisposable
+
+<h3>ETH-BTC books, live updates:</h3>
+<div style="display:flex; flex-wrap: wrap;">
+    @foreach(var book in _books.OrderBy(p => p.Key))
+    {
+        <div style="margin-bottom: 20px; flex: 1; min-width: 300px;">
+            <h4>@book.Key</h4>
+            @if (book.Value.AskCount >= 3 && book.Value.BidCount >= 3)
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    <div>@book.Value.Bids.ElementAt(i).Price - @book.Value.Asks.ElementAt(i).Price</div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code{
+    private Dictionary<string, ISymbolOrderBook> _books = new Dictionary<string, ISymbolOrderBook>();
+    private Timer _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Since the Kucoin order book stream needs authentication we will need to provide API credentials beforehand
+        KucoinClient.SetDefaultOptions(new Kucoin.Net.Objects.KucoinClientOptions
+            {
+                ApiCredentials = new Kucoin.Net.Objects.KucoinApiCredentials("KEY", "SECRET", "PASSPHRASE")
+            });
+
+        _books = new Dictionary<string, ISymbolOrderBook>
+            {
+                { "Binance", new BinanceSpotSymbolOrderBook("ETHBTC") },
+                { "Bitfinex", new BitfinexSymbolOrderBook("tETHBTC") },
+                { "Bittrex", new BittrexSymbolOrderBook("ETH-BTC") },
+                { "Bybit", new BybitSpotSymbolOrderBook("ETHBTC") },
+                { "CoinEx", new CoinExSpotSymbolOrderBook("ETHBTC") },
+                { "FTX", new FTXSymbolOrderBook("ETH/BTC") },
+                { "Huobi", new HuobiSpotSymbolOrderBook("ethbtc") },
+                { "Kraken", new KrakenSpotSymbolOrderBook("ETH/XBT") },
+                { "Kucoin", new KucoinSpotSymbolOrderBook("ETH-BTC") },
+            };
+
+        await Task.WhenAll(_books.Select(b => b.Value.StartAsync()));
+
+        // Use a manual update timer so the page isn't refreshed too often
+        _timer = new Timer(500);
+        _timer.Start();
+        _timer.Elapsed += (o, e) => InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _timer.Stop();
+        _timer.Dispose();
+        foreach (var book in _books)
+            // It's not necessary to wait for this
+            _ = book.Value.StopAsync();
+    }
+}

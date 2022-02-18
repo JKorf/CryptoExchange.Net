@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Converters
             return ParseObject(arr, result, objectType);
         }
 
-        private static object? ParseObject(JArray arr, object result, Type objectType)
+        private static object ParseObject(JArray arr, object result, Type objectType)
         {
             foreach (var property in objectType.GetProperties())
             {
@@ -63,8 +63,8 @@ namespace CryptoExchange.Net.Converters
                         var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { innerArray.Count });
                         foreach (var obj in innerArray)
                         {
-                            var innerObj = Activator.CreateInstance(objType);
-                            arrayResult[count] = ParseObject((JArray)obj, innerObj, objType);
+                            var innerObj = Activator.CreateInstance(objType!);
+                            arrayResult[count] = ParseObject((JArray)obj, innerObj, objType!);
                             count++;
                         }
                         property.SetValue(result, arrayResult);
@@ -72,8 +72,8 @@ namespace CryptoExchange.Net.Converters
                     else
                     {
                         var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { 1 });
-                        var innerObj = Activator.CreateInstance(objType);
-                        arrayResult[0] = ParseObject(innerArray, innerObj, objType);
+                        var innerObj = Activator.CreateInstance(objType!);
+                        arrayResult[0] = ParseObject(innerArray, innerObj, objType!);
                         property.SetValue(result, arrayResult);
                     }
                     continue;
@@ -181,6 +181,7 @@ namespace CryptoExchange.Net.Converters
     /// <summary>
     /// Mark property as an index in the array
     /// </summary>
+    [AttributeUsage(AttributeTargets.Property)]
     public class ArrayPropertyAttribute: Attribute
     {
         /// <summary>

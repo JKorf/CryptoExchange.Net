@@ -5,8 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Web;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
@@ -74,7 +73,7 @@ namespace CryptoExchange.Net
         /// <param name="value"></param>
         public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value)
         {
-            if(value != null)
+            if (value != null)
                 parameters.Add(key, value);
         }
 
@@ -129,7 +128,7 @@ namespace CryptoExchange.Net
             var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
             foreach (var arrayEntry in arraysParameters)
             {
-                if(serializationType == ArrayParametersSerialization.Array)
+                if (serializationType == ArrayParametersSerialization.Array)
                     uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? Uri.EscapeDataString(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={v}"))}&";
                 else
                 {
@@ -143,6 +142,29 @@ namespace CryptoExchange.Net
             uriString = uriString.TrimEnd('&');
             return uriString;
         }
+
+        /// <summary>
+        /// Convert a dictionary to formdata string
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public static string ToFormData(this SortedDictionary<string, object> parameters)
+        {
+            var formData = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var kvp in parameters)
+            {
+                if (kvp.Value.GetType().IsArray)
+                {
+                    var array = (Array)kvp.Value;
+                    foreach (var value in array)
+                        formData.Add(kvp.Key, value.ToString());
+                }
+                else
+                    formData.Add(kvp.Key, kvp.Value.ToString());
+            }
+            return formData.ToString();
+        }
+        
 
         /// <summary>
         /// Get the string the secure string is representing
@@ -174,6 +196,41 @@ namespace CryptoExchange.Net
                 }
 
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// Are 2 secure strings equal
+        /// </summary>
+        /// <param name="ss1">Source secure string</param>
+        /// <param name="ss2">Compare secure string</param>
+        /// <returns>True if equal by value</returns>
+        public static bool IsEqualTo(this SecureString ss1, SecureString ss2)
+        {
+            IntPtr bstr1 = IntPtr.Zero;
+            IntPtr bstr2 = IntPtr.Zero;
+            try
+            {
+                bstr1 = Marshal.SecureStringToBSTR(ss1);
+                bstr2 = Marshal.SecureStringToBSTR(ss2);
+                int length1 = Marshal.ReadInt32(bstr1, -4);
+                int length2 = Marshal.ReadInt32(bstr2, -4);
+                if (length1 == length2)
+                {
+                    for (int x = 0; x < length1; ++x)
+                    {
+                        byte b1 = Marshal.ReadByte(bstr1, x);
+                        byte b2 = Marshal.ReadByte(bstr2, x);
+                        if (b1 != b2) return false;
+                    }
+                }
+                else return false;
+                return true;
+            }
+            finally
+            {
+                if (bstr2 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr2);
+                if (bstr1 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr1);
             }
         }
 
@@ -210,14 +267,14 @@ namespace CryptoExchange.Net
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
                 log?.Write(LogLevel.Error, info);
-                if (log == null) Debug.WriteLine(info);
+                if (log == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
                 return null;
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
                 log?.Write(LogLevel.Error, info);
-                if (log == null) Debug.WriteLine(info);
+                if (log == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
                 return null;
             }
         }
@@ -298,7 +355,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="exception"></param>
         /// <returns></returns>
-        public static string ToLogString(this Exception exception)
+        public static string ToLogString(this Exception? exception)
         {
             var message = new StringBuilder();
             var indent = 0;
@@ -319,6 +376,103 @@ namespace CryptoExchange.Net
 
             return message.ToString();
         }
+
+        /// <summary>
+        /// Append a base url with provided path
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string AppendPath(this string url, params string[] path)
+        {
+            if (!url.EndsWith("/"))
+                url += "/";
+
+            foreach (var item in path)
+                url += item.Trim('/') + "/";
+
+            return url.TrimEnd('/');
+        }
+
+        /// <summary>
+        /// Fill parameters in a path. Parameters are specified by '{}' and should be specified in occuring sequence
+        /// </summary>
+        /// <param name="path">The total path string</param>
+        /// <param name="values">The values to fill</param>
+        /// <returns></returns>
+        public static string FillPathParameters(this string path, params string[] values)
+        {
+            foreach (var value in values)
+            {
+                var index = path.IndexOf("{}", StringComparison.Ordinal);
+                if (index >= 0)
+                {
+                    path = path.Remove(index, 2);
+                    path = path.Insert(index, value);
+                }
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Create a new uri with the provided parameters as query
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static Uri SetParameters(this Uri baseUri, SortedDictionary<string, object> parameters)
+        {
+            var uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = baseUri.Scheme;
+            uriBuilder.Host = baseUri.Host;
+            uriBuilder.Path = baseUri.AbsolutePath;
+            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var parameter in parameters)
+                httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
+            uriBuilder.Query = httpValueCollection.ToString();
+            return uriBuilder.Uri;
+        }
+
+        /// <summary>
+        /// Create a new uri with the provided parameters as query
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static Uri SetParameters(this Uri baseUri, IOrderedEnumerable<KeyValuePair<string, object>> parameters)
+        {
+            var uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = baseUri.Scheme;
+            uriBuilder.Host = baseUri.Host;
+            uriBuilder.Path = baseUri.AbsolutePath;
+            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
+            foreach (var parameter in parameters)
+                httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
+            uriBuilder.Query = httpValueCollection.ToString();
+            return uriBuilder.Uri;
+        }
+
+
+        /// <summary>
+        /// Add parameter to URI
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static Uri AddQueryParmeter(this Uri uri, string name, string value)
+        {
+            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
+
+            httpValueCollection.Remove(name);
+            httpValueCollection.Add(name, value);
+
+            var ub = new UriBuilder(uri);
+            ub.Query = httpValueCollection.ToString();
+
+            return ub.Uri;
+        }
+
     }
 }
 

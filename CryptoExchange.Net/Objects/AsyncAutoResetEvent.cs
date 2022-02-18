@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,10 +11,10 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class AsyncResetEvent : IDisposable
     {
-        private readonly static Task<bool> _completed = Task.FromResult(true);
+        private static readonly Task<bool> _completed = Task.FromResult(true);
         private readonly Queue<TaskCompletionSource<bool>> _waits = new Queue<TaskCompletionSource<bool>>();
         private bool _signaled;
-        private bool _reset;
+        private readonly bool _reset;
 
         /// <summary>
         /// New AsyncResetEvent

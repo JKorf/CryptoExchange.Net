@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
 
@@ -10,6 +11,11 @@ namespace CryptoExchange.Net.Interfaces
     /// </summary>
     public interface ISymbolOrderBook
     {
+        /// <summary>
+        /// Identifier
+        /// </summary>
+        string Id { get; }
+
         /// <summary>
         /// The status of the order book. Order book is up to date when the status is `Synced`
         /// </summary>
@@ -39,7 +45,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Timestamp of the last update
         /// </summary>
-        DateTime LastOrderBookUpdate { get; }
+        DateTime UpdateTime { get; }
 
         /// <summary>
         /// The number of asks in the book
@@ -83,8 +89,9 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Start connecting and synchronizing the order book
         /// </summary>
+        /// <param name="ct">A cancellation token to stop the order book when canceled</param>
         /// <returns></returns>
-        Task<CallResult<bool>> StartAsync();
+        Task<CallResult<bool>> StartAsync(CancellationToken? ct = null);
 
         /// <summary>
         /// Stop syncing the order book

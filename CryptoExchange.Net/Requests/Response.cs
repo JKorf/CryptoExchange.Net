@@ -8,7 +8,7 @@ using CryptoExchange.Net.Interfaces;
 namespace CryptoExchange.Net.Requests
 {
     /// <summary>
-    /// HttpWebResponse response object
+    /// Response object, wrapper for HttpResponseMessage
     /// </summary>
     internal class Response : IResponse
     {

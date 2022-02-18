@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace CryptoExchange.Net.Logging
 {
     /// <summary>
-    /// Default log writer, writes to debug
+    /// Default log writer, uses Trace.WriteLine
     /// </summary>
     public class DebugLogger: ILogger
     {
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Logging
         public bool IsEnabled(LogLevel logLevel) => true;
 
         /// <inheritdoc />
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logLevel} | {formatter(state, exception)}";
             Trace.WriteLine(logMessage);

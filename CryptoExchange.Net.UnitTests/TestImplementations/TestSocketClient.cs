@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
@@ -9,14 +10,17 @@ using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
-    public class TestSocketClient: SocketClient
+    public class TestSocketClient: BaseSocketClient
     {
-        public TestSocketClient() : this(new SocketClientOptions("http://testurl.url"))
+        public TestSubSocketClient SubClient { get; }
+
+        public TestSocketClient() : this(new TestOptions())
         {
         }
 
-        public TestSocketClient(SocketClientOptions exchangeOptions) : base("test", exchangeOptions, exchangeOptions.ApiCredentials == null ? null : new TestAuthProvider(exchangeOptions.ApiCredentials))
+        public TestSocketClient(TestOptions exchangeOptions) : base("test", exchangeOptions)
         {
+            SubClient = new TestSubSocketClient(exchangeOptions, exchangeOptions.SubOptions);
             SocketFactory = new Mock<IWebsocketFactory>().Object;
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
         }
@@ -24,7 +28,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestSocket CreateSocket()
         {
             Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
-            return (TestSocket)CreateSocket(BaseAddress);
+            return (TestSocket)CreateSocket("123");
         }
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
@@ -43,12 +47,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             throw new NotImplementedException();
         }
 
-        protected internal override bool MessageMatchesHandler(JToken message, object request)
+        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, object request)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override bool MessageMatchesHandler(JToken message, string identifier)
+        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, string identifier)
         {
             return true;
         }
@@ -62,5 +66,22 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class TestOptions: BaseSocketClientOptions
+    {
+        public ApiClientOptions SubOptions { get; set; } = new ApiClientOptions();
+    }
+
+    public class TestSubSocketClient : SocketApiClient
+    {
+
+        public TestSubSocketClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
+        {
+
+        }
+
+        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+            => new TestAuthProvider(credentials);
     }
 }

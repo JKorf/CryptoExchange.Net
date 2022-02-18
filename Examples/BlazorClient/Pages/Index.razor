@@ -1,0 +1,63 @@
+﻿@page "/"
+@inject IBinanceClient binanceClient
+@inject IBitfinexClient bitfinexClient
+@inject IBittrexClient bittrexClient
+@inject IBybitClient bybitClient
+@inject ICoinExClient coinexClient
+@inject IFTXClient ftxClient
+@inject IHuobiClient huobiClient
+@inject IKrakenClient krakenClient
+@inject IKucoinClient kucoinClient
+
+<h3>BTC-USD prices:</h3>
+@foreach(var price in _prices.OrderBy(p => p.Key))
+{
+    <div>@price.Key: @price.Value</div>
+}
+
+@code{
+    private Dictionary<string, decimal> _prices = new Dictionary<string, decimal>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
+        var bittrexTask = bittrexClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var bybitTask = bybitClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var coinexTask = coinexClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var ftxTask = ftxClient.TradeApi.ExchangeData.GetSymbolAsync("BTC/USD");
+        var huobiTask = huobiClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
+        var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
+        var kucoinTask =  kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+
+        await Task.WhenAll(binanceTask, bitfinexTask, bittrexTask, bybitTask, coinexTask, ftxTask, huobiTask, krakenTask, kucoinTask);
+
+        if (binanceTask.Result.Success)
+            _prices.Add("Binance", binanceTask.Result.Data.LastPrice);
+
+        if (bitfinexTask.Result.Success)
+            _prices.Add("Bitfinex", bitfinexTask.Result.Data.LastPrice);
+
+        if (bittrexTask.Result.Success)
+            _prices.Add("Bittrex", bittrexTask.Result.Data.LastPrice);
+
+        if (bybitTask.Result.Success)
+            _prices.Add("Bybit", bybitTask.Result.Data.LastPrice);
+
+        if (coinexTask.Result.Success)
+            _prices.Add("CoinEx", coinexTask.Result.Data.Ticker.LastPrice);
+
+        if (ftxTask.Result.Success)
+            _prices.Add("FTX", ftxTask.Result.Data.LastPrice ?? 0);
+
+        if (huobiTask.Result.Success)
+            _prices.Add("Huobi", huobiTask.Result.Data.ClosePrice ?? 0);
+
+        if (krakenTask.Result.Success)
+            _prices.Add("Kraken", krakenTask.Result.Data.First().Value.LastTrade.Price);
+
+        if (kucoinTask.Result.Success)
+            _prices.Add("Kucoin", kucoinTask.Result.Data.LastPrice ?? 0);
+    }
+
+}

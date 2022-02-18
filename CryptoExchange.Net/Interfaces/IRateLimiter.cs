@@ -1,4 +1,9 @@
+using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using System.Net.Http;
+using System.Security;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -8,13 +13,17 @@ namespace CryptoExchange.Net.Interfaces
     public interface IRateLimiter
     {
         /// <summary>
-        /// Limit the request if needed
+        /// Limit a request based on previous requests made
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="url"></param>
-        /// <param name="limitBehaviour"></param>
-        /// <param name="credits"></param>
-        /// <returns></returns>
-        CallResult<double> LimitRequest(RestClient client, string url, RateLimitingBehaviour limitBehaviour, int credits=1);
+        /// <param name="log">The logger</param>
+        /// <param name="endpoint">The endpoint the request is for</param>
+        /// <param name="method">The Http request method</param>
+        /// <param name="signed">Whether the request is singed(private) or not</param>
+        /// <param name="apiKey">The api key making this request</param>
+        /// <param name="limitBehaviour">The limit behavior for when the limit is reached</param>
+        /// <param name="requestWeight">The weight of the request</param>
+        /// <param name="ct">Cancellation token to cancel waiting</param>
+        /// <returns>The time in milliseconds spend waiting</returns>
+        Task<CallResult<int>> LimitRequestAsync(Log log, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct);
     }
 }

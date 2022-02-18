@@ -11,26 +11,12 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture()]
     public class BaseClientTests
     {
-        [TestCase(null, null)]
-        [TestCase("", "")]
-        [TestCase("test", null)]
-        [TestCase("test", "")]
-        [TestCase(null, "test")]
-        [TestCase("", "test")]
-        public void SettingEmptyValuesForAPICredentials_Should_ThrowException(string key, string secret)
-        {
-            // arrange
-            // act
-            // assert
-            Assert.Throws(typeof(ArgumentException), () => new TestBaseClient(new RestClientOptions("") { ApiCredentials = new ApiCredentials(key, secret) }));
-        }
-
         [TestCase]
         public void SettingLogOutput_Should_RedirectLogOutput()
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new RestClientOptions("")
+            var client = new TestBaseClient(new BaseRestClientOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             });
@@ -65,16 +51,18 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(null, LogLevel.Error, true)]
         [TestCase(null, LogLevel.Warning, true)]
         [TestCase(null, LogLevel.Information, true)]
-        [TestCase(null, LogLevel.Debug, true)]
+        [TestCase(null, LogLevel.Debug, false)]
         public void SettingLogLevel_Should_RestrictLogging(LogLevel? verbosity, LogLevel testVerbosity, bool expected)
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new RestClientOptions("")
+            var options = new BaseRestClientOptions()
             {
-                LogWriters = new List<ILogger> { logger },
-                LogLevel = verbosity
-            });
+                LogWriters = new List<ILogger> { logger }
+            };
+            if (verbosity != null)
+                options.LogLevel = verbosity.Value;
+            var client = new TestBaseClient(options);
 
             // act
             client.Log(testVerbosity, "Test");
@@ -110,17 +98,17 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(result.Error != null);
         }
 
-        [TestCase]
-        public void FillingPathParameters_Should_ResultInValidUrl()
+        [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1", "/path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1/", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api", new[] { "path1/", "/path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com/api/", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
+        [TestCase("https://api.test.com", new[] { "test-path/test-path" }, "https://api.test.com/test-path/test-path")]
+        [TestCase("https://api.test.com/", new[] { "test-path/test-path" }, "https://api.test.com/test-path/test-path")]
+        public void AppendPathTests(string baseUrl, string[] path, string expected)
         {
-            // arrange
-            var client = new TestBaseClient();
-
-            // act
-            var result = client.FillParameters("http://test.api/{}/path/{}", "1", "test");
-
-            // assert
-            Assert.IsTrue(result == "http://test.api/1/path/test");
+            var result = baseUrl.AppendPath(path);
+            Assert.AreEqual(expected, result);
         }
     }
 }

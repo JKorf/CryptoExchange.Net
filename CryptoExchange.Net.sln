@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2008
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoExchange.Net", "CryptoExchange.Net\CryptoExchange.Net.csproj", "{3762140C-7FF9-46E5-8EC3-BFB3FC7ADB9B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoExchange.Net.UnitTests", "CryptoExchange.Net.UnitTests\CryptoExchange.Net.UnitTests.csproj", "{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorClient", "Examples\BlazorClient\BlazorClient.csproj", "{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{5734C2A9-F12C-4754-A8B9-640C24DC4E02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleClient", "Examples\ConsoleClient\ConsoleClient.csproj", "{23480C58-23BF-4EBF-A173-B7F51A043A99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +27,21 @@ Global
 		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBFE1651-D43D-4D67-89B7-6C4AE9BA4496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A} = {5734C2A9-F12C-4754-A8B9-640C24DC4E02}
+		{23480C58-23BF-4EBF-A173-B7F51A043A99} = {5734C2A9-F12C-4754-A8B9-640C24DC4E02}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0D1B9CE9-E0B7-4B8B-88BF-6EA2CC8CA3D7}

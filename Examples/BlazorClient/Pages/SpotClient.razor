@@ -1,0 +1,56 @@
+﻿@page "/SpotClient"
+@inject IBinanceClient binanceClient
+@inject IBitfinexClient bitfinexClient
+@inject IBittrexClient bittrexClient
+@inject IBybitClient bybitClient
+@inject ICoinExClient coinexClient
+@inject IFTXClient ftxClient
+@inject IHuobiClient huobiClient
+@inject IKrakenClient krakenClient
+@inject IKucoinClient kucoinClient
+@using Binance.Net.Clients.SpotApi
+@using Bitfinex.Net.Clients.SpotApi
+@using Bittrex.Net.Clients.SpotApi
+@using Bybit.Net.Clients.SpotApi
+@using CoinEx.Net.Clients.SpotApi
+@using CryptoExchange.Net.Interfaces
+@using FTX.Net.Clients.TradeApi
+@using Huobi.Net.Clients.SpotApi
+@using Kraken.Net.Clients.SpotApi
+@using Kucoin.Net.Clients.SpotApi
+
+<h3>ETH-BTC prices:</h3>
+@foreach(var price in _prices.OrderBy(p => p.Key))
+{
+    <div>@price.Key: @price.Value</div>
+}
+
+@code{
+    private Dictionary<string, decimal?> _prices = new Dictionary<string, decimal?>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var clients = new ISpotClient[]
+            {
+                
+                binanceClient.SpotApi.ComonSpotClient, 
+                bitfinexClient.SpotApi.ComonSpotClient,
+                bittrexClient.SpotApi.ComonSpotClient, 
+                bybitClient.SpotApi.CommonSpotClient, 
+                coinexClient.SpotApi.ComonSpotClient, 
+                ftxClient.TradeApi.ComonSpotClient, 
+                huobiClient.SpotApi.ComonSpotClient, 
+                krakenClient.SpotApi.ComonSpotClient, 
+                kucoinClient.SpotApi.CommonSpotClient
+            };
+
+        var tasks = clients.Select(c => (c.ExchangeName, c.GetTickerAsync(c.GetSymbolName("ETH", "BTC"))));
+        await Task.WhenAll(tasks.Select(t => t.Item2));
+        foreach(var task in tasks)
+        {
+            if(task.Item2.Result.Success)
+                _prices.Add(task.Item1, task.Item2.Result.Data.HighPrice);
+        }
+    }
+
+}

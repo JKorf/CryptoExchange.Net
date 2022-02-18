@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Sockets
         private DateTime _lastReceivedMessagesUpdate;
 
         /// <summary>
-        /// Received messages time -> size
+        /// Received messages, the size and the timstamp
         /// </summary>
         protected readonly List<ReceiveItem> _receivedMessages;
         /// <summary>
@@ -72,17 +72,15 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         protected readonly List<Action<string>> messageHandlers = new List<Action<string>>();
 
-        /// <summary>
-        /// The id of this socket
-        /// </summary>
+        /// <inheritdoc />
         public int Id { get; }
 
         /// <inheritdoc />
         public string? Origin { get; set; }
-        /// <summary>
-        /// Whether this socket is currently reconnecting
-        /// </summary>
+
+        /// <inheritdoc />
         public bool Reconnecting { get; set; }
+
         /// <summary>
         /// The timestamp this socket has been active for the last time
         /// </summary>
@@ -92,22 +90,19 @@ namespace CryptoExchange.Net.Sockets
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
         public Func<byte[], string>? DataInterpreterBytes { get; set; }
+
         /// <summary>
         /// Delegate used for processing string data received from socket connections before it is processed by handlers
         /// </summary>
         public Func<string, string>? DataInterpreterString { get; set; }
-        /// <summary>
-        /// Url this socket connects to
-        /// </summary>
+
+        /// <inheritdoc />
         public string Url { get; }
-        /// <summary>
-        /// If the connection is closed
-        /// </summary>
+
+        /// <inheritdoc />
         public bool IsClosed => _socket.State == WebSocketState.Closed;
 
-        /// <summary>
-        /// If the connection is open
-        /// </summary>
+        /// <inheritdoc />
         public bool IsOpen => _socket.State == WebSocketState.Open && !_closing;
 
         /// <summary>
@@ -116,9 +111,7 @@ namespace CryptoExchange.Net.Sockets
         public SslProtocols SSLProtocols { get; set; }
 
         private Encoding _encoding = Encoding.UTF8;
-        /// <summary>
-        /// Encoding used for decoding the received bytes into a string
-        /// </summary>
+        /// <inheritdoc />
         public Encoding? Encoding
         {
             get => _encoding;
@@ -128,19 +121,16 @@ namespace CryptoExchange.Net.Sockets
                     _encoding = value;
             }
         }
+
         /// <summary>
         /// The max amount of outgoing messages per second
         /// </summary>
         public int? RatelimitPerSecond { get; set; }
 
-        /// <summary>
-        /// The timespan no data is received on the socket. If no data is received within this time an error is generated
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan Timeout { get; set; }
 
-        /// <summary>
-        /// The current kilobytes per second of data being received, averaged over the last 3 seconds
-        /// </summary>
+        /// <inheritdoc />
         public double IncomingKbps
         {
             get
@@ -152,38 +142,33 @@ namespace CryptoExchange.Net.Sockets
                     if (!_receivedMessages.Any())
                         return 0;
 
-                    return Math.Round(_receivedMessages.Sum(v => v.Bytes) / 1000 / 3d);
+                    return Math.Round(_receivedMessages.Sum(v => v.Bytes) / 1000d / 3d);
                 }
             }
         }
 
-        /// <summary>
-        /// Socket closed event
-        /// </summary>
+        /// <inheritdoc />
         public event Action OnClose
         {
             add => closeHandlers.Add(value);
             remove => closeHandlers.Remove(value);
         }
-        /// <summary>
-        /// Socket message received event
-        /// </summary>
+
+        /// <inheritdoc />
         public event Action<string> OnMessage
         {
             add => messageHandlers.Add(value);
             remove => messageHandlers.Remove(value);
         }
-        /// <summary>
-        /// Socket error event
-        /// </summary>
+
+        /// <inheritdoc />
         public event Action<Exception> OnError
         {
             add => errorHandlers.Add(value);
             remove => errorHandlers.Remove(value);
         }
-        /// <summary>
-        /// Socket opened event
-        /// </summary>
+
+        /// <inheritdoc />
         public event Action OnOpen
         {
             add => openHandlers.Add(value);
@@ -224,10 +209,7 @@ namespace CryptoExchange.Net.Sockets
             _socket = CreateSocket();
         }
 
-        /// <summary>
-        /// Set a proxy to use. Should be set before connecting
-        /// </summary>
-        /// <param name="proxy"></param>
+        /// <inheritdoc />
         public virtual void SetProxy(ApiProxy proxy)
         {
             _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port);
@@ -235,17 +217,14 @@ namespace CryptoExchange.Net.Sockets
                 _socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
 
-        /// <summary>
-        /// Connect the websocket
-        /// </summary>
-        /// <returns>True if successfull</returns>
+        /// <inheritdoc />
         public virtual async Task<bool> ConnectAsync()
         {
             log.Write(LogLevel.Debug, $"Socket {Id} connecting");
             try
             {
                 using CancellationTokenSource tcs = new CancellationTokenSource(TimeSpan.FromSeconds(10));                
-                await _socket.ConnectAsync(new Uri(Url), default).ConfigureAwait(false);
+                await _socket.ConnectAsync(new Uri(Url), tcs.Token).ConfigureAwait(false);
                 
                 Handle(openHandlers);
             }
@@ -270,10 +249,7 @@ namespace CryptoExchange.Net.Sockets
             return true;
         }
 
-        /// <summary>
-        /// Send data over the websocket
-        /// </summary>
-        /// <param name="data">Data to send</param>
+        /// <inheritdoc />
         public virtual void Send(string data)
         {
             if (_closing)
@@ -285,10 +261,7 @@ namespace CryptoExchange.Net.Sockets
             _sendEvent.Set();
         }
 
-        /// <summary>
-        /// Close the websocket
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public virtual async Task CloseAsync()
         {
             log.Write(LogLevel.Debug, $"Socket {Id} closing");
@@ -344,9 +317,7 @@ namespace CryptoExchange.Net.Sockets
             log.Write(LogLevel.Trace, $"Socket {Id} disposed");
         }
 
-        /// <summary>
-        /// Reset the socket so a new connection can be attempted after it has been connected before
-        /// </summary>
+        /// <inheritdoc />
         public void Reset()
         {
             log.Write(LogLevel.Debug, $"Socket {Id} resetting");
@@ -400,8 +371,7 @@ namespace CryptoExchange.Net.Sockets
                             DateTime? start = null;
                             while (MessagesSentLastSecond() >= RatelimitPerSecond)
                             {
-                                if (start == null)
-                                    start = DateTime.UtcNow;
+                                start ??= DateTime.UtcNow;
                                 await Task.Delay(10).ConfigureAwait(false);
                             }
 
@@ -417,7 +387,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException)
                         {
-                            // cancelled
+                            // canceled
                             break;
                         }
                         catch (IOException ioe)
@@ -478,7 +448,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException)
                         {
-                            // cancelled
+                            // canceled
                             break;
                         }
                         catch (WebSocketException wse)
@@ -508,8 +478,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
-                            if (memoryStream == null)
-                                memoryStream = new MemoryStream();
+                            memoryStream ??= new MemoryStream();
                             log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                             await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                         }
@@ -519,7 +488,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
-                                HandleMessage(buffer.Array, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
+                                HandleMessage(buffer.Array!, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
                             }
                             else
                             {
@@ -615,7 +584,6 @@ namespace CryptoExchange.Net.Sockets
             catch(Exception e)
             {
                 log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during message processing: " + e.ToLogString());
-                return;
             }
         }
 
@@ -645,7 +613,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (OperationCanceledException)
                     {
-                        // cancelled
+                        // canceled
                         break;
                     }
                 }

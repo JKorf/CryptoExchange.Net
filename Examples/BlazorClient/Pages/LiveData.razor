@@ -1,0 +1,65 @@
+﻿@page "/LiveData"
+@inject IBinanceSocketClient binanceSocketClient
+@inject IBitfinexSocketClient bitfinexSocketClient
+@inject IBittrexSocketClient bittrexSocketClient
+@inject IBybitSocketClient bybitSocketClient
+@inject ICoinExSocketClient coinExSocketClient
+@inject IFTXSocketClient ftxSocketClient
+@inject IHuobiSocketClient huobiSocketClient
+@inject IKrakenSocketClient krakenSocketClient
+@inject IKucoinSocketClient kucoinSocketClient
+@using Binance.Net.Clients.SpotApi
+@using Bitfinex.Net.Clients.SpotApi
+@using Bittrex.Net.Clients.SpotApi
+@using Bybit.Net.Clients.SpotApi
+@using CoinEx.Net.Clients.SpotApi
+@using CryptoExchange.Net.Objects
+@using CryptoExchange.Net.Sockets
+@using Huobi.Net.Clients.SpotApi
+@using Kraken.Net.Clients.SpotApi
+@using Kucoin.Net.Clients.SpotApi
+@using System.Collections.Concurrent
+@implements IDisposable
+
+<h3>ETH-BTC prices, live updates:</h3>
+@foreach(var price in _prices.OrderBy(p => p.Key))
+{
+    <div>@price.Key: @price.Value</div>
+}
+
+@code{
+    private ConcurrentDictionary<string, decimal> _prices = new ConcurrentDictionary<string, decimal>();
+    private UpdateSubscription[] _subs = Array.Empty<UpdateSubscription>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tasks = new Task<CallResult<UpdateSubscription>>[]
+        {
+            binanceSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Binance", data.Data.LastPrice)),
+            bitfinexSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
+            bittrexSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Bittrex", data.Data.LastPrice)),
+            bybitSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
+            coinExSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("CoinEx", data.Data.LastPrice)),
+            ftxSocketClient.Streams.SubscribeToTickerUpdatesAsync("ETH/BTC", data => UpdateData("FTX", data.Data.LastPrice ?? 0)),
+            huobiSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("Huobi", data.Data.ClosePrice ?? 0)),
+            krakenSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETH/XBT", data => UpdateData("Kraken", data.Data.LastTrade.Price)),
+            kucoinSocketClient.SpotStreams.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Kucoin", data.Data.LastPrice ?? 0)),
+        };
+
+        await Task.WhenAll(tasks);
+        _subs = tasks.Where(t => t.Result.Success).Select(t => t.Result.Data).ToArray();
+    }
+
+    private void UpdateData(string exchange, decimal price)
+    {
+        _prices[exchange] = price;
+        InvokeAsync(StateHasChanged);        
+    }
+
+    public void Dispose()
+    {
+        foreach (var sub in _subs)
+            // It's not necessary to wait for this
+            _ = sub.CloseAsync();
+    }
+}

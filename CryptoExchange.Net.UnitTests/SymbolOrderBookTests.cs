@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
@@ -12,22 +13,22 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture]
     public class SymbolOrderBookTests
     {
-        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions("Test", true, false);
+        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions();
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
-            public TestableSymbolOrderBook() : base("BTC/USD", defaultOrderBookOptions)
+            public TestableSymbolOrderBook() : base("Test", "BTC/USD", defaultOrderBookOptions)
             {
             }
 
             public override void Dispose() {}
 
-            protected override Task<CallResult<bool>> DoResyncAsync()
+            protected override Task<CallResult<bool>> DoResyncAsync(CancellationToken ct)
             {
                 throw new NotImplementedException();
             }
 
-            protected override Task<CallResult<UpdateSubscription>> DoStartAsync()
+            protected override Task<CallResult<UpdateSubscription>> DoStartAsync(CancellationToken ct)
             {
                 throw new NotImplementedException();
             }

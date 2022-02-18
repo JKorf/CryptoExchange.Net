@@ -7,41 +7,41 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
-    /// Interface for websocket interaction
+    /// Webscoket connection interface
     /// </summary>
     public interface IWebsocket: IDisposable
     {
         /// <summary>
-        /// Websocket closed
+        /// Websocket closed event
         /// </summary>
         event Action OnClose;
         /// <summary>
-        /// Websocket message received
+        /// Websocket message received event
         /// </summary>
         event Action<string> OnMessage;
         /// <summary>
-        /// Websocket error
+        /// Websocket error event
         /// </summary>
         event Action<Exception> OnError;
         /// <summary>
-        /// Websocket opened
+        /// Websocket opened event
         /// </summary>
         event Action OnOpen;
 
         /// <summary>
-        /// Id
+        /// Unique id for this socket
         /// </summary>
         int Id { get; }
         /// <summary>
-        /// Origin
+        /// Origin header
         /// </summary>
         string? Origin { get; set; }
         /// <summary>
-        /// Encoding to use
+        /// Encoding to use for sending/receiving string data
         /// </summary>
         Encoding? Encoding { get; set; }
         /// <summary>
-        /// Reconnecting
+        /// Whether socket is in the process of reconnecting
         /// </summary>
         bool Reconnecting { get; set; }
         /// <summary>
@@ -61,15 +61,15 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         Func<string, string>? DataInterpreterString { get; set; }
         /// <summary>
-        /// Socket url
+        /// The url the socket connects to
         /// </summary>
         string Url { get; }
         /// <summary>
-        /// Is closed
+        /// Whether the socket connection is closed
         /// </summary>
         bool IsClosed { get; }
         /// <summary>
-        /// Is open
+        /// Whether the socket connection is open
         /// </summary>
         bool IsOpen { get; }
         /// <summary>
@@ -77,9 +77,14 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         SslProtocols SSLProtocols { get; set; }
         /// <summary>
-        /// Timeout
+        /// The max time for no data being received before the connection is considered lost
         /// </summary>
         TimeSpan Timeout { get; set; }
+        /// <summary>
+        /// Set a proxy to use when connecting
+        /// </summary>
+        /// <param name="proxy"></param>
+        void SetProxy(ApiProxy proxy);
         /// <summary>
         /// Connect the socket
         /// </summary>
@@ -91,18 +96,13 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="data"></param>
         void Send(string data);
         /// <summary>
-        /// Reset socket
+        /// Reset socket when a connection is lost to prepare for a new connection
         /// </summary>
         void Reset();
         /// <summary>
-        /// Close the connecting
+        /// Close the connection
         /// </summary>
         /// <returns></returns>
         Task CloseAsync();
-        /// <summary>
-        /// Set proxy
-        /// </summary>
-        /// <param name="proxy"></param>
-        void SetProxy(ApiProxy proxy);
     }
 }

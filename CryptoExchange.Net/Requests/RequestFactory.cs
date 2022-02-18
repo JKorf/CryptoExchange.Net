@@ -7,7 +7,7 @@ using CryptoExchange.Net.Objects;
 namespace CryptoExchange.Net.Requests
 {
     /// <summary>
-    /// WebRequest factory
+    /// Request factory
     /// </summary>
     public class RequestFactory : IRequestFactory
     {
@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public IRequest Create(HttpMethod method, string uri, int requestId)
+        public IRequest Create(HttpMethod method, Uri uri, int requestId)
         {
             if (httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");

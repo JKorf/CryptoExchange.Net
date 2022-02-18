@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiter;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -18,51 +15,19 @@ namespace CryptoExchange.Net.Interfaces
         IRequestFactory RequestFactory { get; set; }
 
         /// <summary>
-        /// What should happen when hitting a rate limit
-        /// </summary>
-        RateLimitingBehaviour RateLimitBehaviour { get; }
-
-        /// <summary>
-        /// List of active rate limiters
-        /// </summary>
-        IEnumerable<IRateLimiter> RateLimiters { get; }
-
-        /// <summary>
-        /// The total amount of requests made
+        /// The total amount of requests made with this client
         /// </summary>
         int TotalRequestsMade { get; }
 
         /// <summary>
-        /// The base address of the API
+        /// The options provided for this client
         /// </summary>
-        string BaseAddress { get; }
+        BaseRestClientOptions ClientOptions { get; }
 
         /// <summary>
-        /// Client name
+        /// Set the API credentials for this client. All Api clients in this client will use the new credentials, regardless of earlier set options.
         /// </summary>
-        string ExchangeName { get; }
-
-        /// <summary>
-        /// Adds a rate limiter to the client. There are 2 choices, the <see cref="RateLimiterTotal"/> and the <see cref="RateLimiterPerEndpoint"/>.
-        /// </summary>
-        /// <param name="limiter">The limiter to add</param>
-        void AddRateLimiter(IRateLimiter limiter);
-
-        /// <summary>
-        /// Removes all rate limiters from this client
-        /// </summary>
-        void RemoveRateLimiters();
-
-        /// <summary>
-        /// Ping to see if the server is reachable
-        /// </summary>
-        /// <returns>The roundtrip time of the ping request</returns>
-        CallResult<long> Ping(CancellationToken ct = default);
-
-        /// <summary>
-        /// Ping to see if the server is reachable
-        /// </summary>
-        /// <returns>The roundtrip time of the ping request</returns>
-        Task<CallResult<long>> PingAsync(CancellationToken ct = default);
+        /// <param name="credentials">The credentials to set</param>
+        void SetApiCredentials(ApiCredentials credentials);
     }
 }
