@@ -18,60 +18,21 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
-* Version 5.0.0-beta9 - 15 Feb 2022
-    * Re-added the TimestampRecalculationInterval option
-    * Changed socket reconnection so it immediately tries to reconnect the moment the connection is lost. After the initial try the ReconnectInterval is used again
-
-* Version 5.0.0-beta8 - 09 Feb 2022
-    * Fix for time offset calculation not updating the time offset when time offset is smaller than 500ms
-
-* Version 5.0.0-beta7 - 05 Feb 2022
-    * Added CancellationToken support on Common client interfaces
-    * Added CancellationToken support on SymbolOrderBook
-    * Improved SymbolOrderBook Start/Stop robustness
-
-* Version 5.0.0-beta6 - 02 Feb 2022
-    * Fix for deserialization of DateTime string "0" to a non-nullable DateTime property in .net framework
-
-* Version 5.0.0-beta5 - 25 Jan 2022
-    * Fixed DateTime string including nanoseconds deserialization in DateTimeConverter
-    * Refactored SymbolOrderBook to use AsyncResetEvent instead of AutoResetEvent to prevent thread blocking
-
-* Version 5.0.0-beta4 - 24 Jan 2022
-    * Fixed dependencies
-
-* Version 5.0.0-beta3 - 24 Jan 2022
-    * Re-added Common- prefixes for Common client enums to avoid Ambiguous references
-
-* Version 5.0.0-beta2 - 21 Jan 2022
-    * Replaced Debug.WriteLine with Trace.WriteLine
-
-* Version 5.0.0-beta1 - 15 Jan 2022
-    * Added additional properties to WebCallResult
-    * Added CallResult unit tests
-    * Updated some logging for client options
-
-* Version 5.0.0-alpha7 - 07 Jan 2022
-    * Fixed SymbolOrderBook ToString() not being threadsafe, Potential fix request timeout unclear error message
-
-* Version 5.0.0-alpha6 - 03 Jan 2022
-    * Fixed typo Comon -> Common
-
-* Version 5.0.0-alpha5 - 01 Jan 2022
-    * Reverted conditional dependencies, not working as expected
-
-* Version 5.0.0-alpha4 - 01 Jan 2022
-    * New comon interface structure
-    * Added Microsoft.Extensions.DependencyInjection.Abstractions to allow a AddXXX extension method on IServiceCollection for implementations
-
-* Version 5.0.0-alpha3 - 27 Dec 2021
-    * Added ExchangeName to IExchangeClient interface
-
-* Version 5.0.0-alpha2 - 21 Dec 2021
-    * Rework authentication provider, support for time syncing, various internal updates
-
-* Version 5.0.0-alpha1 - 07 Dec 2021
-    * New client structures, multiple improvements and changes. Details will be available later
+* Version 5.0.0
+	* Added Github.io page for documentation: https://jkorf.github.io/CryptoExchange.Net/
+	* Added single DateTimeConverter replacing the different timestamp converters 
+	* Added additional request related properties to WebCallResult
+	* Added CancelationToken support for websockets
+	* Added CancelationToken support for SymbolOrderBook starting
+	* Added TimeSync support
+	* Refactored base client classes into BaseClient and ApiClient to provide a more defined client structure
+	* Refactored client options to have better control over each different ApiClient
+	* Refactored authentication provider to be more flexible
+	* Refactored rate limiter implementation
+	* Refactored IExchangeClient interface to ISpotClient and IFuturesClient
+	* Refactored socket reconnection to immediately try to reconnect before waiting the ReconnectTimeout
+	* Improved SymbolOrderBook stability
+	* Updated code docs
 
 * Version 4.2.8 - 08 Oct 2021
     * Fixed deadlock in socket receive
