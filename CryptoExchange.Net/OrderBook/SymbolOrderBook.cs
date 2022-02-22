@@ -506,9 +506,36 @@ namespace CryptoExchange.Net.OrderBook
         }
 
         /// <summary>
-        /// Dispose the order book
+        /// IDisposable implementation for the order book
         /// </summary>
-        public abstract void Dispose();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose method
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            Status = OrderBookStatus.Disposing;
+
+            _cts?.Cancel();
+            _queueEvent.Set();
+
+            // Clear queue
+            while (_processQueue.TryDequeue(out _)) { }
+
+            processBuffer.Clear();
+            asks.Clear();
+            bids.Clear();
+            AskCount = 0;
+            BidCount = 0;
+
+            Status = OrderBookStatus.Disposed;
+        }
 
         /// <summary>
         /// String representation of the top 3 entries

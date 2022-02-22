@@ -69,7 +69,15 @@
         /// <summary>
         /// Data synced, order book is up to date
         /// </summary>
-        Synced
+        Synced,
+        /// <summary>
+        /// Disposing
+        /// </summary>
+        Disposing,
+        /// <summary>
+        /// Disposed
+        /// </summary>
+        Disposed
     }
 
     /// <summary>
