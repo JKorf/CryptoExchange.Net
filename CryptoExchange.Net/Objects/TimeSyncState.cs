@@ -53,17 +53,19 @@ namespace CryptoExchange.Net.Objects
         /// Time sync state for the API client
         /// </summary>
         public TimeSyncState TimeSyncState { get; }
-       
+
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="log"></param>
+        /// <param name="recalculationInterval"></param>
         /// <param name="syncTime"></param>
         /// <param name="syncState"></param>
-        public TimeSyncInfo(Log log, bool syncTime, TimeSyncState syncState)
+        public TimeSyncInfo(Log log, bool syncTime, TimeSpan recalculationInterval, TimeSyncState syncState)
         {
             Log = log;
             SyncTime = syncTime;
+            RecalculationInterval = recalculationInterval;
             TimeSyncState = syncState;
         }
 
