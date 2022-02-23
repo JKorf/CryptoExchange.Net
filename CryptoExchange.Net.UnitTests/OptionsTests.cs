@@ -253,11 +253,7 @@ namespace CryptoExchange.Net.UnitTests
         /// <summary>
         /// Default options for the futures client
         /// </summary>
-        public static TestClientOptions Default { get; set; } = new TestClientOptions()
-        {
-            Api1Options = new RestApiClientOptions(),
-            Api2Options = new RestApiClientOptions()
-        };
+        public static TestClientOptions Default { get; set; } = new TestClientOptions();
 
         /// <summary>
         /// The default receive window for requests
@@ -268,41 +264,32 @@ namespace CryptoExchange.Net.UnitTests
         public RestApiClientOptions Api1Options
         {
             get => _api1Options;
-            set => _api1Options.Copy(_api1Options, value);
+            set => _api1Options = new RestApiClientOptions(_api1Options, value);
         }
 
         private RestApiClientOptions _api2Options = new RestApiClientOptions("https://api2.test.com/");
         public RestApiClientOptions Api2Options
         {
             get => _api2Options;
-            set => _api2Options.Copy(_api2Options, value);
+            set => _api2Options = new RestApiClientOptions(_api2Options, value);
         }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public TestClientOptions()
+        public TestClientOptions(): this(Default)
         {
-            if (Default == null)
-                return;
-
-            Copy(this, Default);
         }
 
-        /// <summary>
-        /// Copy the values of the def to the input
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : TestClientOptions
+        public TestClientOptions(TestClientOptions? baseOn): base(baseOn)
         {
-            base.Copy(input, def);
+            if (baseOn == null)
+                return;
 
-            input.ReceiveWindow = def.ReceiveWindow;
+            ReceiveWindow = baseOn.ReceiveWindow;
 
-            input.Api1Options = new RestApiClientOptions(def.Api1Options);
-            input.Api2Options = new RestApiClientOptions(def.Api2Options);
+            Api1Options = new RestApiClientOptions(baseOn.Api1Options, null);
+            Api2Options = new RestApiClientOptions(baseOn.Api2Options, null);
         }
     }
 }

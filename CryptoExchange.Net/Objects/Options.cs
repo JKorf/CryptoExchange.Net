@@ -30,16 +30,24 @@ namespace CryptoExchange.Net.Objects
         public bool OutputOriginalData { get; set; } = false;
 
         /// <summary>
-        /// Copy the values of the def to the input
+        /// ctor
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public void Copy<T>(T input, T def) where T : BaseOptions
+        public BaseOptions(): this(null)
         {
-            input.LogLevel = def.LogLevel;
-            input.LogWriters = def.LogWriters.ToList();
-            input.OutputOriginalData = def.OutputOriginalData;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOptions">Copy options from these options to the new options</param>
+        public BaseOptions(BaseOptions? baseOptions)
+        {
+            if (baseOptions == null)
+                return;
+
+            LogLevel = baseOptions.LogLevel;
+            LogWriters = baseOptions.LogWriters.ToList();
+            OutputOriginalData = baseOptions.OutputOriginalData;
         }
 
         /// <inheritdoc />
@@ -65,17 +73,23 @@ namespace CryptoExchange.Net.Objects
         public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
-        /// Copy the values of the def to the input
+        /// ctor
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : BaseClientOptions
+        public BaseClientOptions() : this(null)
         {
-            base.Copy(input, def);
+        }
 
-            input.Proxy = def.Proxy;
-            input.ApiCredentials = def.ApiCredentials?.Copy();
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOptions">Copy options from these options to the new options</param>
+        public BaseClientOptions(BaseClientOptions? baseOptions) : base(baseOptions)
+        {
+            if (baseOptions == null)
+                return;
+
+            Proxy = baseOptions.Proxy;
+            ApiCredentials = baseOptions.ApiCredentials?.Copy();
         }
 
         /// <inheritdoc />
@@ -101,17 +115,23 @@ namespace CryptoExchange.Net.Objects
         public HttpClient? HttpClient { get; set; }
 
         /// <summary>
-        /// Copy the values of the def to the input
+        /// ctor
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : BaseRestClientOptions
+        public BaseRestClientOptions(): this(null)
         {
-            base.Copy(input, def);
+        }
 
-            input.HttpClient = def.HttpClient;
-            input.RequestTimeout = def.RequestTimeout;
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOptions">Copy options from these options to the new options</param>
+        public BaseRestClientOptions(BaseRestClientOptions? baseOptions): base(baseOptions)
+        {
+            if (baseOptions == null)
+                return;
+
+            HttpClient = baseOptions.HttpClient;
+            RequestTimeout = baseOptions.RequestTimeout;
         }
 
         /// <inheritdoc />
@@ -170,23 +190,29 @@ namespace CryptoExchange.Net.Objects
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
-        /// Copy the values of the def to the input
+        /// ctor
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : BaseSocketClientOptions
+        public BaseSocketClientOptions(): this(null)
         {
-            base.Copy(input, def);
-                
-            input.AutoReconnect = def.AutoReconnect;
-            input.ReconnectInterval = def.ReconnectInterval;
-            input.MaxReconnectTries = def.MaxReconnectTries;
-            input.MaxResubscribeTries = def.MaxResubscribeTries;
-            input.MaxConcurrentResubscriptionsPerSocket = def.MaxConcurrentResubscriptionsPerSocket;
-            input.SocketResponseTimeout = def.SocketResponseTimeout;
-            input.SocketNoDataTimeout = def.SocketNoDataTimeout;
-            input.SocketSubscriptionsCombineTarget = def.SocketSubscriptionsCombineTarget;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOptions">Copy options from these options to the new options</param>
+        public BaseSocketClientOptions(BaseSocketClientOptions? baseOptions): base(baseOptions)
+        {
+            if (baseOptions == null)
+                return;
+
+            AutoReconnect = baseOptions.AutoReconnect;
+            ReconnectInterval = baseOptions.ReconnectInterval;
+            MaxReconnectTries = baseOptions.MaxReconnectTries;
+            MaxResubscribeTries = baseOptions.MaxResubscribeTries;
+            MaxConcurrentResubscriptionsPerSocket = baseOptions.MaxConcurrentResubscriptionsPerSocket;
+            SocketResponseTimeout = baseOptions.SocketResponseTimeout;
+            SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
+            SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
         }
 
         /// <inheritdoc />
@@ -232,26 +258,14 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="baseOn">Copy values for the provided options</param>
+        /// <param name="baseOptions">Copy values for the provided options</param>
 #pragma warning disable 8618 // Will always get filled by the provided options
-        public ApiClientOptions(ApiClientOptions baseOn)
+        public ApiClientOptions(ApiClientOptions baseOptions, RestApiClientOptions? newValues)
         {
-            Copy(this, baseOn);
+            BaseAddress = newValues?.BaseAddress ?? baseOptions.BaseAddress;
+            ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
         }
 #pragma warning restore 8618
-
-        /// <summary>
-        /// Copy the values of the def to the input
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public void Copy<T>(T input, T def) where T : ApiClientOptions
-        {
-            if (def.BaseAddress != null)
-                input.BaseAddress = def.BaseAddress;
-            input.ApiCredentials = def.ApiCredentials?.Copy();
-        }
 
         /// <inheritdoc />
         public override string ToString()
@@ -304,26 +318,12 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseOn">Copy values for the provided options</param>
-        public RestApiClientOptions(RestApiClientOptions baseOn)
+        public RestApiClientOptions(RestApiClientOptions baseOn, RestApiClientOptions newValues): base(baseOn, newValues)
         {
-            Copy(this, baseOn);
-        }
-
-        /// <summary>
-        /// Copy the values of the def to the input
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
-        /// <param name="def"></param>
-        public new void Copy<T>(T input, T def) where T : RestApiClientOptions
-        {
-            base.Copy(input, def);
-
-            if(def.RateLimiters != null)
-                input.RateLimiters = def.RateLimiters.ToList();
-            input.RateLimitingBehaviour = def.RateLimitingBehaviour;
-            input.AutoTimestamp = def.AutoTimestamp;
-            input.TimestampRecalculationInterval = def.TimestampRecalculationInterval;
+            RateLimitingBehaviour = newValues?.RateLimitingBehaviour ?? baseOn.RateLimitingBehaviour;
+            AutoTimestamp = newValues?.AutoTimestamp ?? baseOn.AutoTimestamp;
+            TimestampRecalculationInterval = newValues?.TimestampRecalculationInterval ?? baseOn.TimestampRecalculationInterval;
+            RateLimiters = newValues?.RateLimiters.ToList() ?? baseOn?.RateLimiters.ToList() ?? new List<IRateLimiter>();
         }
 
         /// <inheritdoc />
