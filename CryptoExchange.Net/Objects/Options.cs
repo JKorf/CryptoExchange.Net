@@ -260,7 +260,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="baseOptions">Copy values for the provided options</param>
 #pragma warning disable 8618 // Will always get filled by the provided options
-        public ApiClientOptions(ApiClientOptions baseOptions, RestApiClientOptions? newValues)
+        public ApiClientOptions(ApiClientOptions baseOptions, ApiClientOptions? newValues)
         {
             BaseAddress = newValues?.BaseAddress ?? baseOptions.BaseAddress;
             ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
@@ -318,7 +318,7 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseOn">Copy values for the provided options</param>
-        public RestApiClientOptions(RestApiClientOptions baseOn, RestApiClientOptions newValues): base(baseOn, newValues)
+        public RestApiClientOptions(RestApiClientOptions baseOn, RestApiClientOptions? newValues): base(baseOn, newValues)
         {
             RateLimitingBehaviour = newValues?.RateLimitingBehaviour ?? baseOn.RateLimitingBehaviour;
             AutoTimestamp = newValues?.AutoTimestamp ?? baseOn.AutoTimestamp;

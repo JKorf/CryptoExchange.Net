@@ -12,6 +12,7 @@ namespace CryptoExchange.Net
         private ApiCredentials? _apiCredentials;
         private AuthenticationProvider? _authenticationProvider;
         private bool _created;
+        private bool _disposing;
 
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
@@ -20,7 +21,7 @@ namespace CryptoExchange.Net
         {
             get 
             {
-                if (!_created && _apiCredentials != null)
+                if (!_created && !_disposing && _apiCredentials != null)
                 {
                     _authenticationProvider = CreateAuthenticationProvider(_apiCredentials);
                     _created = true;
@@ -62,7 +63,7 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public void SetApiCredentials(ApiCredentials credentials)
         {
-            _apiCredentials = credentials;
+            _apiCredentials = credentials?.Copy();
             _created = false;
             _authenticationProvider = null;
         }
@@ -72,6 +73,8 @@ namespace CryptoExchange.Net
         /// </summary>
         public void Dispose()
         {
+            _disposing = true;
+            _apiCredentials?.Dispose();
             AuthenticationProvider?.Credentials?.Dispose();
         }
     }
