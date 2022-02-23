@@ -21,7 +21,6 @@ namespace CryptoExchange.Net.UnitTests
             {
             }
 
-            public override void Dispose() {}
 
             protected override Task<CallResult<bool>> DoResyncAsync(CancellationToken ct)
             {
