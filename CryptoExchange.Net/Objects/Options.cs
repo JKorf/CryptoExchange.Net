@@ -259,13 +259,12 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseOptions">Copy values for the provided options</param>
-#pragma warning disable 8618 // Will always get filled by the provided options
+        /// <param name="newValues">Copy values for the provided options</param>
         public ApiClientOptions(ApiClientOptions baseOptions, ApiClientOptions? newValues)
         {
             BaseAddress = newValues?.BaseAddress ?? baseOptions.BaseAddress;
             ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
         }
-#pragma warning restore 8618
 
         /// <inheritdoc />
         public override string ToString()
@@ -318,6 +317,7 @@ namespace CryptoExchange.Net.Objects
         /// ctor
         /// </summary>
         /// <param name="baseOn">Copy values for the provided options</param>
+        /// <param name="newValues">Copy values for the provided options</param>
         public RestApiClientOptions(RestApiClientOptions baseOn, RestApiClientOptions? newValues): base(baseOn, newValues)
         {
             RateLimitingBehaviour = newValues?.RateLimitingBehaviour ?? baseOn.RateLimitingBehaviour;

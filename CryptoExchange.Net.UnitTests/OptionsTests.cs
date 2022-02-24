@@ -281,7 +281,7 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public TestClientOptions(TestClientOptions? baseOn): base(baseOn)
+        public TestClientOptions(TestClientOptions baseOn): base(baseOn)
         {
             if (baseOn == null)
                 return;
