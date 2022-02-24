@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.1 - 24 Feb 2022
+    * Fixed issue ApiCredentials
+
 * Version 5.1.0 - 24 Feb 2022
     * Improved dispose handling in SymbolOrderBook
     * Fixed TimeSync RecalculationInterval not being respected
