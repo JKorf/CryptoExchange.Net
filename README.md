@@ -18,6 +18,11 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.2 - 27 Feb 2022
+    * Fixed issue where the rate limiter was messing with time syncing
+    * Added support for delegate parameters
+    * Added `ignoreRateLimit` paramter in `SendRequestAsync`
+
 * Version 5.1.1 - 24 Feb 2022
     * Fixed issue ApiCredentials
 
