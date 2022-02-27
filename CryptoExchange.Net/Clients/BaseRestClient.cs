@@ -107,6 +107,7 @@ namespace CryptoExchange.Net
         /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
+        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
@@ -120,7 +121,8 @@ namespace CryptoExchange.Net
             ArrayParametersSerialization? arraySerialization = null, 
             int requestWeight = 1,
             JsonSerializer? deserializer = null,
-            Dictionary<string, string>? additionalHeaders = null
+            Dictionary<string, string>? additionalHeaders = null,
+            bool ignoreRatelimit = false
             ) where T : class
         {
             var requestId = NextId();
@@ -135,6 +137,16 @@ namespace CryptoExchange.Net
                 }
             }
 
+            if (!ignoreRatelimit)
+            {
+                foreach (var limiter in apiClient.RateLimiters)
+                {
+                    var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, apiClient.Options.ApiCredentials?.Key, apiClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                    if (!limitResult.Success)
+                        return new WebCallResult<T>(limitResult.Error!);
+                }
+            }
+
             log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
             if (signed && apiClient.AuthenticationProvider == null)
             {
@@ -144,13 +156,7 @@ namespace CryptoExchange.Net
 
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
             var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
-            foreach (var limiter in apiClient.RateLimiters)
-            {
-                var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, apiClient.Options.ApiCredentials?.Key, apiClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
-                if (!limitResult.Success)                
-                    return new WebCallResult<T>(limitResult.Error!);
-            }
-
+            
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
                 paramString = $" with request body '{request.Content}'";
@@ -296,6 +302,14 @@ namespace CryptoExchange.Net
             Dictionary<string, string>? additionalHeaders)
         {
             parameters ??= new Dictionary<string, object>();
+
+            for (var i = 0; i< parameters.Count; i++)
+            {
+                var kvp = parameters.ElementAt(i);
+                if (kvp.Value is Func<object> delegateValue)
+                    parameters[kvp.Key] = delegateValue();
+            }
+
             if (parameterPosition == HttpMethodParameterPosition.InUri)
             {
                 foreach (var parameter in parameters)
