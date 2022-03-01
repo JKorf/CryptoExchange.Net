@@ -187,6 +187,7 @@ namespace CryptoExchange.Net
         protected async Task<CallResult<T>> DeserializeAsync<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
             serializer ??= defaultSerializer;
+            string? data = null;
 
             try
             {
@@ -197,7 +198,7 @@ namespace CryptoExchange.Net
                 // in order to log/return the json data
                 if (ClientOptions.OutputOriginalData || log.Level <= LogLevel.Debug)
                 {
-                    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    data = await reader.ReadToEndAsync().ConfigureAwait(false);
                     log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: {data}");
                     var result = Deserialize<T>(data, serializer, requestId);
                     if(ClientOptions.OutputOriginalData)
@@ -212,41 +213,48 @@ namespace CryptoExchange.Net
             }
             catch (JsonReaderException jre)
             {
-                string data;
-                if (stream.CanSeek)
+                if (data == null)
                 {
-                    // If we can seek the stream rewind it so we can retrieve the original data that was sent
-                    stream.Seek(0, SeekOrigin.Begin);
-                    data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                    if (stream.CanSeek)
+                    {
+                        // If we can seek the stream rewind it so we can retrieve the original data that was sent
+                        stream.Seek(0, SeekOrigin.Begin);
+                        data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                    }
+                    else
+                        data = "[Data only available in Debug LogLevel]";
                 }
-                else
-                    data = "[Data only available in Debug LogLevel]";
                 log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}", data));
             }
             catch (JsonSerializationException jse)
             {
-                string data;
-                if (stream.CanSeek)
+                if (data == null)
                 {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                    if (stream.CanSeek)
+                    {
+                        stream.Seek(0, SeekOrigin.Begin);
+                        data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                    }
+                    else
+                        data = "[Data only available in Debug LogLevel]";
                 }
-                else
-                    data = "[Data only available in Debug LogLevel]";
 
                 log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize JsonSerializationException: {jse.Message}", data));
             }
             catch (Exception ex)
             {
-                string data;
-                if (stream.CanSeek) { 
-                    stream.Seek(0, SeekOrigin.Begin);
-                    data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                if (data == null)
+                {
+                    if (stream.CanSeek)
+                    {
+                        stream.Seek(0, SeekOrigin.Begin);
+                        data = await ReadStreamAsync(stream).ConfigureAwait(false);
+                    }
+                    else
+                        data = "[Data only available in Debug LogLevel]";
                 }
-                else
-                    data = "[Data only available in Debug LogLevel]";
 
                 var exceptionInfo = ex.ToLogString();
                 log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {data}");
