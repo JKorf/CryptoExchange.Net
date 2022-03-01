@@ -11,6 +11,10 @@ namespace CryptoExchange.Net.Objects
     public class TimeSyncState
     {
         /// <summary>
+        /// Name of the API
+        /// </summary>
+        public string ApiName { get; set; }
+        /// <summary>
         /// Semaphore to use for checking the time syncing. Should be shared instance among the API client
         /// </summary>
         public SemaphoreSlim Semaphore { get; }
@@ -26,8 +30,9 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public TimeSyncState()
+        public TimeSyncState(string apiName)
         {
+            ApiName = apiName;
             Semaphore = new SemaphoreSlim(1, 1);
         }
     }
@@ -78,12 +83,12 @@ namespace CryptoExchange.Net.Objects
             TimeSyncState.LastSyncTime = DateTime.UtcNow;
             if (offset.TotalMilliseconds > 0 && offset.TotalMilliseconds < 500)
             {
-                Log.Write(LogLevel.Information, $"Time offset within limits, set offset to 0ms");
+                Log.Write(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset within limits, set offset to 0ms");
                 TimeSyncState.TimeOffset = TimeSpan.Zero;
             }
             else
             {
-                Log.Write(LogLevel.Information, $"Time offset set to {Math.Round(offset.TotalMilliseconds)}ms");
+                Log.Write(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset set to {Math.Round(offset.TotalMilliseconds)}ms");
                 TimeSyncState.TimeOffset = offset;
             }
         }
