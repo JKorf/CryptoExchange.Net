@@ -3,7 +3,7 @@ title: Home
 nav_order: 1
 ---
 
-![Build status](https://travis-ci.com/JKorf/CryptoExchange.Net.svg?branch=master) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
+[![.NET](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
 
 The CryptoExchange.Net library is a base package for exchange API implementations. It offers base classes for creating clients for exchange API's. Basing exchange implementation on the common CryptoExchange.Net library allows for ease of implementation for new exchanges, as only the endpoints and models have to implemented, but not all systems around requests and connections, and it makes it easier for users to implement a new library in their code base as all base principles and configuration are the same for different exchanges.
 
