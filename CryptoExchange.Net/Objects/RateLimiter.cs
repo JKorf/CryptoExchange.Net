@@ -241,9 +241,13 @@ namespace CryptoExchange.Net.Objects
                         break;
                 }
 
-                var currentWeight = historyTopic.Entries.Sum(h => h.Weight);
+                var currentWeight = !historyTopic.Entries.Any() ? 0: historyTopic.Entries.Sum(h => h.Weight);
                 if (currentWeight + requestWeight > historyTopic.Limit)
                 {
+                    if (currentWeight == 0)
+                        throw new Exception("Request limit reached without any prior request. " +
+                            $"This request can never execute with the current rate limiter. Request weight: {requestWeight}, Ratelimit: {historyTopic.Limit}");
+
                     // Wait until the next entry should be removed from the history
                     var thisWaitTime = (int)Math.Round((historyTopic.Entries.First().Timestamp - (checkTime - historyTopic.Period)).TotalMilliseconds);
                     if (thisWaitTime > 0)
@@ -251,12 +255,12 @@ namespace CryptoExchange.Net.Objects
                         if (limitBehaviour == RateLimitingBehaviour.Fail)
                         {
                             historyTopic.Semaphore.Release();
-                            var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
+                            var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
                             log.Write(LogLevel.Warning, msg);
                             return new CallResult<int>(new RateLimitError(msg));
                         }
 
-                        log.Write(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
+                        log.Write(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
                         try
                         {
                             await Task.Delay(thisWaitTime, ct).ConfigureAwait(false);
