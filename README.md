@@ -18,6 +18,10 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.4 - 04 Mar 2022
+    * Fixed ArraySerialization handling
+    * Added check for invalid rate limit configured for a request
+
 * Version 5.1.3 - 01 Mar 2022
     * Fixed some issues in websocket reconnection, should be more robust now
     * Prevent duplicate data reading on error in rest request
