@@ -341,7 +341,7 @@ namespace CryptoExchange.Net
             }
 
             // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
-            uri = uri.SetParameters(uriParameters);
+            uri = uri.SetParameters(uriParameters, arraySerialization);
         
             var request = RequestFactory.Create(method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
