@@ -14,6 +14,7 @@
 @using Bybit.Net.Clients.SpotApi
 @using CoinEx.Net.Clients.SpotApi
 @using CryptoExchange.Net.Interfaces
+@using CryptoExchange.Net.Interfaces.CommonClients
 @using FTX.Net.Clients.TradeApi
 @using Huobi.Net.Clients.SpotApi
 @using Kraken.Net.Clients.SpotApi
@@ -33,14 +34,14 @@
         var clients = new ISpotClient[]
             {
                 
-                binanceClient.SpotApi.ComonSpotClient, 
-                bitfinexClient.SpotApi.ComonSpotClient,
-                bittrexClient.SpotApi.ComonSpotClient, 
+                binanceClient.SpotApi.CommonSpotClient, 
+                bitfinexClient.SpotApi.CommonSpotClient,
+                bittrexClient.SpotApi.CommonSpotClient, 
                 bybitClient.SpotApi.CommonSpotClient, 
-                coinexClient.SpotApi.ComonSpotClient, 
-                ftxClient.TradeApi.ComonSpotClient, 
-                huobiClient.SpotApi.ComonSpotClient, 
-                krakenClient.SpotApi.ComonSpotClient, 
+                coinexClient.SpotApi.CommonSpotClient, 
+                ftxClient.TradeApi.CommonSpotClient, 
+                huobiClient.SpotApi.CommonSpotClient, 
+                krakenClient.SpotApi.CommonSpotClient, 
                 kucoinClient.SpotApi.CommonSpotClient
             };
 

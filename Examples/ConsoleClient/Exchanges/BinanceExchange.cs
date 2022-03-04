@@ -61,7 +61,7 @@ namespace ConsoleClient.Exchanges
             var result = await client.SpotApi.Trading.PlaceOrderAsync(
                 symbol,
                 side.ToLower() == "buy" ? Binance.Net.Enums.OrderSide.Buy: Binance.Net.Enums.OrderSide.Sell, 
-                type == "market" ? Binance.Net.Enums.OrderType.Market : Binance.Net.Enums.OrderType.Limit, 
+                type == "market" ? Binance.Net.Enums.SpotOrderType.Market : Binance.Net.Enums.SpotOrderType.Limit, 
                 quantity, 
                 price: price,
                 timeInForce: type == "market" ? null: Binance.Net.Enums.TimeInForce.GoodTillCanceled);
