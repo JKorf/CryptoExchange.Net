@@ -18,6 +18,10 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.5 - 09 Mar 2022
+    * Removed ResubscribeMaxRetries default value of 5
+    * Updated logging and log verbosity
+
 * Version 5.1.4 - 04 Mar 2022
     * Fixed ArraySerialization handling
     * Added check for invalid rate limit configured for a request
