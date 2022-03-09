@@ -224,7 +224,7 @@ namespace CryptoExchange.Net.OrderBook
         public async Task<CallResult<bool>> StartAsync(CancellationToken? ct = null)
         {
             if (Status != OrderBookStatus.Disconnected)
-                throw new InvalidOperationException($"Can't start book unless state is {OrderBookStatus.Connecting}. Was {Status}");
+                throw new InvalidOperationException($"Can't start book unless state is {OrderBookStatus.Disconnected}. Current state: {Status}");
 
             log.Write(LogLevel.Debug, $"{Id} order book {Symbol} starting");
             _cts = new CancellationTokenSource();
@@ -288,7 +288,7 @@ namespace CryptoExchange.Net.OrderBook
 
             if (_subscription != null)
                 await _subscription.CloseAsync().ConfigureAwait(false);
-            log.Write(LogLevel.Debug, $"{Id} order book {Symbol} stopped");
+            log.Write(LogLevel.Trace, $"{Id} order book {Symbol} stopped");
         }
 
         /// <inheritdoc/>
@@ -417,7 +417,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             var pbList = processBuffer.ToList();
             if (pbList.Count > 0)
-                log.Write(LogLevel.Debug, "Processing buffered updates");
+                log.Write(LogLevel.Debug, $"Processing {pbList.Count} buffered updates");
 
             foreach (var bufferEntry in pbList)
             {
@@ -436,7 +436,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             if (sequence <= LastSequenceNumber)
             {
-                log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update skipped #{sequence}");
+                log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update skipped #{sequence}, currently at #{LastSequenceNumber}");
                 return false;
             }
 
@@ -664,7 +664,7 @@ namespace CryptoExchange.Net.OrderBook
                         FirstUpdateId = item.StartUpdateId,
                         LastUpdateId = item.EndUpdateId,
                     });
-                    log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{item.Asks.Count()} asks, {item.Bids.Count()} bids]");
+                    log.Write(LogLevel.Trace, $"{Id} order book {Symbol} update buffered #{item.StartUpdateId}-#{item.EndUpdateId} [{item.Asks.Count()} asks, {item.Bids.Count()} bids]");
                 }
                 else
                 {
@@ -748,7 +748,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             if (lastUpdateId <= LastSequenceNumber)
             {
-                log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update skipped #{firstUpdateId}-{lastUpdateId}");
+                log.Write(LogLevel.Trace, $"{Id} order book {Symbol} update skipped #{firstUpdateId}-{lastUpdateId}");
                 return;
             }
 
@@ -774,7 +774,7 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             LastSequenceNumber = lastUpdateId;
-            log.Write(LogLevel.Debug, $"{Id} order book {Symbol} update processed #{firstUpdateId}-{lastUpdateId}");
+            log.Write(LogLevel.Trace, $"{Id} order book {Symbol} update processed #{firstUpdateId}-{lastUpdateId}");
         }        
     }
 

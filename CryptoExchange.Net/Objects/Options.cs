@@ -164,7 +164,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The maximum number of times to try to resubscribe after reconnecting
         /// </summary>
-        public int? MaxResubscribeTries { get; set; } = 5;
+        public int? MaxResubscribeTries { get; set; }
 
         /// <summary>
         /// Max number of concurrent resubscription tasks per socket after reconnecting a socket

@@ -147,13 +147,13 @@ namespace CryptoExchange.Net
                 }
             }
 
-            log.Write(LogLevel.Debug, $"[{requestId}] Creating request for " + uri);
             if (signed && apiClient.AuthenticationProvider == null)
             {
                 log.Write(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new WebCallResult<T>(new NoApiCredentialsError());
             }
 
+            log.Write(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
             var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
             
@@ -161,15 +161,12 @@ namespace CryptoExchange.Net
             if (paramsPosition == HttpMethodParameterPosition.InBody)
                 paramString = $" with request body '{request.Content}'";
 
-            if (log.Level == LogLevel.Trace)
-            {
-                var headers = request.GetHeaders();
-                if (headers.Any())
-                    paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
-            }
-
+            var headers = request.GetHeaders();
+            if (headers.Any())
+                paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
+            
             apiClient.TotalRequestsMade++;
-            log.Write(LogLevel.Debug, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
+            log.Write(LogLevel.Trace, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
             return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
         }
 
@@ -200,7 +197,7 @@ namespace CryptoExchange.Net
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
                         responseStream.Close();
                         response.Close();
-                        log.Write(LogLevel.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms: {data}");
+                        log.Write(LogLevel.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms{(log.Level == LogLevel.Trace ? (": "+data): "")}");
 
                         // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
                         var parseResult = ValidateJson(data);
@@ -231,7 +228,7 @@ namespace CryptoExchange.Net
                     // Http status code indicates error
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogLevel.Debug, $"[{request.RequestId}] Error received: {data}");
+                    log.Write(LogLevel.Warning, $"[{request.RequestId}] Error received in {sw.ElapsedMilliseconds}ms: {data}");
                     responseStream.Close();
                     response.Close();
                     var parseResult = ValidateJson(data);

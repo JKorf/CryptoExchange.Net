@@ -196,10 +196,10 @@ namespace CryptoExchange.Net
 
                 // If we have to output the original json data or output the data into the logging we'll have to read to full response
                 // in order to log/return the json data
-                if (ClientOptions.OutputOriginalData || log.Level <= LogLevel.Debug)
+                if (ClientOptions.OutputOriginalData || log.Level == LogLevel.Trace)
                 {
                     data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: {data}");
+                    log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms{(log.Level == LogLevel.Trace ? (": " + data) : "")}");
                     var result = Deserialize<T>(data, serializer, requestId);
                     if(ClientOptions.OutputOriginalData)
                         result.OriginalData = data;
@@ -209,6 +209,7 @@ namespace CryptoExchange.Net
                 // If we don't have to keep track of the original json data we can use the JsonTextReader to deserialize the stream directly
                 // into the desired object, which has increased performance over first reading the string value into memory and deserializing from that
                 using var jsonReader = new JsonTextReader(reader);
+                log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] ": "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms");
                 return new CallResult<T>(serializer.Deserialize<T>(jsonReader)!);
             }
             catch (JsonReaderException jre)
@@ -222,7 +223,7 @@ namespace CryptoExchange.Net
                         data = await ReadStreamAsync(stream).ConfigureAwait(false);
                     }
                     else
-                        data = "[Data only available in Debug LogLevel]";
+                        data = "[Data only available in Trace LogLevel]";
                 }
                 log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}", data));
@@ -237,7 +238,7 @@ namespace CryptoExchange.Net
                         data = await ReadStreamAsync(stream).ConfigureAwait(false);
                     }
                     else
-                        data = "[Data only available in Debug LogLevel]";
+                        data = "[Data only available in Trace LogLevel]";
                 }
 
                 log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
@@ -253,7 +254,7 @@ namespace CryptoExchange.Net
                         data = await ReadStreamAsync(stream).ConfigureAwait(false);
                     }
                     else
-                        data = "[Data only available in Debug LogLevel]";
+                        data = "[Data only available in Trace LogLevel]";
                 }
 
                 var exceptionInfo = ex.ToLogString();

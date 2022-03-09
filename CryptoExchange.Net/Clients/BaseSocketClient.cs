@@ -188,9 +188,6 @@ namespace CryptoExchange.Net
                 var connectResult = await ConnectIfNeededAsync(socketConnection, authenticated).ConfigureAwait(false);
                 if (!connectResult)
                     return new CallResult<UpdateSubscription>(connectResult.Error!);
-
-                if (needsConnecting)
-                    log.Write(LogLevel.Debug, $"Socket {socketConnection.Socket.Id} connected to {url} {(request == null ? "": "with request " + JsonConvert.SerializeObject(request))}");
             }
             finally
             {
@@ -200,7 +197,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't subscribe at this moment");
+                log.Write(LogLevel.Warning, $"Socket {socketConnection.Socket.Id} has been paused, can't subscribe at this moment");
                 return new CallResult<UpdateSubscription>( new ServerError("Socket is paused"));
             }
 
@@ -225,10 +222,12 @@ namespace CryptoExchange.Net
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
                 {
-                    log.Write(LogLevel.Debug, $"Socket {socketConnection.Socket.Id} Cancellation token set, closing subscription");
+                    log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} Cancellation token set, closing subscription");
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
+
+            log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} subscription completed");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -310,7 +309,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                log.Write(LogLevel.Information, $"Socket {socketConnection.Socket.Id} has been paused, can't send query at this moment");
+                log.Write(LogLevel.Warning, $"Socket {socketConnection.Socket.Id} has been paused, can't send query at this moment");
                 return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
@@ -618,7 +617,7 @@ namespace CryptoExchange.Net
                         }
                         catch (Exception ex)
                         {
-                            log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} Periodic send {identifier} failed: " + ex);
+                            log.Write(LogLevel.Warning, $"Socket {socket.Socket.Id} Periodic send {identifier} failed: " + ex.ToLogString());
                         }
                     }
                 }
@@ -672,7 +671,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
-            log.Write(LogLevel.Debug, $"Closing all {sockets.Sum(s => s.Value.SubscriptionCount)} subscriptions");
+            log.Write(LogLevel.Information, $"Closing all {sockets.Sum(s => s.Value.SubscriptionCount)} subscriptions");
 
             await Task.Run(async () =>
             {

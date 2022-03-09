@@ -254,7 +254,7 @@ namespace CryptoExchange.Net.Sockets
                 }    
             }
 
-            log.Write(LogLevel.Debug, $"Socket {Id} connected");
+            log.Write(LogLevel.Debug, $"Socket {Id} connected to {Url}");
             return true;
         }
 
