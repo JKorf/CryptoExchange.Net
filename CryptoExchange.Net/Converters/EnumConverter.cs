@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace CryptoExchange.Net.Converters
@@ -24,24 +25,46 @@ namespace CryptoExchange.Net.Converters
         /// <inheritdoc />
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
-            if (!_mapping.TryGetValue(objectType, out var mapping))
-                mapping = AddMapping(objectType);
+            var enumType = Nullable.GetUnderlyingType(objectType) ?? objectType;
+            if (!_mapping.TryGetValue(enumType, out var mapping))
+                mapping = AddMapping(enumType);
 
-            if (reader.Value == null)
-                return null;
-
-            var stringValue = reader.Value.ToString();
-            if (string.IsNullOrWhiteSpace(stringValue))
-                return null;
-
-            if (!GetValue(objectType, mapping, stringValue, out var result))
+            var stringValue = reader.Value?.ToString();
+            if (stringValue == null)
             {
-                Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {objectType.Name}, Value: {reader.Value}, Known values: {string.Join(", ", mapping.Select(m => m.Value))}. If you think {reader.Value} should added please open an issue on the Github repo");
-                return null;
+                // Received null value
+                var emptyResult = GetDefaultValue(objectType, enumType);
+                if(emptyResult != null)
+                    // If the property we're parsing to isn't nullable there isn't a correct way to return this as null will either throw an exception (.net framework) or the default enum value (dotnet core).
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {enumType.Name}. If you think {enumType.Name} should be nullable please open an issue on the Github repo");
+
+                return emptyResult;
+            }
+
+            if (!GetValue(enumType, mapping, stringValue!, out var result))
+            {
+                var defaultValue = GetDefaultValue(objectType, enumType);
+                if (string.IsNullOrWhiteSpace(stringValue))
+                {
+                    if (defaultValue != null)
+                        // We received an empty string and have no mapping for it, and the property isn't nullable
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {enumType.Name}. If you think {enumType.Name} should be nullable please open an issue on the Github repo");
+                }
+                else
+                    // We received an enum value but weren't able to parse it.
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {reader.Value}, Known values: {string.Join(", ", mapping.Select(m => m.Value))}. If you think {reader.Value} should added please open an issue on the Github repo");
+                return defaultValue;
             }
 
             return result;
+        }
+
+        private static object? GetDefaultValue(Type objectType, Type enumType)
+        {
+            if (Nullable.GetUnderlyingType(objectType) != null)
+                return null;
+
+            return Activator.CreateInstance(enumType); // return default value
         }
 
         private static List<KeyValuePair<object, string>> AddMapping(Type objectType) 
@@ -76,6 +99,7 @@ namespace CryptoExchange.Net.Converters
 
             try
             {
+                // If no explicit mapping is found try to parse string
                 result = Enum.Parse(objectType, value, true);
                 return true;
             }
@@ -92,6 +116,7 @@ namespace CryptoExchange.Net.Converters
         /// <typeparam name="T"></typeparam>
         /// <param name="enumValue"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("enumValue")]
         public static string? GetString<T>(T enumValue)
         {
             var objectType = typeof(T);

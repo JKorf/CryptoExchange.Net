@@ -147,6 +147,21 @@ namespace CryptoExchange.Net.UnitTests
             var output = JsonConvert.DeserializeObject<EnumObject>($"{{ \"Value\": {val} }}");
             Assert.AreEqual(output.Value, expected);
         }
+
+        [TestCase("1", TestEnum.One)]
+        [TestCase("2", TestEnum.Two)]
+        [TestCase("3", TestEnum.Three)]
+        [TestCase("three", TestEnum.Three)]
+        [TestCase("Four", TestEnum.Four)]
+        [TestCase("four", TestEnum.Four)]
+        [TestCase("Four1", TestEnum.One)]
+        [TestCase(null, TestEnum.One)]
+        public void TestEnumConverterNotNullableDeserializeTests(string value, TestEnum? expected)
+        {
+            var val = value == null ? "null" : $"\"{value}\"";
+            var output = JsonConvert.DeserializeObject<NotNullableEnumObject>($"{{ \"Value\": {val} }}");
+            Assert.AreEqual(output.Value, expected);
+        }
     }
 
     public class TimeObject
@@ -158,6 +173,11 @@ namespace CryptoExchange.Net.UnitTests
     public class EnumObject
     {
         public TestEnum? Value { get; set; }
+    }
+
+    public class NotNullableEnumObject
+    {
+        public TestEnum Value { get; set; }
     }
 
     [JsonConverter(typeof(EnumConverter))]
