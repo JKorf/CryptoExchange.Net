@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.6 - 10 Mar 2022
+    * Updated EnumConverter to properly handle emtpy/null and default values
+
 * Version 5.1.5 - 09 Mar 2022
     * Removed ResubscribeMaxRetries default value of 5
     * Updated logging and log verbosity
