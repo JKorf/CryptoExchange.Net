@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
@@ -109,6 +110,13 @@ namespace CryptoExchange.Net
                 throw new ArgumentNullException(nameof(options));
 
             ClientOptions = options;
+        }
+
+        /// <inheritdoc />
+        public void SetApiCredentials(ApiCredentials credentials)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetApiCredentials(credentials);
         }
 
         /// <summary>
