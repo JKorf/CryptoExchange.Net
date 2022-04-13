@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
@@ -490,6 +491,22 @@ namespace CryptoExchange.Net
             ub.Query = httpValueCollection.ToString();
 
             return ub.Uri;
+        }
+
+        /// <summary>
+        /// checks whether schema is provided
+        /// </summary>
+        /// <param name="proxy"></param>
+        /// <returns></returns>
+        public static bool IsSchemaProvided(this ApiProxy proxy)
+        {
+            var url = $"{proxy.Host}:{proxy.Port}";
+            var r = new Regex(@"^(?<proto>\w+)://[^/]+?(?<port>:\d+)?",
+                RegexOptions.None, TimeSpan.FromMilliseconds(150));
+            var match = r.Match(url);
+            if (!match.Success) return false;
+            var proto = match.Result("${proto}");
+            return !string.IsNullOrEmpty(proto);
         }
 
     }
