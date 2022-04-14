@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.7 - 14 Apr 2022
+    * Moved some Rest parameters from BaseRestClient to RestApiClient to allow different implementations for sub clients
+
 * Version 5.1.6 - 10 Mar 2022
     * Updated EnumConverter to properly handle emtpy/null and default values
 
