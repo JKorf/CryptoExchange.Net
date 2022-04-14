@@ -31,11 +31,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
-        {
-            ParameterPositions[method] = position;
-        }
-
         public void SetResponse(string responseData, out IRequest requestObj)
         {
             var expectedBytes = Encoding.UTF8.GetBytes(responseData);
@@ -120,7 +115,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     {
         public TestRestApi1Client(TestClientOptions options): base(options, options.Api1Options)
         {
+        }
 
+        public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
+        {
+            ParameterPositions[method] = position;
         }
 
         public override TimeSpan GetTimeOffset()

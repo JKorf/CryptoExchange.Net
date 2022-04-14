@@ -144,7 +144,7 @@ namespace CryptoExchange.Net.UnitTests
                 }
             });
 
-            client.SetParameterPosition(new HttpMethod(method), pos);
+            client.Api1.SetParameterPosition(new HttpMethod(method), pos);
 
             client.SetResponse("{}", out var request);
 
