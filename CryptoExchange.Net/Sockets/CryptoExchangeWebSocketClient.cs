@@ -212,7 +212,13 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual void SetProxy(ApiProxy proxy)
         {
-            _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port);
+            Uri.TryCreate($"{proxy.Host}:{proxy.Port}", UriKind.Absolute, out var uri);
+            _socket.Options.Proxy = uri?.Scheme == null
+                ? _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port)
+                : _socket.Options.Proxy = new WebProxy
+                {
+                    Address = uri
+                };
             if (proxy.Login != null)
                 _socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
