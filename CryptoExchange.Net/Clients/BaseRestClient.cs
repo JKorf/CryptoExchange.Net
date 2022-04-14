@@ -26,38 +26,7 @@ namespace CryptoExchange.Net
         /// The factory for creating requests. Used for unit testing
         /// </summary>
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
-
-        /// <summary>
-        /// Where to put the parameters for requests with different Http methods
-        /// </summary>
-        protected Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
-        { 
-            { HttpMethod.Get, HttpMethodParameterPosition.InUri },
-            { HttpMethod.Post, HttpMethodParameterPosition.InBody },
-            { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
-            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
-        };
-
-        /// <summary>
-        /// Request body content type
-        /// </summary>
-        protected RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
-
-        /// <summary>
-        /// Whether or not we need to manually parse an error instead of relying on the http status code
-        /// </summary>
-        protected bool manualParseError = false;
-
-        /// <summary>
-        /// How to serialize array parameters when making requests
-        /// </summary>
-        protected ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
-
-        /// <summary>
-        /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
-        /// </summary>
-        protected string requestBodyEmptyContent = "{}";
-
+        
         /// <inheritdoc />
         public int TotalRequestsMade => ApiClients.OfType<RestApiClient>().Sum(s => s.TotalRequestsMade);
 
@@ -154,8 +123,8 @@ namespace CryptoExchange.Net
             }
 
             log.Write(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
-            var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
+            var paramsPosition = parameterPosition ?? apiClient.ParameterPositions[method];
+            var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? apiClient.arraySerialization, requestId, additionalHeaders);
             
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
@@ -167,17 +136,18 @@ namespace CryptoExchange.Net
             
             apiClient.TotalRequestsMade++;
             log.Write(LogLevel.Trace, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
-            return await GetResponseAsync<T>(request, deserializer, cancellationToken).ConfigureAwait(false);
+            return await GetResponseAsync<T>(apiClient, request, deserializer, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
+        /// <param name="apiClient">The client making the request</param>
         /// <param name="request">The request object to execute</param>
         /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(IRequest request, JsonSerializer? deserializer, CancellationToken cancellationToken)
+        protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(BaseApiClient apiClient, IRequest request, JsonSerializer? deserializer, CancellationToken cancellationToken)
         {
             try
             {
@@ -191,7 +161,7 @@ namespace CryptoExchange.Net
                 {
                     // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
                     // response before being able to deserialize it into the resulting type since we don't know if it an error response or data
-                    if (manualParseError)
+                    if (apiClient.manualParseError)
                     {
                         using var reader = new StreamReader(responseStream);
                         var data = await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -362,11 +332,11 @@ namespace CryptoExchange.Net
 
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
-                var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+                var contentType = apiClient.requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
                 if (bodyParameters.Any())
-                    WriteParamBody(request, bodyParameters, contentType);
+                    WriteParamBody(apiClient, request, bodyParameters, contentType);
                 else
-                    request.SetContent(requestBodyEmptyContent, contentType);
+                    request.SetContent(apiClient.requestBodyEmptyContent, contentType);
             }
 
             return request;
@@ -375,18 +345,19 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Writes the parameters of the request to the request object body
         /// </summary>
+        /// <param name="apiClient">The client making the request</param>
         /// <param name="request">The request to set the parameters on</param>
         /// <param name="parameters">The parameters to set</param>
         /// <param name="contentType">The content type of the data</param>
-        protected virtual void WriteParamBody(IRequest request, SortedDictionary<string, object> parameters, string contentType)
+        protected virtual void WriteParamBody(BaseApiClient apiClient, IRequest request, SortedDictionary<string, object> parameters, string contentType)
         {
-            if (requestBodyFormat == RequestBodyFormat.Json)
+            if (apiClient.requestBodyFormat == RequestBodyFormat.Json)
             {
                 // Write the parameters as json in the body
                 var stringData = JsonConvert.SerializeObject(parameters);
                 request.SetContent(stringData, contentType);
             }
-            else if (requestBodyFormat == RequestBodyFormat.FormData)
+            else if (apiClient.requestBodyFormat == RequestBodyFormat.FormData)
             {
                 // Write the parameters as form data in the body
                 var stringData = parameters.ToFormData();

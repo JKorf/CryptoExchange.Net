@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
 
@@ -30,6 +32,37 @@ namespace CryptoExchange.Net
                 return _authenticationProvider;
             }
         }
+
+        /// <summary>
+        /// Where to put the parameters for requests with different Http methods
+        /// </summary>
+        public Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
+        {
+            { HttpMethod.Get, HttpMethodParameterPosition.InUri },
+            { HttpMethod.Post, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
+        };
+
+        /// <summary>
+        /// Request body content type
+        /// </summary>
+        public RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
+
+        /// <summary>
+        /// Whether or not we need to manually parse an error instead of relying on the http status code
+        /// </summary>
+        public bool manualParseError = false;
+
+        /// <summary>
+        /// How to serialize array parameters when making requests
+        /// </summary>
+        public ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
+        /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
+        /// </summary>
+        public string requestBodyEmptyContent = "{}";
 
         /// <summary>
         /// The base address for this API client
