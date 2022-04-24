@@ -85,7 +85,11 @@ namespace CryptoExchange.Net.Interfaces
         /// Connect the socket
         /// </summary>
         /// <returns></returns>
-        Task<bool> ConnectAsync();
+        Task<bool> ConnectAsync();        
+        /// <summary>
+        /// Receive and send messages over the connection. Resulting task should complete when closing the socket.
+        /// </summary>
+        /// <returns></returns>
         Task ProcessAsync();
         /// <summary>
         /// Send data

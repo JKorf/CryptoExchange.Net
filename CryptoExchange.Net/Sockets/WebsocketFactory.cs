@@ -6,7 +6,7 @@ using CryptoExchange.Net.Logging;
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// Default weboscket factory implementation
+    /// Default websocket factory implementation
     /// </summary>
     public class WebsocketFactory : IWebsocketFactory
     {

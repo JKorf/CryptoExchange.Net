@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.Sockets
     public class CryptoExchangeWebSocketClient : IWebsocket
     {
         internal static int lastStreamId;
-        private static readonly object streamIdLock = new object();
+        private static readonly object streamIdLock = new();
 
         private ClientWebSocket _socket;
         private readonly AsyncResetEvent _sendEvent;
@@ -39,6 +39,7 @@ namespace CryptoExchange.Net.Sockets
         /// Received messages, the size and the timstamp
         /// </summary>
         protected readonly List<ReceiveItem> _receivedMessages;
+
         /// <summary>
         /// Received messages lock
         /// </summary>
@@ -52,19 +53,19 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handlers for when an error happens on the socket
         /// </summary>
-        protected readonly List<Action<Exception>> errorHandlers = new List<Action<Exception>>();
+        protected readonly List<Action<Exception>> errorHandlers = new();
         /// <summary>
         /// Handlers for when the socket connection is opened
         /// </summary>
-        protected readonly List<Action> openHandlers = new List<Action>();
+        protected readonly List<Action> openHandlers = new();
         /// <summary>
         /// Handlers for when the connection is closed
         /// </summary>
-        protected readonly List<Action> closeHandlers = new List<Action>();
+        protected readonly List<Action> closeHandlers = new();
         /// <summary>
         /// Handlers for when a message is received
         /// </summary>
-        protected readonly List<Action<string>> messageHandlers = new List<Action<string>>();
+        protected readonly List<Action<string>> messageHandlers = new();
 
         /// <inheritdoc />
         public int Id { get; }
@@ -223,7 +224,7 @@ namespace CryptoExchange.Net.Sockets
             log.Write(LogLevel.Debug, $"Socket {Id} connecting");
             try
             {
-                using CancellationTokenSource tcs = new CancellationTokenSource(TimeSpan.FromSeconds(10));                
+                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));                
                 await _socket.ConnectAsync(Uri, tcs.Token).ConfigureAwait(false);
                 
                 Handle(openHandlers);

@@ -443,6 +443,9 @@ namespace CryptoExchange.Net
         /// <param name="message"></param>
         /// <returns></returns>
         protected internal virtual JToken ProcessTokenData(JToken message)
+
+
+
         {
             return message;
         }
@@ -605,27 +608,27 @@ namespace CryptoExchange.Net
                     if (disposing)
                         break;
                     
-                    foreach (var socket in socketConnections.Values)
+                    foreach (var socketConnection in socketConnections.Values)
                     {
                         if (disposing)
                             break;
 
-                        if (!socket.Connected)
+                        if (!socketConnection.Connected)
                             continue;
 
-                        var obj = objGetter(socket);
+                        var obj = objGetter(socketConnection);
                         if (obj == null)
                             continue;
 
-                        log.Write(LogLevel.Trace, $"Socket {socket.SocketId} sending periodic {identifier}");
+                        log.Write(LogLevel.Trace, $"Socket {socketConnection.SocketId} sending periodic {identifier}");
 
                         try
                         {
-                            socket.Send(obj);
+                            socketConnection.Send(obj);
                         }
                         catch (Exception ex)
                         {
-                            log.Write(LogLevel.Warning, $"Socket {socket.SocketId} Periodic send {identifier} failed: " + ex.ToLogString());
+                            log.Write(LogLevel.Warning, $"Socket {socketConnection.SocketId} Periodic send {identifier} failed: " + ex.ToLogString());
                         }
                     }
                 }
@@ -680,18 +683,14 @@ namespace CryptoExchange.Net
         public virtual async Task UnsubscribeAllAsync()
         {
             log.Write(LogLevel.Information, $"Closing all {socketConnections.Sum(s => s.Value.SubscriptionCount)} subscriptions");
-
-            await Task.Run(async () =>
+            var tasks = new List<Task>();
             {
-                var tasks = new List<Task>();
-                {
-                    var socketList = socketConnections.Values;
-                    foreach (var sub in socketList)
-                        tasks.Add(sub.CloseAsync());
-                }
+                var socketList = socketConnections.Values;
+                foreach (var sub in socketList)
+                    tasks.Add(sub.CloseAsync());
+            }
 
-                await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -703,7 +702,7 @@ namespace CryptoExchange.Net
             periodicEvent?.Set();
             periodicEvent?.Dispose();
             log.Write(LogLevel.Debug, "Disposing socket client, closing all subscriptions");
-            Task.Run(UnsubscribeAllAsync).ConfigureAwait(false).GetAwaiter().GetResult();
+            _ = UnsubscribeAllAsync();
             semaphoreSlim?.Dispose();
             base.Dispose();
         }
