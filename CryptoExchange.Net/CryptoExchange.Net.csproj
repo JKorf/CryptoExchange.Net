@@ -6,7 +6,7 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
-    <PackageVersion>5.1.7</PackageVersion>
+    <PackageVersion>5.1.7-local</PackageVersion>
     <AssemblyVersion>5.1.7</AssemblyVersion>
     <FileVersion>5.1.7</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

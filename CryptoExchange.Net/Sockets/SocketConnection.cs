@@ -182,6 +182,15 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Retrieve the underlying socket
+        /// </summary>
+        /// <returns></returns>
+        public IWebsocket GetSocket()
+        {
+            return _socket;
+        }
+
+        /// <summary>
         /// Trigger a reconnect of the socket connection
         /// </summary>
         /// <returns></returns>

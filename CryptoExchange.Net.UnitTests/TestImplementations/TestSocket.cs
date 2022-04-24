@@ -38,6 +38,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public double IncomingKbps => throw new NotImplementedException();
 
+        public Uri Uri => new Uri("");
+
         public static int lastId = 0;
         public static object lastIdLock = new object();
 
@@ -110,6 +112,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public void InvokeError(Exception error)
         {
             OnError?.Invoke(error);
+        }
+
+        public async Task ProcessAsync()
+        {
+            while (Connected)
+                await Task.Delay(50);
         }
     }
 }
