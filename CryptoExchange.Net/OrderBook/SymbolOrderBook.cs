@@ -483,7 +483,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="timeout">Max wait time</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected async Task<CallResult<bool>> WaitForSetOrderBookAsync(int timeout, CancellationToken ct)
+        protected async Task<CallResult<bool>> WaitForSetOrderBookAsync(TimeSpan timeout, CancellationToken ct)
         {
             var startWait = DateTime.UtcNow;
             while (!bookSet && Status == OrderBookStatus.Syncing)
@@ -491,12 +491,12 @@ namespace CryptoExchange.Net.OrderBook
                 if(ct.IsCancellationRequested)
                     return new CallResult<bool>(new CancellationRequestedError());
 
-                if ((DateTime.UtcNow - startWait).TotalMilliseconds > timeout)
+                if (DateTime.UtcNow - startWait > timeout)
                     return new CallResult<bool>(new ServerError("Timeout while waiting for data"));
 
                 try
                 {
-                    await Task.Delay(10, ct).ConfigureAwait(false);
+                    await Task.Delay(50, ct).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 { }

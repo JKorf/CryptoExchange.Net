@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The id of the socket
         /// </summary>
-        public int SocketId => connection.Socket.Id;
+        public int SocketId => connection.SocketId;
 
         /// <summary>
         /// The id of the subscription
@@ -103,9 +103,9 @@ namespace CryptoExchange.Net.Sockets
         /// Close the socket to cause a reconnect
         /// </summary>
         /// <returns></returns>
-        internal Task ReconnectAsync()
+        public Task ReconnectAsync()
         {
-            return connection.Socket.CloseAsync();
+            return connection.TriggerReconnectAsync();
         }
 
         /// <summary>

@@ -41,10 +41,6 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         Encoding? Encoding { get; set; }
         /// <summary>
-        /// Whether socket is in the process of reconnecting
-        /// </summary>
-        bool Reconnecting { get; set; }
-        /// <summary>
         /// The max amount of outgoing messages per second
         /// </summary>
         int? RatelimitPerSecond { get; set; }
@@ -61,9 +57,9 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         Func<string, string>? DataInterpreterString { get; set; }
         /// <summary>
-        /// The url the socket connects to
+        /// The uri the socket connects to
         /// </summary>
-        string Url { get; }
+        Uri Uri { get; }
         /// <summary>
         /// Whether the socket connection is closed
         /// </summary>
@@ -90,6 +86,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<bool> ConnectAsync();
+        Task ProcessAsync();
         /// <summary>
         /// Send data
         /// </summary>

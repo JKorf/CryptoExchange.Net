@@ -65,12 +65,16 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// If connection is made
         /// </summary>
-        public bool Connected { get; private set; }
+        public bool Connected => Socket.IsOpen;
 
         /// <summary>
         /// The underlying websocket
         /// </summary>
-        public IWebsocket Socket { get; set; }
+        private IWebsocket Socket { get; set; }
+        public int SocketId => Socket.Id;
+
+        public double IncomingKbps => Socket.IncomingKbps;
+        public Uri Uri => Socket.Uri;
 
         /// <summary>
         /// The API client the connection is for
@@ -129,6 +133,7 @@ namespace CryptoExchange.Net.Sockets
         private readonly BaseSocketClient socketClient;
 
         private readonly List<PendingRequest> pendingRequests;
+        private Task _socketProcessReconnectTask;
 
         /// <summary>
         /// New socket connection
@@ -149,10 +154,215 @@ namespace CryptoExchange.Net.Sockets
 
             Socket.Timeout = client.ClientOptions.SocketNoDataTimeout;
             Socket.OnMessage += ProcessMessage;
-            Socket.OnClose += SocketOnClose;
             Socket.OnOpen += SocketOnOpen;
         }
         
+        public async Task<bool> ConnectAsync()
+        {
+            var connected = await Socket.ConnectAsync().ConfigureAwait(false);
+            if (connected)
+                StartProcessingTask();
+
+            return connected;
+        }
+
+        public async Task TriggerReconnectAsync()
+        {
+            await Socket.CloseAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Close the connection
+        /// </summary>
+        /// <returns></returns>
+        public async Task CloseAsync()
+        {
+            ShouldReconnect = false;
+            if (socketClient.socketConnections.ContainsKey(Socket.Id))
+                socketClient.socketConnections.TryRemove(Socket.Id, out _);
+
+            lock (subscriptionLock)
+            {
+                foreach (var subscription in subscriptions)
+                {
+                    if (subscription.CancellationTokenRegistration.HasValue)
+                        subscription.CancellationTokenRegistration.Value.Dispose();
+                }
+            }
+            await Socket.CloseAsync().ConfigureAwait(false);
+            Socket.Dispose();
+            await _socketProcessReconnectTask.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Close a subscription on this connection. If all subscriptions on this connection are closed the connection gets closed as well
+        /// </summary>
+        /// <param name="subscription">Subscription to close</param>
+        /// <returns></returns>
+        public async Task CloseAsync(SocketSubscription subscription)
+        {
+            if (!Socket.IsOpen)
+                return;
+
+            if (subscription.CancellationTokenRegistration.HasValue)
+                subscription.CancellationTokenRegistration.Value.Dispose();
+
+            if (subscription.Confirmed)
+                await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
+
+            bool shouldCloseConnection;
+            lock (subscriptionLock)
+                shouldCloseConnection = !subscriptions.Any(r => r.UserSubscription && subscription != r);
+
+            if (shouldCloseConnection)
+                await CloseAsync().ConfigureAwait(false);
+
+            lock (subscriptionLock)
+                subscriptions.Remove(subscription);
+        }
+
+        private void StartProcessingTask()
+        {
+            _socketProcessReconnectTask = Task.Run(async () =>
+            {
+                await Socket.ProcessAsync().ConfigureAwait(false);
+                await ReconnectAsync().ConfigureAwait(false);
+            });
+        }
+
+        private async Task ReconnectAsync()
+        {
+            // Fail all pending requests
+            lock (pendingRequests)
+            {
+                foreach (var pendingRequest in pendingRequests.ToList())
+                {
+                    pendingRequest.Fail();
+                    pendingRequests.Remove(pendingRequest);
+                }
+            }
+
+            if (socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
+            {
+                // Should reconnect
+                DisconnectTime = DateTime.UtcNow;
+                log.Write(LogLevel.Warning, $"Socket {Socket.Id} Connection lost, will try to reconnect");
+                if (!lostTriggered)
+                {
+                    lostTriggered = true;
+                    ConnectionLost?.Invoke();
+                }
+
+                while (ShouldReconnect)
+                {
+                    if (ReconnectTry > 0)
+                    {
+                        // Wait a bit before attempting reconnect
+                        await Task.Delay(socketClient.ClientOptions.ReconnectInterval).ConfigureAwait(false);
+                    }
+
+                    if (!ShouldReconnect)
+                    {
+                        // Should reconnect changed to false while waiting to reconnect
+                        return;
+                    }
+
+                    Socket.Reset();
+                    if (!await Socket.ConnectAsync().ConfigureAwait(false))
+                    {
+                        // Reconnect failed
+                        ReconnectTry++;
+                        ResubscribeTry = 0;
+                        if (socketClient.ClientOptions.MaxReconnectTries != null
+                        && ReconnectTry >= socketClient.ClientOptions.MaxReconnectTries)
+                        {
+                            log.Write(LogLevel.Warning, $"Socket {Socket.Id} failed to reconnect after {ReconnectTry} tries, closing");
+                            ShouldReconnect = false;
+
+                            if (socketClient.socketConnections.ContainsKey(Socket.Id))
+                                socketClient.socketConnections.TryRemove(Socket.Id, out _);
+
+                            _ = Task.Run(() => ConnectionClosed?.Invoke());
+                            // Reached max tries, break loop and leave connection closed
+                            break;
+                        }
+
+                        // Continue to try again
+                        log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.ClientOptions.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.ClientOptions.MaxReconnectTries}" : "")}, will try again in {socketClient.ClientOptions.ReconnectInterval}");
+                        continue;
+                    }
+
+                    // Successfully reconnected, start processing
+                    StartProcessingTask();
+
+                    ReconnectTry = 0;
+                    var time = DisconnectTime;
+                    DisconnectTime = null;
+
+                    log.Write(LogLevel.Information, $"Socket {Socket.Id} reconnected after {DateTime.UtcNow - time}");
+
+                    var reconnectResult = await ProcessReconnectAsync().ConfigureAwait(false);
+                    if (!reconnectResult)
+                    {
+                        // Failed to resubscribe everything
+                        ResubscribeTry++;
+                        DisconnectTime = time;
+
+                        if (socketClient.ClientOptions.MaxResubscribeTries != null &&
+                        ResubscribeTry >= socketClient.ClientOptions.MaxResubscribeTries)
+                        {
+                            log.Write(LogLevel.Warning, $"Socket {Socket.Id} failed to resubscribe after {ResubscribeTry} tries, closing. Last resubscription error: {reconnectResult.Error}");
+                            ShouldReconnect = false;
+
+                            if (socketClient.socketConnections.ContainsKey(Socket.Id))
+                                socketClient.socketConnections.TryRemove(Socket.Id, out _);
+
+                            _ = Task.Run(() => ConnectionClosed?.Invoke());
+                        }
+                        else
+                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} resubscribing all subscriptions failed on reconnected socket{(socketClient.ClientOptions.MaxResubscribeTries != null ? $", try {ResubscribeTry}/{socketClient.ClientOptions.MaxResubscribeTries}" : "")}. Error: {reconnectResult.Error}. Disconnecting and reconnecting.");
+
+                        // Failed resubscribe, close socket if it is still open
+                        if (Socket.IsOpen)
+                            await Socket.CloseAsync().ConfigureAwait(false);
+                        else
+                            DisconnectTime = DateTime.UtcNow;
+
+                        // Break out of the loop, the new processing task should reconnect again
+                        break;
+                    }
+                    else
+                    {
+                        // Succesfully reconnected
+                        log.Write(LogLevel.Information, $"Socket {Socket.Id} data connection restored.");
+                        ResubscribeTry = 0;
+                        if (lostTriggered)
+                        {
+                            lostTriggered = false;
+                            _ = Task.Run(() => ConnectionRestored?.Invoke(time.HasValue ? DateTime.UtcNow - time.Value : TimeSpan.FromSeconds(0))).ConfigureAwait(false);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (!socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
+                    _ = Task.Run(() => ConnectionClosed?.Invoke());
+
+                // No reconnecting needed
+                log.Write(LogLevel.Information, $"Socket {Socket.Id} closed");
+                if (socketClient.socketConnections.ContainsKey(Socket.Id))
+                    socketClient.socketConnections.TryRemove(Socket.Id, out _);
+            }
+        }
+
+        public void Dispose()
+        {
+            Socket.Dispose();
+        }
+
         /// <summary>
         /// Process a message received by the socket
         /// </summary>
@@ -202,12 +412,20 @@ namespace CryptoExchange.Net.Sockets
 
             // Message was not a request response, check data handlers
             var messageEvent = new MessageEvent(this, tokenData, socketClient.ClientOptions.OutputOriginalData ? data: null, timestamp);
-            if (!HandleData(messageEvent) && !handledResponse)
+            var (handled, userProcessTime) = HandleData(messageEvent);
+            if (!handled && !handledResponse)
             {
                 if (!socketClient.UnhandledMessageExpected)
                     log.Write(LogLevel.Warning, $"Socket {Socket.Id} Message not handled: " + tokenData);
                 UnhandledMessage?.Invoke(tokenData);
             }
+
+            var total = DateTime.UtcNow - timestamp;
+            if (userProcessTime.TotalMilliseconds > 500)
+                log.Write(LogLevel.Debug, $"Socket {Socket.Id} message processing slow ({(int)total.TotalMilliseconds}ms), consider offloading data handling to another thread. " +
+                                                "Data from this socket may arrive late or not at all if message processing is continuously slow.");
+            
+            log.Write(LogLevel.Trace, $"Socket {Socket.Id} message processed in {(int)total.TotalMilliseconds}ms, ({(int)userProcessTime.TotalMilliseconds}ms user code)");
         }
 
         /// <summary>
@@ -246,13 +464,13 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="messageEvent"></param>
         /// <returns>True if the data was successfully handled</returns>
-        private bool HandleData(MessageEvent messageEvent)
+        private (bool, TimeSpan) HandleData(MessageEvent messageEvent)
         {
             SocketSubscription? currentSubscription = null;
             try
             { 
                 var handled = false;
-                var sw = Stopwatch.StartNew();
+                TimeSpan userCodeDuration = TimeSpan.Zero;
 
                 // Loop the subscriptions to check if any of them signal us that the message is for them
                 List<SocketSubscription> subscriptionsCopy;
@@ -267,7 +485,10 @@ namespace CryptoExchange.Net.Sockets
                         if (socketClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Identifier!))
                         {
                             handled = true;
+                            var userSw = Stopwatch.StartNew();
                             subscription.MessageHandler(messageEvent);
+                            userSw.Stop();
+                            userCodeDuration = userSw.Elapsed;
                         }
                     }
                     else
@@ -276,24 +497,21 @@ namespace CryptoExchange.Net.Sockets
                         {
                             handled = true;
                             messageEvent.JsonData = socketClient.ProcessTokenData(messageEvent.JsonData);
+                            var userSw = Stopwatch.StartNew();
                             subscription.MessageHandler(messageEvent);
+                            userSw.Stop();
+                            userCodeDuration = userSw.Elapsed;
                         }
                     }
                 }
-                
-                sw.Stop();
-                if (sw.ElapsedMilliseconds > 500)
-                    log.Write(LogLevel.Debug, $"Socket {Socket.Id} message processing slow ({sw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
-                                                    "Data from this socket may arrive late or not at all if message processing is continuously slow.");
-                else
-                    log.Write(LogLevel.Trace, $"Socket {Socket.Id} message processed in {sw.ElapsedMilliseconds}ms");
-                return handled;
+                               
+                return (handled, userCodeDuration);
             }
             catch (Exception ex)
             {
                 log.Write(LogLevel.Error, $"Socket {Socket.Id} Exception during message processing\r\nException: {ex.ToLogString()}\r\nData: {messageEvent.JsonData}");
                 currentSubscription?.InvokeExceptionHandler(ex);
-                return false;
+                return (false, TimeSpan.Zero);
             }
         }
 
@@ -347,135 +565,6 @@ namespace CryptoExchange.Net.Sockets
         {
             ReconnectTry = 0;
             PausedActivity = false;
-            Connected = true;
-        }
-
-        /// <summary>
-        /// Handler for a socket closing. Reconnects the socket if needed, or removes it from the active socket list if not
-        /// </summary>
-        protected virtual void SocketOnClose()
-        {
-            lock (pendingRequests)
-            {
-                foreach(var pendingRequest in pendingRequests.ToList())
-                {
-                    pendingRequest.Fail();
-                    pendingRequests.Remove(pendingRequest);
-                }
-            }
-
-            if (socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
-            {
-                if (Socket.Reconnecting)
-                    return; // Already reconnecting
-
-                Socket.Reconnecting = true;
-
-                DisconnectTime = DateTime.UtcNow;
-                log.Write(LogLevel.Warning, $"Socket {Socket.Id} Connection lost, will try to reconnect");
-                if (!lostTriggered)
-                {
-                    lostTriggered = true;
-                    ConnectionLost?.Invoke();
-                }
-
-                Task.Run(async () =>
-                {
-                    while (ShouldReconnect)
-                    {
-                        if (ReconnectTry > 0)
-                        {
-                            // Wait a bit before attempting reconnect
-                            await Task.Delay(socketClient.ClientOptions.ReconnectInterval).ConfigureAwait(false);
-                        }
-
-                        if (!ShouldReconnect)
-                        {
-                            // Should reconnect changed to false while waiting to reconnect
-                            Socket.Reconnecting = false;
-                            return;
-                        }
-
-                        Socket.Reset();
-                        if (!await Socket.ConnectAsync().ConfigureAwait(false))
-                        {
-                            ReconnectTry++;
-                            ResubscribeTry = 0;
-                            if (socketClient.ClientOptions.MaxReconnectTries != null
-                            && ReconnectTry >= socketClient.ClientOptions.MaxReconnectTries)
-                            {
-                                log.Write(LogLevel.Warning, $"Socket {Socket.Id} failed to reconnect after {ReconnectTry} tries, closing");
-                                ShouldReconnect = false;
-
-                                if (socketClient.sockets.ContainsKey(Socket.Id))
-                                    socketClient.sockets.TryRemove(Socket.Id, out _);
-
-                                _ = Task.Run(() => ConnectionClosed?.Invoke());
-                                break;
-                            }
-
-                            log.Write(LogLevel.Debug, $"Socket {Socket.Id} failed to reconnect{(socketClient.ClientOptions.MaxReconnectTries != null ? $", try {ReconnectTry}/{socketClient.ClientOptions.MaxReconnectTries}": "")}, will try again in {socketClient.ClientOptions.ReconnectInterval}");
-                            continue;
-                        }
-
-                        // Successfully reconnected
-                        var time = DisconnectTime;
-                        DisconnectTime = null;
-
-                        log.Write(LogLevel.Information, $"Socket {Socket.Id} reconnected after {DateTime.UtcNow - time}");
-
-                        var reconnectResult = await ProcessReconnectAsync().ConfigureAwait(false);
-                        if (!reconnectResult)
-                        {
-                            ResubscribeTry++;
-                            DisconnectTime = time;
-
-                            if (socketClient.ClientOptions.MaxResubscribeTries != null &&
-                            ResubscribeTry >= socketClient.ClientOptions.MaxResubscribeTries)
-                            {
-                                log.Write(LogLevel.Warning, $"Socket {Socket.Id} failed to resubscribe after {ResubscribeTry} tries, closing. Last resubscription error: {reconnectResult.Error}");
-                                ShouldReconnect = false;
-
-                                if (socketClient.sockets.ContainsKey(Socket.Id))
-                                    socketClient.sockets.TryRemove(Socket.Id, out _);
-
-                                _ = Task.Run(() => ConnectionClosed?.Invoke());
-                            }
-                            else
-                                log.Write(LogLevel.Debug, $"Socket {Socket.Id} resubscribing all subscriptions failed on reconnected socket{(socketClient.ClientOptions.MaxResubscribeTries != null ? $", try {ResubscribeTry}/{socketClient.ClientOptions.MaxResubscribeTries}" : "")}. Error: {reconnectResult.Error}. Disconnecting and reconnecting.");
-
-                            if (Socket.IsOpen)                            
-                                await Socket.CloseAsync().ConfigureAwait(false);                            
-                            else
-                                DisconnectTime = DateTime.UtcNow;
-                        }
-                        else
-                        {
-                            log.Write(LogLevel.Information, $"Socket {Socket.Id} data connection restored.");
-                            ResubscribeTry = 0;
-                            if (lostTriggered)
-                            {
-                                lostTriggered = false;
-                                _ = Task.Run(() => ConnectionRestored?.Invoke(time.HasValue ? DateTime.UtcNow - time.Value : TimeSpan.FromSeconds(0))).ConfigureAwait(false);
-                            }
-
-                            break;
-                        }
-                    }
-
-                    Socket.Reconnecting = false;
-                });
-            }
-            else
-            {
-                if (!socketClient.ClientOptions.AutoReconnect && ShouldReconnect)
-                    _ = Task.Run(() => ConnectionClosed?.Invoke());
-
-                // No reconnecting needed
-                log.Write(LogLevel.Information, $"Socket {Socket.Id} closed");
-                if (socketClient.sockets.ContainsKey(Socket.Id))
-                    socketClient.sockets.TryRemove(Socket.Id, out _);
-            }
         }
 
         private async Task<CallResult<bool>> ProcessReconnectAsync()
@@ -534,56 +623,6 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult<bool>(new UnknownError("Socket is not connected"));
 
             return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
-        }
-        
-        /// <summary>
-        /// Close the connection
-        /// </summary>
-        /// <returns></returns>
-        public async Task CloseAsync()
-        {
-            Connected = false;
-            ShouldReconnect = false;
-            if (socketClient.sockets.ContainsKey(Socket.Id))
-                socketClient.sockets.TryRemove(Socket.Id, out _);
-
-            lock (subscriptionLock) 
-            {
-                foreach (var subscription in subscriptions)
-                {
-                    if (subscription.CancellationTokenRegistration.HasValue)
-                        subscription.CancellationTokenRegistration.Value.Dispose();
-                }
-            }
-            await Socket.CloseAsync().ConfigureAwait(false);
-            Socket.Dispose();
-        }
-
-        /// <summary>
-        /// Close a subscription on this connection. If all subscriptions on this connection are closed the connection gets closed as well
-        /// </summary>
-        /// <param name="subscription">Subscription to close</param>
-        /// <returns></returns>
-        public async Task CloseAsync(SocketSubscription subscription)
-        {
-            if (!Socket.IsOpen)
-                return;
-
-            if (subscription.CancellationTokenRegistration.HasValue)
-                subscription.CancellationTokenRegistration.Value.Dispose();
-
-            if (subscription.Confirmed)
-                await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
-
-            bool shouldCloseConnection;
-            lock (subscriptionLock)
-                shouldCloseConnection = !subscriptions.Any(r => r.UserSubscription && subscription != r);
-
-            if (shouldCloseConnection)
-                await CloseAsync().ConfigureAwait(false);
-
-            lock (subscriptionLock)
-                subscriptions.Remove(subscription);            
         }
     }
 
