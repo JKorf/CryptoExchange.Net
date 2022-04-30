@@ -254,12 +254,12 @@ namespace CryptoExchange.Net.Sockets
 
         private void StartProcessingTask()
         {
-            log.Write(LogLevel.Trace, "Starting processing task");
+            log.Write(LogLevel.Trace, $"Starting {SocketId} processing task");
             _socketProcessReconnectTask = Task.Run(async () =>
             {
                 await _socket.ProcessAsync().ConfigureAwait(false);
                 await ReconnectAsync().ConfigureAwait(false);
-                log.Write(LogLevel.Trace, "Processing task finished");
+                log.Write(LogLevel.Trace, $"Processing {SocketId} task finished");
             });
         }
 
@@ -566,7 +566,10 @@ namespace CryptoExchange.Net.Sockets
             {
                 pendingRequests.Add(pending);
             }
-            Send(obj);
+            var sendOk = Send(obj);
+            if(!sendOk)            
+                pending.Fail();            
+
             return pending.Event.WaitAsync(timeout);
         }
 
@@ -576,22 +579,30 @@ namespace CryptoExchange.Net.Sockets
         /// <typeparam name="T">The type of the object to send</typeparam>
         /// <param name="obj">The object to send</param>
         /// <param name="nullValueHandling">How null values should be serialized</param>
-        public virtual void Send<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        public virtual bool Send<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
             if(obj is string str)
-                Send(str);
+                return Send(str);
             else
-                Send(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));
+                return Send(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));
         }
 
         /// <summary>
         /// Send string data over the websocket connection
         /// </summary>
         /// <param name="data">The data to send</param>
-        public virtual void Send(string data)
+        public virtual bool Send(string data)
         {
             log.Write(LogLevel.Trace, $"Socket {SocketId} sending data: {data}");
-            _socket.Send(data);
+            try
+            {
+                _socket.Send(data);
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
 
         /// <summary>
