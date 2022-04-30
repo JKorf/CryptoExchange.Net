@@ -254,12 +254,12 @@ namespace CryptoExchange.Net.Sockets
 
         private void StartProcessingTask()
         {
-            log.Write(LogLevel.Trace, $"Starting {SocketId} processing task");
+            log.Write(LogLevel.Trace, $"Starting {SocketId} process/reconnect task");
             _socketProcessReconnectTask = Task.Run(async () =>
             {
                 await _socket.ProcessAsync().ConfigureAwait(false);
                 await ReconnectAsync().ConfigureAwait(false);
-                log.Write(LogLevel.Trace, $"Processing {SocketId} task finished");
+                log.Write(LogLevel.Trace, $"Process/reconnect {SocketId} task finished");
             });
         }
 

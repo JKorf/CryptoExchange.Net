@@ -242,11 +242,13 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual async Task ProcessAsync()
         {
+            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync started");
             var sendTask = SendLoopAsync();
             var receiveTask = ReceiveLoopAsync();
             var timeoutTask = Timeout != default ? CheckTimeoutAsync() : Task.CompletedTask;
-            log.Write(LogLevel.Debug, $"Socket {Id} processing started");
+            log.Write(LogLevel.Trace, $"Socket {Id} processing startup completed");
             await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
+            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync finished");
         }
 
         /// <inheritdoc />
