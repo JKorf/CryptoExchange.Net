@@ -62,6 +62,44 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Execute a request to the uri and returns if it was successful
+        /// </summary>
+        /// <param name="apiClient">The API client the request is for</param>
+        /// <param name="uri">The uri to send the request to</param>
+        /// <param name="method">The method of the request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
+        /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
+        /// <param name="requestWeight">Credits used for the request</param>
+        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
+        /// <param name="additionalHeaders">Additional headers to send with the request</param>
+        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
+        /// <returns></returns>
+        [return: NotNull]
+        protected virtual async Task<WebCallResult> SendRequestAsync(RestApiClient apiClient,
+            Uri uri,
+            HttpMethod method,
+            CancellationToken cancellationToken,
+            Dictionary<string, object>? parameters = null,
+            bool signed = false,
+            HttpMethodParameterPosition? parameterPosition = null,
+            ArrayParametersSerialization? arraySerialization = null,
+            int requestWeight = 1,
+            JsonSerializer? deserializer = null,
+            Dictionary<string, string>? additionalHeaders = null,
+            bool ignoreRatelimit = false)
+        {
+            var request = await PrepareRequestAsync(apiClient, uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+            if (!request)
+                return new WebCallResult(request.Error!);
+
+            var result = await GetResponseAsync<object>(apiClient, request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
+            return result.AsDataless();
+        }
+
+        /// <summary>
         /// Execute a request to the uri and deserialize the response into the provided type parameter
         /// </summary>
         /// <typeparam name="T">The type to deserialize into</typeparam>
@@ -94,6 +132,42 @@ namespace CryptoExchange.Net
             bool ignoreRatelimit = false
             ) where T : class
         {
+            var request = await PrepareRequestAsync(apiClient, uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+            if (!request)
+                return new WebCallResult<T>(request.Error!);
+
+            return await GetResponseAsync<T>(apiClient, request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Prepares a request to be sent to the server
+        /// </summary>
+        /// <param name="apiClient">The API client the request is for</param>
+        /// <param name="uri">The uri to send the request to</param>
+        /// <param name="method">The method of the request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
+        /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
+        /// <param name="requestWeight">Credits used for the request</param>
+        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
+        /// <param name="additionalHeaders">Additional headers to send with the request</param>
+        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
+        /// <returns></returns>
+        protected virtual async Task<CallResult<IRequest>> PrepareRequestAsync(RestApiClient apiClient,
+            Uri uri,
+            HttpMethod method,
+            CancellationToken cancellationToken,
+            Dictionary<string, object>? parameters = null,
+            bool signed = false,
+            HttpMethodParameterPosition? parameterPosition = null,
+            ArrayParametersSerialization? arraySerialization = null,
+            int requestWeight = 1,
+            JsonSerializer? deserializer = null,
+            Dictionary<string, string>? additionalHeaders = null,
+            bool ignoreRatelimit = false)
+        {
             var requestId = NextId();
 
             if (signed)
@@ -102,7 +176,7 @@ namespace CryptoExchange.Net
                 if (!syncTimeResult)
                 {
                     log.Write(LogLevel.Debug, $"[{requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
-                    return syncTimeResult.As<T>(default);
+                    return syncTimeResult.As<IRequest>(default);
                 }
             }
 
@@ -112,20 +186,20 @@ namespace CryptoExchange.Net
                 {
                     var limitResult = await limiter.LimitRequestAsync(log, uri.AbsolutePath, method, signed, apiClient.Options.ApiCredentials?.Key, apiClient.Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
                     if (!limitResult.Success)
-                        return new WebCallResult<T>(limitResult.Error!);
+                        return new CallResult<IRequest>(limitResult.Error!);
                 }
             }
 
             if (signed && apiClient.AuthenticationProvider == null)
             {
                 log.Write(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
-                return new WebCallResult<T>(new NoApiCredentialsError());
+                return new CallResult<IRequest>(new NoApiCredentialsError());
             }
 
             log.Write(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? apiClient.ParameterPositions[method];
             var request = ConstructRequest(apiClient, uri, method, parameters, signed, paramsPosition, arraySerialization ?? apiClient.arraySerialization, requestId, additionalHeaders);
-            
+
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
                 paramString = $" with request body '{request.Content}'";
@@ -133,11 +207,13 @@ namespace CryptoExchange.Net
             var headers = request.GetHeaders();
             if (headers.Any())
                 paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
-            
+
             apiClient.TotalRequestsMade++;
             log.Write(LogLevel.Trace, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
-            return await GetResponseAsync<T>(apiClient, request, deserializer, cancellationToken).ConfigureAwait(false);
+            return new CallResult<IRequest>(request);
         }
+
+
 
         /// <summary>
         /// Executes the request and returns the result deserialized into the type parameter class
@@ -146,8 +222,14 @@ namespace CryptoExchange.Net
         /// <param name="request">The request object to execute</param>
         /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="expectedEmptyResponse">If an empty response is expected</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(BaseApiClient apiClient, IRequest request, JsonSerializer? deserializer, CancellationToken cancellationToken)
+        protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
+            BaseApiClient apiClient, 
+            IRequest request, 
+            JsonSerializer? deserializer, 
+            CancellationToken cancellationToken,
+            bool expectedEmptyResponse)
         {
             try
             {
@@ -169,22 +251,52 @@ namespace CryptoExchange.Net
                         response.Close();
                         log.Write(LogLevel.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms{(log.Level == LogLevel.Trace ? (": "+data): "")}");
 
-                        // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
-                        var parseResult = ValidateJson(data);
-                        if (!parseResult.Success)
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+                        if (!expectedEmptyResponse)
+                        {
+                            // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
+                            var parseResult = ValidateJson(data);
+                            if (!parseResult.Success)
+                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
 
-                        // Let the library implementation see if it is an error response, and if so parse the error
-                        var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                        if (error != null)
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                            // Let the library implementation see if it is an error response, and if so parse the error
+                            var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
+                            if (error != null)
+                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
 
-                        // Not an error, so continue deserializing
-                        var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
-                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data: null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+                            // Not an error, so continue deserializing
+                            var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(data))
+                            {
+                                var parseResult = ValidateJson(data);
+                                if (!parseResult.Success)
+                                    // Not empty, and not json
+                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+
+                                var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
+                                if (error != null)
+                                    // Error response
+                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                            }
+
+                            // Empty success response; okay
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, ClientOptions.OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
+                        }
                     }
                     else
                     {
+                        if (expectedEmptyResponse)
+                        {
+                            // We expected an empty response and the request is successful and don't manually parse errors, so assume it's correct
+                            responseStream.Close();
+                            response.Close();
+
+                            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                        }
+
                         // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
                         var desResult = await DeserializeAsync<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
                         responseStream.Close();
