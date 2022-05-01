@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -34,11 +33,11 @@ namespace CryptoExchange.Net.Converters
                 var longValue = (long)reader.Value;
                 if (longValue == 0)
                     return objectType == typeof(DateTime) ? default(DateTime): null;
-                if (longValue < 1999999999)
+                if (longValue < 19999999999)
                     return ConvertFromSeconds(longValue);
-                if (longValue < 1999999999999)
+                if (longValue < 19999999999999)
                     return ConvertFromMilliseconds(longValue);
-                if (longValue < 1999999999999999)
+                if (longValue < 19999999999999999)
                     return ConvertFromMicroseconds(longValue);
                 
                 return ConvertFromNanoseconds(longValue);
@@ -46,7 +45,7 @@ namespace CryptoExchange.Net.Converters
             else if (reader.TokenType is JsonToken.Float)
             {
                 var doubleValue = (double)reader.Value;
-                if (doubleValue < 1999999999)
+                if (doubleValue < 19999999999)
                     return ConvertFromSeconds(doubleValue);
                 
                 return ConvertFromMilliseconds(doubleValue);
@@ -86,11 +85,11 @@ namespace CryptoExchange.Net.Converters
                 if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
                 {
                     // Parse 1637745563.000 format
-                    if (doubleValue < 1999999999)
+                    if (doubleValue < 19999999999)
                         return ConvertFromSeconds(doubleValue);
-                    if (doubleValue < 1999999999999)
+                    if (doubleValue < 19999999999999)
                         return ConvertFromMilliseconds((long)doubleValue);
-                    if (doubleValue < 1999999999999999)
+                    if (doubleValue < 19999999999999999)
                         return ConvertFromMicroseconds((long)doubleValue);
 
                     return ConvertFromNanoseconds((long)doubleValue);
