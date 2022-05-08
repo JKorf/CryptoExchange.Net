@@ -92,7 +92,7 @@ namespace CryptoExchange.Net
                 }
 
                 // Calculate time offset between local and server
-                var offset = result.Data - localTime;
+                var offset = result.Data - (localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2));
                 timeSyncParams.UpdateTimeOffset(offset);
                 timeSyncParams.TimeSyncState.Semaphore.Release();                
             }
