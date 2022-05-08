@@ -280,8 +280,14 @@ namespace CryptoExchange.Net.Sockets
             _sendEvent.Set();
 
             if (_socket.State == WebSocketState.Open)
-                await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
-
+            {
+                try
+                {
+                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                }
+                catch(Exception)
+                { } // Can sometimes throw an exception when socket is in aborted state due to timing
+            }
             log.Write(LogLevel.Debug, $"Socket {Id} closed");
             Handle(closeHandlers);
         }
