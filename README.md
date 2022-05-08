@@ -18,6 +18,10 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.9 - 08 May 2022
+    * Added latency to the timesync calculation
+    * Small fix for exception in socket close handling
+
 * Version 5.1.8 - 01 May 2022
     * Cleanup socket code, fixed an issue which could cause connections to never reconnect when connection was lost
     * Added support for sending requests which expect an empty response
