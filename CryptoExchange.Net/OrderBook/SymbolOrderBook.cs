@@ -258,24 +258,30 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             _subscription = startResult.Data;
-            _subscription.ConnectionLost += () =>
-            {
-                log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
-                if (Status != OrderBookStatus.Disposed) {
-                    Status = OrderBookStatus.Reconnecting;
-                    Reset();
-                }
-            };
-            _subscription.ConnectionClosed += () =>
-            {
-                log.Write(LogLevel.Warning, $"{Id} order book {Symbol} disconnected");
-                Status = OrderBookStatus.Disconnected;
-                _ = StopAsync();
-            };
+            _subscription.ConnectionLost += HandleConnectionLost;
+            _subscription.ConnectionClosed += HandleConnectionClosed;
+            _subscription.ConnectionRestored += HandleConnectionRestored;
 
-            _subscription.ConnectionRestored += async time => await ResyncAsync().ConfigureAwait(false);
             Status = OrderBookStatus.Synced;
             return new CallResult<bool>(true);
+        }
+
+        private void HandleConnectionLost() {
+             log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
+             if (Status != OrderBookStatus.Disposed) {
+                Status = OrderBookStatus.Reconnecting;
+                Reset();
+            }
+        }
+
+        private void HandleConnectionClosed() {
+            log.Write(LogLevel.Warning, $"{Id} order book {Symbol} disconnected");
+            Status = OrderBookStatus.Disconnected;
+            _ = StopAsync();
+        }
+
+        private async void HandleConnectionRestored(TimeSpan _) {
+            await ResyncAsync().ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -288,8 +294,12 @@ namespace CryptoExchange.Net.OrderBook
             if (_processTask != null)
                 await _processTask.ConfigureAwait(false);
 
-            if (_subscription != null)
+            if (_subscription != null) {
                 await _subscription.CloseAsync().ConfigureAwait(false);
+                _subscription.ConnectionLost -= HandleConnectionLost;
+                _subscription.ConnectionClosed -= HandleConnectionClosed;
+                _subscription.ConnectionRestored -= HandleConnectionRestored;
+            }
             log.Write(LogLevel.Trace, $"{Id} order book {Symbol} stopped");
         }
 
@@ -609,7 +619,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 while (_processQueue.TryDequeue(out var item))
                 {
-                    if (Status == OrderBookStatus.Disconnected  || Status == OrderBookStatus.Disposed)
+                    if (Status == OrderBookStatus.Disconnected || Status == OrderBookStatus.Disposed)
                         break;
 
                     if (_stopProcessing)
