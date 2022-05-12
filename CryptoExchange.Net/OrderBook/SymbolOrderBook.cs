@@ -261,8 +261,10 @@ namespace CryptoExchange.Net.OrderBook
             _subscription.ConnectionLost += () =>
             {
                 log.Write(LogLevel.Warning, $"{Id} order book {Symbol} connection lost");
-                Status = OrderBookStatus.Reconnecting;
-                Reset();
+                if (Status != OrderBookStatus.Disposed) {
+                    Status = OrderBookStatus.Reconnecting;
+                    Reset();
+                }
             };
             _subscription.ConnectionClosed += () =>
             {
@@ -601,13 +603,13 @@ namespace CryptoExchange.Net.OrderBook
 
         private async Task ProcessQueue()
         {
-            while (Status != OrderBookStatus.Disconnected)
+            while (Status != OrderBookStatus.Disconnected && Status != OrderBookStatus.Disposed)
             {
                 await _queueEvent.WaitAsync().ConfigureAwait(false);
 
                 while (_processQueue.TryDequeue(out var item))
                 {
-                    if (Status == OrderBookStatus.Disconnected)
+                    if (Status == OrderBookStatus.Disconnected  || Status == OrderBookStatus.Disposed)
                         break;
 
                     if (_stopProcessing)
