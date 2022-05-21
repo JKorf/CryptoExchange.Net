@@ -62,3 +62,6 @@ var client = new BinanceClient(new BinanceClientOptions
 	}
 });
 ```
+
+### How are timezones handled / Timestamps are off by xx
+Exchange API's treat all timestamps as UTC, both incoming and outgoing. The client libraries do no conversion so be sure to use UTC as well.
