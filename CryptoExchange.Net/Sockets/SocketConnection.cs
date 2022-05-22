@@ -301,7 +301,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!lostTriggered)
                 {
                     lostTriggered = true;
-                    ConnectionLost?.Invoke();
+                    _ = Task.Run(() => ConnectionLost?.Invoke());
                 }
 
                 while (ShouldReconnect)
@@ -390,7 +390,7 @@ namespace CryptoExchange.Net.Sockets
                         if (lostTriggered)
                         {
                             lostTriggered = false;
-                            _ = Task.Run(() => ConnectionRestored?.Invoke(time.HasValue ? DateTime.UtcNow - time.Value : TimeSpan.FromSeconds(0))).ConfigureAwait(false);
+                            _ = Task.Run(() => ConnectionRestored?.Invoke(time.HasValue ? DateTime.UtcNow - time.Value : TimeSpan.FromSeconds(0)));
                         }
 
                         break;
