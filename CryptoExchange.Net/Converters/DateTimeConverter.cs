@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Converters
             if(reader.TokenType is JsonToken.Integer)
             {
                 var longValue = (long)reader.Value;
-                if (longValue == 0)
+                if (longValue == 0 || longValue == -1)
                     return objectType == typeof(DateTime) ? default(DateTime): null;
                 if (longValue < 19999999999)
                     return ConvertFromSeconds(longValue);
@@ -45,6 +45,9 @@ namespace CryptoExchange.Net.Converters
             else if (reader.TokenType is JsonToken.Float)
             {
                 var doubleValue = (double)reader.Value;
+                if (doubleValue == 0 || doubleValue == -1)
+                    return objectType == typeof(DateTime) ? default(DateTime) : null;
+
                 if (doubleValue < 19999999999)
                     return ConvertFromSeconds(doubleValue);
                 
@@ -55,6 +58,9 @@ namespace CryptoExchange.Net.Converters
                 var stringValue = (string)reader.Value;
                 if (string.IsNullOrWhiteSpace(stringValue))
                     return null;
+
+                if (string.IsNullOrWhiteSpace(stringValue) || stringValue == "0" || stringValue == "-1")
+                    return objectType == typeof(DateTime) ? default(DateTime) : null;
 
                 if (stringValue.Length == 8)
                 {
