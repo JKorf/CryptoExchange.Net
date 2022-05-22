@@ -18,6 +18,12 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.10 - 22 May 2022
+    * Fixed order book reconnecting while Diposed
+    * Fixed exception when disposing socket client while reconnecting
+    * Added additional null/default checking in DateTimeConverter
+    * Changed ConnectionLost subscription event to run in seperate task to prevent exception/longer operations from intervering with reconnecting
+
 * Version 5.1.9 - 08 May 2022
     * Added latency to the timesync calculation
     * Small fix for exception in socket close handling
