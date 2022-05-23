@@ -123,6 +123,9 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan Timeout { get; set; }
 
         /// <inheritdoc />
+        public TimeSpan KeepAliveInterval { get; set; }
+
+        /// <inheritdoc />
         public double IncomingKbps
         {
             get
@@ -332,7 +335,7 @@ namespace CryptoExchange.Net.Sockets
             socket.Options.Cookies = cookieContainer;
             foreach (var header in headers)
                 socket.Options.SetRequestHeader(header.Key, header.Value);
-            socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+            socket.Options.KeepAliveInterval = KeepAliveInterval;
             socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
             return socket;
         }

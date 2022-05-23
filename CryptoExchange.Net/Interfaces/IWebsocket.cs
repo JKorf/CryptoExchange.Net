@@ -77,6 +77,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         TimeSpan Timeout { get; set; }
         /// <summary>
+        /// The interval at which to send a ping frame to the server
+        /// </summary>
+        TimeSpan KeepAliveInterval { get; set; }
+        /// <summary>
         /// Set a proxy to use when connecting
         /// </summary>
         /// <param name="proxy"></param>

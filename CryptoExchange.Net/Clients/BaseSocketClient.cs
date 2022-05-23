@@ -40,6 +40,10 @@ namespace CryptoExchange.Net
         /// </summary>
         protected int MaxSocketConnections { get; set; } = 9999;        
         /// <summary>
+        /// Keep alive interval for websocket connection
+        /// </summary>
+        protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
+        /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
         protected Func<byte[], string>? dataInterpreterBytes;
@@ -574,6 +578,7 @@ namespace CryptoExchange.Net
             if (ClientOptions.Proxy != null)
                 socket.SetProxy(ClientOptions.Proxy);
 
+            socket.KeepAliveInterval = KeepAliveInterval;
             socket.Timeout = ClientOptions.SocketNoDataTimeout;
             socket.DataInterpreterBytes = dataInterpreterBytes;
             socket.DataInterpreterString = dataInterpreterString;
