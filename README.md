@@ -18,6 +18,11 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.11 - 24 May 2022
+    * Added KeepAliveInterval setting
+    * Fixed port not being copied when setting parameters on request
+    * Fixed inconsistent PackageReference casing in csproj
+
 * Version 5.1.10 - 22 May 2022
     * Fixed order book reconnecting while Diposed
     * Fixed exception when disposing socket client while reconnecting

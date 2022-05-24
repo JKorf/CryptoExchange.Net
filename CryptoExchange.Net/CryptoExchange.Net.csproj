@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
-    <PackageVersion>5.1.10</PackageVersion>
-    <AssemblyVersion>5.1.10</AssemblyVersion>
-    <FileVersion>5.1.10</FileVersion>
+    <PackageVersion>5.1.11</PackageVersion>
+    <AssemblyVersion>5.1.11</AssemblyVersion>
+    <FileVersion>5.1.11</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>5.1.10 - Fixed order book reconnecting while Diposed, Fixed exception when disposing socket client while reconnecting, Added additional null/default checking in DateTimeConverter, Changed ConnectionLost subscription event to run in seperate task to prevent exception/longer operations from intervering with reconnecting</PackageReleaseNotes>
+    <PackageReleaseNotes>5.1.11 - Added KeepAliveInterval setting, Fixed port not being copied when setting parameters on request, Fixed inconsistent PackageReference casing in csproj</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
