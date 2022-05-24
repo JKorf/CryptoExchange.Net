@@ -40,6 +40,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public Uri Uri => new Uri("");
 
+        public TimeSpan KeepAliveInterval { get; set; }
+
         public static int lastId = 0;
         public static object lastIdLock = new object();
 
