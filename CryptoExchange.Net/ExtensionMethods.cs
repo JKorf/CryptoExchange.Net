@@ -426,6 +426,7 @@ namespace CryptoExchange.Net
             var uriBuilder = new UriBuilder();
             uriBuilder.Scheme = baseUri.Scheme;
             uriBuilder.Host = baseUri.Host;
+            uriBuilder.Port = baseUri.Port;
             uriBuilder.Path = baseUri.AbsolutePath;
             var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
             foreach (var parameter in parameters)
