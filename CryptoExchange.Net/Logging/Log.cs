@@ -26,6 +26,8 @@ namespace CryptoExchange.Net.Logging
         /// </summary>
         public string ClientName { get; set; }
 
+        private readonly object _lock = new object();
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -42,7 +44,8 @@ namespace CryptoExchange.Net.Logging
         /// <param name="textWriters"></param>
         public void UpdateWriters(List<ILogger> textWriters)
         {
-            writers = textWriters;
+            lock (_lock)
+                writers = textWriters;
         }
 
         /// <summary>
@@ -56,16 +59,19 @@ namespace CryptoExchange.Net.Logging
                 return;
 
             var logMessage = $"{ClientName,-10} | {message}";
-            foreach (var writer in writers.ToList())
+            lock (_lock)
             {
-                try
+                foreach (var writer in writers)
                 {
-                    writer.Log(logLevel, logMessage);
-                }
-                catch (Exception e)
-                {
-                    // Can't write to the logging so where else to output..
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Failed to write log to writer {writer.GetType()}: " + e.ToLogString());
+                    try
+                    {
+                        writer.Log(logLevel, logMessage);
+                    }
+                    catch (Exception e)
+                    {
+                        // Can't write to the logging so where else to output..
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Failed to write log to writer {writer.GetType()}: " + e.ToLogString());
+                    }
                 }
             }
         }

@@ -14,15 +14,35 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class BaseOptions
     {
+        internal event Action OnLoggingChanged;
+
+        private LogLevel _logLevel = LogLevel.Information;
         /// <summary>
         /// The minimum log level to output
         /// </summary>
-        public LogLevel LogLevel { get; set; } = LogLevel.Information;
+        public LogLevel LogLevel
+        {
+            get => _logLevel;
+            set
+            {
+                _logLevel = value;
+                OnLoggingChanged?.Invoke();
+            }
+        }
 
+        private List<ILogger> _logWriters = new List<ILogger> { new DebugLogger() };
         /// <summary>
         /// The log writers
         /// </summary>
-        public List<ILogger> LogWriters { get; set; } = new List<ILogger> { new DebugLogger() };
+        public List<ILogger> LogWriters
+        {
+            get => _logWriters;
+            set
+            {
+                _logWriters = value;
+                OnLoggingChanged?.Invoke();
+            }
+        }
 
         /// <summary>
         /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
@@ -190,6 +210,11 @@ namespace CryptoExchange.Net.Objects
         public int? SocketSubscriptionsCombineTarget { get; set; }
 
         /// <summary>
+        /// The max amount of connections to make to the server. Can be used for API's which only allow a certain number of connections. Changing this to a high value might cause issues.
+        /// </summary>
+        public int? MaxSocketConnections { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public BaseSocketClientOptions(): this(null)
@@ -213,12 +238,13 @@ namespace CryptoExchange.Net.Objects
             SocketResponseTimeout = baseOptions.SocketResponseTimeout;
             SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
             SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
+            MaxSocketConnections = baseOptions.MaxSocketConnections;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxReconnectTries: {MaxReconnectTries}, MaxResubscribeTries: {MaxResubscribeTries}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}";
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxReconnectTries: {MaxReconnectTries}, MaxResubscribeTries: {MaxResubscribeTries}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}, MaxSocketConnections: {MaxSocketConnections}";
         }
     }
 

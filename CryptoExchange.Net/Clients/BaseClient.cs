@@ -63,6 +63,7 @@ namespace CryptoExchange.Net
             log = new Log(name);
             log.UpdateWriters(options.LogWriters);
             log.Level = options.LogLevel;
+            options.OnLoggingChanged += HandleLogConfigChange;
 
             ClientOptions = options;
 
@@ -283,11 +284,21 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Handle a change in the client options log config
+        /// </summary>
+        private void HandleLogConfigChange()
+        {
+            log.UpdateWriters(ClientOptions.LogWriters);
+            log.Level = ClientOptions.LogLevel;
+        }
+
+        /// <summary>
         /// Dispose
         /// </summary>
         public virtual void Dispose()
         {
             log.Write(LogLevel.Debug, "Disposing client");
+            ClientOptions.OnLoggingChanged -= HandleLogConfigChange;
             foreach (var client in ApiClients)
                 client.Dispose();
         }

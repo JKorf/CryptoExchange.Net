@@ -36,10 +36,6 @@ namespace CryptoExchange.Net
         /// </summary>
         protected internal readonly SemaphoreSlim semaphoreSlim = new(1);
         /// <summary>
-        /// The max amount of concurrent socket connections
-        /// </summary>
-        protected int MaxSocketConnections { get; set; } = 9999;        
-        /// <summary>
         /// Keep alive interval for websocket connection
         /// </summary>
         protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
@@ -520,7 +516,7 @@ namespace CryptoExchange.Net
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
             {
-                if (result.SubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || (socketConnections.Count >= MaxSocketConnections && socketConnections.All(s => s.Value.SubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
+                if (result.SubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || (socketConnections.Count >= ClientOptions.MaxSocketConnections && socketConnections.All(s => s.Value.SubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     return result;
