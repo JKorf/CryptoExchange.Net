@@ -31,6 +31,7 @@ namespace CryptoExchange.Net.Sockets
         private readonly IDictionary<string, string> cookies;
         private readonly IDictionary<string, string> headers;
         private CancellationTokenSource _ctsSource;
+        private ApiProxy _proxy;
 
         private readonly List<DateTime> _outgoingMessages;
         private DateTime _lastReceivedMessagesUpdate;
@@ -209,6 +210,8 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual void SetProxy(ApiProxy proxy)
         {
+            _proxy = proxy;
+
             if (!Uri.TryCreate($"{proxy.Host}:{proxy.Port}", UriKind.Absolute, out var uri))
                 throw new ArgumentException("Proxy settings invalid, {proxy.Host}:{proxy.Port} not a valid URI", nameof(proxy));
 
@@ -339,6 +342,7 @@ namespace CryptoExchange.Net.Sockets
             while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
 
             _socket = CreateSocket();
+            SetProxy(_proxy);
             _closed = false;
         }
         
