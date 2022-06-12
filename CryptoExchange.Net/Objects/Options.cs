@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class BaseOptions
     {
-        internal event Action OnLoggingChanged;
+        internal event Action? OnLoggingChanged;
 
         private LogLevel _logLevel = LogLevel.Information;
         /// <summary>

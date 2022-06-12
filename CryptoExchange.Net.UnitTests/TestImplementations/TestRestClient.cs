@@ -135,7 +135,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             throw new NotImplementedException();
         }
 
-        protected override TimeSyncInfo GetTimeSyncInfo()
+        public override TimeSyncInfo GetTimeSyncInfo()
         {
             throw new NotImplementedException();
         }
@@ -161,7 +161,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             throw new NotImplementedException();
         }
 
-        protected override TimeSyncInfo GetTimeSyncInfo()
+        public override TimeSyncInfo GetTimeSyncInfo()
         {
             throw new NotImplementedException();
         }

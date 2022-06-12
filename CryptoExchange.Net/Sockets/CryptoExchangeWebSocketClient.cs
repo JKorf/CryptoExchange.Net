@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Sockets
         private readonly IDictionary<string, string> cookies;
         private readonly IDictionary<string, string> headers;
         private CancellationTokenSource _ctsSource;
-        private ApiProxy _proxy;
+        private ApiProxy? _proxy;
 
         private readonly List<DateTime> _outgoingMessages;
         private DateTime _lastReceivedMessagesUpdate;
@@ -342,7 +342,8 @@ namespace CryptoExchange.Net.Sockets
             while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
 
             _socket = CreateSocket();
-            SetProxy(_proxy);
+            if (_proxy != null)
+                SetProxy(_proxy);
             _closed = false;
         }
         

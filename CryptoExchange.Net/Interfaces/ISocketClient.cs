@@ -28,6 +28,16 @@ namespace CryptoExchange.Net.Interfaces
         public double IncomingKbps { get; }
 
         /// <summary>
+        /// The current amount of connections to the API from this client. A connection can have multiple subscriptions.
+        /// </summary>
+        public int CurrentConnections { get; }
+        
+        /// <summary>
+        /// The current amount of subscriptions running from the client
+        /// </summary>
+        public int CurrentSubscriptions { get; }
+
+        /// <summary>
         /// Unsubscribe from a stream using the subscription id received when starting the subscription
         /// </summary>
         /// <param name="subscriptionId">The id of the subscription to unsubscribe</param>

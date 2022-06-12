@@ -92,7 +92,9 @@ namespace CryptoExchange.Net
             }
         }
 
+        /// <inheritdoc />
         public int CurrentConnections => socketConnections.Count;
+        /// <inheritdoc />
         public int CurrentSubscriptions
         {
             get
