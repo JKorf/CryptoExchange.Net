@@ -139,9 +139,25 @@ namespace CryptoExchange.Net.Sockets
         private readonly BaseSocketClient socketClient;
 
         private readonly List<PendingRequest> pendingRequests;
-        private Task? _socketProcessReconnectTask;
+        private Task? _socketProcessTask;
+        private Task? _socketReconnectTask;
+        private readonly AsyncResetEvent _reconnectWaitEvent;
 
         private SocketStatus _status;
+
+        /// <summary>
+        /// Status of the socket connection
+        /// </summary>
+        public SocketStatus Status
+        {
+            get => _status;
+            private set
+            {
+                var oldStatus = _status;
+                _status = value;
+                log.Write(LogLevel.Trace, $"Socket {SocketId} status changed from {oldStatus} to {_status}");
+            }
+        }
 
         /// <summary>
         /// The underlying websocket
@@ -165,9 +181,13 @@ namespace CryptoExchange.Net.Sockets
             subscriptions = new List<SocketSubscription>();
             _socket = socket;
 
+            _reconnectWaitEvent = new AsyncResetEvent(false, true);
+
             _socket.Timeout = client.ClientOptions.SocketNoDataTimeout;
             _socket.OnMessage += ProcessMessage;
             _socket.OnOpen += SocketOnOpen;
+            _socket.OnClose += () => _reconnectWaitEvent.Set();
+
         }
         
         /// <summary>
@@ -178,7 +198,11 @@ namespace CryptoExchange.Net.Sockets
         {
             var connected = await _socket.ConnectAsync().ConfigureAwait(false);
             if (connected)
-                StartProcessingTask();
+            {
+                Status = SocketStatus.Connected;
+                _socketReconnectTask = ReconnectWatcherAsync();
+                _socketProcessTask = _socket.ProcessAsync();
+            }
 
             return connected;
         }
@@ -207,6 +231,9 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task CloseAsync()
         {
+            if (Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
+                return;
+
             ShouldReconnect = false;
             if (socketClient.socketConnections.ContainsKey(SocketId))
                 socketClient.socketConnections.TryRemove(SocketId, out _);
@@ -220,24 +247,13 @@ namespace CryptoExchange.Net.Sockets
                 }
             }
 
-            if (_status == SocketStatus.Reconnecting)
-            {
-                // Wait for reconnect task to finish
-                log.Write(LogLevel.Trace, "In reconnecting state, waiting for reconnecting to end");
-                if (_socketProcessReconnectTask != null)
-                    await _socketProcessReconnectTask.ConfigureAwait(false);
+            while (Status == SocketStatus.Reconnecting)
+                // Wait for reconnecting to finish
+                await Task.Delay(100).ConfigureAwait(false);
 
-                await _socket.CloseAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                // Close before waiting for process task to finish
-                await _socket.CloseAsync().ConfigureAwait(false);
-
-                if (_socketProcessReconnectTask != null)
-                    await _socketProcessReconnectTask.ConfigureAwait(false);
-            }
-
+            await _socket.CloseAsync().ConfigureAwait(false);
+            if(_socketProcessTask != null)
+                await _socketProcessTask.ConfigureAwait(false);
             _socket.Dispose();
         }
 
@@ -248,37 +264,38 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task CloseAsync(SocketSubscription subscription)
         {
-            if (!_socket.IsOpen || _status == SocketStatus.Disposed)
+            if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
+            log.Write(LogLevel.Trace, $"Socket {SocketId} closing subscription {subscription.Id}");
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            if (subscription.Confirmed)
+            if (subscription.Confirmed && _socket.IsOpen)
                 await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
 
             bool shouldCloseConnection;
             lock (subscriptionLock)
-                shouldCloseConnection = !subscriptions.Any(r => r.UserSubscription && subscription != r);
+            {
+                if (Status == SocketStatus.Closing)
+                {
+                    log.Write(LogLevel.Trace, $"Socket {SocketId} already closing");
+                    return;
+                }
+
+                shouldCloseConnection = subscriptions.All(r => !r.UserSubscription || r == subscription);
+                if (shouldCloseConnection)
+                    Status = SocketStatus.Closing;
+            }
 
             if (shouldCloseConnection)
+            {
+                log.Write(LogLevel.Trace, $"Socket {SocketId} closing as there are no more subscriptions");
                 await CloseAsync().ConfigureAwait(false);
+            }
 
             lock (subscriptionLock)
                 subscriptions.Remove(subscription);
-        }
-
-        private void StartProcessingTask()
-        {
-            log.Write(LogLevel.Trace, $"Starting {SocketId} process/reconnect task");
-            _status = SocketStatus.Processing;
-            _socketProcessReconnectTask = Task.Run(async () =>
-            {
-                await _socket.ProcessAsync().ConfigureAwait(false);
-                _status = SocketStatus.Reconnecting;
-                await ReconnectAsync().ConfigureAwait(false);
-                log.Write(LogLevel.Trace, $"Process/reconnect {SocketId} task finished");
-            });
         }
 
         private async Task ReconnectAsync()
@@ -344,7 +361,8 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     // Successfully reconnected, start processing
-                    StartProcessingTask();
+                    Status = SocketStatus.Connected;
+                    _socketProcessTask = _socket.ProcessAsync();
 
                     ReconnectTry = 0;
                     var time = DisconnectTime;
@@ -414,7 +432,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public void Dispose()
         {
-            _status = SocketStatus.Disposed;
+            Status = SocketStatus.Disposed;
             _socket.Dispose();
         }
 
@@ -487,10 +505,17 @@ namespace CryptoExchange.Net.Sockets
         /// Add a subscription to this connection
         /// </summary>
         /// <param name="subscription"></param>
-        public void AddSubscription(SocketSubscription subscription)
+        public bool AddSubscription(SocketSubscription subscription)
         {
-            lock(subscriptionLock)
+            lock (subscriptionLock)
+            {
+                if (Status != SocketStatus.None && Status != SocketStatus.Connected)
+                    return false;
+
                 subscriptions.Add(subscription);
+                log.Write(LogLevel.Trace, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {subscriptions.Count}");
+                return true;
+            }
         }
 
         /// <summary>
@@ -633,6 +658,22 @@ namespace CryptoExchange.Net.Sockets
             PausedActivity = false;
         }
 
+        private async Task ReconnectWatcherAsync()
+        {
+            while (true)
+            {
+                await _reconnectWaitEvent.WaitAsync().ConfigureAwait(false);
+                if (!ShouldReconnect)
+                    return;
+
+                Status = SocketStatus.Reconnecting;
+                await ReconnectAsync().ConfigureAwait(false);
+
+                if (!ShouldReconnect)
+                    return;
+            }
+        }
+
         private async Task<CallResult<bool>> ProcessReconnectAsync()
         {
             if (!_socket.IsOpen)
@@ -691,11 +732,34 @@ namespace CryptoExchange.Net.Sockets
             return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
         }
     
-        private enum SocketStatus
+        /// <summary>
+        /// Status of the socket connection
+        /// </summary>
+        public enum SocketStatus
         {
+            /// <summary>
+            /// None/Initial
+            /// </summary>
             None,
-            Processing,
+            /// <summary>
+            /// Connected
+            /// </summary>
+            Connected,
+            /// <summary>
+            /// Reconnecting
+            /// </summary>
             Reconnecting,
+            /// <summary>
+            /// Closing
+            /// </summary>
+            Closing,
+            /// <summary>
+            /// Closed
+            /// </summary>
+            Closed,
+            /// <summary>
+            /// Disposed
+            /// </summary>
             Disposed
         }
     }

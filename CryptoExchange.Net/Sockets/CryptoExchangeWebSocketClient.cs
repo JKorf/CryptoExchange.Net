@@ -34,6 +34,8 @@ namespace CryptoExchange.Net.Sockets
 
         private readonly List<DateTime> _outgoingMessages;
         private DateTime _lastReceivedMessagesUpdate;
+        private bool _closed;
+        private bool _disposed;
 
         /// <summary>
         /// Received messages, the size and the timstamp
@@ -279,6 +281,10 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task CloseInternalAsync()
         {
+            if (_closed || _disposed)
+                return;
+
+            _closed = true;
             _ctsSource.Cancel();
             _sendEvent.Set();
 
@@ -291,6 +297,15 @@ namespace CryptoExchange.Net.Sockets
                 catch(Exception)
                 { } // Can sometimes throw an exception when socket is in aborted state due to timing
             }
+            else if(_socket.State == WebSocketState.CloseReceived)
+            {
+                try
+                {
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                }
+                catch (Exception)
+                { } // Can sometimes throw an exception when socket is in aborted state due to timing
+            }
             log.Write(LogLevel.Debug, $"Socket {Id} closed");
             Handle(closeHandlers);
         }
@@ -300,7 +315,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
             log.Write(LogLevel.Debug, $"Socket {Id} disposing");
+            _disposed = true;
             _socket.Dispose();
             _ctsSource.Dispose();
 
@@ -320,6 +339,7 @@ namespace CryptoExchange.Net.Sockets
             while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
 
             _socket = CreateSocket();
+            _closed = false;
         }
         
         /// <summary>

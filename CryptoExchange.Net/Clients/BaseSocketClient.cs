@@ -92,6 +92,18 @@ namespace CryptoExchange.Net
             }
         }
 
+        public int CurrentConnections => socketConnections.Count;
+        public int CurrentSubscriptions
+        {
+            get
+            {
+                if (!socketConnections.Any())
+                    return 0;
+
+                return socketConnections.Sum(s => s.Value.SubscriptionCount);
+            }
+        }
+
         /// <summary>
         /// Client options
         /// </summary>
@@ -164,7 +176,7 @@ namespace CryptoExchange.Net
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
 
             SocketConnection socketConnection;
-            SocketSubscription subscription;
+            SocketSubscription? subscription;
             var released = false;
             // Wait for a semaphore here, so we only connect 1 socket at a time.
             // This is necessary for being able to see if connections can be combined
@@ -179,23 +191,34 @@ namespace CryptoExchange.Net
 
             try
             {
-                // Get a new or existing socket connection
-                socketConnection = GetSocketConnection(apiClient, url, authenticated);
-
-                // Add a subscription on the socket connection
-                subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler);
-                if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
+                while (true)
                 {
-                    // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
-                    semaphoreSlim.Release();
-                    released = true;
+                    // Get a new or existing socket connection
+                    socketConnection = GetSocketConnection(apiClient, url, authenticated);
+
+                    // Add a subscription on the socket connection
+                    subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler);
+                    if (subscription == null)
+                    {
+                        log.Write(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
+                        continue;
+                    }
+
+                    if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
+                    {
+                        // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
+                        semaphoreSlim.Release();
+                        released = true;
+                    }
+
+                    var needsConnecting = !socketConnection.Connected;
+
+                    var connectResult = await ConnectIfNeededAsync(socketConnection, authenticated).ConfigureAwait(false);
+                    if (!connectResult)
+                        return new CallResult<UpdateSubscription>(connectResult.Error!);
+
+                    break;
                 }
-
-                var needsConnecting = !socketConnection.Connected;
-
-                var connectResult = await ConnectIfNeededAsync(socketConnection, authenticated).ConfigureAwait(false);
-                if (!connectResult)
-                    return new CallResult<UpdateSubscription>(connectResult.Error!);
             }
             finally
             {
@@ -443,9 +466,6 @@ namespace CryptoExchange.Net
         /// <param name="message"></param>
         /// <returns></returns>
         protected internal virtual JToken ProcessTokenData(JToken message)
-
-
-
         {
             return message;
         }
@@ -460,7 +480,7 @@ namespace CryptoExchange.Net
         /// <param name="connection">The socket connection the handler is on</param>
         /// <param name="dataHandler">The handler of the data received</param>
         /// <returns></returns>
-        protected virtual SocketSubscription AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler)
+        protected virtual SocketSubscription? AddSubscription<T>(object? request, string? identifier, bool userSubscription, SocketConnection connection, Action<DataEvent<T>> dataHandler)
         {
             void InternalHandler(MessageEvent messageEvent)
             {
@@ -484,7 +504,8 @@ namespace CryptoExchange.Net
             var subscription = request == null
                 ? SocketSubscription.CreateForIdentifier(NextId(), identifier!, userSubscription, InternalHandler)
                 : SocketSubscription.CreateForRequest(NextId(), request, userSubscription, InternalHandler);
-            connection.AddSubscription(subscription);
+            if (!connection.AddSubscription(subscription))
+                return null;
             return subscription;
         }
 
@@ -510,7 +531,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual SocketConnection GetSocketConnection(SocketApiClient apiClient, string address, bool authenticated)
         {
-            var socketResult = socketConnections.Where(s => s.Value.Uri.ToString().TrimEnd('/') == address.TrimEnd('/')
+            var socketResult = socketConnections.Where(s => (s.Value.Status == SocketConnection.SocketStatus.None || s.Value.Status == SocketConnection.SocketStatus.Connected)
+                                                  && s.Value.Uri.ToString().TrimEnd('/') == address.TrimEnd('/')
                                                   && (s.Value.ApiClient.GetType() == apiClient.GetType())
                                                   && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.SubscriptionCount).FirstOrDefault();
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
