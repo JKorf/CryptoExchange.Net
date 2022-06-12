@@ -18,7 +18,7 @@ namespace CryptoExchange.Net
         /// Get time sync info for an API client
         /// </summary>
         /// <returns></returns>
-        protected abstract TimeSyncInfo GetTimeSyncInfo();
+        public abstract TimeSyncInfo GetTimeSyncInfo();
         
         /// <summary>
         /// Get time offset for an API client

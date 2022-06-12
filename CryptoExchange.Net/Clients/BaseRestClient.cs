@@ -172,11 +172,17 @@ namespace CryptoExchange.Net
 
             if (signed)
             {
-                var syncTimeResult = await apiClient.SyncTimeAsync().ConfigureAwait(false);
-                if (!syncTimeResult)
+                var syncTask = apiClient.SyncTimeAsync();
+                var timeSyncInfo = apiClient.GetTimeSyncInfo();
+                if (timeSyncInfo.TimeSyncState.LastSyncTime == default)
                 {
-                    log.Write(LogLevel.Debug, $"[{requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
-                    return syncTimeResult.As<IRequest>(default);
+                    // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
+                    var syncTimeResult = await syncTask.ConfigureAwait(false);
+                    if (!syncTimeResult)
+                    {
+                        log.Write(LogLevel.Debug, $"[{requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
+                        return syncTimeResult.As<IRequest>(default);
+                    }
                 }
             }
 
