@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>5.1.12 - Changed time sync so requests no longer wait for it to complete unless it's the first time, Made log client options changable after client creation, Fixed proxy setting not used when reconnecting socket, Updated socket reconnection logic</PackageReleaseNotes>
+    <PackageReleaseNotes>5.1.12 - Changed time sync so requests no longer wait for it to complete unless it's the first time, Made log client options changable after client creation, Fixed proxy setting not used when reconnecting socket, Changed MaxSocketConnections to a client options, Updated socket reconnection logic</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
