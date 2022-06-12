@@ -18,6 +18,12 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.1.12 - 12 Jun 2022
+    * Changed time sync so requests no longer wait for it to complete unless it's the first time
+    * Made log client options changable after client creation
+    * Fixed proxy setting not used when reconnecting socket
+    * Updated socket reconnection logic
+
 * Version 5.1.11 - 24 May 2022
     * Added KeepAliveInterval setting
     * Fixed port not being copied when setting parameters on request
