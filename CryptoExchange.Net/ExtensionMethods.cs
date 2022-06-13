@@ -280,6 +280,19 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// String to JValue
+        /// </summary>
+        /// <param name="stringData"></param>
+        /// <returns>JValue</returns>
+        public static JValue? ToJValue(this string stringData)
+        {
+            if (string.IsNullOrEmpty(stringData))
+                return null;
+
+            return new JValue(stringData);
+        }
+
+        /// <summary>
         /// Validates an int is one of the allowed values
         /// </summary>
         /// <param name="value">Value of the int</param>

@@ -449,8 +449,7 @@ namespace CryptoExchange.Net.Sockets
             var tokenData = data.ToJToken(log);
             if (tokenData == null)
             {
-                data = $"\"{data}\"";
-                tokenData = data.ToJToken(log);
+                tokenData = data.ToJValue();
                 if (tokenData == null)
                     return;
             }
