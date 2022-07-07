@@ -22,6 +22,22 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class CryptoExchangeWebSocketClient : IWebsocket
     {
+        // TODO keep the same ID's for subscriptions/sockets when reconnecting
+        enum ProcessState
+        {
+            Idle,
+            Processing,
+            WaitingForClose,
+            Reconnecting
+        }
+
+        enum CloseState
+        {
+            Idle,
+            Closing,
+            Closed
+        }
+
         internal static int lastStreamId;
         private static readonly object streamIdLock = new();
 
@@ -35,8 +51,13 @@ namespace CryptoExchange.Net.Sockets
 
         private readonly List<DateTime> _outgoingMessages;
         private DateTime _lastReceivedMessagesUpdate;
-        private bool _closed;
+        private Task? _processTask;
+        private Task? _closeTask;
+        private bool _stopRequested;
         private bool _disposed;
+        private ProcessState _processState;
+        //private CloseState _closeState;
+        private SemaphoreSlim _closeSem;
 
         /// <summary>
         /// Received messages, the size and the timstamp
@@ -52,23 +73,6 @@ namespace CryptoExchange.Net.Sockets
         /// Log
         /// </summary>
         protected Log log;
-
-        /// <summary>
-        /// Handlers for when an error happens on the socket
-        /// </summary>
-        protected readonly List<Action<Exception>> errorHandlers = new();
-        /// <summary>
-        /// Handlers for when the socket connection is opened
-        /// </summary>
-        protected readonly List<Action> openHandlers = new();
-        /// <summary>
-        /// Handlers for when the connection is closed
-        /// </summary>
-        protected readonly List<Action> closeHandlers = new();
-        /// <summary>
-        /// Handlers for when a message is received
-        /// </summary>
-        protected readonly List<Action<string>> messageHandlers = new();
 
         /// <inheritdoc />
         public int Id { get; }
@@ -146,32 +150,17 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public event Action OnClose
-        {
-            add => closeHandlers.Add(value);
-            remove => closeHandlers.Remove(value);
-        }
-
+        public event Action? OnClose;
         /// <inheritdoc />
-        public event Action<string> OnMessage
-        {
-            add => messageHandlers.Add(value);
-            remove => messageHandlers.Remove(value);
-        }
-
+        public event Action<string>? OnMessage;
         /// <inheritdoc />
-        public event Action<Exception> OnError
-        {
-            add => errorHandlers.Add(value);
-            remove => errorHandlers.Remove(value);
-        }
-
+        public event Action<Exception>? OnError;
         /// <inheritdoc />
-        public event Action OnOpen
-        {
-            add => openHandlers.Add(value);
-            remove => openHandlers.Remove(value);
-        }
+        public event Action? OnOpen;
+        /// <inheritdoc />
+        public event Action? OnReconnecting;
+        /// <inheritdoc />
+        public event Action? OnReconnected;
 
         /// <summary>
         /// ctor
@@ -204,6 +193,7 @@ namespace CryptoExchange.Net.Sockets
             _ctsSource = new CancellationTokenSource();
             _receivedMessagesLock = new object();
 
+            _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
         }
 
@@ -229,34 +219,80 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual async Task<bool> ConnectAsync()
         {
+            if (!await ConnectInternalAsync().ConfigureAwait(false))
+                return false;
+            
+            OnOpen?.Invoke();
+            _processTask = ProcessAsync();
+            return true;            
+        }
+
+        private async Task<bool> ConnectInternalAsync()
+        {
             log.Write(LogLevel.Debug, $"Socket {Id} connecting");
             try
             {
-                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));                
+                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
                 await _socket.ConnectAsync(Uri, tcs.Token).ConfigureAwait(false);
-                
-                Handle(openHandlers);
             }
             catch (Exception e)
             {
                 log.Write(LogLevel.Debug, $"Socket {Id} connection failed: " + e.ToLogString());
                 return false;
             }
-    
+
             log.Write(LogLevel.Debug, $"Socket {Id} connected to {Uri}");
             return true;
         }
 
         /// <inheritdoc />
-        public virtual async Task ProcessAsync()
+        private async Task ProcessAsync()
         {
-            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync started");
-            var sendTask = SendLoopAsync();
-            var receiveTask = ReceiveLoopAsync();
-            var timeoutTask = Timeout != default ? CheckTimeoutAsync() : Task.CompletedTask;
-            log.Write(LogLevel.Trace, $"Socket {Id} processing startup completed");
-            await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
-            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync finished");
+            while (!_stopRequested)
+            {
+                log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync started");
+                _processState = ProcessState.Processing;
+                var sendTask = SendLoopAsync();
+                var receiveTask = ReceiveLoopAsync();
+                var timeoutTask = Timeout != default ? CheckTimeoutAsync() : Task.CompletedTask;
+                await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
+                log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync finished");
+
+                _processState = ProcessState.WaitingForClose;
+                while (_closeTask == null)
+                    await Task.Delay(50).ConfigureAwait(false);
+
+                await _closeTask.ConfigureAwait(false);
+                _closeTask = null;
+                //_closeState = CloseState.Idle;
+
+                if (!_stopRequested)
+                {
+                    _processState = ProcessState.Reconnecting;
+                    OnReconnecting?.Invoke();
+                }
+
+                while (!_stopRequested)
+                {
+                    log.Write(LogLevel.Trace, $"Socket {Id} attempting to reconnect");
+                    _socket = CreateSocket();
+                    _ctsSource.Dispose();
+                    _ctsSource = new CancellationTokenSource();
+                    while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
+
+                    var connected = await ConnectInternalAsync().ConfigureAwait(false);
+                    if (!connected)
+                    {
+                        await Task.Delay(5000).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    OnReconnected?.Invoke();
+                    break;
+                }
+            }
+
+            _processState = ProcessState.Idle;
         }
 
         /// <inheritdoc />
@@ -272,22 +308,61 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
+        public virtual async Task ReconnectAsync()
+        {
+            if (_processState != ProcessState.Processing)
+                return;
+
+            log.Write(LogLevel.Debug, $"Socket {Id} reconnecting");
+            _closeTask = CloseInternalAsync();
+            await _closeTask.ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public virtual async Task CloseAsync()
         {
-            log.Write(LogLevel.Debug, $"Socket {Id} closing");
-            await CloseInternalAsync().ConfigureAwait(false);
+            await _closeSem.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_closeTask != null && !_closeTask.IsCompleted)
+                {
+                    log.Write(LogLevel.Debug, $"Socket {Id} CloseAsync() waiting for existing close task");
+                    await _closeTask.ConfigureAwait(false);
+                    return;
+                }
+
+                if (!IsOpen)
+                {
+                    log.Write(LogLevel.Debug, $"Socket {Id} CloseAsync() socket not open");
+                    return;
+                }
+
+                log.Write(LogLevel.Debug, $"Socket {Id} closing");
+                _stopRequested = true;
+
+                _closeTask = CloseInternalAsync();
+            }
+            finally
+            {
+                _closeSem.Release();
+            }
+
+            await _closeTask.ConfigureAwait(false);
+            await _processTask!.ConfigureAwait(false);
+            OnClose?.Invoke();
+            log.Write(LogLevel.Debug, $"Socket {Id} closed");
         }
-        
+
         /// <summary>
         /// Internal close method
         /// </summary>
         /// <returns></returns>
         private async Task CloseInternalAsync()
         {
-            if (_closed || _disposed)
+            if (_disposed)
                 return;
 
-            _closed = true;
+            //_closeState = CloseState.Closing;
             _ctsSource.Cancel();
             _sendEvent.Set();
 
@@ -309,8 +384,6 @@ namespace CryptoExchange.Net.Sockets
                 catch (Exception)
                 { } // Can sometimes throw an exception when socket is in aborted state due to timing
             }
-            log.Write(LogLevel.Debug, $"Socket {Id} closed");
-            Handle(closeHandlers);
         }
 
         /// <summary>
@@ -325,28 +398,9 @@ namespace CryptoExchange.Net.Sockets
             _disposed = true;
             _socket.Dispose();
             _ctsSource.Dispose();
-
-            errorHandlers.Clear();
-            openHandlers.Clear();
-            closeHandlers.Clear();
-            messageHandlers.Clear();
             log.Write(LogLevel.Trace, $"Socket {Id} disposed");
         }
-
-        /// <inheritdoc />
-        public void Reset()
-        {
-            log.Write(LogLevel.Debug, $"Socket {Id} resetting");
-            _ctsSource = new CancellationTokenSource();
-
-            while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
-
-            _socket = CreateSocket();
-            if (_proxy != null)
-                SetProxy(_proxy);
-            _closed = false;
-        }
-        
+                
         /// <summary>
         /// Create the socket object
         /// </summary>
@@ -362,6 +416,8 @@ namespace CryptoExchange.Net.Sockets
                 socket.Options.SetRequestHeader(header.Key, header.Value);
             socket.Options.KeepAliveInterval = KeepAliveInterval;
             socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+            if (_proxy != null)
+                SetProxy(_proxy);
             return socket;
         }
 
@@ -412,9 +468,9 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (Exception ioe)
                         {
-                            // Connection closed unexpectedly, .NET framework                      
-                            Handle(errorHandlers, ioe);
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            // Connection closed unexpectedly, .NET framework
+                            OnError?.Invoke(ioe);
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
                     }
@@ -425,7 +481,7 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
             finally
@@ -468,9 +524,9 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (Exception wse)
                         {
-                            // Connection closed unexpectedly        
-                            Handle(errorHandlers, wse);
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            // Connection closed unexpectedly
+                            OnError?.Invoke(wse);
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
 
@@ -478,7 +534,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly        
                             log.Write(LogLevel.Debug, $"Socket {Id} received `Close` message");
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
 
@@ -543,7 +599,7 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
             finally
@@ -597,7 +653,7 @@ namespace CryptoExchange.Net.Sockets
 
             try
             {
-                Handle(messageHandlers, strData);
+                OnMessage?.Invoke(strData);
             }
             catch(Exception e)
             {
@@ -641,33 +697,9 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will stop the timeout checking, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Helper to invoke handlers
-        /// </summary>
-        /// <param name="handlers"></param>
-        protected void Handle(List<Action> handlers)
-        {
-            LastActionTime = DateTime.UtcNow;
-            foreach (var handle in new List<Action>(handlers))
-                handle?.Invoke();
-        }
-
-        /// <summary>
-        /// Helper to invoke handlers
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="handlers"></param>
-        /// <param name="data"></param>
-        protected void Handle<T>(List<Action<T>> handlers, T data)
-        {
-            LastActionTime = DateTime.UtcNow;
-            foreach (var handle in new List<Action<T>>(handlers))
-                handle?.Invoke(data);
         }
 
         /// <summary>

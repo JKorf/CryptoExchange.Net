@@ -27,6 +27,14 @@ namespace CryptoExchange.Net.Interfaces
         /// Websocket opened event
         /// </summary>
         event Action OnOpen;
+        /// <summary>
+        /// Websocket has lost connection to the server and is attempting to reconnect
+        /// </summary>
+        event Action OnReconnecting;
+        /// <summary>
+        /// Websocket has reconnected to the server
+        /// </summary>
+        event Action OnReconnected;
 
         /// <summary>
         /// Unique id for this socket
@@ -89,21 +97,17 @@ namespace CryptoExchange.Net.Interfaces
         /// Connect the socket
         /// </summary>
         /// <returns></returns>
-        Task<bool> ConnectAsync();        
-        /// <summary>
-        /// Receive and send messages over the connection. Resulting task should complete when closing the socket.
-        /// </summary>
-        /// <returns></returns>
-        Task ProcessAsync();
+        Task<bool> ConnectAsync();
         /// <summary>
         /// Send data
         /// </summary>
         /// <param name="data"></param>
         void Send(string data);
         /// <summary>
-        /// Reset socket when a connection is lost to prepare for a new connection
+        /// Reconnect the socket
         /// </summary>
-        void Reset();
+        /// <returns></returns>
+        Task ReconnectAsync();
         /// <summary>
         /// Close the connection
         /// </summary>
