@@ -177,16 +177,6 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// The maximum number of times to try to reconnect, default null will retry indefinitely 
-        /// </summary>
-        public int? MaxReconnectTries { get; set; }
-
-        /// <summary>
-        /// The maximum number of times to try to resubscribe after reconnecting
-        /// </summary>
-        public int? MaxResubscribeTries { get; set; }
-
-        /// <summary>
         /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
         /// </summary>
         public int MaxConcurrentResubscriptionsPerSocket { get; set; } = 5;
@@ -232,8 +222,6 @@ namespace CryptoExchange.Net.Objects
 
             AutoReconnect = baseOptions.AutoReconnect;
             ReconnectInterval = baseOptions.ReconnectInterval;
-            MaxReconnectTries = baseOptions.MaxReconnectTries;
-            MaxResubscribeTries = baseOptions.MaxResubscribeTries;
             MaxConcurrentResubscriptionsPerSocket = baseOptions.MaxConcurrentResubscriptionsPerSocket;
             SocketResponseTimeout = baseOptions.SocketResponseTimeout;
             SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
@@ -244,7 +232,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxReconnectTries: {MaxReconnectTries}, MaxResubscribeTries: {MaxResubscribeTries}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}, MaxSocketConnections: {MaxSocketConnections}";
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}, MaxSocketConnections: {MaxSocketConnections}";
         }
     }
 

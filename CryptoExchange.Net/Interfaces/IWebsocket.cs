@@ -41,29 +41,9 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         int Id { get; }
         /// <summary>
-        /// Origin header
-        /// </summary>
-        string? Origin { get; set; }
-        /// <summary>
-        /// Encoding to use for sending/receiving string data
-        /// </summary>
-        Encoding? Encoding { get; set; }
-        /// <summary>
-        /// The max amount of outgoing messages per second
-        /// </summary>
-        int? RatelimitPerSecond { get; set; }
-        /// <summary>
         /// The current kilobytes per second of data being received, averaged over the last 3 seconds
         /// </summary>
         double IncomingKbps { get; }
-        /// <summary>
-        /// Handler for byte data
-        /// </summary>
-        Func<byte[], string>? DataInterpreterBytes { get; set; }
-        /// <summary>
-        /// Handler for string data
-        /// </summary>
-        Func<string, string>? DataInterpreterString { get; set; }
         /// <summary>
         /// The uri the socket connects to
         /// </summary>
@@ -76,23 +56,6 @@ namespace CryptoExchange.Net.Interfaces
         /// Whether the socket connection is open
         /// </summary>
         bool IsOpen { get; }
-        /// <summary>
-        /// Supported ssl protocols
-        /// </summary>
-        SslProtocols SSLProtocols { get; set; }
-        /// <summary>
-        /// The max time for no data being received before the connection is considered lost
-        /// </summary>
-        TimeSpan Timeout { get; set; }
-        /// <summary>
-        /// The interval at which to send a ping frame to the server
-        /// </summary>
-        TimeSpan KeepAliveInterval { get; set; }
-        /// <summary>
-        /// Set a proxy to use when connecting
-        /// </summary>
-        /// <param name="proxy"></param>
-        void SetProxy(ApiProxy proxy);
         /// <summary>
         /// Connect the socket
         /// </summary>

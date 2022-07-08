@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
@@ -11,7 +10,6 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
@@ -120,10 +118,7 @@ namespace CryptoExchange.Net
         /// <param name="options">The options for this client</param>
         protected BaseSocketClient(string name, BaseSocketClientOptions options) : base(name, options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            ClientOptions = options;
+            ClientOptions = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <inheritdoc />
@@ -240,6 +235,7 @@ namespace CryptoExchange.Net
                 var subResult = await SubscribeAndWaitAsync(socketConnection, request, subscription).ConfigureAwait(false);
                 if (!subResult)
                 {
+                    log.Write(LogLevel.Information, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                     return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
@@ -250,7 +246,6 @@ namespace CryptoExchange.Net
                 subscription.Confirmed = true;
             }
 
-            socketConnection.ShouldReconnect = true;
             if (ct != default)
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
@@ -260,7 +255,7 @@ namespace CryptoExchange.Net
                 }, false);
             }
 
-            log.Write(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription completed");
+            log.Write(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -334,8 +329,6 @@ namespace CryptoExchange.Net
             }
             finally
             {
-                //When the task is ready, release the semaphore. It is vital to ALWAYS release the semaphore when we are ready, or else we will end up with a Semaphore that is forever locked.
-                //This is why it is important to do the Release within a try...finally clause; program execution may crash or take a different path, this way you are guaranteed execution
                 if (!released)
                     semaphoreSlim.Release();
             }
@@ -586,30 +579,31 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Get parameters for the websocket connection
+        /// </summary>
+        /// <param name="address">The address to connect to</param>
+        /// <returns></returns>
+        protected virtual WebSocketParameters GetWebSocketParameters(string address) 
+            => new (new Uri(address), ClientOptions.AutoReconnect)
+               {
+                   DataInterpreterBytes = dataInterpreterBytes,
+                   DataInterpreterString = dataInterpreterString,
+                   KeepAliveInterval = KeepAliveInterval,
+                   ReconnectInterval = ClientOptions.ReconnectInterval,
+                   RatelimitPerSecond = RateLimitPerSocketPerSecond,
+                   Proxy = ClientOptions.Proxy,
+                   Timeout = ClientOptions.SocketNoDataTimeout
+               };        
+
+        /// <summary>
         /// Create a socket for an address
         /// </summary>
         /// <param name="address">The address the socket should connect to</param>
         /// <returns></returns>
         protected virtual IWebsocket CreateSocket(string address)
         {
-            var socket = SocketFactory.CreateWebsocket(log, address);
+            var socket = SocketFactory.CreateWebsocket(log, GetWebSocketParameters(address));
             log.Write(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
-
-            if (ClientOptions.Proxy != null)
-                socket.SetProxy(ClientOptions.Proxy);
-
-            socket.KeepAliveInterval = KeepAliveInterval;
-            socket.Timeout = ClientOptions.SocketNoDataTimeout;
-            socket.DataInterpreterBytes = dataInterpreterBytes;
-            socket.DataInterpreterString = dataInterpreterString;
-            socket.RatelimitPerSecond = RateLimitPerSocketPerSecond;
-            socket.OnError += e =>
-            {
-                if(e is WebSocketException wse)
-                    log.Write(LogLevel.Warning, $"Socket {socket.Id} error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
-                else
-                    log.Write(LogLevel.Warning, $"Socket {socket.Id} error: " + e.ToLogString());
-            };
             return socket;
         }
 
@@ -667,7 +661,6 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAsync(int subscriptionId)
         {
-
             SocketSubscription? subscription = null;
             SocketConnection? connection = null;
             foreach(var socket in socketConnections.Values.ToList())
@@ -683,7 +676,7 @@ namespace CryptoExchange.Net
             if (subscription == null || connection == null)
                 return;
 
-            log.Write(LogLevel.Information, "Closing subscription " + subscriptionId);
+            log.Write(LogLevel.Information, $"Socket {connection.SocketId} Unsubscribing subscription " + subscriptionId);
             await connection.CloseAsync(subscription).ConfigureAwait(false);
         }
 
@@ -697,7 +690,7 @@ namespace CryptoExchange.Net
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            log.Write(LogLevel.Information, "Closing subscription " + subscription.Id);
+            log.Write(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
