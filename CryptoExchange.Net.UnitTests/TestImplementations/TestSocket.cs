@@ -13,6 +13,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public bool Connected { get; set; }
 
         public event Action OnClose;
+        public event Action OnReconnected;
+        public event Action OnReconnecting;
         public event Action<string> OnMessage;
         public event Action<Exception> OnError;
         public event Action OnOpen;
@@ -93,6 +95,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             Connected = false;
             DisconnectTime = DateTime.UtcNow;
+            Reconnecting = true;
             OnClose?.Invoke();
         }
 
@@ -115,11 +118,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             OnError?.Invoke(error);
         }
-
-        public async Task ProcessAsync()
-        {
-            while (Connected)
-                await Task.Delay(50);
-        }
+        public Task ReconnectAsync() => Task.CompletedTask;
     }
 }
