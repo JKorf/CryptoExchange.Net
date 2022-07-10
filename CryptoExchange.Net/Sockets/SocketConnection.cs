@@ -166,6 +166,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="client">The socket client</param>
         /// <param name="apiClient">The api client</param>
         /// <param name="socket">The socket</param>
+        /// <param name="tag"></param>
         public SocketConnection(BaseSocketClient client, SocketApiClient apiClient, IWebsocket socket, string tag)
         {
             log = client.log;

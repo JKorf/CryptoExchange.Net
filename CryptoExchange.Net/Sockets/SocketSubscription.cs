@@ -70,6 +70,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="id"></param>
         /// <param name="request"></param>
         /// <param name="userSubscription"></param>
+        /// <param name="authenticated"></param>
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForRequest(int id, object request, bool userSubscription,
@@ -84,6 +85,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="id"></param>
         /// <param name="identifier"></param>
         /// <param name="userSubscription"></param>
+        /// <param name="authenticated"></param>
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForIdentifier(int id, string identifier, bool userSubscription,
