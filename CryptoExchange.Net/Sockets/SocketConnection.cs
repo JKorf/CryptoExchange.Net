@@ -58,9 +58,21 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Get a copy of the current subscriptions
+        /// </summary>
+        public SocketSubscription[] Subscriptions
+        {
+            get
+            {
+                lock (subscriptionLock)
+                    return subscriptions.Where(h => h.UserSubscription).ToArray();
+            }
+        }
+
+        /// <summary>
         /// If the connection has been authenticated
         /// </summary>
-        public bool Authenticated { get; set; }
+        public bool Authenticated { get; internal set; }
 
         /// <summary>
         /// If connection is made
@@ -80,7 +92,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The connection uri
         /// </summary>
-        public Uri Uri => _socket.Uri;
+        public Uri ConnectionUri => _socket.Uri;
 
         /// <summary>
         /// The API client the connection is for
@@ -95,7 +107,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Tag for identificaion
         /// </summary>
-        public string? Tag { get; set; }
+        public string Tag { get; set; }
 
         /// <summary>
         /// If activity is paused
@@ -128,7 +140,7 @@ namespace CryptoExchange.Net.Sockets
 
                 var oldStatus = _status;
                 _status = value;
-                log.Write(LogLevel.Trace, $"Socket {SocketId} status changed from {oldStatus} to {_status}");
+                log.Write(LogLevel.Debug, $"Socket {SocketId} status changed from {oldStatus} to {_status}");
             }
         }
 
@@ -154,11 +166,12 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="client">The socket client</param>
         /// <param name="apiClient">The api client</param>
         /// <param name="socket">The socket</param>
-        public SocketConnection(BaseSocketClient client, SocketApiClient apiClient, IWebsocket socket)
+        public SocketConnection(BaseSocketClient client, SocketApiClient apiClient, IWebsocket socket, string tag)
         {
             log = client.log;
             socketClient = client;
             ApiClient = apiClient;
+            Tag = tag;
 
             pendingRequests = new List<PendingRequest>();
             subscriptions = new List<SocketSubscription>();
@@ -187,6 +200,12 @@ namespace CryptoExchange.Net.Sockets
         protected virtual void HandleClose()
         {
             Status = SocketStatus.Closed;
+            Authenticated = false;
+            lock(subscriptionLock)
+            {
+                foreach (var sub in subscriptions)
+                    sub.Confirmed = false;
+            }    
             Task.Run(() => ConnectionClosed?.Invoke());
         }
 
@@ -197,6 +216,12 @@ namespace CryptoExchange.Net.Sockets
         {
             Status = SocketStatus.Reconnecting;
             DisconnectTime = DateTime.UtcNow;
+            Authenticated = false;
+            lock (subscriptionLock)
+            {
+                foreach (var sub in subscriptions)
+                    sub.Confirmed = false;
+            }
             Task.Run(() => ConnectionLost?.Invoke());
         }
 
@@ -365,7 +390,7 @@ namespace CryptoExchange.Net.Sockets
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            log.Write(LogLevel.Trace, $"Socket {SocketId} closing subscription {subscription.Id}");
+            log.Write(LogLevel.Debug, $"Socket {SocketId} closing subscription {subscription.Id}");
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
@@ -377,7 +402,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (Status == SocketStatus.Closing)
                 {
-                    log.Write(LogLevel.Trace, $"Socket {SocketId} already closing");
+                    log.Write(LogLevel.Debug, $"Socket {SocketId} already closing");
                     return;
                 }
 
@@ -388,7 +413,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (shouldCloseConnection)
             {
-                log.Write(LogLevel.Trace, $"Socket {SocketId} closing as there are no more subscriptions");
+                log.Write(LogLevel.Debug, $"Socket {SocketId} closing as there are no more subscriptions");
                 await CloseAsync().ConfigureAwait(false);
             }
         }
@@ -414,7 +439,8 @@ namespace CryptoExchange.Net.Sockets
                     return false;
 
                 subscriptions.Add(subscription);
-                log.Write(LogLevel.Trace, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {subscriptions.Count}");
+                if(subscription.UserSubscription)
+                    log.Write(LogLevel.Debug, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {subscriptions.Count(s => s.UserSubscription)}");
                 return true;
             }
         }
@@ -567,7 +593,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult<bool>(true);
             }
 
-            if (Authenticated)
+            if (subscriptions.Any(s => s.Authenticated))
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
                 var authResult = await socketClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
@@ -577,13 +603,22 @@ namespace CryptoExchange.Net.Sockets
                     return authResult;
                 }
 
+                Authenticated = true;
                 log.Write(LogLevel.Debug, $"Socket {SocketId} authentication succeeded on reconnected socket.");
             }
 
             // Get a list of all subscriptions on the socket
-            List<SocketSubscription> subscriptionList;
+            List<SocketSubscription> subscriptionList = new List<SocketSubscription>();
             lock (subscriptionLock)
-                subscriptionList = subscriptions.Where(h => h.Request != null).ToList();
+            {
+                foreach (var subscription in subscriptions)
+                {
+                    if (subscription.Request != null)
+                        subscriptionList.Add(subscription);
+                    else
+                        subscription.Confirmed = true;
+                }
+            }
 
             // Foreach subscription which is subscribed by a subscription request we will need to resend that request to resubscribe
             for (var i = 0; i < subscriptionList.Count; i += socketClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
@@ -599,6 +634,9 @@ namespace CryptoExchange.Net.Sockets
                 if (taskList.Any(t => !t.Result.Success))
                     return taskList.First(t => !t.Result.Success).Result;
             }
+
+            foreach (var subscription in subscriptionList)
+                subscription.Confirmed = true;
 
             if (!_socket.IsOpen)
                 return new CallResult<bool>(new WebError("Socket not connected"));
@@ -619,7 +657,7 @@ namespace CryptoExchange.Net.Sockets
 
             return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
         }
-    
+
         /// <summary>
         /// Status of the socket connection
         /// </summary>

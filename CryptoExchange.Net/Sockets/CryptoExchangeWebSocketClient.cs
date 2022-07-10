@@ -27,13 +27,6 @@ namespace CryptoExchange.Net.Sockets
             Reconnecting
         }
 
-        enum CloseState
-        {
-            Idle,
-            Closing,
-            Closed
-        }
-
         internal static int lastStreamId;
         private static readonly object streamIdLock = new();
 
@@ -191,13 +184,13 @@ namespace CryptoExchange.Net.Sockets
         {
             while (!_stopRequested)
             {
-                _log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync started");
+                _log.Write(LogLevel.Debug, $"Socket {Id} starting processing tasks");
                 _processState = ProcessState.Processing;
                 var sendTask = SendLoopAsync();
                 var receiveTask = ReceiveLoopAsync();
                 var timeoutTask = _parameters.Timeout != null && _parameters.Timeout > TimeSpan.FromSeconds(0) ? CheckTimeoutAsync() : Task.CompletedTask;
                 await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
-                _log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync finished");
+                _log.Write(LogLevel.Debug, $"Socket {Id} processing tasks finished");
 
                 _processState = ProcessState.WaitingForClose;
                 while (_closeTask == null)
@@ -221,7 +214,7 @@ namespace CryptoExchange.Net.Sockets
 
                 while (!_stopRequested)
                 {
-                    _log.Write(LogLevel.Trace, $"Socket {Id} attempting to reconnect");
+                    _log.Write(LogLevel.Debug, $"Socket {Id} attempting to reconnect");
                     _socket = CreateSocket();
                     _ctsSource.Dispose();
                     _ctsSource = new CancellationTokenSource();
@@ -260,7 +253,7 @@ namespace CryptoExchange.Net.Sockets
             if (_processState != ProcessState.Processing)
                 return;
 
-            _log.Write(LogLevel.Debug, $"Socket {Id} reconnecting");
+            _log.Write(LogLevel.Debug, $"Socket {Id} reconnect requested");
             _closeTask = CloseInternalAsync();
             await _closeTask.ConfigureAwait(false);
         }
@@ -318,7 +311,6 @@ namespace CryptoExchange.Net.Sockets
             {
                 try
                 {
-                    _log.Write(LogLevel.Trace, $"Socket {Id} normal closure 1");
                     await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
                 catch (Exception)
@@ -332,7 +324,6 @@ namespace CryptoExchange.Net.Sockets
             {
                 try
                 {
-                    _log.Write(LogLevel.Trace, $"Socket {Id} normal closure 2");
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
                 catch (Exception)
@@ -390,7 +381,7 @@ namespace CryptoExchange.Net.Sockets
                             }
 
                             if (start != null)
-                                _log.Write(LogLevel.Trace, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
+                                _log.Write(LogLevel.Debug, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
                         }
 
                         try
@@ -424,7 +415,7 @@ namespace CryptoExchange.Net.Sockets
             }
             finally
             {
-                _log.Write(LogLevel.Trace, $"Socket {Id} Send loop finished");
+                _log.Write(LogLevel.Debug, $"Socket {Id} Send loop finished");
             }
         }
 
@@ -542,7 +533,7 @@ namespace CryptoExchange.Net.Sockets
             }
             finally
             {
-                _log.Write(LogLevel.Trace, $"Socket {Id} Receive loop finished");
+                _log.Write(LogLevel.Debug, $"Socket {Id} Receive loop finished");
             }
         }
 

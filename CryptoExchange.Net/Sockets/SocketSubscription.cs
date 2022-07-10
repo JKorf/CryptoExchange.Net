@@ -44,18 +44,24 @@ namespace CryptoExchange.Net.Sockets
         public bool Confirmed { get; set; }
 
         /// <summary>
+        /// Whether authentication is needed for this subscription
+        /// </summary>
+        public bool Authenticated { get; set; }
+
+        /// <summary>
         /// Cancellation token registration, should be disposed when subscription is closed. Used for closing the subscription with 
         /// a provided cancelation token
         /// </summary>
         public CancellationTokenRegistration? CancellationTokenRegistration { get; set; }
 
-        private SocketSubscription(int id, object? request, string? identifier, bool userSubscription, Action<MessageEvent> dataHandler)
+        private SocketSubscription(int id, object? request, string? identifier, bool userSubscription, bool authenticated, Action<MessageEvent> dataHandler)
         {
             Id = id;
             UserSubscription = userSubscription;
             MessageHandler = dataHandler;
             Request = request;
             Identifier = identifier;
+            Authenticated = authenticated;
         }
 
         /// <summary>
@@ -67,9 +73,9 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForRequest(int id, object request, bool userSubscription,
-            Action<MessageEvent> dataHandler)
+            bool authenticated, Action<MessageEvent> dataHandler)
         {
-            return new SocketSubscription(id, request, null, userSubscription, dataHandler);
+            return new SocketSubscription(id, request, null, userSubscription, authenticated, dataHandler);
         }
 
         /// <summary>
@@ -81,9 +87,9 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="dataHandler"></param>
         /// <returns></returns>
         public static SocketSubscription CreateForIdentifier(int id, string identifier, bool userSubscription,
-            Action<MessageEvent> dataHandler)
+            bool authenticated, Action<MessageEvent> dataHandler)
         {
-            return new SocketSubscription(id, null, identifier, userSubscription, dataHandler);
+            return new SocketSubscription(id, null, identifier, userSubscription, authenticated, dataHandler);
         }
 
         /// <summary>
