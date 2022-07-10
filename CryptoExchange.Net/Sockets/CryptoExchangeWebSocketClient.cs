@@ -5,13 +5,10 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
-using System.Security.Authentication;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,21 +19,32 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class CryptoExchangeWebSocketClient : IWebsocket
     {
+        enum ProcessState
+        {
+            Idle,
+            Processing,
+            WaitingForClose,
+            Reconnecting
+        }
+
         internal static int lastStreamId;
         private static readonly object streamIdLock = new();
 
-        private ClientWebSocket _socket;
         private readonly AsyncResetEvent _sendEvent;
         private readonly ConcurrentQueue<byte[]> _sendBuffer;
-        private readonly IDictionary<string, string> cookies;
-        private readonly IDictionary<string, string> headers;
-        private CancellationTokenSource _ctsSource;
-        private ApiProxy? _proxy;
-
+        private readonly SemaphoreSlim _closeSem;
+        private readonly WebSocketParameters _parameters;
         private readonly List<DateTime> _outgoingMessages;
+
+        private ClientWebSocket _socket;
+        private CancellationTokenSource _ctsSource;
         private DateTime _lastReceivedMessagesUpdate;
-        private bool _closed;
+        private Task? _processTask;
+        private Task? _closeTask;
+        private bool _stopRequested;
         private bool _disposed;
+        private ProcessState _processState;
+
 
         /// <summary>
         /// Received messages, the size and the timstamp
@@ -51,82 +59,24 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Log
         /// </summary>
-        protected Log log;
-
-        /// <summary>
-        /// Handlers for when an error happens on the socket
-        /// </summary>
-        protected readonly List<Action<Exception>> errorHandlers = new();
-        /// <summary>
-        /// Handlers for when the socket connection is opened
-        /// </summary>
-        protected readonly List<Action> openHandlers = new();
-        /// <summary>
-        /// Handlers for when the connection is closed
-        /// </summary>
-        protected readonly List<Action> closeHandlers = new();
-        /// <summary>
-        /// Handlers for when a message is received
-        /// </summary>
-        protected readonly List<Action<string>> messageHandlers = new();
+        protected Log _log;
 
         /// <inheritdoc />
         public int Id { get; }
-
-        /// <inheritdoc />
-        public string? Origin { get; set; }
 
         /// <summary>
         /// The timestamp this socket has been active for the last time
         /// </summary>
         public DateTime LastActionTime { get; private set; }
-
-        /// <summary>
-        /// Delegate used for processing byte data received from socket connections before it is processed by handlers
-        /// </summary>
-        public Func<byte[], string>? DataInterpreterBytes { get; set; }
-
-        /// <summary>
-        /// Delegate used for processing string data received from socket connections before it is processed by handlers
-        /// </summary>
-        public Func<string, string>? DataInterpreterString { get; set; }
-
+        
         /// <inheritdoc />
-        public Uri Uri { get; }
+        public Uri Uri => _parameters.Uri;
 
         /// <inheritdoc />
         public bool IsClosed => _socket.State == WebSocketState.Closed;
 
         /// <inheritdoc />
         public bool IsOpen => _socket.State == WebSocketState.Open && !_ctsSource.IsCancellationRequested;
-
-        /// <summary>
-        /// Ssl protocols supported. NOT USED BY THIS IMPLEMENTATION
-        /// </summary>
-        public SslProtocols SSLProtocols { get; set; }
-
-        private Encoding _encoding = Encoding.UTF8;
-        /// <inheritdoc />
-        public Encoding? Encoding
-        {
-            get => _encoding;
-            set
-            {
-                if(value != null)
-                    _encoding = value;
-            }
-        }
-
-        /// <summary>
-        /// The max amount of outgoing messages per second
-        /// </summary>
-        public int? RatelimitPerSecond { get; set; }
-
-        /// <inheritdoc />
-        public TimeSpan Timeout { get; set; }
-
-        /// <inheritdoc />
-        public TimeSpan KeepAliveInterval { get; set; }
 
         /// <inheritdoc />
         public double IncomingKbps
@@ -146,57 +96,29 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public event Action OnClose
-        {
-            add => closeHandlers.Add(value);
-            remove => closeHandlers.Remove(value);
-        }
-
+        public event Action? OnClose;
         /// <inheritdoc />
-        public event Action<string> OnMessage
-        {
-            add => messageHandlers.Add(value);
-            remove => messageHandlers.Remove(value);
-        }
-
+        public event Action<string>? OnMessage;
         /// <inheritdoc />
-        public event Action<Exception> OnError
-        {
-            add => errorHandlers.Add(value);
-            remove => errorHandlers.Remove(value);
-        }
-
+        public event Action<Exception>? OnError;
         /// <inheritdoc />
-        public event Action OnOpen
-        {
-            add => openHandlers.Add(value);
-            remove => openHandlers.Remove(value);
-        }
+        public event Action? OnOpen;
+        /// <inheritdoc />
+        public event Action? OnReconnecting;
+        /// <inheritdoc />
+        public event Action? OnReconnected;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="log">The log object to use</param>
-        /// <param name="uri">The uri the socket should connect to</param>
-        public CryptoExchangeWebSocketClient(Log log, Uri uri) : this(log, uri, new Dictionary<string, string>(), new Dictionary<string, string>())
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="log">The log object to use</param>
-        /// <param name="uri">The uri the socket should connect to</param>
-        /// <param name="cookies">Cookies to sent in the socket connection request</param>
-        /// <param name="headers">Headers to sent in the socket connection request</param>
-        public CryptoExchangeWebSocketClient(Log log, Uri uri, IDictionary<string, string> cookies, IDictionary<string, string> headers)
+        /// <param name="websocketParameters">The parameters for this socket</param>
+        public CryptoExchangeWebSocketClient(Log log, WebSocketParameters websocketParameters)
         {
             Id = NextStreamId();
-            this.log = log;
-            Uri = uri;
-            this.cookies = cookies;
-            this.headers = headers;
+            _log = log;
 
+            _parameters = websocketParameters;
             _outgoingMessages = new List<DateTime>();
             _receivedMessages = new List<ReceiveItem>();
             _sendEvent = new AsyncResetEvent();
@@ -204,90 +126,184 @@ namespace CryptoExchange.Net.Sockets
             _ctsSource = new CancellationTokenSource();
             _receivedMessagesLock = new object();
 
+            _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
-        }
-
-        /// <inheritdoc />
-        public virtual void SetProxy(ApiProxy proxy)
-        {
-            _proxy = proxy;
-
-            if (!Uri.TryCreate($"{proxy.Host}:{proxy.Port}", UriKind.Absolute, out var uri))
-                throw new ArgumentException("Proxy settings invalid, {proxy.Host}:{proxy.Port} not a valid URI", nameof(proxy));
-
-            _socket.Options.Proxy = uri?.Scheme == null
-                ? _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port)
-                : _socket.Options.Proxy = new WebProxy
-                {
-                    Address = uri
-                };
-
-            if (proxy.Login != null)
-                _socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
 
         /// <inheritdoc />
         public virtual async Task<bool> ConnectAsync()
         {
-            log.Write(LogLevel.Debug, $"Socket {Id} connecting");
+            if (!await ConnectInternalAsync().ConfigureAwait(false))
+                return false;
+            
+            OnOpen?.Invoke();
+            _processTask = ProcessAsync();
+            return true;            
+        }
+
+        /// <summary>
+        /// Create the socket object
+        /// </summary>
+        private ClientWebSocket CreateSocket()
+        {
+            var cookieContainer = new CookieContainer();
+            foreach (var cookie in _parameters.Cookies)
+                cookieContainer.Add(new Cookie(cookie.Key, cookie.Value));
+
+            var socket = new ClientWebSocket();
+            socket.Options.Cookies = cookieContainer;
+            foreach (var header in _parameters.Headers)
+                socket.Options.SetRequestHeader(header.Key, header.Value);
+            socket.Options.KeepAliveInterval = _parameters.KeepAliveInterval ?? TimeSpan.Zero;
+            socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+            if (_parameters.Proxy != null)
+                SetProxy(_parameters.Proxy);
+            return socket;
+        }
+
+        private async Task<bool> ConnectInternalAsync()
+        {
+            _log.Write(LogLevel.Debug, $"Socket {Id} connecting");
             try
             {
-                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));                
+                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
                 await _socket.ConnectAsync(Uri, tcs.Token).ConfigureAwait(false);
-                
-                Handle(openHandlers);
             }
             catch (Exception e)
             {
-                log.Write(LogLevel.Debug, $"Socket {Id} connection failed: " + e.ToLogString());
+                _log.Write(LogLevel.Debug, $"Socket {Id} connection failed: " + e.ToLogString());
                 return false;
             }
-    
-            log.Write(LogLevel.Debug, $"Socket {Id} connected to {Uri}");
+
+            _log.Write(LogLevel.Debug, $"Socket {Id} connected to {Uri}");
             return true;
         }
 
         /// <inheritdoc />
-        public virtual async Task ProcessAsync()
+        private async Task ProcessAsync()
         {
-            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync started");
-            var sendTask = SendLoopAsync();
-            var receiveTask = ReceiveLoopAsync();
-            var timeoutTask = Timeout != default ? CheckTimeoutAsync() : Task.CompletedTask;
-            log.Write(LogLevel.Trace, $"Socket {Id} processing startup completed");
-            await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
-            log.Write(LogLevel.Trace, $"Socket {Id} ProcessAsync finished");
+            while (!_stopRequested)
+            {
+                _log.Write(LogLevel.Debug, $"Socket {Id} starting processing tasks");
+                _processState = ProcessState.Processing;
+                var sendTask = SendLoopAsync();
+                var receiveTask = ReceiveLoopAsync();
+                var timeoutTask = _parameters.Timeout != null && _parameters.Timeout > TimeSpan.FromSeconds(0) ? CheckTimeoutAsync() : Task.CompletedTask;
+                await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
+                _log.Write(LogLevel.Debug, $"Socket {Id} processing tasks finished");
+
+                _processState = ProcessState.WaitingForClose;
+                while (_closeTask == null)
+                    await Task.Delay(50).ConfigureAwait(false);
+
+                await _closeTask.ConfigureAwait(false);
+                _closeTask = null;
+
+                if (!_parameters.AutoReconnect)
+                {
+                    _processState = ProcessState.Idle;
+                    OnClose?.Invoke();
+                    return;
+                }    
+
+                if (!_stopRequested)
+                {
+                    _processState = ProcessState.Reconnecting;
+                    OnReconnecting?.Invoke();
+                }
+
+                while (!_stopRequested)
+                {
+                    _log.Write(LogLevel.Debug, $"Socket {Id} attempting to reconnect");
+                    _socket = CreateSocket();
+                    _ctsSource.Dispose();
+                    _ctsSource = new CancellationTokenSource();
+                    while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
+
+                    var connected = await ConnectInternalAsync().ConfigureAwait(false);
+                    if (!connected)
+                    {
+                        await Task.Delay(_parameters.ReconnectInterval).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    OnReconnected?.Invoke();
+                    break;
+                }
+            }
+
+            _processState = ProcessState.Idle;
         }
 
         /// <inheritdoc />
         public virtual void Send(string data)
         {
             if (_ctsSource.IsCancellationRequested)
-                throw new InvalidOperationException($"Socket {Id} Can't send data when socket is not connected");
+                return;
 
-            var bytes = _encoding.GetBytes(data);
-            log.Write(LogLevel.Trace, $"Socket {Id} Adding {bytes.Length} to sent buffer");
+            var bytes = _parameters.Encoding.GetBytes(data);
+            _log.Write(LogLevel.Trace, $"Socket {Id} Adding {bytes.Length} to sent buffer");
             _sendBuffer.Enqueue(bytes);
             _sendEvent.Set();
         }
 
         /// <inheritdoc />
+        public virtual async Task ReconnectAsync()
+        {
+            if (_processState != ProcessState.Processing)
+                return;
+
+            _log.Write(LogLevel.Debug, $"Socket {Id} reconnect requested");
+            _closeTask = CloseInternalAsync();
+            await _closeTask.ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public virtual async Task CloseAsync()
         {
-            log.Write(LogLevel.Debug, $"Socket {Id} closing");
-            await CloseInternalAsync().ConfigureAwait(false);
+            await _closeSem.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_closeTask != null && !_closeTask.IsCompleted)
+                {
+                    _log.Write(LogLevel.Debug, $"Socket {Id} CloseAsync() waiting for existing close task");
+                    await _closeTask.ConfigureAwait(false);
+                    return;
+                }
+
+                _stopRequested = true;
+
+                if (!IsOpen)
+                {
+                    _log.Write(LogLevel.Debug, $"Socket {Id} CloseAsync() socket not open");
+                    return;
+                }
+
+                _log.Write(LogLevel.Debug, $"Socket {Id} closing");
+                _closeTask = CloseInternalAsync();
+            }
+            finally
+            {
+                _closeSem.Release();
+            }
+
+            await _closeTask.ConfigureAwait(false);
+            if(_processTask != null)
+                await _processTask.ConfigureAwait(false);
+            OnClose?.Invoke();
+            _log.Write(LogLevel.Debug, $"Socket {Id} closed");
         }
-        
+
         /// <summary>
         /// Internal close method
         /// </summary>
         /// <returns></returns>
         private async Task CloseInternalAsync()
         {
-            if (_closed || _disposed)
+            if (_disposed)
                 return;
 
-            _closed = true;
+            //_closeState = CloseState.Closing;
             _ctsSource.Cancel();
             _sendEvent.Set();
 
@@ -297,8 +313,12 @@ namespace CryptoExchange.Net.Sockets
                 {
                     await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
-                catch(Exception)
-                { } // Can sometimes throw an exception when socket is in aborted state due to timing
+                catch (Exception)
+                {
+                    // Can sometimes throw an exception when socket is in aborted state due to timing
+                    // Websocket is set to Aborted state when the cancelation token is set during SendAsync/ReceiveAsync
+                    // So socket might go to aborted state, might still be open
+                }
             }
             else if(_socket.State == WebSocketState.CloseReceived)
             {
@@ -307,10 +327,12 @@ namespace CryptoExchange.Net.Sockets
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
                 catch (Exception)
-                { } // Can sometimes throw an exception when socket is in aborted state due to timing
+                {
+                    // Can sometimes throw an exception when socket is in aborted state due to timing
+                    // Websocket is set to Aborted state when the cancelation token is set during SendAsync/ReceiveAsync
+                    // So socket might go to aborted state, might still be open
+                }
             }
-            log.Write(LogLevel.Debug, $"Socket {Id} closed");
-            Handle(closeHandlers);
         }
 
         /// <summary>
@@ -321,48 +343,11 @@ namespace CryptoExchange.Net.Sockets
             if (_disposed)
                 return;
 
-            log.Write(LogLevel.Debug, $"Socket {Id} disposing");
+            _log.Write(LogLevel.Debug, $"Socket {Id} disposing");
             _disposed = true;
             _socket.Dispose();
             _ctsSource.Dispose();
-
-            errorHandlers.Clear();
-            openHandlers.Clear();
-            closeHandlers.Clear();
-            messageHandlers.Clear();
-            log.Write(LogLevel.Trace, $"Socket {Id} disposed");
-        }
-
-        /// <inheritdoc />
-        public void Reset()
-        {
-            log.Write(LogLevel.Debug, $"Socket {Id} resetting");
-            _ctsSource = new CancellationTokenSource();
-
-            while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
-
-            _socket = CreateSocket();
-            if (_proxy != null)
-                SetProxy(_proxy);
-            _closed = false;
-        }
-        
-        /// <summary>
-        /// Create the socket object
-        /// </summary>
-        private ClientWebSocket CreateSocket()
-        {
-            var cookieContainer = new CookieContainer();
-            foreach (var cookie in cookies)
-                cookieContainer.Add(new Cookie(cookie.Key, cookie.Value));
-
-            var socket = new ClientWebSocket();
-            socket.Options.Cookies = cookieContainer;
-            foreach (var header in headers)
-                socket.Options.SetRequestHeader(header.Key, header.Value);
-            socket.Options.KeepAliveInterval = KeepAliveInterval;
-            socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
-            return socket;
+            _log.Write(LogLevel.Trace, $"Socket {Id} disposed");
         }
 
         /// <summary>
@@ -385,25 +370,25 @@ namespace CryptoExchange.Net.Sockets
 
                     while (_sendBuffer.TryDequeue(out var data))
                     {
-                        if (RatelimitPerSecond != null)
+                        if (_parameters.RatelimitPerSecond != null)
                         {
                             // Wait for rate limit
                             DateTime? start = null;
-                            while (MessagesSentLastSecond() >= RatelimitPerSecond)
+                            while (MessagesSentLastSecond() >= _parameters.RatelimitPerSecond)
                             {
                                 start ??= DateTime.UtcNow;
                                 await Task.Delay(50).ConfigureAwait(false);
                             }
 
                             if (start != null)
-                                log.Write(LogLevel.Trace, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
+                                _log.Write(LogLevel.Debug, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
                         }
 
                         try
                         {
                             await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
                             _outgoingMessages.Add(DateTime.UtcNow);
-                            log.Write(LogLevel.Trace, $"Socket {Id} sent {data.Length} bytes");
+                            _log.Write(LogLevel.Trace, $"Socket {Id} sent {data.Length} bytes");
                         }
                         catch (OperationCanceledException)
                         {
@@ -412,9 +397,9 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (Exception ioe)
                         {
-                            // Connection closed unexpectedly, .NET framework                      
-                            Handle(errorHandlers, ioe);
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            // Connection closed unexpectedly, .NET framework
+                            OnError?.Invoke(ioe);
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
                     }
@@ -425,12 +410,12 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
             finally
             {
-                log.Write(LogLevel.Trace, $"Socket {Id} Send loop finished");
+                _log.Write(LogLevel.Debug, $"Socket {Id} Send loop finished");
             }
         }
 
@@ -468,17 +453,17 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (Exception wse)
                         {
-                            // Connection closed unexpectedly        
-                            Handle(errorHandlers, wse);
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            // Connection closed unexpectedly
+                            OnError?.Invoke(wse);
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
 
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed unexpectedly        
-                            log.Write(LogLevel.Debug, $"Socket {Id} received `Close` message");
-                            await CloseInternalAsync().ConfigureAwait(false);
+                            _log.Write(LogLevel.Debug, $"Socket {Id} received `Close` message");
+                            _closeTask = CloseInternalAsync();
                             break;
                         }
 
@@ -487,7 +472,7 @@ namespace CryptoExchange.Net.Sockets
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
                             memoryStream ??= new MemoryStream();
-                            log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
+                            _log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                             await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                         }
                         else
@@ -495,13 +480,13 @@ namespace CryptoExchange.Net.Sockets
                             if (!multiPartMessage)
                             {
                                 // Received a complete message and it's not multi part
-                                log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
+                                _log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
                                 HandleMessage(buffer.Array!, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
                             }
                             else
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
-                                log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
+                                _log.Write(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
                                 await memoryStream!.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                             }
                             break;
@@ -529,12 +514,12 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult?.EndOfMessage == true)
                         {
                             // Reassemble complete message from memory stream
-                            log.Write(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
+                            _log.Write(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
                             HandleMessage(memoryStream!.ToArray(), 0, (int)memoryStream.Length, receiveResult.MessageType);
                             memoryStream.Dispose();
                         }
                         else
-                            log.Write(LogLevel.Trace, $"Socket {Id} discarding incomplete message of {memoryStream!.Length} bytes");
+                            _log.Write(LogLevel.Trace, $"Socket {Id} discarding incomplete message of {memoryStream!.Length} bytes");
                     }
                 }
             }
@@ -543,12 +528,12 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
             finally
             {
-                log.Write(LogLevel.Trace, $"Socket {Id} Receive loop finished");
+                _log.Write(LogLevel.Debug, $"Socket {Id} Receive loop finished");
             }
         }
 
@@ -564,46 +549,83 @@ namespace CryptoExchange.Net.Sockets
             string strData;
             if (messageType == WebSocketMessageType.Binary)
             {
-                if (DataInterpreterBytes == null)
+                if (_parameters.DataInterpreterBytes == null)
                     throw new Exception("Byte interpreter not set while receiving byte data");
 
                 try
                 {
                     var relevantData = new byte[count];
                     Array.Copy(data, offset, relevantData, 0, count);
-                    strData = DataInterpreterBytes(relevantData);
+                    strData = _parameters.DataInterpreterBytes(relevantData);
                 }
                 catch(Exception e)
                 {
-                    log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during byte data interpretation: " + e.ToLogString());
+                    _log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during byte data interpretation: " + e.ToLogString());
                     return;
                 }
             }
             else
-                strData = _encoding.GetString(data, offset, count);
+                strData = _parameters.Encoding.GetString(data, offset, count);
 
-            if (DataInterpreterString != null)
+            if (_parameters.DataInterpreterString != null)
             {
                 try
                 {
-                    strData = DataInterpreterString(strData);
+                    strData = _parameters.DataInterpreterString(strData);
                 }
                 catch(Exception e)
                 {
-                    log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during string data interpretation: " + e.ToLogString());
+                    _log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during string data interpretation: " + e.ToLogString());
                     return;
                 }
             }
 
             try
             {
-                Handle(messageHandlers, strData);
+                LastActionTime = DateTime.UtcNow;
+                OnMessage?.Invoke(strData);
             }
             catch(Exception e)
             {
-                log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during message processing: " + e.ToLogString());
+                _log.Write(LogLevel.Error, $"Socket {Id} unhandled exception during message processing: " + e.ToLogString());
             }
         }
+
+        /// <summary>
+        /// Trigger the OnMessage event
+        /// </summary>
+        /// <param name="data"></param>
+        protected void TriggerOnMessage(string data)
+        {
+            LastActionTime = DateTime.UtcNow;
+            OnMessage?.Invoke(data);
+        }
+
+        /// <summary>
+        /// Trigger the OnError event
+        /// </summary>
+        /// <param name="ex"></param>
+        protected void TriggerOnError(Exception ex) => OnError?.Invoke(ex);
+
+        /// <summary>
+        /// Trigger the OnError event
+        /// </summary>
+        protected void TriggerOnOpen() => OnOpen?.Invoke();
+
+        /// <summary>
+        /// Trigger the OnError event
+        /// </summary>
+        protected void TriggerOnClose() => OnClose?.Invoke();
+
+        /// <summary>
+        /// Trigger the OnReconnecting event
+        /// </summary>
+        protected void TriggerOnReconnecting() => OnReconnecting?.Invoke();
+
+        /// <summary>
+        /// Trigger the OnReconnected event
+        /// </summary>
+        protected void TriggerOnReconnected() => OnReconnected?.Invoke();
 
         /// <summary>
         /// Checks if there is no data received for a period longer than the specified timeout
@@ -611,7 +633,8 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected async Task CheckTimeoutAsync()
         {
-            log.Write(LogLevel.Debug, $"Socket {Id} Starting task checking for no data received for {Timeout}");
+            _log.Write(LogLevel.Debug, $"Socket {Id} Starting task checking for no data received for {_parameters.Timeout}");
+            LastActionTime = DateTime.UtcNow;
             try 
             { 
                 while (true)
@@ -619,9 +642,9 @@ namespace CryptoExchange.Net.Sockets
                     if (_ctsSource.IsCancellationRequested)
                         return;
 
-                    if (DateTime.UtcNow - LastActionTime > Timeout)
+                    if (DateTime.UtcNow - LastActionTime > _parameters.Timeout)
                     {
-                        log.Write(LogLevel.Warning, $"Socket {Id} No data received for {Timeout}, reconnecting socket");
+                        _log.Write(LogLevel.Warning, $"Socket {Id} No data received for {_parameters.Timeout}, reconnecting socket");
                         _ = CloseAsync().ConfigureAwait(false);
                         return;
                     }
@@ -641,33 +664,9 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will stop the timeout checking, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                Handle(errorHandlers, e);
+                OnError?.Invoke(e);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Helper to invoke handlers
-        /// </summary>
-        /// <param name="handlers"></param>
-        protected void Handle(List<Action> handlers)
-        {
-            LastActionTime = DateTime.UtcNow;
-            foreach (var handle in new List<Action>(handlers))
-                handle?.Invoke();
-        }
-
-        /// <summary>
-        /// Helper to invoke handlers
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="handlers"></param>
-        /// <param name="data"></param>
-        protected void Handle<T>(List<Action<T>> handlers, T data)
-        {
-            LastActionTime = DateTime.UtcNow;
-            foreach (var handle in new List<Action<T>>(handlers))
-                handle?.Invoke(data);
         }
 
         /// <summary>
@@ -704,6 +703,27 @@ namespace CryptoExchange.Net.Sockets
 
                 _lastReceivedMessagesUpdate = checkTime;
             }
+        }
+
+        /// <summary>
+        /// Set proxy on socket
+        /// </summary>
+        /// <param name="proxy"></param>
+        /// <exception cref="ArgumentException"></exception>
+        protected virtual void SetProxy(ApiProxy proxy)
+        {
+            if (!Uri.TryCreate($"{proxy.Host}:{proxy.Port}", UriKind.Absolute, out var uri))
+                throw new ArgumentException("Proxy settings invalid, {proxy.Host}:{proxy.Port} not a valid URI", nameof(proxy));
+
+            _socket.Options.Proxy = uri?.Scheme == null
+                ? _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port)
+                : _socket.Options.Proxy = new WebProxy
+                {
+                    Address = uri
+                };
+
+            if (proxy.Login != null)
+                _socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
     }
 

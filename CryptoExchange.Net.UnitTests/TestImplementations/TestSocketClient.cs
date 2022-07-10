@@ -22,13 +22,13 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             SubClient = new TestSubSocketClient(exchangeOptions, exchangeOptions.SubOptions);
             SocketFactory = new Mock<IWebsocketFactory>().Object;
-            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
+            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
         }
 
         public TestSocket CreateSocket()
         {
-            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<string>())).Returns(new TestSocket());
-            return (TestSocket)CreateSocket("123");
+            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
+            return (TestSocket)CreateSocket("https://localhost:123/");
         }
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
