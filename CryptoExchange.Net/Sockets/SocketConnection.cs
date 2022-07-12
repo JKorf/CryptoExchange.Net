@@ -385,7 +385,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!subscriptions.Contains(subscription))
                     return;
 
-                subscriptions.Remove(subscription);
+                subscription.Closed = true;
             }
 
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
@@ -407,7 +407,7 @@ namespace CryptoExchange.Net.Sockets
                     return;
                 }
 
-                shouldCloseConnection = subscriptions.All(r => !r.UserSubscription);
+                shouldCloseConnection = subscriptions.All(r => !r.UserSubscription || r.Closed);
                 if (shouldCloseConnection)
                     Status = SocketStatus.Closing;
             }
@@ -417,6 +417,9 @@ namespace CryptoExchange.Net.Sockets
                 log.Write(LogLevel.Debug, $"Socket {SocketId} closing as there are no more subscriptions");
                 await CloseAsync().ConfigureAwait(false);
             }
+
+            lock (subscriptionLock)
+                subscriptions.Remove(subscription);
         }
 
         /// <summary>

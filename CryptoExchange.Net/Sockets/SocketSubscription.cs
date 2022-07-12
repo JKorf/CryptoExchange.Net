@@ -49,6 +49,11 @@ namespace CryptoExchange.Net.Sockets
         public bool Authenticated { get; set; }
 
         /// <summary>
+        /// Whether we're closing this subscription and a socket connection shouldn't be kept open for it
+        /// </summary>
+        public bool Closed { get; set; }
+
+        /// <summary>
         /// Cancellation token registration, should be disposed when subscription is closed. Used for closing the subscription with 
         /// a provided cancelation token
         /// </summary>

@@ -250,7 +250,7 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual async Task ReconnectAsync()
         {
-            if (_processState != ProcessState.Processing)
+            if (_processState != ProcessState.Processing && IsOpen)
                 return;
 
             _log.Write(LogLevel.Debug, $"Socket {Id} reconnect requested");
