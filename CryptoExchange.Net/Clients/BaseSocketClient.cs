@@ -544,6 +544,17 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Get the url to reconnect to after losing a connection
+        /// </summary>
+        /// <param name="apiClient"></param>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public virtual Task<Uri?> GetReconnectUriAsync(SocketApiClient apiClient, SocketConnection connection)
+        {
+            return Task.FromResult<Uri?>(connection.ConnectionUri);
+        }
+
+        /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
         /// </summary>
         /// <param name="apiClient">The API client the connection is for</param>

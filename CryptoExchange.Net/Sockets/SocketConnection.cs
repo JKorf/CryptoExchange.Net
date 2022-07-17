@@ -184,6 +184,7 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnReconnecting += HandleReconnecting;
             _socket.OnReconnected += HandleReconnected;
             _socket.OnError += HandleError;
+            _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
         }
 
         /// <summary>
@@ -223,7 +224,17 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var sub in subscriptions)
                     sub.Confirmed = false;
             }
-            Task.Run(() => ConnectionLost?.Invoke());
+
+            _ = Task.Run(() => ConnectionLost?.Invoke());
+        }
+
+        /// <summary>
+        /// Get the url to connect to when reconnecting
+        /// </summary>
+        /// <returns></returns>
+        protected virtual async Task<Uri?> GetReconnectionUrlAsync()
+        {
+            return await socketClient.GetReconnectUriAsync(ApiClient, this).ConfigureAwait(false);
         }
 
         /// <summary>

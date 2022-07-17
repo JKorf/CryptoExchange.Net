@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets;
 using System;
 using System.Security.Authentication;
 using System.Text;
@@ -35,6 +36,10 @@ namespace CryptoExchange.Net.Interfaces
         /// Websocket has reconnected to the server
         /// </summary>
         event Action OnReconnected;
+        /// <summary>
+        /// Get reconntion url
+        /// </summary>
+        Func<Task<Uri?>> GetReconnectionUrl { get; set; }
 
         /// <summary>
         /// Unique id for this socket
