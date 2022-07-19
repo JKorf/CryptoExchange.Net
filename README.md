@@ -18,6 +18,9 @@ I develop and maintain this package on my own for free in my spare time. Donatio
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
 
 ## Release notes
+* Version 5.2.3 - 19 Jul 2022
+    * Fixed socket getting disconnected when `no data` timeout is reached instead of being reconnected
+
 * Version 5.2.2 - 17 Jul 2022
     * Added support for retrieving a new url when socket connection is lost and reconnection will happen
 
