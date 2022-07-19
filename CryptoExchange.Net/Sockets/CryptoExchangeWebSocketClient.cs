@@ -660,7 +660,7 @@ namespace CryptoExchange.Net.Sockets
                     if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
                     {
                         _log.Write(LogLevel.Warning, $"Socket {Id} No data received for {Parameters.Timeout}, reconnecting socket");
-                        _ = CloseAsync().ConfigureAwait(false);
+                        _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }
                     try
