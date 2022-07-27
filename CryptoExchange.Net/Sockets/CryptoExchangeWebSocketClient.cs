@@ -43,6 +43,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _stopRequested;
         private bool _disposed;
         private ProcessState _processState;
+        private DateTime _lastReconnectTime;
 
 
         /// <summary>
@@ -216,6 +217,10 @@ namespace CryptoExchange.Net.Sockets
                     OnReconnecting?.Invoke();                    
                 }
 
+                var sinceLastReconnect = DateTime.UtcNow - _lastReconnectTime;
+                if (sinceLastReconnect < Parameters.ReconnectInterval)
+                    await Task.Delay(Parameters.ReconnectInterval - sinceLastReconnect).ConfigureAwait(false);
+
                 while (!_stopRequested)
                 {
                     _log.Write(LogLevel.Debug, $"Socket {Id} attempting to reconnect");
@@ -242,6 +247,7 @@ namespace CryptoExchange.Net.Sockets
                         continue;
                     }
 
+                    _lastReconnectTime = DateTime.UtcNow;
                     OnReconnected?.Invoke();
                     break;
                 }
