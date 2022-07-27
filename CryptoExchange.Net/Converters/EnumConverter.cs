@@ -132,7 +132,7 @@ namespace CryptoExchange.Net.Converters
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             var stringValue = GetString(value);
-            writer.WriteRawValue(stringValue);
+            writer.WriteValue(stringValue);
         }
     }
 }
