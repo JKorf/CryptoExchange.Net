@@ -105,7 +105,7 @@ All updates are wrapped in a `DataEvent<>` object, which contain a `Timestamp`, 
 *[WARNING] Do not use `using` statements in combination with constructing a `SocketClient`. Doing so will dispose the `SocketClient` instance when the subscription is done, which will result in the connection getting closed. Instead assign the socket client to a variable outside of the method scope.*
 
 ### Processing subscribe responses
-Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. This should be checked for success the same was as the [rest client](#processing-request-responses). The `UpdateSubscription` object can be used to listen for connection events of the socket connection. 
+Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. This should be checked for success the same way as the [rest client](#processing-request-responses). The `UpdateSubscription` object can be used to listen for connection events of the socket connection. 
 ```csharp
 
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
