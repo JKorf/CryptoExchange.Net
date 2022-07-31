@@ -33,6 +33,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.2.4 - 31 Jul 2022
+    * Added handling of PlatformNotSupportedException when trying to use websocket from WebAssembly
+    * Changed DataEvent to have a public constructor for testing purposes
+    * Fixed EnumConverter serializing values without proper quotes
+    * Fixed websocket connection reconnecting too quickly when resubscribing/reauthenticating fails
+
 * Version 5.2.3 - 19 Jul 2022
     * Fixed socket getting disconnected when `no data` timeout is reached instead of being reconnected
 
