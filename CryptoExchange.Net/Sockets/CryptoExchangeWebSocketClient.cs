@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -156,13 +157,22 @@ namespace CryptoExchange.Net.Sockets
                 cookieContainer.Add(new Cookie(cookie.Key, cookie.Value));
 
             var socket = new ClientWebSocket();
-            socket.Options.Cookies = cookieContainer;
-            foreach (var header in Parameters.Headers)
-                socket.Options.SetRequestHeader(header.Key, header.Value);
-            socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
-            socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
-            if (Parameters.Proxy != null)
-                SetProxy(Parameters.Proxy);
+            try
+            {
+                socket.Options.Cookies = cookieContainer;
+                foreach (var header in Parameters.Headers)
+                    socket.Options.SetRequestHeader(header.Key, header.Value);
+                socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
+                socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+                if (Parameters.Proxy != null)
+                    SetProxy(Parameters.Proxy);
+            }
+            catch (PlatformNotSupportedException)
+            {
+                // Options are not supported on certain platforms (WebAssembly for instance)
+                // best we can do it try to connect without setting options.
+            }
+
             return socket;
         }
 
