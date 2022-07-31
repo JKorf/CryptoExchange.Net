@@ -25,7 +25,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public T Data { get; set; }
 
-        internal DataEvent(T data, DateTime timestamp)
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="timestamp"></param>
+        public DataEvent(T data, DateTime timestamp)
         {
             Data = data;
             Timestamp = timestamp;
