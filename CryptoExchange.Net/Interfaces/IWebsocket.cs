@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Get reconntion url
         /// </summary>
-        Func<Task<Uri?>> GetReconnectionUrl { get; set; }
+        Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
         /// <summary>
         /// Unique id for this socket
