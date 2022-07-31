@@ -8,14 +8,29 @@ CryptoExchange.Net is a base package which can be used to easily implement crypt
 ## Discord
 A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.
 
-## Donate / Sponsor
-I develop and maintain this package on my own for free in my spare time. Donations are greatly appreciated. If you prefer to donate any other currency please contact me.
+## Support the project
+I develop and maintain this package on my own for free in my spare time, any support is greatly appreciated.
+
+### Referral link
+Use one of the following following referral links to signup to a new exchange to pay a small percentage of the trading fees you pay to support the project instead of paying them straight to the exchange. This doesn't cost you a thing!
+[Binance](https://accounts.binance.com/en/register?ref=10153680)  
+[Bitfinex](https://www.bitfinex.com/sign-up?refcode=kCCe-CNBO)  
+[Bittrex](https://bittrex.com/discover/join?referralCode=TST-DJM-CSX)  
+[Bybit](https://partner.bybit.com/b/jkorf)  
+[CoinEx](https://www.coinex.com/register?refer_code=hd6gn)  
+[FTX](https://ftx.com/referrals#a=31620192)  
+[Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=fxp93)  
+[Kucoin](https://www.kucoin.com/ucenter/signup?rcode=RguMux)  
+
+### Donate
+Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.
 
 **Btc**:  12KwZk3r2Y3JZ2uMULcjqqBvXmpDwjhhQS  
 **Eth**:  0x069176ca1a4b1d6e0b7901a6bc0dbf3bb0bf5cc2  
 **Nano**: xrb_1ocs3hbp561ef76eoctjwg85w5ugr8wgimkj8mfhoyqbx4s1pbc74zggw7gs  
 
-Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf)  
+### Sponsor
+Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
 * Version 5.2.3 - 19 Jul 2022
