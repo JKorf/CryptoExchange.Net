@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
@@ -165,7 +165,7 @@ namespace CryptoExchange.Net.Sockets
                 socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
                 socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
                 if (Parameters.Proxy != null)
-                    SetProxy(Parameters.Proxy);
+                    SetProxy(socket, Parameters.Proxy);
             }
             catch (PlatformNotSupportedException)
             {
@@ -741,20 +741,20 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="proxy"></param>
         /// <exception cref="ArgumentException"></exception>
-        protected virtual void SetProxy(ApiProxy proxy)
+        protected virtual void SetProxy(ClientWebSocket socket, ApiProxy proxy)
         {
             if (!Uri.TryCreate($"{proxy.Host}:{proxy.Port}", UriKind.Absolute, out var uri))
                 throw new ArgumentException("Proxy settings invalid, {proxy.Host}:{proxy.Port} not a valid URI", nameof(proxy));
 
-            _socket.Options.Proxy = uri?.Scheme == null
-                ? _socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port)
-                : _socket.Options.Proxy = new WebProxy
+            socket.Options.Proxy = uri?.Scheme == null
+                ? socket.Options.Proxy = new WebProxy(proxy.Host, proxy.Port)
+                : socket.Options.Proxy = new WebProxy
                 {
                     Address = uri
                 };
 
             if (proxy.Login != null)
-                _socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
+                socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
     }
 
