@@ -37,7 +37,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Keep alive interval for websocket connection
         /// </summary>
-        protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
+        protected TimeSpan? KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
         /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
