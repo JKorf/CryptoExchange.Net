@@ -109,7 +109,7 @@ namespace CryptoExchange.Net.Converters
 
                     if ((property.PropertyType == typeof(decimal)
                      || property.PropertyType == typeof(decimal?))
-                     && (value != null && value.ToString().Contains("e")))
+                     && (value != null && value.ToString().IndexOf("e", StringComparison.OrdinalIgnoreCase) >= 0))
                     {
                         if (decimal.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
                             property.SetValue(result, dec);
