@@ -389,6 +389,9 @@ namespace CryptoExchange.Net
             if (!connectResult)
                 return new CallResult<bool>(connectResult.Error!);
 
+            if (ClientOptions.DelayAfterConnect != TimeSpan.Zero)
+                await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
+
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true);
 

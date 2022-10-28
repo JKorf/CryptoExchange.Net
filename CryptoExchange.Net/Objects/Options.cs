@@ -205,6 +205,11 @@ namespace CryptoExchange.Net.Objects
         public int? MaxSocketConnections { get; set; }
 
         /// <summary>
+        /// The time to wait after connecting a socket. Can be used for API's which will rate limit if you subscribe directly after connecting.
+        /// </summary>
+        public TimeSpan DelayAfterConnect = TimeSpan.Zero;
+
+        /// <summary>
         /// ctor
         /// </summary>
         public BaseSocketClientOptions(): this(null)
