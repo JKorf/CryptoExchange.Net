@@ -51,14 +51,14 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Provided client options
         /// </summary>
-        public BaseClientOptions ClientOptions { get; }
+        public ClientOptions ClientOptions { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="name">The name of the API this client is for</param>
         /// <param name="options">The options for this client</param>
-        protected BaseClient(string name, BaseClientOptions options)
+        protected BaseClient(string name, ClientOptions options)
         {
             log = new Log(name);
             log.UpdateWriters(options.LogWriters);

@@ -149,7 +149,6 @@ namespace CryptoExchange.Net.Sockets
         private readonly object subscriptionLock = new();
 
         private readonly Log log;
-        private readonly BaseSocketClient socketClient;
 
         private readonly List<PendingRequest> pendingRequests;
 
@@ -163,14 +162,13 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// New socket connection
         /// </summary>
-        /// <param name="client">The socket client</param>
+        /// <param name="log">The logger</param>
         /// <param name="apiClient">The api client</param>
         /// <param name="socket">The socket</param>
         /// <param name="tag"></param>
-        public SocketConnection(BaseSocketClient client, SocketApiClient apiClient, IWebsocket socket, string tag)
+        public SocketConnection(Log log, SocketApiClient apiClient, IWebsocket socket, string tag)
         {
-            log = client.log;
-            socketClient = client;
+            this.log = log;
             ApiClient = apiClient;
             Tag = tag;
 
@@ -234,7 +232,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual async Task<Uri?> GetReconnectionUrlAsync()
         {
-            return await socketClient.GetReconnectUriAsync(ApiClient, this).ConfigureAwait(false);
+            return await ApiClient.GetReconnectUriAsync(ApiClient, this).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -315,7 +313,7 @@ namespace CryptoExchange.Net.Sockets
                     lock (pendingRequests)
                         pendingRequests.Remove(pendingRequest);
 
-                    if (!socketClient.ContinueOnQueryResponse)
+                    if (!ApiClient.ContinueOnQueryResponse)
                         return;
 
                     handledResponse = true;
@@ -324,11 +322,11 @@ namespace CryptoExchange.Net.Sockets
             }
 
             // Message was not a request response, check data handlers
-            var messageEvent = new MessageEvent(this, tokenData, socketClient.ClientOptions.OutputOriginalData ? data : null, timestamp);
+            var messageEvent = new MessageEvent(this, tokenData, ApiClient.Options.OutputOriginalData ? data : null, timestamp);
             var (handled, userProcessTime, subscription) = HandleData(messageEvent);
             if (!handled && !handledResponse)
             {
-                if (!socketClient.UnhandledMessageExpected)
+                if (!ApiClient.UnhandledMessageExpected)
                     log.Write(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + tokenData);
                 UnhandledMessage?.Invoke(tokenData);
             }
@@ -368,8 +366,8 @@ namespace CryptoExchange.Net.Sockets
             if (Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            if (socketClient.socketConnections.ContainsKey(SocketId))
-                socketClient.socketConnections.TryRemove(SocketId, out _);
+            if (ApiClient.socketConnections.ContainsKey(SocketId))
+                ApiClient.socketConnections.TryRemove(SocketId, out _);
 
             lock (subscriptionLock)
             {
@@ -407,7 +405,7 @@ namespace CryptoExchange.Net.Sockets
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
             if (subscription.Confirmed && _socket.IsOpen)
-                await socketClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
+                await ApiClient.UnsubscribeAsync(this, subscription).ConfigureAwait(false);
 
             bool shouldCloseConnection;
             lock (subscriptionLock)
@@ -504,7 +502,7 @@ namespace CryptoExchange.Net.Sockets
                     currentSubscription = subscription;
                     if (subscription.Request == null)
                     {
-                        if (socketClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Identifier!))
+                        if (ApiClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Identifier!))
                         {
                             handled = true;
                             var userSw = Stopwatch.StartNew();
@@ -515,10 +513,10 @@ namespace CryptoExchange.Net.Sockets
                     }
                     else
                     {
-                        if (socketClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Request))
+                        if (ApiClient.MessageMatchesHandler(this, messageEvent.JsonData, subscription.Request))
                         {
                             handled = true;
-                            messageEvent.JsonData = socketClient.ProcessTokenData(messageEvent.JsonData);
+                            messageEvent.JsonData = ApiClient.ProcessTokenData(messageEvent.JsonData);
                             var userSw = Stopwatch.StartNew();
                             subscription.MessageHandler(messageEvent);
                             userSw.Stop();
@@ -611,7 +609,7 @@ namespace CryptoExchange.Net.Sockets
             if (subscriptions.Any(s => s.Authenticated))
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
-                var authResult = await socketClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
+                var authResult = await ApiClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
                 if (!authResult)
                 {
                     log.Write(LogLevel.Warning, $"Socket {SocketId} authentication failed on reconnected socket. Disconnecting and reconnecting.");
@@ -636,14 +634,14 @@ namespace CryptoExchange.Net.Sockets
             }
 
             // Foreach subscription which is subscribed by a subscription request we will need to resend that request to resubscribe
-            for (var i = 0; i < subscriptionList.Count; i += socketClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
+            for (var i = 0; i < subscriptionList.Count; i += ApiClient.Options.MaxConcurrentResubscriptionsPerSocket)
             {
                 if (!_socket.IsOpen)
                     return new CallResult<bool>(new WebError("Socket not connected"));
 
                 var taskList = new List<Task<CallResult<bool>>>();
-                foreach (var subscription in subscriptionList.Skip(i).Take(socketClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
-                    taskList.Add(socketClient.SubscribeAndWaitAsync(this, subscription.Request!, subscription));
+                foreach (var subscription in subscriptionList.Skip(i).Take(ApiClient.Options.MaxConcurrentResubscriptionsPerSocket))
+                    taskList.Add(ApiClient.SubscribeAndWaitAsync(this, subscription.Request!, subscription));
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
                 if (taskList.Any(t => !t.Result.Success))
@@ -662,7 +660,7 @@ namespace CryptoExchange.Net.Sockets
 
         internal async Task UnsubscribeAsync(SocketSubscription socketSubscription)
         {
-            await socketClient.UnsubscribeAsync(this, socketSubscription).ConfigureAwait(false);
+            await ApiClient.UnsubscribeAsync(this, socketSubscription).ConfigureAwait(false);
         }
 
         internal async Task<CallResult<bool>> ResubscribeAsync(SocketSubscription socketSubscription)
@@ -670,7 +668,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult<bool>(new UnknownError("Socket is not connected"));
 
-            return await socketClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
+            return await ApiClient.SubscribeAndWaitAsync(this, socketSubscription.Request!, socketSubscription).ConfigureAwait(false);
         }
 
         /// <summary>

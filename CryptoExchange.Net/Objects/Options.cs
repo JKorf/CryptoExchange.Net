@@ -9,10 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Objects
 {
-    /// <summary>
-    /// Base options, applicable to everything
-    /// </summary>
-    public class BaseOptions
+    public class ClientOptions
     {
         internal event Action? OnLoggingChanged;
 
@@ -45,194 +42,26 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
-        /// </summary>
-        public bool OutputOriginalData { get; set; } = false;
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public BaseOptions(): this(null)
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseOptions">Copy options from these options to the new options</param>
-        public BaseOptions(BaseOptions? baseOptions)
-        {
-            if (baseOptions == null)
-                return;
-
-            LogLevel = baseOptions.LogLevel;
-            LogWriters = baseOptions.LogWriters.ToList();
-            OutputOriginalData = baseOptions.OutputOriginalData;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"LogLevel: {LogLevel}, Writers: {LogWriters.Count}, OutputOriginalData: {OutputOriginalData}";
-        }
-    }
-
-    /// <summary>
-    /// Client options, for both the socket and rest clients
-    /// </summary>
-    public class BaseClientOptions : BaseOptions
-    {
-        /// <summary>
         /// Proxy to use when connecting
         /// </summary>
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// Api credentials to be used for signing requests to private endpoints. These credentials will be used for each API in the client, unless overriden in the API options 
-        /// </summary>
-        public ApiCredentials? ApiCredentials { get; set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
-        public BaseClientOptions() : this(null)
+        /// <param name="baseOptions">Copy values for the provided options</param>
+        /// <param name="newValues">Copy values for the provided options</param>
+        public ClientOptions(ClientOptions baseOptions, ClientOptions? newValues)
         {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseOptions">Copy options from these options to the new options</param>
-        public BaseClientOptions(BaseClientOptions? baseOptions) : base(baseOptions)
-        {
-            if (baseOptions == null)
-                return;
-
-            Proxy = baseOptions.Proxy;
-            ApiCredentials = baseOptions.ApiCredentials?.Copy();
+            Proxy = newValues?.Proxy ?? baseOptions.Proxy;
+            LogLevel = baseOptions.LogLevel;
+            LogWriters = baseOptions.LogWriters.ToList();
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}, Base.ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
-        }
-    }
-
-    /// <summary>
-    /// Rest client options
-    /// </summary>
-    public class BaseRestClientOptions : BaseClientOptions
-    {
-        /// <summary>
-        /// The time the server has to respond to a request before timing out
-        /// </summary>
-        public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
-
-        /// <summary>
-        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options provided in these options will be ignored in requests and should be set on the provided HttpClient instance
-        /// </summary>
-        public HttpClient? HttpClient { get; set; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public BaseRestClientOptions(): this(null)
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseOptions">Copy options from these options to the new options</param>
-        public BaseRestClientOptions(BaseRestClientOptions? baseOptions): base(baseOptions)
-        {
-            if (baseOptions == null)
-                return;
-
-            HttpClient = baseOptions.HttpClient;
-            RequestTimeout = baseOptions.RequestTimeout;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-" : "set")}";
-        }
-    }
-
-    /// <summary>
-    /// Socket client options
-    /// </summary>
-    public class BaseSocketClientOptions : BaseClientOptions
-    {
-        /// <summary>
-        /// Whether or not the socket should automatically reconnect when losing connection
-        /// </summary>
-        public bool AutoReconnect { get; set; } = true;
-
-        /// <summary>
-        /// Time to wait between reconnect attempts
-        /// </summary>
-        public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
-
-        /// <summary>
-        /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
-        /// </summary>
-        public int MaxConcurrentResubscriptionsPerSocket { get; set; } = 5;
-
-        /// <summary>
-        /// The max time to wait for a response after sending a request on the socket before giving a timeout
-        /// </summary>
-        public TimeSpan SocketResponseTimeout { get; set; } = TimeSpan.FromSeconds(10);
-
-        /// <summary>
-        /// The max time of not receiving any data after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected,
-        /// for example when the server sends intermittent ping requests
-        /// </summary>
-        public TimeSpan SocketNoDataTimeout { get; set; }
-
-        /// <summary>
-        /// The amount of subscriptions that should be made on a single socket connection. Not all API's support multiple subscriptions on a single socket.
-        /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
-        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
-        /// </summary>
-        public int? SocketSubscriptionsCombineTarget { get; set; }
-
-        /// <summary>
-        /// The max amount of connections to make to the server. Can be used for API's which only allow a certain number of connections. Changing this to a high value might cause issues.
-        /// </summary>
-        public int? MaxSocketConnections { get; set; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public BaseSocketClientOptions(): this(null)
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="baseOptions">Copy options from these options to the new options</param>
-        public BaseSocketClientOptions(BaseSocketClientOptions? baseOptions): base(baseOptions)
-        {
-            if (baseOptions == null)
-                return;
-
-            AutoReconnect = baseOptions.AutoReconnect;
-            ReconnectInterval = baseOptions.ReconnectInterval;
-            MaxConcurrentResubscriptionsPerSocket = baseOptions.MaxConcurrentResubscriptionsPerSocket;
-            SocketResponseTimeout = baseOptions.SocketResponseTimeout;
-            SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
-            SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
-            MaxSocketConnections = baseOptions.MaxSocketConnections;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}, MaxSocketConnections: {MaxSocketConnections}";
+            return $"LogLevel: {LogLevel}, Writers: {LogWriters.Count}, Proxy: {(Proxy == null ? "-" : Proxy.Host)}";
         }
     }
 
@@ -241,6 +70,11 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ApiClientOptions
     {
+        /// <summary>
+        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
+        /// </summary>
+        public bool OutputOriginalData { get; set; } = false;
+
         /// <summary>
         /// The base address of the API
         /// </summary>
@@ -278,12 +112,13 @@ namespace CryptoExchange.Net.Objects
         {
             BaseAddress = newValues?.BaseAddress ?? baseOptions.BaseAddress;
             ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
+            OutputOriginalData = baseOptions.OutputOriginalData;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
+            return $"OutputOriginalData: {OutputOriginalData}, Credentials: {(ApiCredentials == null ? "-" : "Set")}, BaseAddress: {BaseAddress}";
         }
     }
     
@@ -292,6 +127,16 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class RestApiClientOptions: ApiClientOptions
     {
+        /// <summary>
+        /// The time the server has to respond to a request before timing out
+        /// </summary>
+        public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+        /// <summary>
+        /// Http client to use. If a HttpClient is provided in this property the RequestTimeout and Proxy options provided in these options will be ignored in requests and should be set on the provided HttpClient instance
+        /// </summary>
+        public HttpClient? HttpClient { get; set; }
+
         /// <summary>
         /// List of rate limiters to use
         /// </summary>
@@ -334,6 +179,8 @@ namespace CryptoExchange.Net.Objects
         /// <param name="newValues">Copy values for the provided options</param>
         public RestApiClientOptions(RestApiClientOptions baseOn, RestApiClientOptions? newValues): base(baseOn, newValues)
         {
+            HttpClient = newValues?.HttpClient ?? baseOn.HttpClient;
+            RequestTimeout = newValues == default ? baseOn.RequestTimeout : newValues.RequestTimeout;
             RateLimitingBehaviour = newValues?.RateLimitingBehaviour ?? baseOn.RateLimitingBehaviour;
             AutoTimestamp = newValues?.AutoTimestamp ?? baseOn.AutoTimestamp;
             TimestampRecalculationInterval = newValues?.TimestampRecalculationInterval ?? baseOn.TimestampRecalculationInterval;
@@ -343,14 +190,98 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, AutoTimestamp: {AutoTimestamp}, TimestampRecalculationInterval: {TimestampRecalculationInterval}";
+            return $"{base.ToString()}, RequestTimeout: {RequestTimeout:c}, HttpClient: {(HttpClient == null ? "-" : "set")}, RateLimiters: {RateLimiters?.Count}, RateLimitBehaviour: {RateLimitingBehaviour}, AutoTimestamp: {AutoTimestamp}, TimestampRecalculationInterval: {TimestampRecalculationInterval}";
+        }
+    }
+
+    /// <summary>
+    /// Rest API client options
+    /// </summary>
+    public class SocketApiClientOptions : ApiClientOptions
+    {
+        /// <summary>
+        /// Whether or not the socket should automatically reconnect when losing connection
+        /// </summary>
+        public bool AutoReconnect { get; set; } = true;
+
+        /// <summary>
+        /// Time to wait between reconnect attempts
+        /// </summary>
+        public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
+        /// </summary>
+        public int MaxConcurrentResubscriptionsPerSocket { get; set; } = 5;
+
+        /// <summary>
+        /// The max time to wait for a response after sending a request on the socket before giving a timeout
+        /// </summary>
+        public TimeSpan SocketResponseTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// The max time of not receiving any data after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected,
+        /// for example when the server sends intermittent ping requests
+        /// </summary>
+        public TimeSpan SocketNoDataTimeout { get; set; }
+
+        /// <summary>
+        /// The amount of subscriptions that should be made on a single socket connection. Not all API's support multiple subscriptions on a single socket.
+        /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
+        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
+        /// </summary>
+        public int? SocketSubscriptionsCombineTarget { get; set; }
+
+        /// <summary>
+        /// The max amount of connections to make to the server. Can be used for API's which only allow a certain number of connections. Changing this to a high value might cause issues.
+        /// </summary>
+        public int? MaxSocketConnections { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SocketApiClientOptions()
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseAddress">Base address for the API</param>
+        public SocketApiClientOptions(string baseAddress) : base(baseAddress)
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="baseOptions">Copy values for the provided options</param>
+        /// <param name="newValues">Copy values for the provided options</param>
+        public SocketApiClientOptions(SocketApiClientOptions baseOptions, SocketApiClientOptions? newValues) : base(baseOptions, newValues)
+        {
+            if (baseOptions == null)
+                return;
+
+            AutoReconnect = baseOptions.AutoReconnect;
+            ReconnectInterval = baseOptions.ReconnectInterval;
+            MaxConcurrentResubscriptionsPerSocket = baseOptions.MaxConcurrentResubscriptionsPerSocket;
+            SocketResponseTimeout = baseOptions.SocketResponseTimeout;
+            SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
+            SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
+            MaxSocketConnections = baseOptions.MaxSocketConnections;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, AutoReconnect: {AutoReconnect}, ReconnectInterval: {ReconnectInterval}, MaxConcurrentResubscriptionsPerSocket: {MaxConcurrentResubscriptionsPerSocket}, SocketResponseTimeout: {SocketResponseTimeout:c}, SocketNoDataTimeout: {SocketNoDataTimeout}, SocketSubscriptionsCombineTarget: {SocketSubscriptionsCombineTarget}, MaxSocketConnections: {MaxSocketConnections}";
         }
     }
 
     /// <summary>
     /// Base for order book options
     /// </summary>
-    public class OrderBookOptions : BaseOptions
+    public class OrderBookOptions : ApiClientOptions
     {
         /// <summary>
         /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.

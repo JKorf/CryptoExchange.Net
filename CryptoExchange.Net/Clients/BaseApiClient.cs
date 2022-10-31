@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net
 {
@@ -13,8 +15,9 @@ namespace CryptoExchange.Net
     {
         private ApiCredentials? _apiCredentials;
         private AuthenticationProvider? _authenticationProvider;
+        protected Log _log;
+        protected bool _disposing;
         private bool _created;
-        private bool _disposing;
 
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
@@ -70,19 +73,20 @@ namespace CryptoExchange.Net
         internal protected string BaseAddress { get; }
 
         /// <summary>
-        /// Api client options
+        /// Options
         /// </summary>
-        internal ApiClientOptions Options { get; }
+        public ApiClientOptions Options { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="options">Client options</param>
+        /// <param name="log">Logger</param>
         /// <param name="apiOptions">Api client options</param>
-        protected BaseApiClient(BaseClientOptions options, ApiClientOptions apiOptions)
+        protected BaseApiClient(Log log, ApiClientOptions apiOptions)
         {
             Options = apiOptions;
-            _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? options.ApiCredentials?.Copy();
+            _log = log;
+            _apiCredentials = apiOptions.ApiCredentials?.Copy();
             BaseAddress = apiOptions.BaseAddress;
         }
 
@@ -104,7 +108,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Dispose
         /// </summary>
-        public void Dispose()
+        public virtual void Dispose()
         {
             _disposing = true;
             _apiCredentials?.Dispose();
