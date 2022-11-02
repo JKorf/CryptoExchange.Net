@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
@@ -31,6 +26,8 @@ namespace CryptoExchange.Net
         public int CurrentConnections => ApiClients.OfType<SocketApiClient>().Sum(c => c.CurrentConnections);
         /// <inheritdoc />
         public int CurrentSubscriptions => ApiClients.OfType<SocketApiClient>().Sum(s => s.CurrentSubscriptions);
+        /// <inheritdoc />
+        public double IncomingKbps => ApiClients.OfType<SocketApiClient>().Sum(s => s.IncomingKbps);
         #endregion
 
         /// <summary>
@@ -40,13 +37,6 @@ namespace CryptoExchange.Net
         /// <param name="options">The options for this client</param>
         protected BaseSocketClient(string name, ClientOptions options) : base(name, options)
         {
-        }
-
-        /// <inheritdoc />
-        public void SetApiCredentials(ApiCredentials credentials)
-        {
-            foreach (var apiClient in ApiClients)
-                apiClient.SetApiCredentials(credentials);
         }
 
         /// <summary>

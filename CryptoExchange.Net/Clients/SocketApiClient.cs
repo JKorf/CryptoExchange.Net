@@ -105,15 +105,21 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public new SocketApiClientOptions Options => (SocketApiClientOptions)base.Options;
 
+        /// <summary>
+        /// Options
+        /// </summary>
+        internal ClientOptions ClientOptions { get; set; }
         #endregion
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="log">log</param>
+        /// <param name="options">Client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(Log log, SocketApiClientOptions apiOptions): base(log, apiOptions)
+        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions): base(log, apiOptions)
         {
+            ClientOptions = options;
         }
 
         /// <summary>
@@ -131,23 +137,21 @@ namespace CryptoExchange.Net
         /// Connect to an url and listen for data on the BaseAddress
         /// </summary>
         /// <typeparam name="T">The type of the expected data</typeparam>
-        /// <param name="apiClient">The API client the subscription is for</param>
         /// <param name="request">The optional request object to send, will be serialized to json</param>
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
         /// <param name="authenticated">If the subscription is to an authenticated endpoint</param>
         /// <param name="dataHandler">The handler of update data</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketApiClient apiClient, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
+        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
-            return SubscribeAsync(apiClient, Options.BaseAddress, request, identifier, authenticated, dataHandler, ct);
+            return SubscribeAsync(Options.BaseAddress, request, identifier, authenticated, dataHandler, ct);
         }
 
         /// <summary>
         /// Connect to an url and listen for data
         /// </summary>
         /// <typeparam name="T">The type of the expected data</typeparam>
-        /// <param name="apiClient">The API client the subscription is for</param>
         /// <param name="url">The URL to connect to</param>
         /// <param name="request">The optional request object to send, will be serialized to json</param>
         /// <param name="identifier">The identifier to use, necessary if no request object is sent</param>
@@ -155,7 +159,7 @@ namespace CryptoExchange.Net
         /// <param name="dataHandler">The handler of update data</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(SocketApiClient apiClient, string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
+        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(string url, object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
             if (_disposing)
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
@@ -179,7 +183,7 @@ namespace CryptoExchange.Net
                 while (true)
                 {
                     // Get a new or existing socket connection
-                    var socketResult = await GetSocketConnection(apiClient, url, authenticated).ConfigureAwait(false);
+                    var socketResult = await GetSocketConnection(url, authenticated).ConfigureAwait(false);
                     if (!socketResult)
                         return socketResult.As<UpdateSubscription>(null);
 
@@ -519,11 +523,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Get the url to connect to (defaults to BaseAddress form the client options)
         /// </summary>
-        /// <param name="apiClient"></param>
         /// <param name="address"></param>
         /// <param name="authentication"></param>
         /// <returns></returns>
-        protected virtual Task<CallResult<string?>> GetConnectionUrlAsync(SocketApiClient apiClient, string address, bool authentication)
+        protected virtual Task<CallResult<string?>> GetConnectionUrlAsync(string address, bool authentication)
         {
             return Task.FromResult(new CallResult<string?>(address));
         }
@@ -531,10 +534,9 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Get the url to reconnect to after losing a connection
         /// </summary>
-        /// <param name="apiClient"></param>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public virtual Task<Uri?> GetReconnectUriAsync(SocketApiClient apiClient, SocketConnection connection)
+        public virtual Task<Uri?> GetReconnectUriAsync(SocketConnection connection)
         {
             return Task.FromResult<Uri?>(connection.ConnectionUri);
         }
@@ -542,15 +544,14 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
         /// </summary>
-        /// <param name="apiClient">The API client the connection is for</param>
         /// <param name="address">The address the socket is for</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(SocketApiClient apiClient, string address, bool authenticated)
+        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated)
         {
             var socketResult = socketConnections.Where(s => (s.Value.Status == SocketConnection.SocketStatus.None || s.Value.Status == SocketConnection.SocketStatus.Connected)
                                                   && s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
-                                                  && (s.Value.ApiClient.GetType() == apiClient.GetType())
+                                                  && (s.Value.ApiClient.GetType() == GetType())
                                                   && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.SubscriptionCount).FirstOrDefault();
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
@@ -562,7 +563,7 @@ namespace CryptoExchange.Net
                 }
             }
 
-            var connectionAddress = await GetConnectionUrlAsync(apiClient, address, authenticated).ConfigureAwait(false);
+            var connectionAddress = await GetConnectionUrlAsync(address, authenticated).ConfigureAwait(false);
             if (!connectionAddress)
             {
                 _log.Write(LogLevel.Warning, $"Failed to determine connection url: " + connectionAddress.Error);
@@ -574,7 +575,7 @@ namespace CryptoExchange.Net
 
             // Create new socket
             var socket = CreateSocket(connectionAddress.Data!);
-            var socketConnection = new SocketConnection(_log, apiClient, socket, address);
+            var socketConnection = new SocketConnection(_log, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {
@@ -623,7 +624,7 @@ namespace CryptoExchange.Net
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = Options.ReconnectInterval,
                 RatelimitPerSecond = RateLimitPerSocketPerSecond,
-                Proxy = Options.Proxy,
+                Proxy = ClientOptions.Proxy,
                 Timeout = Options.SocketNoDataTimeout
             };
 
