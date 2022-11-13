@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
@@ -101,16 +102,10 @@ namespace CryptoExchange.Net
         /// </summary>
         public string GetSubscriptionsState()
         {
-            //var sb = new StringBuilder();
-            //sb.AppendLine($"{socketConnections.Count} connections, {CurrentSubscriptions} subscriptions, kbps: {IncomingKbps}");
-            //foreach(var connection in socketConnections)
-            //{
-            //    sb.AppendLine($"  Connection {connection.Key}: {connection.Value.SubscriptionCount} subscriptions, status: {connection.Value.Status}, authenticated: {connection.Value.Authenticated}, kbps: {connection.Value.IncomingKbps}");
-            //    foreach (var subscription in connection.Value.Subscriptions)
-            //        sb.AppendLine($"    Subscription {subscription.Id}, authenticated: {subscription.Authenticated}, confirmed: {subscription.Confirmed}");
-            //}
-            //return sb.ToString();
-            return "";
+            var result = new StringBuilder();
+            foreach(var client in ApiClients.OfType<SocketApiClient>())            
+                result.AppendLine(client.GetSubscriptionsState());            
+            return result.ToString();
         }
     }
 }

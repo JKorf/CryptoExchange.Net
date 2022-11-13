@@ -378,6 +378,9 @@ namespace CryptoExchange.Net
             if (!connectResult)
                 return new CallResult<bool>(connectResult.Error!);
 
+            if (Options.DelayAfterConnect != TimeSpan.Zero)
+                await Task.Delay(Options.DelayAfterConnect).ConfigureAwait(false);
+
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true);
 
@@ -539,6 +542,16 @@ namespace CryptoExchange.Net
         public virtual Task<Uri?> GetReconnectUriAsync(SocketConnection connection)
         {
             return Task.FromResult<Uri?>(connection.ConnectionUri);
+        }
+
+        /// <summary>
+        /// Update the original request to send when the connection is restored after disconnecting. Can be used to update an authentication token for example.
+        /// </summary>
+        /// <param name="request">The original request</param>
+        /// <returns></returns>
+        public virtual Task<CallResult<object>> RevitalizeRequestAsync(object request)
+        {
+            return Task.FromResult(new CallResult<object>(request));
         }
 
         /// <summary>

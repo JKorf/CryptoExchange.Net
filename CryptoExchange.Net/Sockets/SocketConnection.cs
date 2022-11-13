@@ -253,6 +253,7 @@ namespace CryptoExchange.Net.Sockets
             var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
             if (!reconnectSuccessful)
             {
+                _log.Write(LogLevel.Warning, "Failed reconnect processing, reconnecting again");
                 await _socket.ReconnectAsync().ConfigureAwait(false);
             }
             else
@@ -634,6 +635,16 @@ namespace CryptoExchange.Net.Sockets
                         subscriptionList.Add(subscription);
                     else
                         subscription.Confirmed = true;
+                }
+            }
+
+            foreach(var subscription in subscriptionList.Where(s => s.Request != null))
+            {
+                var result = await ApiClient.RevitalizeRequestAsync(subscription.Request!).ConfigureAwait(false);
+                if (!result)
+                {
+                    _log.Write(LogLevel.Warning, "Failed request revitalization: " + result.Error);
+                    return result.As<bool>(false);
                 }
             }
 
