@@ -248,7 +248,7 @@ namespace CryptoExchange.Net.UnitTests
         }
     }
 
-    public class TestClientOptions: BaseRestClientOptions
+    public class TestClientOptions: ClientOptions
     {
         /// <summary>
         /// Default options for the futures client

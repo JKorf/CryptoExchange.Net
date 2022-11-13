@@ -70,7 +70,7 @@ namespace CryptoExchange.Net
         /// <param name="log">Logger</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(Log log, ClientOptions options, RestApiClientOptions apiOptions): base(log, apiOptions)
+        public RestApiClient(Log log, ClientOptions options, RestApiClientOptions apiOptions): base(log, options, apiOptions)
         {
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in apiOptions.RateLimiters)

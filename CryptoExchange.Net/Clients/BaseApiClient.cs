@@ -113,12 +113,13 @@ namespace CryptoExchange.Net
         /// ctor
         /// </summary>
         /// <param name="log">Logger</param>
+        /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api client options</param>
-        protected BaseApiClient(Log log, ApiClientOptions apiOptions)
+        protected BaseApiClient(Log log, ClientOptions clientOptions, ApiClientOptions apiOptions)
         {
             Options = apiOptions;
             _log = log;
-            _apiCredentials = apiOptions.ApiCredentials?.Copy();
+            _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? clientOptions.ApiCredentials?.Copy();
             BaseAddress = apiOptions.BaseAddress;
         }
 

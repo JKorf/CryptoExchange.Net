@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
+using CryptoExchange.Net.Logging;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -28,7 +29,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             Api1 = new TestRestApi1Client(exchangeOptions);
             Api2 = new TestRestApi2Client(exchangeOptions);
-            RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
         public void SetResponse(string responseData, out IRequest requestObj)
@@ -50,12 +50,21 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new List<string> { val }));
             request.Setup(c => c.GetHeaders()).Returns(() => headers);
 
-            var factory = Mock.Get(RequestFactory);
+            var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
                 .Callback<HttpMethod, Uri, int>((method, uri, id) => 
                 { 
                     request.Setup(a => a.Uri).Returns(uri);
                     request.Setup(a => a.Method).Returns(method); 
+                })
+                .Returns(request.Object);
+
+            factory = Mock.Get(Api2.RequestFactory);
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
+                .Callback<HttpMethod, Uri, int>((method, uri, id) =>
+                {
+                    request.Setup(a => a.Uri).Returns(uri);
+                    request.Setup(a => a.Method).Returns(method);
                 })
                 .Returns(request.Object);
             requestObj = request.Object;
@@ -71,7 +80,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.GetHeaders()).Returns(new Dictionary<string, IEnumerable<string>>());
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
-            var factory = Mock.Get(RequestFactory);
+            var factory = Mock.Get(Api1.RequestFactory);
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
+                .Returns(request.Object);
+
+
+            factory = Mock.Get(Api2.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
                 .Returns(request.Object);
         }
@@ -94,27 +108,33 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new List<string> { val }));
             request.Setup(c => c.GetHeaders()).Returns(headers);
 
-            var factory = Mock.Get(RequestFactory);
+            var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
                 .Callback<HttpMethod, Uri, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
                 .Returns(request.Object);
-        }
 
-        public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T:class
-        {
-            return await SendRequestAsync<T>(Api1, new Uri("http://www.test.com"), HttpMethod.Get, ct);
-        }
-
-        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
-        {
-            return await SendRequestAsync<T>(Api1, new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
+            factory = Mock.Get(Api2.RequestFactory);
+            factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
+                .Callback<HttpMethod, Uri, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
+                .Returns(request.Object);
         }
     }
 
     public class TestRestApi1Client : RestApiClient
     {
-        public TestRestApi1Client(TestClientOptions options): base(options, options.Api1Options)
+        public TestRestApi1Client(TestClientOptions options): base(new Log(""), options, options.Api1Options)
         {
+            RequestFactory = new Mock<IRequestFactory>().Object;
+        }
+
+        public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
+        {
+            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
+        }
+
+        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
+        {
+            return await SendRequestAsync<T>(new Uri("http://www.test.com"), method, default, parameters, additionalHeaders: headers);
         }
 
         public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
@@ -143,9 +163,19 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestRestApi2Client : RestApiClient
     {
-        public TestRestApi2Client(TestClientOptions options) : base(options, options.Api2Options)
+        public TestRestApi2Client(TestClientOptions options) : base(new Log(""), options, options.Api2Options)
         {
+            RequestFactory = new Mock<IRequestFactory>().Object;
+        }
 
+        public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
+        {
+            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
+        }
+
+        protected override Error ParseErrorResponse(JToken error)
+        {
+            return new ServerError((int)error["errorCode"], (string)error["errorMessage"]);
         }
 
         public override TimeSpan GetTimeOffset()
@@ -186,9 +216,5 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public ParseErrorTestRestClient() { }
         public ParseErrorTestRestClient(TestClientOptions exchangeOptions) : base(exchangeOptions) { }
 
-        protected override Error ParseErrorResponse(JToken error)
-        {
-            return new ServerError((int)error["errorCode"], (string)error["errorMessage"]);
-        }
     }
 }

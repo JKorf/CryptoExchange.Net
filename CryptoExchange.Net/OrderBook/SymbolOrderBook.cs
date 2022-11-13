@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.OrderBook
                 set { } }
         }
 
-        private static readonly ISymbolOrderBookEntry emptySymbolOrderBookEntry = new EmptySymbolOrderBookEntry();
+        private static readonly ISymbolOrderBookEntry _emptySymbolOrderBookEntry = new EmptySymbolOrderBookEntry();
 
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return bids.FirstOrDefault().Value ?? emptySymbolOrderBookEntry;
+                    return bids.FirstOrDefault().Value ?? _emptySymbolOrderBookEntry;
             }
         }
 
@@ -177,7 +177,7 @@ namespace CryptoExchange.Net.OrderBook
             get
             {
                 lock (_bookLock)
-                    return asks.FirstOrDefault().Value ?? emptySymbolOrderBookEntry;
+                    return asks.FirstOrDefault().Value ?? _emptySymbolOrderBookEntry;
             }
         }
 
@@ -581,7 +581,9 @@ namespace CryptoExchange.Net.OrderBook
             var (bestBid, bestAsk) = BestOffers;
             if (bestBid.Price != prevBestBid.Price || bestBid.Quantity != prevBestBid.Quantity ||
                    bestAsk.Price != prevBestAsk.Price || bestAsk.Quantity != prevBestAsk.Quantity)
+            {
                 OnBestOffersChanged?.Invoke((bestBid, bestAsk));
+            }
         }
 
         private void Reset()
@@ -752,7 +754,9 @@ namespace CryptoExchange.Net.OrderBook
                     _ = _subscription!.ReconnectAsync();
                 }
                 else
+                {
                     await ResyncAsync().ConfigureAwait(false);
+                }
             });
         }
 

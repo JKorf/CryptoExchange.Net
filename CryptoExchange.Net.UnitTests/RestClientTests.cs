@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.UnitTests
             client.SetResponse(JsonConvert.SerializeObject(expected), out _);
 
             // act
-            var result = client.Request<TestObject>().Result;
+            var result = client.Api1.Request<TestObject>().Result;
 
             // assert
             Assert.IsTrue(result.Success);
@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.UnitTests
             client.SetResponse("{\"property\": 123", out _);
 
             // act
-            var result = client.Request<TestObject>().Result;
+            var result = client.Api1.Request<TestObject>().Result;
 
             // assert
             Assert.IsFalse(result.Success);
@@ -58,7 +58,7 @@ namespace CryptoExchange.Net.UnitTests
             client.SetErrorWithoutResponse(System.Net.HttpStatusCode.BadRequest, "Invalid request");
 
             // act
-            var result = await client.Request<TestObject>();
+            var result = await client.Api1.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -73,7 +73,7 @@ namespace CryptoExchange.Net.UnitTests
             client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Request<TestObject>();
+            var result = await client.Api1.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -91,7 +91,7 @@ namespace CryptoExchange.Net.UnitTests
             client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Request<TestObject>();
+            var result = await client.Api2.Request<TestObject>();
 
             // assert
             Assert.IsFalse(result.Success);
@@ -112,9 +112,9 @@ namespace CryptoExchange.Net.UnitTests
                 {
                     BaseAddress = "http://test.address.com",
                     RateLimiters = new List<IRateLimiter> { new RateLimiter() },
-                    RateLimitingBehaviour = RateLimitingBehaviour.Fail
-                },
-                RequestTimeout = TimeSpan.FromMinutes(1)
+                    RateLimitingBehaviour = RateLimitingBehaviour.Fail,
+                    RequestTimeout = TimeSpan.FromMinutes(1)
+                }                
             });
 
 
@@ -122,7 +122,7 @@ namespace CryptoExchange.Net.UnitTests
             Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.BaseAddress == "http://test.address.com");
             Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
             Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
-            Assert.IsTrue(client.ClientOptions.RequestTimeout == TimeSpan.FromMinutes(1));
+            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
@@ -148,7 +148,7 @@ namespace CryptoExchange.Net.UnitTests
 
             client.SetResponse("{}", out var request);
 
-            await client.RequestWithParams<TestObject>(new HttpMethod(method), new Dictionary<string, object>
+            await client.Api1.RequestWithParams<TestObject>(new HttpMethod(method), new Dictionary<string, object>
             {
                 { "TestParam1", "Value1" },
                 { "TestParam2", 2 },

@@ -117,7 +117,7 @@ namespace CryptoExchange.Net
         /// <param name="log">log</param>
         /// <param name="options">Client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions): base(log, apiOptions)
+        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions): base(log, options, apiOptions)
         {
             ClientOptions = options;
         }

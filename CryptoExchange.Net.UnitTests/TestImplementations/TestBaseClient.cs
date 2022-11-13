@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.UnitTests.TestImplementations;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.UnitTests
 {
     public class TestBaseClient: BaseClient
     {       
-        public TestBaseClient(): base("Test", new BaseClientOptions())
+        public TestSubClient SubClient { get; }
+
+        public TestBaseClient(): base("Test", new TestOptions())
         {
+            SubClient = AddApiClient(new TestSubClient(new TestOptions(), new RestApiClientOptions()));
         }
 
-        public TestBaseClient(BaseRestClientOptions exchangeOptions) : base("Test", exchangeOptions)
+        public TestBaseClient(ClientOptions exchangeOptions) : base("Test", exchangeOptions)
         {
         }
 
@@ -21,11 +27,20 @@ namespace CryptoExchange.Net.UnitTests
         {
             log.Write(verbosity, data);
         }
+    }
 
-        public CallResult<T> Deserialize<T>(string data)
+    public class TestSubClient : RestApiClient
+    {
+        public TestSubClient(ClientOptions options, RestApiClientOptions apiOptions) : base(new Log(""), options, apiOptions)
         {
-            return Deserialize<T>(data, null, null);
         }
+
+        public CallResult<T> Deserialize<T>(string data) => Deserialize<T>(data, null, null);
+
+        public override TimeSpan GetTimeOffset() => throw new NotImplementedException();
+        public override TimeSyncInfo GetTimeSyncInfo() => throw new NotImplementedException();
+        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
+        protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
     }
 
     public class TestAuthProvider : AuthenticationProvider

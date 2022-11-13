@@ -20,16 +20,39 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public TestSocketClient(TestOptions exchangeOptions) : base("test", exchangeOptions)
         {
-            SubClient = new TestSubSocketClient(exchangeOptions, exchangeOptions.SubOptions);
-            SocketFactory = new Mock<IWebsocketFactory>().Object;
-            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
+            SubClient = AddApiClient(new TestSubSocketClient(exchangeOptions, exchangeOptions.SubOptions));
+            SubClient.SocketFactory = new Mock<IWebsocketFactory>().Object;
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
         }
 
         public TestSocket CreateSocket()
         {
-            Mock.Get(SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
-            return (TestSocket)CreateSocket("https://localhost:123/");
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<Log>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
+            return (TestSocket)SubClient.CreateSocketInternal("https://localhost:123/");
         }
+                
+    }
+
+    public class TestOptions: ClientOptions
+    {
+        public SocketApiClientOptions SubOptions { get; set; } = new SocketApiClientOptions();
+    }
+
+    public class TestSubSocketClient : SocketApiClient
+    {
+
+        public TestSubSocketClient(ClientOptions options, SocketApiClientOptions apiOptions): base(new Log(""), options, apiOptions)
+        {
+
+        }
+
+        internal IWebsocket CreateSocketInternal(string address)
+        {
+            return CreateSocket(address);
+        }
+
+        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+            => new TestAuthProvider(credentials);
 
         public CallResult<bool> ConnectSocketSub(SocketConnection sub)
         {
@@ -66,22 +89,5 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             throw new NotImplementedException();
         }
-    }
-
-    public class TestOptions: BaseSocketClientOptions
-    {
-        public ApiClientOptions SubOptions { get; set; } = new ApiClientOptions();
-    }
-
-    public class TestSubSocketClient : SocketApiClient
-    {
-
-        public TestSubSocketClient(BaseClientOptions options, ApiClientOptions apiOptions): base(options, apiOptions)
-        {
-
-        }
-
-        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
-            => new TestAuthProvider(credentials);
     }
 }

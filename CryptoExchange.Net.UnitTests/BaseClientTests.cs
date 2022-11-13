@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var logger = new TestStringLogger();
-            var client = new TestBaseClient(new BaseRestClientOptions()
+            var client = new TestBaseClient(new TestOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             });
@@ -56,7 +56,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var logger = new TestStringLogger();
-            var options = new BaseRestClientOptions()
+            var options = new TestOptions()
             {
                 LogWriters = new List<ILogger> { logger }
             };
@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.UnitTests
             var client = new TestBaseClient();
 
             // act
-            var result = client.Deserialize<object>("{\"testProperty\": 123}");
+            var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123}");
 
             // assert
             Assert.IsTrue(result.Success);
@@ -91,7 +91,7 @@ namespace CryptoExchange.Net.UnitTests
             var client = new TestBaseClient();
 
             // act
-            var result = client.Deserialize<object>("{\"testProperty\": 123");
+            var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123");
 
             // assert
             Assert.IsFalse(result.Success);

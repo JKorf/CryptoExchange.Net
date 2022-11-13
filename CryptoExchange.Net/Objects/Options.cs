@@ -9,7 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Objects
 {
-    public class ClientOptions
+    /// <summary>
+    /// Client options
+    /// </summary>
+    public abstract class ClientOptions
     {
         internal event Action? OnLoggingChanged;
 
@@ -47,15 +50,43 @@ namespace CryptoExchange.Net.Objects
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
+        /// The api credentials used for signing requests to this API.
+        /// </summary>        
+        public ApiCredentials? ApiCredentials { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ClientOptions()
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="clientOptions">Copy values for the provided options</param>
+        public ClientOptions(ClientOptions? clientOptions)
+        {
+            if (clientOptions == null)
+                return;
+
+            LogLevel = clientOptions.LogLevel;
+            LogWriters = clientOptions.LogWriters.ToList();
+            Proxy = clientOptions.Proxy;
+            ApiCredentials = clientOptions.ApiCredentials?.Copy();
+        }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="baseOptions">Copy values for the provided options</param>
         /// <param name="newValues">Copy values for the provided options</param>
-        public ClientOptions(ClientOptions baseOptions, ClientOptions? newValues)
+        internal ClientOptions(ClientOptions baseOptions, ClientOptions? newValues)
         {
             Proxy = newValues?.Proxy ?? baseOptions.Proxy;
             LogLevel = baseOptions.LogLevel;
             LogWriters = baseOptions.LogWriters.ToList();
+            ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
         }
 
         /// <inheritdoc />
@@ -112,7 +143,7 @@ namespace CryptoExchange.Net.Objects
         {
             BaseAddress = newValues?.BaseAddress ?? baseOptions.BaseAddress;
             ApiCredentials = newValues?.ApiCredentials?.Copy() ?? baseOptions.ApiCredentials?.Copy();
-            OutputOriginalData = baseOptions.OutputOriginalData;
+            OutputOriginalData = newValues?.OutputOriginalData ?? baseOptions.OutputOriginalData;
         }
 
         /// <inheritdoc />
@@ -281,7 +312,7 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Base for order book options
     /// </summary>
-    public class OrderBookOptions : ApiClientOptions
+    public class OrderBookOptions : ClientOptions
     {
         /// <summary>
         /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
