@@ -33,6 +33,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.3.0 - 14 Nov 2022
+    * Reworked client architecture, shifting funcationality to the ApiClient
+    * Fixed ArrayConverter exponent parsing
+    * Fixed ArrayConverter not checking null
+    * Added optional delay setting after establishing socket connection
+    * Added callback for revitalizing a socket request when reconnecting
+    * Fixed proxy setting websocket
+
 * Version 5.2.4 - 31 Jul 2022
     * Added handling of PlatformNotSupportedException when trying to use websocket from WebAssembly
     * Changed DataEvent to have a public constructor for testing purposes
