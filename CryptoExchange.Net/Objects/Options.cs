@@ -271,7 +271,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The time to wait after connecting a socket before sending messages. Can be used for API's which will rate limit if you subscribe directly after connecting.
         /// </summary>
-        public TimeSpan DelayAfterConnect = TimeSpan.Zero;
+        public TimeSpan DelayAfterConnect { get; set; } = TimeSpan.Zero;
 
         /// <summary>
         /// ctor
@@ -305,6 +305,7 @@ namespace CryptoExchange.Net.Objects
             SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
             SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
             MaxSocketConnections = baseOptions.MaxSocketConnections;
+            DelayAfterConnect = baseOptions.DelayAfterConnect;
         }
 
         /// <inheritdoc />
