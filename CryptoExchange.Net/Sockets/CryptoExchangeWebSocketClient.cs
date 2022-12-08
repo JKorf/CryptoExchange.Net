@@ -293,16 +293,16 @@ namespace CryptoExchange.Net.Sockets
         public virtual async Task CloseAsync()
         {
             await _closeSem.WaitAsync().ConfigureAwait(false);
+            _stopRequested = true;
+
             try
             {
-                if (_closeTask != null && !_closeTask.IsCompleted)
+                if (_closeTask?.IsCompleted == false)
                 {
                     _log.Write(LogLevel.Debug, $"Socket {Id} CloseAsync() waiting for existing close task");
                     await _closeTask.ConfigureAwait(false);
                     return;
                 }
-
-                _stopRequested = true;
 
                 if (!IsOpen)
                 {
@@ -430,7 +430,8 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly, .NET framework
                             OnError?.Invoke(ioe);
-                            _closeTask = CloseInternalAsync();
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
                             break;
                         }
                     }
@@ -441,6 +442,7 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
+                _log.Write(LogLevel.Warning, $"Socket {Id} Send loop stopped with exception");
                 OnError?.Invoke(e);
                 throw;
             }
@@ -486,7 +488,8 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly
                             OnError?.Invoke(wse);
-                            _closeTask = CloseInternalAsync();
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
                             break;
                         }
 
@@ -494,7 +497,8 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly        
                             _log.Write(LogLevel.Debug, $"Socket {Id} received `Close` message");
-                            _closeTask = CloseInternalAsync();
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
                             break;
                         }
 
@@ -559,6 +563,7 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
+                _log.Write(LogLevel.Warning, $"Socket {Id} Receive loop stopped with exception");
                 OnError?.Invoke(e);
                 throw;
             }
