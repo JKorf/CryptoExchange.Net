@@ -220,7 +220,7 @@ namespace CryptoExchange.Net
 
             _log.Write(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters, signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
+            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
 
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
