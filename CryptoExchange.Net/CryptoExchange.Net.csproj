@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
-    <PackageVersion>5.3.0</PackageVersion>
-    <AssemblyVersion>5.3.0</AssemblyVersion>
-    <FileVersion>5.3.0</FileVersion>
+    <PackageVersion>5.3.1</PackageVersion>
+    <AssemblyVersion>5.3.1</AssemblyVersion>
+    <FileVersion>5.3.1</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>5.3.0 - Reworked client architecture, shifting funcationality to the ApiClient, Fixed ArrayConverter exponent parsing, Fixed ArrayConverter not checking null, Added optional delay setting after establishing socket connection, Added callback for revitalizing a socket request when reconnecting, Fixed proxy setting websocket</PackageReleaseNotes>
+    <PackageReleaseNotes>5.3.1 - Added default request parameter ordering before applying authentication, Fixed possible issue where a socket would reconnect when it should close if it was already in reconnecting</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

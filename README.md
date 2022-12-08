@@ -33,6 +33,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.3.1 - 08 Dec 2022
+    * Added default request parameter ordering before applying authentication
+    * Fixed possible issue where a socket would reconnect when it should close if it was already in reconnecting
+
 * Version 5.3.0 - 14 Nov 2022
     * Reworked client architecture, shifting funcationality to the ApiClient
     * Fixed ArrayConverter exponent parsing
