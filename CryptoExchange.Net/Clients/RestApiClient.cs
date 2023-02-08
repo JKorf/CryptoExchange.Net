@@ -418,17 +418,24 @@ namespace CryptoExchange.Net
             var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
             if (AuthenticationProvider != null)
             {
-                AuthenticationProvider.AuthenticateRequest(
-                    this,
-                    uri,
-                    method,
-                    parameters,
-                    signed,
-                    arraySerialization,
-                    parameterPosition,
-                    out uriParameters,
-                    out bodyParameters,
-                    out headers);
+                try
+                {
+                    AuthenticationProvider.AuthenticateRequest(
+                        this,
+                        uri,
+                        method,
+                        parameters,
+                        signed,
+                        arraySerialization,
+                        parameterPosition,
+                        out uriParameters,
+                        out bodyParameters,
+                        out headers);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
+                }
             }
 
             // Sanity check
