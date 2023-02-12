@@ -298,14 +298,14 @@ namespace CryptoExchange.Net.Objects
             if (baseOptions == null)
                 return;
 
-            AutoReconnect = baseOptions.AutoReconnect;
-            ReconnectInterval = baseOptions.ReconnectInterval;
-            MaxConcurrentResubscriptionsPerSocket = baseOptions.MaxConcurrentResubscriptionsPerSocket;
-            SocketResponseTimeout = baseOptions.SocketResponseTimeout;
-            SocketNoDataTimeout = baseOptions.SocketNoDataTimeout;
-            SocketSubscriptionsCombineTarget = baseOptions.SocketSubscriptionsCombineTarget;
-            MaxSocketConnections = baseOptions.MaxSocketConnections;
-            DelayAfterConnect = baseOptions.DelayAfterConnect;
+            AutoReconnect = newValues?.AutoReconnect ?? baseOptions.AutoReconnect;
+            ReconnectInterval = newValues?.ReconnectInterval ?? baseOptions.ReconnectInterval;
+            MaxConcurrentResubscriptionsPerSocket = newValues?.MaxConcurrentResubscriptionsPerSocket ?? baseOptions.MaxConcurrentResubscriptionsPerSocket;
+            SocketResponseTimeout = newValues?.SocketResponseTimeout ?? baseOptions.SocketResponseTimeout;
+            SocketNoDataTimeout = newValues?.SocketNoDataTimeout ?? baseOptions.SocketNoDataTimeout;
+            SocketSubscriptionsCombineTarget = newValues?.SocketSubscriptionsCombineTarget ?? baseOptions.SocketSubscriptionsCombineTarget;
+            MaxSocketConnections = newValues?.MaxSocketConnections ?? baseOptions.MaxSocketConnections;
+            DelayAfterConnect = newValues?.DelayAfterConnect ?? baseOptions.DelayAfterConnect;
         }
 
         /// <inheritdoc />

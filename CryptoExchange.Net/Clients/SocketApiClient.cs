@@ -265,7 +265,7 @@ namespace CryptoExchange.Net
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWaitAsync(SocketConnection socketConnection, object request, SocketSubscription subscription)
         {
             CallResult<object>? callResult = null;
-            await socketConnection.SendAndWaitAsync(request, Options.SocketResponseTimeout, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
+            await socketConnection.SendAndWaitAsync(request, Options.SocketResponseTimeout, subscription, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
             {
@@ -351,7 +351,7 @@ namespace CryptoExchange.Net
         protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request)
         {
             var dataResult = new CallResult<T>(new ServerError("No response on query received"));
-            await socket.SendAndWaitAsync(request, Options.SocketResponseTimeout, data =>
+            await socket.SendAndWaitAsync(request, Options.SocketResponseTimeout, null, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
                     return false;

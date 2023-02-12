@@ -304,17 +304,34 @@ namespace CryptoExchange.Net.Sockets
             PendingRequest[] requests;
             lock (_pendingRequests)
             {
-                _pendingRequests.RemoveAll(r => r.Completed);
+                // Remove only timed out requests after 5 minutes have passed so we can still process any 
+                // message coming in after the request timeout
+                _pendingRequests.RemoveAll(r => r.Completed && DateTime.UtcNow - r.RequestTimestamp > TimeSpan.FromMinutes(5));
                 requests = _pendingRequests.ToArray();
             }
 
             // Check if this message is an answer on any pending requests
             foreach (var pendingRequest in requests)
             {
+
                 if (pendingRequest.CheckData(tokenData))
                 {
                     lock (_pendingRequests)
                         _pendingRequests.Remove(pendingRequest);
+
+                    if (pendingRequest.Completed)
+                    {
+                        // Answer to a timed out request, unsub if it is a subscription request
+                        if (pendingRequest.Subscription != null)
+                        {
+                            _log.Write(LogLevel.Warning, "Received subscription info after request timed out; unsubscribing. Consider increasing the SocketResponseTimout");
+                            _ = ApiClient.UnsubscribeAsync(this, pendingRequest.Subscription).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        pendingRequest.Succeed(tokenData);
+                    }
 
                     if (!ApiClient.ContinueOnQueryResponse)
                         return;
@@ -546,11 +563,12 @@ namespace CryptoExchange.Net.Sockets
         /// <typeparam name="T">The data type expected in response</typeparam>
         /// <param name="obj">The object to send</param>
         /// <param name="timeout">The timeout for response</param>
+        /// <param name="subscription">Subscription if this is a subscribe request</param>
         /// <param name="handler">The response handler, should return true if the received JToken was the response to the request</param>
         /// <returns></returns>
-        public virtual Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, Func<JToken, bool> handler)
+        public virtual Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, SocketSubscription? subscription, Func<JToken, bool> handler)
         {
-            var pending = new PendingRequest(handler, timeout);
+            var pending = new PendingRequest(handler, timeout, subscription);
             lock (_pendingRequests)
             {
                 _pendingRequests.Add(pending);

@@ -11,15 +11,19 @@ namespace CryptoExchange.Net.Sockets
         public JToken? Result { get; private set; }
         public bool Completed { get; private set; }
         public AsyncResetEvent Event { get; }
+        public DateTime RequestTimestamp { get; set; }
         public TimeSpan Timeout { get; }
+        public SocketSubscription? Subscription { get; }
 
         private CancellationTokenSource cts;
 
-        public PendingRequest(Func<JToken, bool> handler, TimeSpan timeout)
+        public PendingRequest(Func<JToken, bool> handler, TimeSpan timeout, SocketSubscription? subscription)
         {
             Handler = handler;
             Event = new AsyncResetEvent(false, false);
             Timeout = timeout;
+            RequestTimestamp = DateTime.UtcNow;
+            Subscription = subscription;
 
             cts = new CancellationTokenSource(timeout);
             cts.Token.Register(Fail, false);
@@ -27,15 +31,15 @@ namespace CryptoExchange.Net.Sockets
 
         public bool CheckData(JToken data)
         {
-            if (Handler(data))
-            {
-                Result = data;
-                Completed = true;
-                Event.Set();
-                return true;
-            }
+            return Handler(data);
+        }
 
-            return false;
+        public bool Succeed(JToken data)
+        {
+            Result = data;
+            Completed = true;
+            Event.Set();
+            return true;
         }
 
         public void Fail()
