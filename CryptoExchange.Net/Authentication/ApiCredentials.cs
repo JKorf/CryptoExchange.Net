@@ -22,20 +22,6 @@ namespace CryptoExchange.Net.Authentication
         public SecureString? Secret { get; }
 
         /// <summary>
-        /// The private key to authenticate requests
-        /// </summary>
-        public PrivateKey? PrivateKey { get; }
-
-        /// <summary>
-        /// Create Api credentials providing a private key for authentication
-        /// </summary>
-        /// <param name="privateKey">The private key used for signing</param>
-        public ApiCredentials(PrivateKey privateKey)
-        {
-            PrivateKey = privateKey;
-        }
-
-        /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
@@ -69,11 +55,8 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         public virtual ApiCredentials Copy()
         {
-            if (PrivateKey == null)
-                // Use .GetString() to create a copy of the SecureString
-                return new ApiCredentials(Key!.GetString(), Secret!.GetString());
-            else
-                return new ApiCredentials(PrivateKey!.Copy());
+            // Use .GetString() to create a copy of the SecureString
+            return new ApiCredentials(Key!.GetString(), Secret!.GetString());
         }
 
         /// <summary>
@@ -123,7 +106,6 @@ namespace CryptoExchange.Net.Authentication
         {
             Key?.Dispose();
             Secret?.Dispose();
-            PrivateKey?.Dispose();
         }
     }
 }

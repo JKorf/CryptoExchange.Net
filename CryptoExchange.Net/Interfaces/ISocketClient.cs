@@ -17,12 +17,6 @@ namespace CryptoExchange.Net.Interfaces
         ClientOptions ClientOptions { get; }
 
         /// <summary>
-        /// Set the API credentials for this client. All Api clients in this client will use the new credentials, regardless of earlier set options.
-        /// </summary>
-        /// <param name="credentials">The credentials to set</param>
-        void SetApiCredentials(ApiCredentials credentials);
-
-        /// <summary>
         /// Incoming kilobytes per second of data
         /// </summary>
         public double IncomingKbps { get; }

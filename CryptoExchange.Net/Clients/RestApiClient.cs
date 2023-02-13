@@ -20,34 +20,23 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base rest API client for interacting with a REST API
     /// </summary>
-    public abstract class RestApiClient: BaseApiClient
+    public abstract class RestApiClient : BaseApiClient, IRestApiClient
     {
-        /// <summary>
-        /// The factory for creating requests. Used for unit testing
-        /// </summary>
+        /// <inheritdoc />
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
+        /// <inheritdoc />
+        public abstract TimeSyncInfo? GetTimeSyncInfo();
+
+        /// <inheritdoc />
+        public abstract TimeSpan? GetTimeOffset();
+
+        /// <inheritdoc />
+        public int TotalRequestsMade { get; set; }
 
         /// <summary>
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
-
-        /// <summary>
-        /// Get time sync info for an API client
-        /// </summary>
-        /// <returns></returns>
-        public abstract TimeSyncInfo GetTimeSyncInfo();
-        
-        /// <summary>
-        /// Get time offset for an API client
-        /// </summary>
-        /// <returns></returns>
-        public abstract TimeSpan GetTimeOffset();
-
-        /// <summary>
-        /// Total amount of requests made with this API client
-        /// </summary>
-        public int TotalRequestsMade { get; set; }
 
         /// <summary>
         /// Options for this client
@@ -70,7 +59,7 @@ namespace CryptoExchange.Net
         /// <param name="log">Logger</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(Log log, ClientOptions options, RestApiClientOptions apiOptions): base(log, options, apiOptions)
+        public RestApiClient(Log log, ClientOptions options, RestApiClientOptions apiOptions) : base(log, options, apiOptions)
         {
             var rateLimiters = new List<IRateLimiter>();
             foreach (var rateLimiter in apiOptions.RateLimiters)
@@ -110,12 +99,20 @@ namespace CryptoExchange.Net
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
-            var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
-            if (!request)
-                return new WebCallResult(request.Error!);
+            int currentTry = 0;
+            while (true)
+            {
+                currentTry++;
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                if (!request)
+                    return new WebCallResult(request.Error!);
 
-            var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
-            return result.AsDataless();
+                var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
+                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                    continue;
+
+                return result.AsDataless();
+            }
         }
 
         /// <summary>
@@ -149,11 +146,20 @@ namespace CryptoExchange.Net
             bool ignoreRatelimit = false
             ) where T : class
         {
-            var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
-            if (!request)
-                return new WebCallResult<T>(request.Error!);
+            int currentTry = 0;
+            while (true)
+            {
+                currentTry++;
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                if (!request)
+                    return new WebCallResult<T>(request.Error!);
 
-            return await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+                var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                    continue;
+
+                return result;
+            }
         }
 
         /// <summary>
@@ -190,7 +196,8 @@ namespace CryptoExchange.Net
             {
                 var syncTask = SyncTimeAsync();
                 var timeSyncInfo = GetTimeSyncInfo();
-                if (timeSyncInfo.TimeSyncState.LastSyncTime == default)
+
+                if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
                 {
                     // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
                     var syncTimeResult = await syncTask.ConfigureAwait(false);
@@ -234,8 +241,6 @@ namespace CryptoExchange.Net
             _log.Write(LogLevel.Trace, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}{(ClientOptions.Proxy == null ? "" : $" via proxy {ClientOptions.Proxy.Host}")}");
             return new CallResult<IRequest>(request);
         }
-
-
 
         /// <summary>
         /// Executes the request and returns the result deserialized into the type parameter class
@@ -375,6 +380,16 @@ namespace CryptoExchange.Net
         {
             return Task.FromResult<ServerError?>(null);
         }
+
+        /// <summary>
+        /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
+        /// Note that this is always called; even when the request might be successful
+        /// </summary>
+        /// <typeparam name="T">WebCallResult type parameter</typeparam>
+        /// <param name="callResult">The result of the call</param>
+        /// <param name="tries">The current try number</param>
+        /// <returns>True if call should retry, false if the call should return</returns>
+        protected virtual Task<bool> ShouldRetryRequestAsync<T>(WebCallResult<T> callResult, int tries) => Task.FromResult(false);
 
         /// <summary>
         /// Creates a request object
@@ -521,11 +536,14 @@ namespace CryptoExchange.Net
         /// Retrieve the server time for the purpose of syncing time between client and server to prevent authentication issues
         /// </summary>
         /// <returns>Server time</returns>
-        protected abstract Task<WebCallResult<DateTime>> GetServerTimestampAsync();
+        protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
         internal async Task<WebCallResult<bool>> SyncTimeAsync()
         {
             var timeSyncParams = GetTimeSyncInfo();
+            if (timeSyncParams == null)
+                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, true, null);
+
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
                 if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval))
@@ -557,7 +575,7 @@ namespace CryptoExchange.Net
                 // Calculate time offset between local and server
                 var offset = result.Data - (localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2));
                 timeSyncParams.UpdateTimeOffset(offset);
-                timeSyncParams.TimeSyncState.Semaphore.Release();                
+                timeSyncParams.TimeSyncState.Semaphore.Release();
             }
 
             return new WebCallResult<bool>(null, null, null, null, null, null, null, null, true, null);

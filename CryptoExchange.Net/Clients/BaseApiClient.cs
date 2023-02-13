@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base API for all API clients
     /// </summary>
-    public abstract class BaseApiClient: IDisposable
+    public abstract class BaseApiClient : IDisposable, IBaseApiClient
     {
         private ApiCredentials? _apiCredentials;
         private AuthenticationProvider? _authenticationProvider;
@@ -38,7 +39,7 @@ namespace CryptoExchange.Net
         /// </summary>
         public AuthenticationProvider? AuthenticationProvider
         {
-            get 
+            get
             {
                 if (!_created && !_disposing && _apiCredentials != null)
                 {
@@ -98,7 +99,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Lock for id generating
         /// </summary>
-        protected static object idLock = new ();
+        protected static object idLock = new();
 
         /// <summary>
         /// A default serializer
@@ -131,7 +132,7 @@ namespace CryptoExchange.Net
         protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <inheritdoc />
-        public void SetApiCredentials(ApiCredentials credentials)
+        public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
             _apiCredentials = credentials?.Copy();
             _created = false;

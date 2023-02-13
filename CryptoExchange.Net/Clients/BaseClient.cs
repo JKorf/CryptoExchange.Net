@@ -53,7 +53,7 @@ namespace CryptoExchange.Net
         /// Set the API credentials for this client. All Api clients in this client will use the new credentials, regardless of earlier set options.
         /// </summary>
         /// <param name="credentials">The credentials to set</param>
-        public void SetApiCredentials(ApiCredentials credentials)
+        protected virtual void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
             foreach (var apiClient in ApiClients)
                 apiClient.SetApiCredentials(credentials);

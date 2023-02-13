@@ -18,13 +18,10 @@ namespace CryptoExchange.Net
     /// <summary>
     /// Base socket API client for interaction with a websocket API
     /// </summary>
-    public abstract class SocketApiClient : BaseApiClient
+    public abstract class SocketApiClient : BaseApiClient, ISocketApiClient
     {
         #region Fields
-
-        /// <summary>
-        /// The factory for creating sockets. Used for unit testing
-        /// </summary>
+        /// <inheritdoc/>
         public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
 
         /// <summary>
@@ -117,7 +114,7 @@ namespace CryptoExchange.Net
         /// <param name="log">log</param>
         /// <param name="options">Client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions): base(log, options, apiOptions)
+        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions) : base(log, options, apiOptions)
         {
             ClientOptions = options;
         }

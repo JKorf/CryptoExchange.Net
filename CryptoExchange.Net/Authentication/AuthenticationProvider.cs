@@ -223,7 +223,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected static DateTime GetTimestamp(RestApiClient apiClient)
         {
-            return DateTime.UtcNow.Add(apiClient?.GetTimeOffset() ?? TimeSpan.Zero)!;
+            return DateTime.UtcNow.Add(apiClient.GetTimeOffset() ?? TimeSpan.Zero)!;
         }
 
         /// <summary>

@@ -142,7 +142,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             ParameterPositions[method] = position;
         }
 
-        public override TimeSpan GetTimeOffset()
+        public override TimeSpan? GetTimeOffset()
         {
             throw new NotImplementedException();
         }
@@ -178,7 +178,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return new ServerError((int)error["errorCode"], (string)error["errorMessage"]);
         }
 
-        public override TimeSpan GetTimeOffset()
+        public override TimeSpan? GetTimeOffset()
         {
             throw new NotImplementedException();
         }

@@ -37,8 +37,8 @@ namespace CryptoExchange.Net.UnitTests
 
         public CallResult<T> Deserialize<T>(string data) => Deserialize<T>(data, null, null);
 
-        public override TimeSpan GetTimeOffset() => throw new NotImplementedException();
-        public override TimeSyncInfo GetTimeSyncInfo() => throw new NotImplementedException();
+        public override TimeSpan? GetTimeOffset() => null;
+        public override TimeSyncInfo GetTimeSyncInfo() => null;
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
     }
