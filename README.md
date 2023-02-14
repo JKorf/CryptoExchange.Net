@@ -33,6 +33,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.4.0 - 14 Feb 2023
+    * Added unsubscribing when receiving subscribe answer after the request timeout has passed
+    * Fixed socket options copying
+    * Made TimeSync implementation optional
+    * Cleaned up ApiCredentials and added better support for extending ApiCredentials
+
 * Version 5.3.1 - 08 Dec 2022
     * Added default request parameter ordering before applying authentication
     * Fixed possible issue where a socket would reconnect when it should close if it was already in reconnecting
