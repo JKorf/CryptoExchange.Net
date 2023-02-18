@@ -211,8 +211,16 @@ namespace CryptoExchange.Net.Sockets
                 while (_closeTask == null)
                     await Task.Delay(50).ConfigureAwait(false);
 
-                await _closeTask.ConfigureAwait(false);
-                _closeTask = null;
+                await _closeSem.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    await _closeTask.ConfigureAwait(false);
+                    _closeTask = null;
+                }
+                finally
+                {
+                    _closeSem.Release();
+                }
 
                 if (!Parameters.AutoReconnect)
                 {
@@ -285,8 +293,19 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             _log.Write(LogLevel.Debug, $"Socket {Id} reconnect requested");
-            _closeTask = CloseInternalAsync();
-            await _closeTask.ConfigureAwait(false);
+            await _closeSem.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_processState != ProcessState.Processing)
+                    return;
+
+                _closeTask = CloseInternalAsync();
+                await _closeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                _closeSem.Release();
+            }
         }
 
         /// <inheritdoc />
@@ -430,8 +449,19 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly, .NET framework
                             OnError?.Invoke(ioe);
-                            if (_closeTask?.IsCompleted != false)
-                                _closeTask = CloseInternalAsync();
+                            await _closeSem.WaitAsync().ConfigureAwait(false);
+                            try
+                            {
+                                if (_processState != ProcessState.Processing)
+                                    return;
+
+                                if (_closeTask?.IsCompleted != false)
+                                    _closeTask = CloseInternalAsync();
+                            }
+                            catch
+                            {
+                                _closeSem.Release();
+                            }
                             break;
                         }
                     }
@@ -488,8 +518,17 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly
                             OnError?.Invoke(wse);
-                            if (_closeTask?.IsCompleted != false)
-                                _closeTask = CloseInternalAsync();
+                            await _closeSem.WaitAsync().ConfigureAwait(false);
+                            try
+                            {
+                                if (_processState == ProcessState.Processing && _closeTask?.IsCompleted != false)
+                                    _closeTask = CloseInternalAsync();
+                            }
+                            catch
+                            {
+                                _closeSem.Release();
+                            }
+
                             break;
                         }
 
@@ -497,8 +536,17 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Connection closed unexpectedly        
                             _log.Write(LogLevel.Debug, $"Socket {Id} received `Close` message");
-                            if (_closeTask?.IsCompleted != false)
-                                _closeTask = CloseInternalAsync();
+                            await _closeSem.WaitAsync().ConfigureAwait(false);
+                            try
+                            {
+                                if (_processState == ProcessState.Processing && _closeTask?.IsCompleted != false)
+                                    _closeTask = CloseInternalAsync();
+                            }
+                            catch
+                            {
+                                _closeSem.Release();
+                            }
+
                             break;
                         }
 
