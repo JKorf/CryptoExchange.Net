@@ -213,7 +213,7 @@ namespace CryptoExchange.Net
             {
                 foreach (var limiter in RateLimiters)
                 {
-                    var limitResult = await limiter.LimitRequestAsync(_log, uri.AbsolutePath, method, signed, Options.ApiCredentials?.Key, Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await limiter.LimitRequestAsync(_log, uri.AbsolutePath, method, signed, Options.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, Options.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
                     if (!limitResult.Success)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }
