@@ -101,12 +101,21 @@ namespace CryptoExchange.Net.Interfaces
 
         /// <summary>
         /// Get the average price that a market order would fill at at the current order book state. This is no guarentee that an order of that quantity would actually be filled
-        /// at that price since between this calculation and the order placement the book can have changed.
+        /// at that price since between this calculation and the order placement the book might have changed.
         /// </summary>
         /// <param name="quantity">The quantity in base asset to fill</param>
         /// <param name="type">The type</param>
         /// <returns>Average fill price</returns>
         CallResult<decimal> CalculateAverageFillPrice(decimal quantity, OrderBookEntryType type);
+
+        /// <summary>
+        /// Get the amount of base asset which can be traded with the quote quantity when placing a market order at at the current order book state. 
+        /// This is no guarentee that an order of that quantity would actually be fill the quantity returned by this since between this calculation and the order placement the book might have changed.
+        /// </summary>
+        /// <param name="quoteQuantity">The quantity in quote asset looking to trade</param>
+        /// <param name="type">The type</param>
+        /// <returns>Amount of base asset tradable with the specified amount of quote asset</returns>
+        CallResult<decimal> CalculateTradableAmount(decimal quoteQuantity, OrderBookEntryType type);
 
         /// <summary>
         /// String representation of the top x entries

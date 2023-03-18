@@ -304,14 +304,14 @@ namespace CryptoExchange.Net.OrderBook
         }
 
         /// <inheritdoc/>
-        public CallResult<decimal> CalculateAverageFillPrice(decimal quantity, OrderBookEntryType type)
+        public CallResult<decimal> CalculateAverageFillPrice(decimal baseQuantity, OrderBookEntryType type)
         {
             if (Status != OrderBookStatus.Synced)
                 return new CallResult<decimal>(new InvalidOperationError($"{nameof(CalculateAverageFillPrice)} is not available when book is not in Synced state"));
 
             var totalCost = 0m;
             var totalAmount = 0m;
-            var amountLeft = quantity;
+            var amountLeft = baseQuantity;
             lock (_bookLock)
             {
                 var list = type == OrderBookEntryType.Ask ? asks : bids;
@@ -332,6 +332,35 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             return new CallResult<decimal>(Math.Round(totalCost / totalAmount, 8));
+        }
+
+        /// <inheritdoc/>
+        public CallResult<decimal> CalculateTradableAmount(decimal quoteQuantity, OrderBookEntryType type)
+        {
+            if (Status != OrderBookStatus.Synced)
+                return new CallResult<decimal>(new InvalidOperationError($"{nameof(CalculateTradableAmount)} is not available when book is not in Synced state"));
+
+            var quoteQuantityLeft = quoteQuantity;
+            var totalBaseQuantity = 0m;
+            lock (_bookLock)
+            {
+                var list = type == OrderBookEntryType.Ask ? asks : bids;
+
+                var step = 0;
+                while (quoteQuantityLeft > 0)
+                {
+                    if (step == list.Count)
+                        return new CallResult<decimal>(new InvalidOperationError("Quantity is larger than order in the order book"));
+
+                    var element = list.ElementAt(step);
+                    var stepAmount = Math.Min(element.Value.Quantity * element.Value.Price, quoteQuantityLeft);
+                    quoteQuantityLeft -= stepAmount;
+                    totalBaseQuantity += stepAmount / element.Value.Price;
+                    step++;
+                }
+            }
+
+            return new CallResult<decimal>(Math.Round(totalBaseQuantity, 8));
         }
 
         /// <summary>

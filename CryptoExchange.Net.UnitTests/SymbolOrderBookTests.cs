@@ -108,5 +108,33 @@ namespace CryptoExchange.Net.UnitTests
             Assert.AreEqual(1.06666667m, resultBids2.Data);
             Assert.AreEqual(1.23333333m, resultAsks2.Data);
         }
+
+        [TestCase]
+        public void CalculateTradableAmount()
+        {
+            var orderbook = new TestableSymbolOrderBook();
+            orderbook.SetData(new List<ISymbolOrderBookEntry>
+            {
+                new BookEntry{ Price = 1, Quantity = 1 },
+                new BookEntry{ Price = 1.1m, Quantity = 1 },
+            },
+            new List<ISymbolOrderBookEntry>()
+            {
+                new BookEntry{ Price = 1.2m, Quantity = 1 },
+                new BookEntry{ Price = 1.3m, Quantity = 1 },
+            });
+
+            var resultBids = orderbook.CalculateTradableAmount(2, OrderBookEntryType.Bid);
+            var resultAsks = orderbook.CalculateTradableAmount(2, OrderBookEntryType.Ask);
+            var resultBids2 = orderbook.CalculateTradableAmount(1.5m, OrderBookEntryType.Bid);
+            var resultAsks2 = orderbook.CalculateTradableAmount(1.5m, OrderBookEntryType.Ask);
+
+            Assert.True(resultBids.Success);
+            Assert.True(resultAsks.Success);
+            Assert.AreEqual(1.9m, resultBids.Data);
+            Assert.AreEqual(1.61538462m, resultAsks.Data);
+            Assert.AreEqual(1.4m, resultBids2.Data);
+            Assert.AreEqual(1.23076923m, resultAsks2.Data);
+        }
     }
 }
