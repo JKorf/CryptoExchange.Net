@@ -33,6 +33,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.4.1 - 18 Mar 2023
+    * Added CalculateTradableAmount to SymbolOrderBook
+    * Improved socket reconnect robustness
+    * Fixed api rate limiter not working correctly
+
 * Version 5.4.0 - 14 Feb 2023
     * Added unsubscribing when receiving subscribe answer after the request timeout has passed
     * Fixed socket options copying
