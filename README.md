@@ -33,6 +33,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.4.2 - 01 Apr 2023
+    * Reverted socket changes as it seems to cause reconnect to hang
+
 * Version 5.4.1 - 18 Mar 2023
     * Added CalculateTradableAmount to SymbolOrderBook
     * Improved socket reconnect robustness
