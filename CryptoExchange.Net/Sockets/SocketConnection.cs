@@ -253,7 +253,7 @@ namespace CryptoExchange.Net.Sockets
             var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
             if (!reconnectSuccessful)
             {
-                _log.Write(LogLevel.Warning, $"Failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
+                _log.Write(LogLevel.Warning, "Failed reconnect processing, reconnecting again");
                 await _socket.ReconnectAsync().ConfigureAwait(false);
             }
             else
