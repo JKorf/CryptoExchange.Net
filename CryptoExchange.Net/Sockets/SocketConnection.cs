@@ -629,7 +629,11 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult<bool>(true);
             }
 
-            if (_subscriptions.Any(s => s.Authenticated))
+            bool anyAuthenticated = false;
+            lock (_subscriptionLock)
+                anyAuthenticated = _subscriptions.Any(s => s.Authenticated);
+
+            if (anyAuthenticated)
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
                 var authResult = await ApiClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
