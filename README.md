@@ -33,6 +33,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 5.4.3 - 14 Apr 2023
+    * Fixed potential threading exception in socket connection
+
 * Version 5.4.2 - 01 Apr 2023
     * Reverted socket changes as it seems to cause reconnect to hang
 
