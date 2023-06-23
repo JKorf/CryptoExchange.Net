@@ -670,6 +670,10 @@ namespace CryptoExchange.Net
                     if (_disposing)
                         break;
 
+                    // For pings request where there isn't any socketConnections so memory isn't growing
+                    if (CurrentSubscriptions == 0)
+                        periodicEvent.Set();
+
                     foreach (var socketConnection in socketConnections.Values)
                     {
                         if (_disposing)
