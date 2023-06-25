@@ -33,6 +33,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.0.0 - 25 Jun 2023
+    * Updated ApiCredentials to support RSA signing as well as the default Hmac signature
+    * Removed custom logging implementation in favor of using `Microsoft.Extensions.Logging` ILogger directly
+    * Refactored client options for easier use
+    * Added easier way of switching environments
+    * Added ResponseLength and ToString() override on WebCallResult object
+    * Fixed memory leak in AsyncResetEvent
+
 * Version 5.4.3 - 14 Apr 2023
     * Fixed potential threading exception in socket connection
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>6.0.0 - Updated ApiCredentials to support RSA signing as well as the default Hmac signature, Removed custom logging implementation in favor of using `Microsoft.Extensions.Logging` ILogger directly, Refactored client options for easier use, Added easier way of switching environments, Added ResponseLength and ToString() override on WebCallResult object, Fixed memory leak in AsyncResetEvent</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
