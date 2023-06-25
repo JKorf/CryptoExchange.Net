@@ -27,9 +27,9 @@ The HttpClient will now be received by the DI container instead of having to pas
 ```csharp
 var client = new BinanceClient(new BinanceClientOptions(){
     OutputOriginalData = true,
-	SpotApiOptions = new RestApiOptions {
-	  BaseAddress = BinanceApiAddresses.TestNet.RestClientAddress
-	}
+    SpotApiOptions = new RestApiOptions {
+      BaseAddress = BinanceApiAddresses.TestNet.RestClientAddress
+    }
     // Other options
 });
 ```
@@ -38,7 +38,7 @@ var client = new BinanceClient(new BinanceClientOptions(){
 ```csharp
 var client = new BinanceClient(options => {
     options.OutputOriginalData = true;
-	options.Environment = BinanceEnvironment.Testnet;
+    options.Environment = BinanceEnvironment.Testnet;
     // Other options
 });
 ```
@@ -53,10 +53,10 @@ With the change in options providing the DI extension methods for the IServiceCo
 ```csharp
 builder.Services.AddKucoin((restOpts, socketOpts) =>
 {
-	restOpts.LogLevel = LogLevel.Debug;
-	restOpts.ApiCredentials = new KucoinApiCredentials("KEY", "SECRET", "PASS");
-	socketOpts.LogLevel = LogLevel.Debug;
-	socketOpts.ApiCredentials = new KucoinApiCredentials("KEY", "SECRET", "PASS");
+    restOpts.LogLevel = LogLevel.Debug;
+    restOpts.ApiCredentials = new KucoinApiCredentials("KEY", "SECRET", "PASS");
+    socketOpts.LogLevel = LogLevel.Debug;
+    socketOpts.ApiCredentials = new KucoinApiCredentials("KEY", "SECRET", "PASS");
 }, ServiceLifetime.Singleton);
 ```
 

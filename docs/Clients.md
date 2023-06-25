@@ -11,15 +11,15 @@ Each implementation generally provides two different clients, which will be the 
 The rest client gives access to the Rest endpoint of the API. Rest endpoints are accessed by sending an HTTP request and receiving a response. The client is split in different sub-clients, which are named API Clients. These API clients are then again split in different topics. Typically a Rest client will look like this:
 
 - [ExchangeName]RestClient
-	- SpotApi
-		- Account
-		- ExchangeData
-		- Trading
-	- FuturesApi
-		- Account
-		- ExchangeData
-		- Trading
-		
+    - SpotApi
+        - Account
+        - ExchangeData
+        - Trading
+    - FuturesApi
+        - Account
+        - ExchangeData
+        - Trading
+        
 This rest client has 2 different API clients, the `SpotApi` and the `FuturesApi`, each offering their own set of endpoints.  
 
 *Requesting ticker info on the spot API*
@@ -64,8 +64,8 @@ When processing the result of a call it should always be checked for success. No
 var callResult = await kucoinClient.SpotApi.ExchangeData.GetTickersAsync();
 if(!callResult.Success)
 {
-	Console.WriteLine("Request failed: " + callResult.Error);
-	return;
+    Console.WriteLine("Request failed: " + callResult.Error);
+    return;
 }
 
 Console.WriteLine("Result: " + callResult.Data);
@@ -78,8 +78,8 @@ Just like the Rest client is divided in Rest Api clients, the Socket client is d
 ```csharp
 
 - KucoinSocketClient
-	- SpotStreams
-	- FuturesStreams
+    - SpotStreams
+    - FuturesStreams
 
 ```
 *Subscribing to updates for all tickers on the Spot Api*
@@ -95,7 +95,7 @@ await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandle
 
 private static void DataHandler(DataEvent<KucoinStreamTick> updateData)
 {
-	// Process updateData
+    // Process updateData
 }
 ```
 
@@ -103,7 +103,7 @@ private static void DataHandler(DataEvent<KucoinStreamTick> updateData)
 ```csharp
 await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(updateData =>
 {
-	// Process updateData
+    // Process updateData
 });
 ```
 
@@ -122,16 +122,16 @@ Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. T
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 if(!subscriptionResult.Success)
 {
-	Console.WriteLine("Failed to connect: " + subscriptionResult.Error);
-	return;
+    Console.WriteLine("Failed to connect: " + subscriptionResult.Error);
+    return;
 }
 subscriptionResult.Data.ConnectionLost += () =>
 {
-	Console.WriteLine("Connection lost");
+    Console.WriteLine("Connection lost");
 };
 subscriptionResult.Data.ConnectionRestored += (time) =>
 {
-	Console.WriteLine("Connection restored");
+    Console.WriteLine("Connection restored");
 };
 
 ```

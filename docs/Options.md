@@ -12,8 +12,8 @@ Each implementation can be configured using client options. There are 2 ways to 
 
 BinanceClient.SetDefaultOptions(options =>
 {
-	options.OutputOriginalData = true;
-	options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
+    options.OutputOriginalData = true;
+    options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
 });
 
 ```
@@ -23,8 +23,8 @@ BinanceClient.SetDefaultOptions(options =>
 
 var client = new BinanceClient(options =>
 {
-	options.OutputOriginalData = true;
-	options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
+    options.OutputOriginalData = true;
+    options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
 });
 
 ```
@@ -34,12 +34,12 @@ When calling `SetDefaultOptions` each client created after that will use the opt
 
 BinanceClient.SetDefaultOptions(options =>
 {
-	options.OutputOriginalData = true;
+    options.OutputOriginalData = true;
 });
 
 var client = new BinanceClient(options =>
 {
-	options.OutputOriginalData = false;
+    options.OutputOriginalData = false;
 });
 
 ```
@@ -54,8 +54,8 @@ The options are divided in two categories. The basic options, which will apply t
 
 var client = new BinanceRestClient(options =>
 {
-	options.ApiCredentials = new ApiCredentials("GENERAL-KEY", "GENERAL-SECRET"),
-	options.SpotOptions.ApiCredentials = new ApiCredentials("SPOT-KEY", "SPOT-SECRET");
+    options.ApiCredentials = new ApiCredentials("GENERAL-KEY", "GENERAL-SECRET"),
+    options.SpotOptions.ApiCredentials = new ApiCredentials("SPOT-KEY", "SPOT-SECRET");
 });
 
 ```

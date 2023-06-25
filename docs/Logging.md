@@ -10,7 +10,7 @@ The library offers extensive logging, which depends on the dotnet `Microsoft.Ext
 ```csharp
 IServiceCollection services = new ServiceCollection();
 services
-	.AddBinance()
+    .AddBinance()
     .AddLogging(options =>
     {
         options.SetMinimumLevel(LogLevel.Trace);
@@ -66,8 +66,8 @@ IServiceCollection serviceCollection = new ServiceCollection();
 serviceCollection.AddBinance();
 serviceCollection.AddLogging(options =>
 {
-	options.SetMinimumLevel(LogLevel.Trace);
-	options.AddConsole();
+    options.SetMinimumLevel(LogLevel.Trace);
+    options.AddConsole();
 }).BuildServiceProvider();
 
 var client = serviceCollection.GetRequiredService<IBinanceRestClient>();
@@ -91,7 +91,7 @@ By default the `OriginalData` property in the `WebCallResult`/`DataEvent` object
 ```csharp
 var client = new BinanceClient(options =>
 {
-	options.OutputOriginalData = true
+    options.OutputOriginalData = true
 });
 ``` 
 
@@ -103,7 +103,7 @@ var originallyReceivedData = tickerResult.OriginalData;
 
 // Socket update
 await client.SpotStreams.SubscribeToAllTickerUpdatesAsync(update => {
-	var originallyRecievedData = update.OriginalData;
+    var originallyRecievedData = update.OriginalData;
 });
 ```
 

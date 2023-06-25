@@ -28,7 +28,7 @@ private void SomeMethod()
 {
   var socketClient = new BinanceSocketClient();
   socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
-	// Handle data
+    // Handle data
   });
 }
 ```
@@ -41,7 +41,7 @@ private BinanceSocketClient _socketClient = new BinanceSocketClient();
 private void SomeMethod()
 {
   _socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
-	// Handle data
+    // Handle data
   });
 }
 
@@ -52,7 +52,7 @@ Yes, generally these are all supported and can be configured by setting the Envi
 ```csharp
 var client = new BinanceRestClient(options =>
 {
-	options.Environment = BinanceEnvironment.Testnet;
+    options.Environment = BinanceEnvironment.Testnet;
 });
 ```
 

@@ -13,12 +13,12 @@ A rate limiter can be configured in the options like so:
 ```csharp
 new ClientOptions
 {
-	RateLimitingBehaviour = RateLimitingBehaviour.Wait,
-	RateLimiters = new List<IRateLimiter>
-	{
-		new RateLimiter()
-			.AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
-	}
+    RateLimitingBehaviour = RateLimitingBehaviour.Wait,
+    RateLimiters = new List<IRateLimiter>
+    {
+        new RateLimiter()
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+    }
 }
 ```
 
@@ -26,8 +26,8 @@ This will add a rate limiter for 50 requests per 10 seconds.
 A rate limiter can have multiple limits:
 ```csharp
 new RateLimiter()
-			.AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
-			.AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+            .AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))
 ```
 This adds another limit of 10 requests per 2 seconds in addition to the 50 requests per 10 seconds limit.
 These are the available rate limit configurations:

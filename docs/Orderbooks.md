@@ -18,15 +18,15 @@ book.OnStatusChange += (oldState, newState) => Console.WriteLine($"State changed
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
-	Console.WriteLine("Failed to start order book: " + startResult.Error);
-	return;
+    Console.WriteLine("Failed to start order book: " + startResult.Error);
+    return;
 }
 
 while(true)
 {
-	Console.Clear();
-	Console.WriteLine(book.ToString(3);
-	await Task.Delay(500);
+    Console.Clear();
+    Console.WriteLine(book.ToString(3);
+    await Task.Delay(500);
 }
 
 ```
