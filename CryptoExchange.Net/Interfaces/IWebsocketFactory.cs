@@ -1,5 +1,5 @@
-﻿using CryptoExchange.Net.Logging;
-using CryptoExchange.Net.Sockets;
+﻿using CryptoExchange.Net.Sockets;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -11,9 +11,9 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Create a websocket for an url
         /// </summary>
-        /// <param name="log">The logger</param>
+        /// <param name="logger">The logger</param>
         /// <param name="parameters">The parameters to use for the connection</param>
         /// <returns></returns>
-        IWebsocket CreateWebsocket(Log log, WebSocketParameters parameters);
+        IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters);
     }
 }

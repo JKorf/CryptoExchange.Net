@@ -5,12 +5,12 @@ nav_order: 2
 
 ## How to use the library
 
-Each implementation generally provides two different clients, which will be the access point for the API's. First of the rest client, which is typically available via [ExchangeName]Client, and a socket client, which is generally named [ExchangeName]SocketClient. For example `BinanceClient` and `BinanceSocketClient`.
+Each implementation generally provides two different clients, which will be the access point for the API's. First of is the rest client, which is typically available via [ExchangeName]RestClient, and a socket client, which is generally named [ExchangeName]SocketClient. For example `BinanceRestClient` and `BinanceSocketClient`.
 
 ## Rest client
 The rest client gives access to the Rest endpoint of the API. Rest endpoints are accessed by sending an HTTP request and receiving a response. The client is split in different sub-clients, which are named API Clients. These API clients are then again split in different topics. Typically a Rest client will look like this:
 
-- KucoinClient
+- [ExchangeName]RestClient
 	- SpotApi
 		- Account
 		- ExchangeData
@@ -21,6 +21,7 @@ The rest client gives access to the Rest endpoint of the API. Rest endpoints are
 		- Trading
 		
 This rest client has 2 different API clients, the `SpotApi` and the `FuturesApi`, each offering their own set of endpoints.  
+
 *Requesting ticker info on the spot API*
 ```csharp
 var client = new KucoinClient();
@@ -30,7 +31,7 @@ var tickersResult = kucoinClient.SpotApi.ExchangeData.GetTickersAsync();
 Structuring the client like this should make it easier to find endpoints and allows for separate options and functionality for different API clients. For example, some API's have totally separate API's for futures, with different base addresses and different API credentials, while other API's have implemented this in the same API. Either way, this structure can facilitate a similar interface.
 
 ### Rest API client
-The Api clients are parts of the total API with a common identifier. In the previous Kucoin example, it separates the Spot and the Futures API. This again is then separated into topics. Most Rest clients implement the following structure:  
+The Api clients are parts of the total API with a common identifier. In the previous example, it separates the Spot and the Futures API. This again is then separated into topics. Most Rest clients implement the following structure:  
 
 **Account**  
 Endpoints related to the user account. This can for example be endpoints for accessing account settings, or getting account balances. The endpoints in this topic will require API credentials to be provided in the client options.
@@ -44,13 +45,19 @@ Endpoints related to trading. These are endpoints for placing and retrieving ord
 
 ### Processing request responses
 Each request will return a WebCallResult<T> with the following properties:  
-`ResponseHeaders`: The headers returned from the server
-`ResponseStatusCode`: The status code as returned by the server
-`Success`: Whether or not the call was successful. If successful the `Data` property will contain the resulting data, if not successful the `Error` property will contain more details about what the issue was
-`Error`: Details on what went wrong with a call. Only filled when `Success` == `false`
-`Data`: Data returned by the server
+`RequestHeaders`: The headers send to the server in the request message  
+`RequestMethod`: The Http method of the request  
+`RequestUrl`: The url the request was send to  
+`ResponseLength`: The length in bytes of the response message  
+`ResponseTime`: The duration between sending the request and receiving the response  
+`ResponseHeaders`: The headers returned from the server  
+`ResponseStatusCode`: The status code as returned by the server  
+`Success`: Whether or not the call was successful. If successful the `Data` property will contain the resulting data, if not successful the `Error` property will contain more details about what the issue was  
+`Error`: Details on what went wrong with a call. Only filled when `Success` == `false`  
+`OriginalData`: Will contain the originally received unparsed data if this has been enabled in the client options
+`Data`: Data returned by the server, only available if `Success` == `true`  
 
-When processing the result of a call it should always be checked for success. Not doing so will result in `NullReference` exceptions.
+When processing the result of a call it should always be checked for success. Not doing so will result in `NullReference` exceptions when the call fails for whatever reason.
 
 *Check call result*
 ```csharp
@@ -65,7 +72,7 @@ Console.WriteLine("Result: " + callResult.Data);
 ```
 
 ## Socket client
-The socket client gives access to the websocket API of an exchange. Websocket API's offer streams to which updates are pushed to which a client can listen. Some exchanges also offer some degree of functionality by allowing clients to give commands via the websocket, but most exchanges only allow this via the Rest API.
+The socket client gives access to the websocket API of an exchange. Websocket API's offer streams to which updates are pushed to which a client can listen, and sometimes also allow request/response communication.
 Just like the Rest client is divided in Rest Api clients, the Socket client is divided into Socket Api clients, each with their own range of API functionality. Socket Api clients are generally not divided into topics since the number of methods isn't as big as with the Rest client. To use the Kucoin client as example again, it looks like this:
 
 ```csharp
@@ -80,7 +87,7 @@ Just like the Rest client is divided in Rest Api clients, the Socket client is d
 var subscribeResult = kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
 ```
 
-Subscribe methods require a data handler parameter, which is the method which will be called when an update is received from the server. This can be the name of a method or a lambda expression.  
+Subscribe methods always require a data handler parameter, which is the method which will be called when an update is received from the server. This can be the name of a method or a lambda expression.  
 
 *Method reference*
 ```csharp
@@ -100,12 +107,16 @@ await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(updateData
 });
 ```
 
-All updates are wrapped in a `DataEvent<>` object, which contain a `Timestamp`, `OriginalData`, `Topic`, and a `Data` property. The `Timestamp` is the timestamp when the data was received (not send!). `OriginalData` will contain the originally received data if this has been enabled in the client options. `Topic` will contain the topic of the update, which is typically the symbol or asset the update is for. The `Data` property contains the received update data.
+All updates are wrapped in a `DataEvent<>` object, which contain the following properties:  
+`Timestamp`: The timestamp when the data was received (not send!)  
+`OriginalData`: Will contain the originally received unparsed data if this has been enabled in the client options  
+`Topic`: Will contain the topic of the update, which is typically the symbol or asset the update is for  
+`Data`: Contains the received update data.
 
-*[WARNING] Do not use `using` statements in combination with constructing a `SocketClient`. Doing so will dispose the `SocketClient` instance when the subscription is done, which will result in the connection getting closed. Instead assign the socket client to a variable outside of the method scope.*
+*[WARNING] Do not use `using` statements in combination with constructing a `SocketClient` without blocking the thread. Doing so will dispose the `SocketClient` instance when the subscription is done, which will result in the connection getting closed. Instead assign the socket client to a variable outside of the method scope.*
 
 ### Processing subscribe responses
-Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. This should be checked for success the same way as the [rest client](#processing-request-responses). The `UpdateSubscription` object can be used to listen for connection events of the socket connection. 
+Subscribing to a stream will return a `CallResult<UpdateSubscription>` object. This should be checked for success the same way as a [rest request](#processing-request-responses). The `UpdateSubscription` object can be used to listen for connection events of the socket connection. 
 ```csharp
 
 var subscriptionResult = await kucoinSocketClient.SpotStreams.SubscribeToAllTickerUpdatesAsync(DataHandler);
@@ -158,34 +169,3 @@ await kucoinSocketClient.UnsubscribeAsync(subscriptionResult.Data.Id);
 When you need to unsubscribe all current subscriptions on a client you can call `UnsubscribeAllAsync` on the client to unsubscribe all streams and close all connections.
 
 
-## Dependency injection
-Each library offers a `Add[Library]` extension method for `IServiceCollection`, which allows you to add the clients to the service collection. It also provides a callback for setting the client options. See this example for adding the `BinanceClient`:
-```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-	services.AddBinance((restClientOptions, socketClientOptions) => {
-		restClientOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
-		restClientOptions.LogLevel = LogLevel.Trace;
-
-		socketClientOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
-	});
-}
-```
-Doing client registration this way will add the `IBinanceClient` as a transient service, and the `IBinanceSocketClient` as a scoped service.
-
-Alternatively, the clients can be registered manually:
-```csharp
-BinanceClient.SetDefaultOptions(new BinanceClientOptions
-{
-	ApiCredentials = new ApiCredentials("KEY", "SECRET"),
-	LogLevel = LogLevel.Trace
-});
-
-BinanceSocketClient.SetDefaultOptions(new BinanceSocketClientOptions
-{
-	ApiCredentials = new ApiCredentials("KEY", "SECRET"),
-});
-
-services.AddTransient<IBinanceClient, BinanceClient>();
-services.AddScoped<IBinanceSocketClient, BinanceSocketClient>();
-```

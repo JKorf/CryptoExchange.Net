@@ -4,11 +4,11 @@ nav_order: 6
 ---
 
 ## Locally synced order book
-Each implementation provides an order book implementation. These implementations will provide a client side order book and will take care of synchronization with the server, and will handle reconnecting and resynchronizing in case of a dropped connection.
+Each exchange implementation provides an order book implementation. These implementations will provide a client side order book and will take care of synchronization with the server, and will handle reconnecting and resynchronizing in case of a dropped connection.
 Order book implementations are named as `[ExchangeName][Type]SymbolOrderBook`, for example `BinanceSpotSymbolOrderBook`. 
 
 ## Usage
-Start the book synchronization by calling the `StartAsync` method. This returns a success state whether the book is successfully synchronized and started. You can listen to the `OnStatusChange` event to be notified of when the status of a book changes. Note that the order book is only synchronized with the server when the state is `Synced`.
+Start the book synchronization by calling the `StartAsync` method. This returns whether the book is successfully synchronized and started. You can listen to the `OnStatusChange` event to be notified of when the status of a book changes. Note that the order book is only synchronized with the server when the state is `Synced`. When the order book has been started and the state changes from `Synced` to `Reconnecting` the book will automatically reconnect and resync itself.
 
 *Start an order book and print the top 3 rows*
 ```csharp
@@ -24,6 +24,7 @@ if (!startResult.Success)
 
 while(true)
 {
+	Console.Clear();
 	Console.WriteLine(book.ToString(3);
 	await Task.Delay(500);
 }
@@ -55,3 +56,13 @@ book.OnOrderBookUpdate += (bidsAsks) => { Console.WriteLine($"Order book changed
 book.OnBestOffersChanged += (bestOffer) => { Console.WriteLine($"Best offer changed, best bid: {bestOffer.BestBid.Price}, best ask: {bestOffer.BestAsk.Price}"); };
 
 ```
+
+### Order book factory
+ Each exchange implementation also provides an order book factory for creating ISymbolOrderBook instances. The naming convention for the factory is `[Exchange]OrderBookFactory`, for example `BinanceOrderBookFactory`. This type will be automatically added when using DI and can be used to facilitate easier testing.
+ 
+ *Creating an order book using the order book factory*
+ ```csharp
+var factory = services.GetRequiredService<IKucoinOrderBookFactory>();
+var book = factory.CreateSpot("ETH-USDT");
+var startResult = await book.StartAsync();
+ ```

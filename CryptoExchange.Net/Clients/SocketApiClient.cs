@@ -1,6 +1,6 @@
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -28,30 +28,37 @@ namespace CryptoExchange.Net
         /// List of socket connections currently connecting/connected
         /// </summary>
         protected internal ConcurrentDictionary<int, SocketConnection> socketConnections = new();
+
         /// <summary>
         /// Semaphore used while creating sockets
         /// </summary>
         protected internal readonly SemaphoreSlim semaphoreSlim = new(1);
+
         /// <summary>
         /// Keep alive interval for websocket connection
         /// </summary>
         protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
+
         /// <summary>
         /// Delegate used for processing byte data received from socket connections before it is processed by handlers
         /// </summary>
         protected Func<byte[], string>? dataInterpreterBytes;
+
         /// <summary>
         /// Delegate used for processing string data received from socket connections before it is processed by handlers
         /// </summary>
         protected Func<string, string>? dataInterpreterString;
+
         /// <summary>
         /// Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
         /// </summary>
         protected Dictionary<string, Action<MessageEvent>> genericHandlers = new();
+
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
         /// </summary>
         protected Task? periodicTask;
+
         /// <summary>
         /// Wait event for the periodicTask
         /// </summary>
@@ -87,6 +94,7 @@ namespace CryptoExchange.Net
 
         /// <inheritdoc />
         public int CurrentConnections => socketConnections.Count;
+
         /// <inheritdoc />
         public int CurrentSubscriptions
         {
@@ -99,24 +107,29 @@ namespace CryptoExchange.Net
             }
         }
 
-        /// <inheritdoc />
-        public new SocketApiClientOptions Options => (SocketApiClientOptions)base.Options;
 
-        /// <summary>
-        /// Options
-        /// </summary>
-        internal ClientOptions ClientOptions { get; set; }
+        /// <inheritdoc />
+        public new SocketExchangeOptions ClientOptions => (SocketExchangeOptions)base.ClientOptions;
+
+        /// <inheritdoc />
+        public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
         #endregion
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="log">log</param>
+        /// <param name="logger">log</param>
         /// <param name="options">Client options</param>
+        /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(Log log, ClientOptions options, SocketApiClientOptions apiOptions) : base(log, options, apiOptions)
+        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions) 
+            : base(logger, 
+                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
+                  apiOptions.ApiCredentials ?? options.ApiCredentials,
+                  baseAddress,
+                  options,
+                  apiOptions)
         {
-            ClientOptions = options;
         }
 
         /// <summary>
@@ -142,7 +155,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(object? request, string? identifier, bool authenticated, Action<DataEvent<T>> dataHandler, CancellationToken ct)
         {
-            return SubscribeAsync(Options.BaseAddress, request, identifier, authenticated, dataHandler, ct);
+            return SubscribeAsync(BaseAddress, request, identifier, authenticated, dataHandler, ct);
         }
 
         /// <summary>
@@ -190,11 +203,11 @@ namespace CryptoExchange.Net
                     subscription = AddSubscription(request, identifier, true, socketConnection, dataHandler, authenticated);
                     if (subscription == null)
                     {
-                        _log.Write(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
+                        _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
                         continue;
                     }
 
-                    if (Options.SocketSubscriptionsCombineTarget == 1)
+                    if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
                     {
                         // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
                         semaphoreSlim.Release();
@@ -218,7 +231,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                _log.Write(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't subscribe at this moment");
+                _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't subscribe at this moment");
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
@@ -228,7 +241,7 @@ namespace CryptoExchange.Net
                 var subResult = await SubscribeAndWaitAsync(socketConnection, request, subscription).ConfigureAwait(false);
                 if (!subResult)
                 {
-                    _log.Write(LogLevel.Warning, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
+                    _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                     return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
@@ -243,12 +256,12 @@ namespace CryptoExchange.Net
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
                 {
-                    _log.Write(LogLevel.Information, $"Socket {socketConnection.SocketId} Cancellation token set, closing subscription");
+                    _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} Cancellation token set, closing subscription");
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
 
-            _log.Write(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
+            _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -262,7 +275,7 @@ namespace CryptoExchange.Net
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWaitAsync(SocketConnection socketConnection, object request, SocketSubscription subscription)
         {
             CallResult<object>? callResult = null;
-            await socketConnection.SendAndWaitAsync(request, Options.SocketResponseTimeout, subscription, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
+            await socketConnection.SendAndWaitAsync(request, ClientOptions.RequestTimeout, subscription, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
             {
@@ -285,7 +298,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual Task<CallResult<T>> QueryAsync<T>(object request, bool authenticated)
         {
-            return QueryAsync<T>(Options.BaseAddress, request, authenticated);
+            return QueryAsync<T>(BaseAddress, request, authenticated);
         }
 
         /// <summary>
@@ -312,7 +325,7 @@ namespace CryptoExchange.Net
 
                 socketConnection = socketResult.Data;
 
-                if (Options.SocketSubscriptionsCombineTarget == 1)
+                if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
                 {
                     // Can release early when only a single sub per connection
                     semaphoreSlim.Release();
@@ -331,7 +344,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                _log.Write(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't send query at this moment");
+                _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't send query at this moment");
                 return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
@@ -348,7 +361,7 @@ namespace CryptoExchange.Net
         protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request)
         {
             var dataResult = new CallResult<T>(new ServerError("No response on query received"));
-            await socket.SendAndWaitAsync(request, Options.SocketResponseTimeout, null, data =>
+            await socket.SendAndWaitAsync(request, ClientOptions.RequestTimeout, null, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
                     return false;
@@ -375,17 +388,17 @@ namespace CryptoExchange.Net
             if (!connectResult)
                 return new CallResult<bool>(connectResult.Error!);
 
-            if (Options.DelayAfterConnect != TimeSpan.Zero)
-                await Task.Delay(Options.DelayAfterConnect).ConfigureAwait(false);
+            if (ClientOptions.DelayAfterConnect != TimeSpan.Zero)
+                await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
 
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true);
 
-            _log.Write(LogLevel.Debug, $"Attempting to authenticate {socket.SocketId}");
+            _logger.Log(LogLevel.Debug, $"Attempting to authenticate {socket.SocketId}");
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
             {
-                _log.Write(LogLevel.Warning, $"Socket {socket.SocketId} authentication failed");
+                _logger.Log(LogLevel.Warning, $"Socket {socket.SocketId} authentication failed");
                 if (socket.Connected)
                     await socket.CloseAsync().ConfigureAwait(false);
 
@@ -411,6 +424,7 @@ namespace CryptoExchange.Net
         /// <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
         /// <returns>True if the message was a response to the query</returns>
         protected internal abstract bool HandleQueryResponse<T>(SocketConnection socketConnection, object request, JToken data, [NotNullWhen(true)] out CallResult<T>? callResult);
+        
         /// <summary>
         /// The socketConnection received data (the data JToken parameter). The implementation of this method should check if the received data is a response to the subscription request that was send (the request parameter).
         /// For example; A subscribe request message is send with an Id parameter with value 10. The socket receives data and calls this method to see if the data it received is an
@@ -425,6 +439,7 @@ namespace CryptoExchange.Net
         /// <param name="callResult">The interpretation (null if message wasn't a response to the request)</param>
         /// <returns>True if the message was a response to the subscription request</returns>
         protected internal abstract bool HandleSubscriptionResponse(SocketConnection socketConnection, SocketSubscription subscription, object request, JToken data, out CallResult<object>? callResult);
+        
         /// <summary>
         /// Needs to check if a received message matches a handler by request. After subscribing data message will come in. These data messages need to be matched to a specific connection
         /// to pass the correct data to the correct handler. The implementation of this method should check if the message received matches the subscribe request that was sent.
@@ -434,6 +449,7 @@ namespace CryptoExchange.Net
         /// <param name="request">The subscription request</param>
         /// <returns>True if the message is for the subscription which sent the request</returns>
         protected internal abstract bool MessageMatchesHandler(SocketConnection socketConnection, JToken message, object request);
+        
         /// <summary>
         /// Needs to check if a received message matches a handler by identifier. Generally used by GenericHandlers. For example; a generic handler is registered which handles ping messages
         /// from the server. This method should check if the message received is a ping message and the identifer is the identifier of the GenericHandler
@@ -443,12 +459,14 @@ namespace CryptoExchange.Net
         /// <param name="identifier">The string identifier of the handler</param>
         /// <returns>True if the message is for the handler which has the identifier</returns>
         protected internal abstract bool MessageMatchesHandler(SocketConnection socketConnection, JToken message, string identifier);
+        
         /// <summary>
         /// Needs to authenticate the socket so authenticated queries/subscriptions can be made on this socket connection
         /// </summary>
         /// <param name="socketConnection">The socket connection that should be authenticated</param>
         /// <returns></returns>
         protected internal abstract Task<CallResult<bool>> AuthenticateSocketAsync(SocketConnection socketConnection);
+        
         /// <summary>
         /// Needs to unsubscribe a subscription, typically by sending an unsubscribe request. If multiple subscriptions per socket is not allowed this can just return since the socket will be closed anyway
         /// </summary>
@@ -485,18 +503,18 @@ namespace CryptoExchange.Net
                 if (typeof(T) == typeof(string))
                 {
                     var stringData = (T)Convert.ChangeType(messageEvent.JsonData.ToString(), typeof(T));
-                    dataHandler(new DataEvent<T>(stringData, null, Options.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                    dataHandler(new DataEvent<T>(stringData, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
                     return;
                 }
 
                 var desResult = Deserialize<T>(messageEvent.JsonData);
                 if (!desResult)
                 {
-                    _log.Write(LogLevel.Warning, $"Socket {connection.SocketId} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
+                    _logger.Log(LogLevel.Warning, $"Socket {connection.SocketId} Failed to deserialize data into type {typeof(T)}: {desResult.Error}");
                     return;
                 }
 
-                dataHandler(new DataEvent<T>(desResult.Data, null, Options.OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                dataHandler(new DataEvent<T>(desResult.Data, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
             }
 
             var subscription = request == null
@@ -566,7 +584,7 @@ namespace CryptoExchange.Net
             var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
             if (result != null)
             {
-                if (result.SubscriptionCount < Options.SocketSubscriptionsCombineTarget || (socketConnections.Count >= Options.MaxSocketConnections && socketConnections.All(s => s.Value.SubscriptionCount >= Options.SocketSubscriptionsCombineTarget)))
+                if (result.SubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || (socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.SubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     return new CallResult<SocketConnection>(result);
@@ -576,16 +594,16 @@ namespace CryptoExchange.Net
             var connectionAddress = await GetConnectionUrlAsync(address, authenticated).ConfigureAwait(false);
             if (!connectionAddress)
             {
-                _log.Write(LogLevel.Warning, $"Failed to determine connection url: " + connectionAddress.Error);
+                _logger.Log(LogLevel.Warning, $"Failed to determine connection url: " + connectionAddress.Error);
                 return connectionAddress.As<SocketConnection>(null);
             }
 
             if (connectionAddress.Data != address)
-                _log.Write(LogLevel.Debug, $"Connection address set to " + connectionAddress.Data);
+                _logger.Log(LogLevel.Debug, $"Connection address set to " + connectionAddress.Data);
 
             // Create new socket
             var socket = CreateSocket(connectionAddress.Data!);
-            var socketConnection = new SocketConnection(_log, this, socket, address);
+            var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {
@@ -627,15 +645,15 @@ namespace CryptoExchange.Net
         /// <param name="address">The address to connect to</param>
         /// <returns></returns>
         protected virtual WebSocketParameters GetWebSocketParameters(string address)
-            => new(new Uri(address), Options.AutoReconnect)
+            => new(new Uri(address), ClientOptions.AutoReconnect)
             {
                 DataInterpreterBytes = dataInterpreterBytes,
                 DataInterpreterString = dataInterpreterString,
                 KeepAliveInterval = KeepAliveInterval,
-                ReconnectInterval = Options.ReconnectInterval,
+                ReconnectInterval = ClientOptions.ReconnectInterval,
                 RatelimitPerSecond = RateLimitPerSocketPerSecond,
                 Proxy = ClientOptions.Proxy,
-                Timeout = Options.SocketNoDataTimeout
+                Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };
 
         /// <summary>
@@ -645,8 +663,8 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual IWebsocket CreateSocket(string address)
         {
-            var socket = SocketFactory.CreateWebsocket(_log, GetWebSocketParameters(address));
-            _log.Write(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
+            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
+            _logger.Log(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
             return socket;
         }
 
@@ -682,7 +700,7 @@ namespace CryptoExchange.Net
                         if (obj == null)
                             continue;
 
-                        _log.Write(LogLevel.Trace, $"Socket {socketConnection.SocketId} sending periodic {identifier}");
+                        _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} sending periodic {identifier}");
 
                         try
                         {
@@ -690,7 +708,7 @@ namespace CryptoExchange.Net
                         }
                         catch (Exception ex)
                         {
-                            _log.Write(LogLevel.Warning, $"Socket {socketConnection.SocketId} Periodic send {identifier} failed: " + ex.ToLogString());
+                            _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} Periodic send {identifier} failed: " + ex.ToLogString());
                         }
                     }
                 }
@@ -719,7 +737,7 @@ namespace CryptoExchange.Net
             if (subscription == null || connection == null)
                 return false;
 
-            _log.Write(LogLevel.Information, $"Socket {connection.SocketId} Unsubscribing subscription " + subscriptionId);
+            _logger.Log(LogLevel.Information, $"Socket {connection.SocketId} Unsubscribing subscription " + subscriptionId);
             await connection.CloseAsync(subscription).ConfigureAwait(false);
             return true;
         }
@@ -734,7 +752,7 @@ namespace CryptoExchange.Net
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            _log.Write(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
+            _logger.Log(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
@@ -744,12 +762,12 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
-            _log.Write(LogLevel.Information, $"Unsubscribing all {socketConnections.Sum(s => s.Value.SubscriptionCount)} subscriptions");
+            _logger.Log(LogLevel.Information, $"Unsubscribing all {socketConnections.Sum(s => s.Value.SubscriptionCount)} subscriptions");
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
                 foreach (var sub in socketList)
-                    tasks.Add(sub.CloseAsync());
+                    tasks.Add(sub.CloseAsync()); 
             }
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
@@ -761,7 +779,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task ReconnectAsync()
         {
-            _log.Write(LogLevel.Information, $"Reconnecting all {socketConnections.Count} connections");
+            _logger.Log(LogLevel.Information, $"Reconnecting all {socketConnections.Count} connections");
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
@@ -798,7 +816,7 @@ namespace CryptoExchange.Net
             periodicEvent?.Dispose();
             if (socketConnections.Sum(s => s.Value.SubscriptionCount) > 0)
             {
-                _log.Write(LogLevel.Debug, "Disposing socket client, closing all subscriptions");
+                _logger.Log(LogLevel.Debug, "Disposing socket client, closing all subscriptions");
                 _ = UnsubscribeAllAsync();
             }
             semaphoreSlim?.Dispose();

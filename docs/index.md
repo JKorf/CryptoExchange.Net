@@ -17,7 +17,6 @@ These will always be on the latest CryptoExchange.Net version and the latest ver
 |<a href="https://github.com/JKorf/Bittrex.Net"><img src="https://github.com/JKorf/Bittrex.Net/blob/master/Bittrex.Net/Icon/icon.png?raw=true"></a>|Bittrex|https://jkorf.github.io/Bittrex.Net/|
 |<a href="https://github.com/JKorf/Bybit.Net"><img src="https://github.com/JKorf/Bybit.Net/blob/main/ByBit.Net/Icon/icon.png?raw=true"></a>|Bybit|https://jkorf.github.io/Bybit.Net/|
 |<a href="https://github.com/JKorf/CoinEx.Net"><img src="https://github.com/JKorf/CoinEx.Net/blob/master/CoinEx.Net/Icon/icon.png?raw=true"></a>|CoinEx|https://jkorf.github.io/CoinEx.Net/|
-|<a href="https://github.com/JKorf/FTX.Net"><img src="https://github.com/JKorf/FTX.Net/blob/main/FTX.Net/Icon/icon.png?raw=true"></a>|FTX|https://jkorf.github.io/FTX.Net/|
 |<a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>|Huobi|https://jkorf.github.io/Huobi.Net/|
 |<a href="https://github.com/JKorf/Kraken.Net"><img src="https://github.com/JKorf/Kraken.Net/blob/master/Kraken.Net/Icon/icon.png?raw=true"></a>|Kraken|https://jkorf.github.io/Kraken.Net/|
 |<a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Kucoin.Net/Icon/icon.png?raw=true"></a>|Kucoin|https://jkorf.github.io/Kucoin.Net/|
@@ -52,16 +51,14 @@ Use one of the following following referral links to signup to a new exchange to
 [Bittrex](https://bittrex.com/discover/join?referralCode=TST-DJM-CSX)  
 [Bybit](https://partner.bybit.com/b/jkorf)  
 [CoinEx](https://www.coinex.com/register?refer_code=hd6gn)  
-[FTX](https://ftx.com/referrals#a=31620192)  
 [Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=fxp93)  
 [Kucoin](https://www.kucoin.com/ucenter/signup?rcode=RguMux)  
 
 ### Donate
 Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.
 
-**Btc**:  12KwZk3r2Y3JZ2uMULcjqqBvXmpDwjhhQS  
-**Eth**:  0x069176ca1a4b1d6e0b7901a6bc0dbf3bb0bf5cc2  
-**Nano**: xrb_1ocs3hbp561ef76eoctjwg85w5ugr8wgimkj8mfhoyqbx4s1pbc74zggw7gs  
+**Btc**:  bc1qz0jv0my7fc60rxeupr23e75x95qmlq6489n8gh  
+**Eth**:  0x8E21C4d955975cB645589745ac0c46ECA8FAE504  
 
 ### Sponsor
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 

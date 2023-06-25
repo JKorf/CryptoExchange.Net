@@ -43,7 +43,9 @@ namespace CryptoExchange.Net
 
             var offset = value % step.Value;
             if(roundingType == RoundingType.Down)
+            {
                 value -= offset;
+            }
             else
             {
                 if (offset < step / 2)

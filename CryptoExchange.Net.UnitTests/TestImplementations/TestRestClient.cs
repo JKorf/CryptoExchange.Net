@@ -12,7 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
-using CryptoExchange.Net.Logging;
+using CryptoExchange.Net.Objects.Options;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -21,14 +22,22 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestRestApi1Client Api1 { get; }
         public TestRestApi2Client Api2 { get; }
 
-        public TestRestClient() : this(new TestClientOptions())
+        public TestRestClient(Action<TestClientOptions> optionsFunc) : this(optionsFunc, null)
         {
         }
 
-        public TestRestClient(TestClientOptions exchangeOptions) : base("Test", exchangeOptions)
+        public TestRestClient(ILoggerFactory loggerFactory = null, HttpClient httpClient = null) : this((x) => { }, httpClient, loggerFactory)
         {
-            Api1 = new TestRestApi1Client(exchangeOptions);
-            Api2 = new TestRestApi2Client(exchangeOptions);
+        }
+
+        public TestRestClient(Action<TestClientOptions> optionsFunc, HttpClient httpClient = null, ILoggerFactory loggerFactory = null) : base(loggerFactory, "Test")
+        {
+            var options = TestClientOptions.Default.Copy();
+            optionsFunc(options);
+            Initialize(options);
+
+            Api1 = new TestRestApi1Client(options);
+            Api2 = new TestRestApi2Client(options);
         }
 
         public void SetResponse(string responseData, out IRequest requestObj)
@@ -122,7 +131,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestRestApi1Client : RestApiClient
     {
-        public TestRestApi1Client(TestClientOptions options): base(new Log(""), options, options.Api1Options)
+        public TestRestApi1Client(TestClientOptions options) : base(new TraceLogger(), null, "https://localhost:123", options, options.Api1Options)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
@@ -163,7 +172,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestRestApi2Client : RestApiClient
     {
-        public TestRestApi2Client(TestClientOptions options) : base(new Log(""), options, options.Api2Options)
+        public TestRestApi2Client(TestClientOptions options) : base(new TraceLogger(), null, "https://localhost:123", options, options.Api2Options)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
@@ -197,24 +206,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
     }
 
-    public class TestAuthProvider : AuthenticationProvider
-    {
-        public TestAuthProvider(ApiCredentials credentials) : base(credentials)
-        {
-        }
-
-        public override void AuthenticateRequest(RestApiClient apiClient, Uri uri, HttpMethod method, Dictionary<string, object> providedParameters, bool auth, ArrayParametersSerialization arraySerialization, HttpMethodParameterPosition parameterPosition, out SortedDictionary<string, object> uriParameters, out SortedDictionary<string, object> bodyParameters, out Dictionary<string, string> headers)
-        {
-            uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(providedParameters) : new SortedDictionary<string, object>();
-            bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(providedParameters) : new SortedDictionary<string, object>();
-            headers = new Dictionary<string, string>();
-        }
-    }
-
     public class ParseErrorTestRestClient: TestRestClient
     {
         public ParseErrorTestRestClient() { }
-        public ParseErrorTestRestClient(TestClientOptions exchangeOptions) : base(exchangeOptions) { }
 
     }
 }

@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net
 {
@@ -17,12 +15,10 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="loggerFactory">Logger factory</param>
         /// <param name="name">The name of the API this client is for</param>
-        /// <param name="options">The options for this client</param>
-        protected BaseRestClient(string name, ClientOptions options) : base(name, options)
+        protected BaseRestClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
         }
     }
 }

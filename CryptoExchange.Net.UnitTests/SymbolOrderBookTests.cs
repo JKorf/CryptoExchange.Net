@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.OrderBook;
 using CryptoExchange.Net.Sockets;
 using NUnit.Framework;
@@ -17,8 +18,9 @@ namespace CryptoExchange.Net.UnitTests
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
-            public TestableSymbolOrderBook() : base("Test", "BTC/USD", defaultOrderBookOptions)
+            public TestableSymbolOrderBook() : base(null, "Test", "BTC/USD")
             {
+                Initialize(defaultOrderBookOptions);
             }
 
 
@@ -35,12 +37,12 @@ namespace CryptoExchange.Net.UnitTests
             public void SetData(IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
             {
                 Status = OrderBookStatus.Synced;
-                base.bids.Clear();
+                base._bids.Clear();
                 foreach (var bid in bids)
-                    base.bids.Add(bid.Price, bid);
-                base.asks.Clear();
+                    base._bids.Add(bid.Price, bid);
+                base._asks.Clear();
                 foreach (var ask in asks)
-                    base.asks.Add(ask.Price, ask);
+                    base._asks.Add(ask.Price, ask);
             }
         }
 

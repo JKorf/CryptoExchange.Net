@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using Microsoft.Extensions.Logging;
 
@@ -14,24 +14,28 @@ namespace CryptoExchange.Net.UnitTests
     {       
         public TestSubClient SubClient { get; }
 
-        public TestBaseClient(): base("Test", new TestOptions())
+        public TestBaseClient(): base(null, "Test")
         {
-            SubClient = AddApiClient(new TestSubClient(new TestOptions(), new RestApiClientOptions()));
+            var options = TestClientOptions.Default.Copy();
+            Initialize(options);
+            SubClient = AddApiClient(new TestSubClient(options, new RestApiOptions()));
         }
 
-        public TestBaseClient(ClientOptions exchangeOptions) : base("Test", exchangeOptions)
+        public TestBaseClient(TestClientOptions exchangeOptions) : base(null, "Test")
         {
+            Initialize(exchangeOptions);
+            SubClient = AddApiClient(new TestSubClient(exchangeOptions, new RestApiOptions()));
         }
 
         public void Log(LogLevel verbosity, string data)
         {
-            log.Write(verbosity, data);
+            _logger.Log(verbosity, data);
         }
     }
 
     public class TestSubClient : RestApiClient
     {
-        public TestSubClient(ClientOptions options, RestApiClientOptions apiOptions) : base(new Log(""), options, apiOptions)
+        public TestSubClient(RestExchangeOptions<TestEnvironment> options, RestApiOptions apiOptions) : base(new TraceLogger(), null, "https://localhost:123", options, apiOptions)
         {
         }
 
@@ -60,5 +64,8 @@ namespace CryptoExchange.Net.UnitTests
         {
             return toSign;
         }
+
+        public string GetKey() => _credentials.Key.GetString();
+        public string GetSecret() => _credentials.Secret.GetString();
     }
 }

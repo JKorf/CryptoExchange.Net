@@ -1,7 +1,8 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 
@@ -16,37 +17,48 @@ namespace CryptoExchange.Net
         /// The name of the API the client is for
         /// </summary>
         internal string Name { get; }
+
         /// <summary>
         /// Api clients in this client
         /// </summary>
         internal List<BaseApiClient> ApiClients { get; } = new List<BaseApiClient>();
+
         /// <summary>
         /// The log object
         /// </summary>
-        protected internal Log log;
+        protected internal ILogger _logger;
         
         /// <summary>
         /// Provided client options
         /// </summary>
-        public ClientOptions ClientOptions { get; }
+        public ExchangeOptions ClientOptions { get; private set; }
 
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="logger">Logger</param>
         /// <param name="name">The name of the API this client is for</param>
-        /// <param name="options">The options for this client</param>
-        protected BaseClient(string name, ClientOptions options)
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        protected BaseClient(ILoggerFactory? logger, string name)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            log = new Log(name);
-            log.UpdateWriters(options.LogWriters);
-            log.Level = options.LogLevel;
-            options.OnLoggingChanged += HandleLogConfigChange;
-
-            ClientOptions = options;
+            _logger = logger?.CreateLogger(name) ?? NullLoggerFactory.Instance.CreateLogger(name);
 
             Name = name;
+        }
 
-            log.Write(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {name}.Net: v{GetType().Assembly.GetName().Version}");
+        /// <summary>
+        /// Initialize the client with the specified options
+        /// </summary>
+        /// <param name="options"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public virtual void Initialize(ExchangeOptions options)
+        {
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+
+            ClientOptions = options;
+            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {Name}.Net: v{GetType().Assembly.GetName().Version}");
         }
 
         /// <summary>
@@ -65,18 +77,12 @@ namespace CryptoExchange.Net
         /// <param name="apiClient">The client</param>
         protected T AddApiClient<T>(T apiClient) where T:  BaseApiClient
         {
-            log.Write(LogLevel.Trace, $"  {apiClient.GetType().Name} configuration: {apiClient.Options}");
+            if (ClientOptions == null)
+                throw new InvalidOperationException("Client should have called Initialize before adding API clients");
+
+            _logger.Log(LogLevel.Trace, $"  {apiClient.GetType().Name}, base address: {apiClient.BaseAddress}");
             ApiClients.Add(apiClient);
             return apiClient;
-        }
-
-        /// <summary>
-        /// Handle a change in the client options log config
-        /// </summary>
-        private void HandleLogConfigChange()
-        {
-            log.UpdateWriters(ClientOptions.LogWriters);
-            log.Level = ClientOptions.LogLevel;
         }
 
         /// <summary>
@@ -84,8 +90,7 @@ namespace CryptoExchange.Net
         /// </summary>
         public virtual void Dispose()
         {
-            log.Write(LogLevel.Debug, "Disposing client");
-            ClientOptions.OnLoggingChanged -= HandleLogConfigChange;
+            _logger.Log(LogLevel.Debug, "Disposing client");
             foreach (var client in ApiClients)
                 client.Dispose();
         }

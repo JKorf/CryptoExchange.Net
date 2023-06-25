@@ -1,5 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -9,9 +9,9 @@ namespace CryptoExchange.Net.Sockets
     public class WebsocketFactory : IWebsocketFactory
     {
         /// <inheritdoc />
-        public IWebsocket CreateWebsocket(Log log, WebSocketParameters parameters)
+        public IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters)
         {
-            return new CryptoExchangeWebSocketClient(log, parameters);
+            return new CryptoExchangeWebSocketClient(logger, parameters);
         }
     }
 }

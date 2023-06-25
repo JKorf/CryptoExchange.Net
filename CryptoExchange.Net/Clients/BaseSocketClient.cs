@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +19,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// If client is disposing
         /// </summary>
-        protected bool disposing;
+        protected bool _disposing;
         
         /// <inheritdoc />
         public int CurrentConnections => ApiClients.OfType<SocketApiClient>().Sum(c => c.CurrentConnections);
@@ -34,9 +32,9 @@ namespace CryptoExchange.Net
         /// <summary>
         /// ctor
         /// </summary>
+        /// <param name="logger">Logger</param>
         /// <param name="name">The name of the API this client is for</param>
-        /// <param name="options">The options for this client</param>
-        protected BaseSocketClient(string name, ClientOptions options) : base(name, options)
+        protected BaseSocketClient(ILoggerFactory? logger, string name) : base(logger, name)
         {
         }
 
@@ -65,7 +63,7 @@ namespace CryptoExchange.Net
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            log.Write(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
+            _logger.Log(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
@@ -88,7 +86,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task ReconnectAsync()
         {
-            log.Write(LogLevel.Information, $"Reconnecting all {CurrentConnections} connections");
+            _logger.Log(LogLevel.Information, $"Reconnecting all {CurrentConnections} connections");
             var tasks = new List<Task>();
             foreach (var client in ApiClients.OfType<SocketApiClient>())
             {

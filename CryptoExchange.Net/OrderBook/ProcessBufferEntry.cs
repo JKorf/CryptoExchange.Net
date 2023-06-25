@@ -13,14 +13,17 @@ namespace CryptoExchange.Net.OrderBook
         /// First sequence number in this update
         /// </summary>
         public long FirstUpdateId { get; set; }
+
         /// <summary>
         /// Last sequence number in this update
         /// </summary>
         public long LastUpdateId { get; set; }
+
         /// <summary>
         /// List of changed/new asks
         /// </summary>
         public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
+
         /// <summary>
         /// List of changed/new bids
         /// </summary>

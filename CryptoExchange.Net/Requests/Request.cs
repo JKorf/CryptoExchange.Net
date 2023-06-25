@@ -15,8 +15,8 @@ namespace CryptoExchange.Net.Requests
     /// </summary>
     public class Request : IRequest
     {
-        private readonly HttpRequestMessage request;
-        private readonly HttpClient httpClient;
+        private readonly HttpRequestMessage _request;
+        private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Create request object for web request
@@ -26,8 +26,8 @@ namespace CryptoExchange.Net.Requests
         /// <param name="requestId"></param>        
         public Request(HttpRequestMessage request, HttpClient client, int requestId)
         {
-            httpClient = client;
-            this.request = request;
+            _httpClient = client;
+            _request = request;
             RequestId = requestId;
         }
         
@@ -37,18 +37,18 @@ namespace CryptoExchange.Net.Requests
         /// <inheritdoc />
         public string Accept
         {
-            set => request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(value));
+            set => _request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(value));
         }
 
         /// <inheritdoc />
         public HttpMethod Method
         {
-            get => request.Method;
-            set => request.Method = value;
+            get => _request.Method;
+            set => _request.Method = value;
         }
 
         /// <inheritdoc />
-        public Uri Uri => request.RequestUri;
+        public Uri Uri => _request.RequestUri;
 
         /// <inheritdoc />
         public int RequestId { get; }
@@ -57,31 +57,31 @@ namespace CryptoExchange.Net.Requests
         public void SetContent(string data, string contentType)
         {
             Content = data;
-            request.Content = new StringContent(data, Encoding.UTF8, contentType);
+            _request.Content = new StringContent(data, Encoding.UTF8, contentType);
         }
 
         /// <inheritdoc />
         public void AddHeader(string key, string value)
         {
-            request.Headers.Add(key, value);
+            _request.Headers.Add(key, value);
         }
 
         /// <inheritdoc />
         public Dictionary<string, IEnumerable<string>> GetHeaders()
         {
-            return request.Headers.ToDictionary(h => h.Key, h => h.Value);
+            return _request.Headers.ToDictionary(h => h.Key, h => h.Value);
         }
 
         /// <inheritdoc />
         public void SetContent(byte[] data)
         {
-            request.Content = new ByteArrayContent(data);
+            _request.Content = new ByteArrayContent(data);
         }
 
         /// <inheritdoc />
         public async Task<IResponse> GetResponseAsync(CancellationToken cancellationToken)
         {
-            return new Response(await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false));
+            return new Response(await _httpClient.SendAsync(_request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false));
         }
     }
 }

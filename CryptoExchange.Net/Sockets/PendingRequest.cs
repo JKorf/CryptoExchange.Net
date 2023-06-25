@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan Timeout { get; }
         public SocketSubscription? Subscription { get; }
 
-        private CancellationTokenSource cts;
+        private CancellationTokenSource _cts;
 
         public PendingRequest(Func<JToken, bool> handler, TimeSpan timeout, SocketSubscription? subscription)
         {
@@ -25,8 +25,8 @@ namespace CryptoExchange.Net.Sockets
             RequestTimestamp = DateTime.UtcNow;
             Subscription = subscription;
 
-            cts = new CancellationTokenSource(timeout);
-            cts.Token.Register(Fail, false);
+            _cts = new CancellationTokenSource(timeout);
+            _cts.Token.Register(Fail, false);
         }
 
         public bool CheckData(JToken data)

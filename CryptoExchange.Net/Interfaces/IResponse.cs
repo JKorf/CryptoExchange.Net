@@ -21,6 +21,11 @@ namespace CryptoExchange.Net.Interfaces
         bool IsSuccessStatusCode { get; }
 
         /// <summary>
+        /// The length of the response in bytes
+        /// </summary>
+        long? ContentLength { get; }
+
+        /// <summary>
         /// The response headers
         /// </summary>
         IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; }

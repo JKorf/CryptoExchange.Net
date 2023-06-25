@@ -1,5 +1,4 @@
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -101,7 +100,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <inheritdoc />
-        public async Task<CallResult<int>> LimitRequestAsync(Log log, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct)
+        public async Task<CallResult<int>> LimitRequestAsync(ILogger logger, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct)
         {
             int totalWaitTime = 0;
 
@@ -110,7 +109,7 @@ namespace CryptoExchange.Net.Objects
                 endpointLimit = Limiters.OfType<EndpointRateLimiter>().SingleOrDefault(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method));
             if(endpointLimit != null)
             {
-                var waitResult = await ProcessTopic(log, endpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                var waitResult = await ProcessTopic(logger, endpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                 if (!waitResult)
                     return waitResult;
 
@@ -138,7 +137,7 @@ namespace CryptoExchange.Net.Objects
                         }
                     }
 
-                    var waitResult = await ProcessTopic(log, thisEndpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                    var waitResult = await ProcessTopic(logger, thisEndpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                     if (!waitResult)
                         return waitResult;
 
@@ -146,7 +145,7 @@ namespace CryptoExchange.Net.Objects
                 }
                 else
                 {
-                    var waitResult = await ProcessTopic(log, partialEndpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                    var waitResult = await ProcessTopic(logger, partialEndpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                     if (!waitResult)
                         return waitResult;
 
@@ -166,7 +165,7 @@ namespace CryptoExchange.Net.Objects
                 {
                     if (!apiLimit.OnlyForSignedRequests)
                     {
-                        var waitResult = await ProcessTopic(log, apiLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                        var waitResult = await ProcessTopic(logger, apiLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                         if (!waitResult)
                             return waitResult;
 
@@ -186,7 +185,7 @@ namespace CryptoExchange.Net.Objects
                         }
                     }
 
-                    var waitResult = await ProcessTopic(log, thisApiLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                    var waitResult = await ProcessTopic(logger, thisApiLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                     if (!waitResult)
                         return waitResult;
 
@@ -202,7 +201,7 @@ namespace CryptoExchange.Net.Objects
                 totalLimit = Limiters.OfType<TotalRateLimiter>().SingleOrDefault();
             if (totalLimit != null)
             {
-                var waitResult = await ProcessTopic(log, totalLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
+                var waitResult = await ProcessTopic(logger, totalLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                 if (!waitResult)
                     return waitResult;
 
@@ -212,7 +211,7 @@ namespace CryptoExchange.Net.Objects
             return new CallResult<int>(totalWaitTime);
         }
 
-        private static async Task<CallResult<int>> ProcessTopic(Log log, Limiter historyTopic, string endpoint, int requestWeight, RateLimitingBehaviour limitBehaviour, CancellationToken ct)
+        private static async Task<CallResult<int>> ProcessTopic(ILogger logger, Limiter historyTopic, string endpoint, int requestWeight, RateLimitingBehaviour limitBehaviour, CancellationToken ct)
         {
             var sw = Stopwatch.StartNew();
             try
@@ -256,11 +255,11 @@ namespace CryptoExchange.Net.Objects
                         {
                             historyTopic.Semaphore.Release();
                             var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
-                            log.Write(LogLevel.Warning, msg);
+                            logger.Log(LogLevel.Warning, msg);
                             return new CallResult<int>(new RateLimitError(msg));
                         }
 
-                        log.Write(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
+                        logger.Log(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
                         try
                         {
                             await Task.Delay(thisWaitTime, ct).ConfigureAwait(false);

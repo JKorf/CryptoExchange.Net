@@ -12,9 +12,9 @@ namespace CryptoExchange.Net.Converters
     public class DateTimeConverter: JsonConverter
     {
         private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private const long ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
-        private const decimal ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
-        private const decimal ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
+        private const long _ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
+        private const decimal _ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
+        private const decimal _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
 
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
@@ -134,7 +134,7 @@ namespace CryptoExchange.Net.Converters
         /// </summary>
         /// <param name="seconds"></param>
         /// <returns></returns>
-        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * ticksPerSecond));
+        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * _ticksPerSecond));
         /// <summary>
         /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
@@ -146,13 +146,13 @@ namespace CryptoExchange.Net.Converters
         /// </summary>
         /// <param name="microseconds"></param>
         /// <returns></returns>
-        public static DateTime ConvertFromMicroseconds(long microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * ticksPerMicrosecond));
+        public static DateTime ConvertFromMicroseconds(long microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * _ticksPerMicrosecond));
         /// <summary>
         /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
         /// <param name="nanoseconds"></param>
         /// <returns></returns>
-        public static DateTime ConvertFromNanoseconds(long nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * ticksPerNanosecond));
+        public static DateTime ConvertFromNanoseconds(long nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
         /// <summary>
         /// Convert a DateTime value to seconds since epoch (01-01-1970) value
         /// </summary>
@@ -173,14 +173,14 @@ namespace CryptoExchange.Net.Converters
         /// <param name="time"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull("time")]
-        public static long? ConvertToMicroseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerMicrosecond);
+        public static long? ConvertToMicroseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / _ticksPerMicrosecond);
         /// <summary>
         /// Convert a DateTime value to nanoseconds since epoch (01-01-1970) value
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull("time")]
-        public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / ticksPerNanosecond);
+        public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / _ticksPerNanosecond);
 
 
         /// <inheritdoc />

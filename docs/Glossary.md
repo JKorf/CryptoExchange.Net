@@ -1,6 +1,6 @@
 ---
 title: Glossary
-nav_order: 10
+nav_order: 11
 ---
 ## Terms and definitions
 
@@ -18,7 +18,7 @@ nav_order: 10
 |Network|Chain|The network of an asset. For example `ETH` allows multiple networks like `ERC20` and `BEP2`|
 |Order book|Market depth|A list of (the top rows of) the current best bids and asks|
 |Ticker|Stats|Statistics over the last 24 hours|
-|Client implementation|Library|An implementation of the `CrytpoExchange.Net` library. For example `Binance.Net` or `FTX.Net`|
+|Client implementation|Library|An implementation of the `CrytpoExchange.Net` library. For example `Binance.Net` or `Bybit.Net`|
 
 ### Other naming conventions
 #### PlaceOrderAsync

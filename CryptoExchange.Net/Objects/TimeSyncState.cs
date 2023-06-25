@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using CryptoExchange.Net.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Objects
@@ -45,7 +44,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Logger
         /// </summary>
-        public Log Log { get; }
+        public ILogger Logger { get; }
         /// <summary>
         /// Should synchronize time
         /// </summary>
@@ -62,13 +61,13 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="log"></param>
+        /// <param name="logger"></param>
         /// <param name="recalculationInterval"></param>
         /// <param name="syncTime"></param>
         /// <param name="syncState"></param>
-        public TimeSyncInfo(Log log, bool syncTime, TimeSpan recalculationInterval, TimeSyncState syncState)
+        public TimeSyncInfo(ILogger logger, bool syncTime, TimeSpan recalculationInterval, TimeSyncState syncState)
         {
-            Log = log;
+            Logger = logger;
             SyncTime = syncTime;
             RecalculationInterval = recalculationInterval;
             TimeSyncState = syncState;
@@ -83,12 +82,12 @@ namespace CryptoExchange.Net.Objects
             TimeSyncState.LastSyncTime = DateTime.UtcNow;
             if (offset.TotalMilliseconds > 0 && offset.TotalMilliseconds < 500)
             {
-                Log.Write(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset within limits, set offset to 0ms");
+                Logger.Log(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset within limits, set offset to 0ms");
                 TimeSyncState.TimeOffset = TimeSpan.Zero;
             }
             else
             {
-                Log.Write(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset set to {Math.Round(offset.TotalMilliseconds)}ms");
+                Logger.Log(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset set to {Math.Round(offset.TotalMilliseconds)}ms");
                 TimeSyncState.TimeOffset = offset;
             }
         }

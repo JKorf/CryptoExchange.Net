@@ -11,7 +11,6 @@ using CryptoExchange.Net.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Logging;
 using System.Threading;
 
 namespace CryptoExchange.Net.UnitTests
@@ -106,23 +105,16 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new TestClientOptions()
-            {
-                Api1Options = new RestApiClientOptions
-                {
-                    BaseAddress = "http://test.address.com",
-                    RateLimiters = new List<IRateLimiter> { new RateLimiter() },
-                    RateLimitingBehaviour = RateLimitingBehaviour.Fail,
-                    RequestTimeout = TimeSpan.FromMinutes(1)
-                }                
-            });
-
+            var options = new TestClientOptions();
+            options.Api1Options.RateLimiters = new List<IRateLimiter> { new RateLimiter() };
+            options.Api1Options.RateLimitingBehaviour = RateLimitingBehaviour.Fail;
+            options.RequestTimeout = TimeSpan.FromMinutes(1);
+            var client = new TestBaseClient(options);
 
             // assert
-            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.BaseAddress == "http://test.address.com");
             Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
             Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
-            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RequestTimeout == TimeSpan.FromMinutes(1));
+            Assert.IsTrue(((TestClientOptions)client.ClientOptions).RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
@@ -136,13 +128,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             // act
-            var client = new TestRestClient(new TestClientOptions()
-            {
-                Api1Options = new RestApiClientOptions
-                {
-                    BaseAddress = "http://test.address.com"
-                }
-            });
+            var client = new TestRestClient();
 
             client.Api1.SetParameterPosition(new HttpMethod(method), pos);
 
@@ -175,20 +161,17 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(1, 2)]
         public async Task PartialEndpointRateLimiterBasics(int requests, double perSeconds)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddPartialEndpointLimit("/sapi/", requests, TimeSpan.FromSeconds(perSeconds));
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(log, "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);             
+                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);             
                 Assert.IsTrue(i == requests? result1.Data > 1 : result1.Data == 0);
             }
 
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.LimitRequestAsync(log, "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result2.Data == 0);
         }
 
@@ -199,15 +182,12 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/", true)]
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint, bool expectLimiting)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddPartialEndpointLimit("/sapi/", 1, TimeSpan.FromSeconds(0.1));
 
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(log, endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimiting ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
                 Assert.IsTrue(expected);
             }
@@ -218,14 +198,11 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test", "/sapi/", false)]
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint1, string endpoint2, bool expectLimiting)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddPartialEndpointLimit("/sapi/", 1, TimeSpan.FromSeconds(0.1), countPerEndpoint: true);
 
-            var result1 = await rateLimiter.LimitRequestAsync(log, endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(log, endpoint2, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result1.Data == 0);            
             Assert.IsTrue(expectLimiting ? result2.Data > 0 : result2.Data == 0);            
         }
@@ -236,20 +213,17 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(1, 2)]
         public async Task EndpointRateLimiterBasics(int requests, double perSeconds)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddEndpointLimit("/sapi/test", requests, TimeSpan.FromSeconds(perSeconds));
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(log, "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 Assert.IsTrue(i == requests ? result1.Data > 1 : result1.Data == 0);
             }
 
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.LimitRequestAsync(log, "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result2.Data == 0);
         }
 
@@ -258,15 +232,12 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test/123", false)]
         public async Task EndpointRateLimiterEndpoints(string endpoint, bool expectLimited)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddEndpointLimit("/sapi/test", 1, TimeSpan.FromSeconds(0.1));
 
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(log, endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
                 Assert.IsTrue(expected);
             }
@@ -278,15 +249,12 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test23", false)]
         public async Task EndpointRateLimiterMultipleEndpoints(string endpoint, bool expectLimited)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddEndpointLimit(new[] { "/sapi/test", "/sapi/test2" }, 1, TimeSpan.FromSeconds(0.1));
 
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(log, endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0;
                 Assert.IsTrue(expected);
             }
@@ -315,14 +283,11 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(null, null, "/sapi/test", "/sapi/test", false, false, false, true)]
         public async Task ApiKeyRateLimiterBasics(string key1, string key2, string endpoint1, string endpoint2, bool signed1, bool signed2, bool onlyForSignedRequests, bool expectLimited)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddApiKeyLimit(1, TimeSpan.FromSeconds(0.1), onlyForSignedRequests, false);
 
-            var result1 = await rateLimiter.LimitRequestAsync(log, endpoint1, HttpMethod.Get, signed1, key1?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(log, endpoint2, HttpMethod.Get, signed2, key2?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, signed1, key1?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, signed2, key2?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result1.Data == 0);
             Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);            
         }
@@ -332,14 +297,11 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/", "/sapi/test2", true)]
         public async Task TotalRateLimiterBasics(string endpoint1, string endpoint2, bool expectLimited)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddTotalRateLimit(1, TimeSpan.FromSeconds(0.1));
 
-            var result1 = await rateLimiter.LimitRequestAsync(log, endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(log, endpoint2, HttpMethod.Get, true, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, true, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result1.Data == 0);
             Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);
         }
@@ -350,15 +312,12 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test", true, true, false, true)]
         public async Task ApiKeyRateLimiterIgnores_TotalRateLimiter_IfSet(string endpoint, bool signed1, bool signed2, bool ignoreTotal, bool expectLimited)
         {
-            var log = new Log("Test");
-            log.Level = LogLevel.Trace;
-
             var rateLimiter = new RateLimiter();
             rateLimiter.AddApiKeyLimit(100, TimeSpan.FromSeconds(0.1), true, ignoreTotal);
             rateLimiter.AddTotalRateLimit(1, TimeSpan.FromSeconds(0.1));
 
-            var result1 = await rateLimiter.LimitRequestAsync(log, endpoint, HttpMethod.Get, signed1, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(log, endpoint, HttpMethod.Get, signed2, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed1, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
+            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed2, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             Assert.IsTrue(result1.Data == 0);
             Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);
         }

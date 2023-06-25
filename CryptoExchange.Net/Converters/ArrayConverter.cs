@@ -16,8 +16,8 @@ namespace CryptoExchange.Net.Converters
     /// </summary>
     public class ArrayConverter : JsonConverter
     {
-        private static readonly ConcurrentDictionary<(MemberInfo, Type), Attribute> attributeByMemberInfoAndTypeCache = new ConcurrentDictionary<(MemberInfo, Type), Attribute>();
-        private static readonly ConcurrentDictionary<(Type, Type), Attribute> attributeByTypeAndTypeCache = new ConcurrentDictionary<(Type, Type), Attribute>();
+        private static readonly ConcurrentDictionary<(MemberInfo, Type), Attribute> _attributeByMemberInfoAndTypeCache = new ConcurrentDictionary<(MemberInfo, Type), Attribute>();
+        private static readonly ConcurrentDictionary<(Type, Type), Attribute> _attributeByTypeAndTypeCache = new ConcurrentDictionary<(Type, Type), Attribute>();
 
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
@@ -100,12 +100,16 @@ namespace CryptoExchange.Net.Converters
                 }
 
                 if (value != null && property.PropertyType.IsInstanceOfType(value))
+                {
                     property.SetValue(result, value);
+                }
                 else
                 {
                     if (value is JToken token)
+                    {
                         if (token.Type == JTokenType.Null)
                             value = null;
+                    }
 
                     if ((property.PropertyType == typeof(decimal)
                      || property.PropertyType == typeof(decimal?))
@@ -175,10 +179,10 @@ namespace CryptoExchange.Net.Converters
         }
 
         private static T? GetCustomAttribute<T>(MemberInfo memberInfo) where T : Attribute =>
-            (T?)attributeByMemberInfoAndTypeCache.GetOrAdd((memberInfo, typeof(T)), tuple => memberInfo.GetCustomAttribute(typeof(T)));
+            (T?)_attributeByMemberInfoAndTypeCache.GetOrAdd((memberInfo, typeof(T)), tuple => memberInfo.GetCustomAttribute(typeof(T)));
 
         private static T? GetCustomAttribute<T>(Type type) where T : Attribute =>
-            (T?)attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
+            (T?)_attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
     }
 
     /// <summary>

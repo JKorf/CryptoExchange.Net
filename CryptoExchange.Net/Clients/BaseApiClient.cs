@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,14 +21,10 @@ namespace CryptoExchange.Net
     /// </summary>
     public abstract class BaseApiClient : IDisposable, IBaseApiClient
     {
-        private ApiCredentials? _apiCredentials;
-        private AuthenticationProvider? _authenticationProvider;
-        private bool _created;
-
         /// <summary>
         /// Logger
         /// </summary>
-        protected Log _log;
+        protected ILogger _logger;
 
         /// <summary>
         /// If we are disposing
@@ -37,19 +34,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public AuthenticationProvider? AuthenticationProvider
-        {
-            get
-            {
-                if (!_created && !_disposing && _apiCredentials != null)
-                {
-                    _authenticationProvider = CreateAuthenticationProvider(_apiCredentials);
-                    _created = true;
-                }
-
-                return _authenticationProvider;
-            }
-        }
+        public AuthenticationProvider? AuthenticationProvider { get; private set; }
 
         /// <summary>
         /// Where to put the parameters for requests with different Http methods
@@ -83,23 +68,23 @@ namespace CryptoExchange.Net
         public string requestBodyEmptyContent = "{}";
 
         /// <summary>
-        /// The base address for this API client
+        /// The environment this client communicates to
         /// </summary>
-        internal protected string BaseAddress { get; }
+        public string BaseAddress { get; }
 
         /// <summary>
-        /// Options
+        /// Output the original string data along with the deserialized object
         /// </summary>
-        public ApiClientOptions Options { get; }
+        public bool OutputOriginalData { get; }
 
         /// <summary>
         /// The last used id, use NextId() to get the next id and up this
         /// </summary>
-        protected static int lastId;
+        protected static int _lastId;
         /// <summary>
         /// Lock for id generating
         /// </summary>
-        protected static object idLock = new();
+        protected static object _idLock = new();
 
         /// <summary>
         /// A default serializer
@@ -111,17 +96,38 @@ namespace CryptoExchange.Net
         });
 
         /// <summary>
+        /// Api options
+        /// </summary>
+        public ApiOptions ApiOptions { get; }
+
+        /// <summary>
+        /// Client Options
+        /// </summary>
+        public ExchangeOptions ClientOptions { get; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="log">Logger</param>
+        /// <param name="logger">Logger</param>
+        /// <param name="outputOriginalData">Should data from this client include the orginal data in the call result</param>
+        /// <param name="baseAddress">Base address for this API client</param>
+        /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>
-        /// <param name="apiOptions">Api client options</param>
-        protected BaseApiClient(Log log, ClientOptions clientOptions, ApiClientOptions apiOptions)
+        /// <param name="apiOptions">Api options</param>
+        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions)
         {
-            Options = apiOptions;
-            _log = log;
-            _apiCredentials = apiOptions.ApiCredentials?.Copy() ?? clientOptions.ApiCredentials?.Copy();
-            BaseAddress = apiOptions.BaseAddress;
+            _logger = logger;
+
+            ClientOptions = clientOptions;
+            ApiOptions = apiOptions;
+            OutputOriginalData = outputOriginalData;
+            BaseAddress = baseAddress;
+
+            if (apiCredentials != null)
+            {
+                AuthenticationProvider?.Dispose();
+                AuthenticationProvider = CreateAuthenticationProvider(apiCredentials.Copy());
+            }
         }
 
         /// <summary>
@@ -134,9 +140,11 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
-            _apiCredentials = credentials?.Copy();
-            _created = false;
-            _authenticationProvider = null;
+            if (credentials != null)
+            {
+                AuthenticationProvider?.Dispose();
+                AuthenticationProvider = CreateAuthenticationProvider(credentials.Copy());
+            }
         }
 
         /// <summary>
@@ -149,7 +157,7 @@ namespace CryptoExchange.Net
             if (string.IsNullOrEmpty(data))
             {
                 var info = "Empty data object received";
-                _log.Write(LogLevel.Error, info);
+                _logger.Log(LogLevel.Error, info);
                 return new CallResult<JToken>(new DeserializeError(info, data));
             }
 
@@ -188,7 +196,7 @@ namespace CryptoExchange.Net
             var tokenResult = ValidateJson(data);
             if (!tokenResult)
             {
-                _log.Write(LogLevel.Error, tokenResult.Error!.Message);
+                _logger.Log(LogLevel.Error, tokenResult.Error!.Message);
                 return new CallResult<T>(tokenResult.Error);
             }
 
@@ -214,20 +222,20 @@ namespace CryptoExchange.Net
             catch (JsonReaderException jre)
             {
                 var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message} Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {obj}";
-                _log.Write(LogLevel.Error, info);
+                _logger.Log(LogLevel.Error, info);
                 return new CallResult<T>(new DeserializeError(info, obj));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message} data: {obj}";
-                _log.Write(LogLevel.Error, info);
+                _logger.Log(LogLevel.Error, info);
                 return new CallResult<T>(new DeserializeError(info, obj));
             }
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToLogString();
                 var info = $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {obj}";
-                _log.Write(LogLevel.Error, info);
+                _logger.Log(LogLevel.Error, info);
                 return new CallResult<T>(new DeserializeError(info, obj));
             }
         }
@@ -250,23 +258,21 @@ namespace CryptoExchange.Net
             {
                 // Let the reader keep the stream open so we're able to seek if needed. The calling method will close the stream.
                 using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
-
                 // If we have to output the original json data or output the data into the logging we'll have to read to full response
                 // in order to log/return the json data
-                if (Options.OutputOriginalData == true || _log.Level == LogLevel.Trace)
+                if (OutputOriginalData == true)
                 {
                     data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    _log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms{(_log.Level == LogLevel.Trace ? (": " + data) : "")}");
+                    _logger.Log(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: " + data);
                     var result = Deserialize<T>(data, serializer, requestId);
-                    if (Options.OutputOriginalData == true)
-                        result.OriginalData = data;
+                    result.OriginalData = data;
                     return result;
                 }
 
                 // If we don't have to keep track of the original json data we can use the JsonTextReader to deserialize the stream directly
                 // into the desired object, which has increased performance over first reading the string value into memory and deserializing from that
                 using var jsonReader = new JsonTextReader(reader);
-                _log.Write(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms");
+                _logger.Log(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms");
                 return new CallResult<T>(serializer.Deserialize<T>(jsonReader)!);
             }
             catch (JsonReaderException jre)
@@ -284,7 +290,7 @@ namespace CryptoExchange.Net
                         data = "[Data only available in Trace LogLevel]";
                     }
                 }
-                _log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
+                _logger.Log(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}", data));
             }
             catch (JsonSerializationException jse)
@@ -302,7 +308,7 @@ namespace CryptoExchange.Net
                     }
                 }
 
-                _log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
+                _logger.Log(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize JsonSerializationException: {jse.Message}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize JsonSerializationException: {jse.Message}", data));
             }
             catch (Exception ex)
@@ -321,7 +327,7 @@ namespace CryptoExchange.Net
                 }
 
                 var exceptionInfo = ex.ToLogString();
-                _log.Write(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {data}");
+                _logger.Log(LogLevel.Error, $"{(requestId != null ? $"[{requestId}] " : "")}Deserialize Unknown Exception: {exceptionInfo}, data: {data}");
                 return new CallResult<T>(new DeserializeError($"Deserialize Unknown Exception: {exceptionInfo}", data));
             }
         }
@@ -338,10 +344,10 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected static int NextId()
         {
-            lock (idLock)
+            lock (_idLock)
             {
-                lastId += 1;
-                return lastId;
+                _lastId += 1;
+                return _lastId;
             }
         }
 
@@ -351,8 +357,7 @@ namespace CryptoExchange.Net
         public virtual void Dispose()
         {
             _disposing = true;
-            _apiCredentials?.Dispose();
-            AuthenticationProvider?.Credentials?.Dispose();
+            AuthenticationProvider?.Dispose();
         }
     }
 }

@@ -1,5 +1,5 @@
-using CryptoExchange.Net.Logging;
 using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Security;
 using System.Threading;
@@ -24,6 +24,6 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="requestWeight">The weight of the request</param>
         /// <param name="ct">Cancellation token to cancel waiting</param>
         /// <returns>The time in milliseconds spend waiting</returns>
-        Task<CallResult<int>> LimitRequestAsync(Log log, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct);
+        Task<CallResult<int>> LimitRequestAsync(ILogger log, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct);
     }
 }

@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Converters
         /// The enum->string mapping
         /// </summary>
         protected abstract List<KeyValuePair<T, string>> Mapping { get; }
-        private readonly bool quotes;
+        private readonly bool _quotes;
         
         /// <summary>
         /// ctor
@@ -24,14 +24,14 @@ namespace CryptoExchange.Net.Converters
         /// <param name="useQuotes"></param>
         protected BaseConverter(bool useQuotes)
         {
-            quotes = useQuotes;
+            _quotes = useQuotes;
         }
 
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             var stringValue = value == null? null: GetValue((T) value);
-            if (quotes)
+            if (_quotes)
                 writer.WriteValue(stringValue);
             else
                 writer.WriteRawValue(stringValue);

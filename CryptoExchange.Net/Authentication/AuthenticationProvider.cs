@@ -12,14 +12,15 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Base class for authentication providers
     /// </summary>
-    public abstract class AuthenticationProvider
+    public abstract class AuthenticationProvider : IDisposable
     {
         /// <summary>
-        /// The provided credentials
+        /// Provided credentials
         /// </summary>
-        public ApiCredentials Credentials { get; }
+        protected readonly ApiCredentials _credentials;
 
         /// <summary>
+        /// Byte representation of the secret
         /// </summary>
         protected byte[] _sBytes;
 
@@ -32,7 +33,7 @@ namespace CryptoExchange.Net.Authentication
             if (credentials.Secret == null)
                 throw new ArgumentException("ApiKey/Secret needed");
 
-            Credentials = credentials;
+            _credentials = credentials;
             _sBytes = Encoding.UTF8.GetBytes(credentials.Secret.GetString());
         }
 
@@ -83,7 +84,7 @@ namespace CryptoExchange.Net.Authentication
         {
             using var encryptor = SHA256.Create();
             var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
-            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes): BytesToHexString(resultBytes);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
 
         /// <summary>
@@ -174,6 +175,47 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
+        /// SHA256 sign the data
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="outputType"></param>
+        /// <returns></returns>
+        protected string SignRSASHA256(byte[] data, SignOutputType? outputType = null)
+        {
+            using var rsa = RSA.Create();
+            if (_credentials.CredentialType == ApiCredentialsType.RsaPem)
+            {
+#if NETSTANDARD2_1_OR_GREATER
+                // Read from pem private key
+                var key = _credentials.Secret!.GetString()
+                        .Replace("\n", "")
+                        .Replace("-----BEGIN PRIVATE KEY-----", "")
+                        .Replace("-----END PRIVATE KEY-----", "")
+                        .Trim();
+                rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(
+                    key)
+                    , out _);
+#else
+                throw new Exception("Pem format not supported when running from .NetStandard2.0. Convert the private key to xml format.");
+#endif
+            }
+            else if (_credentials.CredentialType == ApiCredentialsType.RsaXml)
+            {
+                // Read from xml private key format
+                rsa.FromXmlString(_credentials.Secret!.GetString());
+            }
+            else
+            {
+                throw new Exception("Invalid credentials type");
+            }
+
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(data);
+            var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            return outputType == SignOutputType.Base64? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
         /// Sign a string
         /// </summary>
         /// <param name="toSign"></param>
@@ -234,6 +276,27 @@ namespace CryptoExchange.Net.Authentication
         protected static string GetMillisecondTimestamp(RestApiClient apiClient)
         {
             return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _credentials?.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider where TApiCredentials : ApiCredentials
+    {
+        /// <inheritdoc />
+        protected new TApiCredentials _credentials => (TApiCredentials)base._credentials;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="credentials"></param>
+        protected AuthenticationProvider(TApiCredentials credentials) : base(credentials)
+        {
         }
     }
 }

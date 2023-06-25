@@ -9,16 +9,16 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class UpdateSubscription
     {
-        private readonly SocketConnection connection;
-        private readonly SocketSubscription subscription;
+        private readonly SocketConnection _connection;
+        private readonly SocketSubscription _subscription;
 
         /// <summary>
         /// Event when the connection is lost. The socket will automatically reconnect when possible.
         /// </summary>
         public event Action ConnectionLost
         {
-            add => connection.ConnectionLost += value;
-            remove => connection.ConnectionLost -= value;
+            add => _connection.ConnectionLost += value;
+            remove => _connection.ConnectionLost -= value;
         }
 
         /// <summary>
@@ -26,8 +26,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action ConnectionClosed
         {
-            add => connection.ConnectionClosed += value;
-            remove => connection.ConnectionClosed -= value;
+            add => _connection.ConnectionClosed += value;
+            remove => _connection.ConnectionClosed -= value;
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<TimeSpan> ConnectionRestored
         {
-            add => connection.ConnectionRestored += value;
-            remove => connection.ConnectionRestored -= value;
+            add => _connection.ConnectionRestored += value;
+            remove => _connection.ConnectionRestored -= value;
         }
 
         /// <summary>
@@ -46,8 +46,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action ActivityPaused
         {
-            add => connection.ActivityPaused += value;
-            remove => connection.ActivityPaused -= value;
+            add => _connection.ActivityPaused += value;
+            remove => _connection.ActivityPaused -= value;
         }
 
         /// <summary>
@@ -55,8 +55,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action ActivityUnpaused
         {
-            add => connection.ActivityUnpaused += value;
-            remove => connection.ActivityUnpaused -= value;
+            add => _connection.ActivityUnpaused += value;
+            remove => _connection.ActivityUnpaused -= value;
         }
 
         /// <summary>
@@ -64,19 +64,19 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<Exception> Exception
         {
-            add => subscription.Exception += value;
-            remove => subscription.Exception -= value;
+            add => _subscription.Exception += value;
+            remove => _subscription.Exception -= value;
         }
 
         /// <summary>
         /// The id of the socket
         /// </summary>
-        public int SocketId => connection.SocketId;
+        public int SocketId => _connection.SocketId;
 
         /// <summary>
         /// The id of the subscription
         /// </summary>
-        public int Id => subscription.Id;
+        public int Id => _subscription.Id;
 
         /// <summary>
         /// ctor
@@ -85,8 +85,8 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="subscription">The subscription</param>
         public UpdateSubscription(SocketConnection connection, SocketSubscription subscription)
         {
-            this.connection = connection;
-            this.subscription = subscription;
+            this._connection = connection;
+            this._subscription = subscription;
         }
         
         /// <summary>
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public Task CloseAsync()
         {
-            return connection.CloseAsync(subscription);
+            return _connection.CloseAsync(_subscription);
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public Task ReconnectAsync()
         {
-            return connection.TriggerReconnectAsync();
+            return _connection.TriggerReconnectAsync();
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         internal async Task UnsubscribeAsync()
         {
-            await connection.UnsubscribeAsync(subscription).ConfigureAwait(false);
+            await _connection.UnsubscribeAsync(_subscription).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         internal async Task<CallResult<bool>> ResubscribeAsync()
         {
-            return await connection.ResubscribeAsync(subscription).ConfigureAwait(false);
+            return await _connection.ResubscribeAsync(_subscription).ConfigureAwait(false);
         }
     }
 }

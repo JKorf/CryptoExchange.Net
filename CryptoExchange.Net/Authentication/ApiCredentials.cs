@@ -22,15 +22,31 @@ namespace CryptoExchange.Net.Authentication
         public SecureString? Secret { get; }
 
         /// <summary>
+        /// Type of the credentials
+        /// </summary>
+        public ApiCredentialsType CredentialType { get; }
+
+        /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
-        public ApiCredentials(SecureString key, SecureString secret)
+        public ApiCredentials(SecureString key, SecureString secret) : this(key, secret, ApiCredentialsType.Hmac)
+        {
+        }
+
+        /// <summary>
+        /// Create Api credentials providing an api key and secret for authentication
+        /// </summary>
+        /// <param name="key">The api key used for identification</param>
+        /// <param name="secret">The api secret used for signing</param>
+        /// <param name="credentialsType">The type of credentials</param>
+        public ApiCredentials(SecureString key, SecureString secret, ApiCredentialsType credentialsType)
         {
             if (key == null || secret == null)
                 throw new ArgumentException("Key and secret can't be null/empty");
 
+            CredentialType = credentialsType;
             Key = key;
             Secret = secret;
         }
@@ -40,11 +56,22 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="key">The api key used for identification</param>
         /// <param name="secret">The api secret used for signing</param>
-        public ApiCredentials(string key, string secret)
+        public ApiCredentials(string key, string secret) : this(key, secret, ApiCredentialsType.Hmac)
+        {
+        }
+
+        /// <summary>
+        /// Create Api credentials providing an api key and secret for authentication
+        /// </summary>
+        /// <param name="key">The api key used for identification</param>
+        /// <param name="secret">The api secret used for signing</param>
+        /// <param name="credentialsType">The type of credentials</param>
+        public ApiCredentials(string key, string secret, ApiCredentialsType credentialsType)
         {
             if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
                 throw new ArgumentException("Key and secret can't be null/empty");
 
+            CredentialType = credentialsType;
             Key = key.ToSecureString();
             Secret = secret.ToSecureString();
         }
@@ -56,7 +83,7 @@ namespace CryptoExchange.Net.Authentication
         public virtual ApiCredentials Copy()
         {
             // Use .GetString() to create a copy of the SecureString
-            return new ApiCredentials(Key!.GetString(), Secret!.GetString());
+            return new ApiCredentials(Key!.GetString(), Secret!.GetString(), CredentialType);
         }
 
         /// <summary>

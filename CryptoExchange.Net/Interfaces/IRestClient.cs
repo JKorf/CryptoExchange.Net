@@ -1,6 +1,7 @@
 ﻿using System;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The options provided for this client
         /// </summary>
-        ClientOptions ClientOptions { get; }
+        ExchangeOptions ClientOptions { get; }
 
         /// <summary>
         /// The total amount of requests made with this client

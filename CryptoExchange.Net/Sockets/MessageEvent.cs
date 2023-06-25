@@ -12,14 +12,17 @@ namespace CryptoExchange.Net.Sockets
         /// The connection the message was received on
         /// </summary>
         public SocketConnection Connection { get; set; }
+
         /// <summary>
         /// The json object of the data
         /// </summary>
         public JToken JsonData { get; set; }
+
         /// <summary>
         /// The originally received string data
         /// </summary>
         public string? OriginalData { get; set; }
+
         /// <summary>
         /// The timestamp of when the data was received
         /// </summary>
