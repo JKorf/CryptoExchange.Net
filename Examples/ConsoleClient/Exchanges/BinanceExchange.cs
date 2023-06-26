@@ -17,21 +17,21 @@ namespace ConsoleClient.Exchanges
 
         public async Task<WebCallResult> CancelOrder(string symbol, string id)
         {
-            using var client = new BinanceClient();
+            using var client = new BinanceRestClient();
             var result = await client.SpotApi.Trading.CancelOrderAsync(symbol, long.Parse(id));
             return result.AsDataless();
         }
 
         public async Task<Dictionary<string, decimal>> GetBalances()
         {
-            using var client = new BinanceClient();
+            using var client = new BinanceRestClient();
             var result = await client.SpotApi.Account.GetAccountInfoAsync();
             return result.Data.Balances.ToDictionary(b => b.Asset, b => b.Total);
         }
 
         public async Task<IEnumerable<OpenOrder>> GetOpenOrders()
         {
-            using var client = new BinanceClient();
+            using var client = new BinanceRestClient();
             var result = await client.SpotApi.Trading.GetOpenOrdersAsync();
             // Should check result success status here
             return result.Data.Select(o => new OpenOrder
@@ -49,7 +49,7 @@ namespace ConsoleClient.Exchanges
 
         public async Task<decimal> GetPrice(string symbol)
         {
-            using var client = new BinanceClient();
+            using var client = new BinanceRestClient();
             var result = await client.SpotApi.ExchangeData.GetPriceAsync(symbol);
             // Should check result success status here
             return result.Data.Price;
@@ -57,7 +57,7 @@ namespace ConsoleClient.Exchanges
 
         public async Task<WebCallResult<string>> PlaceOrder(string symbol, string side, string type, decimal quantity, decimal? price)
         {
-            using var client = new BinanceClient();
+            using var client = new BinanceRestClient();
             var result = await client.SpotApi.Trading.PlaceOrderAsync(
                 symbol,
                 side.ToLower() == "buy" ? Binance.Net.Enums.OrderSide.Buy: Binance.Net.Enums.OrderSide.Sell, 
@@ -70,7 +70,7 @@ namespace ConsoleClient.Exchanges
 
         public async Task<UpdateSubscription> SubscribePrice(string symbol, Action<decimal> handler)
         {
-            var sub = await _socketClient.SpotStreams.SubscribeToMiniTickerUpdatesAsync(symbol, data => handler(data.Data.LastPrice));
+            var sub = await _socketClient.SpotApi.ExchangeData.SubscribeToMiniTickerUpdatesAsync(symbol, data => handler(data.Data.LastPrice));
             return sub.Data;
         }
     }

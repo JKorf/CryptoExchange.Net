@@ -1,13 +1,12 @@
 ﻿@page "/SpotClient"
-@inject IBinanceClient binanceClient
-@inject IBitfinexClient bitfinexClient
-@inject IBittrexClient bittrexClient
-@inject IBybitClient bybitClient
-@inject ICoinExClient coinexClient
-@inject IFTXClient ftxClient
-@inject IHuobiClient huobiClient
-@inject IKrakenClient krakenClient
-@inject IKucoinClient kucoinClient
+@inject IBinanceRestClient binanceClient
+@inject IBitfinexRestClient bitfinexClient
+@inject IBittrexRestClient bittrexClient
+@inject IBybitRestClient bybitClient
+@inject ICoinExRestClient coinexClient
+@inject IHuobiRestClient huobiClient
+@inject IKrakenRestClient krakenClient
+@inject IKucoinRestClient kucoinClient
 @using Binance.Net.Clients.SpotApi
 @using Bitfinex.Net.Clients.SpotApi
 @using Bittrex.Net.Clients.SpotApi
@@ -15,7 +14,6 @@
 @using CoinEx.Net.Clients.SpotApi
 @using CryptoExchange.Net.Interfaces
 @using CryptoExchange.Net.Interfaces.CommonClients
-@using FTX.Net.Clients.TradeApi
 @using Huobi.Net.Clients.SpotApi
 @using Kraken.Net.Clients.SpotApi
 @using Kucoin.Net.Clients.SpotApi
@@ -37,9 +35,8 @@
                 binanceClient.SpotApi.CommonSpotClient, 
                 bitfinexClient.SpotApi.CommonSpotClient,
                 bittrexClient.SpotApi.CommonSpotClient, 
-                bybitClient.SpotApi.CommonSpotClient, 
-                coinexClient.SpotApi.CommonSpotClient, 
-                ftxClient.TradeApi.CommonSpotClient, 
+                bybitClient.SpotApiV1.CommonSpotClient, 
+                coinexClient.SpotApi.CommonSpotClient,
                 huobiClient.SpotApi.CommonSpotClient, 
                 krakenClient.SpotApi.CommonSpotClient, 
                 kucoinClient.SpotApi.CommonSpotClient
