@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
-    <PackageVersion>6.0.0</PackageVersion>
-    <AssemblyVersion>6.0.0</AssemblyVersion>
-    <FileVersion>6.0.0</FileVersion>
+    <PackageVersion>6.0.1</PackageVersion>
+    <AssemblyVersion>6.0.1</AssemblyVersion>
+    <FileVersion>6.0.1</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>6.0.0 - Updated ApiCredentials to support RSA signing as well as the default Hmac signature, Removed custom logging implementation in favor of using `Microsoft.Extensions.Logging` ILogger directly, Refactored client options for easier use, Added easier way of switching environments, Added ResponseLength and ToString() override on WebCallResult object, Fixed memory leak in AsyncResetEvent</PackageReleaseNotes>
+    <PackageReleaseNotes>6.0.1 - Added LogLevel optional parameter to TraceLoggerProvider</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

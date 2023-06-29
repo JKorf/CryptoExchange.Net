@@ -33,6 +33,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.0.1 - 29 Jun 2023
+    * Added LogLevel optional parameter to TraceLoggerProvider
+
 * Version 6.0.0 - 25 Jun 2023
     * Updated ApiCredentials to support RSA signing as well as the default Hmac signature
     * Removed custom logging implementation in favor of using `Microsoft.Extensions.Logging` ILogger directly
