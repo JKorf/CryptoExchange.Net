@@ -9,8 +9,19 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class TraceLoggerProvider : ILoggerProvider
     {
+        private readonly LogLevel _logLevel;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="logLevel"></param>
+        public TraceLoggerProvider(LogLevel? logLevel = null)
+        {
+            _logLevel = logLevel ?? LogLevel.Trace;
+        }
+
         /// <inheritdoc />
-        public ILogger CreateLogger(string categoryName) => new TraceLogger(categoryName);
+        public ILogger CreateLogger(string categoryName) => new TraceLogger(categoryName, _logLevel);
         /// <inheritdoc />
         public void Dispose() { }
     }
