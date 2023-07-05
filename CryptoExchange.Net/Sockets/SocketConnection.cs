@@ -107,6 +107,11 @@ namespace CryptoExchange.Net.Sockets
         /// Tag for identificaion
         /// </summary>
         public string Tag { get; set; }
+        
+        /// <summary>
+        /// Additional properties for this connection
+        /// </summary>
+        public Dictionary<string, object> Properties { get; set; }
 
         /// <summary>
         /// If activity is paused
@@ -170,6 +175,7 @@ namespace CryptoExchange.Net.Sockets
             _logger = logger;
             ApiClient = apiClient;
             Tag = tag;
+            Properties = new Dictionary<string, object>();
 
             _pendingRequests = new List<PendingRequest>();
             _subscriptions = new List<SocketSubscription>();
