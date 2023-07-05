@@ -52,6 +52,14 @@
         /// ctor
         /// </summary>
         public CantConnectError() : base(null, "Can't connect to the server", null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected CantConnectError(int? code, string message, object? data) : base(code, message, data) { }
     }
 
     /// <summary>
@@ -63,12 +71,20 @@
         /// ctor
         /// </summary>
         public NoApiCredentialsError() : base(null, "No credentials provided for private endpoint", null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected NoApiCredentialsError(int? code, string message, object? data) : base(code, message, data) { }
     }
 
     /// <summary>
     /// Error returned by the server
     /// </summary>
-    public class ServerError: Error
+    public class ServerError : Error
     {
         /// <summary>
         /// ctor
@@ -83,9 +99,15 @@
         /// <param name="code"></param>
         /// <param name="message"></param>
         /// <param name="data"></param>
-        public ServerError(int code, string message, object? data = null) : base(code, message, data)
-        {
-        }
+        public ServerError(int code, string message, object? data = null) : base(code, message, data) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected ServerError(int? code, string message, object? data) : base(code, message, data) { }
     }
 
     /// <summary>
@@ -107,6 +129,14 @@
         /// <param name="message"></param>
         /// <param name="data"></param>
         public WebError(int code, string message, object? data = null) : base(code, message, data) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected WebError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
@@ -120,6 +150,14 @@
         /// <param name="message">The error message</param>
         /// <param name="data">The data which caused the error</param>
         public DeserializeError(string message, object? data) : base(null, message, data) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected DeserializeError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
@@ -133,6 +171,14 @@
         /// <param name="message">Error message</param>
         /// <param name="data">Error data</param>
         public UnknownError(string message, object? data = null) : base(null, message, data) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected UnknownError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
@@ -145,18 +191,34 @@
         /// </summary>
         /// <param name="message"></param>
         public ArgumentError(string message) : base(null, "Invalid parameter: " + message, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected ArgumentError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
     /// Rate limit exceeded
     /// </summary>
-    public class RateLimitError: Error
+    public class RateLimitError : Error
     {
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="message"></param>
         public RateLimitError(string message) : base(null, "Rate limit exceeded: " + message, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected RateLimitError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
@@ -168,17 +230,33 @@
         /// ctor
         /// </summary>
         public CancellationRequestedError() : base(null, "Cancellation requested", null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected CancellationRequestedError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>
     /// Invalid operation requested
     /// </summary>
-    public class InvalidOperationError: Error
+    public class InvalidOperationError : Error
     {
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="message"></param>
         public InvalidOperationError(string message) : base(null, message, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected InvalidOperationError(int? code, string message, object? data): base(code, message, data) { }
     }
 }
