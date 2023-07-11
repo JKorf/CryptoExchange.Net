@@ -14,6 +14,8 @@ BinanceClient.SetDefaultOptions(options =>
 {
     options.OutputOriginalData = true;
     options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
+	// Override the api credentials for the Spot API
+    options.SpotOptions.ApiCredentials = new ApiCredentials("SPOT-KEY", "SPOT-SECRET");
 });
 
 ```
@@ -25,6 +27,8 @@ var client = new BinanceClient(options =>
 {
     options.OutputOriginalData = true;
     options.ApiCredentials = new ApiCredentials("KEY", "SECRET");
+	// Override the api credentials for the Spot API
+    options.SpotOptions.ApiCredentials = new ApiCredentials("SPOT-KEY", "SPOT-SECRET");
 });
 
 ```
