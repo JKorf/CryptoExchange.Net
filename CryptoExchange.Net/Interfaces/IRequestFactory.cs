@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using System;
 using System.Net.Http;
 
@@ -23,6 +24,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="requestTimeout">Request timeout to use</param>
         /// <param name="httpClient">Optional shared http client instance</param>
-        void Configure(TimeSpan requestTimeout, HttpClient? httpClient=null);
+        /// <param name="proxy">Optional proxy to use when no http client is provided</param>
+        void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? httpClient=null);
     }
 }

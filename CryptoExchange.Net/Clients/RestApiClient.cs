@@ -71,7 +71,7 @@ namespace CryptoExchange.Net
                 rateLimiters.Add(rateLimiter);
             RateLimiters = rateLimiters;
 
-            RequestFactory.Configure(options.RequestTimeout, httpClient);
+            RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
         }
 
         /// <summary>

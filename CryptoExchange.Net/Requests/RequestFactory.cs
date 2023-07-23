@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 
 namespace CryptoExchange.Net.Requests
 {
@@ -14,12 +16,27 @@ namespace CryptoExchange.Net.Requests
         private HttpClient? _httpClient;        
 
         /// <inheritdoc />
-        public void Configure(TimeSpan requestTimeout, HttpClient? client = null)
+        public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? client = null)
         {
-            _httpClient = client ?? new HttpClient()
+            if (client == null)
             {
-                Timeout = requestTimeout
-            };
+                var handler = new HttpClientHandler();
+                if (proxy != null)
+                {
+                    handler.Proxy = new WebProxy
+                    {
+                        Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                        Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                    };
+                }
+
+                client = new HttpClient(handler)
+                {
+                    Timeout = requestTimeout
+                };
+            }
+
+            _httpClient = client;
         }
 
         /// <inheritdoc />
