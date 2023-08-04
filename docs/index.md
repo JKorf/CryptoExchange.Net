@@ -20,7 +20,7 @@ These will always be on the latest CryptoExchange.Net version and the latest ver
 |<a href="https://github.com/JKorf/Huobi.Net"><img src="https://github.com/JKorf/Huobi.Net/blob/master/Huobi.Net/Icon/icon.png?raw=true"></a>|Huobi|https://jkorf.github.io/Huobi.Net/|
 |<a href="https://github.com/JKorf/Kraken.Net"><img src="https://github.com/JKorf/Kraken.Net/blob/master/Kraken.Net/Icon/icon.png?raw=true"></a>|Kraken|https://jkorf.github.io/Kraken.Net/|
 |<a href="https://github.com/JKorf/Kucoin.Net"><img src="https://github.com/JKorf/Kucoin.Net/blob/master/Kucoin.Net/Icon/icon.png?raw=true"></a>|Kucoin|https://jkorf.github.io/Kucoin.Net/|
-|<a href="https://github.com/JKorf/OKX.Net"><img src="https://github.com/JKorf/OKX.Net/blob/master/OKX.Net/Icon/icon.png?raw=true"></a>|OKX|https://jkorf.github.io/OKX.Net/|
+|<a href="https://github.com/JKorf/OKX.Net"><img src="https://github.com/JKorf/OKX.Net/blob/358d31f58d8ee51fc234bff1940878a8d0ce5676/Okex.Net/Icon/icon.png"></a>|OKX|https://jkorf.github.io/OKX.Net/|
 
 **Implementations by third parties**  
 These might not be compatible with other libraries, make sure to check the CryptoExchange.Net version.  
