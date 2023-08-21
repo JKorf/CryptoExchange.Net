@@ -762,6 +762,10 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
+            var sum = socketConnections.Sum(s => s.Value.SubscriptionCount);
+            if (sum == 0)
+                return;
+
             _logger.Log(LogLevel.Information, $"Unsubscribing all {socketConnections.Sum(s => s.Value.SubscriptionCount)} subscriptions");
             var tasks = new List<Task>();
             {
