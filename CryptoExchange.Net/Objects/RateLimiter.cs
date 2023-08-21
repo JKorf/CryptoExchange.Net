@@ -256,7 +256,7 @@ namespace CryptoExchange.Net.Objects
                             historyTopic.Semaphore.Release();
                             var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
                             logger.Log(LogLevel.Warning, msg);
-                            return new CallResult<int>(new RateLimitError(msg));
+                            return new CallResult<int>(new ClientRateLimitError(msg) { RetryAfter = DateTime.UtcNow.AddSeconds(thisWaitTime) });
                         }
 
                         logger.Log(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -344,8 +345,13 @@ namespace CryptoExchange.Net
                     _logger.Log(LogLevel.Warning, $"[{request.RequestId}] Error received in {sw.ElapsedMilliseconds}ms: {data}");
                     responseStream.Close();
                     response.Close();
-                    var parseResult = ValidateJson(data);
-                    var error = parseResult.Success ? ParseErrorResponse(parseResult.Data) : new ServerError(data)!;
+
+                    Error error;
+                    if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
+                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                    else
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, data);
+
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
                     return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
@@ -529,13 +535,39 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Parse an error response from the server. Only used when server returns a status other than Success(200)
+        /// Parse an error response from the server. Only used when server returns a status other than Success(200) or ratelimit error (429 or 418)
         /// </summary>
-        /// <param name="error">The string the request returned</param>
+        /// <param name="httpStatusCode">The response status code</param>
+        /// <param name="responseHeaders">The response headers</param>
+        /// <param name="data">The response data</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(JToken error)
+        protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
         {
-            return new ServerError(error.ToString());
+            return new ServerError(data);
+        }
+        
+        /// <summary>
+        /// Parse a rate limit error response from the server. Only used when server returns http status 429 or 418
+        /// </summary>
+        /// <param name="httpStatusCode">The response status code</param>
+        /// <param name="responseHeaders">The response headers</param>
+        /// <param name="data">The response data</param>
+        /// <returns></returns>
+        protected virtual Error ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
+        {
+            // Handle retry after header
+            var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
+            if (!retryAfterHeader.Value.Any())
+                return new ServerRateLimitError(data);
+
+            var value = retryAfterHeader.Value.First();
+            if (int.TryParse(value, out var seconds))
+                return new ServerRateLimitError(data) { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
+
+            if (DateTime.TryParse(value, out var datetime))
+                return new ServerRateLimitError(data) { RetryAfter = datetime };
+
+            return new ServerRateLimitError(data);
         }
 
         /// <summary>

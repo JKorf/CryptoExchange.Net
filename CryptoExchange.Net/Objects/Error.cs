@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.Objects
+﻿using System;
+
+namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// Base class for errors
@@ -202,15 +204,14 @@
     }
 
     /// <summary>
-    /// Rate limit exceeded
+    /// Rate limit exceeded (client side)
     /// </summary>
-    public class RateLimitError : Error
+    public abstract class BaseRateLimitError : Error
     {
         /// <summary>
-        /// ctor
+        /// When the request can be retried
         /// </summary>
-        /// <param name="message"></param>
-        public RateLimitError(string message) : base(null, "Rate limit exceeded: " + message, null) { }
+        public DateTime? RetryAfter { get; set; }
 
         /// <summary>
         /// ctor
@@ -218,7 +219,47 @@
         /// <param name="code"></param>
         /// <param name="message"></param>
         /// <param name="data"></param>
-        protected RateLimitError(int? code, string message, object? data): base(code, message, data) { }
+        protected BaseRateLimitError(int? code, string message, object? data) : base(code, message, data) { }
+    }
+
+    /// <summary>
+    /// Rate limit exceeded (client side)
+    /// </summary>
+    public class ClientRateLimitError : BaseRateLimitError
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="message"></param>
+        public ClientRateLimitError(string message) : base(null, "Client rate limit exceeded: " + message, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected ClientRateLimitError(int? code, string message, object? data): base(code, message, data) { }
+    }
+
+    /// <summary>
+    /// Rate limit exceeded (server side)
+    /// </summary>
+    public class ServerRateLimitError : BaseRateLimitError
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="message"></param>
+        public ServerRateLimitError(string message) : base(null, "Server rate limit exceeded: " + message, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="message"></param>
+        /// <param name="data"></param>
+        protected ServerRateLimitError(int? code, string message, object? data) : base(code, message, data) { }
     }
 
     /// <summary>
