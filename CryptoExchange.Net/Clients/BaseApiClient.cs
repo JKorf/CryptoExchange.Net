@@ -78,15 +78,6 @@ namespace CryptoExchange.Net
         public bool OutputOriginalData { get; }
 
         /// <summary>
-        /// The last used id, use NextId() to get the next id and up this
-        /// </summary>
-        protected static int _lastId;
-        /// <summary>
-        /// Lock for id generating
-        /// </summary>
-        protected static object _idLock = new();
-
-        /// <summary>
         /// A default serializer
         /// </summary>
         private static readonly JsonSerializer _defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -336,19 +327,6 @@ namespace CryptoExchange.Net
         {
             using var reader = new StreamReader(stream, Encoding.UTF8, false, 512, true);
             return await reader.ReadToEndAsync().ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Generate a new unique id. The id is staticly stored so it is guarenteed to be unique across different client instances
-        /// </summary>
-        /// <returns></returns>
-        protected static int NextId()
-        {
-            lock (_idLock)
-            {
-                _lastId += 1;
-                return _lastId;
-            }
         }
 
         /// <summary>

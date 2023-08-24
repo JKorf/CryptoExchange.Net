@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static CryptoExchange.Net.Objects.RateLimiter;
 
 namespace CryptoExchange.Net
 {
@@ -76,9 +77,9 @@ namespace CryptoExchange.Net
         protected internal bool UnhandledMessageExpected { get; set; }
 
         /// <summary>
-        /// The max amount of outgoing messages per socket per second
+        /// The rate limiters 
         /// </summary>
-        protected internal int? RateLimitPerSocketPerSecond { get; set; }
+        protected internal IEnumerable<IRateLimiter>? RateLimiters { get; set; }
 
         /// <inheritdoc />
         public double IncomingKbps
@@ -130,6 +131,10 @@ namespace CryptoExchange.Net
                   options,
                   apiOptions)
         {
+            var rateLimiters = new List<IRateLimiter>();
+            foreach (var rateLimiter in apiOptions.RateLimiters)
+                rateLimiters.Add(rateLimiter);
+            RateLimiters = rateLimiters;
         }
 
         /// <summary>
@@ -275,7 +280,7 @@ namespace CryptoExchange.Net
         protected internal virtual async Task<CallResult<bool>> SubscribeAndWaitAsync(SocketConnection socketConnection, object request, SocketSubscription subscription)
         {
             CallResult<object>? callResult = null;
-            await socketConnection.SendAndWaitAsync(request, ClientOptions.RequestTimeout, subscription, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
+            await socketConnection.SendAndWaitAsync(request, ClientOptions.RequestTimeout, subscription, 1, data => HandleSubscriptionResponse(socketConnection, subscription, request, data, out callResult)).ConfigureAwait(false);
 
             if (callResult?.Success == true)
             {
@@ -295,10 +300,11 @@ namespace CryptoExchange.Net
         /// <typeparam name="T">Expected result type</typeparam>
         /// <param name="request">The request to send, will be serialized to json</param>
         /// <param name="authenticated">If the query is to an authenticated endpoint</param>
+        /// <param name="weight">Weight of the request</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<T>> QueryAsync<T>(object request, bool authenticated)
+        protected virtual Task<CallResult<T>> QueryAsync<T>(object request, bool authenticated, int weight = 1)
         {
-            return QueryAsync<T>(BaseAddress, request, authenticated);
+            return QueryAsync<T>(BaseAddress, request, authenticated, weight);
         }
 
         /// <summary>
@@ -308,8 +314,9 @@ namespace CryptoExchange.Net
         /// <param name="url">The url for the request</param>
         /// <param name="request">The request to send</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
+        /// <param name="weight">Weight of the request</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<T>> QueryAsync<T>(string url, object request, bool authenticated)
+        protected virtual async Task<CallResult<T>> QueryAsync<T>(string url, object request, bool authenticated, int weight = 1)
         {
             if (_disposing)
                 return new CallResult<T>(new InvalidOperationError("Client disposed, can't query"));
@@ -348,7 +355,7 @@ namespace CryptoExchange.Net
                 return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
-            return await QueryAndWaitAsync<T>(socketConnection, request).ConfigureAwait(false);
+            return await QueryAndWaitAsync<T>(socketConnection, request, weight).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -357,11 +364,12 @@ namespace CryptoExchange.Net
         /// <typeparam name="T">The expected result type</typeparam>
         /// <param name="socket">The connection to send and wait on</param>
         /// <param name="request">The request to send</param>
+        /// <param name="weight">The weight of the query</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request)
+        protected virtual async Task<CallResult<T>> QueryAndWaitAsync<T>(SocketConnection socket, object request, int weight)
         {
             var dataResult = new CallResult<T>(new ServerError("No response on query received"));
-            await socket.SendAndWaitAsync(request, ClientOptions.RequestTimeout, null, data =>
+            await socket.SendAndWaitAsync(request, ClientOptions.RequestTimeout, null, weight, data =>
             {
                 if (!HandleQueryResponse<T>(socket, request, data, out var callResult))
                     return false;
@@ -518,8 +526,8 @@ namespace CryptoExchange.Net
             }
 
             var subscription = request == null
-                ? SocketSubscription.CreateForIdentifier(NextId(), identifier!, userSubscription, authenticated, InternalHandler)
-                : SocketSubscription.CreateForRequest(NextId(), request, userSubscription, authenticated, InternalHandler);
+                ? SocketSubscription.CreateForIdentifier(ExchangeHelpers.NextId(), identifier!, userSubscription, authenticated, InternalHandler)
+                : SocketSubscription.CreateForRequest(ExchangeHelpers.NextId(), request, userSubscription, authenticated, InternalHandler);
             if (!connection.AddSubscription(subscription))
                 return null;
             return subscription;
@@ -533,7 +541,7 @@ namespace CryptoExchange.Net
         protected void AddGenericHandler(string identifier, Action<MessageEvent> action)
         {
             genericHandlers.Add(identifier, action);
-            var subscription = SocketSubscription.CreateForIdentifier(NextId(), identifier, false, false, action);
+            var subscription = SocketSubscription.CreateForIdentifier(ExchangeHelpers.NextId(), identifier, false, false, action);
             foreach (var connection in socketConnections.Values)
                 connection.AddSubscription(subscription);
         }
@@ -607,7 +615,7 @@ namespace CryptoExchange.Net
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             foreach (var kvp in genericHandlers)
             {
-                var handler = SocketSubscription.CreateForIdentifier(NextId(), kvp.Key, false, false, kvp.Value);
+                var handler = SocketSubscription.CreateForIdentifier(ExchangeHelpers.NextId(), kvp.Key, false, false, kvp.Value);
                 socketConnection.AddSubscription(handler);
             }
 
@@ -651,7 +659,7 @@ namespace CryptoExchange.Net
                 DataInterpreterString = dataInterpreterString,
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
-                RatelimitPerSecond = RateLimitPerSocketPerSecond,
+                RateLimiters = RateLimiters,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };
@@ -704,7 +712,7 @@ namespace CryptoExchange.Net
 
                         try
                         {
-                            socketConnection.Send(obj);
+                            socketConnection.Send(ExchangeHelpers.NextId(), obj, 1);
                         }
                         catch (Exception ex)
                         {

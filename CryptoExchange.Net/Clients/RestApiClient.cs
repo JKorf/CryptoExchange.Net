@@ -15,6 +15,7 @@ using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static CryptoExchange.Net.Objects.RateLimiter;
 
 namespace CryptoExchange.Net
 {
@@ -195,7 +196,7 @@ namespace CryptoExchange.Net
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
-            var requestId = NextId();
+            var requestId = ExchangeHelpers.NextId();
 
             if (signed)
             {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,9 +31,8 @@ namespace CryptoExchange.Net.Sockets
         private static readonly object _streamIdLock = new();
 
         private readonly AsyncResetEvent _sendEvent;
-        private readonly ConcurrentQueue<byte[]> _sendBuffer;
+        private readonly ConcurrentQueue<SendItem> _sendBuffer;
         private readonly SemaphoreSlim _closeSem;
-        private readonly List<DateTime> _outgoingMessages;
 
         private ClientWebSocket _socket;
         private CancellationTokenSource _ctsSource;
@@ -104,6 +104,9 @@ namespace CryptoExchange.Net.Sockets
         public event Action<string>? OnMessage;
 
         /// <inheritdoc />
+        public event Action<int>? OnRequestSent;
+
+        /// <inheritdoc />
         public event Action<Exception>? OnError;
 
         /// <inheritdoc />
@@ -128,10 +131,9 @@ namespace CryptoExchange.Net.Sockets
             _logger = logger;
 
             Parameters = websocketParameters;
-            _outgoingMessages = new List<DateTime>();
             _receivedMessages = new List<ReceiveItem>();
             _sendEvent = new AsyncResetEvent();
-            _sendBuffer = new ConcurrentQueue<byte[]>();
+            _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
             _receivedMessagesLock = new object();
 
@@ -270,14 +272,14 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public virtual void Send(string data)
+        public virtual void Send(int id, string data, int weight)
         {
             if (_ctsSource.IsCancellationRequested)
                 return;
 
             var bytes = Parameters.Encoding.GetBytes(data);
-            _logger.Log(LogLevel.Trace, $"Socket {Id} Adding {bytes.Length} to sent buffer");
-            _sendBuffer.Enqueue(bytes);
+            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {id} - Adding {bytes.Length} to send buffer");
+            _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
             _sendEvent.Set();
         }
 
@@ -392,6 +394,7 @@ namespace CryptoExchange.Net.Sockets
         {
             try
             {
+                var limitKey = Uri.ToString() + "/" + Id.ToString();
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -404,25 +407,24 @@ namespace CryptoExchange.Net.Sockets
 
                     while (_sendBuffer.TryDequeue(out var data))
                     {
-                        if (Parameters.RatelimitPerSecond != null)
+                        if (Parameters.RateLimiters != null)
                         {
-                            // Wait for rate limit
-                            DateTime? start = null;
-                            while (MessagesSentLastSecond() >= Parameters.RatelimitPerSecond)
+                            foreach(var ratelimiter in Parameters.RateLimiters)
                             {
-                                start ??= DateTime.UtcNow;
-                                await Task.Delay(50).ConfigureAwait(false);
+                                var limitResult = await ratelimiter.LimitRequestAsync(_logger, limitKey, HttpMethod.Get, false, null, RateLimitingBehaviour.Wait, data.Weight, _ctsSource.Token).ConfigureAwait(false);
+                                if (limitResult.Success)
+                                {
+                                    if (limitResult.Data > 0)
+                                        _logger.Log(LogLevel.Debug, $"Socket {Id} - msg {data.Id} - send delayed {limitResult.Data}ms because of rate limit");
+                                }
                             }
-
-                            if (start != null)
-                                _logger.Log(LogLevel.Debug, $"Socket {Id} sent delayed {Math.Round((DateTime.UtcNow - start.Value).TotalMilliseconds)}ms because of rate limit");
                         }
 
                         try
                         {
-                            await _socket.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
-                            _outgoingMessages.Add(DateTime.UtcNow);
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} sent {data.Length} bytes");
+                            await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
+                            OnRequestSent?.Invoke(data.Id);
+                            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {data.Id} - sent {data.Bytes.Length} bytes");
                         }
                         catch (OperationCanceledException)
                         {
@@ -631,42 +633,6 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Trigger the OnMessage event
-        /// </summary>
-        /// <param name="data"></param>
-        protected void TriggerOnMessage(string data)
-        {
-            LastActionTime = DateTime.UtcNow;
-            OnMessage?.Invoke(data);
-        }
-
-        /// <summary>
-        /// Trigger the OnError event
-        /// </summary>
-        /// <param name="ex"></param>
-        protected void TriggerOnError(Exception ex) => OnError?.Invoke(ex);
-
-        /// <summary>
-        /// Trigger the OnError event
-        /// </summary>
-        protected void TriggerOnOpen() => OnOpen?.Invoke();
-
-        /// <summary>
-        /// Trigger the OnError event
-        /// </summary>
-        protected void TriggerOnClose() => OnClose?.Invoke();
-
-        /// <summary>
-        /// Trigger the OnReconnecting event
-        /// </summary>
-        protected void TriggerOnReconnecting() => OnReconnecting?.Invoke();
-
-        /// <summary>
-        /// Trigger the OnReconnected event
-        /// </summary>
-        protected void TriggerOnReconnected() => OnReconnected?.Invoke();
-
-        /// <summary>
         /// Checks if there is no data received for a period longer than the specified timeout
         /// </summary>
         /// <returns></returns>
@@ -721,13 +687,6 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        private int MessagesSentLastSecond()
-        {
-            var testTime = DateTime.UtcNow;
-            _outgoingMessages.RemoveAll(r => testTime - r > TimeSpan.FromSeconds(1));
-            return _outgoingMessages.Count;            
-        }
-
         /// <summary>
         /// Update the received messages list, removing messages received longer than 3s ago
         /// </summary>
@@ -767,6 +726,32 @@ namespace CryptoExchange.Net.Sockets
             if (proxy.Login != null)
                 socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
         }
+    }
+
+    /// <summary>
+    /// Message info
+    /// </summary>
+    public struct SendItem
+    {
+        /// <summary>
+        /// The request id
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// The request id
+        /// </summary>
+        public int Weight { get; set; }
+
+        /// <summary>
+        /// Timestamp the request was sent
+        /// </summary>
+        public DateTime SendTime { get; set; }
+
+        /// <summary>
+        /// The bytes to send
+        /// </summary>
+        public byte[] Bytes { get; set; }
     }
 
     /// <summary>

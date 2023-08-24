@@ -7,6 +7,7 @@ namespace CryptoExchange.Net.Sockets
 {
     internal class PendingRequest
     {
+        public int Id { get; set; }
         public Func<JToken, bool> Handler { get; }
         public JToken? Result { get; private set; }
         public bool Completed { get; private set; }
@@ -15,17 +16,22 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan Timeout { get; }
         public SocketSubscription? Subscription { get; }
 
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource? _cts;
 
-        public PendingRequest(Func<JToken, bool> handler, TimeSpan timeout, SocketSubscription? subscription)
+        public PendingRequest(int id, Func<JToken, bool> handler, TimeSpan timeout, SocketSubscription? subscription)
         {
+            Id = id;
             Handler = handler;
             Event = new AsyncResetEvent(false, false);
             Timeout = timeout;
             RequestTimestamp = DateTime.UtcNow;
             Subscription = subscription;
+        }
 
-            _cts = new CancellationTokenSource(timeout);
+        public void IsSend()
+        {
+            // Start timeout countdown
+            _cts = new CancellationTokenSource(Timeout);
             _cts.Token.Register(Fail, false);
         }
 

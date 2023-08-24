@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
-    /// Webscoket connection interface
+    /// Websocket connection interface
     /// </summary>
     public interface IWebsocket: IDisposable
     {
@@ -20,6 +20,10 @@ namespace CryptoExchange.Net.Interfaces
         /// Websocket message received event
         /// </summary>
         event Action<string> OnMessage;
+        /// <summary>
+        /// Websocket sent event, RequestId as parameter
+        /// </summary>
+        event Action<int> OnRequestSent;
         /// <summary>
         /// Websocket error event
         /// </summary>
@@ -69,8 +73,10 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Send data
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="data"></param>
-        void Send(string data);
+        /// <param name="weight"></param>
+        void Send(int id, string data, int weight);
         /// <summary>
         /// Reconnect the socket
         /// </summary>

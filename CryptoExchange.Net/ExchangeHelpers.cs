@@ -9,6 +9,15 @@ namespace CryptoExchange.Net
     public static class ExchangeHelpers
     {
         /// <summary>
+        /// The last used id, use NextId() to get the next id and up this
+        /// </summary>
+        private static int _lastId;
+        /// <summary>
+        /// Lock for id generating
+        /// </summary>
+        private static object _idLock = new();
+
+        /// <summary>
         /// Clamp a value between a min and max
         /// </summary>
         /// <param name="min"></param>
@@ -117,6 +126,20 @@ namespace CryptoExchange.Net
         public static decimal Normalize(this decimal value)
         {
             return value / 1.000000000000000000000000000000000m;
+        }
+
+
+        /// <summary>
+        /// Generate a new unique id. The id is staticly stored so it is guarenteed to be unique
+        /// </summary>
+        /// <returns></returns>
+        public static int NextId()
+        {
+            lock (_idLock)
+            {
+                _lastId += 1;
+                return _lastId;
+            }
         }
     }
 }

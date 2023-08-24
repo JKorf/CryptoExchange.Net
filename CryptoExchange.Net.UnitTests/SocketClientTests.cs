@@ -140,6 +140,12 @@ namespace CryptoExchange.Net.UnitTests
             var sub2 = new SocketConnection(new TraceLogger(), client.SubClient, socket2, null);
             client.SubClient.ConnectSocketSub(sub1);
             client.SubClient.ConnectSocketSub(sub2);
+            var us1 = SocketSubscription.CreateForIdentifier(10, "Test1", true, false, (e) => { });
+            var us2 = SocketSubscription.CreateForIdentifier(11, "Test2", true, false, (e) => { });
+            sub1.AddSubscription(us1);
+            sub2.AddSubscription(us2);
+            var ups1 = new UpdateSubscription(sub1, us1);
+            var ups2 = new UpdateSubscription(sub2, us2);
 
             // act
             client.UnsubscribeAllAsync().Wait();

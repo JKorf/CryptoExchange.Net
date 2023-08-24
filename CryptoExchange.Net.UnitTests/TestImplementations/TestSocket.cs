@@ -18,6 +18,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public event Action OnReconnected;
         public event Action OnReconnecting;
 #pragma warning restore 0067
+        public event Action<int> OnRequestSent;
         public event Action<string> OnMessage;
         public event Action<Exception> OnError;
         public event Action OnOpen;
@@ -69,10 +70,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return Task.FromResult(CanConnect);
         }
 
-        public void Send(string data)
+        public void Send(int requestId, string data, int weight)
         {
             if(!Connected)
                 throw new Exception("Socket not connected");
+            OnRequestSent?.Invoke(requestId);
         }
 
         public void Reset()

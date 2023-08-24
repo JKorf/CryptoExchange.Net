@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Objects
     public class RateLimiter : IRateLimiter
     {
         private readonly object _limiterLock = new object();
-        internal List<Limiter> Limiters = new List<Limiter>();
+        internal List<Limiter> _limiters = new List<Limiter>();
 
         /// <summary>
         /// Create a new RateLimiter. Configure the rate limiter by calling <see cref="AddTotalRateLimit"/>, 
@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.Objects
         public RateLimiter AddTotalRateLimit(int limit, TimeSpan perTimePeriod)
         {
             lock(_limiterLock)
-                Limiters.Add(new TotalRateLimiter(limit, perTimePeriod, null));
+                _limiters.Add(new TotalRateLimiter(limit, perTimePeriod, null));
             return this;
         }
 
@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.Objects
         public RateLimiter AddEndpointLimit(string endpoint, int limit, TimeSpan perTimePeriod, HttpMethod? method = null, bool excludeFromOtherRateLimits = false)
         {
             lock(_limiterLock)
-                Limiters.Add(new EndpointRateLimiter(new[] { endpoint }, limit, perTimePeriod, method, excludeFromOtherRateLimits));
+                _limiters.Add(new EndpointRateLimiter(new[] { endpoint }, limit, perTimePeriod, method, excludeFromOtherRateLimits));
             return this;
         }
 
@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Objects
         public RateLimiter AddEndpointLimit(IEnumerable<string> endpoints, int limit, TimeSpan perTimePeriod, HttpMethod? method = null, bool excludeFromOtherRateLimits = false)
         {
             lock(_limiterLock)
-                Limiters.Add(new EndpointRateLimiter(endpoints.ToArray(), limit, perTimePeriod, method, excludeFromOtherRateLimits));
+                _limiters.Add(new EndpointRateLimiter(endpoints.ToArray(), limit, perTimePeriod, method, excludeFromOtherRateLimits));
             return this;
         }
 
@@ -81,7 +81,7 @@ namespace CryptoExchange.Net.Objects
         public RateLimiter AddPartialEndpointLimit(string endpoint, int limit, TimeSpan perTimePeriod, HttpMethod? method = null, bool countPerEndpoint = false, bool ignoreOtherRateLimits = false)
         {
             lock(_limiterLock)
-                Limiters.Add(new PartialEndpointRateLimiter(new[] { endpoint }, limit, perTimePeriod, method, ignoreOtherRateLimits, countPerEndpoint));
+                _limiters.Add(new PartialEndpointRateLimiter(new[] { endpoint }, limit, perTimePeriod, method, ignoreOtherRateLimits, countPerEndpoint));
             return this;
         }
 
@@ -95,7 +95,20 @@ namespace CryptoExchange.Net.Objects
         public RateLimiter AddApiKeyLimit(int limit, TimeSpan perTimePeriod, bool onlyForSignedRequests, bool excludeFromTotalRateLimit)
         {
             lock(_limiterLock)
-                Limiters.Add(new ApiKeyRateLimiter(limit, perTimePeriod, null, onlyForSignedRequests, excludeFromTotalRateLimit));
+                _limiters.Add(new ApiKeyRateLimiter(limit, perTimePeriod, null, onlyForSignedRequests, excludeFromTotalRateLimit));
+            return this;
+        }
+
+        /// <summary>
+        /// Add a rate limit for the amount of messages that can be send per connection
+        /// </summary>
+        /// <param name="endpoint">The endpoint that the limit is for</param>
+        /// <param name="limit">The limit per period. Note that this is weight, not single request, altough by default requests have a weight of 1</param>
+        /// <param name="perTimePeriod">The time period the limit is for</param>
+        public RateLimiter AddConnectionRateLimit(string endpoint, int limit, TimeSpan perTimePeriod)
+        {
+            lock (_limiterLock)
+                _limiters.Add(new ConnectionRateLimiter(new[] { endpoint }, limit, perTimePeriod));
             return this;
         }
 
@@ -106,7 +119,7 @@ namespace CryptoExchange.Net.Objects
 
             EndpointRateLimiter? endpointLimit;
             lock (_limiterLock)
-                endpointLimit = Limiters.OfType<EndpointRateLimiter>().SingleOrDefault(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method));
+                endpointLimit = _limiters.OfType<EndpointRateLimiter>().SingleOrDefault(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method));
             if(endpointLimit != null)
             {
                 var waitResult = await ProcessTopic(logger, endpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
@@ -121,7 +134,7 @@ namespace CryptoExchange.Net.Objects
 
             List<PartialEndpointRateLimiter> partialEndpointLimits;
             lock (_limiterLock)
-                partialEndpointLimits = Limiters.OfType<PartialEndpointRateLimiter>().Where(h => h.PartialEndpoints.Any(h => endpoint.Contains(h)) && (h.Method == null || h.Method == method)).ToList();
+                partialEndpointLimits = _limiters.OfType<PartialEndpointRateLimiter>().Where(h => h.PartialEndpoints.Any(h => endpoint.Contains(h)) && (h.Method == null || h.Method == method)).ToList();
             foreach (var partialEndpointLimit in partialEndpointLimits)
             {
                 if (partialEndpointLimit.CountPerEndpoint)
@@ -129,11 +142,11 @@ namespace CryptoExchange.Net.Objects
                     SingleTopicRateLimiter? thisEndpointLimit;
                     lock (_limiterLock)
                     {
-                        thisEndpointLimit = Limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.PartialEndpoint && (string)h.Topic == endpoint);
+                        thisEndpointLimit = _limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.PartialEndpoint && (string)h.Topic == endpoint);
                         if (thisEndpointLimit == null)
                         {
                             thisEndpointLimit = new SingleTopicRateLimiter(endpoint, partialEndpointLimit);
-                            Limiters.Add(thisEndpointLimit);
+                            _limiters.Add(thisEndpointLimit);
                         }
                     }
 
@@ -158,7 +171,7 @@ namespace CryptoExchange.Net.Objects
 
             ApiKeyRateLimiter? apiLimit;
             lock (_limiterLock)
-                apiLimit = Limiters.OfType<ApiKeyRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey);
+                apiLimit = _limiters.OfType<ApiKeyRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey);
             if (apiLimit != null)
             {
                 if(apiKey == null)
@@ -177,11 +190,11 @@ namespace CryptoExchange.Net.Objects
                     SingleTopicRateLimiter? thisApiLimit;
                     lock (_limiterLock)
                     {
-                        thisApiLimit = Limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey && ((SecureString)h.Topic).IsEqualTo(apiKey));
+                        thisApiLimit = _limiters.OfType<SingleTopicRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey && ((SecureString)h.Topic).IsEqualTo(apiKey));
                         if (thisApiLimit == null)
                         {
                             thisApiLimit = new SingleTopicRateLimiter(apiKey, apiLimit);
-                            Limiters.Add(thisApiLimit);
+                            _limiters.Add(thisApiLimit);
                         }
                     }
 
@@ -198,7 +211,7 @@ namespace CryptoExchange.Net.Objects
 
             TotalRateLimiter? totalLimit;
             lock (_limiterLock)
-                totalLimit = Limiters.OfType<TotalRateLimiter>().SingleOrDefault();
+                totalLimit = _limiters.OfType<TotalRateLimiter>().SingleOrDefault();
             if (totalLimit != null)
             {
                 var waitResult = await ProcessTopic(logger, totalLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
@@ -224,63 +237,68 @@ namespace CryptoExchange.Net.Objects
             }
             sw.Stop();
 
-            int totalWaitTime = 0;
-            while (true)
+            try
             {
-                // Remove requests no longer in time period from the history
-                var checkTime = DateTime.UtcNow;
-                for (var i = 0; i < historyTopic.Entries.Count; i++)
+                int totalWaitTime = 0;
+                while (true)
                 {
-                    if (historyTopic.Entries[i].Timestamp < checkTime - historyTopic.Period)
+                    // Remove requests no longer in time period from the history
+                    var checkTime = DateTime.UtcNow;
+                    for (var i = 0; i < historyTopic.Entries.Count; i++)
                     {
-                        historyTopic.Entries.Remove(historyTopic.Entries[i]);
-                        i--;
+                        if (historyTopic.Entries[i].Timestamp < checkTime - historyTopic.Period)
+                        {
+                            historyTopic.Entries.Remove(historyTopic.Entries[i]);
+                            i--;
+                        }
+                        else
+                            break;
+                    }
+
+                    var currentWeight = !historyTopic.Entries.Any() ? 0 : historyTopic.Entries.Sum(h => h.Weight);
+                    if (currentWeight + requestWeight > historyTopic.Limit)
+                    {
+                        if (currentWeight == 0)
+                            throw new Exception("Request limit reached without any prior request. " +
+                                $"This request can never execute with the current rate limiter. Request weight: {requestWeight}, Ratelimit: {historyTopic.Limit}");
+
+                        // Wait until the next entry should be removed from the history
+                        var thisWaitTime = (int)Math.Round(((historyTopic.Entries.First().Timestamp + historyTopic.Period) - checkTime).TotalMilliseconds);
+                        if (thisWaitTime > 0)
+                        {
+                            if (limitBehaviour == RateLimitingBehaviour.Fail)
+                            {
+                                var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
+                                logger.Log(LogLevel.Warning, msg);
+                                return new CallResult<int>(new ClientRateLimitError(msg) { RetryAfter = DateTime.UtcNow.AddSeconds(thisWaitTime) });
+                            }
+
+                            logger.Log(LogLevel.Information, $"Message to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
+                            try
+                            {
+                                await Task.Delay(thisWaitTime, ct).ConfigureAwait(false);
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                return new CallResult<int>(new CancellationRequestedError());
+                            }
+                            totalWaitTime += thisWaitTime;
+                        }
                     }
                     else
-                        break;
-                }
-
-                var currentWeight = !historyTopic.Entries.Any() ? 0: historyTopic.Entries.Sum(h => h.Weight);
-                if (currentWeight + requestWeight > historyTopic.Limit)
-                {
-                    if (currentWeight == 0)
-                        throw new Exception("Request limit reached without any prior request. " +
-                            $"This request can never execute with the current rate limiter. Request weight: {requestWeight}, Ratelimit: {historyTopic.Limit}");
-
-                    // Wait until the next entry should be removed from the history
-                    var thisWaitTime = (int)Math.Round((historyTopic.Entries.First().Timestamp - (checkTime - historyTopic.Period)).TotalMilliseconds);
-                    if (thisWaitTime > 0)
                     {
-                        if (limitBehaviour == RateLimitingBehaviour.Fail)
-                        {
-                            historyTopic.Semaphore.Release();
-                            var msg = $"Request to {endpoint} failed because of rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}";
-                            logger.Log(LogLevel.Warning, msg);
-                            return new CallResult<int>(new ClientRateLimitError(msg) { RetryAfter = DateTime.UtcNow.AddSeconds(thisWaitTime) });
-                        }
-
-                        logger.Log(LogLevel.Information, $"Request to {endpoint} waiting {thisWaitTime}ms for rate limit `{historyTopic.Type}`. Current weight: {currentWeight}/{historyTopic.Limit}, request weight: {requestWeight}");
-                        try
-                        {
-                            await Task.Delay(thisWaitTime, ct).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            return new CallResult<int>(new CancellationRequestedError());
-                        }
-                        totalWaitTime += thisWaitTime;
+                        break;
                     }
                 }
-                else
-                {
-                    break;
-                }
-            }
 
-            var newTime = DateTime.UtcNow;
-            historyTopic.Entries.Add(new LimitEntry(newTime, requestWeight));
-            historyTopic.Semaphore.Release();
-            return new CallResult<int>(totalWaitTime);
+                var newTime = DateTime.UtcNow;
+                historyTopic.Entries.Add(new LimitEntry(newTime, requestWeight));
+                return new CallResult<int>(totalWaitTime);
+            }
+            finally
+            {
+                historyTopic.Semaphore.Release();
+            }
         }
 
         internal struct LimitEntry
@@ -326,6 +344,24 @@ namespace CryptoExchange.Net.Objects
             public override string ToString()
             {
                 return nameof(TotalRateLimiter);
+            }
+        }
+
+        internal class ConnectionRateLimiter : PartialEndpointRateLimiter
+        {
+            public ConnectionRateLimiter(int limit, TimeSpan perPeriod)
+                : base(new[] { "/" }, limit, perPeriod, null, true, true)
+            {
+            }
+
+            public ConnectionRateLimiter(string[] endpoints, int limit, TimeSpan perPeriod)
+                : base(endpoints, limit, perPeriod, null, true, true)
+            {
+            }
+
+            public override string ToString()
+            {
+                return nameof(ConnectionRateLimiter);
             }
         }
 

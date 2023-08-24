@@ -182,9 +182,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
 
-        protected override Error ParseErrorResponse(JToken error)
+        protected override Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
         {
-            return new ServerError((int)error["errorCode"], (string)error["errorMessage"]);
+            var errorData = ValidateJson(data);
+
+            return new ServerError((int)errorData.Data["errorCode"], (string)errorData.Data["errorMessage"]);
         }
 
         public override TimeSpan? GetTimeOffset()

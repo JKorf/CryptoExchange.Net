@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -52,9 +53,9 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// The max amount of messages to send per second
+        /// The rate limiters for the socket connection
         /// </summary>
-        public int? RatelimitPerSecond { get; set; }
+        public IEnumerable<IRateLimiter>? RateLimiters { get; set; }
 
         /// <summary>
         /// Origin header value to send in the connection handshake

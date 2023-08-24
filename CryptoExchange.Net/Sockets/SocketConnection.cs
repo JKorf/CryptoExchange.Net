@@ -182,6 +182,7 @@ namespace CryptoExchange.Net.Sockets
 
             _socket = socket;
             _socket.OnMessage += HandleMessage;
+            _socket.OnRequestSent += HandleRequestSent;
             _socket.OnOpen += HandleOpen;
             _socket.OnClose += HandleClose;
             _socket.OnReconnecting += HandleReconnecting;
@@ -285,6 +286,22 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Handler for whenever a request is sent over the websocket
+        /// </summary>
+        /// <param name="requestId">Id of the request sent</param>
+        protected virtual void HandleRequestSent(int requestId)
+        {
+            var pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
+            if (pendingRequest == null)
+            {
+                _logger.Log(LogLevel.Debug, $"Socket {SocketId} - msg {requestId} -  message sent, but not pending");
+                return;
+            }
+
+            pendingRequest.IsSend();
+        }
+
+        /// <summary>
         /// Process a message received by the socket
         /// </summary>
         /// <param name="data">The received data</param>
@@ -318,7 +335,6 @@ namespace CryptoExchange.Net.Sockets
             // Check if this message is an answer on any pending requests
             foreach (var pendingRequest in requests)
             {
-
                 if (pendingRequest.CheckData(tokenData))
                 {
                     lock (_pendingRequests)
@@ -329,12 +345,13 @@ namespace CryptoExchange.Net.Sockets
                         // Answer to a timed out request, unsub if it is a subscription request
                         if (pendingRequest.Subscription != null)
                         {
-                            _logger.Log(LogLevel.Warning, "Received subscription info after request timed out; unsubscribing. Consider increasing the SocketResponseTimout");
+                            _logger.Log(LogLevel.Warning, "Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
                             _ = ApiClient.UnsubscribeAsync(this, pendingRequest.Subscription).ConfigureAwait(false);
                         }
                     }
                     else
                     {
+                        _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
                         pendingRequest.Succeed(tokenData);
                     }
 
@@ -570,45 +587,69 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="timeout">The timeout for response</param>
         /// <param name="subscription">Subscription if this is a subscribe request</param>
         /// <param name="handler">The response handler, should return true if the received JToken was the response to the request</param>
+        /// <param name="weight">The weight of the message</param>
         /// <returns></returns>
-        public virtual Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, SocketSubscription? subscription, Func<JToken, bool> handler)
+        public virtual async Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, SocketSubscription? subscription, int weight, Func<JToken, bool> handler)
         {
-            var pending = new PendingRequest(handler, timeout, subscription);
+            var pending = new PendingRequest(ExchangeHelpers.NextId(), handler, timeout, subscription);
             lock (_pendingRequests)
             {
                 _pendingRequests.Add(pending);
             }
-            var sendOk = Send(obj);
-            if(!sendOk)            
-                pending.Fail();            
 
-            return pending.Event.WaitAsync(timeout);
+            var sendOk = Send(pending.Id, obj, weight);
+            if (!sendOk)
+            {
+                pending.Fail();
+                return;
+            }
+
+            while (true)
+            {
+                if(!_socket.IsOpen)
+                {
+                    pending.Fail();
+                    return;
+                }
+
+                if (pending.Completed)
+                    return;
+
+                await pending.Event.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                if (pending.Completed)
+                    return;
+            }
         }
 
         /// <summary>
         /// Send data over the websocket connection
         /// </summary>
         /// <typeparam name="T">The type of the object to send</typeparam>
+        /// <param name="requestId">The request id</param>
         /// <param name="obj">The object to send</param>
         /// <param name="nullValueHandling">How null values should be serialized</param>
-        public virtual bool Send<T>(T obj, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        /// <param name="weight">The weight of the message</param>
+        public virtual bool Send<T>(int requestId, T obj, int weight, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
             if(obj is string str)
-                return Send(str);
+                return Send(requestId, str, weight);
             else
-                return Send(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }));
+                return Send(requestId, JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }), weight);
         }
 
         /// <summary>
         /// Send string data over the websocket connection
         /// </summary>
         /// <param name="data">The data to send</param>
-        public virtual bool Send(string data)
+        /// <param name="weight">The weight of the message</param>
+        /// <param name="requestId">The id of the request</param>
+        public virtual bool Send(int requestId, string data, int weight)
         {
-            _logger.Log(LogLevel.Trace, $"Socket {SocketId} sending data: {data}");
+            _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {requestId} - sending messsage: {data}");
             try
             {
-                _socket.Send(data);
+                _socket.Send(requestId, data, weight);
                 return true;
             }
             catch(Exception)
