@@ -32,6 +32,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.1.0 - 24 Aug 2023
+    * Added support for ratelimiting on socket connections
+    * Added rest ratelimit handling and parsing
+    * Added ServerRatelimitError error
+
 * Version 6.0.3 - 23 Jul 2023
     * Fixed Proxy not getting applied in rest clients when not using DI
 
