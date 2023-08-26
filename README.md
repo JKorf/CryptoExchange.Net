@@ -1,5 +1,5 @@
 # CryptoExchange.Net
-[![.NET](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) ![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)  ![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)
+[![.NET](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)](https://www.nuget.org/packages/CryptoExchange.Net)  [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)](https://www.nuget.org/packages/CryptoExchange.Net)
 
 CryptoExchange.Net is a base package which can be used to easily implement crypto currency exchange API's in C#. This library offers base classes for creating rest and websocket clients, and includes additional features like an automatically synchronizing order book implementation, error handling and automatic reconnects on websocket connections.
 
@@ -18,7 +18,6 @@ Use one of the following following referral links to signup to a new exchange to
 [Bittrex](https://bittrex.com/discover/join?referralCode=TST-DJM-CSX)  
 [Bybit](https://partner.bybit.com/b/jkorf)  
 [CoinEx](https://www.coinex.com/register?refer_code=hd6gn)  
-[FTX](https://ftx.com/referrals#a=31620192)  
 [Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=fxp93)  
 [Kucoin](https://www.kucoin.com/ucenter/signup?rcode=RguMux)  
 
