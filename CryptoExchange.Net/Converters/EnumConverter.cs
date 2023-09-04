@@ -117,22 +117,32 @@ namespace CryptoExchange.Net.Converters
         /// <param name="enumValue"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull("enumValue")]
-        public static string? GetString<T>(T enumValue)
+        public static string? GetString<T>(T enumValue) => GetString(typeof(T), enumValue);     
+        
+
+        [return: NotNullIfNotNull("enumValue")]
+        private static string? GetString(Type objectType, object? enumValue)
         {
-            var objectType = typeof(T);
             objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
 
             if (!_mapping.TryGetValue(objectType, out var mapping))
                 mapping = AddMapping(objectType);
 
-            return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());            
+            return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
         }
 
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var stringValue = GetString(value);
-            writer.WriteValue(stringValue);
+            if (value == null)
+            {
+                writer.WriteNull();
+            }
+            else
+            {
+                var stringValue = GetString(value.GetType(), value);
+                writer.WriteValue(stringValue);
+            }
         }
     }
 }

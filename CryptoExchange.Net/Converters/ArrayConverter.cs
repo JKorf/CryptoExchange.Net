@@ -109,13 +109,21 @@ namespace CryptoExchange.Net.Converters
                     {
                         if (token.Type == JTokenType.Null)
                             value = null;
+
+                        if (token.Type == JTokenType.Float)
+                            value = token.Value<decimal>();
                     }
 
-                    if ((property.PropertyType == typeof(decimal)
+                    if (value is decimal)
+                    {
+                        property.SetValue(result, value);
+                    }
+                    else if ((property.PropertyType == typeof(decimal)
                      || property.PropertyType == typeof(decimal?))
                      && (value != null && value.ToString().IndexOf("e", StringComparison.OrdinalIgnoreCase) >= 0))
                     {
-                        if (decimal.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
+                        var v = value.ToString();
+                        if (decimal.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
                             property.SetValue(result, dec);
                     }
                     else
