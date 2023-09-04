@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.1.1 - 04 Sep 2023
+    * Fixes for json converters
+
 * Version 6.1.0 - 24 Aug 2023
     * Added support for ratelimiting on socket connections
     * Added rest ratelimit handling and parsing
