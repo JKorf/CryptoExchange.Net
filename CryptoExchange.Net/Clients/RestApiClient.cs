@@ -15,7 +15,6 @@ using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static CryptoExchange.Net.Objects.RateLimiter;
 
 namespace CryptoExchange.Net
 {
@@ -24,6 +23,15 @@ namespace CryptoExchange.Net
     /// </summary>
     public abstract class RestApiClient : BaseApiClient, IRestApiClient
     {
+        /// <summary>
+        /// which RateLimitingBehaviour variable use: local copy or ApiOptions.RateLimitingBehaviour
+        /// </summary>
+        private readonly bool useLocalRateLimitingBehaviour;
+        /// <summary>
+        /// a local copy of RateLimitingBehaviour to use separately from options
+        /// </summary>
+        private readonly RateLimitingBehaviour localRateLimitBehaviour;
+
         /// <inheritdoc />
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
@@ -68,11 +76,10 @@ namespace CryptoExchange.Net
                   options,
                   apiOptions)
         {
-            var rateLimiters = new List<IRateLimiter>();
-            foreach (var rateLimiter in apiOptions.RateLimiters)
-                rateLimiters.Add(rateLimiter);
-            RateLimiters = rateLimiters;
 
+            RateLimiters = apiOptions.IsRateLimitReplacingAllowed ? apiOptions.RateLimiters : new List<IRateLimiter>(apiOptions.RateLimiters);
+            useLocalRateLimitingBehaviour = !apiOptions.IsRateLimitReplacingAllowed;
+            localRateLimitBehaviour = apiOptions.RateLimitingBehaviour;
             RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
         }
 
@@ -219,7 +226,14 @@ namespace CryptoExchange.Net
             {
                 foreach (var limiter in RateLimiters)
                 {
-                    var limitResult = await limiter.LimitRequestAsync(_logger, uri.AbsolutePath, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, ApiOptions.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await limiter.LimitRequestAsync(_logger,
+                                                                      uri.AbsolutePath,
+                                                                      method,
+                                                                      signed,
+                                                                      ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key,
+                                                                      useLocalRateLimitingBehaviour ? localRateLimitBehaviour : ApiOptions.RateLimitingBehaviour,
+                                                                      requestWeight,
+                                                                      cancellationToken).ConfigureAwait(false);
                     if (!limitResult.Success)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }

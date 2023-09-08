@@ -21,6 +21,11 @@ namespace CryptoExchange.Net.Objects.Options
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
 
         /// <summary>
+        /// Whether or not any further changes of RateLimiters or RateLimitingBehaviour impact RestApiClient behaviour
+        /// </summary>
+        public bool IsRateLimitReplacingAllowed { get; set; } = false;
+
+        /// <summary>
         /// Whether or not to automatically sync the local time with the server time
         /// </summary>
         public bool? AutoTimestamp { get; set; }
@@ -44,6 +49,7 @@ namespace CryptoExchange.Net.Objects.Options
                 AutoTimestamp = AutoTimestamp,
                 RateLimiters = RateLimiters,
                 RateLimitingBehaviour = RateLimitingBehaviour,
+                IsRateLimitReplacingAllowed = IsRateLimitReplacingAllowed,
                 TimestampRecalculationInterval = TimestampRecalculationInterval
             };
         }

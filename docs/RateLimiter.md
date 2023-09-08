@@ -30,6 +30,18 @@ new RateLimiter()
             .AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))
 ```
 This adds another limit of 10 requests per 2 seconds in addition to the 50 requests per 10 seconds limit.
+
+Also, you can change, add new or remove rate limiters from the `RestApiClient`, but only if you instantiate the client with `IsRateLimitReplacingAllowed = true` client API option:
+```csharp
+ApiOptions.RateLimiters.Clear();
+ApiOptions.RateLimiters.Add(
+        new RateLimiter()
+        .AddTotalRateLimit(300, TimeSpan.FromMinutes(1))
+        .AddPartialEndpointLimit("public/", 60, TimeSpan.FromMinutes(1), ignoreOtherRateLimits: true)
+);
+```
+This replaces current rate limiters with new one with two limits.
+
 These are the available rate limit configurations:
 
 ### AddTotalRateLimit
