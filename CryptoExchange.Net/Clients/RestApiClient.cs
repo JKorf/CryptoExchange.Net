@@ -558,7 +558,7 @@ namespace CryptoExchange.Net
         {
             // Handle retry after header
             var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
-            if (!retryAfterHeader.Value.Any())
+            if (retryAfterHeader.Value?.Any() != true)
                 return new ServerRateLimitError(data);
 
             var value = retryAfterHeader.Value.First();
