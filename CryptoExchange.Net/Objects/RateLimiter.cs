@@ -117,10 +117,10 @@ namespace CryptoExchange.Net.Objects
         {
             int totalWaitTime = 0;
 
-            EndpointRateLimiter? endpointLimit;
+            List<EndpointRateLimiter> endpointLimits;
             lock (_limiterLock)
-                endpointLimit = _limiters.OfType<EndpointRateLimiter>().SingleOrDefault(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method));
-            if(endpointLimit != null)
+                endpointLimits = _limiters.OfType<EndpointRateLimiter>().Where(h => h.Endpoints.Contains(endpoint) && (h.Method  == null || h.Method == method)).ToList();
+            foreach (var endpointLimit in endpointLimits)
             {
                 var waitResult = await ProcessTopic(logger, endpointLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                 if (!waitResult)
@@ -129,7 +129,7 @@ namespace CryptoExchange.Net.Objects
                 totalWaitTime += waitResult.Data;
             }
 
-            if (endpointLimit?.IgnoreOtherRateLimits == true)
+            if (endpointLimits.Any(l => l.IgnoreOtherRateLimits))
                 return new CallResult<int>(totalWaitTime);
 
             List<PartialEndpointRateLimiter> partialEndpointLimits;
@@ -169,10 +169,10 @@ namespace CryptoExchange.Net.Objects
             if(partialEndpointLimits.Any(p => p.IgnoreOtherRateLimits))
                 return new CallResult<int>(totalWaitTime);
 
-            ApiKeyRateLimiter? apiLimit;
+            List<ApiKeyRateLimiter> apiLimits;
             lock (_limiterLock)
-                apiLimit = _limiters.OfType<ApiKeyRateLimiter>().SingleOrDefault(h => h.Type == RateLimitType.ApiKey);
-            if (apiLimit != null)
+                apiLimits = _limiters.OfType<ApiKeyRateLimiter>().Where(h => h.Type == RateLimitType.ApiKey).ToList();
+            foreach (var apiLimit in apiLimits)
             {
                 if(apiKey == null)
                 {
@@ -206,13 +206,13 @@ namespace CryptoExchange.Net.Objects
                 }
             }
 
-            if ((signed || apiLimit?.OnlyForSignedRequests == false) && apiLimit?.IgnoreTotalRateLimit == true)
+            if ((signed || apiLimits.All(l => !l.OnlyForSignedRequests)) && apiLimits.Any(l => l.IgnoreTotalRateLimit))
                 return new CallResult<int>(totalWaitTime);
 
-            TotalRateLimiter? totalLimit;
+            List<TotalRateLimiter> totalLimits;
             lock (_limiterLock)
-                totalLimit = _limiters.OfType<TotalRateLimiter>().SingleOrDefault();
-            if (totalLimit != null)
+                totalLimits = _limiters.OfType<TotalRateLimiter>().ToList();
+            foreach(var totalLimit in  totalLimits) 
             {
                 var waitResult = await ProcessTopic(logger, totalLimit, endpoint, requestWeight, limitBehaviour, ct).ConfigureAwait(false);
                 if (!waitResult)
