@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             var bytes = Parameters.Encoding.GetBytes(data);
-            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {id} - Adding {bytes.Length} to send buffer");
+            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {id} - Adding {bytes.Length} bytes to send buffer");
             _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
             _sendEvent.Set();
         }

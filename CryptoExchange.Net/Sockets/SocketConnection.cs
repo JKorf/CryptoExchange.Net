@@ -294,7 +294,7 @@ namespace CryptoExchange.Net.Sockets
             var pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
             if (pendingRequest == null)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} - msg {requestId} -  message sent, but not pending");
+                _logger.Log(LogLevel.Debug, $"Socket {SocketId} - msg {requestId} - message sent, but not pending");
                 return;
             }
 
@@ -380,7 +380,7 @@ namespace CryptoExchange.Net.Sockets
                                                 "Data from this socket may arrive late or not at all if message processing is continuously slow.");
             }
 
-            _logger.Log(LogLevel.Trace, $"Socket {SocketId}{(subscription == null ? "" : " subscription " + subscription!.Id)} message processed in {(int)total.TotalMilliseconds}ms, ({(int)userProcessTime.TotalMilliseconds}ms user code)");
+            _logger.Log(LogLevel.Trace, $"Socket {SocketId}{(subscription == null ? "" : " subscription " + subscription!.Id)} message processed in {(int)total.TotalMilliseconds}ms ({(int)userProcessTime.TotalMilliseconds}ms user code)");
         }
 
         /// <summary>
