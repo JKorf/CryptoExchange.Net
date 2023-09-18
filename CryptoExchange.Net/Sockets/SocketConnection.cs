@@ -291,7 +291,10 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">Id of the request sent</param>
         protected virtual void HandleRequestSent(int requestId)
         {
-            var pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
+            PendingRequest pendingRequest;
+            lock (_pendingRequests)
+                pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
+
             if (pendingRequest == null)
             {
                 _logger.Log(LogLevel.Debug, $"Socket {SocketId} - msg {requestId} - message sent, but not pending");
