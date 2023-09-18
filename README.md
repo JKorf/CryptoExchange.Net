@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.1.3 - 18 Sep 2023
+    * Fix for concurrency exception in socket subscription
+
 * Version 6.1.2 - 11 Sep 2023
     * Added support for multiple of the same ratelimiting type in the same rate limiter
     * Fixed nullreference on rate limit error if no Retry-After header is returned
