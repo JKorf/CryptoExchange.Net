@@ -14,6 +14,20 @@ namespace CryptoExchange.Net.Converters
     /// </summary>
     public class EnumConverter : JsonConverter
     {
+        private bool _warnOnMissingEntry = true;
+
+        /// <summary>
+        /// </summary>
+        public EnumConverter() { }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="warnOnMissingEntry"></param>
+        public EnumConverter(bool warnOnMissingEntry)
+        {
+            _warnOnMissingEntry = warnOnMissingEntry;
+        }   
+
         private static readonly ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new();
 
         /// <inheritdoc />
@@ -51,8 +65,12 @@ namespace CryptoExchange.Net.Converters
                         Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {enumType.Name}. If you think {enumType.Name} should be nullable please open an issue on the Github repo");
                 }
                 else
+                {
                     // We received an enum value but weren't able to parse it.
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {reader.Value}, Known values: {string.Join(", ", mapping.Select(m => m.Value))}. If you think {reader.Value} should added please open an issue on the Github repo");
+                    if (_warnOnMissingEntry)
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {reader.Value}, Known values: {string.Join(", ", mapping.Select(m => m.Value))}. If you think {reader.Value} should added please open an issue on the Github repo");
+                }
+            
                 return defaultValue;
             }
 

@@ -128,7 +128,6 @@ namespace CryptoExchange.Net
             return value / 1.000000000000000000000000000000000m;
         }
 
-
         /// <summary>
         /// Generate a new unique id. The id is staticly stored so it is guarenteed to be unique
         /// </summary>

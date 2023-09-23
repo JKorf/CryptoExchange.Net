@@ -15,7 +15,6 @@ using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static CryptoExchange.Net.Objects.RateLimiter;
 
 namespace CryptoExchange.Net
 {
