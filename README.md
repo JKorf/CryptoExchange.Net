@@ -31,6 +31,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.1.5 - 08 Oct 2023
+    * Added UpdateType to socket DataEvent
+    * Added additional scenarios for BoolConverter
+    * Updated some logging
+
 * Version 6.1.4 - 23 Sep 2023
     * Added BoolConverter
     * Added parameter for logging warning message on missing enum entry to EnumConverter
