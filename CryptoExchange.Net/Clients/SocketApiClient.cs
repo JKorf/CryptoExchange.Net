@@ -402,7 +402,7 @@ namespace CryptoExchange.Net
             if (!authenticated || socket.Authenticated)
                 return new CallResult<bool>(true);
 
-            _logger.Log(LogLevel.Debug, $"Attempting to authenticate {socket.SocketId}");
+            _logger.Log(LogLevel.Debug, $"Socket {socket.SocketId} Attempting to authenticate");
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
             {
@@ -414,6 +414,7 @@ namespace CryptoExchange.Net
                 return new CallResult<bool>(result.Error);
             }
 
+            _logger.Log(LogLevel.Debug, $"Socket {socket.SocketId} authenticated");
             socket.Authenticated = true;
             return new CallResult<bool>(true);
         }
@@ -511,7 +512,7 @@ namespace CryptoExchange.Net
                 if (typeof(T) == typeof(string))
                 {
                     var stringData = (T)Convert.ChangeType(messageEvent.JsonData.ToString(), typeof(T));
-                    dataHandler(new DataEvent<T>(stringData, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                    dataHandler(new DataEvent<T>(stringData, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp, null));
                     return;
                 }
 
@@ -522,7 +523,7 @@ namespace CryptoExchange.Net
                     return;
                 }
 
-                dataHandler(new DataEvent<T>(desResult.Data, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp));
+                dataHandler(new DataEvent<T>(desResult.Data, null, OutputOriginalData ? messageEvent.OriginalData : null, messageEvent.ReceivedTimestamp, null));
             }
 
             var subscription = request == null

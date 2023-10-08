@@ -124,4 +124,19 @@
         /// </summary>
         Closest
     }
+
+    /// <summary>
+    /// Type of the update
+    /// </summary>
+    public enum SocketUpdateType
+    {
+        /// <summary>
+        /// A update
+        /// </summary>
+        Update,
+        /// <summary>
+        /// A snapshot, generally send at the start of the connection
+        /// </summary>
+        Snapshot
+    }
 }

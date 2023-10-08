@@ -464,7 +464,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             var pbList = _processBuffer.ToList();
             if (pbList.Count > 0)
-                _logger.Log(LogLevel.Debug, $"Processing {pbList.Count} buffered updates");
+                _logger.Log(LogLevel.Debug, $"{Id} Processing {pbList.Count} buffered updates");
 
             foreach (var bufferEntry in pbList)
             {
@@ -661,7 +661,7 @@ namespace CryptoExchange.Net.OrderBook
 
                     if (_stopProcessing)
                     {
-                        _logger.Log(LogLevel.Trace, "Skipping message because of resubscribing");
+                        _logger.Log(LogLevel.Trace, $"{Id} Skipping message because of resubscribing");
                         continue;
                     }
 

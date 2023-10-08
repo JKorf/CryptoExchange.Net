@@ -259,7 +259,7 @@ namespace CryptoExchange.Net.Sockets
             var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
             if (!reconnectSuccessful)
             {
-                _logger.Log(LogLevel.Warning, $"Failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
+                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
                 await _socket.ReconnectAsync().ConfigureAwait(false);
             }
             else
@@ -348,7 +348,7 @@ namespace CryptoExchange.Net.Sockets
                         // Answer to a timed out request, unsub if it is a subscription request
                         if (pendingRequest.Subscription != null)
                         {
-                            _logger.Log(LogLevel.Warning, "Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
+                            _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
                             _ = ApiClient.UnsubscribeAsync(this, pendingRequest.Subscription).ConfigureAwait(false);
                         }
                     }
@@ -714,7 +714,7 @@ namespace CryptoExchange.Net.Sockets
                 var result = await ApiClient.RevitalizeRequestAsync(subscription.Request!).ConfigureAwait(false);
                 if (!result)
                 {
-                    _logger.Log(LogLevel.Warning, "Failed request revitalization: " + result.Error);
+                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} Failed request revitalization: " + result.Error);
                     return result.As<bool>(false);
                 }
             }

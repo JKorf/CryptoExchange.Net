@@ -40,11 +40,13 @@ namespace CryptoExchange.Net.Converters
                 case "yes":
                 case "y":
                 case "1":
+                case "on":
                     return true;
                 case "false":
                 case "no":
                 case "n":
                 case "0":
+                case "off":
                     return false;
             }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -24,34 +25,22 @@ namespace CryptoExchange.Net.Sockets
         public string? OriginalData { get; set; }
 
         /// <summary>
+        /// Type of update
+        /// </summary>
+        public SocketUpdateType? UpdateType { get; set; }
+
+        /// <summary>
         /// The received data deserialized into an object
         /// </summary>
         public T Data { get; set; }
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="timestamp"></param>
-        public DataEvent(T data, DateTime timestamp)
-        {
-            Data = data;
-            Timestamp = timestamp;
-        }
-
-        internal DataEvent(T data, string? topic, DateTime timestamp)
-        {
-            Data = data;
-            Topic = topic;
-            Timestamp = timestamp;
-        }
-
-        internal DataEvent(T data, string? topic, string? originalData, DateTime timestamp)
+        internal DataEvent(T data, string? topic, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
         {
             Data = data;
             Topic = topic;
             OriginalData = originalData;
             Timestamp = timestamp;
+            UpdateType = updateType;
         }
 
         /// <summary>
@@ -62,7 +51,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data)
         {
-            return new DataEvent<K>(data, Topic, OriginalData, Timestamp);
+            return new DataEvent<K>(data, Topic, OriginalData, Timestamp, UpdateType);
         }
 
         /// <summary>
@@ -74,7 +63,20 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, string? topic)
         {
-            return new DataEvent<K>(data, topic, OriginalData, Timestamp);
+            return new DataEvent<K>(data, topic, OriginalData, Timestamp, UpdateType);
+        }
+
+        /// <summary>
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
+        /// </summary>
+        /// <typeparam name="K">The type of the new data</typeparam>
+        /// <param name="data">The new data</param>
+        /// <param name="topic">The new topic</param>
+        /// <param name="updateType">The type of update</param>
+        /// <returns></returns>
+        public DataEvent<K> As<K>(K data, string? topic, SocketUpdateType updateType)
+        {
+            return new DataEvent<K>(data, topic, OriginalData, Timestamp, updateType);
         }
     }
 }
