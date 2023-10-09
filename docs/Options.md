@@ -82,7 +82,7 @@ All clients have access to the following options, specific implementations might
  
 |Option|Description|Default|
 |------|-----------|-------|
-|`AutoTimestamp`|Whether or not the library should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time sure to be in sync.|`true`|
+|`AutoTimestamp`|Whether or not the library should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time sure is to be in sync.|`true`|
 |`TimestampRecalculationInterval`|The interval of how often the time synchronization between client and server should be executed| `TimeSpan.FromHours(1)`
 |`Environment`|The environment the library should talk to. Some exchanges have testnet/sandbox environments which can be used instead of the real exchange. The environment option can be used to switch between different trade environments|`Live environment`
 
@@ -104,8 +104,8 @@ All clients have access to the following options, specific implementations might
 
 |Option|Description|Default|
 |------|-----------|-------|
-|`ApiCredentials`|If set to `true` the originally received Json data will be output as well as the deserialized object. For `RestClient` calls the data will be in the `WebCallResult<T>.OriginalData` property, for `SocketClient` subscriptions the data will be available in the `DataEvent<T>.OriginalData` property when receiving an update. Overrides the Base client options `OutputOriginalData` option if set| `false`
-|`OutputOriginalData`|The base address to the API. All calls to the API will use this base address as basis for the endpoints. This allows for swapping to test API's or swapping to a different cluster for example. Available base addresses are defined in the [Library]ApiAddresses helper class, for example `KucoinApiAddresses`|Depends on implementation
+|`ApiCredentials`|The API credentials to use for accessing protected endpoints. Can either be an API key/secret using Hmac encryption or an API key/private key using RSA encryption for exchanges that support that. See [Credentials](#credentials). Setting ApiCredentials on the Api Options will override any default ApiCredentials on the `Base client options`| `null`
+|`OutputOriginalData`|If set to `true` the originally received Json data will be output as well as the deserialized object. For `RestClient` calls the data will be in the `WebCallResult<T>.OriginalData` property, for `SocketClient` subscriptions the data will be available in the `DataEvent<T>.OriginalData` property when receiving an update.|False
 
 **Options for Rest Api Client (extension of base api client options)**  
 
@@ -113,7 +113,7 @@ All clients have access to the following options, specific implementations might
 |------|-----------|-------|
 |`RateLimiters`|A list of `IRateLimiter`s to use.|`new List<IRateLimiter>()`|
 |`RateLimitingBehaviour`|What should happen when a rate limit is reached.|`RateLimitingBehaviour.Wait`|
-|`AutoTimestamp`|Whether or not the library should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time sure to be in sync. Overrides the Rest client options `AutoTimestamp` option if set|`null`|
+|`AutoTimestamp`|Whether or not the library should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time is sure to be in sync. Overrides the Rest client options `AutoTimestamp` option if set|`null`|
 |`TimestampRecalculationInterval`|The interval of how often the time synchronization between client and server should be executed. Overrides the Rest client options `TimestampRecalculationInterval` option if set| `TimeSpan.FromHours(1)`
 
 **Options for Socket Api Client (extension of base api client options)**  
