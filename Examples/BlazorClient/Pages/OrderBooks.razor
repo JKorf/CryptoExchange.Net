@@ -3,6 +3,7 @@
 @using System.Timers
 @using Binance.Net.Interfaces
 @using Bitfinex.Net.Interfaces
+@using Bitget.Net.Interfaces;
 @using Bittrex.Net.Interfaces
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
@@ -11,14 +12,17 @@
 @using Kraken.Net.Interfaces
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
+@using OKX.Net.Interfaces;
 @inject IBinanceOrderBookFactory binanceFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
+@inject IBitgetOrderBookFactory bitgetFactory
 @inject IBittrexOrderBookFactory bittrexFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinExOrderBookFactory coinExFactory
 @inject IHuobiOrderBookFactory huobiFactory
 @inject IKrakenOrderBookFactory krakenFactory
 @inject IKucoinOrderBookFactory kucoinFactory
+@inject IOKXOrderBookFactory okxFactory
 @implements IDisposable
 
 <h3>ETH-BTC books, live updates:</h3>
@@ -54,12 +58,14 @@
             {
                 { "Binance", binanceFactory.CreateSpot("ETHBTC") },
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
+                { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
                 { "Bittrex", bittrexFactory.Create("ETH-BTC") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "Huobi", huobiFactory.CreateSpot("ethbtc") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/XBT") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
+                { "OKX", okxFactory.Create("ETH-BTC") },
             };
 
         await Task.WhenAll(_books.Select(b => b.Value.StartAsync()));

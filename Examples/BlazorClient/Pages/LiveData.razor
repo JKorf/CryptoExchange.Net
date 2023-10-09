@@ -1,12 +1,14 @@
 ﻿@page "/LiveData"
 @inject IBinanceSocketClient binanceSocketClient
 @inject IBitfinexSocketClient bitfinexSocketClient
+@inject IBitgetSocketClient bitgetSocketClient
 @inject IBittrexSocketClient bittrexSocketClient
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinExSocketClient coinExSocketClient
 @inject IHuobiSocketClient huobiSocketClient
 @inject IKrakenSocketClient krakenSocketClient
 @inject IKucoinSocketClient kucoinSocketClient
+@inject IOKXSocketClient okxSocketClient
 @using System.Collections.Concurrent
 @using CryptoExchange.Net.Objects
 @using CryptoExchange.Net.Sockets
@@ -28,12 +30,14 @@
         {
             binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Binance", data.Data.LastPrice)),
             bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
+            bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
             bittrexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Bittrex", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
             coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("CoinEx", data.Data.LastPrice)),
             huobiSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("Huobi", data.Data.ClosePrice ?? 0)),
             krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH/XBT", data => UpdateData("Kraken", data.Data.LastTrade.Price)),
             kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Kucoin", data.Data.LastPrice ?? 0)),
+            okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("OKX", data.LastPrice ?? 0)),
         };
 
         await Task.WhenAll(tasks);

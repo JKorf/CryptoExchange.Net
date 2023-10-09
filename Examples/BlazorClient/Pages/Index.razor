@@ -1,12 +1,14 @@
 ﻿@page "/"
 @inject IBinanceRestClient binanceClient
 @inject IBitfinexRestClient bitfinexClient
+@inject IBitgetRestClient bitgetClient
 @inject IBittrexRestClient bittrexClient
 @inject IBybitRestClient bybitClient
 @inject ICoinExRestClient coinexClient
 @inject IHuobiRestClient huobiClient
 @inject IKrakenRestClient krakenClient
 @inject IKucoinRestClient kucoinClient
+@inject IOKXRestClient okxClient
 
 <h3>BTC-USD prices:</h3>
 @foreach(var price in _prices.OrderBy(p => p.Key))
@@ -21,12 +23,14 @@
     {
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
+        var bitgetTask = bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");
         var bittrexTask = bittrexClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
         var coinexTask = coinexClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var huobiTask = huobiClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
-        var kucoinTask =  kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTCUSDT");
 
         await Task.WhenAll(binanceTask, bitfinexTask, bittrexTask, bybitTask, coinexTask, huobiTask, krakenTask, kucoinTask);
 
@@ -35,6 +39,9 @@
 
         if (bitfinexTask.Result.Success)
             _prices.Add("Bitfinex", bitfinexTask.Result.Data.LastPrice);
+
+        if (bitgetTask.Result.Success)
+            _prices.Add("Bitget", bitgetTask.Result.Data.ClosePrice);
 
         if (bittrexTask.Result.Success)
             _prices.Add("Bittrex", bittrexTask.Result.Data.LastPrice);
@@ -53,6 +60,9 @@
 
         if (kucoinTask.Result.Success)
             _prices.Add("Kucoin", kucoinTask.Result.Data.LastPrice ?? 0);
+
+        if (okxTask.Result.Success)
+            _prices.Add("OKX", okxTask.Result.Data.LastPrice ?? 0);
     }
 
 }

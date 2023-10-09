@@ -1,15 +1,18 @@
 ﻿@page "/SpotClient"
 @inject IBinanceRestClient binanceClient
 @inject IBitfinexRestClient bitfinexClient
+@inject IBitgetRestClient bitgetClient
 @inject IBittrexRestClient bittrexClient
 @inject IBybitRestClient bybitClient
 @inject ICoinExRestClient coinexClient
 @inject IHuobiRestClient huobiClient
 @inject IKrakenRestClient krakenClient
 @inject IKucoinRestClient kucoinClient
+@inject IOKXRestClient okxClient
 @using Binance.Net.Clients.SpotApi
 @using Bitfinex.Net.Clients.SpotApi
 @using Bittrex.Net.Clients.SpotApi
+@using Bitget.Net.Clients.SpotApi
 @using Bybit.Net.Clients.SpotApi
 @using CoinEx.Net.Clients.SpotApi
 @using CryptoExchange.Net.Interfaces
@@ -17,6 +20,7 @@
 @using Huobi.Net.Clients.SpotApi
 @using Kraken.Net.Clients.SpotApi
 @using Kucoin.Net.Clients.SpotApi
+@using OKX.Net.Clients.UnifiedApi
 
 <h3>ETH-BTC prices:</h3>
 @foreach(var price in _prices.OrderBy(p => p.Key))
@@ -34,12 +38,14 @@
                 
                 binanceClient.SpotApi.CommonSpotClient, 
                 bitfinexClient.SpotApi.CommonSpotClient,
-                bittrexClient.SpotApi.CommonSpotClient, 
+                bitgetClient.SpotApi.CommonSpotClient,
+                bittrexClient.SpotApi.CommonSpotClient,
                 bybitClient.SpotApiV1.CommonSpotClient, 
                 coinexClient.SpotApi.CommonSpotClient,
                 huobiClient.SpotApi.CommonSpotClient, 
                 krakenClient.SpotApi.CommonSpotClient, 
-                kucoinClient.SpotApi.CommonSpotClient
+                kucoinClient.SpotApi.CommonSpotClient,
+                okxClient.UnifiedApi.CommonSpotClient
             };
 
         var tasks = clients.Select(c => (c.ExchangeName, c.GetTickerAsync(c.GetSymbolName("ETH", "BTC"))));

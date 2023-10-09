@@ -3,6 +3,7 @@ using Binance.Net;
 using Binance.Net.Clients;
 using Binance.Net.Interfaces.Clients;
 using Bitfinex.Net;
+using Bitget.Net;
 using Bittrex.Net;
 using Bybit.Net;
 using CoinEx.Net;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using OKX.Net;
 
 namespace BlazorClient
 {
@@ -48,12 +50,14 @@ namespace BlazorClient
             });
 
             services.AddBitfinex();
+            services.AddBitget();
             services.AddBittrex();
             services.AddBybit();
             services.AddCoinEx();
             services.AddHuobi();
             services.AddKraken();
             services.AddKucoin();
+            services.AddOKX();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
