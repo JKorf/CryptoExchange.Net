@@ -273,7 +273,7 @@ namespace CryptoExchange.Net
                 if (response.IsSuccessStatusCode)
                 {
                     // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
-                    // response before being able to deserialize it into the resulting type since we don't know if it an error response or data
+                    // response before being able to deserialize it into the resulting type since we don't know if its an error response or data
                     if (manualParseError)
                     {
                         using var reader = new StreamReader(responseStream);

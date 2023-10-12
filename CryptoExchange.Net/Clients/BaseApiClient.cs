@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
@@ -78,13 +79,9 @@ namespace CryptoExchange.Net
         public bool OutputOriginalData { get; }
 
         /// <summary>
-        /// A default serializer
+        /// The default serializer
         /// </summary>
-        private static readonly JsonSerializer _defaultSerializer = JsonSerializer.Create(new JsonSerializerSettings
-        {
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-            Culture = CultureInfo.InvariantCulture
-        });
+        protected virtual JsonSerializer DefaultSerializer { get; set; } = JsonSerializer.Create(SerializerOptions.Default);
 
         /// <summary>
         /// Api options
@@ -204,7 +201,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected CallResult<T> Deserialize<T>(JToken obj, JsonSerializer? serializer = null, int? requestId = null)
         {
-            serializer ??= _defaultSerializer;
+            serializer ??= DefaultSerializer;
 
             try
             {
@@ -242,7 +239,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected async Task<CallResult<T>> DeserializeAsync<T>(Stream stream, JsonSerializer? serializer = null, int? requestId = null, long? elapsedMilliseconds = null)
         {
-            serializer ??= _defaultSerializer;
+            serializer ??= DefaultSerializer;
             string? data = null;
 
             try

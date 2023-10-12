@@ -75,6 +75,17 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
+        /// SHA256 sign the data and return the bytes
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected static byte[] SignSHA256Bytes(byte[] data)
+        {
+            using var encryptor = SHA256.Create();
+            return encryptor.ComputeHash(data);
+        }
+
+        /// <summary>
         /// SHA256 sign the data and return the hash
         /// </summary>
         /// <param name="data">Data to sign</param>
@@ -84,6 +95,19 @@ namespace CryptoExchange.Net.Authentication
         {
             using var encryptor = SHA256.Create();
             var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA256 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected static string SignSHA256(byte[] data, SignOutputType? outputType = null)
+        {
+            using var encryptor = SHA256.Create();
+            var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
 
@@ -101,6 +125,41 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
+        /// SHA384 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected static string SignSHA384(byte[] data, SignOutputType? outputType = null)
+        {
+            using var encryptor = SHA384.Create();
+            var resultBytes = encryptor.ComputeHash(data);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA384 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns></returns>
+        protected static byte[] SignSHA384Bytes(string data)
+        {
+            using var encryptor = SHA384.Create();
+            return encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        }
+
+        /// <summary>
+        /// SHA384 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns></returns>
+        protected static byte[] SignSHA384Bytes(byte[] data)
+        {
+            using var encryptor = SHA384.Create();
+            return encryptor.ComputeHash(data);
+        }
+
+        /// <summary>
         /// SHA512 sign the data and return the hash
         /// </summary>
         /// <param name="data">Data to sign</param>
@@ -111,6 +170,41 @@ namespace CryptoExchange.Net.Authentication
             using var encryptor = SHA512.Create();
             var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA512 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected static string SignSHA512(byte[] data, SignOutputType? outputType = null)
+        {
+            using var encryptor = SHA512.Create();
+            var resultBytes = encryptor.ComputeHash(data);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA512 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns></returns>
+        protected static byte[] SignSHA512Bytes(string data)
+        {
+            using var encryptor = SHA512.Create();
+            return encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        }
+
+        /// <summary>
+        /// SHA512 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns></returns>
+        protected static byte[] SignSHA512Bytes(byte[] data)
+        {
+            using var encryptor = SHA512.Create();
+            return encryptor.ComputeHash(data);
         }
 
         /// <summary>
@@ -127,17 +221,59 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// HMACSHA256 sign the data and return the hash
+        /// MD5 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected static string SignMD5(byte[] data, SignOutputType? outputType = null)
+        {
+            using var encryptor = MD5.Create();
+            var resultBytes = encryptor.ComputeHash(data);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// MD5 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns></returns>
+        protected static byte[] SignMD5Bytes(string data)
+        {
+            using var encryptor = MD5.Create();
+            return encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+        }
+
+        /// <summary>
+        /// HMACSHA512 sign the data and return the hash
         /// </summary>
         /// <param name="data">Data to sign</param>
         /// <param name="outputType">String type</param>
         /// <returns></returns>
         protected string SignHMACSHA256(string data, SignOutputType? outputType = null)
+            => SignHMACSHA256(Encoding.UTF8.GetBytes(data), outputType);
+
+        /// <summary>
+        /// HMACSHA256 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected string SignHMACSHA256(byte[] data, SignOutputType? outputType = null)
         {
             using var encryptor = new HMACSHA256(_sBytes);
-            var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
+
+        /// <summary>
+        /// HMACSHA512 sign the data and return the hash
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <param name="outputType">String type</param>
+        /// <returns></returns>
+        protected string SignHMACSHA384(string data, SignOutputType? outputType = null)
+            => SignHMACSHA384(Encoding.UTF8.GetBytes(data), outputType);
 
         /// <summary>
         /// HMACSHA384 sign the data and return the hash
@@ -145,10 +281,10 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="data">Data to sign</param>
         /// <param name="outputType">String type</param>
         /// <returns></returns>
-        protected string SignHMACSHA384(string data, SignOutputType? outputType = null)
+        protected string SignHMACSHA384(byte[] data, SignOutputType? outputType = null)
         {
             using var encryptor = new HMACSHA384(_sBytes);
-            var resultBytes = encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
 
@@ -182,7 +318,46 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA256(byte[] data, SignOutputType? outputType = null)
         {
-            using var rsa = RSA.Create();
+            using var rsa = CreateRSA();
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(data);
+            var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            return outputType == SignOutputType.Base64? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA384 sign the data
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="outputType"></param>
+        /// <returns></returns>
+        protected string SignRSASHA384(byte[] data, SignOutputType? outputType = null)
+        {
+            using var rsa = CreateRSA();
+            using var sha384 = SHA384.Create();
+            var hash = sha384.ComputeHash(data);
+            var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        /// <summary>
+        /// SHA512 sign the data
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="outputType"></param>
+        /// <returns></returns>
+        protected string SignRSASHA512(byte[] data, SignOutputType? outputType = null)
+        {
+            using var rsa = CreateRSA();
+            using var sha512 = SHA512.Create();
+            var hash = sha512.ComputeHash(data);
+            var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+            return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
+        }
+
+        private RSA CreateRSA()
+        {
+            var rsa = RSA.Create();
             if (_credentials.CredentialType == ApiCredentialsType.RsaPem)
             {
 #if NETSTANDARD2_1_OR_GREATER
@@ -209,30 +384,7 @@ namespace CryptoExchange.Net.Authentication
                 throw new Exception("Invalid credentials type");
             }
 
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(data);
-            var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-            return outputType == SignOutputType.Base64? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
-        }
-
-        /// <summary>
-        /// Sign a string
-        /// </summary>
-        /// <param name="toSign"></param>
-        /// <returns></returns>
-        public virtual string Sign(string toSign)
-        {
-            return toSign;
-        }
-
-        /// <summary>
-        /// Sign a byte array
-        /// </summary>
-        /// <param name="toSign"></param>
-        /// <returns></returns>
-        public virtual byte[] Sign(byte[] toSign)
-        {
-            return toSign;
+            return rsa;
         }
 
         /// <summary>

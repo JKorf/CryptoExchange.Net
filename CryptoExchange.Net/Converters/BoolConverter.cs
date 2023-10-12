@@ -47,6 +47,7 @@ namespace CryptoExchange.Net.Converters
                 case "n":
                 case "0":
                 case "off":
+                case "-1":
                     return false;
             }
 

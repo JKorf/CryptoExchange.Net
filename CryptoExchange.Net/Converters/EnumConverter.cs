@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Converters
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsEnum;
+            return objectType.IsEnum || Nullable.GetUnderlyingType(objectType)?.IsEnum == true;
         }
 
         /// <inheritdoc />
