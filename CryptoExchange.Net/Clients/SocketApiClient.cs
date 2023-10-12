@@ -563,7 +563,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public virtual Task<Uri?> GetReconnectUriAsync(SocketConnection connection)
+        protected internal virtual Task<Uri?> GetReconnectUriAsync(SocketConnection connection)
         {
             return Task.FromResult<Uri?>(connection.ConnectionUri);
         }
@@ -573,7 +573,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="request">The original request</param>
         /// <returns></returns>
-        public virtual Task<CallResult<object>> RevitalizeRequestAsync(object request)
+        protected internal virtual Task<CallResult<object>> RevitalizeRequestAsync(object request)
         {
             return Task.FromResult(new CallResult<object>(request));
         }
@@ -683,7 +683,7 @@ namespace CryptoExchange.Net
         /// <param name="identifier">Identifier for the periodic send</param>
         /// <param name="interval">How often</param>
         /// <param name="objGetter">Method returning the object to send</param>
-        public virtual void SendPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, object> objGetter)
+        protected virtual void SendPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, object> objGetter)
         {
             if (objGetter == null)
                 throw new ArgumentNullException(nameof(objGetter));

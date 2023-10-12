@@ -60,11 +60,6 @@ namespace CryptoExchange.Net.UnitTests
             headers = new Dictionary<string, string>();
         }
 
-        public override string Sign(string toSign)
-        {
-            return toSign;
-        }
-
         public string GetKey() => _credentials.Key.GetString();
         public string GetSecret() => _credentials.Secret.GetString();
     }

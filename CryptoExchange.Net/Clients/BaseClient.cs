@@ -52,7 +52,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="options"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public virtual void Initialize(ExchangeOptions options)
+        protected virtual void Initialize(ExchangeOptions options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
