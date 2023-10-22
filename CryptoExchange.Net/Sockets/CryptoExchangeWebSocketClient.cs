@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -43,7 +44,6 @@ namespace CryptoExchange.Net.Sockets
         private bool _disposed;
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
-
 
         /// <summary>
         /// Received messages, the size and the timstamp
@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.Sockets
         public event Action? OnClose;
 
         /// <inheritdoc />
-        public event Action<string>? OnMessage;
+        public event Func<MemoryStream, Task>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Action<int>? OnRequestSent;
@@ -521,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
-                                HandleMessage(buffer.Array!, buffer.Offset, receiveResult.Count, receiveResult.MessageType);
+                                await ProcessByteData(new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count), receiveResult.MessageType).ConfigureAwait(false);
                             }
                             else
                             {
@@ -555,11 +555,13 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Reassemble complete message from memory stream
                             _logger.Log(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
-                            HandleMessage(memoryStream!.ToArray(), 0, (int)memoryStream.Length, receiveResult.MessageType);
+                            await ProcessByteData(memoryStream, receiveResult.MessageType).ConfigureAwait(false);
                             memoryStream.Dispose();
                         }
                         else
+                        {
                             _logger.Log(LogLevel.Trace, $"Socket {Id} discarding incomplete message of {memoryStream!.Length} bytes");
+                        }
                     }
                 }
             }
@@ -578,58 +580,10 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        /// <summary>
-        /// Handles the message
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
-        /// <param name="messageType"></param>
-        private void HandleMessage(byte[] data, int offset, int count, WebSocketMessageType messageType)
+        private async Task ProcessByteData(MemoryStream memoryStream, WebSocketMessageType messageType)
         {
-            string strData;
-            if (messageType == WebSocketMessageType.Binary)
-            {
-                if (Parameters.DataInterpreterBytes == null)
-                    throw new Exception("Byte interpreter not set while receiving byte data");
-
-                try
-                {
-                    var relevantData = new byte[count];
-                    Array.Copy(data, offset, relevantData, 0, count);
-                    strData = Parameters.DataInterpreterBytes(relevantData);
-                }
-                catch(Exception e)
-                {
-                    _logger.Log(LogLevel.Error, $"Socket {Id} unhandled exception during byte data interpretation: " + e.ToLogString());
-                    return;
-                }
-            }
-            else
-                strData = Parameters.Encoding.GetString(data, offset, count);
-
-            if (Parameters.DataInterpreterString != null)
-            {
-                try
-                {
-                    strData = Parameters.DataInterpreterString(strData);
-                }
-                catch(Exception e)
-                {
-                    _logger.Log(LogLevel.Error, $"Socket {Id} unhandled exception during string data interpretation: " + e.ToLogString());
-                    return;
-                }
-            }
-
-            try
-            {
-                LastActionTime = DateTime.UtcNow;
-                OnMessage?.Invoke(strData);
-            }
-            catch(Exception e)
-            {
-                _logger.Log(LogLevel.Error, $"Socket {Id} unhandled exception during message processing: " + e.ToLogString());
-            }
+            if (OnStreamMessage != null)
+                await OnStreamMessage.Invoke(memoryStream).ConfigureAwait(false);
         }
 
         /// <summary>

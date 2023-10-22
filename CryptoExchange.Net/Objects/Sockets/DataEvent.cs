@@ -1,7 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Objects.Sockets
 {
     /// <summary>
     /// An update received from a socket update subscription

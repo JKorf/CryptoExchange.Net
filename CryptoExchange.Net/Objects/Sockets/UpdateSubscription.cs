@@ -1,8 +1,9 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets;
 using System;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Objects.Sockets
 {
     /// <summary>
     /// Subscription to a data stream
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.Sockets
     public class UpdateSubscription
     {
         private readonly SocketConnection _connection;
-        private readonly SocketSubscription _subscription;
+        private readonly SocketSubscriptionListener _subscription;
 
         /// <summary>
         /// Event when the connection is lost. The socket will automatically reconnect when possible.
@@ -83,12 +84,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="connection">The socket connection the subscription is on</param>
         /// <param name="subscription">The subscription</param>
-        public UpdateSubscription(SocketConnection connection, SocketSubscription subscription)
+        public UpdateSubscription(SocketConnection connection, SocketSubscriptionListener subscription)
         {
-            this._connection = connection;
-            this._subscription = subscription;
+            _connection = connection;
+            _subscription = subscription;
         }
-        
+
         /// <summary>
         /// Close the subscription
         /// </summary>

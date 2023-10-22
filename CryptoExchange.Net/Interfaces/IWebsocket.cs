@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets;
 using System;
+using System.IO;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Websocket message received event
         /// </summary>
-        event Action<string> OnMessage;
+        event Func<MemoryStream, Task> OnStreamMessage;
         /// <summary>
         /// Websocket sent event, RequestId as parameter
         /// </summary>
