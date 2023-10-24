@@ -15,6 +15,7 @@ namespace CryptoExchange.Net.Converters
     public class EnumConverter : JsonConverter
     {
         private bool _warnOnMissingEntry = true;
+        private bool _writeAsInt;
 
         /// <summary>
         /// </summary>
@@ -22,9 +23,11 @@ namespace CryptoExchange.Net.Converters
 
         /// <summary>
         /// </summary>
+        /// <param name="writeAsInt"></param>
         /// <param name="warnOnMissingEntry"></param>
-        public EnumConverter(bool warnOnMissingEntry)
+        public EnumConverter(bool writeAsInt, bool warnOnMissingEntry)
         {
+            _writeAsInt = writeAsInt;
             _warnOnMissingEntry = warnOnMissingEntry;
         }   
 
@@ -158,8 +161,15 @@ namespace CryptoExchange.Net.Converters
             }
             else
             {
-                var stringValue = GetString(value.GetType(), value);
-                writer.WriteValue(stringValue);
+                if (!_writeAsInt)
+                {
+                    var stringValue = GetString(value.GetType(), value);
+                    writer.WriteValue(stringValue);
+                }
+                else
+                {
+                    writer.WriteValue((int)value);
+                }
             }
         }
     }
