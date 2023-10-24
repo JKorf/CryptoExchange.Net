@@ -31,6 +31,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.2.0 - 24 Oct 2023
+    * Added SerializerOptions helper class for setting a default serializer
+    * Added ParameterCollection helper class for easier parameter definition
+    * Added extra helper methods AuthenticationProvider
+    * Remove interface entries meant for internal use
+    * Added support for writing int values to the EnumConverter
+
 * Version 6.1.5 - 08 Oct 2023
     * Added UpdateType to socket DataEvent
     * Added additional scenarios for BoolConverter

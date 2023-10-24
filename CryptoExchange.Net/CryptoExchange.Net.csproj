@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
@@ -6,16 +6,16 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
-    <PackageVersion>6.1.5</PackageVersion>
-    <AssemblyVersion>6.1.5</AssemblyVersion>
-    <FileVersion>6.1.5</FileVersion>
+    <PackageVersion>6.2.0</PackageVersion>
+    <AssemblyVersion>6.2.0</AssemblyVersion>
+    <FileVersion>6.2.0</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>6.1.5 - Added UpdateType to socket DataEvent, Added additional scenarios for BoolConverter, Updated some logging</PackageReleaseNotes>
+    <PackageReleaseNotes>6.2.0 - Added SerializerOptions helper class for setting a default serializer, Added ParameterCollection helper class for easier parameter definition, Added extra helper methods AuthenticationProvider, Remove interface entries meant for internal use, Added support for writing int values to the EnumConverter</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
