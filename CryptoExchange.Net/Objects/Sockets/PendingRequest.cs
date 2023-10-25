@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,20 +13,20 @@ namespace CryptoExchange.Net.Objects.Sockets
         public AsyncResetEvent Event { get; }
         public DateTime RequestTimestamp { get; set; }
         public TimeSpan Timeout { get; }
-        public SocketSubscriptionListener? Subscription { get; }
+        public MessageListener? MessageListener { get; }
 
         private CancellationTokenSource? _cts;
 
         public int Priority => 100;
 
-        public PendingRequest(int id, Func<StreamMessage, bool> messageMatchesHandler, TimeSpan timeout, SocketSubscriptionListener? subscription)
+        public PendingRequest(int id, Func<StreamMessage, bool> messageMatchesHandler, TimeSpan timeout, MessageListener? subscription)
         {
             Id = id;
             MessageMatchesHandler = messageMatchesHandler;
             Event = new AsyncResetEvent(false, false);
             Timeout = timeout;
             RequestTimestamp = DateTime.UtcNow;
-            Subscription = subscription;
+            MessageListener = subscription;
         }
 
         public void IsSend()

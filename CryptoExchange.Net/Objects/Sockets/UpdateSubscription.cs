@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Objects.Sockets
     public class UpdateSubscription
     {
         private readonly SocketConnection _connection;
-        private readonly SocketSubscriptionListener _subscription;
+        private readonly MessageListener _listener;
 
         /// <summary>
         /// Event when the connection is lost. The socket will automatically reconnect when possible.
@@ -65,8 +65,8 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public event Action<Exception> Exception
         {
-            add => _subscription.Exception += value;
-            remove => _subscription.Exception -= value;
+            add => _listener.Exception += value;
+            remove => _listener.Exception -= value;
         }
 
         /// <summary>
@@ -77,17 +77,17 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The id of the subscription
         /// </summary>
-        public int Id => _subscription.Id;
+        public int Id => _listener.Id;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="connection">The socket connection the subscription is on</param>
         /// <param name="subscription">The subscription</param>
-        public UpdateSubscription(SocketConnection connection, SocketSubscriptionListener subscription)
+        public UpdateSubscription(SocketConnection connection, MessageListener subscription)
         {
             _connection = connection;
-            _subscription = subscription;
+            _listener = subscription;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public Task CloseAsync()
         {
-            return _connection.CloseAsync(_subscription);
+            return _connection.CloseAsync(_listener);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         internal async Task UnsubscribeAsync()
         {
-            await _connection.UnsubscribeAsync(_subscription).ConfigureAwait(false);
+            await _connection.UnsubscribeAsync(_listener).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         internal async Task<CallResult<bool>> ResubscribeAsync()
         {
-            return await _connection.ResubscribeAsync(_subscription).ConfigureAwait(false);
+            return await _connection.ResubscribeAsync(_listener).ConfigureAwait(false);
         }
     }
 }

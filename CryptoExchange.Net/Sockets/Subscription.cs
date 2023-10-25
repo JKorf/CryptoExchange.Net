@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Subscription base
     /// </summary>
-    public abstract class SubscriptionActor
+    public abstract class Subscription
     {
         private bool _outputOriginalData;
 
@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="logger"></param>
         /// <param name="apiClient"></param>
         /// <param name="authenticated"></param>
-        public SubscriptionActor(ILogger logger, ISocketApiClient apiClient, bool authenticated)
+        public Subscription(ILogger logger, ISocketApiClient apiClient, bool authenticated)
         {
             _logger = logger;
             _outputOriginalData = apiClient.ApiOptions.OutputOriginalData ?? apiClient.ClientOptions.OutputOriginalData;
@@ -43,32 +43,32 @@ namespace CryptoExchange.Net.Sockets
         /// Get the subscribe object to send when subscribing
         /// </summary>
         /// <returns></returns>
-        public abstract object? GetSubscribeRequest();
+        public abstract object? GetSubRequest();
         /// <summary>
         /// Check if the message is the response to the subscribe request
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract (bool, CallResult?) MessageMatchesSubscribeRequest(StreamMessage message);
+        public abstract (bool, CallResult?) MessageMatchesSubRequest(StreamMessage message);
 
         /// <summary>
         /// Get the unsubscribe object to send when unsubscribing
         /// </summary>
         /// <returns></returns>
-        public abstract object? GetUnsubscribeRequest();
+        public abstract object? GetUnsubRequest();
         /// <summary>
         /// Check if the message is the response to the unsubscribe request
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract (bool, CallResult?) MessageMatchesUnsubscribeRequest(StreamMessage message);
+        public abstract (bool, CallResult?) MessageMatchesUnsubRequest(StreamMessage message);
 
         /// <summary>
         /// Check if the message is an update for this subscription
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract bool MessageMatchesSubscription(StreamMessage message);
+        public abstract bool MessageMatchesEvent(StreamMessage message);
         /// <summary>
         /// Handle the update message
         /// </summary>
@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="topic"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected DataEvent<T> CreateDataEvent<T>(T obj, StreamMessage message, string? topic = null, SocketUpdateType? type = null)
+        protected virtual DataEvent<T> CreateDataEvent<T>(T obj, StreamMessage message, string? topic = null, SocketUpdateType? type = null)
         {
             string? originalData = null;
             if (_outputOriginalData)
@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <param name="settings"></param>
         /// <returns></returns>
-        protected Task<CallResult<T>> DeserializeAsync<T>(StreamMessage message, JsonSerializerSettings settings)
+        protected virtual Task<CallResult<T>> DeserializeAsync<T>(StreamMessage message, JsonSerializerSettings settings)
         {
             var serializer = JsonSerializer.Create(settings);
             using var sr = new StreamReader(message.Stream, Encoding.UTF8, false, (int)message.Stream.Length, true);

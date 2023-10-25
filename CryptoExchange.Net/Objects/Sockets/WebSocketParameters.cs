@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -63,9 +64,9 @@ namespace CryptoExchange.Net.Objects.Sockets
         public string? Origin { get; set; }
 
         /// <summary>
-        /// Delegate used for processing byte data received from socket connections before it is processed by handlers
+        /// Delegate used for manipulating data received from socket connections before it is processed by listeners
         /// </summary>
-        public Func<byte[], string>? DataInterpreterBytes { get; set; }
+        public Func<Stream, Stream>? Interceptor { get; set; }
 
         /// <summary>
         /// Delegate used for processing string data received from socket connections before it is processed by handlers

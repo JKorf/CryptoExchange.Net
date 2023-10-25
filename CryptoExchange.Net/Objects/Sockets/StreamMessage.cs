@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The data stream
         /// </summary>
-        public MemoryStream Stream { get; }
+        public Stream Stream { get; }
         /// <summary>
         /// Receive timestamp
         /// </summary>
@@ -45,6 +45,9 @@ namespace CryptoExchange.Net.Objects.Sockets
             return result;
         }
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             Stream.Dispose();
@@ -56,7 +59,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <param name="connection"></param>
         /// <param name="stream"></param>
         /// <param name="timestamp"></param>
-        public StreamMessage(SocketConnection connection, MemoryStream stream, DateTime timestamp)
+        public StreamMessage(SocketConnection connection, Stream stream, DateTime timestamp)
         {
             Connection = connection;
             Stream = stream;

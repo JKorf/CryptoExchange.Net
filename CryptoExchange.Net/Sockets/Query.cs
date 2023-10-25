@@ -6,17 +6,22 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Query 
     /// </summary>
-    public abstract class QueryActor
+    public abstract class Query
     {
         /// <summary>
         /// The query request
         /// </summary>
-        public object Query { get; set; }
+        public object Request { get; set; }
 
         /// <summary>
         /// If this is a private request
         /// </summary>
         public bool Authenticated { get; }
+
+        /// <summary>
+        /// Weight of the query
+        /// </summary>
+        public int Weight { get; }
 
         /// <summary>
         /// Check if the message is the response to the query
@@ -34,12 +39,14 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="query"></param>
+        /// <param name="request"></param>
         /// <param name="authenticated"></param>
-        public QueryActor(object query, bool authenticated)
+        /// <param name="weight"></param>
+        public Query(object request, bool authenticated, int weight = 1)
         {
             Authenticated = authenticated;
-            Query = query;
+            Request = request;
+            Weight = weight;
         }
     }
 }

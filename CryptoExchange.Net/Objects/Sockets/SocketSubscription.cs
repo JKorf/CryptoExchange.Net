@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Objects.Sockets
 {
     /// <summary>
-    /// Socket subscription
+    /// Socket listener
     /// </summary>
-    public class SocketSubscriptionListener : IStreamMessageListener
+    public class MessageListener : IStreamMessageListener
     {
         /// <summary>
-        /// Unique subscription id
+        /// Unique listener id
         /// </summary>
         public int Id { get; }
 
@@ -24,12 +24,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The request object send when subscribing on the server. Either this or the `Identifier` property should be set
         /// </summary>
-        public SubscriptionActor Subscription { get; set; }
+        public Subscription Subscription { get; set; }
 
         /// <summary>
         /// Whether this is a user subscription or an internal listener
         /// </summary>
-        public bool UserSubscription { get; set; }
+        public bool UserListener { get; set; }
 
         /// <summary>
         /// If the subscription has been confirmed to be subscribed by the server
@@ -58,10 +58,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <param name="id"></param>
         /// <param name="request"></param>
         /// <param name="userSubscription"></param>
-        public SocketSubscriptionListener(int id, SubscriptionActor request, bool userSubscription)
+        public MessageListener(int id, Subscription request, bool userSubscription)
         {
             Id = id;
-            UserSubscription = userSubscription;
+            UserListener = userSubscription;
             Subscription = request;
         }
 
@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public bool MessageMatches(StreamMessage message) => Subscription.MessageMatchesSubscription(message);
+        public bool MessageMatches(StreamMessage message) => Subscription.MessageMatchesEvent(message);
 
         /// <summary>
         /// Process the message
