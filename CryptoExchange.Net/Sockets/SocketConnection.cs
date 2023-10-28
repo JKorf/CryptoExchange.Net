@@ -10,6 +10,9 @@ using CryptoExchange.Net.Objects;
 using System.Net.WebSockets;
 using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Converters;
+using System.Text;
+using System.Runtime;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -153,6 +156,8 @@ namespace CryptoExchange.Net.Sockets
         private readonly List<MessageListener> _listeners;
         private readonly List<IStreamMessageListener> _messageListeners; // ?
 
+        private readonly Dictionary<string, IStreamMessageListener> _messageIdentifierListeners;
+
         private readonly object _listenerLock = new();
         private readonly ILogger _logger;
 
@@ -162,6 +167,8 @@ namespace CryptoExchange.Net.Sockets
         /// The underlying websocket
         /// </summary>
         private readonly IWebsocket _socket;
+        private readonly JsonSerializerSettings _options;
+        private readonly JsonSerializer _serializer;
 
         /// <summary>
         /// New socket connection
@@ -178,6 +185,7 @@ namespace CryptoExchange.Net.Sockets
             Properties = new Dictionary<string, object>();
 
             _messageListeners = new List<IStreamMessageListener>();
+            _messageIdentifierListeners = new Dictionary<string, IStreamMessageListener>();
             _listeners = new List<MessageListener>();
 
             _socket = socket;
@@ -189,6 +197,11 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnReconnected += HandleReconnected;
             _socket.OnError += HandleError;
             _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
+
+            var converter = ApiClient.GetConverter();
+            _options = SerializerOptions.Default;
+            _options.Converters.Add(converter);
+            _serializer = JsonSerializer.Create(_options);
         }
 
         /// <summary>
@@ -321,45 +334,62 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenerLock)
                 listeners = _messageListeners.OrderByDescending(x => x.Priority).ToList();
 
-            foreach (var listener in listeners)
+            var converter = ApiClient.GetConverter();
+            using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
+            using var jsonTextReader = new JsonTextReader(sr);
+            var result = (ParsedMessage)converter.ReadJson(jsonTextReader, typeof(object), null, _serializer);
+            stream.Position = 0;
+
+            if (_messageIdentifierListeners.TryGetValue(result.Identifier.ToLowerInvariant(), out var idListener))
             {
-                if (listener.MessageMatches(streamMessage))
+                var userSw = Stopwatch.StartNew();
+                await idListener.ProcessAsync(streamMessage).ConfigureAwait(false);
+                userSw.Stop();
+                userCodeDuration = userSw.Elapsed;
+                handledResponse = true;
+            }
+            else
+            {
+                foreach (var listener in listeners)
                 {
-                    if (listener is PendingRequest pendingRequest)
+                    if (listener.MessageMatches(streamMessage))
                     {
-                        lock (_messageListeners)
-                            _messageListeners.Remove(pendingRequest);
-
-                        if (pendingRequest.Completed)
+                        if (listener is PendingRequest pendingRequest)
                         {
-                            // Answer to a timed out request, unsub if it is a subscription request
-                            if (pendingRequest.MessageListener != null)
+                            lock (_messageListeners)
+                                _messageListeners.Remove(pendingRequest);
+
+                            if (pendingRequest.Completed)
                             {
-                                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");                                
-                                _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
+                                // Answer to a timed out request, unsub if it is a subscription request
+                                if (pendingRequest.MessageListener != null)
+                                {
+                                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
+                                    _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
+                                }
                             }
+                            else
+                            {
+                                _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
+                                await pendingRequest.ProcessAsync(streamMessage).ConfigureAwait(false);
+                            }
+
+                            if (!ApiClient.ContinueOnQueryResponse)
+                                return;
+
+                            handledResponse = true;
+                            break;
                         }
-                        else
+                        else if (listener is MessageListener subscription)
                         {
-                            _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
-                            await pendingRequest.ProcessAsync(streamMessage).ConfigureAwait(false);
+                            currentSubscription = subscription;
+                            handledResponse = true;
+                            var userSw = Stopwatch.StartNew();
+                            await subscription.ProcessAsync(streamMessage).ConfigureAwait(false);
+                            userSw.Stop();
+                            userCodeDuration = userSw.Elapsed;
+                            break;
                         }
-
-                        if (!ApiClient.ContinueOnQueryResponse)
-                            return;
-
-                        handledResponse = true;
-                        break;
-                    }
-                    else if (listener is MessageListener subscription)
-                    {
-                        currentSubscription = subscription;
-                        handledResponse = true;
-                        var userSw = Stopwatch.StartNew();
-                        await subscription.ProcessAsync(streamMessage).ConfigureAwait(false);
-                        userSw.Stop();
-                        userCodeDuration = userSw.Elapsed;
-                        break;
                     }
                 }
             }
@@ -480,7 +510,7 @@ namespace CryptoExchange.Net.Sockets
         /// Add a listener to this connection
         /// </summary>
         /// <param name="listener"></param>
-        public bool AddListener(MessageListener listener)
+        public bool AddListener(MessageListener listener, List<string>? listenerIdentifiers)
         {
             lock (_listenerLock)
             {
@@ -489,6 +519,11 @@ namespace CryptoExchange.Net.Sockets
 
                 _listeners.Add(listener);
                 _messageListeners.Add(listener);
+                if (listenerIdentifiers != null)
+                {
+                    foreach (var id in listenerIdentifiers)
+                        _messageIdentifierListeners.Add(id.ToLowerInvariant(), listener);
+                }
 
                 if (listener.UserListener)
                     _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new listener with id {listener.Id}, total listeners on connection: {_listeners.Count(s => s.UserListener)}");

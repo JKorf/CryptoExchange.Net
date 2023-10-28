@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
@@ -450,11 +451,13 @@ namespace CryptoExchange.Net
         protected virtual MessageListener? AddSubscription<T>(Subscription subscription, bool userSubscription, SocketConnection connection)
         {
             var messageListener = new MessageListener(ExchangeHelpers.NextId(), subscription, userSubscription);
-            if (!connection.AddListener(messageListener))
+            if (!connection.AddListener(messageListener, subscription.Identifiers))
                 return null;
 
             return messageListener;
         }
+
+        protected internal abstract SocketConverter GetConverter();
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
@@ -465,7 +468,7 @@ namespace CryptoExchange.Net
             systemSubscriptions.Add(systemSubscription);
             var subscription = new MessageListener(ExchangeHelpers.NextId(), systemSubscription, false);
             foreach (var connection in socketConnections.Values)
-                connection.AddListener(subscription);
+                connection.AddListener(subscription, null);
         }
 
         /// <summary>
@@ -539,7 +542,7 @@ namespace CryptoExchange.Net
             foreach (var systemSubscription in systemSubscriptions)
             {
                 var handler = new MessageListener(ExchangeHelpers.NextId(), systemSubscription, false);
-                socketConnection.AddListener(handler);
+                socketConnection.AddListener(handler, null);
             }
 
             return new CallResult<SocketConnection>(socketConnection);

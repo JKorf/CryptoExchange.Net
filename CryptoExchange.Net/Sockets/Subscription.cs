@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,8 @@ namespace CryptoExchange.Net.Sockets
         /// If the subscription is a private subscription and needs authentication
         /// </summary>
         public bool Authenticated { get; }
+
+        public abstract List<string> Identifiers { get; }
 
         /// <summary>
         /// ctor
