@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.2.1 - 28 Oct 2023
+    * Utility methods
+
 * Version 6.2.0 - 24 Oct 2023
     * Added SerializerOptions helper class for setting a default serializer
     * Added ParameterCollection helper class for easier parameter definition
