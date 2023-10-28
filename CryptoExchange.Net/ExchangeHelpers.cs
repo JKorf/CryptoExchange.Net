@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
+using System.Security.Cryptography;
 
 namespace CryptoExchange.Net
 {
@@ -8,6 +9,8 @@ namespace CryptoExchange.Net
     /// </summary>
     public static class ExchangeHelpers
     {
+        private const string _allowedRandomChars = "ABCDEFGHIJKLMONOPQRSTUVWXYZabcdefghijklmonopqrstuvwxyz0123456789";
+
         /// <summary>
         /// The last used id, use NextId() to get the next id and up this
         /// </summary>
@@ -139,6 +142,44 @@ namespace CryptoExchange.Net
                 _lastId += 1;
                 return _lastId;
             }
+        }
+
+        /// <summary>
+        /// Generate a random string of specified length
+        /// </summary>
+        /// <param name="length">Length of the random string</param>
+        /// <returns></returns>
+        public static string RandomString(int length)
+        {
+            var randomChars = new char[length];
+
+#if NETSTANDARD2_1_OR_GREATER
+            for (int i = 0; i < length; i++)
+                randomChars[i] = _allowedRandomChars[RandomNumberGenerator.GetInt32(0, _allowedRandomChars.Length)];
+#else
+            var random = new Random();
+            for (int i = 0; i < length; i++)
+                randomChars[i] = _allowedRandomChars[random.Next(0, _allowedRandomChars.Length)];
+#endif
+
+            return new string(randomChars);
+        }
+
+        /// <summary>
+        /// Generate a random string of specified length
+        /// </summary>
+        /// <param name="source">The initial string</param>
+        /// <param name="totalLength">Total length of the resulting string</param>
+        /// <returns></returns>
+        public static string AppendRandomString(string source, int totalLength)
+        {
+            if (totalLength < source.Length)
+                throw new ArgumentException("Total length smaller than source string length", nameof(totalLength));
+
+            if (totalLength == source.Length)
+                return source;
+
+            return source + RandomString(totalLength - source.Length);
         }
     }
 }
