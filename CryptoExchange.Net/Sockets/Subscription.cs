@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract (bool, CallResult?) MessageMatchesSubRequest(StreamMessage message);
+        public abstract (bool, CallResult?) MessageMatchesSubRequest(ParsedMessage message);
 
         /// <summary>
         /// Get the unsubscribe object to send when unsubscribing
@@ -64,54 +65,54 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract (bool, CallResult?) MessageMatchesUnsubRequest(StreamMessage message);
+        public abstract (bool, CallResult?) MessageMatchesUnsubRequest(ParsedMessage message);
 
         /// <summary>
         /// Check if the message is an update for this subscription
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract bool MessageMatchesEvent(StreamMessage message);
+        public abstract bool MessageMatchesEvent(ParsedMessage message);
         /// <summary>
         /// Handle the update message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task HandleEventAsync(StreamMessage message);
+        public abstract Task HandleEventAsync(DataEvent<ParsedMessage> message);
 
-        /// <summary>
-        /// Create a data event
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="message"></param>
-        /// <param name="topic"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected virtual DataEvent<T> CreateDataEvent<T>(T obj, StreamMessage message, string? topic = null, SocketUpdateType? type = null)
-        {
-            string? originalData = null;
-            if (_outputOriginalData)
-                originalData = message.Get(ParsingUtils.GetString);
+        ///// <summary>
+        ///// Create a data event
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="obj"></param>
+        ///// <param name="message"></param>
+        ///// <param name="topic"></param>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //protected virtual DataEvent<T> CreateDataEvent<T>(T obj, ParsedMessage message, string? topic = null, SocketUpdateType? type = null)
+        //{
+        //    string? originalData = null;
+        //    if (_outputOriginalData)
+        //        originalData = message.Get(ParsingUtils.GetString);
 
-            return new DataEvent<T>(obj, topic, originalData, message.Timestamp, type);
-        }
+        //    return new DataEvent<T>(obj, topic, originalData, message.Timestamp, type);
+        //}
 
-        /// <summary>
-        /// Deserialize the message to an object using Json.Net
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="message"></param>
-        /// <param name="settings"></param>
-        /// <returns></returns>
-        protected virtual Task<CallResult<T>> DeserializeAsync<T>(StreamMessage message, JsonSerializerSettings settings)
-        {
-            var serializer = JsonSerializer.Create(settings);
-            using var sr = new StreamReader(message.Stream, Encoding.UTF8, false, (int)message.Stream.Length, true);
-            using var jsonTextReader = new JsonTextReader(sr);
-            var result = serializer.Deserialize<T>(jsonTextReader);
-            message.Stream.Position = 0;
-            return Task.FromResult(new CallResult<T>(result!));
-        }
+        ///// <summary>
+        ///// Deserialize the message to an object using Json.Net
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="message"></param>
+        ///// <param name="settings"></param>
+        ///// <returns></returns>
+        //protected virtual Task<CallResult<T>> DeserializeAsync<T>(StreamMessage message, JsonSerializerSettings settings)
+        //{
+        //    var serializer = JsonSerializer.Create(settings);
+        //    using var sr = new StreamReader(message.Stream, Encoding.UTF8, false, (int)message.Stream.Length, true);
+        //    using var jsonTextReader = new JsonTextReader(sr);
+        //    var result = serializer.Deserialize<T>(jsonTextReader);
+        //    message.Stream.Position = 0;
+        //    return Task.FromResult(new CallResult<T>(result!));
+        //}
     }
 }

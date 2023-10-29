@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 
 namespace CryptoExchange.Net.Sockets
@@ -28,13 +29,13 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract bool MessageMatchesQuery(StreamMessage message);
+        public abstract bool MessageMatchesQuery(ParsedMessage message);
         /// <summary>
         /// Handle the query response
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract CallResult HandleResponse(StreamMessage message);
+        public abstract CallResult HandleResponse(ParsedMessage message);
 
         /// <summary>
         /// ctor

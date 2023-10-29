@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects.Sockets;
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Objects.Sockets;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -6,7 +7,7 @@ namespace CryptoExchange.Net.Interfaces
     internal interface IStreamMessageListener
     {
         int Priority { get; }
-        bool MessageMatches(StreamMessage message);
-        Task ProcessAsync(StreamMessage message);
+        bool MessageMatches(ParsedMessage message);
+        Task ProcessAsync(ParsedMessage message);
     }
 }

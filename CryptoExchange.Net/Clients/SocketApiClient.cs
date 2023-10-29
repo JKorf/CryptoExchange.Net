@@ -109,6 +109,9 @@ namespace CryptoExchange.Net
 
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
+
+        /// <inheritdoc />
+        public abstract SocketConverter StreamConverter { get; }
         #endregion
 
         /// <summary>
@@ -457,8 +460,6 @@ namespace CryptoExchange.Net
             return messageListener;
         }
 
-        protected internal abstract SocketConverter GetConverter();
-
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
         /// </summary>
@@ -552,7 +553,7 @@ namespace CryptoExchange.Net
         /// Process an unhandled message
         /// </summary>
         /// <param name="message">The message that wasn't processed</param>
-        protected virtual void HandleUnhandledMessage(StreamMessage message)
+        protected virtual void HandleUnhandledMessage(ParsedMessage message)
         {
         }
 

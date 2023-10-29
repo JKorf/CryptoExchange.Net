@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Sockets;
 using System;
 using System.Threading;
@@ -84,13 +85,18 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public bool MessageMatches(StreamMessage message) => Subscription.MessageMatchesEvent(message);
+        public bool MessageMatches(ParsedMessage message) => Subscription.MessageMatchesEvent(message);
 
         /// <summary>
         /// Process the message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public Task ProcessAsync(StreamMessage message) => Subscription.HandleEventAsync(message);
+        public Task ProcessAsync(ParsedMessage message)
+        {
+            // TODO
+            var dataEvent = new DataEvent<ParsedMessage>(message, null, null, DateTime.UtcNow, null);
+            return Subscription.HandleEventAsync(dataEvent);
+        }
     }
 }

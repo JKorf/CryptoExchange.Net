@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Unhandled message event
         /// </summary>
-        public event Action<StreamMessage>? UnhandledMessage;
+        public event Action<ParsedMessage>? UnhandledMessage;
 
         /// <summary>
         /// The amount of listeners on this connection
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Sockets
         public int UserListenerCount
         {
             get { lock (_listenerLock)
-                return _listeners.Count(h => h.UserListener); }
+                return _messageIdentifierListeners.Count(h => h.UserListener); }
         }
 
         /// <summary>
@@ -153,10 +153,11 @@ namespace CryptoExchange.Net.Sockets
         }
 
         private bool _pausedActivity;
-        private readonly List<MessageListener> _listeners;
-        private readonly List<IStreamMessageListener> _messageListeners; // ?
+        //private readonly List<MessageListener> _listeners;
+        //private readonly List<IStreamMessageListener> _messageListeners; // ?
 
-        private readonly Dictionary<string, IStreamMessageListener> _messageIdentifierListeners;
+        private readonly List<PendingRequest> _pendingRequests;
+        private readonly Dictionary<string, MessageListener> _messageIdentifierListeners;
 
         private readonly object _listenerLock = new();
         private readonly ILogger _logger;
@@ -167,8 +168,6 @@ namespace CryptoExchange.Net.Sockets
         /// The underlying websocket
         /// </summary>
         private readonly IWebsocket _socket;
-        private readonly JsonSerializerSettings _options;
-        private readonly JsonSerializer _serializer;
 
         /// <summary>
         /// New socket connection
@@ -184,9 +183,8 @@ namespace CryptoExchange.Net.Sockets
             Tag = tag;
             Properties = new Dictionary<string, object>();
 
-            _messageListeners = new List<IStreamMessageListener>();
+            _pendingRequests = new List<PendingRequest>();
             _messageIdentifierListeners = new Dictionary<string, IStreamMessageListener>();
-            _listeners = new List<MessageListener>();
 
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
@@ -197,11 +195,6 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnReconnected += HandleReconnected;
             _socket.OnError += HandleError;
             _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
-
-            var converter = ApiClient.GetConverter();
-            _options = SerializerOptions.Default;
-            _options.Converters.Add(converter);
-            _serializer = JsonSerializer.Create(_options);
         }
 
         /// <summary>
@@ -222,7 +215,7 @@ namespace CryptoExchange.Net.Sockets
             Authenticated = false;
             lock(_listenerLock)
             {
-                foreach (var listener in _listeners)
+                foreach (var listener in _messageIdentifierListeners.Values)
                     listener.Confirmed = false;
             }    
             Task.Run(() => ConnectionClosed?.Invoke());
@@ -325,81 +318,101 @@ namespace CryptoExchange.Net.Sockets
         protected virtual async Task HandleStreamMessage(Stream stream)
         {
             var timestamp = DateTime.UtcNow;
-            var streamMessage = new StreamMessage(this, stream, timestamp);
-            var handledResponse = false;
-            MessageListener? currentSubscription = null;
+            //var streamMessage = new StreamMessage(this, stream, timestamp);
             TimeSpan userCodeDuration = TimeSpan.Zero;
 
             List<IStreamMessageListener> listeners;
             lock (_listenerLock)
                 listeners = _messageListeners.OrderByDescending(x => x.Priority).ToList();
 
-            var converter = ApiClient.GetConverter();
-            using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
-            using var jsonTextReader = new JsonTextReader(sr);
-            var result = (ParsedMessage)converter.ReadJson(jsonTextReader, typeof(object), null, _serializer);
+            var result = (ParsedMessage)ApiClient.StreamConverter.ReadJson(stream, listeners.OfType<MessageListener>().ToList()); // TODO
             stream.Position = 0;
+
+            if (result == null)
+            {
+                _logger.LogWarning("Message not matched to type");
+                return;
+            }
 
             if (_messageIdentifierListeners.TryGetValue(result.Identifier.ToLowerInvariant(), out var idListener))
             {
-                var userSw = Stopwatch.StartNew();
-                await idListener.ProcessAsync(streamMessage).ConfigureAwait(false);
-                userSw.Stop();
-                userCodeDuration = userSw.Elapsed;
-                handledResponse = true;
+                // Matched based on identifier
+                await idListener.ProcessAsync(result).ConfigureAwait(false);
+                return;
             }
-            else
+
+            foreach (var pendingRequest in _messageListeners.OfType<PendingRequest>())
             {
-                foreach (var listener in listeners)
+                if (pendingRequest.MessageMatchesHandler(result))
                 {
-                    if (listener.MessageMatches(streamMessage))
-                    {
-                        if (listener is PendingRequest pendingRequest)
-                        {
-                            lock (_messageListeners)
-                                _messageListeners.Remove(pendingRequest);
-
-                            if (pendingRequest.Completed)
-                            {
-                                // Answer to a timed out request, unsub if it is a subscription request
-                                if (pendingRequest.MessageListener != null)
-                                {
-                                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
-                                    _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
-                                }
-                            }
-                            else
-                            {
-                                _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
-                                await pendingRequest.ProcessAsync(streamMessage).ConfigureAwait(false);
-                            }
-
-                            if (!ApiClient.ContinueOnQueryResponse)
-                                return;
-
-                            handledResponse = true;
-                            break;
-                        }
-                        else if (listener is MessageListener subscription)
-                        {
-                            currentSubscription = subscription;
-                            handledResponse = true;
-                            var userSw = Stopwatch.StartNew();
-                            await subscription.ProcessAsync(streamMessage).ConfigureAwait(false);
-                            userSw.Stop();
-                            userCodeDuration = userSw.Elapsed;
-                            break;
-                        }
-                    }
+                    await pendingRequest.ProcessAsync(result).ConfigureAwait(false);
+                    break;
                 }
             }
 
-            if (!handledResponse)
-            {
-                if (!ApiClient.UnhandledMessageExpected)
-                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + streamMessage.Get(ParsingUtils.GetString));
-                UnhandledMessage?.Invoke(streamMessage);
-            }
+            _logger.LogWarning("Message not matched"); // TODO
+            return;
+
+            //if (_messageIdentifierListeners.TryGetValue(result.Identifier.ToLowerInvariant(), out var idListener))
+            //{
+            //    var userSw = Stopwatch.StartNew();
+            //    await idListener.ProcessAsync(streamMessage).ConfigureAwait(false);
+            //    userSw.Stop();
+            //    userCodeDuration = userSw.Elapsed;
+            //    handledResponse = true;
+            //}
+            //else
+            //{
+            //    foreach (var listener in listeners)
+            //    {
+            //        if (listener.MessageMatches(streamMessage))
+            //        {
+            //            if (listener is PendingRequest pendingRequest)
+            //            {
+            //                lock (_messageListeners)
+            //                    _messageListeners.Remove(pendingRequest);
+
+            //                if (pendingRequest.Completed)
+            //                {
+            //                    // Answer to a timed out request, unsub if it is a subscription request
+            //                    if (pendingRequest.MessageListener != null)
+            //                    {
+            //                        _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
+            //                        _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
+            //                    await pendingRequest.ProcessAsync(streamMessage).ConfigureAwait(false);
+            //                }
+
+            //                if (!ApiClient.ContinueOnQueryResponse)
+            //                    return;
+
+            //                handledResponse = true;
+            //                break;
+            //            }
+            //            else if (listener is MessageListener subscription)
+            //            {
+            //                currentSubscription = subscription;
+            //                handledResponse = true;
+            //                var userSw = Stopwatch.StartNew();
+            //                await subscription.ProcessAsync(streamMessage).ConfigureAwait(false);
+            //                userSw.Stop();
+            //                userCodeDuration = userSw.Elapsed;
+            //                break;
+            //            }
+            //        }
+            //    }
+            //}
+
+            //if (!handledResponse)
+            //{
+            //    if (!ApiClient.UnhandledMessageExpected)
+            //        _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + streamMessage.Get(ParsingUtils.GetString));
+            //    UnhandledMessage?.Invoke(streamMessage);
+            //}
         }    
 
         /// <summary>
@@ -434,7 +447,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenerLock)
             {
-                foreach (var listener in _listeners)
+                foreach (var listener in _messageIdentifierListeners.Values)
                 {
                     if (listener.CancellationTokenRegistration.HasValue)
                         listener.CancellationTokenRegistration.Value.Dispose();
@@ -562,7 +575,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="handler">The response handler</param>
         /// <param name="weight">The weight of the message</param>
         /// <returns></returns>
-        public virtual async Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, MessageListener? listener, int weight, Func<StreamMessage, bool> handler)
+        public virtual async Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, MessageListener? listener, int weight, Func<ParsedMessage, bool> handler)
         {
             var pending = new PendingRequest(ExchangeHelpers.NextId(), handler, timeout, listener);
             lock (_messageListeners)

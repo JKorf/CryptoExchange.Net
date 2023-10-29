@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace CryptoExchange.Net.Objects.Sockets
     internal class PendingRequest : IStreamMessageListener
     {
         public int Id { get; set; }
-        public Func<StreamMessage, bool> MessageMatchesHandler { get; }
+        public Func<ParsedMessage, bool> MessageMatchesHandler { get; }
         public bool Completed { get; private set; }
         public AsyncResetEvent Event { get; }
         public DateTime RequestTimestamp { get; set; }
@@ -19,7 +20,7 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         public int Priority => 100;
 
-        public PendingRequest(int id, Func<StreamMessage, bool> messageMatchesHandler, TimeSpan timeout, MessageListener? subscription)
+        public PendingRequest(int id, Func<ParsedMessage, bool> messageMatchesHandler, TimeSpan timeout, MessageListener? subscription)
         {
             Id = id;
             MessageMatchesHandler = messageMatchesHandler;
@@ -42,12 +43,12 @@ namespace CryptoExchange.Net.Objects.Sockets
             Event.Set();
         }
 
-        public bool MessageMatches(StreamMessage message)
+        public bool MessageMatches(ParsedMessage message)
         {
             return MessageMatchesHandler(message);
         }
 
-        public Task ProcessAsync(StreamMessage message)
+        public Task ProcessAsync(ParsedMessage message)
         {
             Completed = true;
             Event.Set();
