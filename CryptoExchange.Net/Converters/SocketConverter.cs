@@ -10,7 +10,8 @@ namespace CryptoExchange.Net.Converters
 {
     public abstract class SocketConverter
     {
-        public abstract string[] IdFields { get; }
+        public virtual string[]? SubscriptionIdFields => null;
+        public abstract string[] TypeIdFields { get; }
 
         public abstract Type? GetDeserializationType(Dictionary<string, string> idValues, List<MessageListener> listeners);
 
@@ -33,23 +34,43 @@ namespace CryptoExchange.Net.Converters
                 return null;
             }
 
-            var dict = new Dictionary<string, string>();
-            foreach(var idField in IdFields)
+            var typeIdDict = new Dictionary<string, string>();
+            foreach(var idField in TypeIdFields)
             {
                 var splitTokens = idField.Split(new char[] { ':' });
                 var accessToken = token;
                 foreach (var splitToken in splitTokens)
                 {
                     accessToken = accessToken[splitToken];
+                    if (accessToken == null)
+                        break;
                 }
-                dict[idField] = accessToken?.ToString();
+                typeIdDict[idField] = accessToken?.ToString();
             }
 
-            var resultType = GetDeserializationType(dict, listeners);
             string idString = "";
-            foreach(var item in dict)
-                idString += item.Value;
+            if (SubscriptionIdFields != null)
+            {
+                foreach (var idField in SubscriptionIdFields)
+                {
+                    var splitTokens = idField.Split(new char[] { ':' });
+                    var accessToken = token;
+                    foreach (var splitToken in splitTokens)
+                    {
+                        accessToken = accessToken[splitToken];
+                        if (accessToken == null)
+                            break;
+                    }
+                    idString += accessToken?.ToString();
+                }
+            }
+            else
+            {
+                foreach (var item in typeIdDict)
+                    idString += item.Value;
+            }
 
+            var resultType = GetDeserializationType(typeIdDict, listeners);
             return new ParsedMessage
             {
                 Identifier = idString,
