@@ -454,7 +454,7 @@ namespace CryptoExchange.Net
         protected virtual MessageListener? AddSubscription<T>(Subscription subscription, bool userSubscription, SocketConnection connection)
         {
             var messageListener = new MessageListener(ExchangeHelpers.NextId(), subscription, userSubscription);
-            if (!connection.AddListener(messageListener, subscription.Identifiers))
+            if (!connection.AddListener(messageListener))
                 return null;
 
             return messageListener;
@@ -469,7 +469,7 @@ namespace CryptoExchange.Net
             systemSubscriptions.Add(systemSubscription);
             var subscription = new MessageListener(ExchangeHelpers.NextId(), systemSubscription, false);
             foreach (var connection in socketConnections.Values)
-                connection.AddListener(subscription, null);
+                connection.AddListener(subscription);
         }
 
         /// <summary>
@@ -539,11 +539,12 @@ namespace CryptoExchange.Net
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
+            socketConnection.UnparsedMessage += HandleUnparsedMessage;
 
             foreach (var systemSubscription in systemSubscriptions)
             {
                 var handler = new MessageListener(ExchangeHelpers.NextId(), systemSubscription, false);
-                socketConnection.AddListener(handler, null);
+                socketConnection.AddListener(handler);
             }
 
             return new CallResult<SocketConnection>(socketConnection);
@@ -554,6 +555,14 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="message">The message that wasn't processed</param>
         protected virtual void HandleUnhandledMessage(ParsedMessage message)
+        {
+        }
+
+        /// <summary>
+        /// Process an unparsed message
+        /// </summary>
+        /// <param name="message">The message that wasn't parsed</param>
+        protected virtual void HandleUnparsedMessage(byte[] message)
         {
         }
 

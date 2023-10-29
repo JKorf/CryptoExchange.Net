@@ -52,12 +52,17 @@ namespace CryptoExchange.Net.Sockets
         public event Action<ParsedMessage>? UnhandledMessage;
 
         /// <summary>
+        /// Unparsed message event
+        /// </summary>
+        public event Action<byte[]>? UnparsedMessage;
+
+        /// <summary>
         /// The amount of listeners on this connection
         /// </summary>
         public int UserListenerCount
         {
             get { lock (_listenerLock)
-                return _messageIdentifierListeners.Count(h => h.UserListener); }
+                return _messageIdentifierListeners.Values.Count(h => h.UserListener); }
         }
 
         /// <summary>
@@ -68,7 +73,7 @@ namespace CryptoExchange.Net.Sockets
             get
             {
                 lock (_listenerLock)
-                    return _listeners.Where(h => h.UserListener).ToArray();
+                    return _messageIdentifierListeners.Values.Where(h => h.UserListener).ToArray();
             }
         }
 
@@ -153,10 +158,8 @@ namespace CryptoExchange.Net.Sockets
         }
 
         private bool _pausedActivity;
-        //private readonly List<MessageListener> _listeners;
-        //private readonly List<IStreamMessageListener> _messageListeners; // ?
-
         private readonly List<PendingRequest> _pendingRequests;
+        private readonly List<MessageListener> _messageListeners;
         private readonly Dictionary<string, MessageListener> _messageIdentifierListeners;
 
         private readonly object _listenerLock = new();
@@ -184,7 +187,8 @@ namespace CryptoExchange.Net.Sockets
             Properties = new Dictionary<string, object>();
 
             _pendingRequests = new List<PendingRequest>();
-            _messageIdentifierListeners = new Dictionary<string, IStreamMessageListener>();
+            _messageListeners = new List<MessageListener>();
+            _messageIdentifierListeners = new Dictionary<string, MessageListener>();
 
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
@@ -215,7 +219,7 @@ namespace CryptoExchange.Net.Sockets
             Authenticated = false;
             lock(_listenerLock)
             {
-                foreach (var listener in _messageIdentifierListeners.Values)
+                foreach (var listener in _messageListeners)
                     listener.Confirmed = false;
             }    
             Task.Run(() => ConnectionClosed?.Invoke());
@@ -231,7 +235,7 @@ namespace CryptoExchange.Net.Sockets
             Authenticated = false;
             lock (_listenerLock)
             {
-                foreach (var listener in _listeners)
+                foreach (var listener in _messageListeners)
                     listener.Confirmed = false;
             }
 
@@ -255,10 +259,10 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Resubscribing;
             lock (_messageListeners)
             {
-                foreach (var pendingRequest in _messageListeners.OfType<PendingRequest>().ToList())
+                foreach (var pendingRequest in _pendingRequests.ToList())
                 {
                     pendingRequest.Fail();
-                    _messageListeners.Remove(pendingRequest);
+                    // Remove?
                 }
             }
 
@@ -298,8 +302,8 @@ namespace CryptoExchange.Net.Sockets
         protected virtual void HandleRequestSent(int requestId)
         {
             PendingRequest pendingRequest;
-            lock (_messageListeners)
-                pendingRequest = _messageListeners.OfType<PendingRequest>().SingleOrDefault(p => p.Id == requestId);
+            lock (_pendingRequests)
+                pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
 
             if (pendingRequest == null)
             {
@@ -321,32 +325,42 @@ namespace CryptoExchange.Net.Sockets
             //var streamMessage = new StreamMessage(this, stream, timestamp);
             TimeSpan userCodeDuration = TimeSpan.Zero;
 
-            List<IStreamMessageListener> listeners;
+            List<MessageListener> listeners;
             lock (_listenerLock)
                 listeners = _messageListeners.OrderByDescending(x => x.Priority).ToList();
 
             var result = (ParsedMessage)ApiClient.StreamConverter.ReadJson(stream, listeners.OfType<MessageListener>().ToList()); // TODO
-            stream.Position = 0;
+            if(result == null)
+            {
+                stream.Position = 0;
+                var buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                UnparsedMessage?.Invoke(buffer);
+                return;
+            }
 
-            if (result == null)
+            if (result.Data == null)
             {
                 _logger.LogWarning("Message not matched to type");
                 return;
             }
 
+            // TODO lock
             if (_messageIdentifierListeners.TryGetValue(result.Identifier.ToLowerInvariant(), out var idListener))
             {
                 // Matched based on identifier
+                var userSw = Stopwatch.StartNew();
                 await idListener.ProcessAsync(result).ConfigureAwait(false);
+                userSw.Stop();
                 return;
             }
 
-            foreach (var pendingRequest in _messageListeners.OfType<PendingRequest>())
+            foreach (var pendingRequest in _pendingRequests)
             {
                 if (pendingRequest.MessageMatchesHandler(result))
                 {
                     await pendingRequest.ProcessAsync(result).ConfigureAwait(false);
-                    break;
+                    return;
                 }
             }
 
@@ -447,7 +461,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenerLock)
             {
-                foreach (var listener in _messageIdentifierListeners.Values)
+                foreach (var listener in _messageListeners)
                 {
                     if (listener.CancellationTokenRegistration.HasValue)
                         listener.CancellationTokenRegistration.Value.Dispose();
@@ -467,7 +481,7 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_listenerLock)
             {
-                if (!_listeners.Contains(listener))
+                if (!_messageListeners.Contains(listener))
                     return;
 
                 listener.Closed = true;
@@ -492,7 +506,7 @@ namespace CryptoExchange.Net.Sockets
                     return;
                 }
 
-                shouldCloseConnection = _listeners.All(r => !r.UserListener || r.Closed);
+                shouldCloseConnection = _messageIdentifierListeners.All(r => !r.Value.UserListener || r.Value.Closed);
                 if (shouldCloseConnection)
                     Status = SocketStatus.Closing;
             }
@@ -506,7 +520,8 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenerLock)
             {
                 _messageListeners.Remove(listener);
-                _listeners.Remove(listener);
+                foreach (var id in listener.Subscription.Identifiers)
+                    _messageIdentifierListeners.Remove(id);
             }
         }
 
@@ -523,23 +538,22 @@ namespace CryptoExchange.Net.Sockets
         /// Add a listener to this connection
         /// </summary>
         /// <param name="listener"></param>
-        public bool AddListener(MessageListener listener, List<string>? listenerIdentifiers)
+        public bool AddListener(MessageListener listener)
         {
             lock (_listenerLock)
             {
                 if (Status != SocketStatus.None && Status != SocketStatus.Connected)
                     return false;
 
-                _listeners.Add(listener);
                 _messageListeners.Add(listener);
-                if (listenerIdentifiers != null)
+                if (listener.Subscription.Identifiers != null)
                 {
-                    foreach (var id in listenerIdentifiers)
+                    foreach (var id in listener.Subscription.Identifiers)
                         _messageIdentifierListeners.Add(id.ToLowerInvariant(), listener);
                 }
 
                 if (listener.UserListener)
-                    _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new listener with id {listener.Id}, total listeners on connection: {_listeners.Count(s => s.UserListener)}");
+                    _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new listener with id {listener.Id}, total listeners on connection: {_messageListeners.Count(s => s.UserListener)}");
                 return true;
             }
         }
@@ -551,7 +565,7 @@ namespace CryptoExchange.Net.Sockets
         public MessageListener? GetListener(int id)
         {
             lock (_listenerLock)
-                return _listeners.SingleOrDefault(s => s.Id == id);
+                return _messageListeners.SingleOrDefault(s => s.Id == id);
         }
 
         /// <summary>
@@ -562,7 +576,7 @@ namespace CryptoExchange.Net.Sockets
         public MessageListener? GetListenerByRequest(Func<object?, bool> predicate)
         {
             lock(_listenerLock)
-                return _listeners.SingleOrDefault(s => predicate(s.Subscription));
+                return _messageListeners.SingleOrDefault(s => predicate(s.Subscription));
         }
 
         /// <summary>
@@ -580,7 +594,7 @@ namespace CryptoExchange.Net.Sockets
             var pending = new PendingRequest(ExchangeHelpers.NextId(), handler, timeout, listener);
             lock (_messageListeners)
             {
-                _messageListeners.Add(pending);
+                _pendingRequests.Add(pending);
             }
 
             var sendOk = Send(pending.Id, obj, weight);
@@ -651,7 +665,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool anySubscriptions = false;
             lock (_listenerLock)
-                anySubscriptions = _listeners.Any(s => s.UserListener);
+                anySubscriptions = _messageListeners.Any(s => s.UserListener);
 
             if (!anySubscriptions)
             {
@@ -663,7 +677,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool anyAuthenticated = false;
             lock (_listenerLock)
-                anyAuthenticated = _listeners.Any(s => s.Authenticated);
+                anyAuthenticated = _messageListeners.Any(s => s.Authenticated);
 
             if (anyAuthenticated)
             {
@@ -683,7 +697,7 @@ namespace CryptoExchange.Net.Sockets
             List<MessageListener> listenerList = new List<MessageListener>();
             lock (_listenerLock)
             {
-                foreach (var listener in _listeners)
+                foreach (var listener in _messageListeners)
                 {
                     if (listener.Subscription != null)
                         listenerList.Add(listener);

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Objects.Sockets
     /// <summary>
     /// Socket listener
     /// </summary>
-    public class MessageListener : IStreamMessageListener
+    public class MessageListener
     {
         /// <summary>
         /// Unique listener id
@@ -79,13 +79,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// The priority of this subscription
         /// </summary>
         public int Priority => Subscription is SystemSubscription ? 50 : 1;
-
-        /// <summary>
-        /// Check if message matches the subscription
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public bool MessageMatches(ParsedMessage message) => Subscription.MessageMatchesEvent(message);
 
         /// <summary>
         /// Process the message

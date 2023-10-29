@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects.Sockets
 {
-    internal class PendingRequest : IStreamMessageListener
+    internal class PendingRequest
     {
         public int Id { get; set; }
         public Func<ParsedMessage, bool> MessageMatchesHandler { get; }

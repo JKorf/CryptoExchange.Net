@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract bool MessageMatchesEvent(ParsedMessage message);
+        //public abstract bool MessageMatchesEvent(ParsedMessage message);
         /// <summary>
         /// Handle the update message
         /// </summary>

@@ -13,7 +13,6 @@ namespace CryptoExchange.Net.Converters
         public abstract string[] IdFields { get; }
 
         public abstract Type? GetDeserializationType(Dictionary<string, string> idValues, List<MessageListener> listeners);
-        public abstract List<MessageListener> MatchToListener(ParsedMessage message, List<MessageListener> listeners);
 
         /// <inheritdoc />
         public object? ReadJson(Stream stream, List<MessageListener> listeners)
@@ -24,8 +23,16 @@ namespace CryptoExchange.Net.Converters
             // Deserialize to the correct type
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
             using var jsonTextReader = new JsonTextReader(sr);
+            JToken token;
+            try
+            {
+                token = JToken.Load(jsonTextReader);
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
 
-            var token = JToken.Load(jsonTextReader);
             var dict = new Dictionary<string, string>();
             foreach(var idField in IdFields)
             {
