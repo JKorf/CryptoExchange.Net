@@ -329,7 +329,7 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenerLock)
                 listeners = _messageListeners.OrderByDescending(x => x.Priority).ToList();
 
-            var result = (ParsedMessage)ApiClient.StreamConverter.ReadJson(stream, listeners.OfType<MessageListener>().ToList()); // TODO
+            var result = ApiClient.StreamConverter.ReadJson(stream, listeners.OfType<MessageListener>().ToList(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData); // TODO
             if(result == null)
             {
                 stream.Position = 0;
@@ -338,6 +338,9 @@ namespace CryptoExchange.Net.Sockets
                 UnparsedMessage?.Invoke(buffer);
                 return;
             }
+
+            if (result.OriginalData != null)
+                _logger.LogDebug($"Socket {SocketId} Data received: {result.OriginalData}");
 
             if (result.Data == null)
             {
@@ -752,6 +755,8 @@ namespace CryptoExchange.Net.Sockets
                     // TODO check result?
                     return matches;
                 }).ConfigureAwait(false);
+
+                _logger.Log(LogLevel.Information, $"Socket {SocketId} subscription {listener.Id} unsubscribed");
             }
         }
 

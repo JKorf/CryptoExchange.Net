@@ -16,13 +16,21 @@ namespace CryptoExchange.Net.Converters
         public abstract Type? GetDeserializationType(Dictionary<string, string> idValues, List<MessageListener> listeners);
 
         /// <inheritdoc />
-        public object? ReadJson(Stream stream, List<MessageListener> listeners)
+        public ParsedMessage? ReadJson(Stream stream, List<MessageListener> listeners, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
             // Once all id properties have been read callback to see what the deserialization type should be
             // Deserialize to the correct type
+            var result = new ParsedMessage();
+
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
+            if (outputOriginalData)
+            {
+                result.OriginalData = sr.ReadToEnd();
+                stream.Position = 0;
+            }
+
             using var jsonTextReader = new JsonTextReader(sr);
             JToken token;
             try
@@ -34,6 +42,12 @@ namespace CryptoExchange.Net.Converters
                 return null;
             }
 
+            if (token.Type == JTokenType.Array)
+            {
+                // Received array, take first item as reference
+                token = token.First!;
+            }
+
             var typeIdDict = new Dictionary<string, string>();
             foreach(var idField in TypeIdFields)
             {
@@ -42,9 +56,17 @@ namespace CryptoExchange.Net.Converters
                 foreach (var splitToken in splitTokens)
                 {
                     accessToken = accessToken[splitToken];
+
                     if (accessToken == null)
                         break;
+
+                    if (accessToken.Type == JTokenType.Array)
+                    {
+                        // Received array, take first item as reference
+                        accessToken = accessToken.First!;
+                    }
                 }
+
                 typeIdDict[idField] = accessToken?.ToString();
             }
 
@@ -70,19 +92,18 @@ namespace CryptoExchange.Net.Converters
                     idString += item.Value;
             }
 
+            result.Identifier = idString;
             var resultType = GetDeserializationType(typeIdDict, listeners);
-            return new ParsedMessage
-            {
-                Identifier = idString,
-                Data = resultType == null ? null : token.ToObject(resultType)
-            };
+            result.Data = resultType == null ? null : token.ToObject(resultType);
+
+            return result;
         }
     }
 
     public class ParsedMessage
     {
         public string Identifier { get; set; } = null!;
-
+        public string? OriginalData { get; set; }
         public object? Data { get; set; }
     }
 }
