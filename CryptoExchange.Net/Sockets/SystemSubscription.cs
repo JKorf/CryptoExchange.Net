@@ -16,9 +16,8 @@ namespace CryptoExchange.Net.Sockets
         /// ctor
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="socketApiClient"></param>
         /// <param name="authenticated"></param>
-        public SystemSubscription(ILogger logger, ISocketApiClient socketApiClient, bool authenticated = false) : base(logger, socketApiClient, authenticated)
+        public SystemSubscription(ILogger logger, bool authenticated = false) : base(logger, authenticated)
         {
         }
 

@@ -322,14 +322,13 @@ namespace CryptoExchange.Net.Sockets
         protected virtual async Task HandleStreamMessage(Stream stream)
         {
             var timestamp = DateTime.UtcNow;
-            //var streamMessage = new StreamMessage(this, stream, timestamp);
             TimeSpan userCodeDuration = TimeSpan.Zero;
 
             List<MessageListener> listeners;
             lock (_listenerLock)
                 listeners = _messageListeners.OrderByDescending(x => x.Priority).ToList();
 
-            var result = ApiClient.StreamConverter.ReadJson(stream, listeners.OfType<MessageListener>().ToList(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData); // TODO
+            var result = ApiClient.StreamConverter.ReadJson(stream, listeners, ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData); // TODO
             if(result == null)
             {
                 stream.Position = 0;
@@ -358,78 +357,42 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            foreach (var pendingRequest in _pendingRequests)
+            List<PendingRequest> pendingRequests;
+            lock (_pendingRequests)
+                pendingRequests = _pendingRequests.ToList();
+
+            foreach (var pendingRequest in pendingRequests)
             {
                 if (pendingRequest.MessageMatchesHandler(result))
                 {
-                    await pendingRequest.ProcessAsync(result).ConfigureAwait(false);
+                    lock (_pendingRequests)
+                        _pendingRequests.Remove(pendingRequest);
+
+                    if (pendingRequest.Completed)
+                    {
+                        // Answer to a timed out request, unsub if it is a subscription request
+                        if (pendingRequest.MessageListener != null)
+                        {
+                            _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
+                            _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
+                        await pendingRequest.ProcessAsync(result).ConfigureAwait(false);
+                    }
+
                     return;
                 }
             }
 
-            _logger.LogWarning("Message not matched"); // TODO
-            return;
-
-            //if (_messageIdentifierListeners.TryGetValue(result.Identifier.ToLowerInvariant(), out var idListener))
-            //{
-            //    var userSw = Stopwatch.StartNew();
-            //    await idListener.ProcessAsync(streamMessage).ConfigureAwait(false);
-            //    userSw.Stop();
-            //    userCodeDuration = userSw.Elapsed;
-            //    handledResponse = true;
-            //}
-            //else
-            //{
-            //    foreach (var listener in listeners)
-            //    {
-            //        if (listener.MessageMatches(streamMessage))
-            //        {
-            //            if (listener is PendingRequest pendingRequest)
-            //            {
-            //                lock (_messageListeners)
-            //                    _messageListeners.Remove(pendingRequest);
-
-            //                if (pendingRequest.Completed)
-            //                {
-            //                    // Answer to a timed out request, unsub if it is a subscription request
-            //                    if (pendingRequest.MessageListener != null)
-            //                    {
-            //                        _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received subscription info after request timed out; unsubscribing. Consider increasing the RequestTimeout");
-            //                        _ = UnsubscribeAsync(pendingRequest.MessageListener).ConfigureAwait(false);
-            //                    }
-            //                }
-            //                else
-            //                {
-            //                    _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
-            //                    await pendingRequest.ProcessAsync(streamMessage).ConfigureAwait(false);
-            //                }
-
-            //                if (!ApiClient.ContinueOnQueryResponse)
-            //                    return;
-
-            //                handledResponse = true;
-            //                break;
-            //            }
-            //            else if (listener is MessageListener subscription)
-            //            {
-            //                currentSubscription = subscription;
-            //                handledResponse = true;
-            //                var userSw = Stopwatch.StartNew();
-            //                await subscription.ProcessAsync(streamMessage).ConfigureAwait(false);
-            //                userSw.Stop();
-            //                userCodeDuration = userSw.Elapsed;
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-
-            //if (!handledResponse)
-            //{
-            //    if (!ApiClient.UnhandledMessageExpected)
-            //        _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + streamMessage.Get(ParsingUtils.GetString));
-            //    UnhandledMessage?.Invoke(streamMessage);
-            //}
+            stream.Position = 0;
+            var unhandledBuffer = new byte[stream.Length];
+            stream.Read(unhandledBuffer, 0, unhandledBuffer.Length);
+            
+            _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + Encoding.UTF8.GetString(unhandledBuffer));
+            UnhandledMessage?.Invoke(result);
         }    
 
         /// <summary>

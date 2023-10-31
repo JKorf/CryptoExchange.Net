@@ -8,12 +8,27 @@ using System.Text;
 
 namespace CryptoExchange.Net.Converters
 {
+    /// <summary>
+    /// Socket message converter
+    /// </summary>
     public abstract class SocketConverter
     {
+        /// <summary>
+        /// Fields to use for the message subscription identifier
+        /// </summary>
         public virtual string[]? SubscriptionIdFields => null;
+        /// <summary>
+        /// Fields to use for the message type identifier
+        /// </summary>
         public abstract string[] TypeIdFields { get; }
 
-        public abstract Type? GetDeserializationType(Dictionary<string, string> idValues, List<MessageListener> listeners);
+        /// <summary>
+        /// Return the type of object that the message should be parsed to based on the type id values dictionary
+        /// </summary>
+        /// <param name="idValues"></param>
+        /// <param name="listeners"></param>
+        /// <returns></returns>
+        public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<MessageListener> listeners);
 
         /// <inheritdoc />
         public ParsedMessage? ReadJson(Stream stream, List<MessageListener> listeners, bool outputOriginalData)
@@ -37,8 +52,9 @@ namespace CryptoExchange.Net.Converters
             {
                 token = JToken.Load(jsonTextReader);
             }
-            catch(Exception ex)
+            catch(Exception)
             {
+                // Not a json message
                 return null;
             }
 
@@ -48,62 +64,47 @@ namespace CryptoExchange.Net.Converters
                 token = token.First!;
             }
 
-            var typeIdDict = new Dictionary<string, string>();
-            foreach(var idField in TypeIdFields)
+            var typeIdDict = new Dictionary<string, string?>();
+            string idString = "";
+            foreach (var idField in TypeIdFields)
             {
-                var splitTokens = idField.Split(new char[] { ':' });
-                var accessToken = token;
-                foreach (var splitToken in splitTokens)
-                {
-                    accessToken = accessToken[splitToken];
-
-                    if (accessToken == null)
-                        break;
-
-                    if (accessToken.Type == JTokenType.Array)
-                    {
-                        // Received array, take first item as reference
-                        accessToken = accessToken.First!;
-                    }
-                }
-
-                typeIdDict[idField] = accessToken?.ToString();
+                var val = GetValueForKey(token, idField);
+                idString += val;
+                typeIdDict[idField] = val;
             }
 
-            string idString = "";
             if (SubscriptionIdFields != null)
             {
+                idString = "";
                 foreach (var idField in SubscriptionIdFields)
-                {
-                    var splitTokens = idField.Split(new char[] { ':' });
-                    var accessToken = token;
-                    foreach (var splitToken in splitTokens)
-                    {
-                        accessToken = accessToken[splitToken];
-                        if (accessToken == null)
-                            break;
-                    }
-                    idString += accessToken?.ToString();
-                }
-            }
-            else
-            {
-                foreach (var item in typeIdDict)
-                    idString += item.Value;
+                    idString += GetValueForKey(token, idField);
             }
 
             result.Identifier = idString;
             var resultType = GetDeserializationType(typeIdDict, listeners);
             result.Data = resultType == null ? null : token.ToObject(resultType);
-
             return result;
         }
-    }
 
-    public class ParsedMessage
-    {
-        public string Identifier { get; set; } = null!;
-        public string? OriginalData { get; set; }
-        public object? Data { get; set; }
+        private string? GetValueForKey(JToken token, string key)
+        {
+            var splitTokens = key.Split(new char[] { ':' });
+            var accessToken = token;
+            foreach (var splitToken in splitTokens)
+            {
+                accessToken = accessToken[splitToken];
+
+                if (accessToken == null)
+                    break;
+
+                if (accessToken.Type == JTokenType.Array)
+                {
+                    // Received array, take first item as reference
+                    accessToken = accessToken.First!;
+                }
+            }
+
+            return accessToken?.ToString();
+        }
     }
 }
