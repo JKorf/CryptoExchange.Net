@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         public Task ProcessAsync(ParsedMessage message)
         {
             // TODO
-            var dataEvent = new DataEvent<ParsedMessage>(message, null, null, DateTime.UtcNow, null);
+            var dataEvent = new DataEvent<ParsedMessage>(message, null, message.OriginalData, DateTime.UtcNow, null);
             return Subscription.HandleEventAsync(dataEvent);
         }
     }

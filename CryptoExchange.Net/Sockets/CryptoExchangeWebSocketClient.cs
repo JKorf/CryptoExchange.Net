@@ -75,10 +75,10 @@ namespace CryptoExchange.Net.Sockets
         public Uri Uri => Parameters.Uri;
 
         /// <inheritdoc />
-        public bool IsClosed => _socket.State == WebSocketState.Closed;
+        public virtual bool IsClosed => _socket.State == WebSocketState.Closed;
 
         /// <inheritdoc />
-        public bool IsOpen => _socket.State == WebSocketState.Open && !_ctsSource.IsCancellationRequested;
+        public virtual bool IsOpen => _socket.State == WebSocketState.Open && !_ctsSource.IsCancellationRequested;
 
         /// <inheritdoc />
         public double IncomingKbps
@@ -521,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
-                                await ProcessData(new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count), receiveResult.MessageType).ConfigureAwait(false);
+                                await ProcessData(new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                             }
                             else
                             {
@@ -555,7 +555,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Reassemble complete message from memory stream
                             _logger.Log(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
-                            await ProcessData(memoryStream, receiveResult.MessageType).ConfigureAwait(false);
+                            await ProcessData(memoryStream).ConfigureAwait(false);
                             memoryStream.Dispose();
                         }
                         else
@@ -580,7 +580,7 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        private async Task ProcessData(Stream stream, WebSocketMessageType messageType)
+        protected async Task ProcessData(Stream stream)
         {
             stream.Position = 0;
             if (Parameters.Interceptor != null)

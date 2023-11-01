@@ -151,9 +151,9 @@ namespace CryptoExchange.Net
         /// <param name="subscription">The subscription</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(Subscription subscription, CancellationToken ct)
+        protected virtual Task<CallResult<UpdateSubscription>> SubscribeAsync(Subscription subscription, CancellationToken ct)
         {
-            return SubscribeAsync<T>(BaseAddress, subscription, ct);
+            return SubscribeAsync(BaseAddress, subscription, ct);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace CryptoExchange.Net
         /// <param name="subscription">The subscription</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync<T>(string url, Subscription subscription, CancellationToken ct)
+        protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync(string url, Subscription subscription, CancellationToken ct)
         {
             if (_disposing)
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
@@ -195,7 +195,7 @@ namespace CryptoExchange.Net
                     socketConnection = socketResult.Data;
 
                     // Add a subscription on the socket connection
-                    messageListener = AddSubscription<T>(subscription, true, socketConnection);
+                    messageListener = AddSubscription(subscription, true, socketConnection);
                     if (messageListener == null)
                     {
                         _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
@@ -441,7 +441,7 @@ namespace CryptoExchange.Net
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal abstract Query GetAuthenticationRequest();
+        protected internal virtual Query GetAuthenticationRequest() => throw new NotImplementedException();
 
         /// <summary>
         /// Add a subscription to a connection
@@ -451,7 +451,7 @@ namespace CryptoExchange.Net
         /// <param name="userSubscription">Whether or not this is a user subscription (counts towards the max amount of handlers on a socket)</param>
         /// <param name="connection">The socket connection the handler is on</param>
         /// <returns></returns>
-        protected virtual MessageListener? AddSubscription<T>(Subscription subscription, bool userSubscription, SocketConnection connection)
+        protected virtual MessageListener? AddSubscription(Subscription subscription, bool userSubscription, SocketConnection connection)
         {
             var messageListener = new MessageListener(ExchangeHelpers.NextId(), subscription, userSubscription);
             if (!connection.AddListener(messageListener))
