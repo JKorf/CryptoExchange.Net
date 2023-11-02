@@ -1,13 +1,14 @@
 ﻿using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using System;
 
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
     /// Query 
     /// </summary>
-    public abstract class Query
+    public abstract class BaseQuery
     {
         /// <summary>
         /// The query request
@@ -30,12 +31,6 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <returns></returns>
         public abstract bool MessageMatchesQuery(ParsedMessage message);
-        /// <summary>
-        /// Handle the query response
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract CallResult HandleResponse(ParsedMessage message);
 
         /// <summary>
         /// ctor
@@ -43,11 +38,39 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="request"></param>
         /// <param name="authenticated"></param>
         /// <param name="weight"></param>
-        public Query(object request, bool authenticated, int weight = 1)
+        public BaseQuery(object request, bool authenticated, int weight = 1)
         {
             Authenticated = authenticated;
             Request = request;
             Weight = weight;
         }
+    }
+
+    public abstract class Query : BaseQuery
+    {
+        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
+        {
+        }
+
+        /// <summary>
+        /// Handle the query response
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract CallResult HandleResult(ParsedMessage message);
+    }
+    
+    public abstract class Query<TResponse> : BaseQuery
+    {
+        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
+        {
+        }
+
+        /// <summary>
+        /// Handle the query response
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract CallResult<TResponse> HandleResponse(ParsedMessage message);
     }
 }

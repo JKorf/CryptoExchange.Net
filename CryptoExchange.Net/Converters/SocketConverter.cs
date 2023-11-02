@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -28,10 +29,10 @@ namespace CryptoExchange.Net.Converters
         /// <param name="idValues"></param>
         /// <param name="listeners"></param>
         /// <returns></returns>
-        public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<MessageListener> listeners);
+        public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<BasePendingRequest> pendingRequests, List<Subscription> listeners);
 
         /// <inheritdoc />
-        public ParsedMessage? ReadJson(Stream stream, List<MessageListener> listeners, bool outputOriginalData)
+        public ParsedMessage? ReadJson(Stream stream, List<BasePendingRequest> pendingRequests, List<Subscription> listeners, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
@@ -81,7 +82,7 @@ namespace CryptoExchange.Net.Converters
             }
 
             result.Identifier = idString;
-            var resultType = GetDeserializationType(typeIdDict, listeners);
+            var resultType = GetDeserializationType(typeIdDict, pendingRequests, listeners);
             result.Data = resultType == null ? null : token.ToObject(resultType);
             return result;
         }

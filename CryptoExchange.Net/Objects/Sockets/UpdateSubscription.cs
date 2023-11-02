@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Objects.Sockets
     public class UpdateSubscription
     {
         private readonly SocketConnection _connection;
-        private readonly MessageListener _listener;
+        private readonly Subscription _listener;
 
         /// <summary>
         /// Event when the connection is lost. The socket will automatically reconnect when possible.
@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="connection">The socket connection the subscription is on</param>
         /// <param name="subscription">The subscription</param>
-        public UpdateSubscription(SocketConnection connection, MessageListener subscription)
+        public UpdateSubscription(SocketConnection connection, Subscription subscription)
         {
             _connection = connection;
             _listener = subscription;
@@ -121,7 +121,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// Resubscribe this subscription
         /// </summary>
         /// <returns></returns>
-        internal async Task<CallResult<bool>> ResubscribeAsync()
+        internal async Task<CallResult> ResubscribeAsync()
         {
             return await _connection.ResubscribeAsync(_listener).ConfigureAwait(false);
         }

@@ -24,11 +24,15 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override object? GetSubRequest() => null;
         /// <inheritdoc />
-        public override (bool, CallResult?) MessageMatchesSubRequest(ParsedMessage message) => throw new NotImplementedException();
+        public override bool MessageMatchesSubRequest(ParsedMessage message) => throw new NotImplementedException();
+        /// <inheritdoc />
+        public override CallResult HandleSubResponse(ParsedMessage message) => throw new NotImplementedException();
 
         /// <inheritdoc />
         public override object? GetUnsubRequest() => null;
         /// <inheritdoc />
-        public override (bool, CallResult?) MessageMatchesUnsubRequest(ParsedMessage message) => throw new NotImplementedException();
+        public override bool MessageMatchesUnsubRequest(ParsedMessage message) => throw new NotImplementedException();
+        /// <inheritdoc />
+        public override CallResult HandleUnsubResponse(ParsedMessage message) => throw new NotImplementedException();
     }
 }
