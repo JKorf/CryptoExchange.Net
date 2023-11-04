@@ -284,7 +284,7 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         protected virtual Task<CallResult<T>> QueryAsync<T>(Query<T> query)
         {
-            return QueryAsync<T>(BaseAddress, query);
+            return QueryAsync(BaseAddress, query);
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace CryptoExchange.Net
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual Query GetAuthenticationRequest() => throw new NotImplementedException();
+        protected internal virtual BaseQuery GetAuthenticationRequest() => throw new NotImplementedException();
 
         /// <summary>
         /// Add a subscription to a connection
@@ -418,7 +418,7 @@ namespace CryptoExchange.Net
             if (!connection.AddListener(subscription))
                 return false;
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace CryptoExchange.Net
         /// Process an unhandled message
         /// </summary>
         /// <param name="message">The message that wasn't processed</param>
-        protected virtual void HandleUnhandledMessage(ParsedMessage message)
+        protected virtual void HandleUnhandledMessage(BaseParsedMessage message)
         {
         }
 

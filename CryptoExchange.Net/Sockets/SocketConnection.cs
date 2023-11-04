@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Unhandled message event
         /// </summary>
-        public event Action<ParsedMessage>? UnhandledMessage;
+        public event Action<BaseParsedMessage>? UnhandledMessage;
 
         /// <summary>
         /// Unparsed message event
@@ -341,7 +341,7 @@ namespace CryptoExchange.Net.Sockets
             if (result.OriginalData != null)
                 _logger.LogDebug($"Socket {SocketId} Data received: {result.OriginalData}");
 
-            if (result.Data == null)
+            if (!result.Parsed)
             {
                 _logger.LogWarning("Message not matched to type");
                 return;
@@ -352,7 +352,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 // Matched based on identifier
                 var userSw = Stopwatch.StartNew();
-                var dataEvent = new DataEvent<ParsedMessage>(result, null, result.OriginalData, DateTime.UtcNow, null);
+                var dataEvent = new DataEvent<BaseParsedMessage>(result, null, result.OriginalData, DateTime.UtcNow, null);
                 await idListener.HandleEventAsync(dataEvent).ConfigureAwait(false);
                 userSw.Stop();
                 return;
@@ -547,18 +547,18 @@ namespace CryptoExchange.Net.Sockets
                 return _messageListeners.SingleOrDefault(s => predicate(s));
         }
 
-        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(BaseQuery query)
         {
-            var pendingRequest = PendingRequest<T>.CreateForQuery(query);
+            var pendingRequest = query.CreatePendingRequest();
             await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
             return pendingRequest.Result;
         }
 
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query)
+        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query)
         {
-            var pendingRequest = PendingRequest.CreateForQuery(query);
+            var pendingRequest = PendingRequest<T>.CreateForQuery(query);
             await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
-            return pendingRequest.Result;
+            return pendingRequest.TypedResult;
         }
 
         public virtual async Task<CallResult> SendAndWaitSubAsync(Subscription subscription)
@@ -606,52 +606,6 @@ namespace CryptoExchange.Net.Sockets
                     return;
             }
         }
-
-        ///// <summary>
-        ///// Send data and wait for an answer
-        ///// </summary>
-        ///// <typeparam name="T">The data type expected in response</typeparam>
-        ///// <param name="obj">The object to send</param>
-        ///// <param name="timeout">The timeout for response</param>
-        ///// <param name="listener">Listener if this is a subscribe request</param>
-        ///// <param name="handler">The response handler</param>
-        ///// <param name="weight">The weight of the message</param>
-        ///// <returns></returns>
-        //public virtual async Task SendAndWaitAsync<T>(T obj, TimeSpan timeout, MessageListener? listener, int weight, Func<ParsedMessage, bool> handler)
-        //{
-        //    // TODO either Query<T> or Subscription<T> should be passed here instead of T obj
-        //    // That would allow to track the Query/Subscription on the PendingRequest instead of the listener, which allow us to match the pending request in the Converter
-
-        //    var pending = new PendingRequest(ExchangeHelpers.NextId(), handler, timeout, listener);
-        //    lock (_messageListeners)
-        //    {
-        //        _pendingRequests.Add(pending);
-        //    }
-
-        //    var sendOk = Send(pending.Id, obj, weight);
-        //    if (!sendOk)
-        //    {
-        //        pending.Fail();
-        //        return;
-        //    }
-
-        //    while (true)
-        //    {
-        //        if(!_socket.IsOpen)
-        //        {
-        //            pending.Fail();
-        //            return;
-        //        }
-
-        //        if (pending.Completed)
-        //            return;
-
-        //        await pending.Event.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
-        //        if (pending.Completed)
-        //            return;
-        //    }
-        //}
 
         /// <summary>
         /// Send data over the websocket connection
@@ -727,16 +681,7 @@ namespace CryptoExchange.Net.Sockets
             // Get a list of all subscriptions on the socket
             List<Subscription> listenerList = new List<Subscription>();
             lock (_listenerLock)
-            {
-                // ?
-                foreach (var listener in _messageListeners)
-                {
-                    if (listener != null)
-                        listenerList.Add(listener);
-                    else
-                        listener.Confirmed = true;
-                }
-            }
+                listenerList = _messageListeners.ToList();
 
             foreach(var listener in listenerList)
             {
@@ -778,10 +723,8 @@ namespace CryptoExchange.Net.Sockets
             var unsubscribeRequest = subscription?.GetUnsubRequest();
             if (unsubscribeRequest != null)
             {
-                var pendingRequest = PendingRequest.CreateForUnsubRequest(subscription!);
-                await SendAndWaitAsync(pendingRequest, 1).ConfigureAwait(false);
-
-                _logger.Log(LogLevel.Information, $"Socket {SocketId} subscription {subscription.Id} unsubscribed");
+                await SendAndWaitUnsubAsync(subscription!).ConfigureAwait(false);
+                _logger.Log(LogLevel.Information, $"Socket {SocketId} subscription {subscription!.Id} unsubscribed");
             }
         }
 

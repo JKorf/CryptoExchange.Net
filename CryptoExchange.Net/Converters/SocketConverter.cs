@@ -32,18 +32,17 @@ namespace CryptoExchange.Net.Converters
         public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<BasePendingRequest> pendingRequests, List<Subscription> listeners);
 
         /// <inheritdoc />
-        public ParsedMessage? ReadJson(Stream stream, List<BasePendingRequest> pendingRequests, List<Subscription> listeners, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(Stream stream, List<BasePendingRequest> pendingRequests, List<Subscription> listeners, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
             // Once all id properties have been read callback to see what the deserialization type should be
             // Deserialize to the correct type
-            var result = new ParsedMessage();
 
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
             if (outputOriginalData)
             {
-                result.OriginalData = sr.ReadToEnd();
+                //result.OriginalData = sr.ReadToEnd();
                 stream.Position = 0;
             }
 
@@ -81,10 +80,12 @@ namespace CryptoExchange.Net.Converters
                     idString += GetValueForKey(token, idField);
             }
 
-            result.Identifier = idString;
             var resultType = GetDeserializationType(typeIdDict, pendingRequests, listeners);
-            result.Data = resultType == null ? null : token.ToObject(resultType);
-            return result;
+            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(resultType);
+            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, resultType == null ? null : token.ToObject(resultType));
+            instance.Identifier = idString;
+            instance.Parsed = resultType != null;
+            return instance;
         }
 
         private string? GetValueForKey(JToken token, string key)

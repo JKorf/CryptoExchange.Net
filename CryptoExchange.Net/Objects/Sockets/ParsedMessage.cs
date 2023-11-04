@@ -3,7 +3,7 @@
     /// <summary>
     /// Parsed message object
     /// </summary>
-    public class ParsedMessage
+    public abstract class BaseParsedMessage
     {
         /// <summary>
         /// Identifier string
@@ -14,8 +14,21 @@
         /// </summary>
         public string? OriginalData { get; set; }
         /// <summary>
+        /// If parsed
+        /// </summary>
+        public bool Parsed { get; set; }
+    }
+
+    public class ParsedMessage<T> : BaseParsedMessage
+    {
+        /// <summary>
         /// Parsed data object
         /// </summary>
-        public object? Data { get; set; }
+        public T? Data { get; set; }
+
+        public ParsedMessage(T? data)
+        {
+            Data = data;
+        }
     }
 }
