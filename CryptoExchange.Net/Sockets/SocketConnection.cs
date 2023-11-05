@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.Sockets
         public int UserSubscriptionCount
         {
             get { lock (_subscriptionLock)
-                return _messageIdentifierSubscriptions.Values.Count(h => h.UserSubscription); }
+                return _subscriptions.Count(h => h.UserSubscription); }
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace CryptoExchange.Net.Sockets
             get
             {
                 lock (_subscriptionLock)
-                    return _messageIdentifierSubscriptions.Values.Where(h => h.UserSubscription).ToArray();
+                    return _subscriptions.Where(h => h.UserSubscription).ToArray();
             }
         }
 
@@ -158,7 +158,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _pausedActivity;
         private readonly List<BasePendingRequest> _pendingRequests;
         private readonly List<Subscription> _subscriptions;
-        private readonly Dictionary<string, Subscription> _messageIdentifierSubscriptions;
+        private readonly Dictionary<string, IMessageProcessor> _messageIdMap;
 
         private readonly object _subscriptionLock = new();
         private readonly ILogger _logger;
@@ -186,7 +186,7 @@ namespace CryptoExchange.Net.Sockets
 
             _pendingRequests = new List<BasePendingRequest>();
             _subscriptions = new List<Subscription>();
-            _messageIdentifierSubscriptions = new Dictionary<string, Subscription>();
+            _messageIdMap = new Dictionary<string, IMessageProcessor>();
 
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
@@ -346,48 +346,40 @@ namespace CryptoExchange.Net.Sockets
             }
 
             // TODO lock
-            if (_messageIdentifierSubscriptions.TryGetValue(result.Identifier.ToLowerInvariant(), out var idSubscription))
+            if (!_messageIdMap.TryGetValue(result.Identifier, out var messageProcessor))
             {
-                // Matched based on identifier
-                var userSw = Stopwatch.StartNew();
-                var dataEvent = new DataEvent<BaseParsedMessage>(result, null, result.OriginalData, DateTime.UtcNow, null);
-                await idSubscription.HandleEventAsync(dataEvent).ConfigureAwait(false);
-                userSw.Stop();
+                stream.Position = 0;
+                var unhandledBuffer = new byte[stream.Length];
+                stream.Read(unhandledBuffer, 0, unhandledBuffer.Length);
+
+                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message unidentified. Id: {result.Identifier.ToLowerInvariant()}, Message: {Encoding.UTF8.GetString(unhandledBuffer)} ");
+
+                UnhandledMessage?.Invoke(result);
                 return;
             }
 
-            List<BasePendingRequest> pendingRequests;
-            lock (_pendingRequests)
-                pendingRequests = _pendingRequests.ToList();
+            _logger.Log(LogLevel.Trace, $"Socket {SocketId} Message mapped to processor {messageProcessor.Id} with identifier {result.Identifier}");
 
-            foreach (var pendingRequest in pendingRequests)
+            if (messageProcessor is BaseQuery query)
             {
-                if (pendingRequest.MessageMatchesHandler(result))
+                foreach (var id in query.Identifiers)
+                    _messageIdMap.Remove(id);
+
+                if (query.PendingRequest != null)
+                    _pendingRequests.Remove(query.PendingRequest);
+
+                if (query.PendingRequest?.Completed == true)
                 {
-                    lock (_pendingRequests)
-                        _pendingRequests.Remove(pendingRequest);
-
-                    if (pendingRequest.Completed)
-                    {
-                        // Answer to a timed out request
-                        _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received after request timeout. Consider increasing the RequestTimeout");
-                    }
-                    else
-                    {
-                        _logger.Log(LogLevel.Trace, $"Socket {SocketId} - msg {pendingRequest.Id} - received data matched to pending request");
-                        pendingRequest.ProcessAsync(result);
-                    }
-
-                    return;
+                    // Answer to a timed out request
+                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} Received after request timeout. Consider increasing the RequestTimeout");
                 }
             }
 
-            stream.Position = 0;
-            var unhandledBuffer = new byte[stream.Length];
-            stream.Read(unhandledBuffer, 0, unhandledBuffer.Length);
-            
-            _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message not handled: " + Encoding.UTF8.GetString(unhandledBuffer));
-            UnhandledMessage?.Invoke(result);
+            // Matched based on identifier
+            var userSw = Stopwatch.StartNew();
+            var dataEvent = new DataEvent<BaseParsedMessage>(result, null, result.OriginalData, DateTime.UtcNow, null);
+            await messageProcessor.HandleMessageAsync(dataEvent).ConfigureAwait(false);
+            userSw.Stop();
         }    
 
         /// <summary>
@@ -468,7 +460,7 @@ namespace CryptoExchange.Net.Sockets
                     return;
                 }
 
-                shouldCloseConnection = _messageIdentifierSubscriptions.All(r => !r.Value.UserSubscription || r.Value.Closed);
+                shouldCloseConnection = _subscriptions.All(r => !r.UserSubscription || r.Closed);
                 if (shouldCloseConnection)
                     Status = SocketStatus.Closing;
             }
@@ -483,7 +475,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 _subscriptions.Remove(subscription);
                 foreach (var id in subscription.Identifiers)
-                    _messageIdentifierSubscriptions.Remove(id);
+                    _messageIdMap.Remove(id);
             }
         }
 
@@ -511,7 +503,7 @@ namespace CryptoExchange.Net.Sockets
                 if (subscription.Identifiers != null)
                 {
                     foreach (var id in subscription.Identifiers)
-                        _messageIdentifierSubscriptions.Add(id.ToLowerInvariant(), subscription);
+                        _messageIdMap.Add(id.ToLowerInvariant(), subscription);
                 }
 
                 if (subscription.UserSubscription)
@@ -549,6 +541,12 @@ namespace CryptoExchange.Net.Sockets
         public virtual async Task<CallResult> SendAndWaitQueryAsync(BaseQuery query)
         {
             var pendingRequest = query.CreatePendingRequest();
+            if (query.Identifiers != null)
+            {
+                foreach (var id in query.Identifiers)
+                    _messageIdMap.Add(id.ToLowerInvariant(), query);
+            }
+
             await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
             return pendingRequest.Result!;
         }
@@ -561,7 +559,13 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query)
         {
-            var pendingRequest = PendingRequest<T>.CreateForQuery(query);
+            var pendingRequest = PendingRequest<T>.CreateForQuery(query, query.Id);
+            if (query.Identifiers != null)
+            {
+                foreach (var id in query.Identifiers)
+                    _messageIdMap.Add(id.ToLowerInvariant(), query);
+            }
+
             await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
             return pendingRequest.TypedResult!;
         }

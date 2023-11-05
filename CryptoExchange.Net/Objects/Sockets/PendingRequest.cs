@@ -15,10 +15,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public int Id { get; set; }
         /// <summary>
-        /// Callback for checking if a message is a response to this request
-        /// </summary>
-        public Func<BaseParsedMessage, bool> MessageMatchesHandler { get; }
-        /// <summary>
         /// If the request is completed
         /// </summary>
         public bool Completed { get; protected set; }
@@ -48,12 +44,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
-        /// <param name="messageMatchesHandler"></param>
         /// <param name="timeout"></param>
-        protected BasePendingRequest(int id, object request, Func<BaseParsedMessage, bool> messageMatchesHandler, TimeSpan timeout)
+        protected BasePendingRequest(int id, object request, TimeSpan timeout)
         {
             Id = id;
-            MessageMatchesHandler = messageMatchesHandler;
             _event = new AsyncResetEvent(false, false);
             _timeout = timeout;
             Request = request;
@@ -93,7 +87,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract void ProcessAsync(BaseParsedMessage message);
+        public abstract Task ProcessAsync(DataEvent<BaseParsedMessage> message);
     }
 
     /// <summary>
@@ -111,7 +105,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// Data handler
         /// </summary>
-        public Func<ParsedMessage<T>, CallResult<T>> Handler { get; }
+        public Func<DataEvent<ParsedMessage<T>>, Task<CallResult<T>>> Handler { get; }
         /// <summary>
         /// The response object type
         /// </summary>
@@ -122,11 +116,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
-        /// <param name="messageMatchesHandler"></param>
         /// <param name="messageHandler"></param>
         /// <param name="timeout"></param>
-        private PendingRequest(int id, object request, Func<ParsedMessage<T>, bool> messageMatchesHandler, Func<ParsedMessage<T>, CallResult<T>> messageHandler, TimeSpan timeout) 
-            : base(id, request, (x) => messageMatchesHandler((ParsedMessage<T>)x), timeout)
+        private PendingRequest(int id, object request, Func<DataEvent<ParsedMessage<T>>, Task<CallResult<T>>> messageHandler, TimeSpan timeout) 
+            : base(id, request, timeout)
         {
             Handler = messageHandler;
         }
@@ -135,12 +128,13 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// Create a new pending request for provided query
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        public static PendingRequest<T> CreateForQuery(Query<T> query)
+        public static PendingRequest<T> CreateForQuery(Query<T> query, int id)
         {
-            return new PendingRequest<T>(ExchangeHelpers.NextId(), query.Request, query.MessageMatchesQuery, x =>
+            return new PendingRequest<T>(id, query.Request, async x =>
             {
-                var response = query.HandleResponse(x);
+                var response = await query.HandleMessageAsync(x).ConfigureAwait(false);
                 return response.As(response.Data);
             }, TimeSpan.FromSeconds(5));
         }
@@ -161,10 +155,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         }
 
         /// <inheritdoc />
-        public override void ProcessAsync(BaseParsedMessage message)
+        public override async Task ProcessAsync(DataEvent<BaseParsedMessage> message)
         {
             Completed = true;
-            Result = Handler((ParsedMessage<T>)message);
+            Result = await Handler(message.As((ParsedMessage<T>)message.Data)).ConfigureAwait(false);
             _event.Set();
         }
     }

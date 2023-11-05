@@ -1,13 +1,22 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
     /// Query 
     /// </summary>
-    public abstract class BaseQuery
+    public abstract class BaseQuery : IMessageProcessor
     {
+        public int Id { get; } = ExchangeHelpers.NextId();
+        /// <summary>
+        /// Strings to identify this subscription with
+        /// </summary>
+        public abstract List<string> Identifiers { get; }
+
         /// <summary>
         /// The query request object
         /// </summary>
@@ -22,6 +31,8 @@ namespace CryptoExchange.Net.Sockets
         /// Weight of the query
         /// </summary>
         public int Weight { get; }
+
+        public BasePendingRequest PendingRequest { get; private set; }
 
         /// <summary>
         /// ctor
@@ -39,9 +50,23 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create a pending request for this query
         /// </summary>
-        public abstract BasePendingRequest CreatePendingRequest();
+        public BasePendingRequest CreatePendingRequest()
+        {
+            PendingRequest = GetPendingRequest(Id);
+            return PendingRequest;
+        }
+
+        public abstract BasePendingRequest GetPendingRequest(int id);
+
+        /// <summary>
+        /// Handle a response message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
+
     }
-    
+
     /// <summary>
     /// Query
     /// </summary>
@@ -58,21 +83,21 @@ namespace CryptoExchange.Net.Sockets
         {
         }
 
+        /// <inheritdoc />
+        public override async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
+        {
+            await PendingRequest.ProcessAsync(message).ConfigureAwait(false);
+            return await HandleMessageAsync(message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Handle the query response
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract CallResult<TResponse> HandleResponse(ParsedMessage<TResponse> message);
-
-        /// <summary>
-        /// Check if the message is the response to the query
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract bool MessageMatchesQuery(ParsedMessage<TResponse> message);
+        public virtual Task<CallResult<TResponse>> HandleMessageAsync(DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.Data!));
 
         /// <inheritdoc />
-        public override BasePendingRequest CreatePendingRequest() => PendingRequest<TResponse>.CreateForQuery(this);
+        public override BasePendingRequest GetPendingRequest(int id) => PendingRequest<TResponse>.CreateForQuery(this, id);
     }
 }

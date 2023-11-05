@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CryptoExchange.Net.Converters
@@ -32,6 +33,8 @@ namespace CryptoExchange.Net.Converters
         /// <param name="listeners"></param>
         /// <returns></returns>
         public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<BasePendingRequest> pendingRequests, List<Subscription> listeners);
+
+        public virtual string CreateIdentifierString(Dictionary<string, string?> idValues) => string.Join("-", idValues.Values.Where(v => v != null).Select(v => v!.ToLower()));
 
         /// <inheritdoc />
         public BaseParsedMessage? ReadJson(Stream stream, List<BasePendingRequest> pendingRequests, List<Subscription> listeners, bool outputOriginalData)
@@ -61,19 +64,15 @@ namespace CryptoExchange.Net.Converters
             }
 
             var typeIdDict = new Dictionary<string, string?>();
-            string idString = "";
             foreach (var idField in TypeIdFields)
-            {
-                var val = GetValueForKey(token, idField);
-                idString += val;
-                typeIdDict[idField] = val;
-            }
+                typeIdDict[idField] = GetValueForKey(token, idField);
 
+            Dictionary<string, string?>? subIdDict = null;
             if (SubscriptionIdFields != null)
             {
-                idString = "";
+                subIdDict = new Dictionary<string, string?>();
                 foreach (var idField in SubscriptionIdFields)
-                    idString += GetValueForKey(token, idField);
+                    subIdDict[idField] = GetValueForKey(token, idField);
             }
 
             var resultType = GetDeserializationType(typeIdDict, pendingRequests, listeners);
@@ -91,7 +90,7 @@ namespace CryptoExchange.Net.Converters
                 instance.OriginalData = sr.ReadToEnd();
             }
 
-            instance.Identifier = idString;
+            instance.Identifier = CreateIdentifierString(subIdDict ?? typeIdDict);
             instance.Parsed = resultType != null;
             return instance;
         }

@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,7 +12,7 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Socket subscription
     /// </summary>
-    public abstract class Subscription
+    public abstract class Subscription : IMessageProcessor
     {
         /// <summary>
         /// Subscription id
@@ -67,6 +68,7 @@ namespace CryptoExchange.Net.Sockets
         {
             _logger = logger;
             Authenticated = authenticated;
+            Id = ExchangeHelpers.NextId();
         }
 
         /// <summary>
@@ -86,7 +88,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task HandleEventAsync(DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
 
         /// <summary>
         /// Invoke the exception event
@@ -124,7 +126,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override Task HandleEventAsync(DataEvent<BaseParsedMessage> message)
+        public override Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
             => HandleEventAsync(message.As((ParsedMessage<TEvent>)message.Data));
 
         /// <summary>
@@ -132,6 +134,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task HandleEventAsync(DataEvent<ParsedMessage<TEvent>> message);
+        public abstract Task<CallResult> HandleEventAsync(DataEvent<ParsedMessage<TEvent>> message);
     }
 }
