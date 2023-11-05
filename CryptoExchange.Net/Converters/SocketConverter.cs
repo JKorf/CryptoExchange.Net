@@ -14,6 +14,8 @@ namespace CryptoExchange.Net.Converters
     /// </summary>
     public abstract class SocketConverter
     {
+        private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
+
         /// <summary>
         /// Fields to use for the message subscription identifier
         /// </summary>
@@ -40,12 +42,6 @@ namespace CryptoExchange.Net.Converters
             // Deserialize to the correct type
 
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
-            if (outputOriginalData)
-            {
-                //result.OriginalData = sr.ReadToEnd();
-                stream.Position = 0;
-            }
-
             using var jsonTextReader = new JsonTextReader(sr);
             JToken token;
             try
@@ -81,8 +77,20 @@ namespace CryptoExchange.Net.Converters
             }
 
             var resultType = GetDeserializationType(typeIdDict, pendingRequests, listeners);
+            if (resultType == null)
+            {
+                // ?
+                return null;
+            }
+
             var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(resultType);
-            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, resultType == null ? null : token.ToObject(resultType));
+            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, resultType == null ? null : token.ToObject(resultType, _serializer));
+            if (outputOriginalData)
+            {
+                stream.Position = 0;
+                instance.OriginalData = sr.ReadToEnd();
+            }
+
             instance.Identifier = idString;
             instance.Parsed = resultType != null;
             return instance;

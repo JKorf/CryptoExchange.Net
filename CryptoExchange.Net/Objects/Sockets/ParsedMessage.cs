@@ -19,6 +19,10 @@
         public bool Parsed { get; set; }
     }
 
+    /// <summary>
+    /// Parsed message object
+    /// </summary>
+    /// <typeparam name="T">Data type</typeparam>
     public class ParsedMessage<T> : BaseParsedMessage
     {
         /// <summary>
@@ -26,6 +30,10 @@
         /// </summary>
         public T? Data { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="data"></param>
         public ParsedMessage(T? data)
         {
             Data = data;

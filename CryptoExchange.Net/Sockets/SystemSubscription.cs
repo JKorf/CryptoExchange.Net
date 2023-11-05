@@ -1,9 +1,4 @@
-﻿using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -22,17 +17,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override object? GetSubRequest() => null;
-        /// <inheritdoc />
-        public override bool MessageMatchesSubRequest(BaseParsedMessage message) => throw new NotImplementedException();
-        /// <inheritdoc />
-        public override CallResult HandleSubResponse(BaseParsedMessage message) => throw new NotImplementedException();
+        public override BaseQuery? GetSubQuery() => null;
 
         /// <inheritdoc />
-        public override object? GetUnsubRequest() => null;
-        /// <inheritdoc />
-        public override bool MessageMatchesUnsubRequest(BaseParsedMessage message) => throw new NotImplementedException();
-        /// <inheritdoc />
-        public override CallResult HandleUnsubResponse(BaseParsedMessage message) => throw new NotImplementedException();
+        public override BaseQuery? GetUnsubQuery() => null;
     }
 }

@@ -1,7 +1,5 @@
-﻿using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
-using System;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -11,7 +9,7 @@ namespace CryptoExchange.Net.Sockets
     public abstract class BaseQuery
     {
         /// <summary>
-        /// The query request
+        /// The query request object
         /// </summary>
         public object Request { get; set; }
 
@@ -24,10 +22,6 @@ namespace CryptoExchange.Net.Sockets
         /// Weight of the query
         /// </summary>
         public int Weight { get; }
-
-        public abstract bool MessageMatchesQuery(BaseParsedMessage message);
-        public abstract CallResult HandleResult(BaseParsedMessage message);
-
 
         /// <summary>
         /// ctor
@@ -42,17 +36,27 @@ namespace CryptoExchange.Net.Sockets
             Weight = weight;
         }
 
+        /// <summary>
+        /// Create a pending request for this query
+        /// </summary>
         public abstract BasePendingRequest CreatePendingRequest();
     }
     
+    /// <summary>
+    /// Query
+    /// </summary>
+    /// <typeparam name="TResponse">Response object type</typeparam>
     public abstract class Query<TResponse> : BaseQuery
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="authenticated"></param>
+        /// <param name="weight"></param>
         protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
         {
         }
-
-        public override CallResult HandleResult(BaseParsedMessage message) => HandleResponse((ParsedMessage<TResponse>) message);
-        public override bool MessageMatchesQuery(BaseParsedMessage message) => MessageMatchesQuery((ParsedMessage<TResponse>)message);
 
         /// <summary>
         /// Handle the query response
@@ -68,6 +72,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public abstract bool MessageMatchesQuery(ParsedMessage<TResponse> message);
 
+        /// <inheritdoc />
         public override BasePendingRequest CreatePendingRequest() => PendingRequest<TResponse>.CreateForQuery(this);
     }
 }

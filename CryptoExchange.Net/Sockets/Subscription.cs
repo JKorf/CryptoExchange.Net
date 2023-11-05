@@ -9,14 +9,28 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// Subscription base
+    /// Socket subscription
     /// </summary>
     public abstract class Subscription
     {
+        /// <summary>
+        /// Subscription id
+        /// </summary>
         public int Id { get; set; }
 
+        /// <summary>
+        /// Is it a user subscription
+        /// </summary>
         public bool UserSubscription { get; set; }
+        
+        /// <summary>
+        /// Has the subscription been confirmed
+        /// </summary>
         public bool Confirmed { get; set; }
+        
+        /// <summary>
+        /// Is the subscription closed
+        /// </summary>
         public bool Closed { get; set; }
 
         /// <summary>
@@ -34,6 +48,9 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public abstract List<string> Identifiers { get; }
 
+        /// <summary>
+        /// Cancellation token registration
+        /// </summary>
         public CancellationTokenRegistration? CancellationTokenRegistration { get; set; }
 
         /// <summary>
@@ -56,13 +73,13 @@ namespace CryptoExchange.Net.Sockets
         /// Get the subscribe object to send when subscribing
         /// </summary>
         /// <returns></returns>
-        public abstract object? GetSubRequest();
+        public abstract BaseQuery? GetSubQuery();
 
         /// <summary>
         /// Get the unsubscribe object to send when unsubscribing
         /// </summary>
         /// <returns></returns>
-        public abstract object? GetUnsubRequest();
+        public abstract BaseQuery? GetUnsubQuery();
 
         /// <summary>
         /// Handle the update message
@@ -70,11 +87,6 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <returns></returns>
         public abstract Task HandleEventAsync(DataEvent<BaseParsedMessage> message);
-        public abstract CallResult HandleSubResponse(BaseParsedMessage message);
-        public abstract CallResult HandleUnsubResponse(BaseParsedMessage message);
-
-        public abstract bool MessageMatchesUnsubRequest(BaseParsedMessage message);
-        public abstract bool MessageMatchesSubRequest(BaseParsedMessage message);
 
         /// <summary>
         /// Invoke the exception event
@@ -86,33 +98,34 @@ namespace CryptoExchange.Net.Sockets
         }
     }
 
+    /// <inheritdoc />
     public abstract class Subscription<TQuery, TEvent> : Subscription<TQuery, TEvent, TQuery>
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="authenticated"></param>
         protected Subscription(ILogger logger, bool authenticated) : base(logger, authenticated)
         {
         }
     }
 
+    /// <inheritdoc />
     public abstract class Subscription<TSubResponse, TEvent, TUnsubResponse> : Subscription
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="authenticated"></param>
         protected Subscription(ILogger logger, bool authenticated) : base(logger, authenticated)
         {
         }
 
-        public override CallResult HandleUnsubResponse(BaseParsedMessage message)
-            => HandleUnsubResponse((ParsedMessage<TUnsubResponse>)message);
-
-        public override CallResult HandleSubResponse(BaseParsedMessage message)
-            => HandleSubResponse((ParsedMessage<TSubResponse>)message);
-
+        /// <inheritdoc />
         public override Task HandleEventAsync(DataEvent<BaseParsedMessage> message)
             => HandleEventAsync(message.As((ParsedMessage<TEvent>)message.Data));
-
-        public override bool MessageMatchesSubRequest(BaseParsedMessage message)
-            => MessageMatchesSubRequest((ParsedMessage<TSubResponse>)message);
-
-        public override bool MessageMatchesUnsubRequest(BaseParsedMessage message)
-            => MessageMatchesUnsubRequest((ParsedMessage<TUnsubResponse>)message);
 
         /// <summary>
         /// Handle the update message
@@ -120,21 +133,5 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <returns></returns>
         public abstract Task HandleEventAsync(DataEvent<ParsedMessage<TEvent>> message);
-
-        /// <summary>
-        /// Check if the message is the response to the subscribe request
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract bool MessageMatchesSubRequest(ParsedMessage<TSubResponse> message);
-        public abstract CallResult HandleSubResponse(ParsedMessage<TSubResponse> message);
-
-        /// <summary>
-        /// Check if the message is the response to the unsubscribe request
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract bool MessageMatchesUnsubRequest(ParsedMessage<TUnsubResponse> message);
-        public abstract CallResult HandleUnsubResponse(ParsedMessage<TUnsubResponse> message);
     }
 }
