@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="authenticated"></param>
-        public SystemSubscription(ILogger logger, bool authenticated = false) : base(logger, authenticated)
+        public SystemSubscription(ILogger logger, bool authenticated = false) : base(logger, authenticated, false)
         {
         }
 

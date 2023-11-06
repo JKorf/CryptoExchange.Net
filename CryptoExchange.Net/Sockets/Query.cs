@@ -11,6 +11,9 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public abstract class BaseQuery : IMessageProcessor
     {
+        /// <summary>
+        /// Unique identifier
+        /// </summary>
         public int Id { get; } = ExchangeHelpers.NextId();
         /// <summary>
         /// Strings to identify this subscription with
@@ -32,7 +35,10 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Weight { get; }
 
-        public BasePendingRequest PendingRequest { get; private set; }
+        /// <summary>
+        /// The pending request for this query
+        /// </summary>
+        public BasePendingRequest? PendingRequest { get; private set; }
 
         /// <summary>
         /// ctor
@@ -56,6 +62,11 @@ namespace CryptoExchange.Net.Sockets
             return PendingRequest;
         }
 
+        /// <summary>
+        /// Create a pending request for this query
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public abstract BasePendingRequest GetPendingRequest(int id);
 
         /// <summary>
@@ -86,7 +97,7 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
         {
-            await PendingRequest.ProcessAsync(message).ConfigureAwait(false);
+            await PendingRequest!.ProcessAsync(message).ConfigureAwait(false);
             return await HandleMessageAsync(message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
         }
 

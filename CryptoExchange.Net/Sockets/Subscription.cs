@@ -64,10 +64,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="authenticated"></param>
-        public Subscription(ILogger logger, bool authenticated)
+        /// <param name="userSubscription"></param>
+        public Subscription(ILogger logger, bool authenticated, bool userSubscription = true)
         {
             _logger = logger;
             Authenticated = authenticated;
+            UserSubscription = userSubscription;
             Id = ExchangeHelpers.NextId();
         }
 

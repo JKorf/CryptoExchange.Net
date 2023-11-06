@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects.Sockets;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,27 +18,12 @@ namespace CryptoExchange.Net.Converters
     {
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
-        /// <summary>
-        /// Fields to use for the message subscription identifier
-        /// </summary>
-        public virtual string[]? SubscriptionIdFields => null;
-        /// <summary>
-        /// Fields to use for the message type identifier
-        /// </summary>
-        public abstract string[] TypeIdFields { get; }
-
-        /// <summary>
-        /// Return the type of object that the message should be parsed to based on the type id values dictionary
-        /// </summary>
-        /// <param name="idValues"></param>
-        /// <param name="listeners"></param>
-        /// <returns></returns>
-        public abstract Type? GetDeserializationType(Dictionary<string, string?> idValues, List<BasePendingRequest> pendingRequests, List<Subscription> listeners);
+        public abstract List<StreamMessageParseCallback> InterpreterPipeline { get; }
 
         public virtual string CreateIdentifierString(Dictionary<string, string?> idValues) => string.Join("-", idValues.Values.Where(v => v != null).Select(v => v!.ToLower()));
 
         /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(Stream stream, List<BasePendingRequest> pendingRequests, List<Subscription> listeners, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(Stream stream, ConcurrentList<BasePendingRequest> pendingRequests, ConcurrentList<Subscription> listeners, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
@@ -63,25 +49,39 @@ namespace CryptoExchange.Net.Converters
                 token = token.First!;
             }
 
-            var typeIdDict = new Dictionary<string, string?>();
-            foreach (var idField in TypeIdFields)
-                typeIdDict[idField] = GetValueForKey(token, idField);
-
-            Dictionary<string, string?>? subIdDict = null;
-            if (SubscriptionIdFields != null)
+            Type? resultType = null;
+            Dictionary<string, string> typeIdDict = new Dictionary<string, string>();
+            StreamMessageParseCallback? usedParser = null;
+            foreach (var callback in InterpreterPipeline)
             {
-                subIdDict = new Dictionary<string, string?>();
-                foreach (var idField in SubscriptionIdFields)
-                    subIdDict[idField] = GetValueForKey(token, idField);
+                bool allFieldsPresent = true;
+                foreach(var field in callback.TypeFields)
+                {
+                    var value = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
+                    if (value == null)
+                    {
+                        allFieldsPresent = false;
+                        break;
+                    }
+
+                    typeIdDict[field] = value;
+                }
+
+                if (allFieldsPresent)
+                {
+                    resultType = callback.Callback(typeIdDict, pendingRequests, listeners);
+                    usedParser = callback;
+                    break;
+                }
             }
 
-            var resultType = GetDeserializationType(typeIdDict, pendingRequests, listeners);
-            if (resultType == null)
-            {
-                // ?
-                return null;
-            }
+            if (usedParser == null)
+                throw new Exception("No parser found for message");
 
+            var subIdDict = new Dictionary<string, string?>();
+            foreach (var field in usedParser.IdFields)
+                subIdDict[field] = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
+        
             var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(resultType);
             var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, resultType == null ? null : token.ToObject(resultType, _serializer));
             if (outputOriginalData)
@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Converters
                 instance.OriginalData = sr.ReadToEnd();
             }
 
-            instance.Identifier = CreateIdentifierString(subIdDict ?? typeIdDict);
+            instance.Identifier = CreateIdentifierString(subIdDict);
             instance.Parsed = resultType != null;
             return instance;
         }
