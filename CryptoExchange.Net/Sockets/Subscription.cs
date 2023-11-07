@@ -59,6 +59,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<Exception>? Exception;
 
+        public abstract Type ExpectedMessageType { get; }
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -118,6 +120,8 @@ namespace CryptoExchange.Net.Sockets
     /// <inheritdoc />
     public abstract class Subscription<TSubResponse, TEvent, TUnsubResponse> : Subscription
     {
+        public override Type ExpectedMessageType => typeof(TEvent);
+
         /// <summary>
         /// ctor
         /// </summary>

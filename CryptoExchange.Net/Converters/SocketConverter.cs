@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 using Newtonsoft.Json;
@@ -18,12 +19,10 @@ namespace CryptoExchange.Net.Converters
     {
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
-        public abstract List<StreamMessageParseCallback> InterpreterPipeline { get; }
-
-        public virtual string CreateIdentifierString(Dictionary<string, string?> idValues) => string.Join("-", idValues.Values.Where(v => v != null).Select(v => v!.ToLower()));
+        public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
 
         /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(Stream stream, ConcurrentList<BasePendingRequest> pendingRequests, ConcurrentList<Subscription> listeners, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(Stream stream, IDictionary<string, IMessageProcessor> processors, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
@@ -31,6 +30,26 @@ namespace CryptoExchange.Net.Converters
             // Deserialize to the correct type
 
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
+            foreach (var callback in InterpreterPipeline.PreInspectCallbacks)
+            {
+                var result = callback.Callback(stream);
+                if (result.Matched)
+                {
+                    var data = sr.ReadToEnd();
+                    var messageType = typeof(ParsedMessage<>).MakeGenericType(typeof(string));
+                    var preInstance = (BaseParsedMessage)Activator.CreateInstance(messageType, data);
+                    if (outputOriginalData)
+                    {
+                        stream.Position = 0;
+                        preInstance.OriginalData = data;
+                    }
+
+                    preInstance.Identifier = result.Identifier;
+                    preInstance.Parsed = true;
+                    return preInstance;
+                }
+            }
+
             using var jsonTextReader = new JsonTextReader(sr);
             JToken token;
             try
@@ -49,10 +68,10 @@ namespace CryptoExchange.Net.Converters
                 token = token.First!;
             }
 
-            Type? resultType = null;
+            PostInspectResult? inspectResult = null;
             Dictionary<string, string> typeIdDict = new Dictionary<string, string>();
-            StreamMessageParseCallback? usedParser = null;
-            foreach (var callback in InterpreterPipeline)
+            PostInspectCallback? usedParser = null;
+            foreach (var callback in InterpreterPipeline.PostInspectCallbacks)
             {
                 bool allFieldsPresent = true;
                 foreach(var field in callback.TypeFields)
@@ -69,7 +88,7 @@ namespace CryptoExchange.Net.Converters
 
                 if (allFieldsPresent)
                 {
-                    resultType = callback.Callback(typeIdDict, pendingRequests, listeners);
+                    inspectResult = callback.Callback(typeIdDict, processors);
                     usedParser = callback;
                     break;
                 }
@@ -78,20 +97,16 @@ namespace CryptoExchange.Net.Converters
             if (usedParser == null)
                 throw new Exception("No parser found for message");
 
-            var subIdDict = new Dictionary<string, string?>();
-            foreach (var field in usedParser.IdFields)
-                subIdDict[field] = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
-        
-            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(resultType);
-            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, resultType == null ? null : token.ToObject(resultType, _serializer));
+            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(inspectResult.Type);
+            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, inspectResult.Type == null ? null : token.ToObject(inspectResult.Type, _serializer));
             if (outputOriginalData)
             {
                 stream.Position = 0;
                 instance.OriginalData = sr.ReadToEnd();
             }
 
-            instance.Identifier = CreateIdentifierString(subIdDict);
-            instance.Parsed = resultType != null;
+            instance.Identifier = inspectResult.Identifier;
+            instance.Parsed = inspectResult.Type != null;
             return instance;
         }
 

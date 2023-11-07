@@ -11,5 +11,6 @@ namespace CryptoExchange.Net.Interfaces
     {
         public int Id { get; }
         Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
+        public Type ExpectedMessageType { get; }
     }
 }

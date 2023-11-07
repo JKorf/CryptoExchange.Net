@@ -307,7 +307,7 @@ namespace CryptoExchange.Net.Sockets
             var timestamp = DateTime.UtcNow;
             TimeSpan userCodeDuration = TimeSpan.Zero;
 
-            var result = ApiClient.StreamConverter.ReadJson(stream, _pendingRequests, _subscriptions, ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
+            var result = ApiClient.StreamConverter.ReadJson(stream, _messageIdMap, ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
             if(result == null)
             {
                 stream.Position = 0;

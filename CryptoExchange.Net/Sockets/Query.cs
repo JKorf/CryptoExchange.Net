@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -39,6 +40,8 @@ namespace CryptoExchange.Net.Sockets
         /// The pending request for this query
         /// </summary>
         public BasePendingRequest? PendingRequest { get; private set; }
+
+        public abstract Type ExpectedMessageType { get; }
 
         /// <summary>
         /// ctor
@@ -84,6 +87,8 @@ namespace CryptoExchange.Net.Sockets
     /// <typeparam name="TResponse">Response object type</typeparam>
     public abstract class Query<TResponse> : BaseQuery
     {
+        public override Type ExpectedMessageType => typeof(TResponse);
+
         /// <summary>
         /// ctor
         /// </summary>

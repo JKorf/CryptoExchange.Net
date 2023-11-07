@@ -233,7 +233,7 @@ namespace CryptoExchange.Net
             if (subQuery != null)
             {
                 // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery).ConfigureAwait(false); // TODO return null on timeout
                 if (!subResult)
                 {
                     _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
@@ -532,7 +532,8 @@ namespace CryptoExchange.Net
         /// <param name="identifier">Identifier for the periodic send</param>
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
-        protected virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, BaseQuery> queryDelegate)
+        /// <param name="callback">The callback for processing the response</param>
+        protected virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, BaseQuery> queryDelegate, Action<CallResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));
@@ -565,7 +566,8 @@ namespace CryptoExchange.Net
 
                         try
                         {
-                            await socketConnection.SendAndWaitQueryAsync(query).ConfigureAwait(false);
+                            var result = await socketConnection.SendAndWaitQueryAsync(query).ConfigureAwait(false);
+                            callback?.Invoke(result);
                         }
                         catch (Exception ex)
                         {
