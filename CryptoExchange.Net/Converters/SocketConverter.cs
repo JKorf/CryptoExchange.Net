@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Converters
         public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
 
         /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(Stream stream, IDictionary<string, IMessageProcessor> processors, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(Stream stream, Dictionary<string, Type> processors, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
@@ -62,43 +62,69 @@ namespace CryptoExchange.Net.Converters
                 return null;
             }
 
-            if (token.Type == JTokenType.Array)
-            {
-                // Received array, take first item as reference
-                token = token.First!;
-            }
-
             PostInspectResult? inspectResult = null;
             Dictionary<string, string> typeIdDict = new Dictionary<string, string>();
-            PostInspectCallback? usedParser = null;
-            foreach (var callback in InterpreterPipeline.PostInspectCallbacks)
+            object? usedParser = null;
+            if (token.Type == JTokenType.Object)
             {
-                bool allFieldsPresent = true;
-                foreach(var field in callback.TypeFields)
+                foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectCallback>())
                 {
-                    var value = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
-                    if (value == null)
+                    bool allFieldsPresent = true;
+                    foreach (var field in callback.TypeFields)
                     {
-                        allFieldsPresent = false;
-                        break;
+                        var value = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
+                        if (value == null)
+                        {
+                            allFieldsPresent = false;
+                            break;
+                        }
+
+                        typeIdDict[field] = value;
                     }
 
-                    typeIdDict[field] = value;
+                    if (allFieldsPresent)
+                    {
+                        inspectResult = callback.Callback(typeIdDict, processors);
+                        usedParser = callback;
+                        break;
+                    }
                 }
-
-                if (allFieldsPresent)
+            }
+            else
+            {
+                foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectArrayCallback>())
                 {
-                    inspectResult = callback.Callback(typeIdDict, processors);
-                    usedParser = callback;
-                    break;
+                    var typeIdArrayDict = new Dictionary<int, string>();
+                    bool allFieldsPresent = true;
+                    var maxIndex = callback.TypeFields.Max();
+                    if (((JArray)token).Count <= maxIndex)
+                        continue;
+
+                    foreach (var field in callback.TypeFields)
+                    {
+                        var value = token[field];
+                        if (value == null)
+                        {
+                            allFieldsPresent = false;
+                            break;
+                        }
+
+                        typeIdArrayDict[field] = value.ToString();
+                    }
+
+                    if (allFieldsPresent)
+                    {
+                        inspectResult = callback.Callback(typeIdArrayDict, processors);
+                        usedParser = callback;
+                        break;
+                    }
                 }
             }
 
             if (usedParser == null)
                 throw new Exception("No parser found for message");
 
-            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(inspectResult.Type);
-            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, inspectResult.Type == null ? null : token.ToObject(inspectResult.Type, _serializer));
+            var instance = InterpreterPipeline.ObjectInitializer(token, inspectResult.Type);
             if (outputOriginalData)
             {
                 stream.Position = 0;
@@ -107,6 +133,13 @@ namespace CryptoExchange.Net.Converters
 
             instance.Identifier = inspectResult.Identifier;
             instance.Parsed = inspectResult.Type != null;
+            return instance;
+        }
+
+        public static BaseParsedMessage InstantiateMessageObject(JToken token, Type type)
+        {
+            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(type);
+            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, type == null ? null : token.ToObject(type, _serializer));
             return instance;
         }
 

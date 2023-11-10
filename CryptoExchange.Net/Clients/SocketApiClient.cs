@@ -233,7 +233,7 @@ namespace CryptoExchange.Net
             if (subQuery != null)
             {
                 // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery).ConfigureAwait(false); // TODO return null on timeout
+                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
                 if (!subResult)
                 {
                     _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
@@ -259,6 +259,7 @@ namespace CryptoExchange.Net
                 }, false);
             }
 
+            subscription.Confirmed = true;
             _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }

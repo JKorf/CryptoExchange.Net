@@ -20,6 +20,16 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; set; }
 
         /// <summary>
+        /// Total amount of invocations
+        /// </summary>
+        public int TotalInvocations { get; set; }
+
+        /// <summary>
+        /// Amount of invocation during this connection
+        /// </summary>
+        public int ConnectionInvocations { get; set; }
+
+        /// <summary>
         /// Is it a user subscription
         /// </summary>
         public bool UserSubscription { get; set; }
@@ -87,12 +97,19 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public abstract BaseQuery? GetUnsubQuery();
 
+        public async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
+        {
+            ConnectionInvocations++;
+            TotalInvocations++;
+            return await DoHandleMessageAsync(message).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Handle the update message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> DoHandleMessageAsync(DataEvent<BaseParsedMessage> message);
 
         /// <summary>
         /// Invoke the exception event
@@ -132,7 +149,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
+        public override Task<CallResult> DoHandleMessageAsync(DataEvent<BaseParsedMessage> message)
             => HandleEventAsync(message.As((ParsedMessage<TEvent>)message.Data));
 
         /// <summary>

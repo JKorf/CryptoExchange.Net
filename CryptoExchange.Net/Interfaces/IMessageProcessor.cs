@@ -10,6 +10,7 @@ namespace CryptoExchange.Net.Interfaces
     public interface IMessageProcessor
     {
         public int Id { get; }
+        public List<string> Identifiers { get; }
         Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
         public Type ExpectedMessageType { get; }
     }
