@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override BaseQuery? GetSubQuery() => null;
+        public override BaseQuery? GetSubQuery(SocketConnection connection) => null;
 
         /// <inheritdoc />
         public override BaseQuery? GetUnsubQuery() => null;

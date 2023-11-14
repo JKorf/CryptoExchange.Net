@@ -23,8 +23,9 @@ namespace CryptoExchange.Net.Objects.Sockets
 
     public class PostInspectCallback
     {
+        public bool AllFieldPresentNeeded { get; set; } = true;
         public List<string> TypeFields { get; set; } = new List<string>();
-        public Func<Dictionary<string, string>, Dictionary<string, Type>, PostInspectResult> Callback { get; set; }
+        public Func<Dictionary<string, string?>, Dictionary<string, Type>, PostInspectResult> Callback { get; set; }
     }
 
     public class PostInspectArrayCallback

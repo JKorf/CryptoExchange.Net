@@ -17,6 +17,12 @@
         /// If parsed
         /// </summary>
         public bool Parsed { get; set; }
+
+        /// <summary>
+        /// Get the data object
+        /// </summary>
+        /// <returns></returns>
+        public abstract object Data { get; }
     }
 
     /// <summary>
@@ -28,7 +34,9 @@
         /// <summary>
         /// Parsed data object
         /// </summary>
-        public T? Data { get; set; }
+        public override object? Data { get; }
+
+        public T? TypedData => (T)Data;
 
         /// <summary>
         /// ctor

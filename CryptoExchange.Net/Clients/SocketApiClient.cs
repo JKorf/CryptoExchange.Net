@@ -229,7 +229,7 @@ namespace CryptoExchange.Net
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
-            var subQuery = subscription.GetSubQuery();
+            var subQuery = subscription.GetSubQuery(socketConnection);
             if (subQuery != null)
             {
                 // Send the request and wait for answer
@@ -664,12 +664,26 @@ namespace CryptoExchange.Net
         public string GetSubscriptionsState()
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"{socketConnections.Count} connections, {CurrentSubscriptions} subscriptions, kbps: {IncomingKbps}");
+            sb.AppendLine($"{GetType().Name}");
+            sb.AppendLine($"  Connections: {socketConnections.Count}");
+            sb.AppendLine($"  Subscriptions: {CurrentSubscriptions}");
+            sb.AppendLine($"  Download speed: {IncomingKbps} kbps");
             foreach (var connection in socketConnections)
             {
-                sb.AppendLine($"  Connection {connection.Key}: {connection.Value.UserSubscriptionCount} subscriptions, status: {connection.Value.Status}, authenticated: {connection.Value.Authenticated}, kbps: {connection.Value.IncomingKbps}");
+                sb.AppendLine($"    Id: {connection.Key}");
+                sb.AppendLine($"    Address: {connection.Value.ConnectionUri}");
+                sb.AppendLine($"    Subscriptions: {connection.Value.UserSubscriptionCount}");
+                sb.AppendLine($"    Status: {connection.Value.Status}");
+                sb.AppendLine($"    Authenticated: {connection.Value.Authenticated}");
+                sb.AppendLine($"    Download speed: {connection.Value.IncomingKbps} kbps");
+                sb.AppendLine($"    Subscriptions:");
                 foreach (var subscription in connection.Value.Subscriptions)
-                    sb.AppendLine($"    Subscription {subscription.Id}, authenticated: {subscription.Authenticated}, confirmed: {subscription.Confirmed}");
+                {
+                    sb.AppendLine($"      Id: {subscription.Id}");
+                    sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
+                    sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
+                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.Identifiers)}]");
+                }
             }
             return sb.ToString();
         }

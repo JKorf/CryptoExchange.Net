@@ -14,14 +14,19 @@ namespace CryptoExchange.Net.Sockets
     internal class SocketListenerManager
     {
         private ILogger _logger;
+        private int _socketId;
         private object _lock = new object();
+        private Dictionary<int, IMessageProcessor> _idMap;
         private Dictionary<string, Type> _typeMap;
         private Dictionary<string, List<IMessageProcessor>> _listeners;
 
-        public SocketListenerManager(ILogger logger)
+        public SocketListenerManager(ILogger logger, int socketId)
         {
+            _idMap = new Dictionary<int, IMessageProcessor>();
+            _listeners = new Dictionary<string, List<IMessageProcessor>>();
             _typeMap = new Dictionary<string, Type>();
             _logger = logger;
+            _socketId = socketId;
         }
 
         public Dictionary<string, Type> GetMapping()
@@ -30,19 +35,29 @@ namespace CryptoExchange.Net.Sockets
                 return _typeMap;
         }
 
+        public List<string> GetListenIds()
+        {
+            lock(_lock)
+                return _listeners.Keys.ToList();
+        }
+
         public void Add(IMessageProcessor processor)
         {
             lock (_lock)
             {
-                foreach (var identifier in processor.Identifiers)
+                _idMap.Add(processor.Id, processor);
+                if (processor.Identifiers?.Any() == true)
                 {
-                    if (!_listeners.TryGetValue(identifier, out var list))
+                    foreach (var identifier in processor.Identifiers)
                     {
-                        list = new List<IMessageProcessor>();
-                        _listeners.Add(identifier, list);
-                    }
+                        if (!_listeners.TryGetValue(identifier, out var list))
+                        {
+                            list = new List<IMessageProcessor>();
+                            _listeners.Add(identifier, list);
+                        }
 
-                    list.Add(processor);
+                        list.Add(processor);
+                    }
                 }
 
                 UpdateMap();
@@ -62,18 +77,14 @@ namespace CryptoExchange.Net.Sockets
 
             foreach (var listener in listeners)
             {
-                //_logger.Log(LogLevel.Trace, $"Socket {SocketId} Message mapped to processor {messageProcessor.Id} with identifier {result.Identifier}");
+                _logger.Log(LogLevel.Trace, $"Socket {_socketId} Message mapped to processor {listener.Id} with identifier {data.Identifier}");
                 if (listener is BaseQuery query)
                 {
                     Remove(listener);
-
-                    if (query.PendingRequest != null)
-                        _pendingRequests.Remove(query.PendingRequest);
-
-                    if (query.PendingRequest?.Completed == true)
+                    if (query?.Completed == true)
                     {
                         // Answer to a timed out request
-                        //_logger.Log(LogLevel.Warning, $"Socket {SocketId} Received after request timeout. Consider increasing the RequestTimeout");
+                        _logger.Log(LogLevel.Warning, $"Socket {_socketId} Received after request timeout. Consider increasing the RequestTimeout");
                     }
                 }
 
@@ -82,15 +93,29 @@ namespace CryptoExchange.Net.Sockets
                 var dataEvent = new DataEvent<BaseParsedMessage>(data, null, data.OriginalData, DateTime.UtcNow, null);
                 await listener.HandleMessageAsync(dataEvent).ConfigureAwait(false);
                 userSw.Stop();
+                if (userSw.ElapsedMilliseconds > 500)
+                {
+                    _logger.Log(LogLevel.Debug, $"Socket {_socketId} {(listener is Subscription ? "subscription " : "query " + listener!.Id)} message processing slow ({(int)userSw.ElapsedMilliseconds}ms), consider offloading data handling to another thread. " +
+                                                    "Data from this socket may arrive late or not at all if message processing is continuously slow.");
+                }
             }
 
             return true;
         }
 
+        public T? GetById<T>(int id) where T : BaseQuery
+        {
+            lock (_lock)
+            {
+                _idMap.TryGetValue(id, out var val);
+                return (T)val;
+            }
+        }
+
         public List<Subscription> GetSubscriptions()
         {
             lock (_lock)
-                return _listeners.Values.SelectMany(v => v.OfType<Subscription>()).ToList();
+                return _listeners.Values.SelectMany(v => v.OfType<Subscription>()).Distinct().ToList();
         }
 
         public List<BaseQuery> GetQueries()
@@ -105,22 +130,22 @@ namespace CryptoExchange.Net.Sockets
                 return _listeners.Any(l => l.Value.Contains(processor));
         }
 
-        public bool Remove(IMessageProcessor processor)
+        public void Remove(IMessageProcessor processor)
         {
             lock (_lock)
             {
-                var removed = false;
-                foreach (var identifier in processor.Identifiers)
+                _idMap.Remove(processor.Id);
+                if (processor.Identifiers?.Any() == true)
                 {
-                    if (_listeners[identifier].Remove(processor))
-                        removed = true;
-
-                    if (!_listeners[identifier].Any())
-                        _listeners.Remove(identifier);
+                    foreach (var identifier in processor.Identifiers)
+                    {
+                        _listeners[identifier].Remove(processor);
+                        if (!_listeners[identifier].Any())
+                            _listeners.Remove(identifier);
+                    }
                 }
 
                 UpdateMap();
-                return removed;
             }
         }
 

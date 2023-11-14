@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Sockets
         /// Get the subscribe object to send when subscribing
         /// </summary>
         /// <returns></returns>
-        public abstract BaseQuery? GetSubQuery();
+        public abstract BaseQuery? GetSubQuery(SocketConnection connection);
 
         /// <summary>
         /// Get the unsubscribe object to send when unsubscribing

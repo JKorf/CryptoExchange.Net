@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
@@ -16,6 +17,14 @@ namespace CryptoExchange.Net.Sockets
         /// Unique identifier
         /// </summary>
         public int Id { get; } = ExchangeHelpers.NextId();
+
+        public bool Completed { get; set; }
+        public DateTime RequestTimestamp { get; set; }
+        public CallResult? Result { get; set; }
+
+        protected AsyncResetEvent _event;
+        protected CancellationTokenSource? _cts;
+
         /// <summary>
         /// Strings to identify this subscription with
         /// </summary>
@@ -36,11 +45,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Weight { get; }
 
-        /// <summary>
-        /// The pending request for this query
-        /// </summary>
-        public BasePendingRequest? PendingRequest { get; private set; }
-
         public abstract Type ExpectedMessageType { get; }
 
         /// <summary>
@@ -51,26 +55,41 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="weight"></param>
         public BaseQuery(object request, bool authenticated, int weight = 1)
         {
+            _event = new AsyncResetEvent(false, false);
+
             Authenticated = authenticated;
             Request = request;
             Weight = weight;
         }
 
         /// <summary>
-        /// Create a pending request for this query
+        /// Signal that the request has been send and the timeout timer should start
         /// </summary>
-        public BasePendingRequest CreatePendingRequest()
+        public void IsSend(TimeSpan timeout)
         {
-            PendingRequest = GetPendingRequest(Id);
-            return PendingRequest;
+            // Start timeout countdown
+            RequestTimestamp = DateTime.UtcNow;
+            _cts = new CancellationTokenSource(timeout);
+            _cts.Token.Register(Timeout, false);
         }
 
         /// <summary>
-        /// Create a pending request for this query
+        /// Wait untill timeout or the request is competed
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="timeout"></param>
         /// <returns></returns>
-        public abstract BasePendingRequest GetPendingRequest(int id);
+        public async Task WaitAsync(TimeSpan timeout) => await _event.WaitAsync(timeout).ConfigureAwait(false);
+
+        /// <summary>
+        /// Mark request as timeout
+        /// </summary>
+        public abstract void Timeout();
+
+        /// <summary>
+        /// Mark request as failed
+        /// </summary>
+        /// <param name="error"></param>
+        public abstract void Fail(string error);
 
         /// <summary>
         /// Handle a response message
@@ -90,6 +109,11 @@ namespace CryptoExchange.Net.Sockets
         public override Type ExpectedMessageType => typeof(TResponse);
 
         /// <summary>
+        /// The typed call result
+        /// </summary>
+        public CallResult<TResponse>? TypedResult => (CallResult<TResponse>?)Result;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="request"></param>
@@ -102,8 +126,10 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
         {
-            await PendingRequest!.ProcessAsync(message).ConfigureAwait(false);
-            return await HandleMessageAsync(message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
+            Completed = true;
+            Result = await HandleMessageAsync(message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
+            _event.Set();
+            return Result;
         }
 
         /// <summary>
@@ -111,9 +137,25 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.Data!));
+        public virtual Task<CallResult<TResponse>> HandleMessageAsync(DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.TypedData!));
 
         /// <inheritdoc />
-        public override BasePendingRequest GetPendingRequest(int id) => PendingRequest<TResponse>.CreateForQuery(this, id);
+        public override void Timeout()
+        {
+            if (Completed)
+                return;
+
+            Completed = true;
+            Result = new CallResult<TResponse>(new CancellationRequestedError());
+            _event.Set();
+        }
+
+        /// <inheritdoc />
+        public override void Fail(string error)
+        {
+            Result = new CallResult<TResponse>(new ServerError(error));
+            Completed = true;
+            _event.Set();
+        }
     }
 }

@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Converters
             }
 
             PostInspectResult? inspectResult = null;
-            Dictionary<string, string> typeIdDict = new Dictionary<string, string>();
+            Dictionary<string, string?> typeIdDict = new Dictionary<string, string?>();
             object? usedParser = null;
             if (token.Type == JTokenType.Object)
             {
@@ -75,8 +75,11 @@ namespace CryptoExchange.Net.Converters
                         var value = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
                         if (value == null)
                         {
-                            allFieldsPresent = false;
-                            break;
+                            if (callback.AllFieldPresentNeeded)
+                            {
+                                allFieldsPresent = false;
+                                break;
+                            }
                         }
 
                         typeIdDict[field] = value;
@@ -86,7 +89,8 @@ namespace CryptoExchange.Net.Converters
                     {
                         inspectResult = callback.Callback(typeIdDict, processors);
                         usedParser = callback;
-                        break;
+                        if (inspectResult.Type != null)
+                            break;
                     }
                 }
             }
@@ -124,7 +128,12 @@ namespace CryptoExchange.Net.Converters
             if (usedParser == null)
                 throw new Exception("No parser found for message");
 
-            var instance = InterpreterPipeline.ObjectInitializer(token, inspectResult.Type);
+            BaseParsedMessage instance;
+            if (inspectResult.Type != null)
+                instance = InterpreterPipeline.ObjectInitializer(token, inspectResult.Type);
+            else
+                instance = new ParsedMessage<object>(null);
+
             if (outputOriginalData)
             {
                 stream.Position = 0;

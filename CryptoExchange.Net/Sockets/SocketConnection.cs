@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,7 +10,6 @@ using System.Net.WebSockets;
 using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
-using System.Collections.Concurrent;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -58,7 +56,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The amount of subscriptions on this connection
         /// </summary>
-        public int UserSubscriptionCount => _subscriptions.Count(h => h.UserSubscription);
+        public int UserSubscriptionCount => _listenerManager.GetSubscriptions().Count(h => h.UserSubscription);
 
         /// <summary>
         /// Get a copy of the current message subscriptions
@@ -67,14 +65,14 @@ namespace CryptoExchange.Net.Sockets
         {
             get
             {
-                return _subscriptions.ToArray(h => h.UserSubscription);
+                return _listenerManager.GetSubscriptions().Where(h => h.UserSubscription).ToArray();
             }
         }
 
         /// <summary>
         /// If the connection has been authenticated
         /// </summary>
-        public bool Authenticated { get; internal set; }
+        public bool Authenticated { get; set; }
 
         /// <summary>
         /// If connection is made
@@ -152,9 +150,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         private bool _pausedActivity;
-        //private readonly ConcurrentList<BasePendingRequest> _pendingRequests;
-        //private readonly ConcurrentList<Subscription> _subscriptions;
-        private readonly SocketListenerManager _messageIdMap;
+        private readonly SocketListenerManager _listenerManager;
         private readonly ILogger _logger;
         private SocketStatus _status;
 
@@ -177,10 +173,6 @@ namespace CryptoExchange.Net.Sockets
             Tag = tag;
             Properties = new Dictionary<string, object>();
 
-            //_pendingRequests = new ConcurrentList<BasePendingRequest>();
-            //_subscriptions = new ConcurrentList<Subscription>();
-            _messageIdMap = new SocketListenerManager(_logger);
-
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSent;
@@ -190,6 +182,8 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnReconnected += HandleReconnected;
             _socket.OnError += HandleError;
             _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
+
+            _listenerManager = new SocketListenerManager(_logger, SocketId);
         }
 
         /// <summary>
@@ -209,8 +203,14 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Closed;
             Authenticated = false;
 
-            foreach (var subscription in _messageIdMap.GetSubscriptions())
+            foreach (var subscription in _listenerManager.GetSubscriptions())
                 subscription.Confirmed = false;
+
+            foreach (var query in _listenerManager.GetQueries())
+            {
+                query.Fail("Connection interupted");
+                _listenerManager.Remove(query);
+            }
 
             Task.Run(() => ConnectionClosed?.Invoke());
         }
@@ -224,8 +224,14 @@ namespace CryptoExchange.Net.Sockets
             DisconnectTime = DateTime.UtcNow;
             Authenticated = false;
 
-            foreach (var subscription in _messageIdMap.GetSubscriptions())
+            foreach (var subscription in _listenerManager.GetSubscriptions())
                 subscription.Confirmed = false;
+
+            foreach (var query in _listenerManager.GetQueries())
+            {
+                query.Fail("Connection interupted");
+                _listenerManager.Remove(query);
+            }
 
             _ = Task.Run(() => ConnectionLost?.Invoke());
         }
@@ -246,10 +252,10 @@ namespace CryptoExchange.Net.Sockets
         {
             Status = SocketStatus.Resubscribing;
 
-            foreach (var pendingRequest in _pendingRequests.ToList())
+            foreach (var query in _listenerManager.GetQueries())
             {
-                pendingRequest.Fail("Connection interupted");
-                // Remove?
+                query.Fail("Connection interupted");
+                _listenerManager.Remove(query);
             }
 
             var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
@@ -287,14 +293,14 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">Id of the request sent</param>
         protected virtual void HandleRequestSent(int requestId)
         {
-            var pendingRequest = _pendingRequests.SingleOrDefault(p => p.Id == requestId);
-            if (pendingRequest == null)
+            var query = _listenerManager.GetById<BaseQuery>(requestId);
+            if (query == null)
             {
                 _logger.Log(LogLevel.Debug, $"Socket {SocketId} - msg {requestId} - message sent, but not pending");
                 return;
             }
 
-            pendingRequest.IsSend();
+            query.IsSend(ApiClient.ClientOptions.RequestTimeout);
         }
 
         /// <summary>
@@ -304,14 +310,10 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual async Task HandleStreamMessage(Stream stream)
         {
-            var timestamp = DateTime.UtcNow;
-            TimeSpan userCodeDuration = TimeSpan.Zero;
-
-            // TODO This shouldn't be done for every request, just when something changes. Might want to make it a seperate type or something with functions 'Add', 'Remove' and 'GetMapping' or something
-            // This could then cache the internal dictionary mapping of `GetMapping` until something changes, and also make sure there aren't duplicate ids with different message types
-            var result = ApiClient.StreamConverter.ReadJson(stream, _messageIdMap.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
+            var result = ApiClient.StreamConverter.ReadJson(stream, _listenerManager.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
             if(result == null)
             {
+                // Not able to parse at all
                 stream.Position = 0;
                 var buffer = new byte[stream.Length];
                 stream.Read(buffer, 0, buffer.Length);
@@ -324,18 +326,18 @@ namespace CryptoExchange.Net.Sockets
 
             if (!result.Parsed)
             {
+                // Not able to determine the message type for the message
                 _logger.LogWarning("Message not matched to type");
                 return;
             }
 
-            if (!await _messageIdMap.InvokeListenersAsync(result.Identifier, result).ConfigureAwait(false))
+            if (!await _listenerManager.InvokeListenersAsync(result.Identifier, result).ConfigureAwait(false))
             {
+                // Not able to find a listener for this message
                 stream.Position = 0;
                 var unhandledBuffer = new byte[stream.Length];
                 stream.Read(unhandledBuffer, 0, unhandledBuffer.Length);
-
-                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message unidentified. Id: {result.Identifier.ToLowerInvariant()}, Message: {Encoding.UTF8.GetString(unhandledBuffer)} ");
-
+                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message unidentified. Id: {result.Identifier.ToLowerInvariant()}, listening ids: [{string.Join(", ", _listenerManager.GetListenIds())}], Message: {Encoding.UTF8.GetString(unhandledBuffer)} ");
                 UnhandledMessage?.Invoke(result);
                 return;
             }
@@ -373,7 +375,7 @@ namespace CryptoExchange.Net.Sockets
             if (ApiClient.socketConnections.ContainsKey(SocketId))
                 ApiClient.socketConnections.TryRemove(SocketId, out _);
 
-            foreach (var subscription in _messageIdMap.GetSubscriptions())
+            foreach (var subscription in _listenerManager.GetSubscriptions())
             {
                 if (subscription.CancellationTokenRegistration.HasValue)
                     subscription.CancellationTokenRegistration.Value.Dispose();
@@ -391,7 +393,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task CloseAsync(Subscription subscription, bool unsubEvenIfNotConfirmed = false)
         {
-            if (!_messageIdMap.Contains(subscription))
+            if (!_listenerManager.Contains(subscription))
                 return;
 
             subscription.Closed = true;
@@ -412,7 +414,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            var shouldCloseConnection = _messageIdMap.GetSubscriptions().All(r => !r.UserSubscription || r.Closed);
+            var shouldCloseConnection = _listenerManager.GetSubscriptions().All(r => !r.UserSubscription || r.Closed);
             if (shouldCloseConnection)
                 Status = SocketStatus.Closing;
 
@@ -422,7 +424,7 @@ namespace CryptoExchange.Net.Sockets
                 await CloseAsync().ConfigureAwait(false);
             }
 
-            _messageIdMap.Remove(subscription);
+            _listenerManager.Remove(subscription);
         }
 
         /// <summary>
@@ -443,12 +445,10 @@ namespace CryptoExchange.Net.Sockets
             if (Status != SocketStatus.None && Status != SocketStatus.Connected)
                 return false;
 
-            _messageIdMap.Add(subscription);
-            if (subscription.Identifiers != null)
-                _messageIdMap.Add(subscription);
+            _listenerManager.Add(subscription);
 
-            //if (subscription.UserSubscription)
-            //    _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {_subscriptions.Count(s => s.UserSubscription)}");
+            if (subscription.UserSubscription)
+                _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {UserSubscriptionCount}");
             return true;
         }
 
@@ -456,14 +456,14 @@ namespace CryptoExchange.Net.Sockets
         /// Get a subscription on this connection by id
         /// </summary>
         /// <param name="id"></param>
-        public Subscription? GetSubscription(int id) => _messageIdMap.GetSubscriptions().SingleOrDefault(s => s.Id == id);
+        public Subscription? GetSubscription(int id) => _listenerManager.GetSubscriptions().SingleOrDefault(s => s.Id == id);
 
         /// <summary>
         /// Get a subscription on this connection by its subscribe request
         /// </summary>
         /// <param name="predicate">Filter for a request</param>
         /// <returns></returns>
-        public Subscription? GetSubscriptionByRequest(Func<object?, bool> predicate) => _messageIdMap.GetSubscriptions().SingleOrDefault(s => predicate(s));
+        public Subscription? GetSubscriptionByRequest(Func<object?, bool> predicate) => _listenerManager.GetSubscriptions().SingleOrDefault(s => predicate(s));
 
         /// <summary>
         /// Send a query request and wait for an answer
@@ -472,12 +472,8 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult> SendAndWaitQueryAsync(BaseQuery query)
         {
-            var pendingRequest = query.CreatePendingRequest();
-            if (query.Identifiers != null)
-                _messageIdMap.Add(query);
-
-            await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
-            return pendingRequest.Result ?? new CallResult(new ServerError("Timeout"));
+            await SendAndWaitIntAsync(query).ConfigureAwait(false);
+            return query.Result ?? new CallResult(new ServerError("Timeout"));
         }
 
         /// <summary>
@@ -488,23 +484,17 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query)
         {
-            var pendingRequest = (PendingRequest<T>)query.CreatePendingRequest();
-            if (query.Identifiers != null)
-                _messageIdMap.Add(query);
-
-            await SendAndWaitAsync(pendingRequest, query.Weight).ConfigureAwait(false);
-            return pendingRequest.TypedResult ?? new CallResult<T>(new ServerError("Timeout"));
+            await SendAndWaitIntAsync(query).ConfigureAwait(false);
+            return query.TypedResult ?? new CallResult<T>(new ServerError("Timeout"));
         }
 
-        private async Task SendAndWaitAsync(BasePendingRequest pending, int weight)
+        private async Task SendAndWaitIntAsync(BaseQuery query)
         {
-            lock (_subscriptions)
-                _pendingRequests.Add(pending);
-
-            var sendOk = Send(pending.Id, pending.Request, weight);
+            _listenerManager.Add(query);
+            var sendOk = Send(query.Id, query.Request, query.Weight);
             if (!sendOk)
             {
-                pending.Fail("Failed to send");
+                query.Fail("Failed to send");
                 return;
             }
 
@@ -512,16 +502,16 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (!_socket.IsOpen)
                 {
-                    pending.Fail("Socket not open");
+                    query.Fail("Socket not open");
                     return;
                 }
 
-                if (pending.Completed)
+                if (query.Completed)
                     return;
 
-                await pending.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                await query.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                if (pending.Completed)
+                if (query.Completed)
                     return;
             }
         }
@@ -567,7 +557,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult<bool>(new WebError("Socket not connected"));
 
-            var anySubscriptions = _messageIdMap.GetSubscriptions().Any(s => s.UserSubscription);
+            var anySubscriptions = _listenerManager.GetSubscriptions().Any(s => s.UserSubscription);
             if (!anySubscriptions)
             {
                 // No need to resubscribe anything
@@ -576,7 +566,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult<bool>(true);
             }
 
-            var anyAuthenticated = _messageIdMap.GetSubscriptions().Any(s => s.Authenticated);
+            var anyAuthenticated = _listenerManager.GetSubscriptions().Any(s => s.Authenticated);
             if (anyAuthenticated)
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
@@ -592,7 +582,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             // Get a list of all subscriptions on the socket
-            var subList = _messageIdMap.GetSubscriptions();
+            var subList = _listenerManager.GetSubscriptions();
 
             foreach(var subscription in subList)
             {
@@ -614,7 +604,7 @@ namespace CryptoExchange.Net.Sockets
                 var taskList = new List<Task<CallResult>>();
                 foreach (var subscription in subList.Skip(i).Take(ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
                 {
-                    var subQuery = subscription.GetSubQuery();
+                    var subQuery = subscription.GetSubQuery(this);
                     if (subQuery == null)
                         continue;
 
@@ -651,7 +641,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult(new UnknownError("Socket is not connected"));
 
-            var subQuery = subscription.GetSubQuery();
+            var subQuery = subscription.GetSubQuery(this);
             if (subQuery == null)
                 return new CallResult(null);
 
