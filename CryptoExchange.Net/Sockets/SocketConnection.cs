@@ -308,9 +308,9 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        protected virtual async Task HandleStreamMessage(Stream stream)
+        protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
-            var result = ApiClient.StreamConverter.ReadJson(stream, _listenerManager.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
+            var result = ApiClient.StreamConverter.ReadJson(type, stream, _listenerManager.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
             if(result == null)
             {
                 // Not able to parse at all
@@ -331,7 +331,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            if (!await _listenerManager.InvokeListenersAsync(result.Identifier, result).ConfigureAwait(false))
+            if (!await _listenerManager.InvokeListenersAsync(this, result.Identifier, result).ConfigureAwait(false))
             {
                 // Not able to find a listener for this message
                 stream.Position = 0;
@@ -607,8 +607,12 @@ namespace CryptoExchange.Net.Sockets
                     var subQuery = subscription.GetSubQuery(this);
                     if (subQuery == null)
                         continue;
-
-                    taskList.Add(SendAndWaitQueryAsync(subQuery));
+                                
+                    taskList.Add(SendAndWaitQueryAsync(subQuery).ContinueWith((x) => 
+                    { 
+                        subscription.HandleSubQueryResponse(subQuery.Response);
+                        return x.Result;
+                    }));
                 }
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
@@ -645,7 +649,9 @@ namespace CryptoExchange.Net.Sockets
             if (subQuery == null)
                 return new CallResult(null);
 
-            return await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+            var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+            subscription.HandleSubQueryResponse(subQuery.Response);
+            return result;
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ namespace CryptoExchange.Net.Sockets
         public bool Completed { get; set; }
         public DateTime RequestTimestamp { get; set; }
         public CallResult? Result { get; set; }
+        public BaseParsedMessage Response { get; set; }
 
         protected AsyncResetEvent _event;
         protected CancellationTokenSource? _cts;
@@ -96,7 +97,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
 
     }
 
@@ -124,10 +125,11 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
+        public override async Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
         {
             Completed = true;
-            Result = await HandleMessageAsync(message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
+            Response = message.Data;
+            Result = await HandleMessageAsync(connection, message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
             _event.Set();
             return Result;
         }
@@ -137,7 +139,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.TypedData!));
+        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.TypedData!));
 
         /// <inheritdoc />
         public override void Timeout()

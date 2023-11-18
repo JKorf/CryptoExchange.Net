@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.Sockets
         public event Action? OnClose;
 
         /// <inheritdoc />
-        public event Func<Stream, Task>? OnStreamMessage;
+        public event Func<WebSocketMessageType, Stream, Task>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Action<int>? OnRequestSent;
@@ -521,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
-                                await ProcessData(new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                await ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                             }
                             else
                             {
@@ -555,7 +555,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Reassemble complete message from memory stream
                             _logger.Log(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
-                            await ProcessData(memoryStream).ConfigureAwait(false);
+                            await ProcessData(receiveResult.MessageType, memoryStream).ConfigureAwait(false);
                             memoryStream.Dispose();
                         }
                         else
@@ -580,13 +580,13 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        protected async Task ProcessData(Stream stream)
+        protected async Task ProcessData(WebSocketMessageType type, Stream stream)
         {
             stream.Position = 0;
             if (Parameters.Interceptor != null)
                 stream = Parameters.Interceptor.Invoke(stream);
             if (OnStreamMessage != null)
-                await OnStreamMessage.Invoke(stream).ConfigureAwait(false);
+                await OnStreamMessage.Invoke(type, stream).ConfigureAwait(false);
         }
 
         /// <summary>

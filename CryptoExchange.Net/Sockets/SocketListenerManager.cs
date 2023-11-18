@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        public async Task<bool> InvokeListenersAsync(string id, BaseParsedMessage data)
+        public async Task<bool> InvokeListenersAsync(SocketConnection connection, string id, BaseParsedMessage data)
         {
             List<IMessageProcessor> listeners;
             lock (_lock)
@@ -91,7 +91,15 @@ namespace CryptoExchange.Net.Sockets
                 // Matched based on identifier
                 var userSw = Stopwatch.StartNew();
                 var dataEvent = new DataEvent<BaseParsedMessage>(data, null, data.OriginalData, DateTime.UtcNow, null);
-                await listener.HandleMessageAsync(dataEvent).ConfigureAwait(false);
+                try
+                {
+                    await listener.HandleMessageAsync(connection, dataEvent).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    // TODO
+                }
+
                 userSw.Stop();
                 if (userSw.ElapsedMilliseconds > 500)
                 {

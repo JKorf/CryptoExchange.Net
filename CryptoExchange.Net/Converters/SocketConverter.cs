@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 
 namespace CryptoExchange.Net.Converters
@@ -22,12 +23,15 @@ namespace CryptoExchange.Net.Converters
         public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
 
         /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(Stream stream, Dictionary<string, Type> processors, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream, Dictionary<string, Type> processors, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
             // Once all id properties have been read callback to see what the deserialization type should be
             // Deserialize to the correct type
+
+            if (InterpreterPipeline.PreProcessCallback != null)
+                stream = InterpreterPipeline.PreProcessCallback(websocketMessageType, stream);
 
             using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
             foreach (var callback in InterpreterPipeline.PreInspectCallbacks)
@@ -56,14 +60,36 @@ namespace CryptoExchange.Net.Converters
             {
                 token = JToken.Load(jsonTextReader);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
                 // Not a json message
                 return null;
             }
 
+            var accessor = new JTokenAccessor(token);
+
+            if (InterpreterPipeline.GetIdentity != null)
+            {
+                var identity = InterpreterPipeline.GetIdentity(accessor);
+                if (identity != null)
+                {
+                    if (processors.TryGetValue(identity, out var type))
+                    {
+                        var idInstance = InterpreterPipeline.ObjectInitializer(token, type);
+                        if (outputOriginalData)
+                        {
+                            stream.Position = 0;
+                            idInstance.OriginalData = sr.ReadToEnd();
+                        }
+
+                        idInstance.Identifier = identity;
+                        idInstance.Parsed = true;
+                        return idInstance;
+                    }
+                }
+            }
+
             PostInspectResult? inspectResult = null;
-            Dictionary<string, string?> typeIdDict = new Dictionary<string, string?>();
             object? usedParser = null;
             if (token.Type == JTokenType.Object)
             {
@@ -72,22 +98,20 @@ namespace CryptoExchange.Net.Converters
                     bool allFieldsPresent = true;
                     foreach (var field in callback.TypeFields)
                     {
-                        var value = typeIdDict.TryGetValue(field, out var cachedValue) ? cachedValue : GetValueForKey(token, field);
+                        var value = accessor.GetStringValue(field.Key);
                         if (value == null)
                         {
-                            if (callback.AllFieldPresentNeeded)
+                            if (field.Required)
                             {
                                 allFieldsPresent = false;
                                 break;
                             }
                         }
-
-                        typeIdDict[field] = value;
                     }
 
                     if (allFieldsPresent)
                     {
-                        inspectResult = callback.Callback(typeIdDict, processors);
+                        inspectResult = callback.Callback(accessor, processors);
                         usedParser = callback;
                         if (inspectResult.Type != null)
                             break;
@@ -126,7 +150,10 @@ namespace CryptoExchange.Net.Converters
             }
 
             if (usedParser == null)
-                throw new Exception("No parser found for message");
+            {
+                //throw new Exception("No parser found for message");
+                return null;
+            }
 
             BaseParsedMessage instance;
             if (inspectResult.Type != null)
@@ -152,6 +179,7 @@ namespace CryptoExchange.Net.Converters
             return instance;
         }
 
+
         private string? GetValueForKey(JToken token, string key)
         {
             var splitTokens = key.Split(new char[] { ':' });
@@ -169,6 +197,9 @@ namespace CryptoExchange.Net.Converters
                     accessToken = accessToken.First!;
                 }
             }
+
+            if (accessToken?.Type == JTokenType.Object)
+                return ((JObject)accessToken).Properties().First().Name;
 
             return accessToken?.ToString();
         }

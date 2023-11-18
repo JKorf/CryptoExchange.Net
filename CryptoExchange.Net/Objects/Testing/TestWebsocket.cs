@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Objects.Testing
             var bytes = Encoding.UTF8.GetBytes(data);
             var stream = new MemoryStream(bytes);
             stream.Position = 0;
-            _ = ProcessData(stream);
+            _ = ProcessData(System.Net.WebSockets.WebSocketMessageType.Text, stream);
         }
     }
 }

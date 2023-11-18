@@ -169,6 +169,9 @@ namespace CryptoExchange.Net
             if (_disposing)
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
 
+            if (subscription.Authenticated && AuthenticationProvider == null)
+                return new CallResult<UpdateSubscription>(new NoApiCredentialsError());
+
             SocketConnection socketConnection;
             var released = false;
             // Wait for a semaphore here, so we only connect 1 socket at a time.
@@ -243,6 +246,8 @@ namespace CryptoExchange.Net
 
                     return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
+
+                subscription.HandleSubQueryResponse(subQuery.Response);
             }
             else
             {
@@ -355,6 +360,9 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task<CallResult<bool>> AuthenticateSocketAsync(SocketConnection socket)
         {
+            if (AuthenticationProvider == null)
+                return new CallResult<bool>(new NoApiCredentialsError());
+
             _logger.Log(LogLevel.Debug, $"Socket {socket.SocketId} Attempting to authenticate");
             var authRequest = GetAuthenticationRequest();
             var result = await socket.SendAndWaitQueryAsync(authRequest).ConfigureAwait(false);

@@ -30,13 +30,13 @@ namespace CryptoExchange.Net.Sockets
     public abstract class SystemSubscription<T> : SystemSubscription
     {
         public override Type ExpectedMessageType => typeof(T);
-        public override Task<CallResult> DoHandleMessageAsync(DataEvent<BaseParsedMessage> message)
-            => HandleMessageAsync(message.As((ParsedMessage<T>)message.Data));
+        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
+            => HandleMessageAsync(connection, message.As((ParsedMessage<T>)message.Data));
 
         protected SystemSubscription(ILogger logger, bool authenticated) : base(logger, authenticated)
         {
         }
 
-        public abstract Task<CallResult> HandleMessageAsync(DataEvent<ParsedMessage<T>> message);
+        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<ParsedMessage<T>> message);
     }
 }

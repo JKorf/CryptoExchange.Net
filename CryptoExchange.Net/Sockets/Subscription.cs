@@ -91,17 +91,20 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public abstract BaseQuery? GetSubQuery(SocketConnection connection);
 
+        public virtual void HandleSubQueryResponse(BaseParsedMessage message) { }
+        public virtual void HandleUnsubQueryResponse(BaseParsedMessage message) { }
+
         /// <summary>
         /// Get the unsubscribe object to send when unsubscribing
         /// </summary>
         /// <returns></returns>
         public abstract BaseQuery? GetUnsubQuery();
 
-        public async Task<CallResult> HandleMessageAsync(DataEvent<BaseParsedMessage> message)
+        public async Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return await DoHandleMessageAsync(message).ConfigureAwait(false);
+            return await DoHandleMessageAsync(connection, message).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -109,7 +112,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> DoHandleMessageAsync(DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
 
         /// <summary>
         /// Invoke the exception event
@@ -149,14 +152,25 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override Task<CallResult> DoHandleMessageAsync(DataEvent<BaseParsedMessage> message)
-            => HandleEventAsync(message.As((ParsedMessage<TEvent>)message.Data));
+        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
+            => HandleEventAsync(connection, message.As((ParsedMessage<TEvent>)message.Data));
 
         /// <summary>
         /// Handle the update message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleEventAsync(DataEvent<ParsedMessage<TEvent>> message);
+        public abstract Task<CallResult> HandleEventAsync(SocketConnection connection, DataEvent<ParsedMessage<TEvent>> message);
+
+        public override void HandleSubQueryResponse(BaseParsedMessage message)
+            => HandleSubQueryResponse((ParsedMessage<TSubResponse>)message);
+
+        public virtual void HandleSubQueryResponse(ParsedMessage<TSubResponse> message) { }
+
+        public override void HandleUnsubQueryResponse(BaseParsedMessage message)
+            => HandleUnsubQueryResponse((ParsedMessage<TUnsubResponse>)message);
+
+        public virtual void HandleUnsubQueryResponse(ParsedMessage<TUnsubResponse> message) { }
+
     }
 }
