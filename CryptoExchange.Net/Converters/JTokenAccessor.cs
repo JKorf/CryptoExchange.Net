@@ -34,6 +34,9 @@ namespace CryptoExchange.Net.Converters
             if (arr.Count <= index)
                 return null;
 
+            if (arr[index].Type != JTokenType.String)
+                return null;
+
             return arr[index].Value<string>();
         }
 
@@ -57,6 +60,8 @@ namespace CryptoExchange.Net.Converters
 
             return accessToken?.ToString();
         }
+
+        public bool IsObject(string? key) => _token.Type == JTokenType.Object;
 
         private JToken? GetToken(string key)
         {

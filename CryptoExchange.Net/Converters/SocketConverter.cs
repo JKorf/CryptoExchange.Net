@@ -178,30 +178,5 @@ namespace CryptoExchange.Net.Converters
             var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, type == null ? null : token.ToObject(type, _serializer));
             return instance;
         }
-
-
-        private string? GetValueForKey(JToken token, string key)
-        {
-            var splitTokens = key.Split(new char[] { ':' });
-            var accessToken = token;
-            foreach (var splitToken in splitTokens)
-            {
-                accessToken = accessToken[splitToken];
-
-                if (accessToken == null)
-                    break;
-
-                if (accessToken.Type == JTokenType.Array)
-                {
-                    // Received array, take first item as reference
-                    accessToken = accessToken.First!;
-                }
-            }
-
-            if (accessToken?.Type == JTokenType.Object)
-                return ((JObject)accessToken).Properties().First().Name;
-
-            return accessToken?.ToString();
-        }
     }
 }

@@ -582,6 +582,7 @@ namespace CryptoExchange.Net.Sockets
 
         protected async Task ProcessData(WebSocketMessageType type, Stream stream)
         {
+            LastActionTime = DateTime.UtcNow;
             stream.Position = 0;
             if (Parameters.Interceptor != null)
                 stream = Parameters.Interceptor.Invoke(stream);

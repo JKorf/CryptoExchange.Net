@@ -197,7 +197,7 @@ namespace CryptoExchange.Net
                     socketConnection = socketResult.Data;
 
                     // Add a subscription on the socket connection
-                    var success = socketConnection.AddSubscription(subscription);
+                    var success = socketConnection.CanAddSubscription();
                     if (!success)
                     {
                         _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
@@ -249,12 +249,8 @@ namespace CryptoExchange.Net
 
                 subscription.HandleSubQueryResponse(subQuery.Response);
             }
-            else
-            {
-                // No request to be sent, so just mark the subscription as comfirmed
-                subscription.Confirmed = true;
-            }
 
+            subscription.Confirmed = true;
             if (ct != default)
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
@@ -264,7 +260,7 @@ namespace CryptoExchange.Net
                 }, false);
             }
 
-            subscription.Confirmed = true;
+            socketConnection.AddSubscription(subscription);
             _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }

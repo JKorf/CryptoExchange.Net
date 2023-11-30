@@ -10,6 +10,7 @@ using System.Net.WebSockets;
 using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -313,10 +314,12 @@ namespace CryptoExchange.Net.Sockets
             var result = ApiClient.StreamConverter.ReadJson(type, stream, _listenerManager.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
             if(result == null)
             {
-                // Not able to parse at all
-                stream.Position = 0;
+                // Not able to parse at all                
                 var buffer = new byte[stream.Length];
+                stream.Position = 0;
                 stream.Read(buffer, 0, buffer.Length);
+                _logger.LogDebug($"Socket {SocketId} Failed to parse data: {Encoding.UTF8.GetString(buffer)}");
+
                 UnparsedMessage?.Invoke(buffer);
                 return;
             }
@@ -435,6 +438,8 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Disposed;
             _socket.Dispose();
         }
+
+        public bool CanAddSubscription() => Status == SocketStatus.None || Status == SocketStatus.Connected;
 
         /// <summary>
         /// Add a subscription to this connection
