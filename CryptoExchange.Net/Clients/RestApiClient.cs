@@ -113,6 +113,11 @@ namespace CryptoExchange.Net
                     return new WebCallResult(request.Error!);
 
                 var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
+                if (!result)
+                    _logger.Log(LogLevel.Warning, $"[{result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                else
+                    _logger.Log(LogLevel.Debug, $"[{result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
 
@@ -160,6 +165,11 @@ namespace CryptoExchange.Net
                     return new WebCallResult<T>(request.Error!);
 
                 var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+                if (!result)
+                    _logger.Log(LogLevel.Warning, $"[{result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                else
+                    _logger.Log(LogLevel.Debug, $"[{result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
 
@@ -261,9 +271,9 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken,
             bool expectedEmptyResponse)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
-                var sw = Stopwatch.StartNew();
                 var response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
                 var statusCode = response.StatusCode;
@@ -281,23 +291,22 @@ namespace CryptoExchange.Net
                         responseLength ??= data.Length;
                         responseStream.Close();
                         response.Close();
-                        _logger.Log(LogLevel.Debug, $"[{request.RequestId}] Response received in {sw.ElapsedMilliseconds}ms{(OutputOriginalData ? (": " + data) : "")}");
 
                         if (!expectedEmptyResponse)
                         {
                             // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
                             var parseResult = ValidateJson(data);
                             if (!parseResult.Success)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
 
                             // Let the library implementation see if it is an error response, and if so parse the error
                             var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
                             if (error != null)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
 
                             // Not an error, so continue deserializing
                             var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
                         }
                         else
                         {
@@ -306,16 +315,16 @@ namespace CryptoExchange.Net
                                 var parseResult = ValidateJson(data);
                                 if (!parseResult.Success)
                                     // Not empty, and not json
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
 
                                 var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
                                 if (error != null)
                                     // Error response
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                             }
 
                             // Empty success response; okay
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
+                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
                         }
                     }
                     else
@@ -326,7 +335,7 @@ namespace CryptoExchange.Net
                             responseStream.Close();
                             response.Close();
 
-                            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
                         }
 
                         // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
@@ -334,7 +343,7 @@ namespace CryptoExchange.Net
                         responseStream.Close();
                         response.Close();
 
-                        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
+                        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
                     }
                 }
                 else
@@ -342,7 +351,6 @@ namespace CryptoExchange.Net
                     // Http status code indicates error
                     using var reader = new StreamReader(responseStream);
                     var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    _logger.Log(LogLevel.Warning, $"[{request.RequestId}] Error received in {sw.ElapsedMilliseconds}ms: {data}");
                     responseStream.Close();
                     response.Close();
 
@@ -354,29 +362,26 @@ namespace CryptoExchange.Net
 
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
             }
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
                 var exceptionInfo = requestException.ToLogString();
-                _logger.Log(LogLevel.Warning, $"[{request.RequestId}] Request exception: " + exceptionInfo);
-                return new WebCallResult<T>(null, null, null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError(exceptionInfo));
+                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError(exceptionInfo));
             }
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    _logger.Log(LogLevel.Warning, $"[{request.RequestId}] Request canceled by cancellation token");
-                    return new WebCallResult<T>(null, null, null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new CancellationRequestedError());
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new CancellationRequestedError());
                 }
                 else
                 {
                     // Request timed out
-                    _logger.Log(LogLevel.Warning, $"[{request.RequestId}] Request timed out: " + canceledException.ToLogString());
-                    return new WebCallResult<T>(null, null, null, null, null, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError($"[{request.RequestId}] Request timed out"));
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError($"Request timed out"));
                 }
             }
         }
@@ -580,14 +585,14 @@ namespace CryptoExchange.Net
         {
             var timeSyncParams = GetTimeSyncInfo();
             if (timeSyncParams == null)
-                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, true, null);
+                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
 
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
                 if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval))
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, true, null);
+                    return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
                 }
 
                 var localTime = DateTime.UtcNow;
@@ -616,7 +621,7 @@ namespace CryptoExchange.Net
                 timeSyncParams.TimeSyncState.Semaphore.Release();
             }
 
-            return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, true, null);
+            return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
         }
     }
 }

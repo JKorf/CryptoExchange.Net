@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public override string ToString()
         {
-            return Code != null ? $"{Code}: {Message} {Data}" : $"{Message} {Data}";
+            return Code != null ? $"[{GetType().Name}] {Code}: {Message} {Data}" : $"[{GetType().Name}] {Message} {Data}";
         }
     }
 
