@@ -83,6 +83,7 @@ namespace CryptoExchange.Net
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="requestBodyFormat">The format of the body content</param>
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
@@ -97,6 +98,7 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null,
             bool signed = false,
+            RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
@@ -108,7 +110,7 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
@@ -134,6 +136,7 @@ namespace CryptoExchange.Net
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="requestBodyFormat">The format of the body content</param>
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
@@ -148,6 +151,7 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null,
             bool signed = false,
+            RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
@@ -160,7 +164,7 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
@@ -185,6 +189,7 @@ namespace CryptoExchange.Net
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="parameters">The parameters of the request</param>
         /// <param name="signed">Whether or not the request should be authenticated</param>
+        /// <param name="requestBodyFormat">The format of the body content</param>
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
@@ -198,6 +203,7 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken,
             Dictionary<string, object>? parameters = null,
             bool signed = false,
+            RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
@@ -242,7 +248,7 @@ namespace CryptoExchange.Net
 
             _logger.Log(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestId, additionalHeaders);
+            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestBodyFormat ?? this.requestBodyFormat, requestId, additionalHeaders);
 
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
@@ -417,6 +423,7 @@ namespace CryptoExchange.Net
         /// <param name="signed">Whether or not the request should be authenticated</param>
         /// <param name="parameterPosition">Where the parameters should be placed</param>
         /// <param name="arraySerialization">How array parameters should be serialized</param>
+        /// <param name="bodyFormat">Format of the body content</param>
         /// <param name="requestId">Unique id of a request</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
@@ -427,6 +434,7 @@ namespace CryptoExchange.Net
             bool signed,
             HttpMethodParameterPosition parameterPosition,
             ArrayParametersSerialization arraySerialization,
+            RequestBodyFormat bodyFormat,
             int requestId,
             Dictionary<string, string>? additionalHeaders)
         {
