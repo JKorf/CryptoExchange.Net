@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.2.3 - 02 Dec 2023
+    * Fixed requestBodyFormat parameter handling
+
 * Version 6.2.2 - 02 Dec 2023
     * Added support for specifying the request body content type on a per request basis
     * Added DecimalStringWriterConverter
