@@ -515,7 +515,7 @@ namespace CryptoExchange.Net
 
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
-                var contentType = requestBodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+                var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
                 if (bodyParameters.Any())
                     WriteParamBody(request, bodyParameters, contentType);
                 else
@@ -533,13 +533,13 @@ namespace CryptoExchange.Net
         /// <param name="contentType">The content type of the data</param>
         protected virtual void WriteParamBody(IRequest request, SortedDictionary<string, object> parameters, string contentType)
         {
-            if (requestBodyFormat == RequestBodyFormat.Json)
+            if (contentType == Constants.JsonContentHeader)
             {
                 // Write the parameters as json in the body
                 var stringData = JsonConvert.SerializeObject(parameters);
                 request.SetContent(stringData, contentType);
             }
-            else if (requestBodyFormat == RequestBodyFormat.FormData)
+            else if (contentType == Constants.FormContentHeader)
             {
                 // Write the parameters as form data in the body
                 var stringData = parameters.ToFormData();
