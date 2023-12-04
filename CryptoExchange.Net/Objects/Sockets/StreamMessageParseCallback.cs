@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         public Func<WebSocketMessageType, Stream, Stream>? PreProcessCallback { get; set; }
         public List<PreInspectCallback> PreInspectCallbacks { get; set; } = new List<PreInspectCallback>();
         public Func<IMessageAccessor, string?> GetIdentity { get; set; }
-        public List<object> PostInspectCallbacks { get; set; } = new List<object>();
+        //public List<object> PostInspectCallbacks { get; set; } = new List<object>();
         public Func<JToken, Type, BaseParsedMessage> ObjectInitializer { get; set; } = SocketConverter.InstantiateMessageObject;
     }
 

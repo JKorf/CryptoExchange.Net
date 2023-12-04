@@ -87,67 +87,72 @@ namespace CryptoExchange.Net.Converters
                         return idInstance;
                     }
                 }
+                else
+                {
+                    // Message not identified
+                    // TODO return
+                }
             }
 
             PostInspectResult? inspectResult = null;
             object? usedParser = null;
-            if (token.Type == JTokenType.Object)
-            {
-                foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectCallback>())
-                {
-                    bool allFieldsPresent = true;
-                    foreach (var field in callback.TypeFields)
-                    {
-                        var value = accessor.GetStringValue(field.Key);
-                        if (value == null)
-                        {
-                            if (field.Required)
-                            {
-                                allFieldsPresent = false;
-                                break;
-                            }
-                        }
-                    }
+            //if (token.Type == JTokenType.Object)
+            //{
+            //    foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectCallback>())
+            //    {
+            //        bool allFieldsPresent = true;
+            //        foreach (var field in callback.TypeFields)
+            //        {
+            //            var value = accessor.GetStringValue(field.Key);
+            //            if (value == null)
+            //            {
+            //                if (field.Required)
+            //                {
+            //                    allFieldsPresent = false;
+            //                    break;
+            //                }
+            //            }
+            //        }
 
-                    if (allFieldsPresent)
-                    {
-                        inspectResult = callback.Callback(accessor, processors);
-                        usedParser = callback;
-                        if (inspectResult.Type != null)
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectArrayCallback>())
-                {
-                    var typeIdArrayDict = new Dictionary<int, string>();
-                    bool allFieldsPresent = true;
-                    var maxIndex = callback.TypeFields.Max();
-                    if (((JArray)token).Count <= maxIndex)
-                        continue;
+            //        if (allFieldsPresent)
+            //        {
+            //            inspectResult = callback.Callback(accessor, processors);
+            //            usedParser = callback;
+            //            if (inspectResult.Type != null)
+            //                break;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectArrayCallback>())
+            //    {
+            //        var typeIdArrayDict = new Dictionary<int, string>();
+            //        bool allFieldsPresent = true;
+            //        var maxIndex = callback.TypeFields.Max();
+            //        if (((JArray)token).Count <= maxIndex)
+            //            continue;
 
-                    foreach (var field in callback.TypeFields)
-                    {
-                        var value = token[field];
-                        if (value == null)
-                        {
-                            allFieldsPresent = false;
-                            break;
-                        }
+            //        foreach (var field in callback.TypeFields)
+            //        {
+            //            var value = token[field];
+            //            if (value == null)
+            //            {
+            //                allFieldsPresent = false;
+            //                break;
+            //            }
 
-                        typeIdArrayDict[field] = value.ToString();
-                    }
+            //            typeIdArrayDict[field] = value.ToString();
+            //        }
 
-                    if (allFieldsPresent)
-                    {
-                        inspectResult = callback.Callback(typeIdArrayDict, processors);
-                        usedParser = callback;
-                        break;
-                    }
-                }
-            }
+            //        if (allFieldsPresent)
+            //        {
+            //            inspectResult = callback.Callback(typeIdArrayDict, processors);
+            //            usedParser = callback;
+            //            break;
+            //        }
+            //    }
+            //}
 
             if (usedParser == null)
             {

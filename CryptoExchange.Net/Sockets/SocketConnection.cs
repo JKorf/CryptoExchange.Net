@@ -308,6 +308,7 @@ namespace CryptoExchange.Net.Sockets
         /// Handle a message
         /// </summary>
         /// <param name="stream"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
@@ -439,6 +440,10 @@ namespace CryptoExchange.Net.Sockets
             _socket.Dispose();
         }
 
+        /// <summary>
+        /// Whether or not a new subscription can be added to this connection
+        /// </summary>
+        /// <returns></returns>
         public bool CanAddSubscription() => Status == SocketStatus.None || Status == SocketStatus.Connected;
 
         /// <summary>
