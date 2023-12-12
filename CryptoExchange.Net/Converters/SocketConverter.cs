@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.Converters
         public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
 
         /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream, Dictionary<string, Type> processors, bool outputOriginalData)
+        public BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream, SocketListenerManager listenerManager, bool outputOriginalData)
         {
             // Start reading the data
             // Once we reach the properties that identify the message we save those in a dict
@@ -73,19 +73,22 @@ namespace CryptoExchange.Net.Converters
                 var identity = InterpreterPipeline.GetIdentity(accessor);
                 if (identity != null)
                 {
-                    if (processors.TryGetValue(identity, out var type))
+                    var result = listenerManager.IdToType(identity);
+                    if (result == null)
                     {
-                        var idInstance = InterpreterPipeline.ObjectInitializer(token, type);
-                        if (outputOriginalData)
-                        {
-                            stream.Position = 0;
-                            idInstance.OriginalData = sr.ReadToEnd();
-                        }
 
-                        idInstance.Identifier = identity;
-                        idInstance.Parsed = true;
-                        return idInstance;
                     }
+
+                    var idInstance = InterpreterPipeline.ObjectInitializer(token, result!);
+                    if (outputOriginalData)
+                    {
+                        stream.Position = 0;
+                        idInstance.OriginalData = sr.ReadToEnd();
+                    }
+
+                    idInstance.Identifier = identity;
+                    idInstance.Parsed = true;
+                    return idInstance;
                 }
                 else
                 {

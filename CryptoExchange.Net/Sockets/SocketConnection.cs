@@ -312,7 +312,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
-            var result = ApiClient.StreamConverter.ReadJson(type, stream, _listenerManager.GetMapping(), ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
+            var result = ApiClient.StreamConverter.ReadJson(type, stream, _listenerManager, ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
             if(result == null)
             {
                 // Not able to parse at all                

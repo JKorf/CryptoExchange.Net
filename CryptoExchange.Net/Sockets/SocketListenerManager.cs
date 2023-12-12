@@ -5,13 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
-    internal class SocketListenerManager
+    public class SocketListenerManager
     {
         private ILogger _logger;
         private int _socketId;
@@ -29,10 +27,13 @@ namespace CryptoExchange.Net.Sockets
             _socketId = socketId;
         }
 
-        public Dictionary<string, Type> GetMapping()
+        public Type? IdToType(string id)
         {
-            lock (this)
-                return _typeMap;
+            lock (_lock)
+            {
+                _typeMap.TryGetValue(id, out var type);
+                return type;
+            }
         }
 
         public List<string> GetListenIds()
