@@ -335,13 +335,13 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            if (!await _listenerManager.InvokeListenersAsync(this, result.Identifier, result).ConfigureAwait(false))
+            if (!await _listenerManager.InvokeListenersAsync(this, result.StreamIdentifier, result).ConfigureAwait(false))
             {
                 // Not able to find a listener for this message
                 stream.Position = 0;
                 var unhandledBuffer = new byte[stream.Length];
                 stream.Read(unhandledBuffer, 0, unhandledBuffer.Length);
-                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message unidentified. Id: {result.Identifier.ToLowerInvariant()}, listening ids: [{string.Join(", ", _listenerManager.GetListenIds())}], Message: {Encoding.UTF8.GetString(unhandledBuffer)} ");
+                _logger.Log(LogLevel.Warning, $"Socket {SocketId} Message unidentified. Id: {result.StreamIdentifier.ToLowerInvariant()}, listening ids: [{string.Join(", ", _listenerManager.GetListenIds())}], Message: {Encoding.UTF8.GetString(unhandledBuffer)} ");
                 UnhandledMessage?.Invoke(result);
                 return;
             }

@@ -48,7 +48,8 @@ namespace CryptoExchange.Net.Converters
                         preInstance.OriginalData = data;
                     }
 
-                    preInstance.Identifier = result.Identifier;
+                    preInstance.StreamIdentifier = result.StreamIdentifier;
+                    preInstance.TypeIdentifier = result.TypeIdentifier;
                     preInstance.Parsed = true;
                     return preInstance;
                 }
@@ -70,25 +71,28 @@ namespace CryptoExchange.Net.Converters
 
             if (InterpreterPipeline.GetIdentity != null)
             {
-                var identity = InterpreterPipeline.GetIdentity(accessor);
-                if (identity != null)
+                var (streamIdentity, typeIdentity) = InterpreterPipeline.GetIdentity(accessor);
+                if (streamIdentity != null)
                 {
-                    var result = listenerManager.IdToType(identity);
-                    if (result == null)
+                    var result = listenerManager.IdToType(streamIdentity, typeIdentity);
+                    if (result != null)
+                    {
+                        var idInstance = InterpreterPipeline.ObjectInitializer(token, result!);
+                        if (outputOriginalData)
+                        {
+                            stream.Position = 0;
+                            idInstance.OriginalData = sr.ReadToEnd();
+                        }
+
+                        idInstance.StreamIdentifier = streamIdentity;
+                        idInstance.TypeIdentifier = typeIdentity;
+                        idInstance.Parsed = true;
+                        return idInstance;
+                    }
+                    else
                     {
 
                     }
-
-                    var idInstance = InterpreterPipeline.ObjectInitializer(token, result!);
-                    if (outputOriginalData)
-                    {
-                        stream.Position = 0;
-                        idInstance.OriginalData = sr.ReadToEnd();
-                    }
-
-                    idInstance.Identifier = identity;
-                    idInstance.Parsed = true;
-                    return idInstance;
                 }
                 else
                 {
@@ -175,7 +179,8 @@ namespace CryptoExchange.Net.Converters
                 instance.OriginalData = sr.ReadToEnd();
             }
 
-            instance.Identifier = inspectResult.Identifier;
+            instance.StreamIdentifier = inspectResult.StreamIdentifier;
+            instance.TypeIdentifier = inspectResult.TypeIdentifier;
             instance.Parsed = inspectResult.Type != null;
             return instance;
         }

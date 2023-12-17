@@ -14,8 +14,8 @@ namespace CryptoExchange.Net.Objects.Sockets
     {
         public Func<WebSocketMessageType, Stream, Stream>? PreProcessCallback { get; set; }
         public List<PreInspectCallback> PreInspectCallbacks { get; set; } = new List<PreInspectCallback>();
-        public Func<IMessageAccessor, string?> GetIdentity { get; set; }
-        //public List<object> PostInspectCallbacks { get; set; } = new List<object>();
+        public Func<IMessageAccessor, (string?, string?)> GetIdentity { get; set; }
+        public List<object> PostInspectCallbacks { get; set; } = new List<object>();
         public Func<JToken, Type, BaseParsedMessage> ObjectInitializer { get; set; } = SocketConverter.InstantiateMessageObject;
     }
 
@@ -45,18 +45,20 @@ namespace CryptoExchange.Net.Objects.Sockets
     public class PostInspectArrayCallback
     {
         public List<int> TypeFields { get; set; } = new List<int>();
-        public Func<Dictionary<int, string>, Dictionary<string, Type>, PostInspectResult> Callback { get; set; }
+        public Func<IMessageAccessor, SocketListenerManager, PostInspectResult> Callback { get; set; }
     }
 
     public class PreInspectResult
     {
         public bool Matched { get; set; }
-        public string Identifier { get; set; }
+        public string StreamIdentifier { get; set; }
+        public string TypeIdentifier { get; set; }
     }
 
     public class PostInspectResult
     {
         public Type? Type { get; set; }
-        public string Identifier { get; set; }
+        public string StreamIdentifier { get; set; }
+        public string TypeIdentifier { get; set; }
     }
 }

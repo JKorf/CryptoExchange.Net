@@ -62,6 +62,23 @@ namespace CryptoExchange.Net.Converters
         }
 
         public bool IsObject(string? key) => _token.Type == JTokenType.Object;
+        public bool IsArray(IEnumerable<int> indexes)
+        {
+            var item = _token;
+            foreach(var index in indexes)
+            {
+                if (item.Type != JTokenType.Array)
+                    return false;
+
+                var arr = ((JArray)item);
+                if (arr.Count <= index)
+                    return false;
+
+                item = arr[index];
+            }
+
+            return item.Type == JTokenType.Array;
+        }
 
         private JToken? GetToken(string key)
         {

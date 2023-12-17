@@ -6,9 +6,13 @@
     public abstract class BaseParsedMessage
     {
         /// <summary>
-        /// Identifier string
+        /// Stream identifier string
         /// </summary>
-        public string Identifier { get; set; } = null!;
+        public string StreamIdentifier { get; set; } = null!;
+        /// <summary>
+        /// Type identifier string
+        /// </summary>
+        public string TypeIdentifier { get; set; } = null!;
         /// <summary>
         /// Original data if the option is enabled
         /// </summary>

@@ -13,6 +13,6 @@ namespace CryptoExchange.Net.Interfaces
         public int Id { get; }
         public List<string> Identifiers { get; }
         Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
-        public Type ExpectedMessageType { get; }
+        public Func<string, Type> ExpectedTypeDelegate { get; }
     }
 }

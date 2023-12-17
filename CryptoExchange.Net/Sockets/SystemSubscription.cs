@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Sockets
 
     public abstract class SystemSubscription<T> : SystemSubscription
     {
-        public override Type ExpectedMessageType => typeof(T);
+        public override Func<string, Type> ExpectedTypeDelegate => (x) => typeof(T);
         public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
             => HandleMessageAsync(connection, message.As((ParsedMessage<T>)message.Data));
 

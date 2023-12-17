@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Weight { get; }
 
-        public abstract Type ExpectedMessageType { get; }
+        public abstract Func<string, Type> ExpectedTypeDelegate { get; }
 
         /// <summary>
         /// ctor
@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.Sockets
     /// <typeparam name="TResponse">Response object type</typeparam>
     public abstract class Query<TResponse> : BaseQuery
     {
-        public override Type ExpectedMessageType => typeof(TResponse);
+        public override Func<string, Type> ExpectedTypeDelegate => x => typeof(TResponse);
 
         /// <summary>
         /// The typed call result

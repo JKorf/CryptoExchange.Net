@@ -7,6 +7,7 @@ namespace CryptoExchange.Net.Interfaces
     public interface IMessageAccessor
     {
         bool IsObject(string? key);
+        bool IsArray(IEnumerable<int> indexes);
         string? GetStringValue(string key);
         int? GetIntValue(string key);
         public int? GetCount(string key);

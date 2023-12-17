@@ -15,24 +15,24 @@ namespace CryptoExchange.Net.Sockets
         private int _socketId;
         private object _lock = new object();
         private Dictionary<int, IMessageProcessor> _idMap;
-        private Dictionary<string, Type> _typeMap;
+        private Dictionary<string, Func<string, Type>> _typeMap;
         private Dictionary<string, List<IMessageProcessor>> _listeners;
 
         public SocketListenerManager(ILogger logger, int socketId)
         {
             _idMap = new Dictionary<int, IMessageProcessor>();
             _listeners = new Dictionary<string, List<IMessageProcessor>>();
-            _typeMap = new Dictionary<string, Type>();
+            _typeMap = new Dictionary<string, Func<string, Type>>();
             _logger = logger;
             _socketId = socketId;
         }
 
-        public Type? IdToType(string id)
+        public Type? IdToType(string streamIdentifier, string typeIdentifier)
         {
             lock (_lock)
             {
-                _typeMap.TryGetValue(id, out var type);
-                return type;
+                _typeMap.TryGetValue(streamIdentifier, out var typeDelegate);
+                return typeDelegate?.Invoke(typeIdentifier);
             }
         }
 
@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.Sockets
 
             foreach (var listener in listeners)
             {
-                _logger.Log(LogLevel.Trace, $"Socket {_socketId} Message mapped to processor {listener.Id} with identifier {data.Identifier}");
+                _logger.Log(LogLevel.Trace, $"Socket {_socketId} Message mapped to processor {listener.Id} with identifier {data.StreamIdentifier}");
                 if (listener is BaseQuery query)
                 {
                     Remove(listener);
@@ -160,7 +160,7 @@ namespace CryptoExchange.Net.Sockets
 
         private void UpdateMap()
         {
-            _typeMap = _listeners.ToDictionary(x => x.Key, x => x.Value.First().ExpectedMessageType);
+            _typeMap = _listeners.ToDictionary(x => x.Key, x => x.Value.First().ExpectedTypeDelegate);
         }
     }
 }

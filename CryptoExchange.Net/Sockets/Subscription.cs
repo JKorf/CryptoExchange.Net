@@ -69,7 +69,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<Exception>? Exception;
 
-        public abstract Type ExpectedMessageType { get; }
+        public abstract Func<string, Type> ExpectedTypeDelegate { get; }
 
         /// <summary>
         /// ctor
@@ -125,7 +125,7 @@ namespace CryptoExchange.Net.Sockets
     }
 
     /// <inheritdoc />
-    public abstract class Subscription<TQuery, TEvent> : Subscription<TQuery, TEvent, TQuery>
+    public abstract class Subscription<TQuery> : Subscription<TQuery, TQuery>
     {
         /// <summary>
         /// ctor
@@ -138,9 +138,9 @@ namespace CryptoExchange.Net.Sockets
     }
 
     /// <inheritdoc />
-    public abstract class Subscription<TSubResponse, TEvent, TUnsubResponse> : Subscription
+    public abstract class Subscription<TSubResponse, TUnsubResponse> : Subscription
     {
-        public override Type ExpectedMessageType => typeof(TEvent);
+        //public override Func<string, Type> ExpectedTypeDelegate => (x) => typeof(TEvent);
 
         /// <summary>
         /// ctor
@@ -152,15 +152,8 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
-            => HandleEventAsync(connection, message.As((ParsedMessage<TEvent>)message.Data));
-
-        /// <summary>
-        /// Handle the update message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract Task<CallResult> HandleEventAsync(SocketConnection connection, DataEvent<ParsedMessage<TEvent>> message);
+        //public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
+        //    => HandleEventAsync(connection, message.As((ParsedMessage<TEvent>)message.Data));
 
         public override void HandleSubQueryResponse(BaseParsedMessage message)
             => HandleSubQueryResponse((ParsedMessage<TSubResponse>)message);
