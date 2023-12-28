@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
@@ -29,7 +30,11 @@ namespace CryptoExchange.Net.Sockets
 
     public abstract class SystemSubscription<T> : SystemSubscription
     {
-        public override Func<string, Type> ExpectedTypeDelegate => (x) => typeof(T);
+        public override Dictionary<string, Type> TypeMapping => new Dictionary<string, Type>
+        {
+            { "", typeof(T) }
+        };
+
         public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
             => HandleMessageAsync(connection, message.As((ParsedMessage<T>)message.Data));
 

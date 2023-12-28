@@ -111,7 +111,7 @@ namespace CryptoExchange.Net
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
 
         /// <inheritdoc />
-        public abstract SocketConverter StreamConverter { get; }
+        public abstract MessageInterpreterPipeline Pipeline { get; }
         #endregion
 
         /// <summary>
@@ -686,7 +686,7 @@ namespace CryptoExchange.Net
                     sb.AppendLine($"      Id: {subscription.Id}");
                     sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
                     sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
-                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.Identifiers)}]");
+                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.StreamIdentifiers)}]");
                 }
             }
             return sb.ToString();

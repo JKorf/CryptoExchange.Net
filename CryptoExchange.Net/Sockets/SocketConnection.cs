@@ -11,6 +11,8 @@ using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
 using System.Diagnostics.CodeAnalysis;
+using CryptoExchange.Net.Converters;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -176,12 +178,12 @@ namespace CryptoExchange.Net.Sockets
 
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
-            _socket.OnRequestSent += HandleRequestSent;
-            _socket.OnOpen += HandleOpen;
-            _socket.OnClose += HandleClose;
-            _socket.OnReconnecting += HandleReconnecting;
-            _socket.OnReconnected += HandleReconnected;
-            _socket.OnError += HandleError;
+            _socket.OnRequestSent += HandleRequestSentAsync;
+            _socket.OnOpen += HandleOpenAsync;
+            _socket.OnClose += HandleCloseAsync;
+            _socket.OnReconnecting += HandleReconnectingAsync;
+            _socket.OnReconnected += HandleReconnectedAsync;
+            _socket.OnError += HandleErrorAsync;
             _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
 
             _listenerManager = new SocketListenerManager(_logger, SocketId);
@@ -190,7 +192,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handler for a socket opening
         /// </summary>
-        protected virtual void HandleOpen()
+        protected virtual async Task HandleOpenAsync()
         {
             Status = SocketStatus.Connected;
             PausedActivity = false;
@@ -199,7 +201,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handler for a socket closing without reconnect
         /// </summary>
-        protected virtual void HandleClose()
+        protected virtual async Task HandleCloseAsync()
         {
             Status = SocketStatus.Closed;
             Authenticated = false;
@@ -219,7 +221,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handler for a socket losing conenction and starting reconnect
         /// </summary>
-        protected virtual void HandleReconnecting()
+        protected virtual async Task HandleReconnectingAsync()
         {
             Status = SocketStatus.Reconnecting;
             DisconnectTime = DateTime.UtcNow;
@@ -249,7 +251,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handler for a socket which has reconnected
         /// </summary>
-        protected virtual async void HandleReconnected()
+        protected virtual async Task HandleReconnectedAsync()
         {
             Status = SocketStatus.Resubscribing;
 
@@ -258,6 +260,7 @@ namespace CryptoExchange.Net.Sockets
                 query.Fail("Connection interupted");
                 _listenerManager.Remove(query);
             }
+            // Mark subscription as 'not confirmed', only map updates to them if confirmed. Don't await sub answer here
 
             var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
             if (!reconnectSuccessful)
@@ -280,7 +283,7 @@ namespace CryptoExchange.Net.Sockets
         /// Handler for an error on a websocket
         /// </summary>
         /// <param name="e">The exception</param>
-        protected virtual void HandleError(Exception e)
+        protected virtual async Task HandleErrorAsync(Exception e)
         {
             if (e is WebSocketException wse)
                 _logger.Log(LogLevel.Warning, $"Socket {SocketId} error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
@@ -292,7 +295,7 @@ namespace CryptoExchange.Net.Sockets
         /// Handler for whenever a request is sent over the websocket
         /// </summary>
         /// <param name="requestId">Id of the request sent</param>
-        protected virtual void HandleRequestSent(int requestId)
+        protected virtual async Task HandleRequestSentAsync(int requestId)
         {
             var query = _listenerManager.GetById<BaseQuery>(requestId);
             if (query == null)
@@ -312,8 +315,13 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
-            var result = ApiClient.StreamConverter.ReadJson(type, stream, _listenerManager, ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData);
-            if(result == null)
+            var buffer2 = new byte[stream.Length];
+            stream.Position = 0;
+            stream.Read(buffer2, 0, buffer2.Length);
+            Debug.WriteLine("0 " + Encoding.UTF8.GetString(buffer2));
+            stream.Position = 0;
+            var result = ReadJson(type, stream);
+            if (result == null)
             {
                 // Not able to parse at all                
                 var buffer = new byte[stream.Length];
@@ -347,7 +355,46 @@ namespace CryptoExchange.Net.Sockets
             }
 
             stream.Dispose();
-        }    
+        }
+
+        /// <summary>
+        /// Read a message from stream
+        /// </summary>
+        /// <param name="websocketMessageType"></param>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        protected virtual BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream)
+        {
+            // Start reading the data
+            // Once we reach the properties that identify the message we save those in a dict
+            // Once all id properties have been read callback to see what the deserialization type should be
+            // Deserialize to the correct type
+
+            if (ApiClient.Pipeline.PreProcessCallback != null)
+                stream = ApiClient.Pipeline.PreProcessCallback(websocketMessageType, stream);
+
+            var accessor = new JTokenAccessor(stream);
+            if (accessor == null)
+                return null;
+
+            var streamIdentity = ApiClient.Pipeline.GetStreamIdentifier(accessor);
+            if (streamIdentity == null)
+                return null;
+
+            var typeIdentity = ApiClient.Pipeline.GetTypeIdentifier(accessor);
+            var typeResult = _listenerManager.IdToType(streamIdentity, typeIdentity);
+            if (typeResult == null)
+                return null;
+
+            var idInstance = accessor.Instantiate(typeResult);
+            if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
+                idInstance.OriginalData = idInstance.OriginalData;
+
+            idInstance.StreamIdentifier = streamIdentity;
+            idInstance.TypeIdentifier = typeIdentity;
+            idInstance.Parsed = true;
+            return idInstance;
+        }
 
         /// <summary>
         /// Connect the websocket
@@ -619,8 +666,12 @@ namespace CryptoExchange.Net.Sockets
                         continue;
                                 
                     taskList.Add(SendAndWaitQueryAsync(subQuery).ContinueWith((x) => 
-                    { 
+                    {
+                        Debug.WriteLine("1");
                         subscription.HandleSubQueryResponse(subQuery.Response);
+                        Debug.WriteLine("2");
+                        _listenerManager.Reset(subscription);
+                        Debug.WriteLine("3");
                         return x.Result;
                     }));
                 }

@@ -98,25 +98,25 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public event Action? OnClose;
+        public event Func<Task>? OnClose;
 
         /// <inheritdoc />
         public event Func<WebSocketMessageType, Stream, Task>? OnStreamMessage;
 
         /// <inheritdoc />
-        public event Action<int>? OnRequestSent;
+        public event Func<int, Task>? OnRequestSent;
 
         /// <inheritdoc />
-        public event Action<Exception>? OnError;
+        public event Func<Exception, Task>? OnError;
 
         /// <inheritdoc />
-        public event Action? OnOpen;
+        public event Func<Task>? OnOpen;
 
         /// <inheritdoc />
-        public event Action? OnReconnecting;
+        public event Func<Task>? OnReconnecting;
 
         /// <inheritdoc />
-        public event Action? OnReconnected;
+        public event Func<Task>? OnReconnected;
         /// <inheritdoc />
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
@@ -147,7 +147,7 @@ namespace CryptoExchange.Net.Sockets
             if (!await ConnectInternalAsync().ConfigureAwait(false))
                 return false;
             
-            OnOpen?.Invoke();
+            await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();
             return true;            
         }
@@ -222,14 +222,14 @@ namespace CryptoExchange.Net.Sockets
                 if (!Parameters.AutoReconnect)
                 {
                     _processState = ProcessState.Idle;
-                    OnClose?.Invoke();
+                    await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                     return;
                 }    
 
                 if (!_stopRequested)
                 {
                     _processState = ProcessState.Reconnecting;
-                    OnReconnecting?.Invoke();                    
+                    await (OnReconnecting?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);                    
                 }
 
                 var sinceLastReconnect = DateTime.UtcNow - _lastReconnectTime;
@@ -263,7 +263,7 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     _lastReconnectTime = DateTime.UtcNow;
-                    OnReconnected?.Invoke();
+                    await (OnReconnected?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                     break;
                 }
             }
@@ -326,7 +326,7 @@ namespace CryptoExchange.Net.Sockets
             await _closeTask.ConfigureAwait(false);
             if(_processTask != null)
                 await _processTask.ConfigureAwait(false);
-            OnClose?.Invoke();
+            await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _logger.Log(LogLevel.Debug, $"Socket {Id} closed");
         }
 
@@ -423,7 +423,7 @@ namespace CryptoExchange.Net.Sockets
                         try
                         {
                             await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
-                            OnRequestSent?.Invoke(data.Id);
+                            await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
                             _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {data.Id} - sent {data.Bytes.Length} bytes");
                         }
                         catch (OperationCanceledException)
@@ -434,7 +434,7 @@ namespace CryptoExchange.Net.Sockets
                         catch (Exception ioe)
                         {
                             // Connection closed unexpectedly, .NET framework
-                            OnError?.Invoke(ioe);
+                            await (OnError?.Invoke(ioe) ?? Task.CompletedTask).ConfigureAwait(false);
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
                             break;
@@ -448,7 +448,7 @@ namespace CryptoExchange.Net.Sockets
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
                 _logger.Log(LogLevel.Warning, $"Socket {Id} Send loop stopped with exception");
-                OnError?.Invoke(e);
+                await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
@@ -492,7 +492,7 @@ namespace CryptoExchange.Net.Sockets
                         catch (Exception wse)
                         {
                             // Connection closed unexpectedly
-                            OnError?.Invoke(wse);
+                            await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
                             break;
@@ -571,7 +571,7 @@ namespace CryptoExchange.Net.Sockets
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
                 _logger.Log(LogLevel.Warning, $"Socket {Id} Receive loop stopped with exception");
-                OnError?.Invoke(e);
+                await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
@@ -627,7 +627,7 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will stop the timeout checking, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                OnError?.Invoke(e);
+                await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
         }

@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Strings to identify this subscription with
         /// </summary>
-        public abstract List<string> Identifiers { get; }
+        public abstract List<string> StreamIdentifiers { get; }
 
         /// <summary>
         /// Cancellation token registration
@@ -69,7 +69,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<Exception>? Exception;
 
-        public abstract Func<string, Type> ExpectedTypeDelegate { get; }
+        public abstract Dictionary<string, Type> TypeMapping { get; }
 
         /// <summary>
         /// ctor

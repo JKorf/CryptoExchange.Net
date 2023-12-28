@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects.Sockets;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,5 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         public int? GetCount(string key);
         public int? GetArrayIntValue(string? key, int index);
         public string? GetArrayStringValue(string? key, int index);
+
+        public BaseParsedMessage Instantiate(Type type);
     }
 }

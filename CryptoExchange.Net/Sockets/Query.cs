@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Strings to identify this subscription with
         /// </summary>
-        public abstract List<string> Identifiers { get; }
+        public abstract List<string> StreamIdentifiers { get; }
 
         /// <summary>
         /// The query request object
@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Weight { get; }
 
-        public abstract Func<string, Type> ExpectedTypeDelegate { get; }
+        public abstract Dictionary<string, Type> TypeMapping { get; }
 
         /// <summary>
         /// ctor
@@ -107,7 +107,10 @@ namespace CryptoExchange.Net.Sockets
     /// <typeparam name="TResponse">Response object type</typeparam>
     public abstract class Query<TResponse> : BaseQuery
     {
-        public override Func<string, Type> ExpectedTypeDelegate => x => typeof(TResponse);
+        public override Dictionary<string, Type> TypeMapping => new Dictionary<string, Type>
+        {
+            { "", typeof(TResponse) }
+        };
 
         /// <summary>
         /// The typed call result

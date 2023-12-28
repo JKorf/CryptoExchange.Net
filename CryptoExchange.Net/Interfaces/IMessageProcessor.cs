@@ -11,8 +11,8 @@ namespace CryptoExchange.Net.Interfaces
     public interface IMessageProcessor
     {
         public int Id { get; }
-        public List<string> Identifiers { get; }
+        public List<string> StreamIdentifiers { get; }
         Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
-        public Func<string, Type> ExpectedTypeDelegate { get; }
+        Dictionary<string, Type> TypeMapping { get; }
     }
 }

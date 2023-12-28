@@ -1,8 +1,12 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects.Sockets;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace CryptoExchange.Net.Converters
@@ -10,11 +14,39 @@ namespace CryptoExchange.Net.Converters
     internal class JTokenAccessor : IMessageAccessor
     {
         private readonly JToken _token;
+        private readonly Stream _stream;
+        private readonly StreamReader _reader;
         private Dictionary<string, JToken?> _cache = new Dictionary<string, JToken?>();
+        private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
-        public JTokenAccessor(JToken token)
+        public JTokenAccessor(Stream stream)
         {
-            _token = token;
+            _stream = stream;
+            _reader = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
+            using var jsonTextReader = new JsonTextReader(_reader);
+            JToken token;
+            try
+            {
+                _token = JToken.Load(jsonTextReader);
+            }
+            catch (Exception ex)
+            {
+                // Not a json message
+                throw;
+            }
+        }
+
+        public BaseParsedMessage Instantiate(Type type)
+        {
+            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(type);
+            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, type == null ? null : _token.ToObject(type, _serializer));
+            return instance;
+        }
+
+        public string GetOriginalString()
+        {
+            _stream.Position = 0;
+            return _reader.ReadToEnd();
         }
 
         public int? GetArrayIntValue(string? key, int index)

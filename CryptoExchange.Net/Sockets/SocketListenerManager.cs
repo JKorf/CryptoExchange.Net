@@ -14,15 +14,15 @@ namespace CryptoExchange.Net.Sockets
         private ILogger _logger;
         private int _socketId;
         private object _lock = new object();
-        private Dictionary<int, IMessageProcessor> _idMap;
-        private Dictionary<string, Func<string, Type>> _typeMap;
+        //private Dictionary<int, IMessageProcessor> _idMap;
+        //private Dictionary<string, Dictionary<string, Type>> _typeMap;
         private Dictionary<string, List<IMessageProcessor>> _listeners;
 
         public SocketListenerManager(ILogger logger, int socketId)
         {
-            _idMap = new Dictionary<int, IMessageProcessor>();
+            //_idMap = new Dictionary<int, IMessageProcessor>();
             _listeners = new Dictionary<string, List<IMessageProcessor>>();
-            _typeMap = new Dictionary<string, Func<string, Type>>();
+            //_typeMap = new Dictionary<string, Dictionary<string, Type>>();
             _logger = logger;
             _socketId = socketId;
         }
@@ -31,8 +31,12 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_lock)
             {
-                _typeMap.TryGetValue(streamIdentifier, out var typeDelegate);
-                return typeDelegate?.Invoke(typeIdentifier);
+                _listeners.TryGetValue(streamIdentifier, out var listeners);
+                if (listeners == null)
+                    return null;
+
+                listeners.First().TypeMapping.TryGetValue(typeIdentifier ?? "", out var type);
+                return type;
             }
         }
 
@@ -46,10 +50,9 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_lock)
             {
-                _idMap.Add(processor.Id, processor);
-                if (processor.Identifiers?.Any() == true)
+                if (processor.StreamIdentifiers?.Any() == true)
                 {
-                    foreach (var identifier in processor.Identifiers)
+                    foreach (var identifier in processor.StreamIdentifiers)
                     {
                         if (!_listeners.TryGetValue(identifier, out var list))
                         {
@@ -61,7 +64,16 @@ namespace CryptoExchange.Net.Sockets
                     }
                 }
 
-                UpdateMap();
+            }
+        }
+
+        public void Reset(IMessageProcessor processor)
+        {
+            lock (_lock)
+            {
+                Debug.WriteLine("4 Resetting");
+                Remove(processor);
+                Add(processor);
             }
         }
 
@@ -116,7 +128,7 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_lock)
             {
-                _idMap.TryGetValue(id, out var val);
+                var val = _listeners.Values.SelectMany(x => x).FirstOrDefault(x => x.Id == id);
                 return (T)val;
             }
         }
@@ -143,24 +155,16 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_lock)
             {
-                _idMap.Remove(processor.Id);
-                if (processor.Identifiers?.Any() == true)
-                {
-                    foreach (var identifier in processor.Identifiers)
-                    {
-                        _listeners[identifier].Remove(processor);
-                        if (!_listeners[identifier].Any())
-                            _listeners.Remove(identifier);
-                    }
-                }
+                if (processor.StreamIdentifiers?.Any() != true)
+                    return;
 
-                UpdateMap();
+                foreach(var kv in _listeners)
+                {
+                    if (kv.Value.Contains(processor))
+                        kv.Value.Remove(processor);
+                }
             }
         }
 
-        private void UpdateMap()
-        {
-            _typeMap = _listeners.ToDictionary(x => x.Key, x => x.Value.First().ExpectedTypeDelegate);
-        }
     }
 }

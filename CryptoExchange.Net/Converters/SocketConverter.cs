@@ -1,195 +1,58 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
+﻿//using CryptoExchange.Net.Interfaces;
+//using CryptoExchange.Net.Objects;
+//using CryptoExchange.Net.Objects.Sockets;
+//using CryptoExchange.Net.Sockets;
+//using Newtonsoft.Json;
+//using Newtonsoft.Json.Linq;
+//using System;
+//using System.Collections.Generic;
+//using System.IO;
+//using System.Linq;
+//using System.Net.WebSockets;
+//using System.Text;
 
-namespace CryptoExchange.Net.Converters
-{
-    /// <summary>
-    /// Socket message converter
-    /// </summary>
-    public abstract class SocketConverter
-    {
-        private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
+//namespace CryptoExchange.Net.Converters
+//{
+//    /// <summary>
+//    /// Socket message converter
+//    /// </summary>
+//    public abstract class SocketConverter
+//    {
 
-        public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
+//        public abstract MessageInterpreterPipeline InterpreterPipeline { get; }
 
-        /// <inheritdoc />
-        public BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream, SocketListenerManager listenerManager, bool outputOriginalData)
-        {
-            // Start reading the data
-            // Once we reach the properties that identify the message we save those in a dict
-            // Once all id properties have been read callback to see what the deserialization type should be
-            // Deserialize to the correct type
+//        /// <inheritdoc />
+//        public BaseParsedMessage? ReadJson(WebSocketMessageType websocketMessageType, Stream stream, SocketListenerManager listenerManager, bool outputOriginalData)
+//        {
+//            // Start reading the data
+//            // Once we reach the properties that identify the message we save those in a dict
+//            // Once all id properties have been read callback to see what the deserialization type should be
+//            // Deserialize to the correct type
 
-            if (InterpreterPipeline.PreProcessCallback != null)
-                stream = InterpreterPipeline.PreProcessCallback(websocketMessageType, stream);
+//            if (InterpreterPipeline.PreProcessCallback != null)
+//                stream = InterpreterPipeline.PreProcessCallback(websocketMessageType, stream);
 
-            using var sr = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
-            foreach (var callback in InterpreterPipeline.PreInspectCallbacks)
-            {
-                var result = callback.Callback(stream);
-                if (result.Matched)
-                {
-                    var data = sr.ReadToEnd();
-                    var messageType = typeof(ParsedMessage<>).MakeGenericType(typeof(string));
-                    var preInstance = (BaseParsedMessage)Activator.CreateInstance(messageType, data);
-                    if (outputOriginalData)
-                    {
-                        stream.Position = 0;
-                        preInstance.OriginalData = data;
-                    }
+//            var accessor = new JTokenAccessor(stream);
+//            if (accessor == null)
+//                return null;
 
-                    preInstance.StreamIdentifier = result.StreamIdentifier;
-                    preInstance.TypeIdentifier = result.TypeIdentifier;
-                    preInstance.Parsed = true;
-                    return preInstance;
-                }
-            }
+//            var streamIdentity = InterpreterPipeline.GetStreamIdentifier(accessor);
+//            if (streamIdentity == null)
+//                return null;
 
-            using var jsonTextReader = new JsonTextReader(sr);
-            JToken token;
-            try
-            {
-                token = JToken.Load(jsonTextReader);
-            }
-            catch(Exception ex)
-            {
-                // Not a json message
-                return null;
-            }
+//            var typeIdentity = InterpreterPipeline.GetTypeIdentifier(accessor);
+//            var typeResult = listenerManager.IdToType(streamIdentity, typeIdentity);
+//            if (typeResult == null)
+//                return null;
 
-            var accessor = new JTokenAccessor(token);
+//            var idInstance = accessor.Instantiate(typeResult);
+//            if (outputOriginalData)
+//                idInstance.OriginalData = idInstance.OriginalData;
 
-            if (InterpreterPipeline.GetIdentity != null)
-            {
-                var (streamIdentity, typeIdentity) = InterpreterPipeline.GetIdentity(accessor);
-                if (streamIdentity != null)
-                {
-                    var result = listenerManager.IdToType(streamIdentity, typeIdentity);
-                    if (result != null)
-                    {
-                        var idInstance = InterpreterPipeline.ObjectInitializer(token, result!);
-                        if (outputOriginalData)
-                        {
-                            stream.Position = 0;
-                            idInstance.OriginalData = sr.ReadToEnd();
-                        }
-
-                        idInstance.StreamIdentifier = streamIdentity;
-                        idInstance.TypeIdentifier = typeIdentity;
-                        idInstance.Parsed = true;
-                        return idInstance;
-                    }
-                    else
-                    {
-
-                    }
-                }
-                else
-                {
-                    // Message not identified
-                    // TODO return
-                }
-            }
-
-            PostInspectResult? inspectResult = null;
-            object? usedParser = null;
-            //if (token.Type == JTokenType.Object)
-            //{
-            //    foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectCallback>())
-            //    {
-            //        bool allFieldsPresent = true;
-            //        foreach (var field in callback.TypeFields)
-            //        {
-            //            var value = accessor.GetStringValue(field.Key);
-            //            if (value == null)
-            //            {
-            //                if (field.Required)
-            //                {
-            //                    allFieldsPresent = false;
-            //                    break;
-            //                }
-            //            }
-            //        }
-
-            //        if (allFieldsPresent)
-            //        {
-            //            inspectResult = callback.Callback(accessor, processors);
-            //            usedParser = callback;
-            //            if (inspectResult.Type != null)
-            //                break;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    foreach (var callback in InterpreterPipeline.PostInspectCallbacks.OfType<PostInspectArrayCallback>())
-            //    {
-            //        var typeIdArrayDict = new Dictionary<int, string>();
-            //        bool allFieldsPresent = true;
-            //        var maxIndex = callback.TypeFields.Max();
-            //        if (((JArray)token).Count <= maxIndex)
-            //            continue;
-
-            //        foreach (var field in callback.TypeFields)
-            //        {
-            //            var value = token[field];
-            //            if (value == null)
-            //            {
-            //                allFieldsPresent = false;
-            //                break;
-            //            }
-
-            //            typeIdArrayDict[field] = value.ToString();
-            //        }
-
-            //        if (allFieldsPresent)
-            //        {
-            //            inspectResult = callback.Callback(typeIdArrayDict, processors);
-            //            usedParser = callback;
-            //            break;
-            //        }
-            //    }
-            //}
-
-            if (usedParser == null)
-            {
-                //throw new Exception("No parser found for message");
-                return null;
-            }
-
-            BaseParsedMessage instance;
-            if (inspectResult.Type != null)
-                instance = InterpreterPipeline.ObjectInitializer(token, inspectResult.Type);
-            else
-                instance = new ParsedMessage<object>(null);
-
-            if (outputOriginalData)
-            {
-                stream.Position = 0;
-                instance.OriginalData = sr.ReadToEnd();
-            }
-
-            instance.StreamIdentifier = inspectResult.StreamIdentifier;
-            instance.TypeIdentifier = inspectResult.TypeIdentifier;
-            instance.Parsed = inspectResult.Type != null;
-            return instance;
-        }
-
-        public static BaseParsedMessage InstantiateMessageObject(JToken token, Type type)
-        {
-            var resultMessageType = typeof(ParsedMessage<>).MakeGenericType(type);
-            var instance = (BaseParsedMessage)Activator.CreateInstance(resultMessageType, type == null ? null : token.ToObject(type, _serializer));
-            return instance;
-        }
-    }
-}
+//            idInstance.StreamIdentifier = streamIdentity;
+//            idInstance.TypeIdentifier = typeIdentity;
+//            idInstance.Parsed = true;
+//            return idInstance;
+//        }
+//    }
+//}
