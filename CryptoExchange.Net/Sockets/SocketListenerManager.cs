@@ -71,7 +71,7 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_lock)
             {
-                Debug.WriteLine("4 Resetting");
+                //Debug.WriteLine("4 Resetting");
                 Remove(processor);
                 Add(processor);
             }

@@ -22,6 +22,7 @@ namespace CryptoExchange.Net.Sockets
         public DateTime RequestTimestamp { get; set; }
         public CallResult? Result { get; set; }
         public BaseParsedMessage Response { get; set; }
+        public Action OnFinished { get; set; }
 
         protected AsyncResetEvent _event;
         protected CancellationTokenSource? _cts;
@@ -133,6 +134,9 @@ namespace CryptoExchange.Net.Sockets
             Completed = true;
             Response = message.Data;
             Result = await HandleMessageAsync(connection, message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
+            // Set() gives calling/waiting request the signal to continue and allows the message processing thread to continue with next message.
+            // However, the processing of the message isn't fully finished yet?
+            OnFinished?.Invoke();
             _event.Set();
             return Result;
         }
@@ -152,6 +156,7 @@ namespace CryptoExchange.Net.Sockets
 
             Completed = true;
             Result = new CallResult<TResponse>(new CancellationRequestedError());
+            OnFinished?.Invoke();
             _event.Set();
         }
 
@@ -160,6 +165,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Result = new CallResult<TResponse>(new ServerError(error));
             Completed = true;
+            OnFinished?.Invoke();
             _event.Set();
         }
     }
