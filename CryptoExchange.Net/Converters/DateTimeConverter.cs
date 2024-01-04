@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Converters
 
                 if (string.IsNullOrWhiteSpace(stringValue)
                     || stringValue == "-1"
-                    || (double.TryParse(stringValue, out var doubleValue) && doubleValue == 0))
+                    || (double.TryParse(stringValue, out var doubleVal) && doubleVal == 0))
                 {
                     return objectType == typeof(DateTime) ? default(DateTime) : null;
                 }
