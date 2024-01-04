@@ -9,6 +9,7 @@ namespace CryptoExchange.Net.Interfaces
     {
         bool IsObject(string? key);
         bool IsArray(IEnumerable<int> indexes);
+        bool IsEmptyArray(IEnumerable<int> indexes);
         string? GetStringValue(string key);
         int? GetIntValue(string key);
         public int? GetCount(string key);

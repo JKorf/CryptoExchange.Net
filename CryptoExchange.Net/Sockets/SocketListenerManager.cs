@@ -35,8 +35,8 @@ namespace CryptoExchange.Net.Sockets
                 if (listeners == null)
                     return null;
 
-                listeners.First().TypeMapping.TryGetValue(typeIdentifier ?? "", out var type);
-                return type;
+                var result = listeners.SelectMany(l => l.TypeMapping).FirstOrDefault(x => x.Key == (typeIdentifier ?? ""));
+                return result.Value;
             }
         }
 
@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!_listeners.TryGetValue(id, out var idListeners))
                     return false;
 
-                listeners = idListeners.ToList();
+                listeners = idListeners.Where(i => data.TypeIdentifier == null || i.TypeMapping.ContainsKey(data.TypeIdentifier)).ToList();
             }
 
             foreach (var listener in listeners)

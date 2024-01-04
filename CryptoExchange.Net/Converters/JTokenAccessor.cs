@@ -112,8 +112,29 @@ namespace CryptoExchange.Net.Converters
             return item.Type == JTokenType.Array;
         }
 
+        public bool IsEmptyArray(IEnumerable<int> indexes)
+        {
+            var item = _token;
+            foreach (var index in indexes)
+            {
+                if (item.Type != JTokenType.Array)
+                    return false;
+
+                var arr = ((JArray)item);
+                if (arr.Count <= index)
+                    return false;
+
+                item = arr[index];
+            }
+
+            return item.Type == JTokenType.Array && !item.HasValues;
+        }
+
         private JToken? GetToken(string key)
         {
+            if (key == null)
+                return _token;
+
             if (_cache.TryGetValue(key, out var token))
                 return token;
 

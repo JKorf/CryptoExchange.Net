@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Strings to identify this subscription with
         /// </summary>
-        public abstract List<string> StreamIdentifiers { get; }
+        public abstract List<string> StreamIdentifiers { get; set; }
 
         /// <summary>
         /// Cancellation token registration
