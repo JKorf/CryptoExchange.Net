@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.2.4 - 04 Jan 2024
+    * Fixed parsing of DateTime value of zero with additional zero decimal places
+
 * Version 6.2.3 - 02 Dec 2023
     * Fixed requestBodyFormat parameter handling
 
