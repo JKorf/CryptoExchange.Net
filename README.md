@@ -31,6 +31,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 6.2.5 - 09 Jan 2024
+    * Added support for deserializing null and empty string values to BoolConverter
+
 * Version 6.2.4 - 04 Jan 2024
     * Fixed parsing of DateTime value of zero with additional zero decimal places
 
