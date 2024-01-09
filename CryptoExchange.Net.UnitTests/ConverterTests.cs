@@ -20,6 +20,8 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("1620777600000")]
         [TestCase("2021-05-12T00:00:00.000Z")]
         [TestCase("2021-05-12T00:00:00.000000000Z")]
+        [TestCase("0.000000", true)]
+        [TestCase("0", true)]
         [TestCase("", true)]
         [TestCase("  ", true)]
         public void TestDateTimeConverterString(string input, bool expectNull = false)
@@ -162,6 +164,44 @@ namespace CryptoExchange.Net.UnitTests
             var output = JsonConvert.DeserializeObject<NotNullableEnumObject>($"{{ \"Value\": {val} }}");
             Assert.AreEqual(output.Value, expected);
         }
+
+        [TestCase("1", true)]
+        [TestCase("true", true)]
+        [TestCase("yes", true)]
+        [TestCase("y", true)]
+        [TestCase("on", true)]
+        [TestCase("-1", false)]
+        [TestCase("0", false)]
+        [TestCase("n", false)]
+        [TestCase("no", false)]
+        [TestCase("false", false)]
+        [TestCase("off", false)]
+        [TestCase("", null)]
+        public void TestBoolConverter(string value, bool? expected)
+        {
+            var val = value == null ? "null" : $"\"{value}\"";
+            var output = JsonConvert.DeserializeObject<BoolObject>($"{{ \"Value\": {val} }}");
+            Assert.AreEqual(output.Value, expected);
+        }
+
+        [TestCase("1", true)]
+        [TestCase("true", true)]
+        [TestCase("yes", true)]
+        [TestCase("y", true)]
+        [TestCase("on", true)]
+        [TestCase("-1", false)]
+        [TestCase("0", false)]
+        [TestCase("n", false)]
+        [TestCase("no", false)]
+        [TestCase("false", false)]
+        [TestCase("off", false)]
+        [TestCase("", false)]
+        public void TestBoolConverterNotNullable(string value, bool expected)
+        {
+            var val = value == null ? "null" : $"\"{value}\"";
+            var output = JsonConvert.DeserializeObject<NotNullableBoolObject>($"{{ \"Value\": {val} }}");
+            Assert.AreEqual(output.Value, expected);
+        }
     }
 
     public class TimeObject
@@ -178,6 +218,18 @@ namespace CryptoExchange.Net.UnitTests
     public class NotNullableEnumObject
     {
         public TestEnum Value { get; set; }
+    }
+
+    public class BoolObject
+    {
+        [JsonConverter(typeof(BoolConverter))]
+        public bool? Value { get; set; }
+    }
+
+    public class NotNullableBoolObject
+    {
+        [JsonConverter(typeof(BoolConverter))]
+        public bool Value { get; set; }
     }
 
     [JsonConverter(typeof(EnumConverter))]

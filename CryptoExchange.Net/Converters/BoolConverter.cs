@@ -34,7 +34,16 @@ namespace CryptoExchange.Net.Converters
         /// </returns>
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            switch (reader.Value?.ToString().ToLower().Trim())
+            var value = reader.Value?.ToString().ToLower().Trim();
+            if (value == null || value == "")
+            {
+                if (Nullable.GetUnderlyingType(objectType) != null)
+                    return null;
+
+                return false;
+            }
+
+            switch (value)
             {
                 case "true":
                 case "yes":
