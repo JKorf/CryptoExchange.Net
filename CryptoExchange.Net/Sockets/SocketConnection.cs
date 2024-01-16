@@ -378,7 +378,7 @@ namespace CryptoExchange.Net.Sockets
             if (streamIdentity == null)
                 return null;
 
-            var typeIdentity = ApiClient.Pipeline.GetTypeIdentifier(accessor);
+            var typeIdentity = ApiClient.Pipeline.GetTypeIdentifier(accessor, streamIdentity);
             var typeResult = _listenerManager.IdToType(streamIdentity, typeIdentity);
             if (typeResult == null)
                 return null;

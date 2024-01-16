@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.Objects.Sockets
     {
         public Func<WebSocketMessageType, Stream, Stream>? PreProcessCallback { get; set; }
         public Func<IMessageAccessor, string?> GetStreamIdentifier { get; set; }
-        public Func<IMessageAccessor, string?> GetTypeIdentifier { get; set; }
+        public Func<IMessageAccessor, string, string?> GetTypeIdentifier { get; set; } = (accessor, streamId) => streamId;
     }
 }
