@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.CommonObjects;
-using CryptoExchange.Net.Interfaces.CommonClients;
 using CryptoExchange.Net.Objects;
 using System.Threading;
 using System.Threading.Tasks;

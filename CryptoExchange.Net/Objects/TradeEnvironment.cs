@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CryptoExchange.Net.Objects
+﻿namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// Trade environment names

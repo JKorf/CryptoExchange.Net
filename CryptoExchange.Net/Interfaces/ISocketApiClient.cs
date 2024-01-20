@@ -1,7 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Options;
+﻿using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
-using System;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces

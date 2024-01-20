@@ -1,7 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using System;
-
-namespace CryptoExchange.Net.Interfaces
+﻿namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Base rest API client

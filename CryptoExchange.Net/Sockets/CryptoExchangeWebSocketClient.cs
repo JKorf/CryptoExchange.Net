@@ -591,9 +591,6 @@ namespace CryptoExchange.Net.Sockets
             LastActionTime = DateTime.UtcNow;
             stream.Position = 0;
 
-            if (Parameters.Interceptor != null)
-                stream = Parameters.Interceptor.Invoke(stream);
-
             if (OnStreamMessage != null)
                 await OnStreamMessage.Invoke(type, stream).ConfigureAwait(false);
         }

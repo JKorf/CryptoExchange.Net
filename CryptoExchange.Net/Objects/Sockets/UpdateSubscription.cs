@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets;
+﻿using CryptoExchange.Net.Sockets;
 using System;
 using System.Threading.Tasks;
 

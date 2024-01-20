@@ -1,10 +1,6 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets;
-using System;
+﻿using System;
 using System.IO;
 using System.Net.WebSockets;
-using System.Security.Authentication;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces

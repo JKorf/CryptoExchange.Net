@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 

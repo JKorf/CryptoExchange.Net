@@ -10,8 +10,6 @@ using System.Net.WebSockets;
 using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
-using System.Diagnostics.CodeAnalysis;
-using CryptoExchange.Net.Converters;
 using System.Diagnostics;
 using CryptoExchange.Net.Sockets.MessageParsing;
 
@@ -351,6 +349,8 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
+            var sw = Stopwatch.StartNew();
+
             // 1. Decrypt/Preprocess if necessary
             stream = ApiClient.PreprocessStreamMessage(type, stream);
 
@@ -381,6 +381,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             _logger.LogTrace("Socket {SocketId} {Count} processors matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
+            var totalUserTime = 0;
             foreach (var processor in processors)
             {
                 // 4. Determine the type to deserialize to
@@ -406,7 +407,9 @@ namespace CryptoExchange.Net.Sockets
                 // 6. Hand of the message to the subscription
                 try
                 {
+                    var innerSw = Stopwatch.StartNew();
                     await processor.HandleAsync(this, new DataEvent<object>(deserialized, null, message.RawData, message.ReceiveTime, null)).ConfigureAwait(false);
+                    totalUserTime += (int)innerSw.ElapsedMilliseconds;
                 }
                 catch (Exception ex)
                 {
@@ -417,6 +420,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             stream.Dispose();
+            _logger.LogTrace($"Socket {SocketId} message processed in {(int)sw.ElapsedMilliseconds}ms ({totalUserTime - sw.ElapsedMilliseconds}ms parsing)");
         }
 
         /// <summary>

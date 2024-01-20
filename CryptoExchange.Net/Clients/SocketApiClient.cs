@@ -1,4 +1,3 @@
-using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
@@ -40,11 +39,6 @@ namespace CryptoExchange.Net
         /// Keep alive interval for websocket connection
         /// </summary>
         protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
-
-        /// <summary>
-        /// Delegate used for manipulating data received from socket connections before it is processed by listeners
-        /// </summary>
-        protected Func<Stream, Stream>? interceptor;
 
         /// <summary>
         /// Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
@@ -498,7 +492,6 @@ namespace CryptoExchange.Net
         protected virtual WebSocketParameters GetWebSocketParameters(string address)
             => new(new Uri(address), ClientOptions.AutoReconnect)
             {
-                Interceptor = interceptor,
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
                 RateLimiters = RateLimiters,

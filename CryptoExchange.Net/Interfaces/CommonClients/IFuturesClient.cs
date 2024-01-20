@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.CommonObjects;
-using CryptoExchange.Net.Interfaces.CommonClients;
 using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.Interfaces.CommonClients

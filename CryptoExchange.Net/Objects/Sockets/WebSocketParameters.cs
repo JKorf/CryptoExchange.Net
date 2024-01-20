@@ -1,10 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects.Sockets
 {
@@ -57,21 +54,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// The rate limiters for the socket connection
         /// </summary>
         public IEnumerable<IRateLimiter>? RateLimiters { get; set; }
-
-        /// <summary>
-        /// Origin header value to send in the connection handshake
-        /// </summary>
-        public string? Origin { get; set; }
-
-        /// <summary>
-        /// Delegate used for manipulating data received from socket connections before it is processed by listeners
-        /// </summary>
-        public Func<Stream, Stream>? Interceptor { get; set; }
-
-        /// <summary>
-        /// Delegate used for processing string data received from socket connections before it is processed by handlers
-        /// </summary>
-        public Func<string, string>? DataInterpreterString { get; set; }
 
         /// <summary>
         /// Encoding for sending/receiving data
