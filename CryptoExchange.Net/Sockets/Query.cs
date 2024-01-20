@@ -11,26 +11,42 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Query 
     /// </summary>
-    public abstract class BaseQuery : IMessageProcessor
+    public abstract class Query : IMessageProcessor
     {
         /// <summary>
         /// Unique identifier
         /// </summary>
         public int Id { get; } = ExchangeHelpers.NextId();
 
+        /// <summary>
+        /// Has this query been completed
+        /// </summary>
         public bool Completed { get; set; }
-        public DateTime RequestTimestamp { get; set; }
-        public CallResult? Result { get; set; }
-        public BaseParsedMessage Response { get; set; }
-        public Action OnFinished { get; set; }
-
-        protected AsyncResetEvent _event;
-        protected CancellationTokenSource? _cts;
 
         /// <summary>
-        /// Strings to identify this subscription with
+        /// Timestamp of when the request was send
         /// </summary>
-        public abstract List<string> StreamIdentifiers { get; set; }
+        public DateTime RequestTimestamp { get; set; }
+        
+        /// <summary>
+        /// Result
+        /// </summary>
+        public CallResult? Result { get; set; }
+        
+        /// <summary>
+        /// Response
+        /// </summary>
+        public object? Response { get; set; }
+
+        /// <summary>
+        /// Action to execute when query is finished
+        /// </summary>
+        public Action? OnFinished { get; set; }
+
+        /// <summary>
+        /// Strings to match this query to a received message
+        /// </summary>
+        public abstract HashSet<string> ListenerIdentifiers { get; set; }
 
         /// <summary>
         /// The query request object
@@ -47,7 +63,22 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int Weight { get; }
 
-        public abstract Dictionary<string, Type> TypeMapping { get; set; }
+        /// <summary>
+        /// Get the type the message should be deserialized to
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract Type GetMessageType(SocketMessage message);
+
+        /// <summary>
+        /// Wait event for response
+        /// </summary>
+        protected AsyncResetEvent _event;
+
+        /// <summary>
+        /// Cancellation token
+        /// </summary>
+        protected CancellationTokenSource? _cts;
 
         /// <summary>
         /// ctor
@@ -55,7 +86,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="request"></param>
         /// <param name="authenticated"></param>
         /// <param name="weight"></param>
-        public BaseQuery(object request, bool authenticated, int weight = 1)
+        public Query(object request, bool authenticated, int weight = 1)
         {
             _event = new AsyncResetEvent(false, false);
 
@@ -97,8 +128,9 @@ namespace CryptoExchange.Net.Sockets
         /// Handle a response message
         /// </summary>
         /// <param name="message"></param>
+        /// <param name="connection"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message);
 
     }
 
@@ -106,20 +138,10 @@ namespace CryptoExchange.Net.Sockets
     /// Query
     /// </summary>
     /// <typeparam name="TResponse">Response object type</typeparam>
-    public abstract class Query<TResponse> : BaseQuery
+    public abstract class Query<TResponse> : Query
     {
-        private Dictionary<string, Type> _typeMapping = new Dictionary<string, Type>
-        {
-            { "", typeof(TResponse) }
-        };
-        public override Dictionary<string, Type> TypeMapping
-        {
-            get => _typeMapping;
-            set
-            {
-                _typeMapping = value;
-            }
-        }
+        /// <inheritdoc />
+        public override Type GetMessageType(SocketMessage message) => typeof(TResponse);
 
         /// <summary>
         /// The typed call result
@@ -137,13 +159,11 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
+        public override async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
         {
             Completed = true;
             Response = message.Data;
-            Result = await HandleMessageAsync(connection, message.As((ParsedMessage<TResponse>)message.Data)).ConfigureAwait(false);
-            // Set() gives calling/waiting request the signal to continue and allows the message processing thread to continue with next message.
-            // However, the processing of the message isn't fully finished yet?
+            Result = await HandleMessageAsync(connection, message.As((TResponse)message.Data)).ConfigureAwait(false);
             OnFinished?.Invoke();
             _event.Set();
             return Result;
@@ -152,9 +172,10 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle the query response
         /// </summary>
+        /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<ParsedMessage<TResponse>> message) => Task.FromResult(new CallResult<TResponse>(message.Data.TypedData!));
+        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<TResponse> message) => Task.FromResult(new CallResult<TResponse>(message.Data));
 
         /// <inheritdoc />
         public override void Timeout()

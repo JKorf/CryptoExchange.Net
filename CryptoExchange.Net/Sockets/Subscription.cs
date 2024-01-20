@@ -55,9 +55,9 @@ namespace CryptoExchange.Net.Sockets
         public bool Authenticated { get; }
 
         /// <summary>
-        /// Strings to identify this subscription with
+        /// Strings to match this subscription to a received message
         /// </summary>
-        public abstract List<string> StreamIdentifiers { get; set; }
+        public abstract HashSet<string> ListenerIdentifiers { get; set; }
 
         /// <summary>
         /// Cancellation token registration
@@ -69,7 +69,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public event Action<Exception>? Exception;
 
-        public abstract Dictionary<string, Type> TypeMapping { get; }
+        /// <summary>
+        /// Get the deserialization type for this message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract Type? GetMessageType(SocketMessage message);
 
         /// <summary>
         /// ctor
@@ -86,21 +91,36 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Get the subscribe object to send when subscribing
+        /// Get the subscribe query to send when subscribing
         /// </summary>
         /// <returns></returns>
-        public abstract BaseQuery? GetSubQuery(SocketConnection connection);
-
-        public virtual void HandleSubQueryResponse(BaseParsedMessage message) { }
-        public virtual void HandleUnsubQueryResponse(BaseParsedMessage message) { }
+        public abstract Query? GetSubQuery(SocketConnection connection);
 
         /// <summary>
-        /// Get the unsubscribe object to send when unsubscribing
+        /// Handle a subscription query response
+        /// </summary>
+        /// <param name="message"></param>
+        public virtual void HandleSubQueryResponse(object message) { }
+
+        /// <summary>
+        /// Handle an unsubscription query response
+        /// </summary>
+        /// <param name="message"></param>
+        public virtual void HandleUnsubQueryResponse(object message) { }
+
+        /// <summary>
+        /// Get the unsubscribe query to send when unsubscribing
         /// </summary>
         /// <returns></returns>
-        public abstract BaseQuery? GetUnsubQuery();
+        public abstract Query? GetUnsubQuery();
 
-        public async Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
+        /// <summary>
+        /// Handle an update message
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
         {
             ConnectionInvocations++;
             TotalInvocations++;
@@ -110,9 +130,10 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle the update message
         /// </summary>
+        /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message);
+        public abstract Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message);
 
         /// <summary>
         /// Invoke the exception event
@@ -125,23 +146,8 @@ namespace CryptoExchange.Net.Sockets
     }
 
     /// <inheritdoc />
-    public abstract class Subscription<TQuery> : Subscription<TQuery, TQuery>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="authenticated"></param>
-        protected Subscription(ILogger logger, bool authenticated) : base(logger, authenticated)
-        {
-        }
-    }
-
-    /// <inheritdoc />
     public abstract class Subscription<TSubResponse, TUnsubResponse> : Subscription
     {
-        //public override Func<string, Type> ExpectedTypeDelegate => (x) => typeof(TEvent);
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -152,18 +158,24 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        //public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
-        //    => HandleEventAsync(connection, message.As((ParsedMessage<TEvent>)message.Data));
+        public override void HandleSubQueryResponse(object message)
+            => HandleSubQueryResponse((TSubResponse)message);
 
-        public override void HandleSubQueryResponse(BaseParsedMessage message)
-            => HandleSubQueryResponse((ParsedMessage<TSubResponse>)message);
+        /// <summary>
+        /// Handle a subscription query response
+        /// </summary>
+        /// <param name="message"></param>
+        public virtual void HandleSubQueryResponse(TSubResponse message) { }
 
-        public virtual void HandleSubQueryResponse(ParsedMessage<TSubResponse> message) { }
+        /// <inheritdoc />
+        public override void HandleUnsubQueryResponse(object message)
+            => HandleUnsubQueryResponse((TUnsubResponse)message);
 
-        public override void HandleUnsubQueryResponse(BaseParsedMessage message)
-            => HandleUnsubQueryResponse((ParsedMessage<TUnsubResponse>)message);
-
-        public virtual void HandleUnsubQueryResponse(ParsedMessage<TUnsubResponse> message) { }
+        /// <summary>
+        /// Handle an unsubscription query response
+        /// </summary>
+        /// <param name="message"></param>
+        public virtual void HandleUnsubQueryResponse(TUnsubResponse message) { }
 
     }
 }

@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,15 +104,12 @@ namespace CryptoExchange.Net
             }
         }
 
-
         /// <inheritdoc />
         public new SocketExchangeOptions ClientOptions => (SocketExchangeOptions)base.ClientOptions;
 
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
 
-        /// <inheritdoc />
-        public abstract MessageInterpreterPipeline Pipeline { get; }
         #endregion
 
         /// <summary>
@@ -136,18 +134,8 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Set a delegate which can manipulate the message stream before it is processed by listeners
-        /// </summary>
-        /// <param name="interceptor">Interceptor</param>
-        protected void SetInterceptor(Func<Stream, Stream> interceptor)
-        {
-            this.interceptor = interceptor;
-        }
-
-        /// <summary>
         /// Connect to an url and listen for data on the BaseAddress
         /// </summary>
-        /// <typeparam name="T">The type of the expected data</typeparam>
         /// <param name="subscription">The subscription</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
@@ -159,7 +147,6 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Connect to an url and listen for data
         /// </summary>
-        /// <typeparam name="T">The type of the expected data</typeparam>
         /// <param name="url">The URL to connect to</param>
         /// <param name="subscription">The subscription</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
@@ -247,7 +234,7 @@ namespace CryptoExchange.Net
                     return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
 
-                subscription.HandleSubQueryResponse(subQuery.Response);
+                subscription.HandleSubQueryResponse(subQuery.Response!);
             }
 
             subscription.Confirmed = true;
@@ -382,7 +369,7 @@ namespace CryptoExchange.Net
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual BaseQuery GetAuthenticationRequest() => throw new NotImplementedException();
+        protected internal virtual Query GetAuthenticationRequest() => throw new NotImplementedException();
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
@@ -474,7 +461,7 @@ namespace CryptoExchange.Net
         /// Process an unhandled message
         /// </summary>
         /// <param name="message">The message that wasn't processed</param>
-        protected virtual void HandleUnhandledMessage(BaseParsedMessage message)
+        protected virtual void HandleUnhandledMessage(SocketMessage message)
         {
         }
 
@@ -538,7 +525,7 @@ namespace CryptoExchange.Net
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
         /// <param name="callback">The callback for processing the response</param>
-        protected virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, BaseQuery> queryDelegate, Action<CallResult>? callback)
+        protected virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));
@@ -686,7 +673,7 @@ namespace CryptoExchange.Net
                     sb.AppendLine($"      Id: {subscription.Id}");
                     sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
                     sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
-                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.StreamIdentifiers)}]");
+                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.ListenerIdentifiers)}]");
                 }
             }
             return sb.ToString();
@@ -708,5 +695,20 @@ namespace CryptoExchange.Net
             semaphoreSlim?.Dispose();
             base.Dispose();
         }
+
+        /// <summary>
+        /// Get the listener identifier for the message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract string GetListenerIdentifier(SocketMessage message);
+
+        /// <summary>
+        /// Preprocess a stream message
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public virtual Stream PreprocessStreamMessage(WebSocketMessageType type, Stream stream) => stream;
     }
 }

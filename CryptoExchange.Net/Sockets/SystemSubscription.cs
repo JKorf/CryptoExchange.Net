@@ -22,26 +22,37 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override BaseQuery? GetSubQuery(SocketConnection connection) => null;
+        public override Query? GetSubQuery(SocketConnection connection) => null;
 
         /// <inheritdoc />
-        public override BaseQuery? GetUnsubQuery() => null;
+        public override Query? GetUnsubQuery() => null;
     }
 
+    /// <inheritdoc />
     public abstract class SystemSubscription<T> : SystemSubscription
     {
-        public override Dictionary<string, Type> TypeMapping => new Dictionary<string, Type>
-        {
-            { "", typeof(T) }
-        };
+        /// <inheritdoc />
+        public override Type GetMessageType(SocketMessage message) => typeof(T);
 
-        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<BaseParsedMessage> message)
-            => HandleMessageAsync(connection, message.As((ParsedMessage<T>)message.Data));
+        /// <inheritdoc />
+        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message)
+            => HandleMessageAsync(connection, message.As((T)message.Data));
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="authenticated"></param>
         protected SystemSubscription(ILogger logger, bool authenticated) : base(logger, authenticated)
         {
         }
 
-        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<ParsedMessage<T>> message);
+        /// <summary>
+        /// Handle an update message
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<T> message);
     }
 }

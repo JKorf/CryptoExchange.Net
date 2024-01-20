@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             var bytes = Parameters.Encoding.GetBytes(data);
-            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {id} - Adding {bytes.Length} bytes to send buffer");
+            _logger.Log(LogLevel.Trace, $"Socket {Id} msg {id} - Adding {bytes.Length} bytes to send buffer");
             _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
             _sendEvent.Set();
         }
@@ -415,7 +415,7 @@ namespace CryptoExchange.Net.Sockets
                                 if (limitResult.Success)
                                 {
                                     if (limitResult.Data > 0)
-                                        _logger.Log(LogLevel.Debug, $"Socket {Id} - msg {data.Id} - send delayed {limitResult.Data}ms because of rate limit");
+                                        _logger.Log(LogLevel.Debug, $"Socket {Id} msg {data.Id} - send delayed {limitResult.Data}ms because of rate limit");
                                 }
                             }
                         }
@@ -424,7 +424,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
                             await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} - msg {data.Id} - sent {data.Bytes.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"Socket {Id} msg {data.Id} - sent {data.Bytes.Length} bytes");
                         }
                         catch (OperationCanceledException)
                         {
@@ -447,13 +447,13 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                _logger.Log(LogLevel.Warning, $"Socket {Id} Send loop stopped with exception");
+                _logger.Log(LogLevel.Warning, $"Socket {Id} send loop stopped with exception");
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} Send loop finished");
+                _logger.Log(LogLevel.Debug, $"Socket {Id} send loop finished");
             }
         }
 
@@ -570,22 +570,30 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
-                _logger.Log(LogLevel.Warning, $"Socket {Id} Receive loop stopped with exception");
+                _logger.Log(LogLevel.Warning, $"Socket {Id} receive loop stopped with exception");
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} Receive loop finished");
+                _logger.Log(LogLevel.Debug, $"Socket {Id} receive loop finished");
             }
         }
 
+        /// <summary>
+        /// Proccess a stream message
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         protected async Task ProcessData(WebSocketMessageType type, Stream stream)
         {
             LastActionTime = DateTime.UtcNow;
             stream.Position = 0;
+
             if (Parameters.Interceptor != null)
                 stream = Parameters.Interceptor.Invoke(stream);
+
             if (OnStreamMessage != null)
                 await OnStreamMessage.Invoke(type, stream).ConfigureAwait(false);
         }
@@ -596,7 +604,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected async Task CheckTimeoutAsync()
         {
-            _logger.Log(LogLevel.Debug, $"Socket {Id} Starting task checking for no data received for {Parameters.Timeout}");
+            _logger.Log(LogLevel.Debug, $"Socket {Id} starting task checking for no data received for {Parameters.Timeout}");
             LastActionTime = DateTime.UtcNow;
             try 
             { 
@@ -607,7 +615,7 @@ namespace CryptoExchange.Net.Sockets
 
                     if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
                     {
-                        _logger.Log(LogLevel.Warning, $"Socket {Id} No data received for {Parameters.Timeout}, reconnecting socket");
+                        _logger.Log(LogLevel.Warning, $"Socket {Id} no data received for {Parameters.Timeout}, reconnecting socket");
                         _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }
