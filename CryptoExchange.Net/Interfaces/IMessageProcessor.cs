@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -30,8 +31,15 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Get the type the message should be deserialized to
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="messageAccessor"></param>
         /// <returns></returns>
-        Type? GetMessageType(SocketMessage message);
+        Type? GetMessageType(IMessageAccessor messageAccessor);
+        /// <summary>
+        /// Deserialize a message int oobject of type
+        /// </summary>
+        /// <param name="accessor"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        object Deserialize(IMessageAccessor accessor, Type type);
     }
 }

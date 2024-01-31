@@ -116,9 +116,9 @@ namespace CryptoExchange.Net
 
                 var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[{result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[{result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -170,9 +170,9 @@ namespace CryptoExchange.Net
 
                 var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[{result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[{result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -224,7 +224,7 @@ namespace CryptoExchange.Net
                     var syncTimeResult = await syncTask.ConfigureAwait(false);
                     if (!syncTimeResult)
                     {
-                        _logger.Log(LogLevel.Debug, $"[{requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
+                        _logger.Log(LogLevel.Debug, $"[Req {requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
                         return syncTimeResult.As<IRequest>(default);
                     }
                 }
@@ -242,11 +242,11 @@ namespace CryptoExchange.Net
 
             if (signed && AuthenticationProvider == null)
             {
-                _logger.Log(LogLevel.Warning, $"[{requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
+                _logger.Log(LogLevel.Warning, $"[Req {requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
                 return new CallResult<IRequest>(new NoApiCredentialsError());
             }
 
-            _logger.Log(LogLevel.Information, $"[{requestId}] Creating request for " + uri);
+            _logger.Log(LogLevel.Information, $"[Req {requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
             var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestBodyFormat ?? this.requestBodyFormat, requestId, additionalHeaders);
 
@@ -259,7 +259,7 @@ namespace CryptoExchange.Net
                 paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
 
             TotalRequestsMade++;
-            _logger.Log(LogLevel.Trace, $"[{requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}");
+            _logger.Log(LogLevel.Trace, $"[Req {requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}");
             return new CallResult<IRequest>(request);
         }
 

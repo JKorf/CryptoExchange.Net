@@ -18,6 +18,17 @@
         }
 
         /// <summary>
+        /// Add a property name node accessor
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static MessagePath PropertyName(this MessagePath path)
+        {
+            path.Add(NodeAccessor.PropertyName());
+            return path;
+        }
+
+        /// <summary>
         /// Add a int node accessor
         /// </summary>
         /// <param name="path"></param>

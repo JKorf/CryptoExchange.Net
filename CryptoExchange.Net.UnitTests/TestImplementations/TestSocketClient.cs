@@ -7,6 +7,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -89,35 +90,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return ConnectSocketAsync(sub).Result;
         }
 
-        protected internal override bool HandleQueryResponse<T>(SocketConnection s, object request, JToken data, out CallResult<T> callResult)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override bool HandleSubscriptionResponse(SocketConnection s, SocketSubscription subscription, object request, JToken message,
-            out CallResult<object> callResult)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, object request)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override bool MessageMatchesHandler(SocketConnection s, JToken message, string identifier)
-        {
-            return true;
-        }
-
-        protected internal override Task<CallResult<bool>> AuthenticateSocketAsync(SocketConnection s)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override Task<bool> UnsubscribeAsync(SocketConnection connection, SocketSubscription s)
-        {
-            throw new NotImplementedException();
-        }
+        public override string GetListenerIdentifier(IMessageAccessor messageAccessor) => "topic";
     }
 }

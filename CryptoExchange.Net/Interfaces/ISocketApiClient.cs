@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The factory for creating sockets. Used for unit testing
         /// </summary>
-        IWebsocketFactory SocketFactory { get; }
+        IWebsocketFactory SocketFactory { get; set; }
         /// <summary>
         /// Current client options
         /// </summary>

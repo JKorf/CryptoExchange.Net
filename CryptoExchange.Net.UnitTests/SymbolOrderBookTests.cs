@@ -14,13 +14,13 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture]
     public class SymbolOrderBookTests
     {
-        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions();
+        private static readonly OrderBookOptions _defaultOrderBookOptions = new OrderBookOptions();
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
             public TestableSymbolOrderBook() : base(null, "Test", "BTC/USD")
             {
-                Initialize(defaultOrderBookOptions);
+                Initialize(_defaultOrderBookOptions);
             }
 
 

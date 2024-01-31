@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Objects;
 using System.Net.WebSockets;
@@ -12,6 +11,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
 using System.Diagnostics;
 using CryptoExchange.Net.Sockets.MessageParsing;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -48,12 +48,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Unhandled message event
         /// </summary>
-        public event Action<SocketMessage>? UnhandledMessage;
-
-        /// <summary>
-        /// Unparsed message event
-        /// </summary>
-        public event Action<byte[]>? UnparsedMessage; // TODO not linked up
+        public event Action<IMessageAccessor>? UnhandledMessage;
 
         /// <summary>
         /// The amount of subscriptions on this connection
@@ -135,7 +130,7 @@ namespace CryptoExchange.Net.Sockets
                 if (_pausedActivity != value)
                 {
                     _pausedActivity = value;
-                    _logger.Log(LogLevel.Information, $"Socket {SocketId} paused activity: " + value);
+                    _logger.Log(LogLevel.Information, $"[Sckt {SocketId}] paused activity: " + value);
                     if(_pausedActivity) _ = Task.Run(() => ActivityPaused?.Invoke());
                     else _ = Task.Run(() => ActivityUnpaused?.Invoke());
                 }
@@ -155,7 +150,7 @@ namespace CryptoExchange.Net.Sockets
 
                 var oldStatus = _status;
                 _status = value;
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} status changed from {oldStatus} to {_status}");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] status changed from {oldStatus} to {_status}");
             }
         }
 
@@ -164,6 +159,9 @@ namespace CryptoExchange.Net.Sockets
         private readonly List<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
         private SocketStatus _status;
+
+        private IMessageSerializer _serializer;
+        private IMessageAccessor _accessor;
 
         /// <summary>
         /// The underlying websocket
@@ -196,6 +194,9 @@ namespace CryptoExchange.Net.Sockets
 
             _listenersLock = new object();
             _listeners = new List<IMessageProcessor>();
+
+            _serializer = new JsonNetSerializer();
+            _accessor = new JsonNetMessageAccessor();
         }
 
         /// <summary>
@@ -221,7 +222,7 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var subscription in _listeners.OfType<Subscription>())
                     subscription.Confirmed = false;
 
-                foreach (var query in _listeners.OfType<Query>())
+                foreach (var query in _listeners.OfType<Query>().ToList())
                 {
                     query.Fail("Connection interupted");
                     _listeners.Remove(query);
@@ -246,7 +247,7 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var subscription in _listeners.OfType<Subscription>())
                     subscription.Confirmed = false;
 
-                foreach (var query in _listeners.OfType<Query>())
+                foreach (var query in _listeners.OfType<Query>().ToList())
                 {
                     query.Fail("Connection interupted");
                     _listeners.Remove(query);
@@ -275,7 +276,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var query in _listeners.OfType<Query>())
+                foreach (var query in _listeners.OfType<Query>().ToList())
                 {
                     query.Fail("Connection interupted");
                     _listeners.Remove(query);
@@ -288,7 +289,7 @@ namespace CryptoExchange.Net.Sockets
                 var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
                 if (!reconnectSuccessful)
                 {
-                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
+                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
                     _ = _socket.ReconnectAsync().ConfigureAwait(false);
                 }
                 else
@@ -312,9 +313,9 @@ namespace CryptoExchange.Net.Sockets
         protected virtual Task HandleErrorAsync(Exception e)
         {
             if (e is WebSocketException wse)
-                _logger.Log(LogLevel.Warning, $"Socket {SocketId} error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
+                _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
             else
-                _logger.Log(LogLevel.Warning, $"Socket {SocketId} error: " + e.ToLogString());
+                _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] error: " + e.ToLogString());
 
             return Task.CompletedTask;
         }
@@ -333,7 +334,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (query == null)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} msg {requestId} - message sent, but not pending");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] msg {requestId} - message sent, but not pending");
                 return Task.CompletedTask;
             }
 
@@ -350,77 +351,106 @@ namespace CryptoExchange.Net.Sockets
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
             var sw = Stopwatch.StartNew();
+            var receiveTime = DateTime.UtcNow;
+            string? originalData = null;
 
             // 1. Decrypt/Preprocess if necessary
             stream = ApiClient.PreprocessStreamMessage(type, stream);
 
             // 2. Read data into accessor
-            var messageData = new JsonNetMessageData(stream); // TODO if we let the implementation create this we can switch per implementation
-            var message = new SocketMessage(DateTime.UtcNow, messageData);
+            _accessor.Load(stream);
             if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
             {
                 stream.Position = 0;
                 using var textReader = new StreamReader(stream, Encoding.UTF8, false, 1024, true);
-                message.RawData = textReader.ReadToEnd();
+                originalData = textReader.ReadToEnd();
 
-                _logger.LogTrace("Socket {SocketId} received {Data}", SocketId, message.RawData);
+                _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
             }
 
             // 3. Determine the subscription interested in the messsage
-            var listenId = ApiClient.GetListenerIdentifier(message);
+            var listenId = ApiClient.GetListenerIdentifier(_accessor);
+            if (listenId == null)
+            {
+                if (!ApiClient.UnhandledMessageExpected)
+                    _logger.LogWarning("[Sckt {SocketId}] failed to evaluate message", SocketId);
 
+                UnhandledMessage?.Invoke(_accessor);
+                stream.Dispose();
+                return;
+            }
+
+            // 4. Get the listeners interested in this message
             List<IMessageProcessor> processors;
             lock(_listenersLock)
                 processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
 
             if (!processors.Any())
             {
-                _logger.LogWarning("Socket {SocketId} received message not matched to any processor", SocketId);
-                UnhandledMessage?.Invoke(message);
+                if (!ApiClient.UnhandledMessageExpected)
+                {
+                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any processor. ListenId: {ListenId}", SocketId, listenId);
+                    UnhandledMessage?.Invoke(_accessor);
+                }
+
+                stream.Dispose();
                 return;
             }
 
-            _logger.LogTrace("Socket {SocketId} {Count} processors matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
+            _logger.LogTrace("[Sckt {SocketId}] {Count} processors matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
             var totalUserTime = 0;
+            Dictionary<Type, object>? desCache = null;
+            if (processors.Count > 1)
+            {
+                // Only instantiate a cache if there are multiple processors
+                desCache = new Dictionary<Type, object>();
+            }
+
             foreach (var processor in processors)
             {
-                // 4. Determine the type to deserialize to
-                var messageType = processor.GetMessageType(message);
+                // 5. Determine the type to deserialize to for this processor
+                var messageType = processor.GetMessageType(_accessor);
                 if (messageType == null)
                 {
-                    _logger.LogWarning("Socket {SocketId} received message not recognized by handler {Id}", SocketId, processor.Id);
+                    _logger.LogWarning("[Sckt {SocketId}] received message not recognized by handler {Id}", SocketId, processor.Id);
                     continue;
                 }
 
-                // 5. Deserialize the message
-                object deserialized;
-                try
+                // 6. Deserialize the message
+                object? deserialized = null;
+                desCache?.TryGetValue(messageType, out deserialized);
+
+                if (deserialized == null)
                 {
-                    deserialized = message.Deserialize(messageType);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("Socket {SocketId} failed to deserialize message to type {Type}: {Exception}", SocketId, messageType.Name, ex.ToLogString());
-                    continue;
+                    try
+                    {
+                        deserialized = processor.Deserialize(_accessor, messageType);
+                        desCache?.Add(messageType, deserialized);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning("[Sckt {SocketId}] failed to deserialize message to type {Type}: {Exception}", SocketId, messageType.Name, ex.ToLogString());
+                        continue;
+                    }
                 }
 
-                // 6. Hand of the message to the subscription
+                // 7. Hand of the message to the subscription
                 try
                 {
                     var innerSw = Stopwatch.StartNew();
-                    await processor.HandleAsync(this, new DataEvent<object>(deserialized, null, message.RawData, message.ReceiveTime, null)).ConfigureAwait(false);
+                    await processor.HandleAsync(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null)).ConfigureAwait(false);
                     totalUserTime += (int)innerSw.ElapsedMilliseconds;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning("Socket {SocketId} user message processing failed: {Exception}", SocketId, ex.ToLogString());
+                    _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, ex.ToLogString());
                     if (processor is Subscription subscription)
                         subscription.InvokeExceptionHandler(ex);
                 }
             }
 
             stream.Dispose();
-            _logger.LogTrace($"Socket {SocketId} message processed in {(int)sw.ElapsedMilliseconds}ms ({totalUserTime - sw.ElapsedMilliseconds}ms parsing)");
+            _logger.LogTrace($"[Sckt {SocketId}] message processed in {(int)sw.ElapsedMilliseconds}ms ({sw.ElapsedMilliseconds - totalUserTime}ms parsing)");
         }
 
         /// <summary>
@@ -474,27 +504,36 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task CloseAsync(Subscription subscription, bool unsubEvenIfNotConfirmed = false)
         {
-            lock (_listenersLock)
-            {
-                if (!_listeners.Contains(subscription))
-                    return;
-            }
-
             subscription.Closed = true;
 
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            _logger.Log(LogLevel.Debug, $"Socket {SocketId} closing subscription {subscription.Id}");
+            _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] closing subscription {subscription.Id}");
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            if ((unsubEvenIfNotConfirmed || subscription.Confirmed) && _socket.IsOpen)
-                await UnsubscribeAsync(subscription).ConfigureAwait(false);
+            bool anyDuplicateSubscription;
+            lock (_listenersLock)
+                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.ListenerIdentifiers.All(l => subscription.ListenerIdentifiers.Contains(l)));
+            
+            if (!anyDuplicateSubscription)
+            {
+                bool needUnsub;
+                lock (_listenersLock)
+                    needUnsub = _listeners.Contains(subscription);
+
+                if (needUnsub && (unsubEvenIfNotConfirmed || subscription.Confirmed) && _socket.IsOpen)
+                    await UnsubscribeAsync(subscription).ConfigureAwait(false);
+            }
+            else
+            {
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] not unsubscribing subscription as there is still a duplicate subscription running");
+            }
 
             if (Status == SocketStatus.Closing)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} already closing");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] already closing");
                 return;
             }
 
@@ -508,7 +547,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (shouldCloseConnection)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} closing as there are no more subscriptions");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] closing as there are no more subscriptions");
                 await CloseAsync().ConfigureAwait(false);
             }
 
@@ -544,7 +583,7 @@ namespace CryptoExchange.Net.Sockets
                 _listeners.Add(subscription);
 
             if (subscription.UserSubscription)
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} adding new subscription with id {subscription.Id}, total subscriptions on connection: {UserSubscriptionCount}");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] adding new subscription with id {subscription.Id}, total subscriptions on connection: {UserSubscriptionCount}");
             return true;
         }
 
@@ -572,11 +611,11 @@ namespace CryptoExchange.Net.Sockets
         /// Send a query request and wait for an answer
         /// </summary>
         /// <param name="query">Query to send</param>
-        /// <param name="onFinished">Action to run when query finishes</param>
+        /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, Action? onFinished = null)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null)
         {
-            await SendAndWaitIntAsync(query, onFinished).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
             return query.Result ?? new CallResult(new ServerError("Timeout"));
         }
 
@@ -585,42 +624,52 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <typeparam name="T">Query response type</typeparam>
         /// <param name="query">Query to send</param>
-        /// <param name="onFinished">Action to run when query finishes</param>
+        /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query, Action? onFinished = null)
+        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query, AsyncResetEvent? continueEvent = null)
         {
-            await SendAndWaitIntAsync(query, onFinished).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<T>(new ServerError("Timeout"));
         }
 
-        private async Task SendAndWaitIntAsync(Query query, Action? onFinished)
+        private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent)
         {
             lock(_listenersLock)
                 _listeners.Add(query);
 
+            query.ContinueAwaiter = continueEvent;
             var sendOk = Send(query.Id, query.Request, query.Weight);
             if (!sendOk)
             {
                 query.Fail("Failed to send");
+                lock (_listenersLock)
+                    _listeners.Remove(query);
                 return;
             }
 
-            query.OnFinished = onFinished;
-            while (true)
+            try
             {
-                if (!_socket.IsOpen)
+                while (true)
                 {
-                    query.Fail("Socket not open");
-                    return;
+                    if (!_socket.IsOpen)
+                    {
+                        query.Fail("Socket not open");
+                        return;
+                    }
+
+                    if (query.Completed)
+                        return;
+
+                    await query.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    if (query.Completed)
+                        return;
                 }
-
-                if (query.Completed)
-                    return;
-
-                await query.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-
-                if (query.Completed)
-                    return;
+            }
+            finally
+            {
+                lock (_listenersLock)
+                    _listeners.Remove(query);
             }
         }
 
@@ -630,14 +679,13 @@ namespace CryptoExchange.Net.Sockets
         /// <typeparam name="T">The type of the object to send</typeparam>
         /// <param name="requestId">The request id</param>
         /// <param name="obj">The object to send</param>
-        /// <param name="nullValueHandling">How null values should be serialized</param>
         /// <param name="weight">The weight of the message</param>
-        public virtual bool Send<T>(int requestId, T obj, int weight, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        public virtual bool Send<T>(int requestId, T obj, int weight)
         {
             if(obj is string str)
                 return Send(requestId, str, weight);
             else
-                return Send(requestId, JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings { NullValueHandling = nullValueHandling }), weight);
+                return Send(requestId, _serializer.Serialize(obj!), weight);
         }
 
         /// <summary>
@@ -648,7 +696,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">The id of the request</param>
         public virtual bool Send(int requestId, string data, int weight)
         {
-            _logger.Log(LogLevel.Trace, $"Socket {SocketId} msg {requestId} - sending messsage: {data}");
+            _logger.Log(LogLevel.Trace, $"[Sckt {SocketId}] msg {requestId} - sending messsage: {data}");
             try
             {
                 _socket.Send(requestId, data, weight);
@@ -671,7 +719,7 @@ namespace CryptoExchange.Net.Sockets
             if (!anySubscriptions)
             {
                 // No need to resubscribe anything
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} nothing to resubscribe, closing connection");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] nothing to resubscribe, closing connection");
                 _ = _socket.CloseAsync();
                 return new CallResult<bool>(true);
             }
@@ -685,12 +733,12 @@ namespace CryptoExchange.Net.Sockets
                 var authResult = await ApiClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
                 if (!authResult)
                 {
-                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} authentication failed on reconnected socket. Disconnecting and reconnecting.");
+                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] authentication failed on reconnected socket. Disconnecting and reconnecting.");
                     return authResult;
                 }
 
                 Authenticated = true;
-                _logger.Log(LogLevel.Debug, $"Socket {SocketId} authentication succeeded on reconnected socket.");
+                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] authentication succeeded on reconnected socket.");
             }
 
             // Get a list of all subscriptions on the socket
@@ -704,7 +752,7 @@ namespace CryptoExchange.Net.Sockets
                 var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
                 if (!result)
                 {
-                    _logger.Log(LogLevel.Warning, $"Socket {SocketId} failed request revitalization: " + result.Error);
+                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed request revitalization: " + result.Error);
                     return result.As(false);
                 }
             }
@@ -721,10 +769,13 @@ namespace CryptoExchange.Net.Sockets
                     var subQuery = subscription.GetSubQuery(this);
                     if (subQuery == null)
                         continue;
-                                
-                    taskList.Add(SendAndWaitQueryAsync(subQuery, () => 
-                    {
+
+                    var waitEvent = new AsyncResetEvent(false);
+                    taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
+                    { 
                         subscription.HandleSubQueryResponse(subQuery.Response!);
+                        waitEvent.Set();
+                        return r.Result;
                     }));
                 }
 
@@ -739,7 +790,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult<bool>(new WebError("Socket not connected"));
 
-            _logger.Log(LogLevel.Debug, $"Socket {SocketId} all subscription successfully resubscribed on reconnected socket.");
+            _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] all subscription successfully resubscribed on reconnected socket.");
             return new CallResult<bool>(true);
         }
 
@@ -750,7 +801,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
-            _logger.Log(LogLevel.Information, $"Socket {SocketId} subscription {subscription!.Id} unsubscribed");
+            _logger.Log(LogLevel.Information, $"[Sckt {SocketId}] subscription {subscription!.Id} unsubscribed");
         }
 
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)

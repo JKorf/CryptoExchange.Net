@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -74,7 +75,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Type? GetMessageType(SocketMessage message);
+        public abstract Type? GetMessageType(IMessageAccessor message);
 
         /// <summary>
         /// ctor
@@ -113,6 +114,9 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <returns></returns>
         public abstract Query? GetUnsubQuery();
+
+        /// <inheritdoc />
+        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
 
         /// <summary>
         /// Handle an update message

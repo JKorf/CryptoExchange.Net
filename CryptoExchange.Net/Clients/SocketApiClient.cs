@@ -3,12 +3,15 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -56,15 +59,14 @@ namespace CryptoExchange.Net
         protected AsyncResetEvent? periodicEvent;
 
         /// <summary>
-        /// If true; data which is a response to a query will also be distributed to subscriptions
-        /// If false; data which is a response to a query won't get forwarded to subscriptions as well
-        /// </summary>
-        protected internal bool ContinueOnQueryResponse { get; protected set; }
-
-        /// <summary>
         /// If a message is received on the socket which is not handled by a handler this boolean determines whether this logs an error message
         /// </summary>
         protected internal bool UnhandledMessageExpected { get; set; }
+
+        /// <summary>
+        /// If true a subscription will accept message before the confirmation of a subscription has been received
+        /// </summary>
+        protected bool HandleMessageBeforeConfirmation { get; set; }
 
         /// <summary>
         /// The rate limiters 
@@ -181,7 +183,7 @@ namespace CryptoExchange.Net
                     var success = socketConnection.CanAddSubscription();
                     if (!success)
                     {
-                        _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} failed to add subscription, retrying on different connection");
+                        _logger.Log(LogLevel.Trace, $"[Sckt {socketConnection.SocketId}] failed to add subscription, retrying on different connection");
                         continue;
                     }
 
@@ -209,18 +211,23 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't subscribe at this moment");
+                _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] has been paused, can't subscribe at this moment");
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
+            var waitEvent = new AsyncResetEvent(false);
             var subQuery = subscription.GetSubQuery(socketConnection);
             if (subQuery != null)
             {
+                if (HandleMessageBeforeConfirmation)
+                    socketConnection.AddSubscription(subscription);
+
                 // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent).ConfigureAwait(false);
                 if (!subResult)
                 {
-                    _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} failed to subscribe: {subResult.Error}");
+                    waitEvent?.Set();
+                    _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] failed to subscribe: {subResult.Error}");                    
                     // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
                     var unsubscribe = subResult.Error is CancellationRequestedError;
                     await socketConnection.CloseAsync(subscription, unsubscribe).ConfigureAwait(false);
@@ -236,13 +243,16 @@ namespace CryptoExchange.Net
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
                 {
-                    _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} Cancellation token set, closing subscription {subscription.Id}");
+                    _logger.Log(LogLevel.Information, $"[Sckt {socketConnection.SocketId}] Cancellation token set, closing subscription {subscription.Id}");
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
 
-            socketConnection.AddSubscription(subscription);
-            _logger.Log(LogLevel.Information, $"Socket {socketConnection.SocketId} subscription {subscription.Id} completed successfully");
+            if (!HandleMessageBeforeConfirmation)
+                socketConnection.AddSubscription(subscription);
+
+            waitEvent?.Set();
+            _logger.Log(LogLevel.Information, $"[Sckt {socketConnection.SocketId}] subscription {subscription.Id} completed successfully");
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -299,7 +309,7 @@ namespace CryptoExchange.Net
 
             if (socketConnection.PausedActivity)
             {
-                _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} has been paused, can't send query at this moment");
+                _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] has been paused, can't send query at this moment");
                 return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
@@ -340,21 +350,24 @@ namespace CryptoExchange.Net
             if (AuthenticationProvider == null)
                 return new CallResult<bool>(new NoApiCredentialsError());
 
-            _logger.Log(LogLevel.Debug, $"Socket {socket.SocketId} Attempting to authenticate");
+            _logger.Log(LogLevel.Debug, $"[Sckt {socket.SocketId}] Attempting to authenticate");
             var authRequest = GetAuthenticationRequest();
-            var result = await socket.SendAndWaitQueryAsync(authRequest).ConfigureAwait(false);
-
-            if (!result)
+            if (authRequest != null)
             {
-                _logger.Log(LogLevel.Warning, $"Socket {socket.SocketId} authentication failed");
-                if (socket.Connected)
-                    await socket.CloseAsync().ConfigureAwait(false);
+                var result = await socket.SendAndWaitQueryAsync(authRequest).ConfigureAwait(false);
 
-                result.Error!.Message = "Authentication failed: " + result.Error.Message;
-                return new CallResult<bool>(result.Error)!;
+                if (!result)
+                {
+                    _logger.Log(LogLevel.Warning, $"[Sckt {socket.SocketId}] authentication failed");
+                    if (socket.Connected)
+                        await socket.CloseAsync().ConfigureAwait(false);
+
+                    result.Error!.Message = "Authentication failed: " + result.Error.Message;
+                    return new CallResult<bool>(result.Error)!;
+                }
             }
 
-            _logger.Log(LogLevel.Debug, $"Socket {socket.SocketId} authenticated");
+            _logger.Log(LogLevel.Debug, $"[Sckt {socket.SocketId}] authenticated");
             socket.Authenticated = true;
             return new CallResult<bool>(true);
         }
@@ -363,7 +376,7 @@ namespace CryptoExchange.Net
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual Query GetAuthenticationRequest() => throw new NotImplementedException();
+        protected internal virtual Query? GetAuthenticationRequest() => throw new NotImplementedException();
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
@@ -443,7 +456,6 @@ namespace CryptoExchange.Net
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
-            socketConnection.UnparsedMessage += HandleUnparsedMessage;
 
             foreach (var systemSubscription in systemSubscriptions)
                 socketConnection.AddSubscription(systemSubscription);
@@ -455,15 +467,7 @@ namespace CryptoExchange.Net
         /// Process an unhandled message
         /// </summary>
         /// <param name="message">The message that wasn't processed</param>
-        protected virtual void HandleUnhandledMessage(SocketMessage message)
-        {
-        }
-
-        /// <summary>
-        /// Process an unparsed message
-        /// </summary>
-        /// <param name="message">The message that wasn't parsed</param>
-        protected virtual void HandleUnparsedMessage(byte[] message)
+        protected virtual void HandleUnhandledMessage(IMessageAccessor message)
         {
         }
 
@@ -507,7 +511,7 @@ namespace CryptoExchange.Net
         protected virtual IWebsocket CreateSocket(string address)
         {
             var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
-            _logger.Log(LogLevel.Debug, $"Socket {socket.Id} new socket created for " + address);
+            _logger.Log(LogLevel.Debug, $"[Sckt {socket.Id}] created for " + address);
             return socket;
         }
 
@@ -547,7 +551,7 @@ namespace CryptoExchange.Net
                         if (query == null)
                             continue;
 
-                        _logger.Log(LogLevel.Trace, $"Socket {socketConnection.SocketId} sending periodic {identifier}");
+                        _logger.Log(LogLevel.Trace, $"[Sckt {socketConnection.SocketId}] sending periodic {identifier}");
 
                         try
                         {
@@ -556,7 +560,7 @@ namespace CryptoExchange.Net
                         }
                         catch (Exception ex)
                         {
-                            _logger.Log(LogLevel.Warning, $"Socket {socketConnection.SocketId} Periodic send {identifier} failed: " + ex.ToLogString());
+                            _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] Periodic send {identifier} failed: " + ex.ToLogString());
                         }
                     }
                 }
@@ -585,7 +589,7 @@ namespace CryptoExchange.Net
             if (subscription == null || connection == null)
                 return false;
 
-            _logger.Log(LogLevel.Information, $"Socket {connection.SocketId} Unsubscribing subscription " + subscriptionId);
+            _logger.Log(LogLevel.Information, $"[Sckt {connection.SocketId}] unsubscribing subscription " + subscriptionId);
             await connection.CloseAsync(subscription).ConfigureAwait(false);
             return true;
         }
@@ -600,7 +604,7 @@ namespace CryptoExchange.Net
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            _logger.Log(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
+            _logger.Log(LogLevel.Information, $"[Sckt {subscription.SocketId}] Unsubscribing subscription  " + subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
@@ -692,9 +696,9 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Get the listener identifier for the message
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="messageAccessor"></param>
         /// <returns></returns>
-        public abstract string GetListenerIdentifier(SocketMessage message);
+        public abstract string? GetListenerIdentifier(IMessageAccessor messageAccessor);
 
         /// <summary>
         /// Preprocess a stream message

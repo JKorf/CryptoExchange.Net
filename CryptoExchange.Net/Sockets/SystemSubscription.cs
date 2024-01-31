@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace CryptoExchange.Net.Sockets
     public abstract class SystemSubscription<T> : SystemSubscription
     {
         /// <inheritdoc />
-        public override Type GetMessageType(SocketMessage message) => typeof(T);
+        public override Type GetMessageType(IMessageAccessor message) => typeof(T);
 
         /// <inheritdoc />
         public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message)

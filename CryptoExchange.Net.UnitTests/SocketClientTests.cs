@@ -1,11 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 using CryptoExchange.Net.UnitTests.TestImplementations;
+using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -46,7 +52,7 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public void SocketMessages_Should_BeProcessedInDataHandlers()
+        public async Task SocketMessages_Should_BeProcessedInDataHandlers()
         {
             // arrange
             var client = new TestSocketClient(options => {
@@ -58,28 +64,31 @@ namespace CryptoExchange.Net.UnitTests
             socket.DisconnectTime = DateTime.UtcNow;
             var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
             var rstEvent = new ManualResetEvent(false);
-            JToken result = null;
-            sub.AddSubscription(SocketSubscription.CreateForIdentifier(10, "TestHandler", true, false, (messageEvent) =>
-            {
-                result = messageEvent.JsonData;
-                rstEvent.Set();
-            }));
+            Dictionary<string, string> result = null;
+
             client.SubClient.ConnectSocketSub(sub);
 
+            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
+            {
+                result = messageEvent.Data;
+                rstEvent.Set();
+            }));
+
             // act
-            socket.InvokeMessage("{\"property\": 123}");
+            await socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue((int)result["property"] == 123);
+            Assert.IsTrue(result["property"] == "123");
         }
 
         [TestCase(false)]
         [TestCase(true)]
-        public void SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
+        public async Task SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
         {
             // arrange
-            var client = new TestSocketClient(options => {
+            var client = new TestSocketClient(options =>
+            {
                 options.ReconnectInterval = TimeSpan.Zero;
                 options.SubOptions.OutputOriginalData = enabled;
             });
@@ -90,15 +99,16 @@ namespace CryptoExchange.Net.UnitTests
             var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
             var rstEvent = new ManualResetEvent(false);
             string original = null;
-            sub.AddSubscription(SocketSubscription.CreateForIdentifier(10, "TestHandler", true, false, (messageEvent) =>
+
+            client.SubClient.ConnectSocketSub(sub);
+            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
             {
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
             }));
-            client.SubClient.ConnectSocketSub(sub);
 
             // act
-            socket.InvokeMessage("{\"property\": 123}");
+            await socket.InvokeMessage("{\"property\": 123}");
             rstEvent.WaitOne(1000);
 
             // assert
@@ -109,16 +119,18 @@ namespace CryptoExchange.Net.UnitTests
         public void UnsubscribingStream_Should_CloseTheSocket()
         {
             // arrange
-            var client = new TestSocketClient(options => {
+            var client = new TestSocketClient(options =>
+            {
                 options.ReconnectInterval = TimeSpan.Zero;
-            }); 
+            });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
             var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
             client.SubClient.ConnectSocketSub(sub);
-            var us = SocketSubscription.CreateForIdentifier(10, "Test", true, false, (e) => { });
-            var ups = new UpdateSubscription(sub, us);
-            sub.AddSubscription(us);
+
+            var subscription = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
+            var ups = new UpdateSubscription(sub, subscription);
+            sub.AddSubscription(subscription);
 
             // act
             client.UnsubscribeAsync(ups).Wait();
@@ -140,12 +152,13 @@ namespace CryptoExchange.Net.UnitTests
             var sub2 = new SocketConnection(new TraceLogger(), client.SubClient, socket2, null);
             client.SubClient.ConnectSocketSub(sub1);
             client.SubClient.ConnectSocketSub(sub2);
-            var us1 = SocketSubscription.CreateForIdentifier(10, "Test1", true, false, (e) => { });
-            var us2 = SocketSubscription.CreateForIdentifier(11, "Test2", true, false, (e) => { });
-            sub1.AddSubscription(us1);
-            sub2.AddSubscription(us2);
-            var ups1 = new UpdateSubscription(sub1, us1);
-            var ups2 = new UpdateSubscription(sub2, us2);
+            var subscription1 = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
+            var subscription2 = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
+
+            sub1.AddSubscription(subscription1);
+            sub2.AddSubscription(subscription2);
+            var ups1 = new UpdateSubscription(sub1, subscription1);
+            var ups2 = new UpdateSubscription(sub2, subscription2);
 
             // act
             client.UnsubscribeAllAsync().Wait();

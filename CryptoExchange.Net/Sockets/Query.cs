@@ -1,8 +1,10 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +43,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Action to execute when query is finished
         /// </summary>
-        public Action? OnFinished { get; set; }
+        public AsyncResetEvent? ContinueAwaiter { get; set; }
 
         /// <summary>
         /// Strings to match this query to a received message
@@ -68,7 +70,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Type GetMessageType(SocketMessage message);
+        public abstract Type? GetMessageType(IMessageAccessor message);
 
         /// <summary>
         /// Wait event for response
@@ -113,6 +115,9 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task WaitAsync(TimeSpan timeout) => await _event.WaitAsync(timeout).ConfigureAwait(false);
 
+        /// <inheritdoc />
+        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
+
         /// <summary>
         /// Mark request as timeout
         /// </summary>
@@ -141,7 +146,7 @@ namespace CryptoExchange.Net.Sockets
     public abstract class Query<TResponse> : Query
     {
         /// <inheritdoc />
-        public override Type GetMessageType(SocketMessage message) => typeof(TResponse);
+        public override Type? GetMessageType(IMessageAccessor message) => typeof(TResponse);
 
         /// <summary>
         /// The typed call result
@@ -164,8 +169,8 @@ namespace CryptoExchange.Net.Sockets
             Completed = true;
             Response = message.Data;
             Result = await HandleMessageAsync(connection, message.As((TResponse)message.Data)).ConfigureAwait(false);
-            OnFinished?.Invoke();
             _event.Set();
+            await (ContinueAwaiter?.WaitAsync() ?? Task.CompletedTask).ConfigureAwait(false);
             return Result;
         }
 
@@ -175,7 +180,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<TResponse> message) => Task.FromResult(new CallResult<TResponse>(message.Data));
+        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<TResponse> message) => Task.FromResult(new CallResult<TResponse>(message.Data, message.OriginalData, null));
 
         /// <inheritdoc />
         public override void Timeout()
@@ -184,8 +189,8 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             Completed = true;
-            Result = new CallResult<TResponse>(new CancellationRequestedError());
-            OnFinished?.Invoke();
+            Result = new CallResult<TResponse>(new CancellationRequestedError(null, "Query timeout", null));
+            ContinueAwaiter?.Set();
             _event.Set();
         }
 
@@ -194,7 +199,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Result = new CallResult<TResponse>(new ServerError(error));
             Completed = true;
-            OnFinished?.Invoke();
+            ContinueAwaiter?.Set();
             _event.Set();
         }
     }

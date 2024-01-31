@@ -183,7 +183,7 @@ namespace CryptoExchange.Net.Sockets
 
         private async Task<bool> ConnectInternalAsync()
         {
-            _logger.Log(LogLevel.Debug, $"Socket {Id} connecting");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] connecting");
             try
             {
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
@@ -191,11 +191,11 @@ namespace CryptoExchange.Net.Sockets
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} connection failed: " + e.ToLogString());
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] connection failed: " + e.ToLogString());
                 return false;
             }
 
-            _logger.Log(LogLevel.Debug, $"Socket {Id} connected to {Uri}");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] connected to {Uri}");
             return true;
         }
 
@@ -204,13 +204,13 @@ namespace CryptoExchange.Net.Sockets
         {
             while (!_stopRequested)
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} starting processing tasks");
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] starting processing tasks");
                 _processState = ProcessState.Processing;
                 var sendTask = SendLoopAsync();
                 var receiveTask = ReceiveLoopAsync();
                 var timeoutTask = Parameters.Timeout != null && Parameters.Timeout > TimeSpan.FromSeconds(0) ? CheckTimeoutAsync() : Task.CompletedTask;
                 await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
-                _logger.Log(LogLevel.Debug, $"Socket {Id} processing tasks finished");
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] processing tasks finished");
 
                 _processState = ProcessState.WaitingForClose;
                 while (_closeTask == null)
@@ -238,14 +238,14 @@ namespace CryptoExchange.Net.Sockets
 
                 while (!_stopRequested)
                 {
-                    _logger.Log(LogLevel.Debug, $"Socket {Id} attempting to reconnect");
+                    _logger.Log(LogLevel.Debug, $"[Sckt {Id}] attempting to reconnect");
                     var task = GetReconnectionUrl?.Invoke();
                     if (task != null)
                     {
                         var reconnectUri = await task.ConfigureAwait(false);
                         if (reconnectUri != null && Parameters.Uri != reconnectUri)
                         {
-                            _logger.Log(LogLevel.Debug, $"Socket {Id} reconnect URI set to {reconnectUri}");
+                            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] reconnect URI set to {reconnectUri}");
                             Parameters.Uri = reconnectUri;
                         }
                     }
@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             var bytes = Parameters.Encoding.GetBytes(data);
-            _logger.Log(LogLevel.Trace, $"Socket {Id} msg {id} - Adding {bytes.Length} bytes to send buffer");
+            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] msg {id} - Adding {bytes.Length} bytes to send buffer");
             _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
             _sendEvent.Set();
         }
@@ -289,7 +289,7 @@ namespace CryptoExchange.Net.Sockets
             if (_processState != ProcessState.Processing && IsOpen)
                 return;
 
-            _logger.Log(LogLevel.Debug, $"Socket {Id} reconnect requested");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] reconnect requested");
             _closeTask = CloseInternalAsync();
             await _closeTask.ConfigureAwait(false);
         }
@@ -304,18 +304,18 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (_closeTask?.IsCompleted == false)
                 {
-                    _logger.Log(LogLevel.Debug, $"Socket {Id} CloseAsync() waiting for existing close task");
+                    _logger.Log(LogLevel.Debug, $"[Sckt {Id}] CloseAsync() waiting for existing close task");
                     await _closeTask.ConfigureAwait(false);
                     return;
                 }
 
                 if (!IsOpen)
                 {
-                    _logger.Log(LogLevel.Debug, $"Socket {Id} CloseAsync() socket not open");
+                    _logger.Log(LogLevel.Debug, $"[Sckt {Id}] CloseAsync() socket not open");
                     return;
                 }
 
-                _logger.Log(LogLevel.Debug, $"Socket {Id} closing");
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] closing");
                 _closeTask = CloseInternalAsync();
             }
             finally
@@ -327,7 +327,7 @@ namespace CryptoExchange.Net.Sockets
             if(_processTask != null)
                 await _processTask.ConfigureAwait(false);
             await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
-            _logger.Log(LogLevel.Debug, $"Socket {Id} closed");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] closed");
         }
 
         /// <summary>
@@ -379,11 +379,11 @@ namespace CryptoExchange.Net.Sockets
             if (_disposed)
                 return;
 
-            _logger.Log(LogLevel.Debug, $"Socket {Id} disposing");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] disposing");
             _disposed = true;
             _socket.Dispose();
             _ctsSource.Dispose();
-            _logger.Log(LogLevel.Trace, $"Socket {Id} disposed");
+            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] disposed");
         }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace CryptoExchange.Net.Sockets
                                 if (limitResult.Success)
                                 {
                                     if (limitResult.Data > 0)
-                                        _logger.Log(LogLevel.Debug, $"Socket {Id} msg {data.Id} - send delayed {limitResult.Data}ms because of rate limit");
+                                        _logger.Log(LogLevel.Debug, $"[Sckt {Id}] msg {data.Id} - send delayed {limitResult.Data}ms because of rate limit");
                                 }
                             }
                         }
@@ -424,7 +424,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
                             await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} msg {data.Id} - sent {data.Bytes.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] msg {data.Id} - sent {data.Bytes.Length} bytes");
                         }
                         catch (OperationCanceledException)
                         {
@@ -447,13 +447,13 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the send processing, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
-                _logger.Log(LogLevel.Warning, $"Socket {Id} send loop stopped with exception");
+                _logger.Log(LogLevel.Warning, $"[Sckt {Id}] send loop stopped with exception");
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} send loop finished");
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] send loop finished");
             }
         }
 
@@ -501,7 +501,7 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed unexpectedly        
-                            _logger.Log(LogLevel.Debug, $"Socket {Id} received `Close` message");
+                            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] received `Close` message");
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
                             break;
@@ -512,7 +512,7 @@ namespace CryptoExchange.Net.Sockets
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
                             memoryStream ??= new MemoryStream();
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
                             await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                         }
                         else
@@ -520,13 +520,13 @@ namespace CryptoExchange.Net.Sockets
                             if (!multiPartMessage)
                             {
                                 // Received a complete message and it's not multi part
-                                _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in single message");
+                                _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in single message");
                                 await ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                             }
                             else
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
-                                _logger.Log(LogLevel.Trace, $"Socket {Id} received {receiveResult.Count} bytes in partial message");
+                                _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
                                 await memoryStream!.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                             }
                             break;
@@ -554,13 +554,13 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult?.EndOfMessage == true)
                         {
                             // Reassemble complete message from memory stream
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} reassembled message of {memoryStream!.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {memoryStream!.Length} bytes");
                             await ProcessData(receiveResult.MessageType, memoryStream).ConfigureAwait(false);
                             memoryStream.Dispose();
                         }
                         else
                         {
-                            _logger.Log(LogLevel.Trace, $"Socket {Id} discarding incomplete message of {memoryStream!.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {memoryStream!.Length} bytes");
                         }
                     }
                 }
@@ -570,13 +570,13 @@ namespace CryptoExchange.Net.Sockets
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
-                _logger.Log(LogLevel.Warning, $"Socket {Id} receive loop stopped with exception");
+                _logger.Log(LogLevel.Warning, $"[Sckt {Id}] receive loop stopped with exception");
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 throw;
             }
             finally
             {
-                _logger.Log(LogLevel.Debug, $"Socket {Id} receive loop finished");
+                _logger.Log(LogLevel.Debug, $"[Sckt {Id}] receive loop finished");
             }
         }
 
@@ -601,7 +601,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected async Task CheckTimeoutAsync()
         {
-            _logger.Log(LogLevel.Debug, $"Socket {Id} starting task checking for no data received for {Parameters.Timeout}");
+            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] starting task checking for no data received for {Parameters.Timeout}");
             LastActionTime = DateTime.UtcNow;
             try 
             { 
@@ -612,7 +612,7 @@ namespace CryptoExchange.Net.Sockets
 
                     if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
                     {
-                        _logger.Log(LogLevel.Warning, $"Socket {Id} no data received for {Parameters.Timeout}, reconnecting socket");
+                        _logger.Log(LogLevel.Warning, $"[Sckt {Id}] no data received for {Parameters.Timeout}, reconnecting socket");
                         _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }
