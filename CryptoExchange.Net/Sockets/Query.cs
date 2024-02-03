@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Sockets
         public object? Response { get; set; }
 
         /// <summary>
-        /// Action to execute when query is finished
+        /// Wait event for the calling message processing thread
         /// </summary>
         public AsyncResetEvent? ContinueAwaiter { get; set; }
 

@@ -101,7 +101,7 @@ namespace CryptoExchange.Net
         public string GetSubscriptionsState()
         {
             var result = new StringBuilder();
-            foreach (var client in ApiClients.OfType<SocketApiClient>())
+            foreach (var client in ApiClients.OfType<SocketApiClient>().Where(c => c.CurrentSubscriptions > 0))
             {
                 result.AppendLine(client.GetSubscriptionsState());
             }
