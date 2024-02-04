@@ -49,16 +49,6 @@ namespace CryptoExchange.Net
         protected List<SystemSubscription> systemSubscriptions = new();
 
         /// <summary>
-        /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
-        /// </summary>
-        protected Task? periodicTask;
-
-        /// <summary>
-        /// Wait event for the periodicTask
-        /// </summary>
-        protected AsyncResetEvent? periodicEvent;
-
-        /// <summary>
         /// If a message is received on the socket which is not handled by a handler this boolean determines whether this logs an error message
         /// </summary>
         protected internal bool UnhandledMessageExpected { get; set; }
@@ -72,6 +62,11 @@ namespace CryptoExchange.Net
         /// The rate limiters 
         /// </summary>
         protected internal IEnumerable<IRateLimiter>? RateLimiters { get; set; }
+
+        /// <summary>
+        /// Periodic task regisrations
+        /// </summary>
+        protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
 
         /// <inheritdoc />
         public double IncomingKbps
@@ -127,6 +122,24 @@ namespace CryptoExchange.Net
             foreach (var rateLimiter in apiOptions.RateLimiters)
                 rateLimiters.Add(rateLimiter);
             RateLimiters = rateLimiters;
+        }
+
+        /// <summary>
+        /// Add a query to periodically send on each connection
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="interval"></param>
+        /// <param name="queryDelegate"></param>
+        /// <param name="callback"></param>
+        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        {
+            PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
+            {
+                Identifier = identifier,
+                Callback = callback,
+                Interval = interval,
+                QueryDelegate = queryDelegate
+            });
         }
 
         /// <summary>
@@ -457,6 +470,9 @@ namespace CryptoExchange.Net
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
 
+            foreach (var ptg in PeriodicTaskRegistrations)
+                socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.QueryDelegate, ptg.Callback);
+
             foreach (var systemSubscription in systemSubscriptions)
                 socketConnection.AddSubscription(systemSubscription);
 
@@ -513,58 +529,6 @@ namespace CryptoExchange.Net
             var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
             _logger.Log(LogLevel.Debug, $"[Sckt {socket.Id}] created for " + address);
             return socket;
-        }
-
-        /// <summary>
-        /// Periodically sends data over a socket connection
-        /// </summary>
-        /// <param name="identifier">Identifier for the periodic send</param>
-        /// <param name="interval">How often</param>
-        /// <param name="queryDelegate">Method returning the query to send</param>
-        /// <param name="callback">The callback for processing the response</param>
-        protected virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
-        {
-            if (queryDelegate == null)
-                throw new ArgumentNullException(nameof(queryDelegate));
-
-            // TODO instead of having this on ApiClient level, this should be registered on the socket connection
-            // This would prevent this looping without any connections
-
-            periodicEvent = new AsyncResetEvent();
-            periodicTask = Task.Run(async () =>
-            {
-                while (!_disposing)
-                {
-                    await periodicEvent.WaitAsync(interval).ConfigureAwait(false);
-                    if (_disposing)
-                        break;
-
-                    foreach (var socketConnection in socketConnections.Values)
-                    {
-                        if (_disposing)
-                            break;
-
-                        if (!socketConnection.Connected)
-                            continue;
-
-                        var query = queryDelegate(socketConnection);
-                        if (query == null)
-                            continue;
-
-                        _logger.Log(LogLevel.Trace, $"[Sckt {socketConnection.SocketId}] sending periodic {identifier}");
-
-                        try
-                        {
-                            var result = await socketConnection.SendAndWaitQueryAsync(query).ConfigureAwait(false);
-                            callback?.Invoke(result);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] Periodic send {identifier} failed: " + ex.ToLogString());
-                        }
-                    }
-                }
-            });
         }
 
         /// <summary>
@@ -682,8 +646,6 @@ namespace CryptoExchange.Net
         public override void Dispose()
         {
             _disposing = true;
-            periodicEvent?.Set();
-            periodicEvent?.Dispose();
             if (socketConnections.Sum(s => s.Value.UserSubscriptionCount) > 0)
             {
                 _logger.Log(LogLevel.Debug, "Disposing socket client, closing all subscriptions");

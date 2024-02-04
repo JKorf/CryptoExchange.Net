@@ -164,6 +164,16 @@ namespace CryptoExchange.Net.Sockets
         private IMessageAccessor _accessor;
 
         /// <summary>
+        /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
+        /// </summary>
+        protected Task? periodicTask;
+
+        /// <summary>
+        /// Wait event for the periodicTask
+        /// </summary>
+        protected AsyncResetEvent? periodicEvent;
+
+        /// <summary>
         /// The underlying websocket
         /// </summary>
         private readonly IWebsocket _socket;
@@ -561,6 +571,8 @@ namespace CryptoExchange.Net.Sockets
         public void Dispose()
         {
             Status = SocketStatus.Disposed;
+            periodicEvent?.Set();
+            periodicEvent?.Dispose();
             _socket.Dispose();
         }
 
@@ -816,6 +828,55 @@ namespace CryptoExchange.Net.Sockets
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             subscription.HandleSubQueryResponse(subQuery.Response!);
             return result;
+        }
+
+        /// <summary>
+        /// Periodically sends data over a socket connection
+        /// </summary>
+        /// <param name="identifier">Identifier for the periodic send</param>
+        /// <param name="interval">How often</param>
+        /// <param name="queryDelegate">Method returning the query to send</param>
+        /// <param name="callback">The callback for processing the response</param>
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        {
+            if (queryDelegate == null)
+                throw new ArgumentNullException(nameof(queryDelegate));
+
+            periodicEvent = new AsyncResetEvent();
+            periodicTask = Task.Run(async () =>
+            {
+                while (Status != SocketStatus.Disposed
+                    && Status != SocketStatus.Closed
+                    && Status != SocketStatus.Closing)
+                {
+                    await periodicEvent.WaitAsync(interval).ConfigureAwait(false);
+                    if (Status == SocketStatus.Disposed
+                    || Status == SocketStatus.Closed
+                    || Status == SocketStatus.Closing)
+                    {
+                        break;
+                    }
+
+                    if (!Connected)
+                        continue;
+
+                    var query = queryDelegate(this);
+                    if (query == null)
+                        continue;
+
+                    _logger.Log(LogLevel.Trace, $"[Sckt {SocketId}] sending periodic {identifier}");
+
+                    try
+                    {
+                        var result = await SendAndWaitQueryAsync(query).ConfigureAwait(false);
+                        callback?.Invoke(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] Periodic send {identifier} failed: " + ex.ToLogString());
+                    }
+                }
+            });
         }
 
         /// <summary>
