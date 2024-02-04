@@ -244,7 +244,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Handler for a socket losing conenction and starting reconnect
+        /// Handler for a socket losing connection and starting reconnect
         /// </summary>
         protected virtual Task HandleReconnectingAsync()
         {
@@ -378,7 +378,7 @@ namespace CryptoExchange.Net.Sockets
                 _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
             }
 
-            // 3. Determine the subscription interested in the messsage
+            // 3. Determine the identifying properties of this message
             var listenId = ApiClient.GetListenerIdentifier(_accessor);
             if (listenId == null)
             {
@@ -399,7 +399,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (!ApiClient.UnhandledMessageExpected)
                 {
-                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any processor. ListenId: {ListenId}", SocketId, listenId);
+                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}", SocketId, listenId);
                     UnhandledMessage?.Invoke(_accessor);
                 }
 
@@ -407,7 +407,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            _logger.LogTrace("[Sckt {SocketId}] {Count} processors matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
+            _logger.LogTrace("[Sckt {SocketId}] {Count} processor(s) matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
             var totalUserTime = 0;
             Dictionary<Type, object>? desCache = null;
             if (processors.Count > 1)
@@ -609,16 +609,6 @@ namespace CryptoExchange.Net.Sockets
                 return _listeners.OfType<Subscription>().SingleOrDefault(s => s.Id == id);
         }
 
-        /// <summary>
-        /// Get a subscription on this connection by its subscribe request
-        /// </summary>
-        /// <param name="predicate">Filter for a request</param>
-        /// <returns></returns>
-        public Subscription? GetSubscriptionByRequest(Func<object?, bool> predicate)
-        {
-            lock (_listenersLock)
-                return _listeners.OfType<Subscription>().SingleOrDefault(s => predicate(s));
-        }
         /// <summary>
         /// Send a query request and wait for an answer
         /// </summary>
