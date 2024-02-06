@@ -1,25 +1,33 @@
-# CryptoExchange.Net
-[![.NET](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml/badge.svg?branch=master)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget version](https://img.shields.io/nuget/v/CryptoExchange.Net.svg)](https://www.nuget.org/packages/CryptoExchange.Net)  [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)](https://www.nuget.org/packages/CryptoExchange.Net)
+# CryptoExchange.Net  
 
-CryptoExchange.Net is a base package which can be used to easily implement crypto currency exchange API's in C#. This library offers base classes for creating rest and websocket clients, and includes additional features like an automatically synchronizing order book implementation, error handling and automatic reconnects on websocket connections.
+[![.NET](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml/badge.svg)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg)](https://www.nuget.org/packages/CryptoExchange.Net)
 
-[Documentation](https://jkorf.github.io/CryptoExchange.Net/)
+CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations. 
+
+For more information on what CryptoExchange.Net and it's client libraries offers see the [Documentation](https://jkorf.github.io/CryptoExchange.Net/).
+
+### Current implementations
+The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me:
+
+|Exchange|Repository|Nuget|
+|--|--|--|
+|Binance|[JKorf/Binance.Net](https://github.com/JKorf/Binance.Net)|[![Nuget version](https://img.shields.io/nuget/v/Binance.net.svg)](https://www.nuget.org/packages/Binance.Net)|
+|Bitfinex|[JKorf/Bitfinex.Net](https://github.com/JKorf/Bitfinex.Net)|[![Nuget version](https://img.shields.io/nuget/v/Bitfinex.net.svg)](https://www.nuget.org/packages/Bitfinex.Net)|
+|Bitget|[JKorf/Bitget.Net](https://github.com/JKorf/Bitget.Net)|[![Nuget version](https://img.shields.io/nuget/v/Bitget.net.svg)](https://www.nuget.org/packages/Bitget.Net)|
+|Bybit|[JKorf/Bybit.Net](https://github.com/JKorf/Bybit.Net)|[![Nuget version](https://img.shields.io/nuget/v/Bybit.net.svg)](https://www.nuget.org/packages/Bybit.Net)|
+|CoinEx|[JKorf/CoinEx.Net](https://github.com/JKorf/CoinEx.Net)|[![Nuget version](https://img.shields.io/nuget/v/CoinEx.net.svg)](https://www.nuget.org/packages/CoinEx.Net)|
+|CoinGecko|[JKorf/CoinGecko.Net](https://github.com/JKorf/CoinGecko.Net)|[![Nuget version](https://img.shields.io/nuget/v/CoinGecko.net.svg)](https://www.nuget.org/packages/CoinGecko.Net)|
+|Huobi/HTX|[JKorf/Huobi.Net](https://github.com/JKorf/Huobi.Net)|[![Nuget version](https://img.shields.io/nuget/v/Huobi.net.svg)](https://www.nuget.org/packages/Huobi.Net)|
+|Kraken|[JKorf/Kraken.Net](https://github.com/JKorf/Kraken.Net)|[![Nuget version](https://img.shields.io/nuget/v/KrakenExchange.net.svg)](https://www.nuget.org/packages/KrakenExchange.Net)|
+|Kucoin|[JKorf/Kucoin.Net](https://github.com/JKorf/Kucoin.Net)|[![Nuget version](https://img.shields.io/nuget/v/Kucoin.net.svg)](https://www.nuget.org/packages/Kucoin.Net)|
+|Mexc|[JKorf/Mexc.Net](https://github.com/JKorf/Mexc.Net)|[![Nuget version](https://img.shields.io/nuget/v/JK.Mexc.net.svg)](https://www.nuget.org/packages/JK.Mexc.Net)|
+|OKX|[JKorf/OKX.Net](https://github.com/JKorf/OKX.Net)|[![Nuget version](https://img.shields.io/nuget/v/JK.OKX.net.svg)](https://www.nuget.org/packages/JK.OKX.Net)|
 
 ## Discord
 A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.
 
 ## Support the project
 I develop and maintain this package on my own for free in my spare time, any support is greatly appreciated.
-
-### Referral link
-Use one of the following following referral links to signup to a new exchange to pay a small percentage of the trading fees you pay to support the project instead of paying them straight to the exchange. This doesn't cost you a thing!
-[Binance](https://accounts.binance.com/en/register?ref=10153680)  
-[Bitfinex](https://www.bitfinex.com/sign-up?refcode=kCCe-CNBO)  
-[Bittrex](https://bittrex.com/discover/join?referralCode=TST-DJM-CSX)  
-[Bybit](https://partner.bybit.com/b/jkorf)  
-[CoinEx](https://www.coinex.com/register?refer_code=hd6gn)  
-[Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=fxp93)  
-[Kucoin](https://www.kucoin.com/ucenter/signup?rcode=RguMux)  
 
 ### Donate
 Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.
