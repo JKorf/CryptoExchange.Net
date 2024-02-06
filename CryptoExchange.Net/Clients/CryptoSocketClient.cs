@@ -1,16 +1,18 @@
 ﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Interfaces.CommonClients;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CryptoExchange.Net.Clients
 {
     /// <inheritdoc />
     public class CryptoSocketClient : CryptoBaseClient, ICryptoSocketClient
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public CryptoSocketClient()
+        {
+        }
+
         /// <summary>
         /// ctor
         /// </summary>

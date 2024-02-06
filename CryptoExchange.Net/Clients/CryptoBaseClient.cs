@@ -1,10 +1,6 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Interfaces.CommonClients;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -42,6 +38,10 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public T TryGet<T>(Func<T> createFunc)
         {
+            var type = typeof(T);
+            if (_serviceCache.TryGetValue(type, out var value))
+                return (T)value;
+
             if (_serviceProvider == null)
             {
                 // Create with default options
@@ -50,16 +50,8 @@ namespace CryptoExchange.Net.Clients
                 return createResult;
             }
 
-            var type = typeof(T);
-            if (_serviceCache.TryGetValue(type, out var value))
-                return (T)value;
-
-            var result = _serviceProvider.GetRequiredService<T>();
-            if (result == null)
-            {
-                // Does this mean the AddXX() hasn't been done?
-            }
-
+            var result = _serviceProvider.GetService<T>() 
+                ?? throw new InvalidOperationException($"No service was found for {typeof(T).Name}, make sure the exchange is registered in dependency injection with the `services.Add[Exchange]()` method");
             _serviceCache.Add(type, result!);
             return result;
         }

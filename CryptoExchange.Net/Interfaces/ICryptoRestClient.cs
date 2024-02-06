@@ -16,6 +16,14 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <returns></returns>
         IEnumerable<ISpotClient> GetSpotClients();
+
+        /// <summary>
+        /// Get an ISpotClient implementation by exchange name
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <returns></returns>
+        ISpotClient? SpotClient(string exchangeName);
+
         /// <summary>
         /// Try get 
         /// </summary>
