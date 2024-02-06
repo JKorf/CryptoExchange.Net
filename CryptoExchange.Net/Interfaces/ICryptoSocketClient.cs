@@ -1,11 +1,10 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Interfaces.CommonClients;
+﻿using CryptoExchange.Net.Interfaces.CommonClients;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.Clients
+namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Client for accessing Websocket API's for different exchanges
