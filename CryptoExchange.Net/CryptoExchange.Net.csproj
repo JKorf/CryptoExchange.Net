@@ -7,8 +7,8 @@
     <Authors>JKorf</Authors>
     <Description>A base package for implementing cryptocurrency API's</Description>
     <PackageVersion>7.0.0-beta1</PackageVersion>
-    <AssemblyVersion>7.0.0-beta1</AssemblyVersion>
-    <FileVersion>7.0.0-beta1</FileVersion>
+    <AssemblyVersion>7.0.0</AssemblyVersion>
+    <FileVersion>7.0.0</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
