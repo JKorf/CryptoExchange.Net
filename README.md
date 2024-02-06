@@ -39,6 +39,15 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.0.0-beta1 - 06 Feb 2024
+    * Full overhaul of Websocket message handling
+    * Abstracted out Newtonsoft.Json references in preparation of moving to System.Text.Json
+    * Updated SendPeriodic to operate on connection level instead of client level to prevent looping when there are no connections
+    * Added check to not send an unsubscribe message if there is another subscription listening to the same events
+    * Added CryptoRestClient and CryptoSocketClient as aggregate for accessing different exchange APIs
+    * Updated socket client log messages
+    * Updated socket client GetSubscriptionState output
+
 * Version 6.2.5 - 09 Jan 2024
     * Added support for deserializing null and empty string values to BoolConverter
 
