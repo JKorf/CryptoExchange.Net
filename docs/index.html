@@ -1,13 +1,354 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-</head>
-<body>
-<ul>
-	<li><a href="/">Quick start</a></li>
-	<li><a href="/quickstart.html">Quick start</a></li>
-</ul>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+<link href="assets/images/favicon.png" rel="icon" />
+<title>CryptoExchange.Net Documentation</title>
+<meta name="description" content="Documentation of the CryptoExchange.Net and client implementation libraries">
+<meta name="author" content="JKorf">
 
-<h2>Intro</h2>
+<!-- Stylesheet
+============================== -->
+<!-- Bootstrap -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/bootstrap/css/bootstrap.min.css" />
+<!-- Font Awesome Icon -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/font-awesome/css/all.min.css" />
+<!-- Magnific Popup -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/magnific-popup/magnific-popup.min.css" />
+<!-- Highlight Syntax -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<!--<link rel="stylesheet" type="text/css" href="assets/vendor/highlight.js/styles/github.css" />-->
+<!-- Custom Stylesheet -->
+<link rel="stylesheet" type="text/css" href="assets/css/stylesheet.css" />
+</head>
+
+<body class="box" data-spy="scroll" data-target=".idocs-navigation" data-offset="125">
+
+<!-- Preloader -->
+<div class="preloader">
+  <div class="lds-ellipsis">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>
+<!-- Preloader End --> 
+
+<!-- Document Wrapper   
+=============================== -->
+<div id="main-wrapper"> 
+  
+  <!-- Header
+  ============================ -->
+  <header id="header" class="sticky-top"> 
+    <!-- Navbar -->
+    <nav class="primary-menu navbar navbar-expand-lg navbar-dropdown-dark">
+      <div class="container-fluid">
+        <!-- Sidebar Toggler -->
+		<button id="sidebarCollapse" class="navbar-toggler d-block d-md-none" type="button"><span></span><span class="w-75"></span><span class="w-50"></span></button>
+		
+		<!-- Logo --> 
+        <a class="logo ml-md-3" href="index.html" title="iDocs Template"> <img src="assets/images/logo.png" alt="iDocs Template"/> </a> 
+		<span class="text-2 ml-2"></span> 
+        <!-- Logo End -->
+        
+		<!-- Navbar Toggler -->
+		<button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#header-nav"><span></span><span></span><span></span></button>
+        
+        <ul class="social-icons social-icons-sm ml-lg-2 mr-2">
+          <li class="social-icons-nuget"><a data-toggle="tooltip" href="http://www.nuget.org/profiles/JKorf/" target="_blank" title="" data-original-title="Nuget">Nuget</a></li>
+          <li><a data-toggle="tooltip" href="http://www.github.com/JKorf/CryptoExchange.Net" target="_blank" title="" data-original-title="GitHub"><i class="fab fa-github"></i></a></li>
+          <li><a data-toggle="tooltip" href="https://discord.gg/Wyqd4hegMZ" target="_blank" title="" data-original-title="Discord"><i class="fab fa-discord"></i></a></li>
+        </ul>
+      </div>
+    </nav>
+    <!-- Navbar End --> 
+  </header>
+  <!-- Header End --> 
+  
+  <!-- Content
+  ============================ -->
+  <div id="content" role="main">
+    
+	<!-- Sidebar Navigation
+	============================ -->
+	<div class="idocs-navigation bg-light">
+      <ul class="nav flex-column ">
+        <li class="nav-item"><a class="nav-link active" href="#idocs_intro">Introduction</a></li>
+        <li class="nav-item"><a class="nav-link active" href="#idocs_start">Getting Started</a>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_installation">Installation</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common clients</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#idocs_features">Features</a>
+		  <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_orderbooks">Orderbooks</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_logging">Logging</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_ratelimiting">Ratelimiting</a></li>
+          </ul>
+		</li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_examples">Examples</a></li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_glossary">Glossary</a></li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_faq">FAQ</a></li>
+      </ul>
+    </div>
+    
+    <!-- Docs Content
+	============================ -->
+    <div class="idocs-content">
+      <div class="container"> 
+        <section id="idocs_intro">
+			<h1>CryptoExchange.Net</h1>
+		
+		<p>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</p>
+
+		<p>The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me</p>
+
+		<table class="table table-bordered">
+			<tr>
+				<th>Exchange</th>
+				<th>Repository</th>
+				<th>Nuget</th>
+			</tr>
+			<tr><td>Binance</td><td><a href="https://github.com/JKorf/Binance.Net">JKorf/Binance.Net</a></td><td><a href="https://www.nuget.org/packages/Binance.Net"><img src="https://img.shields.io/nuget/v/Binance.net.svg" /></a></td></tr>
+			<tr><td>Bitfinex</td><td><a href="https://github.com/JKorf/Bitfinex.Net">JKorf/Bitfinex.Net</a></td><td><a href="https://www.nuget.org/packages/Bitfinex.Net"><img src="https://img.shields.io/nuget/v/Bitfinex.net.svg" /></a></td></tr>
+			<tr><td>Bitget</td><td><a href="https://github.com/JKorf/Bitget.Net">JKorf/Bitget.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Bitget.Net"><img src="https://img.shields.io/nuget/v/JK.Bitget.net.svg" /></a></td></tr>
+			<tr><td>Bybit</td><td><a href="https://github.com/JKorf/Bybit.Net">JKorf/Bybit.Net</a></td><td><a href="https://www.nuget.org/packages/Bybit.Net"><img src="https://img.shields.io/nuget/v/Bybit.net.svg" /></a></td></tr>
+			<tr><td>CoinEx</td><td><a href="https://github.com/JKorf/CoinEx.Net">JKorf/CoinEx.Net</a></td><td><a href="https://www.nuget.org/packages/CoinEx.Net"><img src="https://img.shields.io/nuget/v/CoinEx.net.svg" /></a></td></tr>
+			<tr><td>CoinGecko</td><td><a href="https://github.com/JKorf/CoinGecko.Net">JKorf/CoinGecko.Net</a></td><td><a href="https://www.nuget.org/packages/CoinGecko.Net"><img src="https://img.shields.io/nuget/v/CoinGecko.net.svg" /></a></td></tr>
+			<tr><td>Huobi</td><td><a href="https://github.com/JKorf/Huobi.Net">JKorf/Huobi.Net</a></td><td><a href="https://www.nuget.org/packages/Huobi.Net"><img src="https://img.shields.io/nuget/v/Huobi.net.svg" /></a></td></tr>
+			<tr><td>Kraken</td><td><a href="https://github.com/JKorf/Kraken.Net">JKorf/Kraken.Net</a></td><td><a href="https://www.nuget.org/packages/KrakenExchange.Net"><img src="https://img.shields.io/nuget/v/KrakenExchange.net.svg" /></a></td></tr>
+			<tr><td>Kucoin</td><td><a href="https://github.com/JKorf/Kucoin.Net">JKorf/Kucoin.Net</a></td><td><a href="https://www.nuget.org/packages/Kucoin.Net"><img src="https://img.shields.io/nuget/v/Kucoin.net.svg" /></a></td></tr>
+			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg" /></a></td></tr>
+			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg" /></a></td></tr>
+		</table>
+		
+		<h4>Discord</h4>
+		<p>A Discord server is available <a href="https://discord.gg/MSpeEtSY8t">here</a>. Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.</p>
+
+		<h4>Support the project</h4>
+		<p>I develop and maintain this package on my own for free in my spare time, any support is greatly appreciated.</p>
+
+		
+		<b>Donate</b><br />
+		<p>Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.<p>
+
+		<p><em>Btc</em>:  bc1qz0jv0my7fc60rxeupr23e75x95qmlq6489n8gh <br />
+		<em>Eth</em>:  0x8E21C4d955975cB645589745ac0c46ECA8FAE504</p>
+
+		<b>Sponsor</b><br />
+		<p>Alternatively, sponsor me on Github using <a href="https://github.com/sponsors/JKorf">Github Sponsors</a>.</p>
+		
+		</section>
+		
+		<hr class="divider">
+		
+        <!-- Getting Started
+		============================ -->
+        <section id="idocs_start">
+        <h1>Getting Started</h1>
+		<p>All packages are available on Nuget. After installing the package the API is available by using one of the library clients, or through the <code>ICrypoRestClient</code>, <code>ICryptoSocketClient</code> or <code>ISpotClient</code> interfaces.</p>
+        </section>
+        		
+		<hr class="divider">
+		
+        <!-- Installation
+		============================ -->
+        <section id="idocs_installation">
+          <h2>Installation</h2>
+          
+		  <ul class="nav nav-tabs" id="install" role="tablist">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bitfinex-tab" data-toggle="tab" href="#install-bitfinex" role="tab" aria-controls="install-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bitget-tab" data-toggle="tab" href="#install-bitget" role="tab" aria-controls="install-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-coinex-tab" data-toggle="tab" href="#install-coinex" role="tab" aria-controls="install-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-huobi-tab" data-toggle="tab" href="#install-huobi" role="tab" aria-controls="install-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-kraken-tab" data-toggle="tab" href="#install-kraken" role="tab" aria-controls="install-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-kucoin-tab" data-toggle="tab" href="#install-kucoin" role="tab" aria-controls="install-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-mexc-tab" data-toggle="tab" href="#install-mexc" role="tab" aria-controls="install-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-okx-tab" data-toggle="tab" href="#install-okx" role="tab" aria-controls="install-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab"><pre><code>dotnet add package Binance.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab"><pre><code>dotnet add package Bitfinex.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-bitget" role="tabpanel" aria-labelledby="install-bitget-tab"><pre><code>dotnet add package JK.Bitget.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab"><pre><code>dotnet add package Bybit.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab"><pre><code>dotnet add package CoinEx.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab"><pre><code>dotnet add package Huobi.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab"><pre><code>dotnet add package KrakenExchange.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-kucoin" role="tabpanel" aria-labelledby="install-kucoin-tab"><pre><code>dotnet add package Kucoin.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-mexc" role="tabpanel" aria-labelledby="install-mexc-tab"><pre><code>dotnet add package JK.Mexc.Net</code></pre></div>
+			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab"><pre><code>dotnet add package JK.OKX.Net</code></pre></div>
+			</div>
+
+        </section>
+        
+		<hr class="divider">
+		
+        <!-- HTML Structure
+		============================ -->
+        <section id="idocs_rest">
+          <h2>REST API client</h2>
+         
+        </section>
+        
+		<hr class="divider">
+		        
+		<!-- Sass
+		============================ -->
+        <section id="idocs_socket">
+          <h2>Websocket API client</h2>
+          
+        </section>
+        
+		<hr class="divider">
+				
+		<!-- Customization
+		============================ -->
+        <section id="idocs_common">
+          <h2>Common Clients</h2>
+          
+        </section>
+        
+		<hr class="divider">
+		
+        <!-- Logo Settings
+		============================ -->
+        <section id="idocs_options">
+          <h1>Options & Authorization</h1>
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Getting Started
+		============================ -->
+        <section id="idocs_features">
+        <h1>Features</h1>
+        
+        </section>
+		
+		<hr class="divider">
+        
+        <!-- Header
+		============================ -->
+        <section id="idocs_orderbooks">
+          <h2>Orderbooks</h2>
+          
+        </section>
+		
+		<hr class="divider">
+		<!-- Layout
+		============================ -->
+        <section id="idocs_logging">
+          <h2>Logging</h2>
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Layout
+		============================ -->
+        <section id="idocs_logging">
+          <h2>Ratelimiting</h2>
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Navbar
+		============================ -->
+        <section id="idocs_examples">
+          <h1>Examples</h1>
+		  
+		  <pre><code class="language-csharp">
+using Binance.Net;
+
+var client = new BinanceRestClient();
+client.SpotApi.Exchange.GetExchangeInfoAsync();
+		  </pre></code>
+		  
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Sidebar
+		============================ -->
+        <section id="idocs_glossary">
+          <h2>Glossary</h2>
+          
+		</section>
+		
+		<hr class="divider">
+		
+		<!-- FAQ
+		============================ -->
+		<section id="idocs_faq">
+          <h2>FAQ</h2>
+          
+        </div>
+          
+        </section>
+        
+		<hr class="divider">
+        
+      </div>
+    </div>
 	
+  </div>
+  <!-- Content end --> 
+    
+</div>
+<!-- Document Wrapper end --> 
+
+<!-- Back To Top --> 
+<a id="back-to-top" data-toggle="tooltip" title="Back to Top" href="javascript:void(0)"><i class="fa fa-chevron-up"></i></a> 
+
+<!-- JavaScript
+============================ -->
+<script src="assets/vendor/jquery/jquery.min.js"></script> 
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> 
+<!-- Highlight JS -->
+<!--<script src="assets/vendor/highlight.js/highlight.min.js"></script>-->
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<!-- Easing --> 
+<script src="assets/vendor/jquery.easing/jquery.easing.min.js"></script> 
+<!-- Magnific Popup --> 
+<script src="assets/vendor/magnific-popup/jquery.magnific-popup.min.js"></script> 
+<!-- Custom Script -->
+<script src="assets/js/theme.js"></script>
+<script>hljs.highlightAll();</script>
 </body>
 </html>
