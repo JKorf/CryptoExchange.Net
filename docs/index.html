@@ -81,12 +81,18 @@
         <li class="nav-item"><a class="nav-link active" href="#idocs_start">Getting Started</a>
           <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_installation">Installation</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_di">Dependency Injection</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_common">Common clients</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
+		  <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_auth">Authorization</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_set">Setting options</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_def">Option definitions</a></li>
+          </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_features">Features</a>
 		  <ul class="nav flex-column">
@@ -109,7 +115,7 @@
 			<h1>CryptoExchange.Net</h1>
 		
 		<p>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</p>
-
+		<div class="alert alert-info">All libraries can be used in the same project as well as indivually.</div>
 		<p>The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me</p>
 
 		<table class="table table-bordered">
@@ -135,8 +141,6 @@
 		<p>A Discord server is available <a href="https://discord.gg/MSpeEtSY8t">here</a>. Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.</p>
 
 		<h4>Support the project</h4>
-		<p>I develop and maintain this package on my own for free in my spare time, any support is greatly appreciated.</p>
-
 		
 		<b>Donate</b><br />
 		<p>Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.<p>
@@ -147,6 +151,8 @@
 		<b>Sponsor</b><br />
 		<p>Alternatively, sponsor me on Github using <a href="https://github.com/sponsors/JKorf">Github Sponsors</a>.</p>
 		
+		<div class="alert alert-info">I develop and maintain these packages on my own for free in my spare time, any support is greatly appreciated.</div>
+
 		</section>
 		
 		<hr class="divider">
@@ -179,6 +185,9 @@
 				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-coingecko-tab" data-toggle="tab" href="#install-coingecko" role="tab" aria-controls="install-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-coinex-tab" data-toggle="tab" href="#install-coinex" role="tab" aria-controls="install-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -198,18 +207,83 @@
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab"><pre><code>dotnet add package Binance.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab"><pre><code>dotnet add package Bitfinex.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-bitget" role="tabpanel" aria-labelledby="install-bitget-tab"><pre><code>dotnet add package JK.Bitget.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab"><pre><code>dotnet add package Bybit.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab"><pre><code>dotnet add package CoinEx.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab"><pre><code>dotnet add package Huobi.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab"><pre><code>dotnet add package KrakenExchange.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-kucoin" role="tabpanel" aria-labelledby="install-kucoin-tab"><pre><code>dotnet add package Kucoin.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-mexc" role="tabpanel" aria-labelledby="install-mexc-tab"><pre><code>dotnet add package JK.Mexc.Net</code></pre></div>
-			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab"><pre><code>dotnet add package JK.OKX.Net</code></pre></div>
+			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package Binance.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/BinanceInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package Bitfinex.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/BitfinexInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bitget" role="tabpanel" aria-labelledby="install-bitget-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package JK.Bitget.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/BitgetInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package Bybit.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/BybitInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-coingecko" role="tabpanel" aria-labelledby="install-coingecko-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package CoinGecko.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/CoinGeckoInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package CoinEx.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/CoinExInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package Huobi.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/HuobiInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package KrakenExchange.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/KrakenInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-kucoin" role="tabpanel" aria-labelledby="install-kucoin-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package Kucoin.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/KucoinInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-mexc" role="tabpanel" aria-labelledby="install-mexc-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package JK.Mexc.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/MexcInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab">
+				<p>Add the package via dotnet</p>
+				<pre><code>dotnet add package JK.OKX.Net</code></pre>
+				<p>Or install it via the package manager</p>
+				<img src="assets/images/OKXInstall.png" />
+			  </div>
 			</div>
 
+        </section>
+        
+		<hr class="divider">
+		
+        <!-- HTML Structure
+		============================ -->
+        <section id="idocs_di">
+          <h2>Dependency Injection</h2>
+         
         </section>
         
 		<hr class="divider">
@@ -246,6 +320,54 @@
         <section id="idocs_options">
           <h1>Options & Authorization</h1>
 		  
+		  <p>Options for the clients can be provided in a couple of different ways. If no options are configured the default options will be used. For accessing private endpoints and streams API credentials have to be provided.</p>
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_auth">
+          <h2>Authorization</h2>
+          
+		  <p>For private endpoints and data streams the clients will need to know the API credentials of the user accessing the API. API credentials are a way of identifying the user and validating that the user is who he says he is. You can compare it to a username and password login.</p>
+		  <p>API credentials van be provided via the client options, see next section on how to set these options. There are currently 2 variants of API credentials supported, HMAC and RSA. </p>
+        
+		  <p>
+			<b>HMAC</b><br>
+			HMAC authentication involves 2 values, the API key and API secret. The combination of the two gives access to the account. HMAC is the default authentication method and can be configured as such:
+			<pre><code>options.ApiCredentials = new ApiCredentials("YOUR API KEY", "YOUR API SECRET");</code></pre>
+		  </p>
+		  
+		  <p>
+			<b>RSA</b><br>
+		  </p>
+		</section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_options_set">
+          <h2>Setting options</h2>
+          
+		  <p>Via dependency injection</p> 
+		  <p>Via constructor</p> 
+		  <p>Via SetDefaultOptions</p> 
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_options_def">
+          <h2>Option definitions</h2>
+          
+		  <p>List of options:</p>
+		  <p> - Generic Options</p>
+		  <p> - Options per library</p>
         </section>
 		
 		<hr class="divider">
