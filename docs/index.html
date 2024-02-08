@@ -171,7 +171,8 @@
         <section id="idocs_installation">
           <h2>Installation</h2>
           
-		  <ul class="nav nav-tabs" id="install" role="tablist">
+		  <p>Add the package via dotnet, or add it via the package manager</p>
+		  <ul class="nav nav-tabs" id="install" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
 			  </li>
@@ -208,69 +209,47 @@
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package Binance.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/BinanceInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package Bitfinex.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/BitfinexInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-bitget" role="tabpanel" aria-labelledby="install-bitget-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package JK.Bitget.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/BitgetInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package Bybit.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/BybitInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-coingecko" role="tabpanel" aria-labelledby="install-coingecko-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package CoinGecko.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/CoinGeckoInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package CoinEx.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/CoinExInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package Huobi.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/HuobiInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package KrakenExchange.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/KrakenInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-kucoin" role="tabpanel" aria-labelledby="install-kucoin-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package Kucoin.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/KucoinInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-mexc" role="tabpanel" aria-labelledby="install-mexc-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package JK.Mexc.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/MexcInstall.png" />
 			  </div>
 			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab">
-				<p>Add the package via dotnet</p>
 				<pre><code>dotnet add package JK.OKX.Net</code></pre>
-				<p>Or install it via the package manager</p>
 				<img src="assets/images/OKXInstall.png" />
 			  </div>
 			</div>
@@ -335,14 +314,27 @@
 		  <p>API credentials van be provided via the client options, see next section on how to set these options. There are currently 2 variants of API credentials supported, HMAC and RSA. </p>
         
 		  <p>
-			<b>HMAC</b><br>
+			<b>HMAC</b><br />
 			HMAC authentication involves 2 values, the API key and API secret. The combination of the two gives access to the account. HMAC is the default authentication method and can be configured as such:
 			<pre><code>options.ApiCredentials = new ApiCredentials("YOUR API KEY", "YOUR API SECRET");</code></pre>
 		  </p>
 		  
 		  <p>
-			<b>RSA</b><br>
+			<b>RSA</b><br />
+			RSA authentication involves generating a private and public key and then uploading the public key to the server. After using the private key to sign the request the server can validate the request by comparing the signature using the public key. Not every exchange supports this authentication method.
+			Depending on the version of dotnet used there are 2 ways of configuring the RSA authentication.			
 		  </p>
+		  <p>
+		  When running Dotnet version 3.0 or later the easiest way is to use the RsaPem type. This allows you to use the Private key directly. When running from an older Dotnet/.NET framework version you're forced to use the RsaXml type due to framework limitations. This means you'll have to convert the private key to XML format before using it.
+		  </p>
+			<em>RsaXml</em>
+			<pre><code class="language-csharp">// when using the .netstandard2.0 compiled version, from .NET framework or Dotnet core 2.2 or lower
+// Private key should look something like this: &lt;RSAKeyValue&gt;&lt;Modulus&gt;...&lt;/RSAKeyValue&gt;
+options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY", ApiCredentialsType.RsaXml);</code></pre>
+			<em>RsaPem</em>
+			<pre><code class="language-csharp">// when using the .netstandard2.1 compiled version, from Dotnet core 3.0 or later
+// Private key should look something like this: -----BEGIN PRIVATE KEY----- .. -----END PRIVATE KEY-----, or just a long random character string
+options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY", ApiCredentialsType.RsaPem);</code></pre>
 		</section>
 		
 		<hr class="divider">
@@ -352,10 +344,365 @@
         <section id="idocs_options_set">
           <h2>Setting options</h2>
           
-		  <p>Via dependency injection</p> 
-		  <p>Via constructor</p> 
-		  <p>Via SetDefaultOptions</p> 
+		  <b>Dependency injection</b>
+		  <p>When adding a library to the service collection (see <a href="#idocs_di">Dependency Injection</a>) the options for the clients can be provided as argument to the calls. Options are split between the REST and the websocket client.</p>
+		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-bitfinex" role="tab" aria-controls="options-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-bitget" role="tab" aria-controls="options-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-bybit" role="tab" aria-controls="options-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-coingecko" role="tab" aria-controls="options-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-coinex" role="tab" aria-controls="options-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-huobi" role="tab" aria-controls="options-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-kraken" role="tab" aria-controls="options-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-kucoin" role="tab" aria-controls="options-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-mexc" role="tab" aria-controls="options-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-okx" role="tab" aria-controls="options-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>builder.Services.AddBinance(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>builder.Services.AddBitfinex(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>builder.Services.AddBitget(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>builder.Services.AddBybit(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>builder.Services.AddCoinGecko(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>builder.Services.AddCoinEx(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>builder.Services.AddHuobi(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>builder.Services.AddKraken(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>builder.Services.AddKucoin(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>builder.Services.AddMexc(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>builder.Services.AddOKX(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			</div>
 		  
+		  <b>Client constructor</b> 
+		  <p>When creating a client via the constructor options can be provided as parameters</p>
+		  <ul class="nav nav-tabs" id="options-constr" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-constr-bitfinex" role="tab" aria-controls="options-constr-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-constr-bitget" role="tab" aria-controls="options-constr-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-constr-bybit" role="tab" aria-controls="options-constr-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-constr-coingecko" role="tab" aria-controls="options-constr-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-constr-coinex" role="tab" aria-controls="options-constr-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-constr-huobi" role="tab" aria-controls="options-constr-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-constr-kraken" role="tab" aria-controls="options-constr-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-constr-kucoin" role="tab" aria-controls="options-constr-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-constr-mexc" role="tab" aria-controls="options-constr-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-constr-okx" role="tab" aria-controls="options-constr-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-constr-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>var binanceRestClient = new BinanceRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>var client = new BitfinexRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>var client = new BitgetRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>var client = new BybitRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>var client = new CoinGeckoRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>var client = new CoinExRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>var client = new HuobiRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>var client = new KrakenRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>var client = new KucoinRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>var client = new MexcRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>var client = new OKXRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			</div>
+		  
+		  <b>SetDefaultOptions</b> 
+		  <p>The options can be defined in the static SetDefaultOptions method on the client BEFORE creating the client. Any client created after this call will use the specified options</p>
+		  <ul class="nav nav-tabs" id="options-default" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-default-binance" role="tab" aria-controls="options-default-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-default-bitfinex" role="tab" aria-controls="options-default-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-default-bitget" role="tab" aria-controls="options-default-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-default-bybit" role="tab" aria-controls="options-default-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-default-coingecko" role="tab" aria-controls="options-default-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-default-coinex" role="tab" aria-controls="options-default-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-default-huobi" role="tab" aria-controls="options-default-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-default-kraken" role="tab" aria-controls="options-default-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-default-kucoin" role="tab" aria-controls="options-default-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-default-mexc" role="tab" aria-controls="options-default-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-default-okx" role="tab" aria-controls="options-default-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-default-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>BinanceRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BinanceRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>BitfinexRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BitfinexRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>BitgetRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BitgetRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>BybitRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BybitRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>CoinGeckoRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CoinGeckoRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>CoinExRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CoinExRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>HuobiRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new HuobiRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>KrakenRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new KrakenRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>KucoinRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new KucoinRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>MexcRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new MexcRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>OKXRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new OKXRestClient();</code></pre>
+			  </div>
+			</div>
+			
         </section>
 		
 		<hr class="divider">
