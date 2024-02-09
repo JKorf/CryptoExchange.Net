@@ -262,7 +262,421 @@
 		============================ -->
         <section id="idocs_di">
           <h2>Dependency Injection</h2>
-         
+          <p>
+			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services by calling the <code>Add[Library]();</code> extension method on the service collection. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
+		  </p>
+		  <ul class="nav nav-tabs" id="di" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bitfinex-tab" data-toggle="tab" href="#di-bitfinex" role="tab" aria-controls="di-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bitget-tab" data-toggle="tab" href="#di-bitget" role="tab" aria-controls="di-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bybit-tab" data-toggle="tab" href="#di-bybit" role="tab" aria-controls="di-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-coingecko-tab" data-toggle="tab" href="#di-coingecko" role="tab" aria-controls="di-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-coinex-tab" data-toggle="tab" href="#di-coinex" role="tab" aria-controls="di-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-huobi-tab" data-toggle="tab" href="#di-huobi" role="tab" aria-controls="di-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-kraken-tab" data-toggle="tab" href="#di-kraken" role="tab" aria-controls="di-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-kucoin-tab" data-toggle="tab" href="#di-kucoin" role="tab" aria-controls="di-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-mexc-tab" data-toggle="tab" href="#di-mexc" role="tab" aria-controls="di-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-okx-tab" data-toggle="tab" href="#di-okx" role="tab" aria-controls="di-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="di-binance" role="tabpanel" aria-labelledby="di-binance-tab">
+<pre><code>builder.Services.AddBinance();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bitfinex" role="tabpanel" aria-labelledby="di-bitfinex-tab">
+<pre><code>builder.Services.AddBitfinex();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bitget" role="tabpanel" aria-labelledby="di-bitget-tab">
+<pre><code>builder.Services.AddBitget();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bybit" role="tabpanel" aria-labelledby="di-bybit-tab">
+<pre><code>builder.Services.AddBybit();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-coingecko" role="tabpanel" aria-labelledby="di-coingecko-tab">
+<pre><code>builder.Services.AddCoinGecko();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-coinex" role="tabpanel" aria-labelledby="di-coinex-tab">
+<pre><code>builder.Services.AddCoinEx();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-huobi" role="tabpanel" aria-labelledby="di-huobi-tab">
+<pre><code>builder.Services.AddHuobi();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-kraken" role="tabpanel" aria-labelledby="di-kraken-tab">
+<pre><code>builder.Services.AddKraken();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-kucoin" role="tabpanel" aria-labelledby="di-kucoin-tab">
+<pre><code>builder.Services.AddKucoin();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-mexc" role="tabpanel" aria-labelledby="di-mexc-tab">
+<pre><code>builder.Services.AddMexc();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-okx" role="tabpanel" aria-labelledby="di-okx-tab">
+<pre><code>builder.Services.AddOKX();</code></pre>
+			  </div>
+			</div>
+			
+			<p>This registers the following interfaces which can then be injected</p>
+			<ul class="nav nav-tabs" id="interfaces" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bitfinex-tab" data-toggle="tab" href="#interfaces-bitfinex" role="tab" aria-controls="interfaces-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bitget-tab" data-toggle="tab" href="#interfaces-bitget" role="tab" aria-controls="interfaces-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bybit-tab" data-toggle="tab" href="#interfaces-bybit" role="tab" aria-controls="interfaces-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-coingecko-tab" data-toggle="tab" href="#interfaces-coingecko" role="tab" aria-controls="interfaces-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-coinex-tab" data-toggle="tab" href="#interfaces-coinex" role="tab" aria-controls="interfaces-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-huobi-tab" data-toggle="tab" href="#interfaces-huobi" role="tab" aria-controls="interfaces-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-kraken-tab" data-toggle="tab" href="#interfaces-kraken" role="tab" aria-controls="interfaces-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-kucoin-tab" data-toggle="tab" href="#interfaces-kucoin" role="tab" aria-controls="interfaces-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-mexc-tab" data-toggle="tab" href="#interfaces-mexc" role="tab" aria-controls="interfaces-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-okx-tab" data-toggle="tab" href="#interfaces-okx" role="tab" aria-controls="interfaces-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="interfaces-binance" role="tabpanel" aria-labelledby="interfaces-binance-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBinanceRestClient</code></td>
+						<td>The client for accessing the Binance REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBinanceSocketClient</code></td>
+						<td>The client for accessing the Binance Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBinanceOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Binance API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bitfinex" role="tabpanel" aria-labelledby="interfaces-bitfinex-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBitfinexRestClient</code></td>
+						<td>The client for accessing the Bitfinex REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBitfinexSocketClient</code></td>
+						<td>The client for accessing the Bitfinex Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBitfinexOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bitfinex API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bitfinex. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bitget" role="tabpanel" aria-labelledby="interfaces-bitget-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBitgetRestClient</code></td>
+						<td>The client for accessing the Bitget REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBitgetSocketClient</code></td>
+						<td>The client for accessing the Bitget Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBitgetOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bitget API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bitget. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bybit" role="tabpanel" aria-labelledby="interfaces-bybit-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBybitRestClient</code></td>
+						<td>The client for accessing the Bybit REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBybitSocketClient</code></td>
+						<td>The client for accessing the Bybit Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBybitOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bybit API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bybit. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-coingecko" role="tabpanel" aria-labelledby="interfaces-coingecko-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICoinGeckoRestClient</code></td>
+						<td>The client for accessing the CoinGecko REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-coinex" role="tabpanel" aria-labelledby="interfaces-coinex-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICoinExRestClient</code></td>
+						<td>The client for accessing the CoinEx REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinExSocketClient</code></td>
+						<td>The client for accessing the CoinEx Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinExOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the CoinEx API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for CoinEx. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-huobi" role="tabpanel" aria-labelledby="interfaces-huobi-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IHuobiRestClient</code></td>
+						<td>The client for accessing the Huobi REST API</td>
+					</tr>
+					<tr>
+						<td><code>IHuobiSocketClient</code></td>
+						<td>The client for accessing the Huobi Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IHuobiOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Huobi API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Huobi. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-kraken" role="tabpanel" aria-labelledby="interfaces-kraken-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IKrakenRestClient</code></td>
+						<td>The client for accessing the Kraken REST API</td>
+					</tr>
+					<tr>
+						<td><code>IKrakenSocketClient</code></td>
+						<td>The client for accessing the Kraken Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IKrakenOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Kraken API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Kraken. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-kucoin" role="tabpanel" aria-labelledby="interfaces-kucoin-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IKucoinRestClient</code></td>
+						<td>The client for accessing the Kucoin REST API</td>
+					</tr>
+					<tr>
+						<td><code>IKucoinSocketClient</code></td>
+						<td>The client for accessing the Kucoin Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IKucoinOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Kucoin API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Kucoin. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-mexc" role="tabpanel" aria-labelledby="interfaces-mexc-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IMexcRestClient</code></td>
+						<td>The client for accessing the Mexc REST API</td>
+					</tr>
+					<tr>
+						<td><code>IMexcSocketClient</code></td>
+						<td>The client for accessing the Mexc Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IMexcOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Mexc API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Mexc. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-okx" role="tabpanel" aria-labelledby="interfaces-okx-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IOKXRestClient</code></td>
+						<td>The client for accessing the OKX REST API</td>
+					</tr>
+					<tr>
+						<td><code>IOKXSocketClient</code></td>
+						<td>The client for accessing the OKX Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IOKXOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the OKX API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for OKX. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			</div>
         </section>
         
 		<hr class="divider">
@@ -271,8 +685,234 @@
 		============================ -->
         <section id="idocs_rest">
           <h2>REST API client</h2>
-         
-        </section>
+		  <p>Each library provides a REST API client. This client follows the following naming convention: <code>[Library]RestClient</code>. The REST API client is split into different sub-API access clients, which in turn are split into different topics. This structure is the same for each library, which makes it easier to navigate the clients.</p>
+        
+		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually.</p>
+		  <ul class="nav nav-tabs" id="rest" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bitfinex-tab" data-toggle="tab" href="#rest-bitfinex" role="tab" aria-controls="rest-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bitget-tab" data-toggle="tab" href="#rest-bitget" role="tab" aria-controls="rest-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bybit-tab" data-toggle="tab" href="#rest-bybit" role="tab" aria-controls="rest-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-coingecko-tab" data-toggle="tab" href="#rest-coingecko" role="tab" aria-controls="rest-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-coinex-tab" data-toggle="tab" href="#rest-coinex" role="tab" aria-controls="rest-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-huobi-tab" data-toggle="tab" href="#rest-huobi" role="tab" aria-controls="rest-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-kraken-tab" data-toggle="tab" href="#rest-kraken" role="tab" aria-controls="rest-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-kucoin-tab" data-toggle="tab" href="#rest-kucoin" role="tab" aria-controls="rest-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-mexc-tab" data-toggle="tab" href="#rest-mexc" role="tab" aria-controls="rest-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-okx-tab" data-toggle="tab" href="#rest-okx" role="tab" aria-controls="rest-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="rest-binance" role="tabpanel" aria-labelledby="rest-binance-tab">
+				<pre><code>var client = new BinanceRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bitfinex" role="tabpanel" aria-labelledby="rest-bitfinex-tab">
+				<pre><code>var client = new BitfinexRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bitget" role="tabpanel" aria-labelledby="rest-bitget-tab">
+				<pre><code>var client = new BitgetRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bybit" role="tabpanel" aria-labelledby="rest-bybit-tab">
+				<pre><code>var client = new BybitRestClient();
+var tickersResult = await client.V5Api.ExchangeData.GetSpotTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-coingecko" role="tabpanel" aria-labelledby="rest-coingecko-tab">
+				<pre><code>var client = new CoinGeckoRestClient();
+var assetsResult = await client.Api.GetAssetsAsync();
+if (!assetsResult.Success)
+{
+  // Handle error, assetsResult.Error contains more information
+}
+else
+{
+  // Handle data, assetsResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-coinex" role="tabpanel" aria-labelledby="rest-coinex-tab">
+				<pre><code>var client = new CoinExRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-huobi" role="tabpanel" aria-labelledby="rest-huobi-tab">
+				<pre><code>var client = new HuobiRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-kraken" role="tabpanel" aria-labelledby="rest-kraken-tab">
+				<pre><code>var client = new KrakenRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-kucoin" role="tabpanel" aria-labelledby="rest-kucoin-tab">
+				<pre><code>var client = new KucoinRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-mexc" role="tabpanel" aria-labelledby="rest-mexc-tab">
+				<pre><code>var client = new MexcRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-okx" role="tabpanel" aria-labelledby="rest-okx-tab">
+				<pre><code>var client = new OKXRestClient();
+var tickersResult = await client.UnifiedApi.ExchangeData.GetTickersAsync(OKXInstrumentType.Spot);
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			</div>
+			
+			<p><b>The response object</b></p>
+			<p>Calls made with the REST API client will return a <code>WebCallResult</code> object. This object contains information about both the request that was send and the response that was received. The <code>WebCallResult</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Success</td>
+				<td>Whether or not the call was completed successfully</td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The parsed response object, only available when <code>Success</code> is <code>true</code></td>
+			</tr>
+			<tr>
+				<td>Error</td>
+				<td>Error information, only available when <code>Success</code> is <code>false</code></td>
+			</tr>
+			<tr>
+				<td>OriginalData</td>
+				<td>The raw response data, only filled when the <code>OutputOriginalData</code> is enabled in the client options</td>
+			</tr>
+			<tr>
+				<td>RequestMethod</td>
+				<td>The HTTP method that was used for the request</td>
+			</tr>
+			<tr>
+				<td>RequestHeaders</td>
+				<td>The list of headers which were send with the request</td>
+			</tr>
+			<tr>
+				<td>RequestId</td>
+				<td>A unique request id</td>
+			</tr>
+			<tr>
+				<td>RequestUrl</td>
+				<td>The full urls which was called</td>
+			</tr>
+			<tr>
+				<td>RequestBody</td>
+				<td>The request body send with the request</td>
+			</tr>
+			<tr>
+				<td>ResponseLength</td>
+				<td>The length of the response in bytes</td>
+			</tr>
+			<tr>
+				<td>ResponseHeaders</td>
+				<td>The list of headers send along with the response</td>
+			</tr>
+			<tr>
+				<td>ResponseTime</td>
+				<td>The time it took from sending the request to receiving the response</td>
+			</tr>
+		  </table>
+			
+		</section>
         
 		<hr class="divider">
 		        
@@ -280,8 +920,261 @@
 		============================ -->
         <section id="idocs_socket">
           <h2>Websocket API client</h2>
-          
-        </section>
+          <p>If the API supports websocket connections then the library provides a Websocket API client. This client follows the following naming convention: <code>[Library]SocketClient</code>. The Websocket API client is split into different sub-API access clients, which in turn are sometimes split into different topics. This structure is the same for each library, which makes it easier to navigate the clients.</p>
+        
+		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually. When constructing manually keep in mind that when the client is disposed all connections will get closed as well.</p>
+        
+		<h4>Subscribing</h4>
+			<ul class="nav nav-tabs" id="socket" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bitfinex-tab" data-toggle="tab" href="#socket-bitfinex" role="tab" aria-controls="socket-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bitget-tab" data-toggle="tab" href="#socket-bitget" role="tab" aria-controls="socket-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bybit-tab" data-toggle="tab" href="#socket-bybit" role="tab" aria-controls="socket-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-coinex-tab" data-toggle="tab" href="#socket-coinex" role="tab" aria-controls="socket-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-huobi-tab" data-toggle="tab" href="#socket-huobi" role="tab" aria-controls="socket-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-kraken-tab" data-toggle="tab" href="#socket-kraken" role="tab" aria-controls="socket-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-kucoin-tab" data-toggle="tab" href="#socket-kucoin" role="tab" aria-controls="socket-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-mexc-tab" data-toggle="tab" href="#socket-mexc" role="tab" aria-controls="socket-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-okx-tab" data-toggle="tab" href="#socket-okx" role="tab" aria-controls="socket-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
+				<pre><code>var client = new BinanceSocketClient();
+var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bitfinex" role="tabpanel" aria-labelledby="socket-bitfinex-tab">
+				<pre><code>var client = new BitfinexSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("tETHUST", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bitget" role="tabpanel" aria-labelledby="socket-bitget-tab">
+				<pre><code>var client = new BitgetSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bybit" role="tabpanel" aria-labelledby="socket-bybit-tab">
+				<pre><code>var client = new BybitSocketClient();
+var subscribeResult = await client.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-coinex" role="tabpanel" aria-labelledby="socket-coinex-tab">
+				<pre><code>var client = new CoinExSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-huobi" role="tabpanel" aria-labelledby="socket-huobi-tab">
+				<pre><code>var client = new HuobiSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-kraken" role="tabpanel" aria-labelledby="socket-kraken-tab">
+				<pre><code>var client = new KrakenSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-kucoin" role="tabpanel" aria-labelledby="socket-kucoin-tab">
+				<pre><code>var client = new KucoinSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-mexc" role="tabpanel" aria-labelledby="socket-mexc-tab">
+				<pre><code>var client = new MexcSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToMiniTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-okx" role="tabpanel" aria-labelledby="socket-okx-tab">
+				<pre><code>var client = new OKXSocketClient();
+var subscribeResult = await client.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			</div>
+			
+			<p><b>The subscription result object</b></p>
+			<p>Subscriptions calls will return a <code>CallResult&lt;UpdateSubscription&gt;</code> object. This object contains information about the status of the intial subscription, and  the UpdateSubscription data object exposes events for status changes and methods for managing the subscription. The <code>CallResult&lt;UpdateSubscription&gt;</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Success</td>
+				<td>Whether or not the subscription was completed successfully</td>
+			</tr>
+			<tr>
+				<td>Error</td>
+				<td>Error information, only available when <code>Success</code> is <code>false</code></td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The <code>UpdateSubscription</code> object, only available when <code>Success</code> is <code>true</code></td>
+			</tr>
+			<tr>
+				<td>Data.Id</td>
+				<td>Unique id of the subscription</td>
+			</tr>
+			<tr>
+				<td>Data.SocketId</td>
+				<td>The id of the underlying websocket</td>
+			</tr>
+			<tr>
+				<td>Data.ConnectionLost</td>
+				<td>Event which will be invoked whenever the connection to the server is lost and reconnecting will be started</td>
+			</tr>
+			<tr>
+				<td>Data.ConnectionRestored</td>
+				<td>Event which will be invoked when the connection to the server is restored after being disconnected</td>
+			</tr>
+			<tr>
+				<td>Data.ActivityPaused</td>
+				<td>Event which will be invoked when the server has indicated that currently no operations will be accepted</td>
+			</tr>
+			<tr>
+				<td>Data.ActivityUnpaused</td>
+				<td>Event which will be invoked when the server has indicated that operations will be accepted again after a previous ActivityPaused event</td>
+			</tr>
+			<tr>
+				<td>Data.Exception</td>
+				<td>Event which will be invoked when the data handler of the subscription throws an exception</td>
+			</tr>
+		  </table>
+		  
+		  <p><b>The subscription update event object</b></p>
+			<p>Whenever new data is received for a subscription the data handler will be called with a <code>DataEvent&lt;T&gt;</code> object. This object contains information about the event and the actual update data. The <code>DataEvent&lt;T&gt;</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Timestamp</td>
+				<td>The timestamp the data was received</td>
+			</tr>
+			<tr>
+				<td>Topic</td>
+				<td>The topic of the update, typically the symbol or stream name</td>
+			</tr>
+			<tr>
+				<td>OriginalData</td>
+				<td>The raw update data, only filled when the <code>OutputOriginalData</code> is enabled in the client options</td></td>
+			</tr>
+			<tr>
+				<td>UpdateType</td>
+				<td>The type of update. <code>SocketUpdateType.Snapshot</code> means the update is a snapshot, not an incremental update. <code>SocketUpdateType.Update</code> means it's an update with new data</td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The data received in the update</td>
+			</tr>
+		  </table>
+		
+		<h4>Unsubscribing</h4>
+		<p>
+			When no longer interested in updates from a specific subscription it can be unsubscribed. This can be done in one of the following ways:
+		</p>
+		<p>
+			<b>Unsubscribe via UpdateSubscription object</b><br />
+			When you have the reference to the UpdateSubscription object received from the Subscribe method you can call the <code>CloseAsync()</code> method on that to unsubscribe
+			<pre><code>var subscribeResult = await client.SpotApi.SubscribeToTickerUpdates(data => {});
+await subscribeResult.Data.CloseAsync();</code></pre>
+		</p>
+		<p>
+			<b>Unsubscribe via CancellationToken</b><br />
+			Passing in a <code>CancellationToken</code> as parameter in the subscribe method will allow you to cancel subscriptions by canceling the token. This can be useful when you need to cancel some streams but not others. In this example, both <code>BTCUSDT</code> and <code>ETHUSDT</code> streams get canceled, while the <code>XRPUSDT</code> stream remains active.
+			<pre><code>var cts = new CancellationTokenSource();
+var subscriptionResult1 = await client.SpotApi.SubscribeToTickerUpdatesAsync("BTCUSDT", DataHandler, cts.Token);
+var subscriptionResult2 = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", DataHandler, cts.Token);
+var subscriptionResult3 = await client.SpotApi.SubscribeToTickerUpdatesAsync("XRPUSDT", DataHandler);
+cts.Cancel();</code></pre>
+		</p>
+		<p>
+			<b>Unsubscribe via the websocket client</b><br />
+			The Websocket client has multiple ways of unsubscribing one or more subscriptions:
+			<pre><code>var subscribeResult = await client.SpotApi.SubscribeToTickerUpdates(data => {});
+// Unsubscribe by passing the UpdateSubscription
+await client.UnsubscribeAsync(subscribeResult.Data);
+// OR store the ID and pass that
+var subId = subscribeResult.Data.Id;
+await client.UnsubscribeAsync(subId);
+// OR unsubscribe all subscriptions at the same time
+await client.UnsubscribeAllAsync();</code></pre>
+		</p>
+		
+		</section>
         
 		<hr class="divider">
 				
@@ -587,7 +1480,7 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			</div>
 		  
 		  <b>SetDefaultOptions</b> 
-		  <p>The options can be defined in the static SetDefaultOptions method on the client BEFORE creating the client. Any client created after this call will use the specified options</p>
+		  <p>The options can be defined using the static SetDefaultOptions method on the client BEFORE creating the client. Any client created after this call will use the specified options</p>
 		  <ul class="nav nav-tabs" id="options-default" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-default-binance" role="tab" aria-controls="options-default-binance" aria-selected="true">Binance</a>
@@ -712,9 +1605,145 @@ var client = new OKXRestClient();</code></pre>
         <section id="idocs_options_def">
           <h2>Option definitions</h2>
           
-		  <p>List of options:</p>
-		  <p> - Generic Options</p>
-		  <p> - Options per library</p>
+		  <p>
+			  <b>General options</b><br />
+			  Options available for all clients
+		  </p>
+		  <table class="table table-bordered">
+			<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+			<tr>
+				<td>RequestTimeout</td>
+				<td>The time to wait for an answer from the server on a request</td>
+				<td><code>TimeSpan.FromSeconds(20)</code></td>
+			</tr>
+			<tr>
+				<td>ApiCredentials</td>
+				<td>The credentials to use for private endpoints and streams. See <a href="idocs_auth">Authorization</a> for more info</td>
+				<td><code>null</code></td>
+			</tr>
+			<tr>
+				<td>Proxy</td>
+				<td>The proxy to use for connecting to the API</td>
+				<td><code>null</code></td>
+			</tr>
+			<tr>
+				<td>OutputOriginalData</td>
+				<td>When enabled the originally received string data will be available as well as the deserialized object. For REST API client calls the data will be in the <code>WebCallResult<T>.OriginalData</code> property, for Websocket API client subscriptions the data will be available in the <code>DataEvent<T>.OriginalData</code> property when receiving an update.</td>
+				<td><code>false</code></td>
+			</tr>
+			<tr>
+				<td>Environment</td>
+				<td>The environment the library should connect to. Some exchanges have testnet/sandbox environments which can be used instead of the real exchange. The environment option can be used to switch between different trade environments</td>
+				<td><code>Live environment</code></td>
+			</tr>
+		  </table>
+		  
+		  <p>
+			  <b>REST client options</b><br />
+			  Options available for REST clients
+			  <table class="table table-bordered">
+				<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+				<tr>
+					<td>AutoTimestamp</td>
+					<td>Whether or not the client should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time sure is to be in sync</td>
+					<td><code>true</code></td>
+				</tr>
+				<tr>
+					<td>TimestampRecalculationInterval</td>
+					<td>The interval of how often the time synchronization between client and server should be executed</td>
+					<td><code>TimeSpan.FromHours(1)</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimiters</td>
+					<td>A list of <code>IRateLimiter</code>s to use</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimitingBehaviour</td>
+					<td>What should happen when a rate limit is reached</td>
+					<td><code>RateLimitingBehaviour.Wait</code></td>
+				</tr>
+				<tr>
+					<td>[API].ApiCredentials</td>
+					<td>Same as the in the base options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].OutputOriginalData</td>
+					<td>Same as the in the base options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].AutoTimestamp</td>
+					<td>Same as the in the base REST options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].TimestampRecalculationInterval</td>
+					<td>Same as the in the base REST options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+			  </table>
+		  </p>
+		  
+		  
+		  <p>
+			  <b>Websocket client options</b><br />
+			  Options available for websocket clients
+			  <table class="table table-bordered">
+				<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+				<tr>
+					<td>AutoReconnect</td>
+					<td>Whether or not the socket should attempt to automatically reconnect when disconnected</td>
+					<td><code>true</code></td>
+				</tr>
+				<tr>
+					<td>ReconnectInterval</td>
+					<td>The time to wait between connection tries when reconnecting</td>
+					<td><code>TimeSpan.FromSeconds(5)</code></td>
+				</tr>
+				<tr>
+					<td>SocketNoDataTimeout</td>
+					<td>If no data is received during this timespan the connection is assumed to be dropped. This is mainly used for API's which have some sort of ping/keepalive system. For example; the Bitfinex API will sent a heartbeat message every 15 seconds, so the `SocketNoDataTimeout` could be set to 20 seconds. On API's without such a mechanism this might not work because there just might not be any update while still being fully connected</td>
+					<td><code>default(TimeSpan)</code></td>
+				</tr>
+				<tr>
+					<td>SocketSubscriptionsCombineTarget</td>
+					<td>The number of subscriptions that should be made on a single socket connection before setting up a new connection. Not all exchanges support multiple subscriptions on a single socket and some have limits on the amount of connections. Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection, potentially leading to delays in updates if the data isn't handled quickly enough</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>MaxConcurrentResubscriptionsPerSocket</td>
+					<td>The maximum number of concurrent resubscriptions per socket when resubscribing after reconnecting</td>
+					<td><code>5</code></td>
+				</tr>
+				<tr>
+					<td>MaxSocketConnections</td>
+					<td>The maximum number of distinct socket connections</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>DelayAfterConnect</td>
+					<td>The time to wait before sending messages after connecting to the server</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimiters</td>
+					<td>A list of <code>IRateLimiter</code>s to use</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>[API].SocketNoDataTimeout</td>
+					<td>Same as the in the base websocket client options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].MaxSocketConnections</td>
+					<td>Same as the in the base websocket client options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+			  </table>
+		  </p>
         </section>
 		
 		<hr class="divider">
