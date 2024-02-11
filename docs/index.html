@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
-<link href="assets/images/favicon.png" rel="icon" />
+<link href="assets/images/logo.png" rel="icon" />
 <title>CryptoExchange.Net Documentation</title>
 <meta name="description" content="Documentation of the CryptoExchange.Net and client implementation libraries">
 <meta name="author" content="JKorf">
@@ -94,7 +94,7 @@
             <li class="nav-item"><a class="nav-link" href="#idocs_options_def">Option definitions</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="#idocs_features">Features</a>
+        <li class="nav-item"><a class="nav-link" href="#idocs_features">Additional Features</a>
 		  <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_orderbooks">Orderbooks</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_logging">Logging</a></li>
@@ -265,6 +265,7 @@
           <p>
 			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services by calling the <code>Add[Library]();</code> extension method on the service collection. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
 		  </p>
+		  <div class="alert alert-info">Using the dependecy injection mechanism also makes sure the HttpClient is used correctly</div>
 		  <ul class="nav nav-tabs" id="di" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
@@ -1182,7 +1183,36 @@ await client.UnsubscribeAllAsync();</code></pre>
 		============================ -->
         <section id="idocs_common">
           <h2>Common Clients</h2>
-          
+		  <p>CryptoExchange.Net exposes some common clients. These clients aim to make using the different API's easier.</p>
+		  
+          <p><b>(I)CryptoRestClient</b><br />
+			The <code>ICryptoRestClient</code> (or <code>CryptoRestClient</code> when used directly) can be used to easily access REST clients for different API's through the different packages that have been installed. Each package adds it extension method to the interface, which allows the user to access the clients via it.
+		  </p>
+		  <p>
+		  For example, having the Binance, Bybit and Kucoin packages installed allows you to use it like this:
+			<pre><code>var cryptoRestClient = new CryptoRestClient(); // Either construct it or inject the ICryptoRestClient into your service
+var binanceTicker = await cryptoRestClient.Binance().SpotApi.ExchangeData.GetTickersAsync();
+var bybitTicker = await cryptoRestClient.Bybit().V5Api.ExchangeData.GetTickers();
+var kucoinTicker = await cryptoRestClient.Kucoin().SpotApi.ExchangeData.GetTickers();</code></pre>
+		  </p>
+		  
+          <p><b>(I)CryptoSocketClient</b><br />
+		  Similarly as the (I)CryptoRestClient this client allows you to access the different Websocket clients through a single access point.
+		  </p>
+		  <p>Having the Bitget, Kraken and OKX packages installed would allow you to use it like this:
+		  <pre><code>var cryptoRestClient = new CryptoSocketClient(); // Either construct it or inject the ICryptoRestClient into your service
+var bitgetSub = await cryptoRestClient.Bitget().SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
+var krakenSub = await cryptoRestClient.Kraken().SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
+var okxSub = await cryptoRestClient.OKX().UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
+		  </p>
+		  
+          <p><b>ISpotClient</b><br />
+		  The ISpotClient is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
+		  </p>
+		  <p>
+		  The ISpotClient is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
+		  <pre><code>var spotClient = restClient.SpotApi.CommonSpotClient;</code></pre>
+		  </p>
         </section>
         
 		<hr class="divider">
@@ -1751,7 +1781,7 @@ var client = new OKXRestClient();</code></pre>
 		<!-- Getting Started
 		============================ -->
         <section id="idocs_features">
-        <h1>Features</h1>
+        <h1>Additional Features</h1>
         
         </section>
 		
@@ -1761,7 +1791,273 @@ var client = new OKXRestClient();</code></pre>
 		============================ -->
         <section id="idocs_orderbooks">
           <h2>Orderbooks</h2>
-          
+          <p>
+			Each client library provides an local orderbook implementation. These implementations will provide a client side orderbook, take care of synchronization with the server, and handle reconnecting and resynchronizing in case of a dropped connection.
+			Orderbook implementations use the following naming convention: <code>[ExchangeName][(Type)]SymbolOrderBook</code>
+			</p>
+			<p>			
+			<b>Creation and starting</b><br />
+			The order book implementations can be created directly, or can be instantiated via the <code>I[Exchange]OrderBookFactory</code> factory. After creation the synchronization can be started by calling the <code>StartAync</code> method
+			</p>
+			
+			<ul class="nav nav-tabs" id="book" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bitfinex-tab" data-toggle="tab" href="#book-bitfinex" role="tab" aria-controls="book-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bitget-tab" data-toggle="tab" href="#book-bitget" role="tab" aria-controls="book-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bybit-tab" data-toggle="tab" href="#book-bybit" role="tab" aria-controls="book-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-coinex-tab" data-toggle="tab" href="#book-coinex" role="tab" aria-controls="book-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-huobi-tab" data-toggle="tab" href="#book-huobi" role="tab" aria-controls="book-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-kraken-tab" data-toggle="tab" href="#book-kraken" role="tab" aria-controls="book-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-kucoin-tab" data-toggle="tab" href="#book-kucoin" role="tab" aria-controls="book-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-mexc-tab" data-toggle="tab" href="#book-mexc" role="tab" aria-controls="book-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-okx-tab" data-toggle="tab" href="#book-okx" role="tab" aria-controls="book-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="book-binance" role="tabpanel" aria-labelledby="book-binance-tab">
+<pre><code>var book = new BinanceSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bitfinex" role="tabpanel" aria-labelledby="book-bitfinex-tab">
+<pre><code>var book = new BitfinexSymbolOrderBook("tETHUSD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bitget" role="tabpanel" aria-labelledby="book-bitget-tab">
+<pre><code>var book = new BitgetSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bybit" role="tabpanel" aria-labelledby="book-bybit-tab">
+<pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-coinex" role="tabpanel" aria-labelledby="book-coinex-tab">
+<pre><code>var book = new CoinExSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-huobi" role="tabpanel" aria-labelledby="book-huobi-tab">
+<pre><code>var book = new HuobiSpotSymbolOrderBook("ethusdt");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-kraken" role="tabpanel" aria-labelledby="book-kraken-tab">
+<pre><code>var book = new KrakenSpotSymbolOrderBook("ETH/USD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-kucoin" role="tabpanel" aria-labelledby="book-kucoin-tab">
+<pre><code>var book = new KucoinSpotSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-mexc" role="tabpanel" aria-labelledby="book-mexc-tab">
+<pre><code>var book = new MexcSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-okx" role="tabpanel" aria-labelledby="book-okx-tab">
+<pre><code>var book = new OKXSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			</div>
+			
+			<p>
+			  <b>The order book object</b><br />
+			  The order book implementations for each client use a common base class and interface, which means you can use books from different exchanges in a common function.
+			  <pre><code>// Create order books for different exchanges
+var books = new List&lt;ISymbolOrderBook&gt;();
+books.Add(new BinanceSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new BitgetSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new KrakenSpotSymbolOrderBook("ETH/USD"));
+books.Add(new KucoinSpotSymbolOrderBook("ETH-USDT"));
+books.Add(new OKXSymbolOrderBook("ETH-USDT"));
+
+// Start the books
+var results = await Task.WhenAll(books.Select(b => b.StartAsync()));
+
+// Output the current best ask/bid for each exchange
+foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
+{
+	Console.WriteLine(book.Id);
+	Console.WriteLine($"{book.BestAsk} - {book.BestBid}");
+}
+</code></pre>
+			</p>
+			<p>		
+			The following properties and events are exposed by the order books:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>Status</td>
+					<td>The current status of the order book. Note that the book is only acurate and up to date when the status is <code>Synced</code></td>
+				</tr>
+				<tr>
+					<td>Id</td>
+					<td>Identifier for the book, referencing the exchange it's for</td>
+				</tr>
+				<tr>
+					<td>Symbol</td>
+					<td>The symbol the book is for</td>
+				</tr>
+				<tr>
+					<td>LastSequenceNumber</td>
+					<td>The last sequence number that was processed. Order book update messages typically have sequence numbers to correctly sync the book</td>
+				</tr>
+				<tr>
+					<td>UpdateTime</td>
+					<td>Timestamp of the last update that was processed</td>
+				</tr>
+				<tr>
+					<td>AskCount</td>
+					<td>The current number of asks in the book</td>
+				</tr>
+				<tr>
+					<td>BidCount</td>
+					<td>The current number of bids in the book</td>
+				</tr>
+				<tr>
+					<td>Asks</td>
+					<td>Returns a snapshot of the current list of asks. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Bids</td>
+					<td>Returns a snapshot of the current list of bids. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Book</td>
+					<td>Returns a snapshot of the both the asks and bids. This makes sure the snapshot of the bids and asks are of the same exact time</td>
+				</tr>
+				<tr>
+					<td>BestAsk</td>
+					<td>The best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>BestBid</td>
+					<td>The best bid at that moment</td>
+				</tr>
+				<tr>
+					<td>BestOffers</td>
+					<td>The best bid and best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>OnStatusChange</td>
+					<td>Event called when the status of the order book changes</td>
+				</tr>
+				<tr>
+					<td>OnOrderBookUpdate</td>
+					<td>Event called whenever the book changes. Note that this event can trigger a lot on large/high liquidity markets</td>
+				</tr>
+				<tr>
+					<td>OnBestOffersChanged</td>
+					<td>Event called whenever the best ask or bid changes in the order book</td>
+				</tr>
+			</table>
+			
+		</p>
         </section>
 		
 		<hr class="divider">
@@ -1770,15 +2066,76 @@ var client = new OKXRestClient();</code></pre>
         <section id="idocs_logging">
           <h2>Logging</h2>
 		  
+		  <p>
+		  The library provides extensive logging, which depends on the dotnet `Microsoft.Extensions.Logging.ILogger` interface. This should provide ease of use when connecting the library logging to your existing logging implementation.
+		  </p>
+		  <p>
+		  When using the Dotnet dependency injection the logging configuration will de determined by the ILogger configuration.
+		  </p>
+		  
+		  <p>
+			<b>External log providers</b><br />
+			External logging libraries can be configured as expected. For example Serilog:
+			<pre><code>using Binance.Net;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .WriteTo.Console()
+        .CreateLogger();
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddBinance();
+builder.Host.UseSerilog();
+var app = builder.Build();
+
+// startup
+
+app.Run();</code></pre>
+		  </p>
+		  
+		  <p>
+			<b>Logging without dependency injection</b><br />
+			A LoggerFactory instance can be provided to the client to configure the logging
+<pre><code>var logFactory = new LoggerFactory();
+logFactory.AddProvider(new ConsoleLoggerProvider());
+var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options => { });</code></pre>
+		  </p>
         </section>
 		
 		<hr class="divider">
 		
 		<!-- Layout
 		============================ -->
-        <section id="idocs_logging">
+        <section id="idocs_ratelimiting">
           <h2>Ratelimiting</h2>
-		  
+		  <p>
+		  The client libraries have build in rate limiting. These rate limits can be configured per client. Some client implementations where the exchange has clear rate limits will also have a default rate limiter already set up.
+Rate limiting is configured in the client options, and can be set on a specific client or for all clients by either providing it in the constructor for a client, or by using the <code>SetDefaultOptions</code> on a client.
+
+<div class="alert alert-info">What to do when a limit is reached can be configured with the <code>RateLimitingBehaviour</code> client options, either <code>Fail</code> or <code>Wait</code>.</div>
+
+		  </p>
+		  <p>
+			<b>Ratelimit configuration</b><br />
+			A rate limiter can be configured in the options like so:
+<pre><code>new ClientOptions
+{
+    RateLimitingBehaviour = RateLimitingBehaviour.Wait,
+    RateLimiters = new List<IRateLimiter>
+    {
+        new RateLimiter()
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+    }
+}</code></pre>
+
+This will add a rate limiter for 50 requests per 10 seconds.
+A rate limiter can have multiple limits:
+<pre><code>new RateLimiter()
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+            .AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))</code></pre>
+This adds another limit of 10 requests per 2 seconds for the order endpoint in addition to the 50 requests per 10 seconds limit.
+		  </p>
         </section>
 		
 		<hr class="divider">
@@ -1787,12 +2144,32 @@ var client = new OKXRestClient();</code></pre>
 		============================ -->
         <section id="idocs_examples">
           <h1>Examples</h1>
+		  <p>See also the Examples folder in the <a href="https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples">source</a></p>
+		  		  
+		  <b>Minimal API</b><br />
+		  <p>A minimal API example allowing the retrieval of ticker information for a specific exchange and symbol. This API returns ticker information for the following paths<br />
+		  <code>/Ticker/Bitfinex/ETH/BTC</code><br />
+		  <code>/Ticker/Bitget/ETH/BTC</code><br />
+		  <code>/Ticker/Kraken/ETH/BTC</code><br />
 		  
-		  <pre><code class="language-csharp">
-using Binance.Net;
+</p>
+		  <pre><code class="language-csharp">using CryptoExchange.Net.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
-var client = new BinanceRestClient();
-client.SpotApi.Exchange.GetExchangeInfoAsync();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddBitfinex();
+builder.Services.AddBitget();
+builder.Services.AddKraken();
+var app = builder.Build();
+
+app.MapGet("Ticker/{exchange}/{baseAsset}/{quoteAsset}", async ([FromServices] ICryptoRestClient client, string exchange, string baseAsset, string quoteAsset) =>
+{
+    var spotClient = client.SpotClient(exchange)!;
+    var result = await spotClient.GetTickerAsync(spotClient.GetSymbolName(baseAsset, quoteAsset));
+    return result.Data;
+});
+
+app.Run();
 		  </pre></code>
 		  
 		  
@@ -1805,6 +2182,74 @@ client.SpotApi.Exchange.GetExchangeInfoAsync();
         <section id="idocs_glossary">
           <h2>Glossary</h2>
           
+		  <table class="table table-bordered">
+			<tr><th>Definition</th><th>Synonyms</th><th>Meaning</th></tr>
+			<tr>
+				<td>Symbol</td>
+				<td>Market, Pair</td>
+				<td>An asset pair on which can be traded, for example <code>BTC-ETH</code></td>
+			</tr>
+			<tr>
+				<td>Asset</td>
+				<td>Currency, Coin</td>
+				<td>A coin for which you can hold balance and which makes up Symbols. For example both <code>BTC</code>, <code>ETH</code> or <code>USD</code></td>
+			</tr>
+			<tr>
+				<td>Trade</td>
+				<td>Execution, Fill</td>
+				<td>The (partial) execution of an order. Orders can have multiple trades</td>
+			</tr>
+			<tr>
+				<td>Quantity</td>
+				<td>Amount, Size</td>
+				<td>The amount of asset</td>
+			</tr>
+			<tr>
+				<td>QuoteQuantity</td>
+				<td>Value</td>
+				<td>The amount of quote asset</td>
+			</tr>
+			<tr>
+				<td>Fee</td>
+				<td>Commission</td>
+				<td>The fee paid for an order, trade or withdrawal</td>
+			</tr>
+			<tr>
+				<td>Kline</td>
+				<td>Candlestick, OHLC</td>
+				<td>K-line data, used for candlestick charts. Contains Open/High/Low/Close/Volume</td>
+			</tr>
+			<tr>
+				<td>KlineInterval</td>
+				<td>Period</td>
+				<td>The time period of a single kline</td>
+			</tr>
+			<tr>
+				<td>Open order</td>
+				<td>Active order, Unexecuted order</td>
+				<td>An order which has not yet been fully filled</td>
+			</tr>
+			<tr>
+				<td>Closed order</td>
+				<td>Completed order, executed order</td>
+				<td>An order which is no longer active. Can be canceled or fully filled</td>
+			</tr>
+			<tr>
+				<td>Network</td>
+				<td>Chain</td>
+				<td>The network of an asset. For example <code>ETH</code> allows multiple networks like <code>ERC20</code> and <code>BEP2</code></td>
+			</tr>
+			<tr>
+				<td>Orderbook</td>
+				<td>Market depth</td>
+				<td>A list of (the top rows of) the current best bids and asks</td>
+			</tr>
+			<tr>
+				<td>Ticker</td>
+				<td>Stats</td>
+				<td>Statistics over the last 24 hours</td>
+			</tr>
+		  </table>
 		</section>
 		
 		<hr class="divider">
@@ -1813,9 +2258,60 @@ client.SpotApi.Exchange.GetExchangeInfoAsync();
 		============================ -->
 		<section id="idocs_faq">
           <h2>FAQ</h2>
-          
-        </div>
-          
+          <b>I occasionally get a NullReferenceException, what's wrong?</b><br />
+		  <p>
+		  You probably don't check the result status of a call and just assume the data is always there. <code>NullReferenceExecption</code> will happen when you have code like this <code>var symbol = client.GetTickersAync().Result.Data.Symbol</code> because the <code>Data</code> property is null when the call fails. Instead check if the call is successful:
+<pre><code>var tickerResult = await client.SpotApi.ExchangeData.GetTickersAync();
+if(!tickerResult.Success)
+{
+  // Handle error
+}
+else
+{
+  // Handle result, it is now safe to access the Data property
+  var symbol = tickerResult.Data.Symbol;
+}</code></pre>
+		  </p>
+		  
+		  <b>The socket client stops sending updates after a little while</b><br />
+		  <p>
+		  You probably didn't keep a reference to the socket client and it got disposed.
+<pre><code>// WRONG
+private void SomeMethod()
+{
+  var socketClient = new BinanceSocketClient();
+  socketClient.Spot.SubscribeToOrderBookUpdatesAsync("BTCUSDT", data => {
+    // Handle data
+  });
+}</code></pre>
+<pre><code>// RIGHT
+private BinanceSocketClient _socketClient = new BinanceSocketClient();
+
+// .. rest of the class
+
+private void SomeMethod()
+{
+  _socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
+    // Handle data
+  });
+}</code></pre>
+		  </p>
+		  
+		<b>Can I use the TestNet/US/other API with this library?</b><br />
+		<p>
+		Yes, generally these are all supported and can be configured by setting the Environment in the client options. Some known environments should be available in the [Exchange]Environment class:
+		<pre><code>// Change environment to test
+var client = new BinanceRestClient(options =>
+{
+    options.Environment = BinanceEnvironment.Testnet;
+});</code></pre>
+	    </p>
+		
+		<b>How are timestamps handled?</b><br />
+		<p>
+		Exchange API's treat all timestamps as UTC, both incoming and outgoing. The client libraries do no conversion so received timestamps are always in UTC. When sending requests make sure to use UTC time as well.
+	    </p>
+		
         </section>
         
 		<hr class="divider">
