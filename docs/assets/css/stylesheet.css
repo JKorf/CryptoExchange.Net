@@ -1773,7 +1773,7 @@ hr {
   color: #0366d6 !important;
 }
 .accordion:not(.accordion-alternate) .card-header a {
-  background-color: #0366d6;
+  background-color: #76ace8;
   color: #fff;
 }
 .accordion:not(.accordion-alternate) .card-header a.collapsed {
@@ -1987,6 +1987,7 @@ hr {
 /*=== 5.5 Tabs ===*/
 .nav-tabs {
   border-bottom: 1px solid #d7dee3;
+  padding-bottom: 16px;
 }
 .nav-tabs .nav-item .nav-link {
   border: 0;
@@ -2972,4 +2973,11 @@ input:-internal-autofill-selected {
   right: auto;
   left: -40px;
   border-radius: 4px 0px 0px 4px;
+}
+
+.tab-wrap{
+	border-top: 1px solid #eee;
+	border-bottom: 1px solid #eee;
+	padding: 0 10px;
+	margin-bottom: 40px;
 }

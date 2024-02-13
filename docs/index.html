@@ -190,7 +190,8 @@
           <h2>Installation</h2>
           
 		  <p>Add the package via dotnet, or add it via the package manager. Any number of libraries can be installed, just make sure you're always using the latest at that moment.</p>
-		  <ul class="nav nav-tabs" id="install" role="tablist" style="margin-bottom: -16px;">
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="install" role="tablist">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
 			  </li>
@@ -271,11 +272,9 @@
 				<img src="assets/images/OKXInstall.png" />
 			  </div>
 			</div>
-
+		</div>
         </section>
         
-		<hr class="divider">
-		
         <!-- HTML Structure
 		============================ -->
         <section id="idocs_di">
@@ -284,6 +283,7 @@
 			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services by calling the <code>Add[Library]();</code> extension method on the service collection. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
 		  </p>
 		  <div class="alert alert-info">Using the dependecy injection mechanism also makes sure the HttpClient is used correctly</div>
+		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="di" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
@@ -354,8 +354,10 @@
 <pre><code>builder.Services.AddOKX();</code></pre>
 			  </div>
 			</div>
+			</div>
 			
 			<p>This registers the following interfaces which can then be injected</p>
+			<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="interfaces" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
@@ -696,6 +698,7 @@
 				</table>
 			  </div>
 			</div>
+			</div>
         </section>
         
 		<hr class="divider">
@@ -707,6 +710,7 @@
 		  <p>Each library provides a REST API client. This client follows the following naming convention: <code>[Library]RestClient</code>. The REST API client is split into different sub-API access clients, which in turn are split into different topics. This structure is the same for each library, which makes it easier to navigate the clients.</p>
         
 		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually.</p>
+		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="rest" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
@@ -876,6 +880,7 @@ else
 }</code></pre>
 			  </div>
 			</div>
+			</div>
 			
 			<p><b>The response object</b></p>
 			<p>Calls made with the REST API client will return a <code>WebCallResult</code> object. This object contains information about both the request that was send and the response that was received. The <code>WebCallResult</code> object exposes the following properties:</p>
@@ -944,6 +949,7 @@ else
 		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually. When constructing manually keep in mind that when the client is disposed all connections will get closed as well.</p>
         
 		<h4>Subscribing</h4>
+		<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="socket" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
@@ -1087,6 +1093,7 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
+			</div>
 			</div>
 			
 			<p><b>The subscription result object</b></p>
@@ -1287,6 +1294,7 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
           
 		  <b>Dependency injection</b>
 		  <p>When adding a library to the service collection (see <a href="#idocs_di">Dependency Injection</a>) the options for the clients can be provided as argument to the calls. Options are split between the REST and the websocket client.</p>
+		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
@@ -1420,9 +1428,11 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
   });</code></pre>
 			  </div>
 			</div>
+			</div>
 		  
 		  <b>Client constructor</b> 
 		  <p>When creating a client via the constructor options can be provided as parameters</p>
+		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options-constr" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
@@ -1526,9 +1536,11 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 });</code></pre>
 			  </div>
 			</div>
+			</div>
 		  
 		  <b>SetDefaultOptions</b> 
 		  <p>The options can be defined using the static SetDefaultOptions method on the client BEFORE creating the client. Any client created after this call will use the specified options</p>
+		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options-default" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-default-binance" role="tab" aria-controls="options-default-binance" aria-selected="true">Binance</a>
@@ -1642,6 +1654,7 @@ var client = new MexcRestClient();</code></pre>
 });
 var client = new OKXRestClient();</code></pre>
 			  </div>
+			</div>
 			</div>
 			
         </section>
@@ -1817,7 +1830,7 @@ var client = new OKXRestClient();</code></pre>
 			<b>Creation and starting</b><br />
 			The order book implementations can be created directly, or can be instantiated via the <code>I[Exchange]OrderBookFactory</code> factory. After creation the synchronization can be started by calling the <code>StartAync</code> method
 			</p>
-			
+			<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="book" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="true">Binance</a>
@@ -1981,6 +1994,7 @@ if (!startResult.Success)
 await book.StopAsync();
 </code></pre>
 			  </div>
+			</div>
 			</div>
 			
 			<p>
@@ -2169,7 +2183,7 @@ This adds another limit of 10 requests per 2 seconds for the order endpoint in a
 		  <div class="accordion" id="accordionMinimalApi">
 		  <div class="card">
 			<div class="card-header" id="headingMinimalApi">
-			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseMinimalApi" aria-expanded="false" aria-controls="collapseOne">Show code</a> </h5>
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseMinimalApi" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
 			</div>
 			<div id="collapseMinimalApi" class="collapse" aria-labelledby="headingMinimalApi" data-parent="#accordionMinimalApi">
 			  <div class="card-body">
@@ -2204,11 +2218,12 @@ app.Run();
 		  <div class="accordion" id="accordionPlaceOrder">
 		  <div class="card">
 			<div class="card-header" id="headingPlaceOrder">
-			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapsePlaceOrder" aria-expanded="false" aria-controls="collapseOne">Show code</a> </h5>
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapsePlaceOrder" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
 			</div>
 			<div id="collapsePlaceOrder" class="collapse" aria-labelledby="headingPlaceOrder" data-parent="#accordionPlaceOrder">
 			  <div class="card-body">
 			  <div>
+			  
 				<ul class="nav nav-tabs" id="example-place" role="tablist" style="margin-bottom: -16px;">
 					<li class="nav-item" role="presentation">
 						<a class="nav-link active" id="example-place-general-tab" data-toggle="tab" href="#example-place-general" role="tab" aria-controls="example-place-general" aria-selected="true">CryptoRestClient</a>
