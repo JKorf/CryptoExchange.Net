@@ -1804,6 +1804,9 @@ hr {
 }
 .accordion .card-body {
   line-height: 26px;
+  border: 1px solid #aaa;
+  margin-top: -4px;
+  border-radius: 4px;
 }
 .accordion.arrow-right .card-header a {
   padding-left: 1.25rem;
@@ -2009,6 +2012,19 @@ hr {
   -webkit-transform: translateY(-3px);
   transform: translateY(-3px);
 }
+.nav-tabs .nav-item .nav-link:not(.active):after {
+    height: 2px;
+    width: calc(100% - 10px);
+    content: ' ';
+    background-color: #aaa;
+    display: block;
+    margin: 0 5px;
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    -webkit-transform: translateY(-3px);
+    transform: translateY(-3px);
+}
 .nav-tabs .nav-item .nav-link:not(.active):hover {
   color: #0366d6;
 }
@@ -2044,7 +2060,6 @@ hr {
 }
 
 .nav-tabs:not(.flex-column) {
-  flex-wrap: nowrap;
   overflow: hidden;
   overflow-x: auto;
   -ms-overflow-style: -ms-autohiding-scrollbar;
