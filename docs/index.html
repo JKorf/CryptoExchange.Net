@@ -107,6 +107,7 @@
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_ticker">Get Ticker</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_balances">Get Balances</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_placeorder">Place Order</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_stream_ticker">Subscribe Ticker Updates</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_minimal">Minimal API</a></li>
 		  </ul>
 		</li>
@@ -2547,7 +2548,7 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 			</div>
 		  </div>
 		  
-		  <b id="idocs_example_placeorder">Subscribe Ticker Updates</b><br />
+		  <b id="idocs_example_stream_ticker">Subscribe Ticker Updates</b><br />
 		  <p>Subscribe to the websocket ticker update stream</p>
 		  <div class="accordion" id="accordionStreamTicker">
 		  <div class="card">
@@ -2591,7 +2592,7 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
-					  <div class="tab-pane fade" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
+					  <div class="tab-pane fade show active" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
 		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
     // Handle update
 });</code></pre>
