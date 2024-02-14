@@ -1804,7 +1804,7 @@ hr {
 }
 .accordion .card-body {
   line-height: 26px;
-  border: 1px solid #aaa;
+  border: 1px solid #ccc;
   margin-top: -4px;
   border-radius: 4px;
 }
