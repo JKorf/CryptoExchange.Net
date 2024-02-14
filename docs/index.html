@@ -2547,6 +2547,107 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 			</div>
 		  </div>
 		  
+		  <b id="idocs_example_placeorder">Subscribe Ticker Updates</b><br />
+		  <p>Subscribe to the websocket ticker update stream</p>
+		  <div class="accordion" id="accordionStreamTicker">
+		  <div class="card">
+			<div class="card-header" id="headingStreamTicker">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseStreamTicker" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseStreamTicker" class="collapse" aria-labelledby="headingStreamTicker" data-parent="#accordionStreamTicker">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-stream-ticker" role="tablist" style="margin-bottom: -16px;">
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-ticker-binance-tab" data-toggle="tab" href="#example-stream-ticker-binance" role="tab" aria-controls="example-stream-ticker-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bitfinex-tab" data-toggle="tab" href="#example-stream-ticker-bitfinex" role="tab" aria-controls="example-stream-ticker-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bitget-tab" data-toggle="tab" href="#example-stream-ticker-bitget" role="tab" aria-controls="example-stream-ticker-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bybit-tab" data-toggle="tab" href="#example-stream-ticker-bybit" role="tab" aria-controls="example-stream-ticker-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-coinex-tab" data-toggle="tab" href="#example-stream-ticker-coinex" role="tab" aria-controls="example-stream-ticker-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-huobi-tab" data-toggle="tab" href="#example-stream-ticker-huobi" role="tab" aria-controls="example-stream-ticker-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-kraken-tab" data-toggle="tab" href="#example-stream-ticker-kraken" role="tab" aria-controls="example-stream-ticker-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-kucoin-tab" data-toggle="tab" href="#example-stream-ticker-kucoin" role="tab" aria-controls="example-stream-ticker-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-mexc-tab" data-toggle="tab" href="#example-stream-ticker-mexc" role="tab" aria-controls="example-stream-ticker-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-okx-tab" data-toggle="tab" href="#example-stream-ticker-okx" role="tab" aria-controls="example-stream-ticker-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
+		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bitfinex" role="tabpanel" aria-labelledby="example-stream-ticker-bitfinex-tab">
+		<pre><code>await bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHUST", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bitget" role="tabpanel" aria-labelledby="example-stream-ticker-bitget-tab">
+		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bybit" role="tabpanel" aria-labelledby="example-stream-ticker-bybit-tab">
+		<pre><code>await bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-coinex" role="tabpanel" aria-labelledby="example-stream-ticker-coinex-tab">
+		<pre><code>await coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-huobi" role="tabpanel" aria-labelledby="example-stream-ticker-huobi-tab">
+		<pre><code>await huobiSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethusdt", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-kraken" role="tabpanel" aria-labelledby="example-stream-ticker-kraken-tab">
+		<pre><code>await krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSD", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-kucoin" role="tabpanel" aria-labelledby="example-stream-ticker-kucoin-tab">
+		<pre><code>await kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-mexc" role="tabpanel" aria-labelledby="example-stream-ticker-mexc-tab">
+		<pre><code>await mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-okx" role="tabpanel" aria-labelledby="example-stream-ticker-okx-tab">
+		<pre><code>await okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
 		  <b id="idocs_example_minimal">Minimal API</b><br />
 		  <p>A minimal API example allowing the caller to retrieve ticker information for a specific exchange and asset pair<br />
 		  <div class="accordion" id="accordionMinimalApi">
