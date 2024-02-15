@@ -108,6 +108,7 @@
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_balances">Get Balances</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_placeorder">Place Order</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_stream_ticker">Subscribe Ticker Updates</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_stream_order">Subscribe Order Updates</a></li>
 			<li class="nav-item"><a class="nav-link" href="#idocs_example_minimal">Minimal API</a></li>
 		  </ul>
 		</li>
@@ -2648,6 +2649,120 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 			  </div>
 			</div>
 		  </div>
+		  
+		  <b id="idocs_example_stream_order">Subscribe Order Updates</b><br />
+		  <p>Subscribe to the websocket authenticated user order update stream</p>
+		  <div class="accordion" id="accordionStreamOrder">
+		  <div class="card">
+			<div class="card-header" id="headingStreamOrder">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseStreamOrder" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseStreamOrder" class="collapse" aria-labelledby="headingStreamOrder" data-parent="#accordionStreamOrder">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-stream-order" role="tablist" style="margin-bottom: -16px;">
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bitfinex" role="tab" aria-controls="example-stream-order-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitget-tab" data-toggle="tab" href="#example-stream-order-bitget" role="tab" aria-controls="example-stream-order-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bybit-tab" data-toggle="tab" href="#example-stream-order-bybit" role="tab" aria-controls="example-stream-order-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-coinex-tab" data-toggle="tab" href="#example-stream-order-coinex" role="tab" aria-controls="example-stream-order-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-huobi-tab" data-toggle="tab" href="#example-stream-order-huobi" role="tab" aria-controls="example-stream-order-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-kraken-tab" data-toggle="tab" href="#example-stream-order-kraken" role="tab" aria-controls="example-stream-order-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-kucoin-tab" data-toggle="tab" href="#example-stream-order-kucoin" role="tab" aria-controls="example-stream-order-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-mexc-tab" data-toggle="tab" href="#example-stream-order-mexc" role="tab" aria-controls="example-stream-order-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-okx-tab" data-toggle="tab" href="#example-stream-order-okx" role="tab" aria-controls="example-stream-order-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
+		<pre><code>// Retrieve the listen key
+var listenKey = await binanceClient.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await binanceSocketClient.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listenKey.Data, data => {
+    // Handle update
+}, null, null, null);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bitfinex" role="tabpanel" aria-labelledby="example-stream-order-bitfinex-tab">
+		<pre><code>await bitfinexSocketClient.SpotApi.SubscribeToUserUpdatesAsync(orderHandler: data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bitget" role="tabpanel" aria-labelledby="example-stream-order-bitget-tab">
+		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bybit" role="tabpanel" aria-labelledby="example-stream-order-bybit-tab">
+		<pre><code>await bybitSocketClient.V5PrivateApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-coinex" role="tabpanel" aria-labelledby="example-stream-order-coinex-tab">
+		<pre><code>await coinExSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-huobi" role="tabpanel" aria-labelledby="example-stream-order-huobi-tab">
+		<pre><code>await huobiSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(onOrderMatched: data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-kraken" role="tabpanel" aria-labelledby="example-stream-order-kraken-tab">
+		<pre><code>// Retrieve the token
+var token = await krakenClient.SpotApi.Account.GetWebsocketTokenAsync();
+
+// Subscribe using the token
+await krakenSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(token.Data.Token, data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-kucoin" role="tabpanel" aria-labelledby="example-stream-order-kucoin-tab">
+		<pre><code>await kucoinSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+}, null, null);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-mexc" role="tabpanel" aria-labelledby="example-stream-order-mexc-tab">
+		<pre><code>// Retrieve the listen key
+var token = await mexcClient.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await mexcSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(token.Data, data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-okx" role="tabpanel" aria-labelledby="example-stream-order-okx-tab">
+		<pre><code>await okxSocketClient.UnifiedApi.Trading.SubscribeToOrderUpdatesAsync(OKXInstrumentType.Spot, null, null, data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
 		  
 		  <b id="idocs_example_minimal">Minimal API</b><br />
 		  <p>A minimal API example allowing the caller to retrieve ticker information for a specific exchange and asset pair<br />
