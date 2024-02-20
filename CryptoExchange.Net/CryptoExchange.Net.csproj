@@ -14,12 +14,18 @@
     <RepositoryUrl>https://github.com/JKorf/CryptoExchange.Net.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/JKorf/CryptoExchange.Net</PackageProjectUrl>
     <NeutralLanguage>en</NeutralLanguage>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReleaseNotes>7.0.0-beta1 - Full overhaul of Websocket message handling, Abstracted out Newtonsoft.Json references in preparation of moving to System.Text.Json, Updated SendPeriodic to operate on connection level instead of client level to prevent looping when there are no connections, Added check to not send an unsubscribe message if there is another subscription listening to the same events, Added CryptoRestClient and CryptoSocketClient as aggregate for accessing different exchange APIs, Updated socket client log messages, Updated socket client GetSubscriptionState output</PackageReleaseNotes>
     <Nullable>enable</Nullable>
     <LangVersion>10.0</LangVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="Icon\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
   <PropertyGroup Label="Deterministic Build" Condition="'$(Configuration)' == 'Release'">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
