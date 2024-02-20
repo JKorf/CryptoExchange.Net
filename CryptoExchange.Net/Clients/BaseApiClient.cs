@@ -249,7 +249,6 @@ namespace CryptoExchange.Net
                 if (OutputOriginalData == true)
                 {
                     data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    _logger.Log(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms: " + data);
                     var result = Deserialize<T>(data, serializer, requestId);
                     result.OriginalData = data;
                     return result;
@@ -258,7 +257,6 @@ namespace CryptoExchange.Net
                 // If we don't have to keep track of the original json data we can use the JsonTextReader to deserialize the stream directly
                 // into the desired object, which has increased performance over first reading the string value into memory and deserializing from that
                 using var jsonReader = new JsonTextReader(reader);
-                _logger.Log(LogLevel.Debug, $"{(requestId != null ? $"[{requestId}] " : "")}Response received{(elapsedMilliseconds != null ? $" in {elapsedMilliseconds}" : " ")}ms");
                 return new CallResult<T>(serializer.Deserialize<T>(jsonReader)!);
             }
             catch (JsonReaderException jre)

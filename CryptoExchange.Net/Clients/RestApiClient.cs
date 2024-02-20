@@ -116,9 +116,9 @@ namespace CryptoExchange.Net
 
                 var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -170,9 +170,9 @@ namespace CryptoExchange.Net
 
                 var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
