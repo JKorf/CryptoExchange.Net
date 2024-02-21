@@ -424,13 +424,13 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Update the original request to send when the connection is restored after disconnecting. Can be used to update an authentication token for example.
+        /// Update the subscription when the connection is restored after disconnecting. Can be used to update an authentication token for example.
         /// </summary>
-        /// <param name="request">The original request</param>
+        /// <param name="subscription">The subscription</param>
         /// <returns></returns>
-        protected internal virtual Task<CallResult<object>> RevitalizeRequestAsync(object request)
+        protected internal virtual Task<CallResult> RevitalizeRequestAsync(Subscription subscription)
         {
-            return Task.FromResult(new CallResult<object>(request));
+            return Task.FromResult(new CallResult(null));
         }
 
         /// <summary>

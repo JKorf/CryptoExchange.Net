@@ -296,20 +296,28 @@ namespace CryptoExchange.Net.Sockets
             // Can't wait for this as it would cause a deadlock
             _ = Task.Run(async () =>
             {
-                var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
-                if (!reconnectSuccessful)
+                try
                 {
-                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
-                    _ = _socket.ReconnectAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    Status = SocketStatus.Connected;
-                    _ = Task.Run(() =>
+                    var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
+                    if (!reconnectSuccessful)
                     {
-                        ConnectionRestored?.Invoke(DateTime.UtcNow - DisconnectTime!.Value);
-                        DisconnectTime = null;
-                    });
+                        _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
+                        _ = _socket.ReconnectAsync().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        Status = SocketStatus.Connected;
+                        _ = Task.Run(() =>
+                        {
+                            ConnectionRestored?.Invoke(DateTime.UtcNow - DisconnectTime!.Value);
+                            DisconnectTime = null;
+                        });
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.Log(LogLevel.Warning, ex, $"[Sckt {SocketId}] Unknown exception while processing reconnection, reconnecting again");
+                    _ = _socket.ReconnectAsync().ConfigureAwait(false);
                 }
             });
 
@@ -755,7 +763,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!result)
                 {
                     _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed request revitalization: " + result.Error);
-                    return result.As(false);
+                    return result;
                 }
             }
 
