@@ -40,6 +40,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.0.0-beta2 - 21 Feb 2024
+    * Updated RevitalizeRequestAsync signature
+    * Removed duplicate logging
+
 * Version 7.0.0-beta1 - 06 Feb 2024
     * Full overhaul of Websocket message handling
     * Abstracted out Newtonsoft.Json references in preparation of moving to System.Text.Json
