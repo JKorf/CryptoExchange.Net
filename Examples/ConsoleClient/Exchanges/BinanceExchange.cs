@@ -7,6 +7,7 @@ using Binance.Net.Clients;
 using Binance.Net.Interfaces.Clients;
 using ConsoleClient.Models;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 
 namespace ConsoleClient.Exchanges
