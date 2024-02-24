@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="originalData"></param>
         /// <param name="error"></param>
 #pragma warning disable 8618
-        protected CallResult([AllowNull]T data, string? originalData, Error? error): base(error)
+        public CallResult([AllowNull]T data, string? originalData, Error? error): base(error)
 #pragma warning restore 8618
         {
             OriginalData = originalData;
@@ -90,6 +90,13 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="error">The erro rto return</param>
         public CallResult(Error error) : this(default, null, error) { }
+
+        /// <summary>
+        /// Create a new error result
+        /// </summary>
+        /// <param name="error">The error to return</param>
+        /// <param name="originalData">The original response data</param>
+        public CallResult(Error error, string? originalData) : this(default, originalData, error) { }
 
         /// <summary>
         /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)

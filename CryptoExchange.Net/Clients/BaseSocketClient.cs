@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net
@@ -101,8 +101,10 @@ namespace CryptoExchange.Net
         public string GetSubscriptionsState()
         {
             var result = new StringBuilder();
-            foreach(var client in ApiClients.OfType<SocketApiClient>())            
-                result.AppendLine(client.GetSubscriptionsState());            
+            foreach (var client in ApiClients.OfType<SocketApiClient>().Where(c => c.CurrentSubscriptions > 0))
+            {
+                result.AppendLine(client.GetSubscriptionsState());
+            }
             return result.ToString();
         }
     }

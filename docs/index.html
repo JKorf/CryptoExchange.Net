@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no">
+<link href="assets/images/logo.png" rel="icon" />
+<title>CryptoExchange.Net Documentation</title>
+<meta name="description" content="Documentation of the CryptoExchange.Net and client implementation libraries">
+<meta name="author" content="JKorf">
+
+<!-- Stylesheet
+============================== -->
+<!-- Bootstrap -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/bootstrap/css/bootstrap.min.css" />
+<!-- Font Awesome Icon -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/font-awesome/css/all.min.css" />
+<!-- Magnific Popup -->
+<link rel="stylesheet" type="text/css" href="assets/vendor/magnific-popup/magnific-popup.min.css" />
+<!-- Highlight Syntax -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<!--<link rel="stylesheet" type="text/css" href="assets/vendor/highlight.js/styles/github.css" />-->
+<!-- Custom Stylesheet -->
+<link rel="stylesheet" type="text/css" href="assets/css/stylesheet.css" />
+</head>
+
+<body class="box" data-spy="scroll" data-target=".idocs-navigation" data-offset="125">
+
+<!-- Preloader -->
+<div class="preloader">
+  <div class="lds-ellipsis">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>
+<!-- Preloader End --> 
+
+<!-- Document Wrapper   
+=============================== -->
+<div id="main-wrapper"> 
+  
+  <!-- Header
+  ============================ -->
+  <header id="header" class="sticky-top"> 
+    <!-- Navbar -->
+    <nav class="primary-menu navbar navbar-expand-lg navbar-dropdown-dark">
+      <div class="container-fluid">
+        <!-- Sidebar Toggler -->
+		<button id="sidebarCollapse" class="navbar-toggler d-block d-md-none" type="button"><span></span><span class="w-75"></span><span class="w-50"></span></button>
+		
+		<!-- Logo --> 
+        <a class="logo ml-md-3" href="index.html" title="iDocs Template"> <img src="assets/images/logo.png" alt="iDocs Template"/> </a> 
+		<span class="text-2 ml-2"></span> 
+        <!-- Logo End -->
+        
+		<!-- Navbar Toggler -->
+		<button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#header-nav"><span></span><span></span><span></span></button>
+        
+        <ul class="social-icons social-icons-sm ml-lg-2 mr-2">
+          <li class="social-icons-nuget"><a data-toggle="tooltip" href="http://www.nuget.org/profiles/JKorf/" target="_blank" title="" data-original-title="Nuget">Nuget</a></li>
+          <li><a data-toggle="tooltip" href="http://www.github.com/JKorf/CryptoExchange.Net" target="_blank" title="" data-original-title="GitHub"><i class="fab fa-github"></i></a></li>
+          <li><a data-toggle="tooltip" href="https://discord.gg/Wyqd4hegMZ" target="_blank" title="" data-original-title="Discord"><i class="fab fa-discord"></i></a></li>
+        </ul>
+      </div>
+    </nav>
+    <!-- Navbar End --> 
+  </header>
+  <!-- Header End --> 
+  
+  <!-- Content
+  ============================ -->
+  <div id="content" role="main">
+    
+	<!-- Sidebar Navigation
+	============================ -->
+	<div class="idocs-navigation bg-light">
+      <ul class="nav flex-column ">
+        <li class="nav-item"><a class="nav-link active" href="#idocs_intro">Introduction</a></li>
+        <li class="nav-item"><a class="nav-link active" href="#idocs_start">Getting Started</a>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_installation">Installation</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_di">Dependency Injection</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common clients</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
+		  <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_auth">Authorization</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_set">Setting options</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_def">Option definitions</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="#idocs_features">Additional Features</a>
+		  <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#idocs_orderbooks">Orderbooks</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_logging">Logging</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_ratelimiting">Ratelimiting</a></li>
+          </ul>
+		</li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_examples">Examples</a>
+		  <ul class="nav flex-column">
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_symbols">Get Symbols</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_ticker">Get Ticker</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_balances">Get Balances</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_placeorder">Place Order</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_stream_ticker">Subscribe Ticker Updates</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_stream_order">Subscribe Order Updates</a></li>
+			<li class="nav-item"><a class="nav-link" href="#idocs_example_minimal">Minimal API</a></li>
+		  </ul>
+		</li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_glossary">Glossary</a></li>
+		<li class="nav-item"><a class="nav-link" href="#idocs_faq">FAQ</a></li>
+      </ul>
+    </div>
+    
+    <!-- Docs Content
+	============================ -->
+    <div class="idocs-content">
+      <div class="container"> 
+        <section id="idocs_intro">
+			<h1>CryptoExchange.Net</h1>
+			
+		<p>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</p>
+		<div class="alert alert-info">All libraries can be used in the same project as well as indivually, just install the exchange libraries you need!</div>
+		<p>The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me</p>
+
+		<table class="table table-bordered">
+			<tr>
+				<th>Exchange</th>
+				<th>Repository</th>
+				<th>Nuget</th>
+			</tr>
+			<tr><td>Binance</td><td><a href="https://github.com/JKorf/Binance.Net">JKorf/Binance.Net</a></td><td><a href="https://www.nuget.org/packages/Binance.Net"><img src="https://img.shields.io/nuget/v/Binance.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Bitfinex</td><td><a href="https://github.com/JKorf/Bitfinex.Net">JKorf/Bitfinex.Net</a></td><td><a href="https://www.nuget.org/packages/Bitfinex.Net"><img src="https://img.shields.io/nuget/v/Bitfinex.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Bitget</td><td><a href="https://github.com/JKorf/Bitget.Net">JKorf/Bitget.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Bitget.Net"><img src="https://img.shields.io/nuget/v/JK.Bitget.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Bybit</td><td><a href="https://github.com/JKorf/Bybit.Net">JKorf/Bybit.Net</a></td><td><a href="https://www.nuget.org/packages/Bybit.Net"><img src="https://img.shields.io/nuget/v/Bybit.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>CoinEx</td><td><a href="https://github.com/JKorf/CoinEx.Net">JKorf/CoinEx.Net</a></td><td><a href="https://www.nuget.org/packages/CoinEx.Net"><img src="https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>CoinGecko</td><td><a href="https://github.com/JKorf/CoinGecko.Net">JKorf/CoinGecko.Net</a></td><td><a href="https://www.nuget.org/packages/CoinGecko.Net"><img src="https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Huobi</td><td><a href="https://github.com/JKorf/Huobi.Net">JKorf/Huobi.Net</a></td><td><a href="https://www.nuget.org/packages/Huobi.Net"><img src="https://img.shields.io/nuget/v/Huobi.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Kraken</td><td><a href="https://github.com/JKorf/Kraken.Net">JKorf/Kraken.Net</a></td><td><a href="https://www.nuget.org/packages/KrakenExchange.Net"><img src="https://img.shields.io/nuget/v/KrakenExchange.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Kucoin</td><td><a href="https://github.com/JKorf/Kucoin.Net">JKorf/Kucoin.Net</a></td><td><a href="https://www.nuget.org/packages/Kucoin.Net"><img src="https://img.shields.io/nuget/v/Kucoin.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square" /></a></td></tr>
+		</table>
+		
+		<h4>Supported Frameworks</h4>
+		<p>
+			The library is targeting both `.NET Standard 2.0` and `.NET Standard 2.1` for optimal compatibility
+		</p>
+		<table class="table table-bordered">
+			<tr>
+				<th>.NET implementation</th>
+				<th>Version Support</th>
+			</tr>
+			<tr><td>.NET Core</td><td><code>2.0</code> and higher</td></tr>
+			<tr><td>.NET Framework</td><td><code>4.6.1</code> and higher</td></tr>
+			<tr><td>Mono</td><td><code>5.4</code> and higher</td></tr>
+			<tr><td>Xamarin.iOS</td><td><code>10.14</code> and higher</td></tr>
+			<tr><td>Xamarin.Android</td><td><code>8.0</code> and higher</td></tr>
+			<tr><td>UWP</td><td><code>10.0.16299</code> and higher</td></tr>
+			<tr><td>Unity</td><td><code>2018.1</code> and higher</td></tr>
+		</table>
+
+		<h4>Discord</h4>
+		<a href="https://discord.gg/MSpeEtSY8t" ><img src="https://img.shields.io/discord/847020490588422145?style=for-the-badge" /></a>  
+		<p>A Discord server is available <a href="https://discord.gg/MSpeEtSY8t">here</a>. Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.</p>
+
+		<h4>Support the project</h4>
+		
+		<b>Donate</b><br />
+		<p>Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.<p>
+
+		<p><em>Btc</em>:  bc1qz0jv0my7fc60rxeupr23e75x95qmlq6489n8gh <br />
+		<em>Eth</em>:  0x8E21C4d955975cB645589745ac0c46ECA8FAE504</p>
+
+		<b>Sponsor</b><br />
+		<p>Alternatively, sponsor me on Github using <a href="https://github.com/sponsors/JKorf">Github Sponsors</a>.</p>
+		
+		<div class="alert alert-info">I develop and maintain these packages on my own for free in my spare time, any support is greatly appreciated.</div>
+
+		</section>
+		
+		<hr class="divider">
+		
+        <!-- Getting Started
+		============================ -->
+        <section id="idocs_start">
+        <h1>Getting Started</h1>
+		<p>All packages are available on Nuget. After installing the package the API is available by using one of the library clients, or through the <code>ICrypoRestClient</code>, <code>ICryptoSocketClient</code> or <code>ISpotClient</code> interfaces.</p>
+        </section>
+        		
+		<hr class="divider">
+		
+        <!-- Installation
+		============================ -->
+        <section id="idocs_installation">
+          <h2>Installation</h2>
+          
+		  <p>Add the package via dotnet, or add it via the package manager. Any number of libraries can be installed, just make sure you're always using the latest at that moment.</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="install" role="tablist">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bitfinex-tab" data-toggle="tab" href="#install-bitfinex" role="tab" aria-controls="install-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bitget-tab" data-toggle="tab" href="#install-bitget" role="tab" aria-controls="install-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-coingecko-tab" data-toggle="tab" href="#install-coingecko" role="tab" aria-controls="install-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-coinex-tab" data-toggle="tab" href="#install-coinex" role="tab" aria-controls="install-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-huobi-tab" data-toggle="tab" href="#install-huobi" role="tab" aria-controls="install-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-kraken-tab" data-toggle="tab" href="#install-kraken" role="tab" aria-controls="install-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-kucoin-tab" data-toggle="tab" href="#install-kucoin" role="tab" aria-controls="install-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-mexc-tab" data-toggle="tab" href="#install-mexc" role="tab" aria-controls="install-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-okx-tab" data-toggle="tab" href="#install-okx" role="tab" aria-controls="install-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
+				<pre><code>dotnet add package Binance.Net</code></pre>
+				<img src="assets/images/BinanceInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab">
+				<pre><code>dotnet add package Bitfinex.Net</code></pre>
+				<img src="assets/images/BitfinexInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bitget" role="tabpanel" aria-labelledby="install-bitget-tab">
+				<pre><code>dotnet add package JK.Bitget.Net</code></pre>
+				<img src="assets/images/BitgetInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab">
+				<pre><code>dotnet add package Bybit.Net</code></pre>
+				<img src="assets/images/BybitInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-coingecko" role="tabpanel" aria-labelledby="install-coingecko-tab">
+				<pre><code>dotnet add package CoinGecko.Net</code></pre>
+				<img src="assets/images/CoinGeckoInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab">
+				<pre><code>dotnet add package CoinEx.Net</code></pre>
+				<img src="assets/images/CoinExInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab">
+				<pre><code>dotnet add package Huobi.Net</code></pre>
+				<img src="assets/images/HuobiInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab">
+				<pre><code>dotnet add package KrakenExchange.Net</code></pre>
+				<img src="assets/images/KrakenInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-kucoin" role="tabpanel" aria-labelledby="install-kucoin-tab">
+				<pre><code>dotnet add package Kucoin.Net</code></pre>
+				<img src="assets/images/KucoinInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-mexc" role="tabpanel" aria-labelledby="install-mexc-tab">
+				<pre><code>dotnet add package JK.Mexc.Net</code></pre>
+				<img src="assets/images/MexcInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab">
+				<pre><code>dotnet add package JK.OKX.Net</code></pre>
+				<img src="assets/images/OKXInstall.png" />
+			  </div>
+			</div>
+		</div>
+        </section>
+        
+        <!-- HTML Structure
+		============================ -->
+        <section id="idocs_di">
+          <h2>Dependency Injection</h2>
+          <p>
+			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services by calling the <code>Add[Library]();</code> extension method on the service collection. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
+		  </p>
+		  <div class="alert alert-info">Using the dependecy injection mechanism also makes sure the HttpClient is used correctly</div>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="di" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bitfinex-tab" data-toggle="tab" href="#di-bitfinex" role="tab" aria-controls="di-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bitget-tab" data-toggle="tab" href="#di-bitget" role="tab" aria-controls="di-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bybit-tab" data-toggle="tab" href="#di-bybit" role="tab" aria-controls="di-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-coingecko-tab" data-toggle="tab" href="#di-coingecko" role="tab" aria-controls="di-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-coinex-tab" data-toggle="tab" href="#di-coinex" role="tab" aria-controls="di-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-huobi-tab" data-toggle="tab" href="#di-huobi" role="tab" aria-controls="di-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-kraken-tab" data-toggle="tab" href="#di-kraken" role="tab" aria-controls="di-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-kucoin-tab" data-toggle="tab" href="#di-kucoin" role="tab" aria-controls="di-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-mexc-tab" data-toggle="tab" href="#di-mexc" role="tab" aria-controls="di-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-okx-tab" data-toggle="tab" href="#di-okx" role="tab" aria-controls="di-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="di-binance" role="tabpanel" aria-labelledby="di-binance-tab">
+<pre><code>builder.Services.AddBinance();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bitfinex" role="tabpanel" aria-labelledby="di-bitfinex-tab">
+<pre><code>builder.Services.AddBitfinex();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bitget" role="tabpanel" aria-labelledby="di-bitget-tab">
+<pre><code>builder.Services.AddBitget();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bybit" role="tabpanel" aria-labelledby="di-bybit-tab">
+<pre><code>builder.Services.AddBybit();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-coingecko" role="tabpanel" aria-labelledby="di-coingecko-tab">
+<pre><code>builder.Services.AddCoinGecko();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-coinex" role="tabpanel" aria-labelledby="di-coinex-tab">
+<pre><code>builder.Services.AddCoinEx();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-huobi" role="tabpanel" aria-labelledby="di-huobi-tab">
+<pre><code>builder.Services.AddHuobi();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-kraken" role="tabpanel" aria-labelledby="di-kraken-tab">
+<pre><code>builder.Services.AddKraken();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-kucoin" role="tabpanel" aria-labelledby="di-kucoin-tab">
+<pre><code>builder.Services.AddKucoin();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-mexc" role="tabpanel" aria-labelledby="di-mexc-tab">
+<pre><code>builder.Services.AddMexc();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-okx" role="tabpanel" aria-labelledby="di-okx-tab">
+<pre><code>builder.Services.AddOKX();</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+			<p>This registers the following interfaces which can then be injected</p>
+			<div class="tab-wrap">
+			<ul class="nav nav-tabs" id="interfaces" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bitfinex-tab" data-toggle="tab" href="#interfaces-bitfinex" role="tab" aria-controls="interfaces-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bitget-tab" data-toggle="tab" href="#interfaces-bitget" role="tab" aria-controls="interfaces-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bybit-tab" data-toggle="tab" href="#interfaces-bybit" role="tab" aria-controls="interfaces-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-coingecko-tab" data-toggle="tab" href="#interfaces-coingecko" role="tab" aria-controls="interfaces-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-coinex-tab" data-toggle="tab" href="#interfaces-coinex" role="tab" aria-controls="interfaces-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-huobi-tab" data-toggle="tab" href="#interfaces-huobi" role="tab" aria-controls="interfaces-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-kraken-tab" data-toggle="tab" href="#interfaces-kraken" role="tab" aria-controls="interfaces-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-kucoin-tab" data-toggle="tab" href="#interfaces-kucoin" role="tab" aria-controls="interfaces-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-mexc-tab" data-toggle="tab" href="#interfaces-mexc" role="tab" aria-controls="interfaces-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-okx-tab" data-toggle="tab" href="#interfaces-okx" role="tab" aria-controls="interfaces-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="interfaces-binance" role="tabpanel" aria-labelledby="interfaces-binance-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBinanceRestClient</code></td>
+						<td>The client for accessing the Binance REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBinanceSocketClient</code></td>
+						<td>The client for accessing the Binance Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBinanceOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Binance API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bitfinex" role="tabpanel" aria-labelledby="interfaces-bitfinex-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBitfinexRestClient</code></td>
+						<td>The client for accessing the Bitfinex REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBitfinexSocketClient</code></td>
+						<td>The client for accessing the Bitfinex Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBitfinexOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bitfinex API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bitfinex. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bitget" role="tabpanel" aria-labelledby="interfaces-bitget-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBitgetRestClient</code></td>
+						<td>The client for accessing the Bitget REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBitgetSocketClient</code></td>
+						<td>The client for accessing the Bitget Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBitgetOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bitget API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bitget. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bybit" role="tabpanel" aria-labelledby="interfaces-bybit-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBybitRestClient</code></td>
+						<td>The client for accessing the Bybit REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBybitSocketClient</code></td>
+						<td>The client for accessing the Bybit Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBybitOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bybit API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Bybit. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-coingecko" role="tabpanel" aria-labelledby="interfaces-coingecko-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICoinGeckoRestClient</code></td>
+						<td>The client for accessing the CoinGecko REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-coinex" role="tabpanel" aria-labelledby="interfaces-coinex-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICoinExRestClient</code></td>
+						<td>The client for accessing the CoinEx REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinExSocketClient</code></td>
+						<td>The client for accessing the CoinEx Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinExOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the CoinEx API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for CoinEx. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-huobi" role="tabpanel" aria-labelledby="interfaces-huobi-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IHuobiRestClient</code></td>
+						<td>The client for accessing the Huobi REST API</td>
+					</tr>
+					<tr>
+						<td><code>IHuobiSocketClient</code></td>
+						<td>The client for accessing the Huobi Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IHuobiOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Huobi API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Huobi. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-kraken" role="tabpanel" aria-labelledby="interfaces-kraken-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IKrakenRestClient</code></td>
+						<td>The client for accessing the Kraken REST API</td>
+					</tr>
+					<tr>
+						<td><code>IKrakenSocketClient</code></td>
+						<td>The client for accessing the Kraken Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IKrakenOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Kraken API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Kraken. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-kucoin" role="tabpanel" aria-labelledby="interfaces-kucoin-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IKucoinRestClient</code></td>
+						<td>The client for accessing the Kucoin REST API</td>
+					</tr>
+					<tr>
+						<td><code>IKucoinSocketClient</code></td>
+						<td>The client for accessing the Kucoin Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IKucoinOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Kucoin API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Kucoin. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-mexc" role="tabpanel" aria-labelledby="interfaces-mexc-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IMexcRestClient</code></td>
+						<td>The client for accessing the Mexc REST API</td>
+					</tr>
+					<tr>
+						<td><code>IMexcSocketClient</code></td>
+						<td>The client for accessing the Mexc Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IMexcOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Mexc API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Mexc. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-okx" role="tabpanel" aria-labelledby="interfaces-okx-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IOKXRestClient</code></td>
+						<td>The client for accessing the OKX REST API</td>
+					</tr>
+					<tr>
+						<td><code>IOKXSocketClient</code></td>
+						<td>The client for accessing the OKX Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IOKXOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the OKX API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for OKX. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			</div>
+			</div>
+        </section>
+        
+		<hr class="divider">
+		
+        <!-- HTML Structure
+		============================ -->
+        <section id="idocs_rest">
+          <h2>REST API client</h2>
+		  <p>Each library provides a REST API client. This client follows the following naming convention: <code>[Library]RestClient</code>. The REST API client is split into different sub-API access clients, which in turn are split into different topics. This structure is the same for each library, which makes it easier to navigate the clients.</p>
+        
+		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually.</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="rest" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bitfinex-tab" data-toggle="tab" href="#rest-bitfinex" role="tab" aria-controls="rest-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bitget-tab" data-toggle="tab" href="#rest-bitget" role="tab" aria-controls="rest-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bybit-tab" data-toggle="tab" href="#rest-bybit" role="tab" aria-controls="rest-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-coingecko-tab" data-toggle="tab" href="#rest-coingecko" role="tab" aria-controls="rest-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-coinex-tab" data-toggle="tab" href="#rest-coinex" role="tab" aria-controls="rest-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-huobi-tab" data-toggle="tab" href="#rest-huobi" role="tab" aria-controls="rest-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-kraken-tab" data-toggle="tab" href="#rest-kraken" role="tab" aria-controls="rest-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-kucoin-tab" data-toggle="tab" href="#rest-kucoin" role="tab" aria-controls="rest-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-mexc-tab" data-toggle="tab" href="#rest-mexc" role="tab" aria-controls="rest-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-okx-tab" data-toggle="tab" href="#rest-okx" role="tab" aria-controls="rest-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="rest-binance" role="tabpanel" aria-labelledby="rest-binance-tab">
+				<pre><code>var client = new BinanceRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bitfinex" role="tabpanel" aria-labelledby="rest-bitfinex-tab">
+				<pre><code>var client = new BitfinexRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bitget" role="tabpanel" aria-labelledby="rest-bitget-tab">
+				<pre><code>var client = new BitgetRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bybit" role="tabpanel" aria-labelledby="rest-bybit-tab">
+				<pre><code>var client = new BybitRestClient();
+var tickersResult = await client.V5Api.ExchangeData.GetSpotTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-coingecko" role="tabpanel" aria-labelledby="rest-coingecko-tab">
+				<pre><code>var client = new CoinGeckoRestClient();
+var assetsResult = await client.Api.GetAssetsAsync();
+if (!assetsResult.Success)
+{
+  // Handle error, assetsResult.Error contains more information
+}
+else
+{
+  // Handle data, assetsResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-coinex" role="tabpanel" aria-labelledby="rest-coinex-tab">
+				<pre><code>var client = new CoinExRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-huobi" role="tabpanel" aria-labelledby="rest-huobi-tab">
+				<pre><code>var client = new HuobiRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-kraken" role="tabpanel" aria-labelledby="rest-kraken-tab">
+				<pre><code>var client = new KrakenRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-kucoin" role="tabpanel" aria-labelledby="rest-kucoin-tab">
+				<pre><code>var client = new KucoinRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-mexc" role="tabpanel" aria-labelledby="rest-mexc-tab">
+				<pre><code>var client = new MexcRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-okx" role="tabpanel" aria-labelledby="rest-okx-tab">
+				<pre><code>var client = new OKXRestClient();
+var tickersResult = await client.UnifiedApi.ExchangeData.GetTickersAsync(OKXInstrumentType.Spot);
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+			<p><b>The response object</b></p>
+			<p>Calls made with the REST API client will return a <code>WebCallResult</code> object. This object contains information about both the request that was send and the response that was received. The <code>WebCallResult</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Success</td>
+				<td>Whether or not the call was completed successfully</td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The parsed response object, only available when <code>Success</code> is <code>true</code></td>
+			</tr>
+			<tr>
+				<td>Error</td>
+				<td>Error information, only available when <code>Success</code> is <code>false</code></td>
+			</tr>
+			<tr>
+				<td>OriginalData</td>
+				<td>The raw response data, only filled when the <code>OutputOriginalData</code> is enabled in the client options</td>
+			</tr>
+			<tr>
+				<td>RequestMethod</td>
+				<td>The HTTP method that was used for the request</td>
+			</tr>
+			<tr>
+				<td>RequestHeaders</td>
+				<td>The list of headers which were send with the request</td>
+			</tr>
+			<tr>
+				<td>RequestId</td>
+				<td>A unique request id</td>
+			</tr>
+			<tr>
+				<td>RequestUrl</td>
+				<td>The full urls which was called</td>
+			</tr>
+			<tr>
+				<td>RequestBody</td>
+				<td>The request body send with the request</td>
+			</tr>
+			<tr>
+				<td>ResponseLength</td>
+				<td>The length of the response in bytes</td>
+			</tr>
+			<tr>
+				<td>ResponseHeaders</td>
+				<td>The list of headers send along with the response</td>
+			</tr>
+			<tr>
+				<td>ResponseTime</td>
+				<td>The time it took from sending the request to receiving the response</td>
+			</tr>
+		  </table>
+			
+		</section>
+        
+		<hr class="divider">
+		        
+		<!-- Sass
+		============================ -->
+        <section id="idocs_socket">
+          <h2>Websocket API client</h2>
+          <p>If the API supports websocket connections then the library provides a Websocket API client. This client follows the following naming convention: <code>[Library]SocketClient</code>. The Websocket API client is split into different sub-API access clients, which in turn are sometimes split into different topics. This structure is the same for each library, which makes it easier to navigate the clients.</p>
+        
+		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually. When constructing manually keep in mind that when the client is disposed all connections will get closed as well.</p>
+        
+		<h4>Subscribing</h4>
+		<div class="tab-wrap">
+			<ul class="nav nav-tabs" id="socket" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bitfinex-tab" data-toggle="tab" href="#socket-bitfinex" role="tab" aria-controls="socket-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bitget-tab" data-toggle="tab" href="#socket-bitget" role="tab" aria-controls="socket-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bybit-tab" data-toggle="tab" href="#socket-bybit" role="tab" aria-controls="socket-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-coinex-tab" data-toggle="tab" href="#socket-coinex" role="tab" aria-controls="socket-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-huobi-tab" data-toggle="tab" href="#socket-huobi" role="tab" aria-controls="socket-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-kraken-tab" data-toggle="tab" href="#socket-kraken" role="tab" aria-controls="socket-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-kucoin-tab" data-toggle="tab" href="#socket-kucoin" role="tab" aria-controls="socket-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-mexc-tab" data-toggle="tab" href="#socket-mexc" role="tab" aria-controls="socket-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-okx-tab" data-toggle="tab" href="#socket-okx" role="tab" aria-controls="socket-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
+				<pre><code>var client = new BinanceSocketClient();
+var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bitfinex" role="tabpanel" aria-labelledby="socket-bitfinex-tab">
+				<pre><code>var client = new BitfinexSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("tETHUST", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bitget" role="tabpanel" aria-labelledby="socket-bitget-tab">
+				<pre><code>var client = new BitgetSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bybit" role="tabpanel" aria-labelledby="socket-bybit-tab">
+				<pre><code>var client = new BybitSocketClient();
+var subscribeResult = await client.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-coinex" role="tabpanel" aria-labelledby="socket-coinex-tab">
+				<pre><code>var client = new CoinExSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-huobi" role="tabpanel" aria-labelledby="socket-huobi-tab">
+				<pre><code>var client = new HuobiSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-kraken" role="tabpanel" aria-labelledby="socket-kraken-tab">
+				<pre><code>var client = new KrakenSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-kucoin" role="tabpanel" aria-labelledby="socket-kucoin-tab">
+				<pre><code>var client = new KucoinSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-mexc" role="tabpanel" aria-labelledby="socket-mexc-tab">
+				<pre><code>var client = new MexcSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToMiniTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-okx" role="tabpanel" aria-labelledby="socket-okx-tab">
+				<pre><code>var client = new OKXSocketClient();
+var subscribeResult = await client.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+			<p><b>The subscription result object</b></p>
+			<p>Subscriptions calls will return a <code>CallResult&lt;UpdateSubscription&gt;</code> object. This object contains information about the status of the intial subscription, and  the UpdateSubscription data object exposes events for status changes and methods for managing the subscription. The <code>CallResult&lt;UpdateSubscription&gt;</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Success</td>
+				<td>Whether or not the subscription was completed successfully</td>
+			</tr>
+			<tr>
+				<td>Error</td>
+				<td>Error information, only available when <code>Success</code> is <code>false</code></td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The <code>UpdateSubscription</code> object, only available when <code>Success</code> is <code>true</code></td>
+			</tr>
+			<tr>
+				<td>Data.Id</td>
+				<td>Unique id of the subscription</td>
+			</tr>
+			<tr>
+				<td>Data.SocketId</td>
+				<td>The id of the underlying websocket</td>
+			</tr>
+			<tr>
+				<td>Data.ConnectionLost</td>
+				<td>Event which will be invoked whenever the connection to the server is lost and reconnecting will be started</td>
+			</tr>
+			<tr>
+				<td>Data.ConnectionRestored</td>
+				<td>Event which will be invoked when the connection to the server is restored after being disconnected</td>
+			</tr>
+			<tr>
+				<td>Data.ActivityPaused</td>
+				<td>Event which will be invoked when the server has indicated that currently no operations will be accepted</td>
+			</tr>
+			<tr>
+				<td>Data.ActivityUnpaused</td>
+				<td>Event which will be invoked when the server has indicated that operations will be accepted again after a previous ActivityPaused event</td>
+			</tr>
+			<tr>
+				<td>Data.Exception</td>
+				<td>Event which will be invoked when the data handler of the subscription throws an exception</td>
+			</tr>
+		  </table>
+		  
+		  <p><b>The subscription update event object</b></p>
+			<p>Whenever new data is received for a subscription the data handler will be called with a <code>DataEvent&lt;T&gt;</code> object. This object contains information about the event and the actual update data. The <code>DataEvent&lt;T&gt;</code> object exposes the following properties:</p>
+			<table class="table table-bordered">
+			<tr><th>Property</th><th>Description</th></tr>
+			<tr>
+				<td>Timestamp</td>
+				<td>The timestamp the data was received</td>
+			</tr>
+			<tr>
+				<td>Topic</td>
+				<td>The topic of the update, typically the symbol or stream name</td>
+			</tr>
+			<tr>
+				<td>OriginalData</td>
+				<td>The raw update data, only filled when the <code>OutputOriginalData</code> is enabled in the client options</td></td>
+			</tr>
+			<tr>
+				<td>UpdateType</td>
+				<td>The type of update. <code>SocketUpdateType.Snapshot</code> means the update is a snapshot, not an incremental update. <code>SocketUpdateType.Update</code> means it's an update with new data</td>
+			</tr>
+			<tr>
+				<td>Data</td>
+				<td>The data received in the update</td>
+			</tr>
+		  </table>
+		
+		<h4>Unsubscribing</h4>
+		<p>
+			When no longer interested in updates from a specific subscription it can be unsubscribed. This can be done in one of the following ways:
+		</p>
+		<p>
+			<b>Unsubscribe via UpdateSubscription object</b><br />
+			When you have the reference to the UpdateSubscription object received from the Subscribe method you can call the <code>CloseAsync()</code> method on that to unsubscribe
+			<pre><code>var subscribeResult = await client.SpotApi.SubscribeToTickerUpdates(data => {});
+await subscribeResult.Data.CloseAsync();</code></pre>
+		</p>
+		<p>
+			<b>Unsubscribe via CancellationToken</b><br />
+			Passing in a <code>CancellationToken</code> as parameter in the subscribe method will allow you to cancel subscriptions by canceling the token. This can be useful when you need to cancel some streams but not others. In this example, both <code>BTCUSDT</code> and <code>ETHUSDT</code> streams get canceled, while the <code>XRPUSDT</code> stream remains active.
+			<pre><code>var cts = new CancellationTokenSource();
+var subscriptionResult1 = await client.SpotApi.SubscribeToTickerUpdatesAsync("BTCUSDT", DataHandler, cts.Token);
+var subscriptionResult2 = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", DataHandler, cts.Token);
+var subscriptionResult3 = await client.SpotApi.SubscribeToTickerUpdatesAsync("XRPUSDT", DataHandler);
+cts.Cancel();</code></pre>
+		</p>
+		<p>
+			<b>Unsubscribe via the websocket client</b><br />
+			The Websocket client has multiple ways of unsubscribing one or more subscriptions:
+			<pre><code>var subscribeResult = await client.SpotApi.SubscribeToTickerUpdates(data => {});
+// Unsubscribe by passing the UpdateSubscription
+await client.UnsubscribeAsync(subscribeResult.Data);
+// OR store the ID and pass that
+var subId = subscribeResult.Data.Id;
+await client.UnsubscribeAsync(subId);
+// OR unsubscribe all subscriptions at the same time
+await client.UnsubscribeAllAsync();</code></pre>
+		</p>
+		
+		</section>
+        
+		<hr class="divider">
+				
+		<!-- Customization
+		============================ -->
+        <section id="idocs_common">
+          <h2>Common Clients</h2>
+		  <p>CryptoExchange.Net exposes some common clients. These clients aim to make using the different API's easier.</p>
+		  
+          <p><b>(I)CryptoRestClient</b><br />
+			The <code>ICryptoRestClient</code> (or <code>CryptoRestClient</code> when used directly) can be used to easily access REST clients for different API's through the different packages that have been installed. Each package adds it extension method to the interface, which allows the user to access the clients via it.
+		  </p>
+		  <p>
+		  For example, having the Binance, Bybit and Kucoin packages installed allows you to use it like this:
+			<pre><code>var cryptoRestClient = new CryptoRestClient(); // Either construct it or inject the ICryptoRestClient into your service
+var binanceTicker = await cryptoRestClient.Binance().SpotApi.ExchangeData.GetTickersAsync();
+var bybitTicker = await cryptoRestClient.Bybit().V5Api.ExchangeData.GetTickers();
+var kucoinTicker = await cryptoRestClient.Kucoin().SpotApi.ExchangeData.GetTickers();</code></pre>
+		  </p>
+		  
+          <p><b>(I)CryptoSocketClient</b><br />
+		  Similarly as the (I)CryptoRestClient this client allows you to access the different Websocket clients through a single access point.
+		  </p>
+		  <p>Having the Bitget, Kraken and OKX packages installed would allow you to use it like this:
+		  <pre><code>var cryptoRestClient = new CryptoSocketClient(); // Either construct it or inject the ICryptoRestClient into your service
+var bitgetSub = await cryptoRestClient.Bitget().SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
+var krakenSub = await cryptoRestClient.Kraken().SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
+var okxSub = await cryptoRestClient.OKX().UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
+		  </p>
+		  
+          <p><b>ISpotClient</b><br />
+		  The ISpotClient is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
+		  </p>
+		  <p>
+		  The ISpotClient is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
+		  <pre><code>var spotClient = restClient.SpotApi.CommonSpotClient;</code></pre>
+		  </p>
+        </section>
+        
+		<hr class="divider">
+		
+        <!-- Logo Settings
+		============================ -->
+        <section id="idocs_options">
+          <h1>Options & Authorization</h1>
+		  
+		  <p>Options for the clients can be provided in a couple of different ways. If no options are configured the default options will be used. For accessing private endpoints and streams API credentials have to be provided.</p>
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_auth">
+          <h2>Authorization</h2>
+          
+		  <p>For private endpoints and data streams the clients will need to know the API credentials of the user accessing the API. API credentials are a way of identifying the user and validating that the user is who he says he is. You can compare it to a username and password login.</p>
+		  <p>API credentials van be provided via the client options, see next section on how to set these options. There are currently 2 variants of API credentials supported, HMAC and RSA. </p>
+        
+		  <p>
+			<b>HMAC</b><br />
+			HMAC authentication involves 2 values, the API key and API secret. The combination of the two gives access to the account. HMAC is the default authentication method and can be configured as such:
+			<pre><code>options.ApiCredentials = new ApiCredentials("YOUR API KEY", "YOUR API SECRET");</code></pre>
+		  </p>
+		  
+		  <p>
+			<b>RSA</b><br />
+			RSA authentication involves generating a private and public key and then uploading the public key to the server. After using the private key to sign the request the server can validate the request by comparing the signature using the public key. Not every exchange supports this authentication method.
+			Depending on the version of dotnet used there are 2 ways of configuring the RSA authentication.			
+		  </p>
+		  <p>
+		  When running Dotnet version 3.0 or later the easiest way is to use the RsaPem type. This allows you to use the Private key directly. When running from an older Dotnet/.NET framework version you're forced to use the RsaXml type due to framework limitations. This means you'll have to convert the private key to XML format before using it.
+		  </p>
+			<em>RsaXml</em>
+			<pre><code class="language-csharp">// when using the .netstandard2.0 compiled version, from .NET framework or Dotnet core 2.2 or lower
+// Private key should look something like this: &lt;RSAKeyValue&gt;&lt;Modulus&gt;...&lt;/RSAKeyValue&gt;
+options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY", ApiCredentialsType.RsaXml);</code></pre>
+			<em>RsaPem</em>
+			<pre><code class="language-csharp">// when using the .netstandard2.1 compiled version, from Dotnet core 3.0 or later
+// Private key should look something like this: -----BEGIN PRIVATE KEY----- .. -----END PRIVATE KEY-----, or just a long random character string
+options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY", ApiCredentialsType.RsaPem);</code></pre>
+		</section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_options_set">
+          <h2>Setting options</h2>
+          
+		  <b>Dependency injection</b>
+		  <p>When adding a library to the service collection (see <a href="#idocs_di">Dependency Injection</a>) the options for the clients can be provided as argument to the calls. Options are split between the REST and the websocket client.</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-bitfinex" role="tab" aria-controls="options-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-bitget" role="tab" aria-controls="options-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-bybit" role="tab" aria-controls="options-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-coingecko" role="tab" aria-controls="options-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-coinex" role="tab" aria-controls="options-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-huobi" role="tab" aria-controls="options-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-kraken" role="tab" aria-controls="options-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-kucoin" role="tab" aria-controls="options-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-mexc" role="tab" aria-controls="options-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-okx" role="tab" aria-controls="options-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>builder.Services.AddBinance(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>builder.Services.AddBitfinex(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>builder.Services.AddBitget(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>builder.Services.AddBybit(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>builder.Services.AddCoinGecko(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>builder.Services.AddCoinEx(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>builder.Services.AddHuobi(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>builder.Services.AddKraken(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>builder.Services.AddKucoin(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>builder.Services.AddMexc(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>builder.Services.AddOKX(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			</div>
+			</div>
+		  
+		  <b>Client constructor</b> 
+		  <p>When creating a client via the constructor options can be provided as parameters</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="options-constr" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-constr-bitfinex" role="tab" aria-controls="options-constr-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-constr-bitget" role="tab" aria-controls="options-constr-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-constr-bybit" role="tab" aria-controls="options-constr-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-constr-coingecko" role="tab" aria-controls="options-constr-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-constr-coinex" role="tab" aria-controls="options-constr-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-constr-huobi" role="tab" aria-controls="options-constr-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-constr-kraken" role="tab" aria-controls="options-constr-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-constr-kucoin" role="tab" aria-controls="options-constr-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-constr-mexc" role="tab" aria-controls="options-constr-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-constr-okx" role="tab" aria-controls="options-constr-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-constr-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>var binanceRestClient = new BinanceRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>var client = new BitfinexRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>var client = new BitgetRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>var client = new BybitRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>var client = new CoinGeckoRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>var client = new CoinExRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>var client = new HuobiRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>var client = new KrakenRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>var client = new KucoinRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>var client = new MexcRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>var client = new OKXRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			</div>
+			</div>
+		  
+		  <b>SetDefaultOptions</b> 
+		  <p>The options can be defined using the static SetDefaultOptions method on the client BEFORE creating the client. Any client created after this call will use the specified options</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="options-default" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-default-binance" role="tab" aria-controls="options-default-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-default-bitfinex" role="tab" aria-controls="options-default-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-default-bitget" role="tab" aria-controls="options-default-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-default-bybit" role="tab" aria-controls="options-default-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-default-coingecko" role="tab" aria-controls="options-default-coingecko" aria-selected="false">CoinGecko</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-default-coinex" role="tab" aria-controls="options-default-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-default-huobi" role="tab" aria-controls="options-default-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-default-kraken" role="tab" aria-controls="options-default-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-default-kucoin" role="tab" aria-controls="options-default-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-default-mexc" role="tab" aria-controls="options-default-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-default-okx" role="tab" aria-controls="options-default-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="options-default-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>BinanceRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BinanceRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>BitfinexRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BitfinexRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>BitgetRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BitgetRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>BybitRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BybitRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
+<pre><code>CoinGeckoRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CoinGeckoRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>CoinExRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CoinExRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
+<pre><code>HuobiRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new HuobiRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>KrakenRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new KrakenRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>KucoinRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new KucoinRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>MexcRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new MexcRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>OKXRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new OKXRestClient();</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Header
+		============================ -->
+        <section id="idocs_options_def">
+          <h2>Option definitions</h2>
+          
+		  <p>
+			  <b>General options</b><br />
+			  Options available for all clients
+		  </p>
+		  <table class="table table-bordered">
+			<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+			<tr>
+				<td>RequestTimeout</td>
+				<td>The time to wait for an answer from the server on a request</td>
+				<td><code>TimeSpan.FromSeconds(20)</code></td>
+			</tr>
+			<tr>
+				<td>ApiCredentials</td>
+				<td>The credentials to use for private endpoints and streams. See <a href="idocs_auth">Authorization</a> for more info</td>
+				<td><code>null</code></td>
+			</tr>
+			<tr>
+				<td>Proxy</td>
+				<td>The proxy to use for connecting to the API</td>
+				<td><code>null</code></td>
+			</tr>
+			<tr>
+				<td>OutputOriginalData</td>
+				<td>When enabled the originally received string data will be available as well as the deserialized object. For REST API client calls the data will be in the <code>WebCallResult<T>.OriginalData</code> property, for Websocket API client subscriptions the data will be available in the <code>DataEvent<T>.OriginalData</code> property when receiving an update.</td>
+				<td><code>false</code></td>
+			</tr>
+			<tr>
+				<td>Environment</td>
+				<td>The environment the library should connect to. Some exchanges have testnet/sandbox environments which can be used instead of the real exchange. The environment option can be used to switch between different trade environments</td>
+				<td><code>Live environment</code></td>
+			</tr>
+		  </table>
+		  
+		  <p>
+			  <b>REST client options</b><br />
+			  Options available for REST clients
+			  <table class="table table-bordered">
+				<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+				<tr>
+					<td>AutoTimestamp</td>
+					<td>Whether or not the client should attempt to sync the time between the client and server. If the time between server and client is not in sync authentication errors might occur. This option should be disabled when the client time sure is to be in sync</td>
+					<td><code>true</code></td>
+				</tr>
+				<tr>
+					<td>TimestampRecalculationInterval</td>
+					<td>The interval of how often the time synchronization between client and server should be executed</td>
+					<td><code>TimeSpan.FromHours(1)</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimiters</td>
+					<td>A list of <code>IRateLimiter</code>s to use</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimitingBehaviour</td>
+					<td>What should happen when a rate limit is reached</td>
+					<td><code>RateLimitingBehaviour.Wait</code></td>
+				</tr>
+				<tr>
+					<td>[API].ApiCredentials</td>
+					<td>Same as the in the base options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].OutputOriginalData</td>
+					<td>Same as the in the base options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].AutoTimestamp</td>
+					<td>Same as the in the base REST options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].TimestampRecalculationInterval</td>
+					<td>Same as the in the base REST options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+			  </table>
+		  </p>
+		  
+		  
+		  <p>
+			  <b>Websocket client options</b><br />
+			  Options available for websocket clients
+			  <table class="table table-bordered">
+				<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
+				<tr>
+					<td>AutoReconnect</td>
+					<td>Whether or not the socket should attempt to automatically reconnect when disconnected</td>
+					<td><code>true</code></td>
+				</tr>
+				<tr>
+					<td>ReconnectInterval</td>
+					<td>The time to wait between connection tries when reconnecting</td>
+					<td><code>TimeSpan.FromSeconds(5)</code></td>
+				</tr>
+				<tr>
+					<td>SocketNoDataTimeout</td>
+					<td>If no data is received during this timespan the connection is assumed to be dropped. This is mainly used for API's which have some sort of ping/keepalive system. For example; the Bitfinex API will sent a heartbeat message every 15 seconds, so the `SocketNoDataTimeout` could be set to 20 seconds. On API's without such a mechanism this might not work because there just might not be any update while still being fully connected</td>
+					<td><code>default(TimeSpan)</code></td>
+				</tr>
+				<tr>
+					<td>SocketSubscriptionsCombineTarget</td>
+					<td>The number of subscriptions that should be made on a single socket connection before setting up a new connection. Not all exchanges support multiple subscriptions on a single socket and some have limits on the amount of connections. Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a single connection will also increase the amount of traffic on that single connection, potentially leading to delays in updates if the data isn't handled quickly enough</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>MaxConcurrentResubscriptionsPerSocket</td>
+					<td>The maximum number of concurrent resubscriptions per socket when resubscribing after reconnecting</td>
+					<td><code>5</code></td>
+				</tr>
+				<tr>
+					<td>MaxSocketConnections</td>
+					<td>The maximum number of distinct socket connections</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>DelayAfterConnect</td>
+					<td>The time to wait before sending messages after connecting to the server</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].RateLimiters</td>
+					<td>A list of <code>IRateLimiter</code>s to use</td>
+					<td><code>Dependent on the library</code></td>
+				</tr>
+				<tr>
+					<td>[API].SocketNoDataTimeout</td>
+					<td>Same as the in the base websocket client options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+				<tr>
+					<td>[API].MaxSocketConnections</td>
+					<td>Same as the in the base websocket client options, allows overriding per sub-API</td>
+					<td><code>null</code></td>
+				</tr>
+			  </table>
+		  </p>
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Getting Started
+		============================ -->
+        <section id="idocs_features">
+        <h1>Additional Features</h1>
+        
+        </section>
+		
+		<hr class="divider">
+        
+        <!-- Header
+		============================ -->
+        <section id="idocs_orderbooks">
+          <h2>Orderbooks</h2>
+          <p>
+			Each client library provides an local orderbook implementation. These implementations will provide a client side orderbook, take care of synchronization with the server, and handle reconnecting and resynchronizing in case of a dropped connection.
+			Orderbook implementations use the following naming convention: <code>[ExchangeName][(Type)]SymbolOrderBook</code>
+			</p>
+			<p>			
+			<b>Creation and starting</b><br />
+			The order book implementations can be created directly, or can be instantiated via the <code>I[Exchange]OrderBookFactory</code> factory. After creation the synchronization can be started by calling the <code>StartAync</code> method
+			</p>
+			<div class="tab-wrap">
+			<ul class="nav nav-tabs" id="book" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bitfinex-tab" data-toggle="tab" href="#book-bitfinex" role="tab" aria-controls="book-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bitget-tab" data-toggle="tab" href="#book-bitget" role="tab" aria-controls="book-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bybit-tab" data-toggle="tab" href="#book-bybit" role="tab" aria-controls="book-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-coinex-tab" data-toggle="tab" href="#book-coinex" role="tab" aria-controls="book-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-huobi-tab" data-toggle="tab" href="#book-huobi" role="tab" aria-controls="book-huobi" aria-selected="false">Huobi</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-kraken-tab" data-toggle="tab" href="#book-kraken" role="tab" aria-controls="book-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-kucoin-tab" data-toggle="tab" href="#book-kucoin" role="tab" aria-controls="book-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-mexc-tab" data-toggle="tab" href="#book-mexc" role="tab" aria-controls="book-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-okx-tab" data-toggle="tab" href="#book-okx" role="tab" aria-controls="book-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="book-binance" role="tabpanel" aria-labelledby="book-binance-tab">
+<pre><code>var book = new BinanceSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bitfinex" role="tabpanel" aria-labelledby="book-bitfinex-tab">
+<pre><code>var book = new BitfinexSymbolOrderBook("tETHUSD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bitget" role="tabpanel" aria-labelledby="book-bitget-tab">
+<pre><code>var book = new BitgetSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bybit" role="tabpanel" aria-labelledby="book-bybit-tab">
+<pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-coinex" role="tabpanel" aria-labelledby="book-coinex-tab">
+<pre><code>var book = new CoinExSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-huobi" role="tabpanel" aria-labelledby="book-huobi-tab">
+<pre><code>var book = new HuobiSpotSymbolOrderBook("ethusdt");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-kraken" role="tabpanel" aria-labelledby="book-kraken-tab">
+<pre><code>var book = new KrakenSpotSymbolOrderBook("ETH/USD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-kucoin" role="tabpanel" aria-labelledby="book-kucoin-tab">
+<pre><code>var book = new KucoinSpotSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-mexc" role="tabpanel" aria-labelledby="book-mexc-tab">
+<pre><code>var book = new MexcSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-okx" role="tabpanel" aria-labelledby="book-okx-tab">
+<pre><code>var book = new OKXSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+			<p>
+			  <b>The order book object</b><br />
+			  The order book implementations for each client use a common base class and interface, which means you can use books from different exchanges in a common function.
+			  <pre><code>// Create order books for different exchanges
+var books = new List&lt;ISymbolOrderBook&gt;();
+books.Add(new BinanceSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new BitgetSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new KrakenSpotSymbolOrderBook("ETH/USD"));
+books.Add(new KucoinSpotSymbolOrderBook("ETH-USDT"));
+books.Add(new OKXSymbolOrderBook("ETH-USDT"));
+
+// Start the books
+var results = await Task.WhenAll(books.Select(b => b.StartAsync()));
+
+// Output the current best ask/bid for each exchange
+foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
+{
+	Console.WriteLine(book.Id);
+	Console.WriteLine($"{book.BestAsk} - {book.BestBid}");
+}
+</code></pre>
+			</p>
+			<p>		
+			The following properties and events are exposed by the order books:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>Status</td>
+					<td>The current status of the order book. Note that the book is only acurate and up to date when the status is <code>Synced</code></td>
+				</tr>
+				<tr>
+					<td>Id</td>
+					<td>Identifier for the book, referencing the exchange it's for</td>
+				</tr>
+				<tr>
+					<td>Symbol</td>
+					<td>The symbol the book is for</td>
+				</tr>
+				<tr>
+					<td>LastSequenceNumber</td>
+					<td>The last sequence number that was processed. Order book update messages typically have sequence numbers to correctly sync the book</td>
+				</tr>
+				<tr>
+					<td>UpdateTime</td>
+					<td>Timestamp of the last update that was processed</td>
+				</tr>
+				<tr>
+					<td>AskCount</td>
+					<td>The current number of asks in the book</td>
+				</tr>
+				<tr>
+					<td>BidCount</td>
+					<td>The current number of bids in the book</td>
+				</tr>
+				<tr>
+					<td>Asks</td>
+					<td>Returns a snapshot of the current list of asks. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Bids</td>
+					<td>Returns a snapshot of the current list of bids. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Book</td>
+					<td>Returns a snapshot of the both the asks and bids. This makes sure the snapshot of the bids and asks are of the same exact time</td>
+				</tr>
+				<tr>
+					<td>BestAsk</td>
+					<td>The best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>BestBid</td>
+					<td>The best bid at that moment</td>
+				</tr>
+				<tr>
+					<td>BestOffers</td>
+					<td>The best bid and best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>OnStatusChange</td>
+					<td>Event called when the status of the order book changes</td>
+				</tr>
+				<tr>
+					<td>OnOrderBookUpdate</td>
+					<td>Event called whenever the book changes. Note that this event can trigger a lot on large/high liquidity markets</td>
+				</tr>
+				<tr>
+					<td>OnBestOffersChanged</td>
+					<td>Event called whenever the best ask or bid changes in the order book</td>
+				</tr>
+			</table>
+			
+		</p>
+        </section>
+		
+		<hr class="divider">
+		<!-- Layout
+		============================ -->
+        <section id="idocs_logging">
+          <h2>Logging</h2>
+		  
+		  <p>
+		  The library provides extensive logging, which depends on the dotnet `Microsoft.Extensions.Logging.ILogger` interface. This should provide ease of use when connecting the library logging to your existing logging implementation.
+		  </p>
+		  <p>
+		  When using the Dotnet dependency injection the logging configuration will de determined by the ILogger configuration.
+		  </p>
+		  
+		  <p>
+			<b>External log providers</b><br />
+			External logging libraries can be configured as expected. For example Serilog:
+			<pre><code>using Binance.Net;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .WriteTo.Console()
+        .CreateLogger();
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddBinance();
+builder.Host.UseSerilog();
+var app = builder.Build();
+
+// startup
+
+app.Run();</code></pre>
+		  </p>
+		  
+		  <p>
+			<b>Logging without dependency injection</b><br />
+			A LoggerFactory instance can be provided to the client to configure the logging
+<pre><code>var logFactory = new LoggerFactory();
+logFactory.AddProvider(new ConsoleLoggerProvider());
+var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options => { });</code></pre>
+		  </p>
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Layout
+		============================ -->
+        <section id="idocs_ratelimiting">
+          <h2>Ratelimiting</h2>
+		  <p>
+		  The client libraries have build in rate limiting. These rate limits can be configured per client. Some client implementations where the exchange has clear rate limits will also have a default rate limiter already set up.
+Rate limiting is configured in the client options, and can be set on a specific client or for all clients by either providing it in the constructor for a client, or by using the <code>SetDefaultOptions</code> on a client.
+
+<div class="alert alert-info">What to do when a limit is reached can be configured with the <code>RateLimitingBehaviour</code> client options, either <code>Fail</code> or <code>Wait</code>.</div>
+
+		  </p>
+		  <p>
+			<b>Ratelimit configuration</b><br />
+			A rate limiter can be configured in the options like so:
+<pre><code>new ClientOptions
+{
+    RateLimitingBehaviour = RateLimitingBehaviour.Wait,
+    RateLimiters = new List<IRateLimiter>
+    {
+        new RateLimiter()
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+    }
+}</code></pre>
+
+This will add a rate limiter for 50 requests per 10 seconds.
+A rate limiter can have multiple limits:
+<pre><code>new RateLimiter()
+            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
+            .AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))</code></pre>
+This adds another limit of 10 requests per 2 seconds for the order endpoint in addition to the 50 requests per 10 seconds limit.
+		  </p>
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Navbar
+		============================ -->
+        <section id="idocs_examples">
+          <h1>Examples</h1>
+		  <p>See also the Examples folder in the <a href="https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples">source</a></p>
+		  
+		  <b id="idocs_example_symbols">Get Symbols</b><br />
+		  <p>Get a list of supported symbols on the exchange and information about the symbols</p>
+		  <div class="accordion" id="accordionSymbols">
+		  <div class="card">
+			<div class="card-header" id="headingSymbols">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseSymbols" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseSymbols" class="collapse" aria-labelledby="headingSymbols" data-parent="#accordionSymbols">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-symbols" role="tablist" style="margin-bottom: -16px;">
+					<li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-symbols-general-tab" data-toggle="tab" href="#example-symbols-general" role="tab" aria-controls="example-symbols-general" aria-selected="true">CryptoRestClient</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-binance-tab" data-toggle="tab" href="#example-symbols-binance" role="tab" aria-controls="example-symbols-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-bitfinex-tab" data-toggle="tab" href="#example-symbols-bitfinex" role="tab" aria-controls="example-symbols-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-bitget-tab" data-toggle="tab" href="#example-symbols-bitget" role="tab" aria-controls="example-symbols-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-bybit-tab" data-toggle="tab" href="#example-symbols-bybit" role="tab" aria-controls="example-symbols-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-coinex-tab" data-toggle="tab" href="#example-symbols-coinex" role="tab" aria-controls="example-symbols-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-huobi-tab" data-toggle="tab" href="#example-symbols-huobi" role="tab" aria-controls="example-symbols-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-kraken-tab" data-toggle="tab" href="#example-symbols-kraken" role="tab" aria-controls="example-symbols-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-kucoin-tab" data-toggle="tab" href="#example-symbols-kucoin" role="tab" aria-controls="example-symbols-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-mexc-tab" data-toggle="tab" href="#example-symbols-mexc" role="tab" aria-controls="example-symbols-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-okx-tab" data-toggle="tab" href="#example-symbols-okx" role="tab" aria-controls="example-symbols-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-symbols-general" role="tabpanel" aria-labelledby="example-symbols-general-tab">
+		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
+var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
+await spotClient.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-binance" role="tabpanel" aria-labelledby="example-symbols-binance-tab">
+		<pre><code>await binanceClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-bitfinex" role="tabpanel" aria-labelledby="example-symbols-bitfinex-tab">
+		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-bitget" role="tabpanel" aria-labelledby="example-symbols-bitget-tab">
+		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-bybit" role="tabpanel" aria-labelledby="example-symbols-bybit-tab">
+		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-coinex" role="tabpanel" aria-labelledby="example-symbols-coinex-tab">
+		<pre><code>await coinExClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-huobi" role="tabpanel" aria-labelledby="example-symbols-huobi-tab">
+		<pre><code>await huobiClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-kraken" role="tabpanel" aria-labelledby="example-symbols-kraken-tab">
+		<pre><code>await krakenClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-kucoin" role="tabpanel" aria-labelledby="example-symbols-kucoin-tab">
+		<pre><code>await kucoinClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-mexc" role="tabpanel" aria-labelledby="example-symbols-mexc-tab">
+		<pre><code>await mexcClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-okx" role="tabpanel" aria-labelledby="example-symbols-okx-tab">
+		<pre><code>await okxClient.UnifiedApi.ExchangeData.GetSymbolsAsync(OKXInstrumentType.Spot);</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <b id="idocs_example_ticker">Getting Ticker</b><br />
+		  <p>Get ticker/price statistics for a specific asset pair</p>
+		  <div class="accordion" id="accordionTicker">
+		  <div class="card">
+			<div class="card-header" id="headingTicker">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseTicker" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseTicker" class="collapse" aria-labelledby="headingTicker" data-parent="#accordionTicker">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-ticker" role="tablist" style="margin-bottom: -16px;">
+					<li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-ticker-general-tab" data-toggle="tab" href="#example-ticker-general" role="tab" aria-controls="example-ticker-general" aria-selected="true">CryptoRestClient</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-binance-tab" data-toggle="tab" href="#example-ticker-binance" role="tab" aria-controls="example-ticker-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-bitfinex-tab" data-toggle="tab" href="#example-ticker-bitfinex" role="tab" aria-controls="example-ticker-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-bitget-tab" data-toggle="tab" href="#example-ticker-bitget" role="tab" aria-controls="example-ticker-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-bybit-tab" data-toggle="tab" href="#example-ticker-bybit" role="tab" aria-controls="example-ticker-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-coinex-tab" data-toggle="tab" href="#example-ticker-coinex" role="tab" aria-controls="example-ticker-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-huobi-tab" data-toggle="tab" href="#example-ticker-huobi" role="tab" aria-controls="example-ticker-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-kraken-tab" data-toggle="tab" href="#example-ticker-kraken" role="tab" aria-controls="example-ticker-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-kucoin-tab" data-toggle="tab" href="#example-ticker-kucoin" role="tab" aria-controls="example-ticker-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-mexc-tab" data-toggle="tab" href="#example-ticker-mexc" role="tab" aria-controls="example-ticker-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-okx-tab" data-toggle="tab" href="#example-ticker-okx" role="tab" aria-controls="example-ticker-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-ticker-general" role="tabpanel" aria-labelledby="example-ticker-general-tab">
+		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
+var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
+await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-binance" role="tabpanel" aria-labelledby="example-ticker-binance-tab">
+		<pre><code>await binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-bitfinex" role="tabpanel" aria-labelledby="example-ticker-bitfinex-tab">
+		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUST");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-bitget" role="tabpanel" aria-labelledby="example-ticker-bitget-tab">
+		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-bybit" role="tabpanel" aria-labelledby="example-ticker-bybit-tab">
+		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-coinex" role="tabpanel" aria-labelledby="example-ticker-coinex-tab">
+		<pre><code>await coinExClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-huobi" role="tabpanel" aria-labelledby="example-ticker-huobi-tab">
+		<pre><code>await huobiClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-kraken" role="tabpanel" aria-labelledby="example-ticker-kraken-tab">
+		<pre><code>await krakenClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-kucoin" role="tabpanel" aria-labelledby="example-ticker-kucoin-tab">
+		<pre><code>await kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-mexc" role="tabpanel" aria-labelledby="example-ticker-mexc-tab">
+		<pre><code>await mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-okx" role="tabpanel" aria-labelledby="example-ticker-okx-tab">
+		<pre><code>await okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <b id="idocs_example_balances">Get Balances</b><br />
+		  <p>Get balance information. Requires API credentials to be set in the client options</p>
+		  <div class="accordion" id="accordionBalances">
+		  <div class="card">
+			<div class="card-header" id="headingBalances">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseBalances" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseBalances" class="collapse" aria-labelledby="headingBalances" data-parent="#accordionBalances">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-balances" role="tablist" style="margin-bottom: -16px;">
+					<li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-balances-general-tab" data-toggle="tab" href="#example-balances-general" role="tab" aria-controls="example-balances-general" aria-selected="true">CryptoRestClient</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-binance-tab" data-toggle="tab" href="#example-balances-binance" role="tab" aria-controls="example-balances-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-bitfinex-tab" data-toggle="tab" href="#example-balances-bitfinex" role="tab" aria-controls="example-balances-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-bitget-tab" data-toggle="tab" href="#example-balances-bitget" role="tab" aria-controls="example-balances-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-bybit-tab" data-toggle="tab" href="#example-balances-bybit" role="tab" aria-controls="example-balances-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-coinex-tab" data-toggle="tab" href="#example-balances-coinex" role="tab" aria-controls="example-balances-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-huobi-tab" data-toggle="tab" href="#example-balances-huobi" role="tab" aria-controls="example-balances-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-kraken-tab" data-toggle="tab" href="#example-balances-kraken" role="tab" aria-controls="example-balances-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-kucoin-tab" data-toggle="tab" href="#example-balances-kucoin" role="tab" aria-controls="example-balances-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-mexc-tab" data-toggle="tab" href="#example-balances-mexc" role="tab" aria-controls="example-balances-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-okx-tab" data-toggle="tab" href="#example-balances-okx" role="tab" aria-controls="example-balances-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-balances-general" role="tabpanel" aria-labelledby="example-balances-general-tab">
+		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
+var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
+await spotClient.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-binance" role="tabpanel" aria-labelledby="example-balances-binance-tab">
+		<pre><code>await binanceClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-bitfinex" role="tabpanel" aria-labelledby="example-balances-bitfinex-tab">
+		<pre><code>await bitfinexClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-bitget" role="tabpanel" aria-labelledby="example-balances-bitget-tab">
+		<pre><code>await bitgetClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-bybit" role="tabpanel" aria-labelledby="example-balances-bybit-tab">
+		<pre><code>await bybitClient.V5Api.Account.GetBalancesAsync(AccountType.Spot);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-coinex" role="tabpanel" aria-labelledby="example-balances-coinex-tab">
+		<pre><code>await coinExClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-huobi" role="tabpanel" aria-labelledby="example-balances-huobi-tab">
+		<pre><code>// Need an account id, you probably want to already have done this before placing the order
+var accounts = await huobiClient.SpotApi.Account.GetAccountsAsync();
+var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
+
+var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-kraken" role="tabpanel" aria-labelledby="example-balances-kraken-tab">
+		<pre><code>await krakenClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-kucoin" role="tabpanel" aria-labelledby="example-balances-kucoin-tab">
+		<pre><code>await kucoinClient.SpotApi.Account.GetAccountsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-mexc" role="tabpanel" aria-labelledby="example-balances-mexc-tab">
+		<pre><code>await mexcClient.SpotApi.Account.GetAccountInfoAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-okx" role="tabpanel" aria-labelledby="example-balances-okx-tab">
+		<pre><code>await okxClient.UnifiedApi.Account.GetAccountBalanceAsync();</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <b id="idocs_example_placeorder">Placing Order</b><br />
+		  <p>Place a limit buy order for 0.1 BTC at a price of 50.000 USDT. Requires API credentials to be set in the client options</p>
+		  <div class="accordion" id="accordionPlaceOrder">
+		  <div class="card">
+			<div class="card-header" id="headingPlaceOrder">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapsePlaceOrder" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapsePlaceOrder" class="collapse" aria-labelledby="headingPlaceOrder" data-parent="#accordionPlaceOrder">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-place" role="tablist" style="margin-bottom: -16px;">
+					<li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-place-general-tab" data-toggle="tab" href="#example-place-general" role="tab" aria-controls="example-place-general" aria-selected="true">CryptoRestClient</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-binance-tab" data-toggle="tab" href="#example-place-binance" role="tab" aria-controls="example-place-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-bitfinex-tab" data-toggle="tab" href="#example-place-bitfinex" role="tab" aria-controls="example-place-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-bitget-tab" data-toggle="tab" href="#example-place-bitget" role="tab" aria-controls="example-place-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-bybit-tab" data-toggle="tab" href="#example-place-bybit" role="tab" aria-controls="example-place-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-coinex-tab" data-toggle="tab" href="#example-place-coinex" role="tab" aria-controls="example-place-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-huobi-tab" data-toggle="tab" href="#example-place-huobi" role="tab" aria-controls="example-place-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-kraken-tab" data-toggle="tab" href="#example-place-kraken" role="tab" aria-controls="example-place-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-kucoin-tab" data-toggle="tab" href="#example-place-kucoin" role="tab" aria-controls="example-place-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-mexc-tab" data-toggle="tab" href="#example-place-mexc" role="tab" aria-controls="example-place-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-okx-tab" data-toggle="tab" href="#example-place-okx" role="tab" aria-controls="example-place-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-place-general" role="tabpanel" aria-labelledby="example-place-general-tab">
+		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
+var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
+await spotClient.PlaceOrderAsync(spotClient.GetSymbolName("BTC", "USDT"), CommonOrderSide.Buy, CommonOrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-binance" role="tabpanel" aria-labelledby="example-place-binance-tab">
+		<pre><code>await binanceClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-bitfinex" role="tabpanel" aria-labelledby="example-place-bitfinex-tab">
+		<pre><code>await bitfinexClient.SpotApi.Trading.PlaceOrderAsync("tBTCUST", OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-bitget" role="tabpanel" aria-labelledby="example-place-bitget-tab">
+		<pre><code>await bitgetClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT_SPBL", BitgetOrderSide.Buy, BitgetOrderType.Limit, 0.1m, timeInForce: BitgetTimeInForce.GoodTillCanceled, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-bybit" role="tabpanel" aria-labelledby="example-place-bybit-tab">
+		<pre><code>await bybitClient.V5Api.Trading.PlaceOrderAsync(Category.Spot, "BTCUSDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
+		<pre><code>await coinExClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-huobi" role="tabpanel" aria-labelledby="example-place-huobi-tab">
+		<pre><code>// Need an account id, you probably want to already have done this before placing the order
+var accounts = await huobiClient.SpotApi.Account.GetAccountsAsync();
+var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
+
+var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-kraken" role="tabpanel" aria-labelledby="example-place-kraken-tab">
+		<pre><code>await krakenClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT",OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-kucoin" role="tabpanel" aria-labelledby="example-place-kucoin-tab">
+		<pre><code>await kucoinClient.SpotApi.Trading.PlaceOrderAsync("BTC-USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-mexc" role="tabpanel" aria-labelledby="example-place-mexc-tab">
+		<pre><code>await mexcClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Mexc.Net.Enums.OrderSide.Buy, Mexc.Net.Enums.OrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-okx" role="tabpanel" aria-labelledby="example-place-okx-tab">
+		<pre><code>await okxClient.UnifiedApi.Trading.PlaceOrderAsync("BTC-USDT", OKXOrderSide.Buy, OKXOrderType.LimitOrder, 0.1m, 50000);</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <b id="idocs_example_stream_ticker">Subscribe Ticker Updates</b><br />
+		  <p>Subscribe to the websocket ticker update stream</p>
+		  <div class="accordion" id="accordionStreamTicker">
+		  <div class="card">
+			<div class="card-header" id="headingStreamTicker">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseStreamTicker" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseStreamTicker" class="collapse" aria-labelledby="headingStreamTicker" data-parent="#accordionStreamTicker">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-stream-ticker" role="tablist" style="margin-bottom: -16px;">
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-ticker-binance-tab" data-toggle="tab" href="#example-stream-ticker-binance" role="tab" aria-controls="example-stream-ticker-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bitfinex-tab" data-toggle="tab" href="#example-stream-ticker-bitfinex" role="tab" aria-controls="example-stream-ticker-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bitget-tab" data-toggle="tab" href="#example-stream-ticker-bitget" role="tab" aria-controls="example-stream-ticker-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bybit-tab" data-toggle="tab" href="#example-stream-ticker-bybit" role="tab" aria-controls="example-stream-ticker-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-coinex-tab" data-toggle="tab" href="#example-stream-ticker-coinex" role="tab" aria-controls="example-stream-ticker-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-huobi-tab" data-toggle="tab" href="#example-stream-ticker-huobi" role="tab" aria-controls="example-stream-ticker-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-kraken-tab" data-toggle="tab" href="#example-stream-ticker-kraken" role="tab" aria-controls="example-stream-ticker-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-kucoin-tab" data-toggle="tab" href="#example-stream-ticker-kucoin" role="tab" aria-controls="example-stream-ticker-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-mexc-tab" data-toggle="tab" href="#example-stream-ticker-mexc" role="tab" aria-controls="example-stream-ticker-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-okx-tab" data-toggle="tab" href="#example-stream-ticker-okx" role="tab" aria-controls="example-stream-ticker-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
+		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bitfinex" role="tabpanel" aria-labelledby="example-stream-ticker-bitfinex-tab">
+		<pre><code>await bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHUST", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bitget" role="tabpanel" aria-labelledby="example-stream-ticker-bitget-tab">
+		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bybit" role="tabpanel" aria-labelledby="example-stream-ticker-bybit-tab">
+		<pre><code>await bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-coinex" role="tabpanel" aria-labelledby="example-stream-ticker-coinex-tab">
+		<pre><code>await coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-huobi" role="tabpanel" aria-labelledby="example-stream-ticker-huobi-tab">
+		<pre><code>await huobiSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethusdt", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-kraken" role="tabpanel" aria-labelledby="example-stream-ticker-kraken-tab">
+		<pre><code>await krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSD", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-kucoin" role="tabpanel" aria-labelledby="example-stream-ticker-kucoin-tab">
+		<pre><code>await kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-mexc" role="tabpanel" aria-labelledby="example-stream-ticker-mexc-tab">
+		<pre><code>await mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-okx" role="tabpanel" aria-labelledby="example-stream-ticker-okx-tab">
+		<pre><code>await okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <b id="idocs_example_stream_order">Subscribe Order Updates</b><br />
+		  <p>Subscribe to the websocket authenticated user order update stream</p>
+		  <div class="accordion" id="accordionStreamOrder">
+		  <div class="card">
+			<div class="card-header" id="headingStreamOrder">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseStreamOrder" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseStreamOrder" class="collapse" aria-labelledby="headingStreamOrder" data-parent="#accordionStreamOrder">
+			  <div class="card-body">
+			  <div>
+			  
+				<ul class="nav nav-tabs" id="example-stream-order" role="tablist" style="margin-bottom: -16px;">
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bitfinex" role="tab" aria-controls="example-stream-order-bitfinex" aria-selected="false">Bitfinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitget-tab" data-toggle="tab" href="#example-stream-order-bitget" role="tab" aria-controls="example-stream-order-bitget" aria-selected="false">Bitget</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bybit-tab" data-toggle="tab" href="#example-stream-order-bybit" role="tab" aria-controls="example-stream-order-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-coinex-tab" data-toggle="tab" href="#example-stream-order-coinex" role="tab" aria-controls="example-stream-order-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-huobi-tab" data-toggle="tab" href="#example-stream-order-huobi" role="tab" aria-controls="example-stream-order-huobi" aria-selected="false">Huobi</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-kraken-tab" data-toggle="tab" href="#example-stream-order-kraken" role="tab" aria-controls="example-stream-order-kraken" aria-selected="false">Kraken</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-kucoin-tab" data-toggle="tab" href="#example-stream-order-kucoin" role="tab" aria-controls="example-stream-order-kucoin" aria-selected="false">Kucoin</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-mexc-tab" data-toggle="tab" href="#example-stream-order-mexc" role="tab" aria-controls="example-stream-order-mexc" aria-selected="false">Mexc</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-okx-tab" data-toggle="tab" href="#example-stream-order-okx" role="tab" aria-controls="example-stream-order-okx" aria-selected="false">OKX</a>
+					  </li>
+					</ul>
+					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
+		<pre><code>// Retrieve the listen key
+var listenKey = await binanceClient.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await binanceSocketClient.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listenKey.Data, data => {
+    // Handle update
+}, null, null, null);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bitfinex" role="tabpanel" aria-labelledby="example-stream-order-bitfinex-tab">
+		<pre><code>await bitfinexSocketClient.SpotApi.SubscribeToUserUpdatesAsync(orderHandler: data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bitget" role="tabpanel" aria-labelledby="example-stream-order-bitget-tab">
+		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bybit" role="tabpanel" aria-labelledby="example-stream-order-bybit-tab">
+		<pre><code>await bybitSocketClient.V5PrivateApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-coinex" role="tabpanel" aria-labelledby="example-stream-order-coinex-tab">
+		<pre><code>await coinExSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-huobi" role="tabpanel" aria-labelledby="example-stream-order-huobi-tab">
+		<pre><code>await huobiSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(onOrderMatched: data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-kraken" role="tabpanel" aria-labelledby="example-stream-order-kraken-tab">
+		<pre><code>// Retrieve the token
+var token = await krakenClient.SpotApi.Account.GetWebsocketTokenAsync();
+
+// Subscribe using the token
+await krakenSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(token.Data.Token, data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-kucoin" role="tabpanel" aria-labelledby="example-stream-order-kucoin-tab">
+		<pre><code>await kucoinSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+}, null, null);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-mexc" role="tabpanel" aria-labelledby="example-stream-order-mexc-tab">
+		<pre><code>// Retrieve the listen key
+var token = await mexcClient.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await mexcSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(token.Data, data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-okx" role="tabpanel" aria-labelledby="example-stream-order-okx-tab">
+		<pre><code>await okxSocketClient.UnifiedApi.Trading.SubscribeToOrderUpdatesAsync(OKXInstrumentType.Spot, null, null, data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					</div>
+			  </div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  
+		  <b id="idocs_example_minimal">Minimal API</b><br />
+		  <p>A minimal API example allowing the caller to retrieve ticker information for a specific exchange and asset pair<br />
+		  <div class="accordion" id="accordionMinimalApi">
+		  <div class="card">
+			<div class="card-header" id="headingMinimalApi">
+			  <h5 class="mb-0"> <a href="#" class="collapsed" data-toggle="collapse" data-target="#collapseMinimalApi" aria-expanded="false" aria-controls="collapseOne">Show</a> </h5>
+			</div>
+			<div id="collapseMinimalApi" class="collapse" aria-labelledby="headingMinimalApi" data-parent="#accordionMinimalApi">
+			  <div class="card-body">
+			  <p>This API returns ticker information for the following path</p>
+		  <code>/Ticker/[Exchange]/[QuoteAsset]/[BaseAsset]</code> for example <code>/Ticker/Kraken/ETH/BTC</code><br />
+		  
+</p>
+		  <pre><code class="language-csharp">using CryptoExchange.Net.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddBitfinex();
+builder.Services.AddBitget();
+builder.Services.AddKraken();
+var app = builder.Build();
+
+app.MapGet("Ticker/{exchange}/{baseAsset}/{quoteAsset}", async ([FromServices] ICryptoRestClient client, string exchange, string baseAsset, string quoteAsset) =>
+{
+    var spotClient = client.SpotClient(exchange)!;
+    var result = await spotClient.GetTickerAsync(spotClient.GetSymbolName(baseAsset, quoteAsset));
+    return result.Data;
+});
+
+app.Run();
+		  </pre></code>
+			  </div>
+			</div>
+		  </div>
+		  
+		  
+        </section>
+		
+		<hr class="divider">
+		
+		<!-- Sidebar
+		============================ -->
+        <section id="idocs_glossary">
+          <h2>Glossary</h2>
+          
+		  <table class="table table-bordered">
+			<tr><th>Definition</th><th>Synonyms</th><th>Meaning</th></tr>
+			<tr>
+				<td>Symbol</td>
+				<td>Market, Pair</td>
+				<td>An asset pair on which can be traded, for example <code>BTC-ETH</code></td>
+			</tr>
+			<tr>
+				<td>Asset</td>
+				<td>Currency, Coin</td>
+				<td>A coin for which you can hold balance and which makes up Symbols. For example both <code>BTC</code>, <code>ETH</code> or <code>USD</code></td>
+			</tr>
+			<tr>
+				<td>Trade</td>
+				<td>Execution, Fill</td>
+				<td>The (partial) execution of an order. Orders can have multiple trades</td>
+			</tr>
+			<tr>
+				<td>Quantity</td>
+				<td>Amount, Size</td>
+				<td>The amount of asset</td>
+			</tr>
+			<tr>
+				<td>QuoteQuantity</td>
+				<td>Value</td>
+				<td>The amount of quote asset</td>
+			</tr>
+			<tr>
+				<td>Fee</td>
+				<td>Commission</td>
+				<td>The fee paid for an order, trade or withdrawal</td>
+			</tr>
+			<tr>
+				<td>Kline</td>
+				<td>Candlestick, OHLC</td>
+				<td>K-line data, used for candlestick charts. Contains Open/High/Low/Close/Volume</td>
+			</tr>
+			<tr>
+				<td>KlineInterval</td>
+				<td>Period</td>
+				<td>The time period of a single kline</td>
+			</tr>
+			<tr>
+				<td>Open order</td>
+				<td>Active order, Unexecuted order</td>
+				<td>An order which has not yet been fully filled</td>
+			</tr>
+			<tr>
+				<td>Closed order</td>
+				<td>Completed order, executed order</td>
+				<td>An order which is no longer active. Can be canceled or fully filled</td>
+			</tr>
+			<tr>
+				<td>Network</td>
+				<td>Chain</td>
+				<td>The network of an asset. For example <code>ETH</code> allows multiple networks like <code>ERC20</code> and <code>BEP2</code></td>
+			</tr>
+			<tr>
+				<td>Orderbook</td>
+				<td>Market depth</td>
+				<td>A list of (the top rows of) the current best bids and asks</td>
+			</tr>
+			<tr>
+				<td>Ticker</td>
+				<td>Stats</td>
+				<td>Statistics over the last 24 hours</td>
+			</tr>
+		  </table>
+		</section>
+		
+		<hr class="divider">
+		
+		<!-- FAQ
+		============================ -->
+		<section id="idocs_faq">
+          <h2>FAQ</h2>
+          <b>I occasionally get a NullReferenceException, what's wrong?</b><br />
+		  <p>
+		  You probably don't check the result status of a call and just assume the data is always there. <code>NullReferenceExecption</code> will happen when you have code like this <code>var symbol = client.GetTickersAync().Result.Data.Symbol</code> because the <code>Data</code> property is null when the call fails. Instead check if the call is successful:
+<pre><code>var tickerResult = await client.SpotApi.ExchangeData.GetTickersAync();
+if(!tickerResult.Success)
+{
+  // Handle error
+}
+else
+{
+  // Handle result, it is now safe to access the Data property
+  var symbol = tickerResult.Data.Symbol;
+}</code></pre>
+		  </p>
+		  
+		  <b>The socket client stops sending updates after a little while</b><br />
+		  <p>
+		  You probably didn't keep a reference to the socket client and it got disposed.
+<pre><code>// WRONG
+private void SomeMethod()
+{
+  var socketClient = new BinanceSocketClient();
+  socketClient.Spot.SubscribeToOrderBookUpdatesAsync("BTCUSDT", data => {
+    // Handle data
+  });
+}</code></pre>
+<pre><code>// RIGHT
+private BinanceSocketClient _socketClient = new BinanceSocketClient();
+
+// .. rest of the class
+
+private void SomeMethod()
+{
+  _socketClient.Spot.SubscribeToOrderBookUpdates("BTCUSDT", data => {
+    // Handle data
+  });
+}</code></pre>
+		  </p>
+		  
+		<b>Can I use the TestNet/US/other API with this library?</b><br />
+		<p>
+		Yes, generally these are all supported and can be configured by setting the Environment in the client options. Some known environments should be available in the [Exchange]Environment class:
+		<pre><code>// Change environment to test
+var client = new BinanceRestClient(options =>
+{
+    options.Environment = BinanceEnvironment.Testnet;
+});</code></pre>
+	    </p>
+		
+		<b>How are timestamps handled?</b><br />
+		<p>
+		Exchange API's treat all timestamps as UTC, both incoming and outgoing. The client libraries do no conversion so received timestamps are always in UTC. When sending requests make sure to use UTC time as well.
+	    </p>
+		
+        </section>
+        
+		<hr class="divider">
+        
+      </div>
+    </div>
+	
+  </div>
+  <!-- Content end --> 
+    
+</div>
+<!-- Document Wrapper end --> 
+
+<!-- Back To Top --> 
+<a id="back-to-top" data-toggle="tooltip" title="Back to Top" href="javascript:void(0)"><i class="fa fa-chevron-up"></i></a> 
+
+<!-- JavaScript
+============================ -->
+<script src="assets/vendor/jquery/jquery.min.js"></script> 
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script> 
+<!-- Highlight JS -->
+<!--<script src="assets/vendor/highlight.js/highlight.min.js"></script>-->
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+<!-- Easing --> 
+<script src="assets/vendor/jquery.easing/jquery.easing.min.js"></script> 
+<!-- Magnific Popup --> 
+<script src="assets/vendor/magnific-popup/jquery.magnific-popup.min.js"></script> 
+<!-- Custom Script -->
+<script src="assets/js/theme.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

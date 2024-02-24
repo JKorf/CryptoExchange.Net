@@ -1,8 +1,6 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets;
-using System;
-using System.Security.Authentication;
-using System.Text;
+﻿using System;
+using System.IO;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -15,31 +13,31 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Websocket closed event
         /// </summary>
-        event Action OnClose;
+        event Func<Task> OnClose;
         /// <summary>
         /// Websocket message received event
         /// </summary>
-        event Action<string> OnMessage;
+        event Func<WebSocketMessageType, Stream, Task> OnStreamMessage;
         /// <summary>
         /// Websocket sent event, RequestId as parameter
         /// </summary>
-        event Action<int> OnRequestSent;
+        event Func<int, Task> OnRequestSent;
         /// <summary>
         /// Websocket error event
         /// </summary>
-        event Action<Exception> OnError;
+        event Func<Exception, Task> OnError;
         /// <summary>
         /// Websocket opened event
         /// </summary>
-        event Action OnOpen;
+        event Func<Task> OnOpen;
         /// <summary>
         /// Websocket has lost connection to the server and is attempting to reconnect
         /// </summary>
-        event Action OnReconnecting;
+        event Func<Task> OnReconnecting;
         /// <summary>
         /// Websocket has reconnected to the server
         /// </summary>
-        event Action OnReconnected;
+        event Func<Task> OnReconnected;
         /// <summary>
         /// Get reconntion url
         /// </summary>

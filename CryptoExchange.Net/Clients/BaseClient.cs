@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

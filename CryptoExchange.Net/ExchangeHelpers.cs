@@ -145,6 +145,16 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Return the last unique id that was generated
+        /// </summary>
+        /// <returns></returns>
+        public static int LastId()
+        {
+            lock (_idLock)
+                return _lastId;
+        }
+
+        /// <summary>
         /// Generate a random string of specified length
         /// </summary>
         /// <param name="length">Length of the random string</param>

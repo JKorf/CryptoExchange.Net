@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="code"></param>
         /// <param name="message"></param>
         /// <param name="data"></param>
-        protected CancellationRequestedError(int? code, string message, object? data): base(code, message, data) { }
+        public CancellationRequestedError(int? code, string message, object? data): base(code, message, data) { }
     }
 
     /// <summary>

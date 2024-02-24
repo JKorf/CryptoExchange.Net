@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Options;
 
 namespace CryptoExchange.Net.Requests
 {

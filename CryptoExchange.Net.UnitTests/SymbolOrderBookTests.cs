@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.OrderBook;
-using CryptoExchange.Net.Sockets;
 using NUnit.Framework;
 
 namespace CryptoExchange.Net.UnitTests
@@ -14,13 +14,13 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture]
     public class SymbolOrderBookTests
     {
-        private static OrderBookOptions defaultOrderBookOptions = new OrderBookOptions();
+        private static readonly OrderBookOptions _defaultOrderBookOptions = new OrderBookOptions();
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
             public TestableSymbolOrderBook() : base(null, "Test", "BTC/USD")
             {
-                Initialize(defaultOrderBookOptions);
+                Initialize(_defaultOrderBookOptions);
             }
 
 

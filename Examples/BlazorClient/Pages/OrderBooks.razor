@@ -4,7 +4,6 @@
 @using Binance.Net.Interfaces
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
-@using Bittrex.Net.Interfaces
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
@@ -16,7 +15,6 @@
 @inject IBinanceOrderBookFactory binanceFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
 @inject IBitgetOrderBookFactory bitgetFactory
-@inject IBittrexOrderBookFactory bittrexFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinExOrderBookFactory coinExFactory
 @inject IHuobiOrderBookFactory huobiFactory
@@ -59,7 +57,6 @@
                 { "Binance", binanceFactory.CreateSpot("ETHBTC") },
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
-                { "Bittrex", bittrexFactory.Create("ETH-BTC") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "Huobi", huobiFactory.CreateSpot("ethbtc") },

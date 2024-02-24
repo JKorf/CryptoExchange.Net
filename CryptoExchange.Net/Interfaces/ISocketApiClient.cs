@@ -1,7 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Options;
-using CryptoExchange.Net.Sockets;
-using System;
+﻿using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.Objects.Sockets;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -27,6 +25,14 @@ namespace CryptoExchange.Net.Interfaces
         /// The factory for creating sockets. Used for unit testing
         /// </summary>
         IWebsocketFactory SocketFactory { get; set; }
+        /// <summary>
+        /// Current client options
+        /// </summary>
+        SocketExchangeOptions ClientOptions { get; }
+        /// <summary>
+        /// Current API options
+        /// </summary>
+        SocketApiOptions ApiOptions { get; }
         /// <summary>
         /// Log the current state of connections and subscriptions
         /// </summary>

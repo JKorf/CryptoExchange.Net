@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
-using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Objects.Sockets;
 
 namespace CryptoExchange.Net.Interfaces
 {

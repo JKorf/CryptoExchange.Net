@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Sockets

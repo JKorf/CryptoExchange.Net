@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,16 +14,15 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public bool CanConnect { get; set; }
         public bool Connected { get; set; }
 
-        public event Action OnClose;
-
+        public event Func<Task> OnClose;
 #pragma warning disable 0067
-        public event Action OnReconnected;
-        public event Action OnReconnecting;
+        public event Func<Task> OnReconnected;
+        public event Func<Task> OnReconnecting;
 #pragma warning restore 0067
-        public event Action<int> OnRequestSent;
-        public event Action<string> OnMessage;
-        public event Action<Exception> OnError;
-        public event Action OnOpen;
+        public event Func<int, Task> OnRequestSent;
+        public event Func<WebSocketMessageType, Stream, Task> OnStreamMessage;
+        public event Func<Exception, Task> OnError;
+        public event Func<Task> OnOpen;
         public Func<Task<Uri>> GetReconnectionUrl { get; set; }
 
         public int Id { get; }
@@ -110,9 +111,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             OnOpen?.Invoke();
         }
 
-        public void InvokeMessage(string data)
+        public async Task InvokeMessage(string data)
         {
-            OnMessage?.Invoke(data);
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+            await OnStreamMessage?.Invoke(WebSocketMessageType.Text, stream);
         }
 
         public void SetProxy(ApiProxy proxy)

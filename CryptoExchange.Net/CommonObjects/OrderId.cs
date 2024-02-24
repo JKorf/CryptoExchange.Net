@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.CommonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Id of an order

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CryptoExchange.Net.CommonObjects
+﻿namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Ticker data

@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Converters
                 mapping = AddMapping(enumType);
 
             var stringValue = reader.Value?.ToString();
-            if (stringValue == null)
+            if (stringValue == null || stringValue == "")
             {
                 // Received null value
                 var emptyResult = GetDefaultValue(objectType, enumType);

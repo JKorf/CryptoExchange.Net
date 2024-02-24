@@ -1,6 +1,4 @@
 ﻿using System;
-using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 
 namespace CryptoExchange.Net.Interfaces
