@@ -7,13 +7,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Trackers
+namespace CryptoExchange.Net.Trackers.Trades
 {
-    /// <summary>
-    /// A tracker for trades on a symbol
-    /// </summary>
-    public abstract class TradeTracker
+    /// <inheritdoc />
+    public abstract class TradeTracker : ITradeTracker
     {
+        private SyncStatus _status;
+
         /// <summary>
         /// The internal data structure
         /// </summary>
@@ -58,11 +58,31 @@ namespace CryptoExchange.Net.Trackers
         /// Update subscription
         /// </summary>
         protected UpdateSubscription? _updateSubscription;
+
         /// <summary>
-        /// The total number of trades
+        /// The timestamp of the first item
         /// </summary>
-        public int Count 
-        { 
+        protected DateTime _firstTimestamp;
+
+        /// <inheritdoc/>
+        public SyncStatus Status
+        {
+            get => _status;
+            set
+            {
+                if (value == _status)
+                    return;
+
+                var old = _status;
+                _status = value;
+                _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} status changed: {old} => {value}", _symbol, old, value);
+                OnStatusChanged?.Invoke(old, _status);
+            }
+        }
+
+        /// <inheritdoc />
+        public int Count
+        {
             get
             {
                 lock (_lock)
@@ -70,20 +90,13 @@ namespace CryptoExchange.Net.Trackers
                     ApplyWindow(true);
                     return _data.Count;
                 }
-            } 
+            }
         }
 
-        /// <summary>
-        /// The timestamp of the first item
-        /// </summary>
-        protected DateTime _firstTimestamp;
-
-        /// <summary>
-        /// From which timestamp the trades are registered
-        /// </summary>
-        public DateTime SyncedFrom 
-        { 
-            get 
+        /// <inheritdoc />
+        public DateTime SyncedFrom
+        {
+            get
             {
                 if (_period == null)
                     return _firstTimestamp;
@@ -95,20 +108,14 @@ namespace CryptoExchange.Net.Trackers
                 return max;
             }
         }
-        /// <summary>
-        /// The average price across all trades
-        /// </summary>
-        /// <returns></returns>
+
+        /// <inheritdoc />
         public decimal AveragePrice()
         {
             return Math.Round(GetData().Select(d => d.Price).DefaultIfEmpty().Average(), 8);
         }
 
-        /// <summary>
-        /// The average price in the last period
-        /// </summary>
-        /// <param name="period">Period to get the average price for</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal AveragePriceForLast(TimeSpan period)
         {
             if (period > _period)
@@ -118,30 +125,19 @@ namespace CryptoExchange.Net.Trackers
             return Math.Round(GetData(compareTime).Select(d => d.Price).DefaultIfEmpty().Average(), 8);
         }
 
-        /// <summary>
-        /// The average price since a specific time timestamp
-        /// </summary>
-        /// <param name="timestamp">Timestamp to get the average price since</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal AveragePriceSince(DateTime timestamp)
         {
             return Math.Round(GetData(timestamp).Select(d => d.Price).DefaultIfEmpty().Average(), 8);
         }
 
-        /// <summary>
-        /// The trade volume across all trades
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal Volume()
         {
             return Math.Round(GetData().Sum(d => d.Quantity), 8);
         }
 
-        /// <summary>
-        /// The trade volume in the last time period
-        /// </summary>
-        /// <param name="period">Period to get the trade volume for</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal VolumeForLast(TimeSpan period)
         {
             if (period > _period)
@@ -151,31 +147,19 @@ namespace CryptoExchange.Net.Trackers
             return Math.Round(GetData(compareTime).Sum(d => d.Quantity), 8);
         }
 
-        /// <summary>
-        /// The trade volume since a specific time timestamp
-        /// </summary>
-        /// <param name="timestamp">Timestamp to get the trade volume since</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal VolumeSince(DateTime timestamp)
         {
             return Math.Round(GetData(timestamp).Sum(d => d.Quantity), 8);
         }
 
-
-        /// <summary>
-        /// The qoute volume across all trades
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal QuoteVolume()
         {
             return Math.Round(GetData().Sum(d => d.Quantity * d.Price), 8);
         }
 
-        /// <summary>
-        /// The quote volume in the last time period
-        /// </summary>
-        /// <param name="period">Period to get the quote volume for</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal QuoteVolumeForLast(TimeSpan period)
         {
             if (period > _period)
@@ -185,28 +169,20 @@ namespace CryptoExchange.Net.Trackers
             return Math.Round(GetData(compareTime).Sum(d => d.Quantity * d.Price), 8);
         }
 
-        /// <summary>
-        /// The quote volume since a specific time timestamp
-        /// </summary>
-        /// <param name="timestamp">Timestamp to get the quote volume since</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public decimal QuoteVolumeSince(DateTime timestamp)
         {
             return Math.Round(GetData(timestamp).Sum(d => d.Quantity * d.Price), 8);
         }
 
-        /// <summary>
-        /// Event for when the initial snapshot is set
-        /// </summary>
-        public event Func<IEnumerable<ITradeItem>, Task>? SnapshotSet;
-        /// <summary>
-        /// Event for when a new trade is added
-        /// </summary>
-        public event Func<ITradeItem, Task>? Added;
-        /// <summary>
-        /// Event for when a trade is removed because it's no longer within the period/limit window
-        /// </summary>
-        public event Func<ITradeItem, Task>? Removed;
+        /// <inheritdoc />
+        public event Func<IEnumerable<ITradeItem>, Task>? OnSnapshotSet;
+        /// <inheritdoc />
+        public event Func<ITradeItem, Task>? OnAdded;
+        /// <inheritdoc />
+        public event Func<ITradeItem, Task>? OnRemoved;
+        /// <inheritdoc />
+        public event Func<SyncStatus, SyncStatus, Task>? OnStatusChanged;
 
         /// <summary>
         /// ctor
@@ -223,28 +199,35 @@ namespace CryptoExchange.Net.Trackers
             _period = period;
         }
 
-        /// <summary>
-        /// Start synchronization
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task StartAsync()
         {
+            if (Status != SyncStatus.Disconnected)
+                throw new InvalidOperationException($"Can't start syncing unless state is {SyncStatus.Disconnected}. Current state: {Status}");
+
+            Status = SyncStatus.Syncing;
             _logger.LogInformation("Starting trade tracker for {Symbol}", _symbol);
             var success = await DoStartAsync().ConfigureAwait(false);
             if (!success)
+            {
                 _logger.LogWarning("Failed to start trade tracker for {Symbol}: {Error}", _symbol, success.Error);
+                Status = SyncStatus.Disconnected;
+                return;
+            }
 
             _updateSubscription = success.Data;
+            _updateSubscription.ConnectionLost += HandleConnectionLost;
+            _updateSubscription.ConnectionClosed += HandleConnectionClosed;
+            _updateSubscription.ConnectionRestored += HandleConnectionRestored;
+            Status = SyncStatus.Synced;
             _logger.LogInformation("Started trade tracker for {Symbol}", _symbol);
         }
 
-        /// <summary>
-        /// Stop synchronization
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task StopAsync()
         {
             _logger.LogInformation("Stopping trade tracker for {Symbol}", _symbol);
+            Status = SyncStatus.Disconnected;
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
@@ -263,11 +246,7 @@ namespace CryptoExchange.Net.Trackers
         /// <returns></returns>
         protected virtual Task DoStopAsync() => _updateSubscription?.CloseAsync() ?? Task.CompletedTask;
 
-        /// <summary>
-        /// Get the data tracked
-        /// </summary>
-        /// <param name="since">Return data after his timestamp</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IEnumerable<ITradeItem> GetData(DateTime? since = null)
         {
             lock (_lock)
@@ -322,7 +301,7 @@ namespace CryptoExchange.Net.Trackers
                 _firstTimestamp = _data.Values.Min(v => v.Timestamp);
 
                 ApplyWindow(false);
-                SnapshotSet?.Invoke(GetData());
+                OnSnapshotSet?.Invoke(GetData());
             }
         }
 
@@ -350,7 +329,7 @@ namespace CryptoExchange.Net.Trackers
                 {
                     _logger.LogTrace("Adding {item.Id}", item.Id);
                     _data.Add(item.Id, item);
-                    Added?.Invoke(item);
+                    OnAdded?.Invoke(item);
                 }
 
                 _changed = true;
@@ -376,7 +355,7 @@ namespace CryptoExchange.Net.Trackers
                 {
                     _data.Remove(item.Key);
                     if (broadcastEvents)
-                        Removed?.Invoke(item.Value);
+                        OnRemoved?.Invoke(item.Value);
                 }
             }
 
@@ -387,12 +366,52 @@ namespace CryptoExchange.Net.Trackers
                 {
                     _data.Remove(item.Key);
                     if (broadcastEvents)
-                        Removed?.Invoke(item.Value);
+                        OnRemoved?.Invoke(item.Value);
                 }
+
+                if (_period == null)
+                    _firstTimestamp = _data.Min(d => d.Value.Timestamp);
             }
 
             _lastWindowApplied = DateTime.UtcNow;
             _changed = false;
         }
+
+
+        private void HandleConnectionLost()
+        {
+            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} connection lost", _symbol);
+            if (Status != SyncStatus.Disconnected)
+            {
+                Status = SyncStatus.Syncing;
+                _snapshotSet = false;
+                _preSnapshotQueue.Clear();
+            }
+        }
+
+        private void HandleConnectionClosed()
+        {
+            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} disconnected", _symbol);
+            Status = SyncStatus.Disconnected;
+            _ = StopAsync();
+        }
+
+        private async void HandleConnectionRestored(TimeSpan _)
+        {
+            Status = SyncStatus.Syncing;
+            var success = false;
+            while (!success)
+            {
+                if (Status != SyncStatus.Syncing)
+                    return;
+
+                var resyncResult = await DoStartAsync().ConfigureAwait(false);
+                success = resyncResult;
+            }
+
+            _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} successfully resynchronized", _symbol);
+            Status = SyncStatus.Synced;
+        }
+
     }
 }
