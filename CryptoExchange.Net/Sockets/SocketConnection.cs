@@ -407,7 +407,10 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (!ApiClient.UnhandledMessageExpected)
                 {
-                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}", SocketId, listenId);
+                    List<string> listenerIds;
+                    lock (_listenersLock)
+                        listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
+                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}", SocketId, listenId, listenerIds);
                     UnhandledMessage?.Invoke(_accessor);
                 }
 

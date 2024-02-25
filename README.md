@@ -34,7 +34,7 @@ I develop and maintain this package on my own for free in my spare time, any sup
 Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.
 
 **Btc**:  bc1qz0jv0my7fc60rxeupr23e75x95qmlq6489n8gh  
-**Eth**:  0x8E21C4d955975cB645589745ac0c46ECA8FAE504  
+**Eth**:  0xcb1b63aCF9fef2755eBf4a0506250074496Ad5b7  
 
 ### Sponsor
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
