@@ -26,7 +26,12 @@ namespace CryptoExchange.Net.Converters
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
+            {
+                if (objectType == typeof(DateTime))
+                    return default(DateTime);
+
                 return null;
+            }
 
             if(reader.TokenType is JsonToken.Integer)
             {
@@ -56,9 +61,6 @@ namespace CryptoExchange.Net.Converters
             else if(reader.TokenType is JsonToken.String)
             {
                 var stringValue = (string)reader.Value;
-                if (string.IsNullOrWhiteSpace(stringValue))
-                    return null;
-
                 if (string.IsNullOrWhiteSpace(stringValue)
                     || stringValue == "-1"
                     || (double.TryParse(stringValue, out var doubleVal) && doubleVal == 0))

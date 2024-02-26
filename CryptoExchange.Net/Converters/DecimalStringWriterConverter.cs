@@ -2,7 +2,7 @@
 using System;
 using System.Globalization;
 
-namespace Kraken.Net.Converters
+namespace CryptoExchange.Net.Converters
 {
     /// <summary>
     /// Converter for serializing decimal values as string
@@ -14,7 +14,7 @@ namespace Kraken.Net.Converters
 
         /// <inheritdoc />
         public override bool CanConvert(Type objectType) => objectType == typeof(decimal) || objectType == typeof(decimal?);
-        
+
         /// <inheritdoc />
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
