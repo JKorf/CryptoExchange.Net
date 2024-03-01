@@ -2706,7 +2706,11 @@ await binanceSocketClient.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listen
 // The listen key will stay valid for 60 minutes, after this no updates will be send anymore
 // To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method every 30 minutes
 _ = Task.Run(async () => {
-    await binanceClient.SpotApi.Account.KeepAliveUserStreamAsync(token.Data);
+    while (true)
+    {
+        await Task.Delay(Timespan.FromMinutes(30));
+        await binanceClient.SpotApi.Account.KeepAliveUserStreamAsync(token.Data);
+    }
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-bitfinex" role="tabpanel" aria-labelledby="example-stream-order-bitfinex-tab">
@@ -2760,7 +2764,11 @@ await mexcSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(token.Data, data => 
 // The listen key will stay valid for 60 minutes, after this the connection is closed and reconnecting with the same listen key will fail
 // To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method every 30 minutes
 _ = Task.Run(async () => {
-    await mexcClient.SpotApi.Account.KeepAliveUserStreamAsync(token.Data);
+    while (true)
+    {
+        await Task.Delay(Timespan.FromMinutes(30));
+        await mexcClient.SpotApi.Account.KeepAliveUserStreamAsync(token.Data);
+    }
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-okx" role="tabpanel" aria-labelledby="example-stream-order-okx-tab">
