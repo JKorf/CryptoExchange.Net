@@ -1,0 +1,143 @@
+﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
+namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
+{
+    public class SystemTextJsonMessageAccessor : IMessageAccessor
+    {
+        private JsonDocument _document;
+        private static JsonSerializerOptions _serializerOptions = STJSerializerOptions.WithConverters;
+
+        public bool IsJson { get; set; }
+
+        public void Load(Stream stream)
+        {
+            try
+            {
+                _document = JsonDocument.Parse(stream);
+                IsJson = true;
+            }
+            catch(Exception ex)
+            {
+                // Not a json message
+                IsJson = false;
+            }
+        }
+
+        public object? Underlying => throw new NotImplementedException();
+
+        public object Deserialize(Type type, MessagePath? path = null)
+        {
+            return _document.Deserialize(type, _serializerOptions);
+        }
+
+        public NodeType? GetNodeType()
+        {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
+            return _document.RootElement.ValueKind switch
+            {
+                JsonValueKind.Object => NodeType.Object,
+                JsonValueKind.Array => NodeType.Array,
+                _ => NodeType.Value
+            };
+        }
+
+        public NodeType? GetNodeType(MessagePath path)
+        {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
+            var node = GetPathNode(path);
+            if (!node.HasValue)
+                return null;
+
+            return node.Value.ValueKind switch
+            {
+                JsonValueKind.Object => NodeType.Object,
+                JsonValueKind.Array => NodeType.Array,
+                _ => NodeType.Value
+            };
+        }
+
+        public T? GetValue<T>(MessagePath path)
+        {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
+            var value = GetPathNode(path);
+            if (value == null)
+                return default;
+
+            if (value.Value.ValueKind == JsonValueKind.Object || value.Value.ValueKind == JsonValueKind.Array)
+                return default;
+
+            var ttype = typeof(T);
+            if (ttype == typeof(string))
+                return (T?)(object?)value.Value.GetString();
+            if (ttype == typeof(short))
+                return (T)(object)value.Value.GetInt16();
+            if (ttype == typeof(int))
+                return (T)(object)value.Value.GetInt32();
+            if (ttype == typeof(long))
+                return (T)(object)value.Value.GetInt64();
+
+            return default;
+        }
+
+        public List<T?>? GetValues<T>(MessagePath path) => throw new NotImplementedException();
+
+        private JsonElement? GetPathNode(MessagePath path)
+        {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
+            JsonElement? currentToken = _document.RootElement;
+            foreach (var node in path)
+            {
+                if (node.Type == 0)
+                {
+                    // Int value
+                    var val = (int)node.Value!;
+                    if (currentToken!.Value.ValueKind != JsonValueKind.Array /*|| ((Json)currentToken).Count <= val*/)
+                        return null;
+
+                    currentToken = currentToken.Value[val];
+                }
+                else if (node.Type == 1)
+                {
+                    // String value
+                    if (currentToken!.Value.ValueKind != JsonValueKind.Object)
+                        return null;
+
+                    if (!currentToken.Value.TryGetProperty((string)node.Value!, out var token))
+                        return null;
+                    currentToken = token;
+                }
+                else
+                {
+                    // Property name
+                    if (currentToken!.Value.ValueKind != JsonValueKind.Object)
+                        return null;
+
+                    // TODO
+                    throw new NotImplementedException();
+                    //currentToken = (currentToken. as JProperty)?.Name;
+                }
+
+                if (currentToken == null)
+                    return null;
+            }
+
+            return currentToken;
+        }
+    }
+}

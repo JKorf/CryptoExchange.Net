@@ -1,7 +1,7 @@
 ﻿using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing
+namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
 {
     /// <inheritdoc />
     public class JsonNetSerializer : IMessageSerializer

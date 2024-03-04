@@ -12,6 +12,8 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Requests;
+using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -51,6 +53,8 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public new RestApiOptions ApiOptions => (RestApiOptions)base.ApiOptions;
 
+        protected IMessageAccessor _accessor;
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -73,6 +77,8 @@ namespace CryptoExchange.Net
             RateLimiters = rateLimiters;
 
             RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
+
+            _accessor = new JsonNetMessageAccessor();
         }
 
         /// <summary>

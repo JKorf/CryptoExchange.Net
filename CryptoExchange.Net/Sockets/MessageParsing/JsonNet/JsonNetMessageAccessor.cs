@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing
+namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
 {
     /// <summary>
     /// Json.Net message accessor

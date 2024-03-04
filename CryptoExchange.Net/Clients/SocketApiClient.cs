@@ -101,6 +101,9 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
 
+        protected IMessageSerializer? _serializer;
+        protected IMessageAccessor? _accessor;
+
         #endregion
 
         /// <summary>
@@ -468,6 +471,10 @@ namespace CryptoExchange.Net
             // Create new socket
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
+            if (_serializer != null)
+                socketConnection.SetSerializer(_serializer);
+            if (_accessor != null)
+                socketConnection.SetAccessor(_accessor);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
 
             foreach (var ptg in PeriodicTaskRegistrations)

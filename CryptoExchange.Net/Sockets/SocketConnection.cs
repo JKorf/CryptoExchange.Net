@@ -12,6 +12,7 @@ using System.Text;
 using System.Diagnostics;
 using CryptoExchange.Net.Sockets.MessageParsing;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -208,6 +209,18 @@ namespace CryptoExchange.Net.Sockets
             _serializer = new JsonNetSerializer();
             _accessor = new JsonNetMessageAccessor();
         }
+
+        /// <summary>
+        /// Override the default serializer
+        /// </summary>
+        /// <param name="serializer"></param>
+        internal void SetSerializer(IMessageSerializer serializer) => _serializer = serializer;
+
+        /// <summary>
+        /// Overide the default accessor
+        /// </summary>
+        /// <param name="accessor"></param>
+        internal void SetAccessor(IMessageAccessor accessor) => _accessor = accessor;
 
         /// <summary>
         /// Handler for a socket opening
