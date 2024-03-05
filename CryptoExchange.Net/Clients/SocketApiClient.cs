@@ -68,6 +68,16 @@ namespace CryptoExchange.Net
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
 
+        /// <summary>
+        /// The message serializer for serializing outgoing messages
+        /// </summary>
+        protected IMessageSerializer? _serializer;
+
+        /// <summary>
+        /// The message accessor for inspecting and deserializing incoming messages
+        /// </summary>
+        protected IMessageAccessor? _accessor;
+
         /// <inheritdoc />
         public double IncomingKbps
         {
@@ -100,9 +110,6 @@ namespace CryptoExchange.Net
 
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
-
-        protected IMessageSerializer? _serializer;
-        protected IMessageAccessor? _accessor;
 
         #endregion
 

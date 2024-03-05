@@ -389,8 +389,10 @@ namespace CryptoExchange.Net.Sockets
             stream = ApiClient.PreprocessStreamMessage(type, stream);
 
             // 2. Read data into accessor
-            _accessor.Load(stream);
-            if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
+            var outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
+            _accessor.Load(stream, outputOriginalData);
+            _accessor.TryParse();
+            if (outputOriginalData)
             {
                 originalData = _accessor.GetOriginalString();
                 _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);

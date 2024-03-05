@@ -13,7 +13,23 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     public class EnumConverter : JsonConverterFactory
     {
+        private bool _warnOnMissingEntry = true;
+        private bool _writeAsInt;
         private static readonly ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new();
+
+        /// <summary>
+        /// </summary>
+        public EnumConverter() { }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="writeAsInt"></param>
+        /// <param name="warnOnMissingEntry"></param>
+        public EnumConverter(bool writeAsInt, bool warnOnMissingEntry)
+        {
+            _writeAsInt = writeAsInt;
+            _warnOnMissingEntry = warnOnMissingEntry;
+        }
 
         public override bool CanConvert(Type typeToConvert)
         {
@@ -27,7 +43,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     new Type[] { typeToConvert }),
                 BindingFlags.Instance | BindingFlags.Public,
                 binder: null,
-                args: new object[] { },
+                args: new object[] { _writeAsInt, _warnOnMissingEntry },
                 culture: null)!;
 
             return converter;
@@ -52,9 +68,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         private class EnumConverterInner<T> : JsonConverter<T> where T : Enum
         {
-            // TODO
             private bool _warnOnMissingEntry = true;
             private bool _writeAsInt;
+
+            public EnumConverterInner(bool writeAsInt, bool warnOnMissingEntry)
+            {
+                _warnOnMissingEntry = warnOnMissingEntry;
+                _writeAsInt = writeAsInt;
+            }
 
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
@@ -104,7 +125,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
-
+                if (value == null)
+                {
+                    writer.WriteNullValue();
+                }
+                else
+                {
+                    if (!_writeAsInt)
+                    {
+                        var stringValue = GetString(value.GetType(), value);
+                        writer.WriteStringValue(stringValue);
+                    }
+                    else
+                    {
+                        writer.WriteNumberValue((int)Convert.ChangeType(value, typeof(int)));
+                    }
+                }
             }
 
             private static object? GetDefaultValue(Type objectType, Type enumType)

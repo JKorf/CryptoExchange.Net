@@ -50,11 +50,6 @@ namespace CryptoExchange.Net
         public RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
-        /// Whether or not we need to manually parse an error instead of relying on the http status code
-        /// </summary>
-        public bool manualParseError = false;
-
-        /// <summary>
         /// How to serialize array parameters when making requests
         /// </summary>
         public ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;

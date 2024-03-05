@@ -15,6 +15,10 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
         /// </summary>
         bool IsJson { get; }
         /// <summary>
+        /// Is the original data available for retrieval
+        /// </summary>
+        bool OriginalDataAvailable { get; }
+        /// <summary>
         /// The underlying data object
         /// </summary>
         object? Underlying { get; }
@@ -22,7 +26,12 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
         /// Load a stream message
         /// </summary>
         /// <param name="stream"></param>
-        void Load(Stream stream);
+        /// <param name="bufferStream"></param>
+        void Load(Stream stream, bool bufferStream);
+        /// <summary>
+        /// Try parse the message from loaded stream
+        /// </summary>
+        bool TryParse();
         /// <summary>
         /// Get the type of node
         /// </summary>

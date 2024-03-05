@@ -19,19 +19,20 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
         private JToken? _token;
         private Stream? _stream;
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
-        private bool _outputOriginalData;
 
         /// <inheritdoc />
         public bool IsJson { get; private set; }
 
         /// <inheritdoc />
+        public bool OriginalDataAvailable => _stream?.CanSeek == true;
+
+        /// <inheritdoc />
         public object? Underlying => _token;
 
         /// <inheritdoc />
-        public void Load(Stream stream)
+        public void Load(Stream stream, bool bufferStream)
         {
-            var rereadable = true; // TODO Determine condition
-            if (rereadable)
+            if (bufferStream && stream is not MemoryStream)
             {
                 _stream = new MemoryStream();
                 stream.CopyTo(_stream);
@@ -41,6 +42,13 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
             {
                 _stream = stream;
             }
+        }
+
+        /// <inheritdoc />
+        public bool TryParse()
+        {
+            if (_stream == null)
+                throw new InvalidOperationException("Stream not loaded");
 
             var length = _stream.CanSeek ? _stream.Length : 4096;
             using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)length, true);
@@ -51,11 +59,13 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
                 _token = JToken.Load(jsonTextReader);
                 IsJson = true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Not a json message
                 IsJson = false;
             }
+
+            return IsJson;
         }
 
         /// <inheritdoc />

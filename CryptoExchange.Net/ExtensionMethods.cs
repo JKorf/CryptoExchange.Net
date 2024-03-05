@@ -228,37 +228,6 @@ namespace CryptoExchange.Net
             return secureString;
         }
 
-        ///// <summary>
-        ///// String to JToken
-        ///// </summary>
-        ///// <param name="stringData"></param>
-        ///// <param name="logger"></param>
-        ///// <returns></returns>
-        //public static JToken? ToJToken(this string stringData, ILogger? logger = null)
-        //{
-        //    if (string.IsNullOrEmpty(stringData))
-        //        return null;
-
-        //    try
-        //    {
-        //        return JToken.Parse(stringData);
-        //    }
-        //    catch (JsonReaderException jre)
-        //    {
-        //        var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
-        //        logger?.Log(LogLevel.Error, info);
-        //        if (logger == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
-        //        return null;
-        //    }
-        //    catch (JsonSerializationException jse)
-        //    {
-        //        var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
-        //        logger?.Log(LogLevel.Error, info);
-        //        if (logger == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
-        //        return null;
-        //    }
-        //}
-
         /// <summary>
         /// Validates an int is one of the allowed values
         /// </summary>

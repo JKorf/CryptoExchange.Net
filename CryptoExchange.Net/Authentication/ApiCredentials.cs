@@ -2,6 +2,8 @@
 using System.IO;
 using System.Security;
 using System.Text;
+using CryptoExchange.Net.Sockets.MessageParsing;
+using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
 using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.Authentication
@@ -86,45 +88,29 @@ namespace CryptoExchange.Net.Authentication
             return new ApiCredentials(Key!.GetString(), Secret!.GetString(), CredentialType);
         }
 
-        ///// <summary>
-        ///// Create Api credentials providing a stream containing json data. The json data should include two values: apiKey and apiSecret
-        ///// </summary>
-        ///// <param name="inputStream">The stream containing the json data</param>
-        ///// <param name="identifierKey">A key to identify the credentials for the API. For example, when set to `binanceKey` the json data should contain a value for the property `binanceKey`. Defaults to 'apiKey'.</param>
-        ///// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
-        //public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
-        //{
-        //    using var reader = new StreamReader(inputStream, Encoding.UTF8, false, 512, true);
-            
-        //    var stringData = reader.ReadToEnd();
-        //    var jsonData = stringData.ToJToken();
-        //    if(jsonData == null)
-        //        throw new ArgumentException("Input stream not valid json data");
+        /// <summary>
+        /// Create Api credentials providing a stream containing json data. The json data should include two values: apiKey and apiSecret
+        /// </summary>
+        /// <param name="inputStream">The stream containing the json data</param>
+        /// <param name="identifierKey">A key to identify the credentials for the API. For example, when set to `binanceKey` the json data should contain a value for the property `binanceKey`. Defaults to 'apiKey'.</param>
+        /// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
+        public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
+        {
+            var accessor = new JsonNetMessageAccessor();
+            accessor.Load(inputStream, false);
+            if (!accessor.TryParse())
+                throw new ArgumentException("Input stream not valid json data");
 
-        //    var key = TryGetValue(jsonData, identifierKey ?? "apiKey");
-        //    var secret = TryGetValue(jsonData, identifierSecret ?? "apiSecret");
+            var key = accessor.GetValue<string>(MessagePath.Get().Property(identifierKey ?? "apiKey"));
+            var secret = accessor.GetValue<string>(MessagePath.Get().Property(identifierSecret ?? "apiSecret"));
+            if (key == null || secret == null)
+                throw new ArgumentException("apiKey or apiSecret value not found in Json credential file");
 
-        //    if (key == null || secret == null)
-        //        throw new ArgumentException("apiKey or apiSecret value not found in Json credential file");
+            Key = key.ToSecureString();
+            Secret = secret.ToSecureString();
 
-        //    Key = key.ToSecureString();
-        //    Secret = secret.ToSecureString();            
-
-        //    inputStream.Seek(0, SeekOrigin.Begin);
-        //}
-
-        ///// <summary>
-        ///// Try get the value of a key from a JToken
-        ///// </summary>
-        ///// <param name="data"></param>
-        ///// <param name="key"></param>
-        ///// <returns></returns>
-        //protected string? TryGetValue(JToken data, string key)
-        //{
-        //    if (data[key] == null)
-        //        return null;
-        //    return (string) data[key]!;
-        //}       
+            inputStream.Seek(0, SeekOrigin.Begin);
+        }
 
         /// <summary>
         /// Dispose
