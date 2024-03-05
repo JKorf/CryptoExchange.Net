@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
     /// Serializer options

@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.Sockets
         public abstract Query? GetUnsubQuery();
 
         /// <inheritdoc />
-        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
+        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
 
         /// <summary>
         /// Handle an update message

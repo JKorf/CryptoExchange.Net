@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
@@ -39,7 +41,17 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public CallResult<T> Deserialize<T>(string data) => Deserialize<T>(data, null, null);
+        public CallResult<T> Deserialize<T>(string data)
+        {
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+            var accessor = CreateAccessor();
+            var valid = accessor.Read(stream, true);
+            if (!valid)
+                return new CallResult<T>(new ServerError(data));
+            
+            var deserializeResult = accessor.Deserialize<T>();
+            return new CallResult<T>(new ServerError(data));
+        }
 
         public override TimeSpan? GetTimeOffset() => null;
         public override TimeSyncInfo GetTimeSyncInfo() => null;

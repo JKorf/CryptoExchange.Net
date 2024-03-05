@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
         public object? Underlying => _token;
 
         /// <inheritdoc />
-        public void Load(Stream stream, bool bufferStream)
+        public bool Read(Stream stream, bool bufferStream)
         {
             if (bufferStream && stream is not MemoryStream)
             {
@@ -42,13 +42,6 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
             {
                 _stream = stream;
             }
-        }
-
-        /// <inheritdoc />
-        public bool TryParse()
-        {
-            if (_stream == null)
-                throw new InvalidOperationException("Stream not loaded");
 
             var length = _stream.CanSeek ? _stream.Length : 4096;
             using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)length, true);

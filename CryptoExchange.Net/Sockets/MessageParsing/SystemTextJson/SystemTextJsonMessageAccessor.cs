@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Converters;
+﻿using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using System;
@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
         public bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
-        public void Load(Stream stream, bool bufferStream)
+        public bool Read(Stream stream, bool bufferStream)
         {
             if (bufferStream && stream is not MemoryStream)
             {
@@ -37,14 +37,6 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
             {
                 _stream = stream;
             }
-
-        }
-
-        /// <inheritdoc />
-        public bool TryParse()
-        {
-            if (_stream == null)
-                throw new InvalidOperationException("Stream not loaded");
 
             try
             {

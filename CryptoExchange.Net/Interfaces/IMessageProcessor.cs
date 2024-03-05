@@ -40,6 +40,6 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="accessor"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        object Deserialize(IMessageAccessor accessor, Type type);
+        CallResult<object> Deserialize(IMessageAccessor accessor, Type type);
     }
 }

@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.Sockets
         public async Task WaitAsync(TimeSpan timeout) => await _event.WaitAsync(timeout).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
+        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
 
         /// <summary>
         /// Mark request as timeout

@@ -281,58 +281,55 @@ namespace CryptoExchange.Net
             CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
+            Stream? responseStream = null;
+            IResponse? response = null;
             try
             {
-                var response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
+                response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
                 var statusCode = response.StatusCode;
                 var headers = response.ResponseHeaders;
                 var responseLength = response.ContentLength;
-                var responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
+                responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
 
-                try
+                var accessor = CreateAccessor();
+                if (!response.IsSuccessStatusCode)
                 {
-                    var accessor = CreateAccessor();
-                    accessor.Load(responseStream, true);
+                    // Error response
+                    accessor.Read(responseStream, true);
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Error response
-                        Error error;
-                        if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
-                            error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
-                        else
-                            error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                    Error error;
+                    if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
+                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                    else
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
 
-                        if (error.Code == null || error.Code == 0)
-                            error.Code = (int)response.StatusCode;
+                    if (error.Code == null || error.Code == 0)
+                        error.Code = (int)response.StatusCode;
 
-                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-                    }
-
-                    if (!accessor.TryParse())
-                    {
-                        // Invalid json
-                        var error = new ServerError(accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
-                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
-                    }
-
-                    // Json response received
-                    if (typeof(T) == typeof(object))
-                    {
-                        // Success status code and expected empty response, assume it's correct
-                        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
-                    }
-
-                    var deserializeResult = accessor.Deserialize<T>();
-                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                 }
-                finally
+
+                var needBuffering = OutputOriginalData;
+                var valid = accessor.Read(responseStream, needBuffering);
+                if (!valid)
                 {
-                    responseStream.Close();
-                    response.Close();
+                    // Invalid json
+                    var error = new ServerError(accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
+
+                // Json response received
+                if (typeof(T) == typeof(object))
+                {
+                    // Success status code and expected empty response, assume it's correct
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                }
+
+                var deserializeResult = accessor.Deserialize<T>();
+                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+               
 
                 //if (response.IsSuccessStatusCode)
                 //{
@@ -437,6 +434,11 @@ namespace CryptoExchange.Net
                     // Request timed out
                     return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError($"Request timed out"));
                 }
+            }
+            finally
+            {
+                responseStream?.Close();
+                response?.Close();
             }
         }
 

@@ -27,11 +27,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="bufferStream"></param>
-        void Load(Stream stream, bool bufferStream);
-        /// <summary>
-        /// Try parse the message from loaded stream
-        /// </summary>
-        bool TryParse();
+        bool Read(Stream stream, bool bufferStream);
         /// <summary>
         /// Get the type of node
         /// </summary>

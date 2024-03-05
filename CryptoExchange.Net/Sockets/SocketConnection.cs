@@ -390,8 +390,7 @@ namespace CryptoExchange.Net.Sockets
 
             // 2. Read data into accessor
             var outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
-            _accessor.Load(stream, outputOriginalData);
-            _accessor.TryParse();
+            _accessor.Read(stream, outputOriginalData);
             if (outputOriginalData)
             {
                 originalData = _accessor.GetOriginalString();
@@ -457,7 +456,12 @@ namespace CryptoExchange.Net.Sockets
                 {
                     try
                     {
-                        deserialized = processor.Deserialize(_accessor, messageType);
+                        var desResult = processor.Deserialize(_accessor, messageType);
+                        if (!desResult)
+                        {
+                            // TODO
+                        }
+                        deserialized = desResult.Data;
                         desCache?.Add(messageType, deserialized);
                     }
                     catch (Exception ex)
