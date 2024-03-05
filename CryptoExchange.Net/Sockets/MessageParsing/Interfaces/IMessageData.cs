@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -53,6 +54,18 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
         /// <param name="type"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        object Deserialize(Type type, MessagePath? path = null);
+        CallResult<object> Deserialize(Type type, MessagePath? path = null);
+        /// <summary>
+        /// Deserialize the message into this type
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        CallResult<T> Deserialize<T>(MessagePath? path = null);
+
+        /// <summary>
+        /// Get the original string value
+        /// </summary>
+        /// <returns></returns>
+        string GetOriginalString();
     }
 }

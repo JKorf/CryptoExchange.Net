@@ -392,10 +392,7 @@ namespace CryptoExchange.Net.Sockets
             _accessor.Load(stream);
             if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
             {
-                stream.Position = 0;
-                using var textReader = new StreamReader(stream, Encoding.UTF8, false, 1024, true);
-                originalData = textReader.ReadToEnd();
-
+                originalData = _accessor.GetOriginalString();
                 _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
             }
 

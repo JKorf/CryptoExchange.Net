@@ -4,17 +4,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.SystemTextJson
 {
-    public class STJEnumConverter : JsonConverterFactory
+    public class EnumConverter : JsonConverterFactory
     {
+        private static readonly ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new();
+
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert.IsEnum || Nullable.GetUnderlyingType(typeToConvert)?.IsEnum == true;
@@ -27,10 +27,27 @@ namespace CryptoExchange.Net.Converters
                     new Type[] { typeToConvert }),
                 BindingFlags.Instance | BindingFlags.Public,
                 binder: null,
-                args: new object[] { options },
+                args: new object[] { },
                 culture: null)!;
 
             return converter;
+        }
+
+        private static List<KeyValuePair<object, string>> AddMapping(Type objectType)
+        {
+            var mapping = new List<KeyValuePair<object, string>>();
+            var enumMembers = objectType.GetMembers();
+            foreach (var member in enumMembers)
+            {
+                var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
+                foreach (MapAttribute attribute in maps)
+                {
+                    foreach (var value in attribute.Values)
+                        mapping.Add(new KeyValuePair<object, string>(Enum.Parse(objectType, member.Name), value));
+                }
+            }
+            _mapping.TryAdd(objectType, mapping);
+            return mapping;
         }
 
         private class EnumConverterInner<T> : JsonConverter<T> where T : Enum
@@ -38,7 +55,6 @@ namespace CryptoExchange.Net.Converters
             // TODO
             private bool _warnOnMissingEntry = true;
             private bool _writeAsInt;
-            private static readonly ConcurrentDictionary<Type, List<KeyValuePair<object, string>>> _mapping = new();
 
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
@@ -46,7 +62,13 @@ namespace CryptoExchange.Net.Converters
                 if (!_mapping.TryGetValue(enumType, out var mapping))
                     mapping = AddMapping(enumType);
 
-                var stringValue = reader.GetString();
+                var stringValue = reader.TokenType switch
+                {
+                    JsonTokenType.String => reader.GetString(),
+                    JsonTokenType.Number => reader.GetInt16().ToString(),
+                    _ => null
+                };
+
                 if (string.IsNullOrEmpty(stringValue))
                 {
                     // Received null value
@@ -93,23 +115,6 @@ namespace CryptoExchange.Net.Converters
                 return Activator.CreateInstance(enumType); // return default value
             }
 
-            private static List<KeyValuePair<object, string>> AddMapping(Type objectType)
-            {
-                var mapping = new List<KeyValuePair<object, string>>();
-                var enumMembers = objectType.GetMembers();
-                foreach (var member in enumMembers)
-                {
-                    var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
-                    foreach (MapAttribute attribute in maps)
-                    {
-                        foreach (var value in attribute.Values)
-                            mapping.Add(new KeyValuePair<object, string>(Enum.Parse(objectType, member.Name), value));
-                    }
-                }
-                _mapping.TryAdd(objectType, mapping);
-                return mapping;
-            }
-
             private static bool GetValue(Type objectType, List<KeyValuePair<object, string>> enumMapping, string value, out object? result)
             {
                 // Check for exact match first, then if not found fallback to a case insensitive match 
@@ -135,28 +140,27 @@ namespace CryptoExchange.Net.Converters
                     return false;
                 }
             }
+        }
 
-            /// <summary>
-            /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <param name="enumValue"></param>
-            /// <returns></returns>
-            [return: NotNullIfNotNull("enumValue")]
-            public static string? GetString<T>(T enumValue) => GetString(typeof(T), enumValue);
+        /// <summary>
+        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="enumValue"></param>
+        /// <returns></returns>
+        [return: NotNullIfNotNull("enumValue")]
+        public static string? GetString<T>(T enumValue) => GetString(typeof(T), enumValue);
 
 
-            [return: NotNullIfNotNull("enumValue")]
-            private static string? GetString(Type objectType, object? enumValue)
-            {
-                objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
+        [return: NotNullIfNotNull("enumValue")]
+        private static string? GetString(Type objectType, object? enumValue)
+        {
+            objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
 
-                if (!_mapping.TryGetValue(objectType, out var mapping))
-                    mapping = AddMapping(objectType);
+            if (!_mapping.TryGetValue(objectType, out var mapping))
+                mapping = AddMapping(objectType);
 
-                return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
-            }
-
+            return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
         }
     }
 }

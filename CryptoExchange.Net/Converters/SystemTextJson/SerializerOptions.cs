@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using CryptoExchange.Net.Converters.SystemTextJson;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -7,7 +8,7 @@ namespace CryptoExchange.Net.Converters
     /// <summary>
     /// Serializer options
     /// </summary>
-    public static class STJSerializerOptions
+    public static class SerializerOptions
     {
         /// <summary>
         /// Json serializer settings which includes the EnumConverter, DateTimeConverter and BoolConverter
@@ -28,10 +29,10 @@ namespace CryptoExchange.Net.Converters
                     //    new BoolConverter()
                     //}
                 };
-                options.Converters.Add(new STJDateTimeConverter());
-                options.Converters.Add(new STJNullableDateTimeConverter());
-                options.Converters.Add(new STJEnumConverter());
-                options.Converters.Add(new STJBoolConverter());
+                options.Converters.Add(new DateTimeConverter());
+                options.Converters.Add(new NullableDateTimeConverter());
+                options.Converters.Add(new EnumConverter());
+                options.Converters.Add(new BoolConverter());
 
                 return options;
             }

@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;

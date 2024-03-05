@@ -15,8 +15,6 @@ using CryptoExchange.Net.Requests;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
@@ -53,7 +51,6 @@ namespace CryptoExchange.Net
         /// <inheritdoc />
         public new RestApiOptions ApiOptions => (RestApiOptions)base.ApiOptions;
 
-        protected IMessageAccessor _accessor;
 
         /// <summary>
         /// ctor
@@ -77,9 +74,10 @@ namespace CryptoExchange.Net
             RateLimiters = rateLimiters;
 
             RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
-
-            _accessor = new JsonNetMessageAccessor();
         }
+
+        protected virtual IMessageAccessor CreateAccessor() => new JsonNetMessageAccessor();
+        protected virtual IMessageSerializer CreateSerializer() => new JsonNetSerializer();
 
         /// <summary>
         /// Execute a request to the uri and returns if it was successful
@@ -93,7 +91,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -108,7 +105,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
@@ -116,11 +112,11 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
-                var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
+                var result = await GetResponseAsync<object>(request.Data, cancellationToken, true).ConfigureAwait(false);
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
@@ -146,7 +142,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -161,7 +156,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false
             ) where T : class
@@ -170,11 +164,11 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
-                var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+                var result = await GetResponseAsync<T>(request.Data, cancellationToken, false).ConfigureAwait(false);
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
@@ -199,7 +193,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -213,7 +206,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
@@ -273,13 +265,11 @@ namespace CryptoExchange.Net
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
         /// <param name="request">The request object to execute</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="expectedEmptyResponse">If an empty response is expected</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
             IRequest request,
-            JsonSerializer? deserializer,
             CancellationToken cancellationToken,
             bool expectedEmptyResponse)
         {
@@ -292,90 +282,145 @@ namespace CryptoExchange.Net
                 var headers = response.ResponseHeaders;
                 var responseLength = response.ContentLength;
                 var responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
+
+                var accessor = CreateAccessor();
+                accessor.Load(responseStream);
+                if (!accessor.IsJson)
                 {
-                    // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
-                    // response before being able to deserialize it into the resulting type since we don't know if its an error response or data
-                    if (manualParseError)
-                    {
-                        using var reader = new StreamReader(responseStream);
-                        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        responseLength ??= data.Length;
-                        responseStream.Close();
-                        response.Close();
-
-                        if (!expectedEmptyResponse)
-                        {
-                            // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
-                            var parseResult = ValidateJson(data);
-                            if (!parseResult.Success)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                            // Let the library implementation see if it is an error response, and if so parse the error
-                            var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                            if (error != null)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-
-                            // Not an error, so continue deserializing
-                            var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
-                        }
-                        else
-                        {
-                            if (!string.IsNullOrEmpty(data))
-                            {
-                                var parseResult = ValidateJson(data);
-                                if (!parseResult.Success)
-                                    // Not empty, and not json
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                                var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                                if (error != null)
-                                    // Error response
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-                            }
-
-                            // Empty success response; okay
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
-                        }
-                    }
+                    Error error;
+                    if (response.IsSuccessStatusCode)
+                        // Success result but not json
+                        error = new ServerError(accessor.GetOriginalString());
+                    if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
+                        // Rate limit result
+                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor.GetOriginalString());
                     else
-                    {
-                        if (expectedEmptyResponse)
-                        {
-                            // We expected an empty response and the request is successful and don't manually parse errors, so assume it's correct
-                            responseStream.Close();
-                            response.Close();
+                        // Other error result
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor.GetOriginalString());
 
-                            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
-                        }
-
-                        // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
-                        var desResult = await DeserializeAsync<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
-                        responseStream.Close();
-                        response.Close();
-
-                        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
-                    }
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
-                else
-                {
-                    // Http status code indicates error
-                    using var reader = new StreamReader(responseStream);
-                    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    responseStream.Close();
-                    response.Close();
 
+                // Json response received
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Error response
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
-                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor.GetOriginalString());
                     else
-                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor.GetOriginalString());
 
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
+
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                 }
+
+                if (manualParseError)
+                {
+                    var error = await TryParseErrorAsync(accessor).ConfigureAwait(false);
+                    if (error != null)
+                        return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                }
+
+                if (expectedEmptyResponse)
+                {
+                    // Success status code and expected empty response, assume it's correct
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                }
+
+                var deserializeResult = accessor.Deserialize<T>();
+                responseStream.Close();
+                response.Close();
+                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+
+
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
+                //    // response before being able to deserialize it into the resulting type since we don't know if its an error response or data
+                //    if (manualParseError)
+                //    {
+                //        using var reader = new StreamReader(responseStream);
+                //        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                //        responseLength ??= data.Length;
+                //        responseStream.Close();
+                //        response.Close();
+
+                //        if (!expectedEmptyResponse)
+                //        {
+                //            // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
+                //            accessor.Load(data);
+                //            if (!accessor.IsJson)
+                //                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+
+                //            // Let the library implementation see if it is an error response, and if so parse the error
+                //            var error = await TryParseErrorAsync(accessor).ConfigureAwait(false);
+                //            if (error != null)
+                //                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+
+                //            // Not an error, so continue deserializing
+                //            var deserializeResult = Deserialize<T>(parseResult.Data, accessor, request.RequestId);
+                //            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
+                //        }
+                //        else
+                //        {
+                //            if (!string.IsNullOrEmpty(data))
+                //            {
+                //                var parseResult = ValidateJson(data);
+                //                if (!parseResult.Success)
+                //                    // Not empty, and not json
+                //                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
+
+                //                var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
+                //                if (error != null)
+                //                    // Error response
+                //                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
+                //            }
+
+                //            // Empty success response; okay
+                //            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        if (expectedEmptyResponse)
+                //        {
+                //            // We expected an empty response and the request is successful and don't manually parse errors, so assume it's correct
+                //            responseStream.Close();
+                //            response.Close();
+
+                //            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                //        }
+
+                //        // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
+                //        var desResult = await DeserializeAsync<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
+                //        responseStream.Close();
+                //        response.Close();
+
+                //        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
+                //    }
+                //}
+                //else
+                //{
+                //    // Http status code indicates error
+                //    using var reader = new StreamReader(responseStream);
+                //    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
+                //    responseStream.Close();
+                //    response.Close();
+
+                //    Error error;
+                //    if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
+                //        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                //    else
+                //        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, data);
+
+                //    if (error.Code == null || error.Code == 0)
+                //        error.Code = (int)response.StatusCode;
+                //    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
+                //}
             }
             catch (HttpRequestException requestException)
             {
@@ -405,7 +450,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="data">Received data</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Task<ServerError?> TryParseErrorAsync(JToken data)
+        protected virtual Task<ServerError?> TryParseErrorAsync(IMessageAccessor data)
         {
             return Task.FromResult<ServerError?>(null);
         }
@@ -542,7 +587,7 @@ namespace CryptoExchange.Net
             if (contentType == Constants.JsonContentHeader)
             {
                 // Write the parameters as json in the body
-                var stringData = JsonConvert.SerializeObject(parameters);
+                var stringData = CreateSerializer().Serialize(parameters);
                 request.SetContent(stringData, contentType);
             }
             else if (contentType == Constants.FormContentHeader)

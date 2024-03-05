@@ -2,7 +2,7 @@
 using System;
 using System.Globalization;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Converter for serializing decimal values as string

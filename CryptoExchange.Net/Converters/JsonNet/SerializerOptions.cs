@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Globalization;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Serializer options

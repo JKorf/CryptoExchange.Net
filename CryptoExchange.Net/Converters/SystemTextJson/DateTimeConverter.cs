@@ -7,9 +7,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.SystemTextJson
 {
-    public class STJDateTimeConverter : JsonConverter<DateTime>
+    public class DateTimeConverter : JsonConverter<DateTime>
     {
         private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const long _ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
@@ -17,11 +17,6 @@ namespace CryptoExchange.Net.Converters
         private const double _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000d / 1000;
 
         public override bool HandleNull => true;
-
-        public override bool CanConvert(Type typeToConvert)
-        {
-            return typeToConvert == typeof(DateTime) || typeToConvert == typeof(DateTime?);
-        }
 
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -47,7 +42,7 @@ namespace CryptoExchange.Net.Converters
                 var stringValue = reader.GetString();
                 if (string.IsNullOrWhiteSpace(stringValue)
                     || stringValue == "-1"
-                    || (double.TryParse(stringValue, out var doubleVal) && doubleVal == 0))
+                    || double.TryParse(stringValue, out var doubleVal) && doubleVal == 0)
                 {
                     return default;
                 }
@@ -175,8 +170,8 @@ namespace CryptoExchange.Net.Converters
         [return: NotNullIfNotNull("time")]
         public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / _ticksPerNanosecond);
     }
-    
-    public class STJNullableDateTimeConverter : JsonConverter<DateTime?>
+
+    public class NullableDateTimeConverter : JsonConverter<DateTime?>
     {
         private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const long _ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
@@ -184,11 +179,6 @@ namespace CryptoExchange.Net.Converters
         private const double _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000d / 1000;
 
         public override bool HandleNull => true;
-
-        public override bool CanConvert(Type typeToConvert)
-        {
-            return typeToConvert == typeof(DateTime) || typeToConvert == typeof(DateTime?);
-        }
 
         public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -214,7 +204,7 @@ namespace CryptoExchange.Net.Converters
                 var stringValue = reader.GetString();
                 if (string.IsNullOrWhiteSpace(stringValue)
                     || stringValue == "-1"
-                    || (double.TryParse(stringValue, out var doubleVal) && doubleVal == 0))
+                    || double.TryParse(stringValue, out var doubleVal) && doubleVal == 0)
                 {
                     return typeToConvert == typeof(DateTime) ? default(DateTime) : null;
                 }

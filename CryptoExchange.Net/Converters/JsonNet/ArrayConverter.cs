@@ -8,7 +8,7 @@ using CryptoExchange.Net.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Converter for arrays to objects. Can deserialize data like [0.1, 0.2, "test"] to an object. Mapping is done by marking the class with [JsonConverter(typeof(ArrayConverter))] and the properties

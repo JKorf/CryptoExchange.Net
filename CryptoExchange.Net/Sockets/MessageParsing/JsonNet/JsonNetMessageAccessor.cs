@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Converters;
+﻿using CryptoExchange.Net.Converters.JsonNet;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,6 +19,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
         private JToken? _token;
         private Stream? _stream;
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
+        private bool _outputOriginalData;
 
         /// <inheritdoc />
         public bool IsJson { get; private set; }
@@ -28,8 +30,20 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
         /// <inheritdoc />
         public void Load(Stream stream)
         {
-            _stream = stream;
-            using var reader = new StreamReader(stream, Encoding.UTF8, false, (int)stream.Length, true);
+            var rereadable = true; // TODO Determine condition
+            if (rereadable)
+            {
+                _stream = new MemoryStream();
+                stream.CopyTo(_stream);
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = stream;
+            }
+
+            var length = _stream.CanSeek ? _stream.Length : 4096;
+            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)length, true);
             using var jsonTextReader = new JsonTextReader(reader);
 
             try
@@ -37,7 +51,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
                 _token = JToken.Load(jsonTextReader);
                 IsJson = true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Not a json message
                 IsJson = false;
@@ -45,19 +59,66 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
         }
 
         /// <inheritdoc />
-        public object Deserialize(Type type, MessagePath? path = null)
+        public CallResult<object> Deserialize(Type type, MessagePath? path = null)
         {
             if (!IsJson)
-            {
-                var sr = new StreamReader(_stream);
-                return sr.ReadToEnd();
-            }
+                return new CallResult<object>(GetOriginalString());
 
             var source = _token;
             if (path != null)
                 source = GetPathNode(path.Value);
 
-            return source!.ToObject(type, _serializer)!;
+            try
+            {
+                var result = source!.ToObject(type, _serializer)!;
+                return new CallResult<object>(result);
+            }
+            catch (JsonReaderException jre)
+            {
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
+                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+            }
+            catch (JsonSerializationException jse)
+            {
+                var info = $"Deserialize JsonSerializationException: {jse.Message}";
+                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+            }
+            catch (Exception ex)
+            {
+                var exceptionInfo = ex.ToLogString();
+                var info = $"Deserialize Unknown Exception: {exceptionInfo}";
+                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+            }
+        }
+
+        /// <inheritdoc />
+        public CallResult<T> Deserialize<T>(MessagePath? path = null)
+        {
+            var source = _token;
+            if (path != null)
+                source = GetPathNode(path.Value);
+
+            try
+            {
+                var result = source!.ToObject<T>(_serializer)!;
+                return new CallResult<T>(result);
+            }
+            catch (JsonReaderException jre)
+            {
+                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
+                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+            }
+            catch (JsonSerializationException jse)
+            {
+                var info = $"Deserialize JsonSerializationException: {jse.Message}";
+                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+            }
+            catch (Exception ex)
+            {
+                var exceptionInfo = ex.ToLogString();
+                var info = $"Deserialize Unknown Exception: {exceptionInfo}";
+                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+            }
         }
 
         /// <inheritdoc />
@@ -168,6 +229,17 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
             }
 
             return currentToken;
+        }
+
+        /// <inheritdoc />
+        public string GetOriginalString()
+        {
+            if (_stream is null)
+                throw new NullReferenceException("Stream not initialized");
+
+            _stream.Position = 0;
+            using var textReader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
+            return textReader.ReadToEnd();
         }
     }
 }

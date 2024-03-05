@@ -1,27 +1,39 @@
 ﻿using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
 {
     public class SystemTextJsonMessageAccessor : IMessageAccessor
     {
+        private Stream _stream;
         private JsonDocument _document;
-        private static JsonSerializerOptions _serializerOptions = STJSerializerOptions.WithConverters;
+        private static JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
 
         public bool IsJson { get; set; }
 
         public void Load(Stream stream)
         {
+            var rereadable = true; // TODO Determine condition
+            if (rereadable)
+            {
+                _stream = new MemoryStream();
+                stream.CopyTo(_stream);
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = stream;
+            }
+
             try
             {
-                _document = JsonDocument.Parse(stream);
+                _document = JsonDocument.Parse(_stream);
                 IsJson = true;
             }
             catch(Exception ex)
@@ -33,9 +45,35 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
 
         public object? Underlying => throw new NotImplementedException();
 
-        public object Deserialize(Type type, MessagePath? path = null)
+        public CallResult<object> Deserialize(Type type, MessagePath? path = null)
         {
-            return _document.Deserialize(type, _serializerOptions);
+            if (!IsJson)
+                return new CallResult<object>(GetOriginalString());
+
+            try
+            {
+                var result = _document.Deserialize(type, _serializerOptions);
+                return new CallResult<object>(result!);
+            }
+            catch (Exception ex)
+            {
+                // TODO what exception/info can we catch
+                return new CallResult<object>(new DeserializeError(ex.Message, GetOriginalString()));
+            }
+        }
+
+        public CallResult<T> Deserialize<T>(MessagePath? path = null)
+        {
+            try
+            {
+                var result = _document.Deserialize<T>(_serializerOptions);
+                return new CallResult<T>(result!);
+            }
+            catch (Exception ex)
+            {
+                // TODO what exception/info can we catch
+                return new CallResult<T>(new DeserializeError(ex.Message, GetOriginalString()));
+            }
         }
 
         public NodeType? GetNodeType()
@@ -138,6 +176,17 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
             }
 
             return currentToken;
+        }
+
+        /// <inheritdoc />
+        public string GetOriginalString()
+        {
+            if (_stream is null)
+                throw new NullReferenceException("Stream not initialized");
+
+            _stream.Position = 0;
+            using var textReader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
+            return textReader.ReadToEnd();
         }
     }
 }
