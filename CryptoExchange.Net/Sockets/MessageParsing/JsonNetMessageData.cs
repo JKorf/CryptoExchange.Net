@@ -63,6 +63,9 @@ namespace CryptoExchange.Net.Sockets.MessageParsing
         /// <inheritdoc />
         public NodeType? GetNodeType()
         {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
             if (_token == null)
                 return null;
 
@@ -78,6 +81,9 @@ namespace CryptoExchange.Net.Sockets.MessageParsing
         /// <inheritdoc />
         public NodeType? GetNodeType(MessagePath path)
         {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
             var node = GetPathNode(path);
             if (node == null)
                 return null;
@@ -94,6 +100,9 @@ namespace CryptoExchange.Net.Sockets.MessageParsing
         /// <inheritdoc />
         public T? GetValue<T>(MessagePath path)
         {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
             var value = GetPathNode(path);
             if (value == null)
                 return default;
@@ -107,6 +116,9 @@ namespace CryptoExchange.Net.Sockets.MessageParsing
         /// <inheritdoc />
         public List<T?>? GetValues<T>(MessagePath path)
         {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
             var value = GetPathNode(path);
             if (value == null)
                 return default;
@@ -119,6 +131,9 @@ namespace CryptoExchange.Net.Sockets.MessageParsing
 
         private JToken? GetPathNode(MessagePath path)
         {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
             var currentToken = _token;
             foreach (var node in path)
             {
