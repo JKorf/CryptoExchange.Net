@@ -11,6 +11,9 @@ using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
+    /// <summary>
+    /// Converter for enum values. Enums entries should be noted with a MapAttribute to map the enum value to a string value
+    /// </summary>
     public class EnumConverter : JsonConverterFactory
     {
         private bool _warnOnMissingEntry = true;
@@ -31,11 +34,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             _warnOnMissingEntry = warnOnMissingEntry;
         }
 
+        /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
         {
             return typeToConvert.IsEnum || Nullable.GetUnderlyingType(typeToConvert)?.IsEnum == true;
         }
 
+        /// <inheritdoc />
         public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             JsonConverter converter = (JsonConverter)Activator.CreateInstance(
@@ -66,7 +71,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return mapping;
         }
 
-        private class EnumConverterInner<T> : JsonConverter<T> where T : Enum
+        private class EnumConverterInner<T> : JsonConverter<T>
         {
             private bool _warnOnMissingEntry = true;
             private bool _writeAsInt;

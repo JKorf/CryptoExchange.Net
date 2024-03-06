@@ -19,18 +19,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
                     PropertyNameCaseInsensitive = false
-    
-                    //DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    //Culture = CultureInfo.InvariantCulture,
-                    //Converters =
-                    //{
-                    //    new EnumConverter(),
-                    //    new DateTimeConverter(),
-                    //    new BoolConverter()
-                    //}
                 };
                 options.Converters.Add(new DateTimeConverter());
-                options.Converters.Add(new NullableDateTimeConverter());
                 options.Converters.Add(new EnumConverter());
                 options.Converters.Add(new BoolConverter());
 

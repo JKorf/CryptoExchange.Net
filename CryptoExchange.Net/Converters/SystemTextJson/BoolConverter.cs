@@ -1,94 +1,82 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
-    public class BoolConverter : JsonConverter<bool>
+    /// <summary>
+    /// Date time converter
+    /// </summary>
+    public class BoolConverter : JsonConverterFactory
     {
-        public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <inheritdoc />
+        public override bool CanConvert(Type typeToConvert)
         {
-            if (reader.TokenType == JsonTokenType.True)
-                return true;
+            return typeToConvert == typeof(bool) || typeToConvert == typeof(bool?);
+        }
 
-            if (reader.TokenType == JsonTokenType.False)
-                return false;
+        /// <inheritdoc />
+        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+        {
+            Type converterType = typeof(BoolConverterInner<>).MakeGenericType(typeToConvert);
+            return (JsonConverter)Activator.CreateInstance(converterType);
+        }
 
-            var value = reader.TokenType switch
+        private class BoolConverterInner<T> : JsonConverter<T>
+        {
+            public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => (T)((object?)ReadBool(ref reader, typeToConvert, options) ?? default(T))!;
+
+            public bool? ReadBool(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                JsonTokenType.String => reader.GetString(),
-                JsonTokenType.Number => reader.GetInt16().ToString(),
-                _ => null
-            };
-
-            value = value?.ToLowerInvariant().Trim();
-            if (string.IsNullOrEmpty(value))
-            {
-                Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null bool value, but property type is not a nullable bool");
-                return false;
-            }
-
-            switch (value)
-            {
-                case "true":
-                case "yes":
-                case "y":
-                case "1":
-                case "on":
+                if (reader.TokenType == JsonTokenType.True)
                     return true;
-                case "false":
-                case "no":
-                case "n":
-                case "0":
-                case "off":
-                case "-1":
+
+                if (reader.TokenType == JsonTokenType.False)
                     return false;
+
+                var value = reader.TokenType switch
+                {
+                    JsonTokenType.String => reader.GetString(),
+                    JsonTokenType.Number => reader.GetInt16().ToString(),
+                    _ => null
+                };
+
+                value = value?.ToLowerInvariant().Trim();
+                if (string.IsNullOrEmpty(value))
+                {
+                    if (typeToConvert == typeof(bool))
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null bool value, but property type is not a nullable bool");
+                    return default;
+                }
+
+                switch (value)
+                {
+                    case "true":
+                    case "yes":
+                    case "y":
+                    case "1":
+                    case "on":
+                        return true;
+                    case "false":
+                    case "no":
+                    case "n":
+                    case "0":
+                    case "off":
+                    case "-1":
+                        return false;
+                }
+
+                throw new SerializationException($"Can't convert bool value {value}");
             }
 
-            throw new SerializationException($"Can't convert bool value {value}");
-        }
-
-        public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
-        {
-            writer.WriteNullValue();
-        }
-    }
-
-    public class STJNullableBoolConverter : JsonConverter<bool?>
-    {
-        public override bool? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            var value = reader.GetString()?.ToLowerInvariant().Trim();
-            if (string.IsNullOrEmpty(value))
-                return null;
-
-            switch (value)
+            public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
-                case "true":
-                case "yes":
-                case "y":
-                case "1":
-                case "on":
-                    return true;
-                case "false":
-                case "no":
-                case "n":
-                case "0":
-                case "off":
-                case "-1":
-                    return false;
+                writer.WriteNullValue();
             }
-
-            throw new SerializationException($"Can't convert bool value {value}");
         }
 
-        public override void Write(Utf8JsonWriter writer, bool? value, JsonSerializerOptions options)
-        {
-            writer.WriteNullValue();
-        }
     }
 }

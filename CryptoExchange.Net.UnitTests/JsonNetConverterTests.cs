@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Converters.JsonNet;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.UnitTests
 {
     [TestFixture()]
-    public class ConverterTests
+    public class JsonNetConverterTests
     {
         [TestCase("2021-05-12")]
         [TestCase("20210512")]

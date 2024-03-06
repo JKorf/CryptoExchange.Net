@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
             }
 
             var length = _stream.CanSeek ? _stream.Length : 4096;
-            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)length, true);
+            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
             using var jsonTextReader = new JsonTextReader(reader);
 
             try

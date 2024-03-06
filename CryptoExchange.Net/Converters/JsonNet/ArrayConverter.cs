@@ -192,25 +192,4 @@ namespace CryptoExchange.Net.Converters.JsonNet
         private static T? GetCustomAttribute<T>(Type type) where T : Attribute =>
             (T?)_attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
     }
-
-    /// <summary>
-    /// Mark property as an index in the array
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ArrayPropertyAttribute: Attribute
-    {
-        /// <summary>
-        /// The index in the array
-        /// </summary>
-        public int Index { get; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="index"></param>
-        public ArrayPropertyAttribute(int index)
-        {
-            Index = index;
-        }
-    }
 }

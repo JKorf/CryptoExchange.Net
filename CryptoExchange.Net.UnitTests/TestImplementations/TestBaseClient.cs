@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.UnitTests
                 return new CallResult<T>(new ServerError(data));
             
             var deserializeResult = accessor.Deserialize<T>();
-            return new CallResult<T>(new ServerError(data));
+            return deserializeResult;
         }
 
         public override TimeSpan? GetTimeOffset() => null;
