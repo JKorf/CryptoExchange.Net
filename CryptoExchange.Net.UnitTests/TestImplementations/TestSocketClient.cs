@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;

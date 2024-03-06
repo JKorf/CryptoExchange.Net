@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.UnitTests.TestImplementations;

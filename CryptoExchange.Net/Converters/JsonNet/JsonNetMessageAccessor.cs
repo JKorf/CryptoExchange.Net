@@ -1,6 +1,6 @@
-﻿using CryptoExchange.Net.Converters.JsonNet;
+﻿using CryptoExchange.Net.Converters.MessageParsing;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing.JsonNet
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Json.Net message accessor

@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.Sockets.MessageParsing
+﻿namespace CryptoExchange.Net.Converters.MessageParsing
 {
     /// <summary>
     /// Node accessor

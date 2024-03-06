@@ -2,7 +2,7 @@ using System.Linq;
 using CryptoExchange.Net.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// Base rest client

@@ -14,7 +14,7 @@ using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+using CryptoExchange.Net.Clients;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {

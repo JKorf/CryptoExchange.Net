@@ -8,15 +8,14 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Requests;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
-using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
 using Microsoft.Extensions.Logging;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// Base rest API client for interacting with a REST API
@@ -60,9 +59,9 @@ namespace CryptoExchange.Net
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions) 
-            : base(logger, 
-                  apiOptions.OutputOriginalData ?? options.OutputOriginalData, 
+        public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions)
+            : base(logger,
+                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   apiOptions.ApiCredentials ?? options.ApiCredentials,
                   baseAddress,
                   options,
@@ -86,7 +85,7 @@ namespace CryptoExchange.Net
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IMessageSerializer CreateSerializer() => new JsonNetSerializer();
+        protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
 
         /// <summary>
         /// Execute a request to the uri and returns if it was successful
@@ -129,7 +128,7 @@ namespace CryptoExchange.Net
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -181,7 +180,7 @@ namespace CryptoExchange.Net
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -322,14 +321,12 @@ namespace CryptoExchange.Net
 
                 // Json response received
                 if (typeof(T) == typeof(object))
-                {
                     // Success status code and expected empty response, assume it's correct
                     return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
-                }
 
                 var deserializeResult = accessor.Deserialize<T>();
                 return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
-               
+
 
                 //if (response.IsSuccessStatusCode)
                 //{
@@ -425,10 +422,8 @@ namespace CryptoExchange.Net
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
-                {
                     // Cancellation token canceled by caller
                     return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new CancellationRequestedError());
-                }
                 else
                 {
                     // Request timed out
@@ -650,7 +645,7 @@ namespace CryptoExchange.Net
 
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
-                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval))
+                if (!timeSyncParams.SyncTime || DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval)
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
                     return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
@@ -677,7 +672,7 @@ namespace CryptoExchange.Net
                 }
 
                 // Calculate time offset between local and server
-                var offset = result.Data - (localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2));
+                var offset = result.Data - localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2);
                 timeSyncParams.UpdateTimeOffset(offset);
                 timeSyncParams.TimeSyncState.Semaphore.Release();
             }

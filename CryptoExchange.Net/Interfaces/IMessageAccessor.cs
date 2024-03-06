@@ -1,9 +1,10 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Converters.MessageParsing;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
+namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Message accessor

@@ -11,7 +11,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// Base API for all API clients

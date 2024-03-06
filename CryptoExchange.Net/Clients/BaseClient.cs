@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// The base for all clients, websocket client and rest client
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net
         /// The log object
         /// </summary>
         protected internal ILogger _logger;
-        
+
         /// <summary>
         /// Provided client options
         /// </summary>
@@ -74,7 +74,7 @@ namespace CryptoExchange.Net
         /// Register an API client
         /// </summary>
         /// <param name="apiClient">The client</param>
-        protected T AddApiClient<T>(T apiClient) where T:  BaseApiClient
+        protected T AddApiClient<T>(T apiClient) where T : BaseApiClient
         {
             if (ClientOptions == null)
                 throw new InvalidOperationException("Client should have called Initialize before adding API clients");

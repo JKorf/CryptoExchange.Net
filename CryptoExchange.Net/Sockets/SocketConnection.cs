@@ -10,9 +10,8 @@ using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Text;
 using System.Diagnostics;
-using CryptoExchange.Net.Sockets.MessageParsing;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
-using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
+using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Converters.JsonNet;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -206,7 +205,7 @@ namespace CryptoExchange.Net.Sockets
             _listenersLock = new object();
             _listeners = new List<IMessageProcessor>();
 
-            _serializer = new JsonNetSerializer();
+            _serializer = new JsonNetMessageSerializer();
             _accessor = new JsonNetMessageAccessor();
         }
 
@@ -454,21 +453,14 @@ namespace CryptoExchange.Net.Sockets
 
                 if (deserialized == null)
                 {
-                    try
+                    var desResult = processor.Deserialize(_accessor, messageType);
+                    if (!desResult)
                     {
-                        var desResult = processor.Deserialize(_accessor, messageType);
-                        if (!desResult)
-                        {
-                            // TODO
-                        }
-                        deserialized = desResult.Data;
-                        desCache?.Add(messageType, deserialized);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning("[Sckt {SocketId}] failed to deserialize message to type {Type}: {Exception}", SocketId, messageType.Name, ex.ToLogString());
+                        _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, desResult.Error);
                         continue;
                     }
+                    deserialized = desResult.Data;
+                    desCache?.Add(messageType, deserialized);
                 }
 
                 // 7. Hand of the message to the subscription

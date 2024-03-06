@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Security;
-using System.Text;
-using CryptoExchange.Net.Sockets.MessageParsing;
-using CryptoExchange.Net.Sockets.MessageParsing.JsonNet;
-using Newtonsoft.Json.Linq;
+using CryptoExchange.Net.Converters.JsonNet;
+using CryptoExchange.Net.Converters.MessageParsing;
 
 namespace CryptoExchange.Net.Authentication
 {

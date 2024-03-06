@@ -1,13 +1,13 @@
-﻿using CryptoExchange.Net.Converters.SystemTextJson;
+﻿using CryptoExchange.Net.Converters.MessageParsing;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
     /// System.Text.Json message accessor
