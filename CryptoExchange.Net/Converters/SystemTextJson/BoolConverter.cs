@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// Date time converter
+    /// Bool converter
     /// </summary>
     public class BoolConverter : JsonConverterFactory
     {
