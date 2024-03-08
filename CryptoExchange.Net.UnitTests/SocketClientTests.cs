@@ -185,7 +185,7 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase()]
-        public async Task Error_response_should_not_confirm_subscription()
+        public async Task ErrorResponse_ShouldNot_ConfirmSubscription()
         {
             // arrange
             var channel = "trade_btcusd";
@@ -208,7 +208,7 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase()]
-        public async Task Success_response_should_confirm_subscription()
+        public async Task SuccessResponse_Should_ConfirmSubscription()
         {
             // arrange
             var channel = "trade_btcusd";
