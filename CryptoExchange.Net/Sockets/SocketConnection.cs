@@ -456,7 +456,7 @@ namespace CryptoExchange.Net.Sockets
                     var desResult = processor.Deserialize(_accessor, messageType);
                     if (!desResult)
                     {
-                        _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, desResult.Error);
+                        _logger.LogWarning("[Sckt {SocketId}] deserialization failed: {Error}", SocketId, desResult.Error);
                         continue;
                     }
                     deserialized = desResult.Data;
