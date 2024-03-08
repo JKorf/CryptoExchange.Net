@@ -9,9 +9,8 @@ using CryptoExchange.Net.UnitTests.TestImplementations;
 using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -106,13 +105,14 @@ namespace CryptoExchange.Net.UnitTests
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
             }));
+            var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
 
             // act
-            await socket.InvokeMessage("{\"property\": 123}");
+            await socket.InvokeMessage(msgToSend);
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue(original == (enabled ? "{\"property\": 123}" : null));
+            Assert.IsTrue(original == (enabled ? msgToSend : null));
         }
 
         [TestCase()]
@@ -182,6 +182,52 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.IsFalse(connectResult.Success);
+        }
+
+        [TestCase()]
+        public async Task ErrorResponse_ShouldNot_ConfirmSubscription()
+        {
+            // arrange
+            var channel = "trade_btcusd";
+            var client = new TestSocketClient(opt =>
+            {
+                opt.OutputOriginalData = true;
+                opt.SocketSubscriptionsCombineTarget = 1;
+            });
+            var socket = client.CreateSocket();
+            socket.CanConnect = true;
+            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test"));
+
+            // act
+            var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
+            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
+            await sub;
+
+            // assert
+            Assert.IsFalse(client.SubClient.TestSubscription.Confirmed);
+        }
+
+        [TestCase()]
+        public async Task SuccessResponse_Should_ConfirmSubscription()
+        {
+            // arrange
+            var channel = "trade_btcusd";
+            var client = new TestSocketClient(opt =>
+            {
+                opt.OutputOriginalData = true;
+                opt.SocketSubscriptionsCombineTarget = 1;
+            });
+            var socket = client.CreateSocket();
+            socket.CanConnect = true;
+            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test"));
+
+            // act
+            var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
+            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
+            await sub;
+
+            // assert
+            Assert.IsTrue(client.SubClient.TestSubscription.Confirmed);
         }
     }
 }

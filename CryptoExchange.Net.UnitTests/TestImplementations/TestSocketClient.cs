@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
@@ -7,7 +8,9 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.MessageParsing;
 using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -71,8 +74,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestSubSocketClient : SocketApiClient
     {
+        private MessagePath _channelPath = MessagePath.Get().Property("channel");
+        private MessagePath _topicPath = MessagePath.Get().Property("topic");
 
-        public TestSubSocketClient(TestSocketOptions options, SocketApiOptions apiOptions): base(new TraceLogger(), options.Environment.TestAddress, options, apiOptions)
+        public Subscription TestSubscription { get; private set; } = null;
+
+        public TestSubSocketClient(TestSocketOptions options, SocketApiOptions apiOptions) : base(new TraceLogger(), options.Environment.TestAddress, options, apiOptions)
         {
 
         }
@@ -90,6 +97,23 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return ConnectSocketAsync(sub).Result;
         }
 
-        public override string GetListenerIdentifier(IMessageAccessor messageAccessor) => "topic";
+        public override string GetListenerIdentifier(IMessageAccessor message)
+        {
+            if (!message.IsJson)
+            {
+                return "topic";
+            }
+
+            var id = message.GetValue<string>(_channelPath);
+            id ??= message.GetValue<string>(_topicPath);
+
+            return id;
+        }
+
+        public Task<CallResult<UpdateSubscription>> SubscribeToSomethingAsync(string channel, Action<DataEvent<string>> onUpdate, CancellationToken ct)
+        {
+            TestSubscription = new TestSubscriptionWithResponseCheck<string>(channel, onUpdate);
+            return SubscribeAsync(TestSubscription, ct);
+        }        
     }
 }
