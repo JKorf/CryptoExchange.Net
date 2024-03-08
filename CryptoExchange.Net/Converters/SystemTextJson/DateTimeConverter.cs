@@ -68,7 +68,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         return default;
                     }
 
-                    if (stringValue.Length == 8)
+                    if (stringValue!.Length == 8)
                     {
                         // Parse 20211103 format
                         if (!int.TryParse(stringValue.Substring(0, 4), out var year)
@@ -143,32 +143,32 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         writer.WriteNumberValue((long)Math.Round((dtValue - new DateTime(1970, 1, 1)).TotalMilliseconds));
                 }
             }
-
-            /// <summary>
-            /// Convert a seconds since epoch (01-01-1970) value to DateTime
-            /// </summary>
-            /// <param name="seconds"></param>
-            /// <returns></returns>
-            public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * _ticksPerSecond));
-            /// <summary>
-            /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
-            /// </summary>
-            /// <param name="milliseconds"></param>
-            /// <returns></returns>
-            public static DateTime ConvertFromMilliseconds(double milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
-            /// <summary>
-            /// Convert a microseconds since epoch (01-01-1970) value to DateTime
-            /// </summary>
-            /// <param name="microseconds"></param>
-            /// <returns></returns>
-            public static DateTime ConvertFromMicroseconds(double microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * _ticksPerMicrosecond));
-            /// <summary>
-            /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
-            /// </summary>
-            /// <param name="nanoseconds"></param>
-            /// <returns></returns>
-            public static DateTime ConvertFromNanoseconds(double nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
         }
+
+        /// <summary>
+        /// Convert a seconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <returns></returns>
+        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * _ticksPerSecond));
+        /// <summary>
+        /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <returns></returns>
+        public static DateTime ConvertFromMilliseconds(double milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
+        /// <summary>
+        /// Convert a microseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="microseconds"></param>
+        /// <returns></returns>
+        public static DateTime ConvertFromMicroseconds(double microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * _ticksPerMicrosecond));
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        /// <param name="nanoseconds"></param>
+        /// <returns></returns>
+        public static DateTime ConvertFromNanoseconds(double nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
 
         /// <summary>
         /// Convert a DateTime value to seconds since epoch (01-01-1970) value

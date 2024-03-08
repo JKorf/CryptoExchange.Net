@@ -7,6 +7,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     public class SystemTextJsonMessageSerializer : IMessageSerializer
     {
         /// <inheritdoc />
-        public string Serialize(object message) => JsonSerializer.Serialize(message);
+        public string Serialize(object message) => JsonSerializer.Serialize(message, SerializerOptions.WithConverters);
     }
 }

@@ -44,6 +44,17 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         internal IEnumerable<IRateLimiter> RateLimiters { get; }
 
+        /// <summary>
+        /// Where to put the parameters for requests with different Http methods
+        /// </summary>
+        public Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
+        {
+            { HttpMethod.Get, HttpMethodParameterPosition.InUri },
+            { HttpMethod.Post, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
+        };
+
         /// <inheritdoc />
         public new RestExchangeOptions ClientOptions => (RestExchangeOptions)base.ClientOptions;
 
@@ -310,8 +321,7 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                 }
 
-                var needBuffering = OutputOriginalData;
-                var valid = accessor.Read(responseStream, needBuffering);
+                var valid = accessor.Read(responseStream, outputOriginalData);
                 if (!valid)
                 {
                     // Invalid json
@@ -326,92 +336,6 @@ namespace CryptoExchange.Net.Clients
 
                 var deserializeResult = accessor.Deserialize<T>();
                 return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
-
-
-                //if (response.IsSuccessStatusCode)
-                //{
-                //    // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
-                //    // response before being able to deserialize it into the resulting type since we don't know if its an error response or data
-                //    if (manualParseError)
-                //    {
-                //        using var reader = new StreamReader(responseStream);
-                //        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                //        responseLength ??= data.Length;
-                //        responseStream.Close();
-                //        response.Close();
-
-                //        if (!expectedEmptyResponse)
-                //        {
-                //            // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
-                //            accessor.Load(data);
-                //            if (!accessor.IsJson)
-                //                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                //            // Let the library implementation see if it is an error response, and if so parse the error
-                //            var error = await TryParseErrorAsync(accessor).ConfigureAwait(false);
-                //            if (error != null)
-                //                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-
-                //            // Not an error, so continue deserializing
-                //            var deserializeResult = Deserialize<T>(parseResult.Data, accessor, request.RequestId);
-                //            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
-                //        }
-                //        else
-                //        {
-                //            if (!string.IsNullOrEmpty(data))
-                //            {
-                //                var parseResult = ValidateJson(data);
-                //                if (!parseResult.Success)
-                //                    // Not empty, and not json
-                //                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                //                var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                //                if (error != null)
-                //                    // Error response
-                //                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-                //            }
-
-                //            // Empty success response; okay
-                //            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        if (expectedEmptyResponse)
-                //        {
-                //            // We expected an empty response and the request is successful and don't manually parse errors, so assume it's correct
-                //            responseStream.Close();
-                //            response.Close();
-
-                //            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
-                //        }
-
-                //        // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
-                //        var desResult = await DeserializeAsync<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
-                //        responseStream.Close();
-                //        response.Close();
-
-                //        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
-                //    }
-                //}
-                //else
-                //{
-                //    // Http status code indicates error
-                //    using var reader = new StreamReader(responseStream);
-                //    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                //    responseStream.Close();
-                //    response.Close();
-
-                //    Error error;
-                //    if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
-                //        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, data);
-                //    else
-                //        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, data);
-
-                //    if (error.Code == null || error.Code == 0)
-                //        error.Code = (int)response.StatusCode;
-                //    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
-                //}
             }
             catch (HttpRequestException requestException)
             {
@@ -442,9 +366,9 @@ namespace CryptoExchange.Net.Clients
         /// When setting manualParseError to true this method will be called for each response to be able to check if the response is an error or not.
         /// If the response is an error this method should return the parsed error, else it should return null
         /// </summary>
-        /// <param name="data">Received data</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Task<ServerError?> TryParseErrorAsync(IMessageAccessor data)
+        protected virtual Task<ServerError?> TryParseErrorAsync(IMessageAccessor accessor)
         {
             return Task.FromResult<ServerError?>(null);
         }
@@ -597,7 +521,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
-        /// <param name="accessor">The response data</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
         protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {
@@ -610,7 +534,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
-        /// <param name="accessor">The message accessor</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
         protected virtual Error ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {

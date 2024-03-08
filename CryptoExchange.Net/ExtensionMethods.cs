@@ -27,18 +27,6 @@ namespace CryptoExchange.Net
             parameters.Add(key, value);
         }
 
-        ///// <summary>
-        ///// Add a parameter
-        ///// </summary>
-        ///// <param name="parameters"></param>
-        ///// <param name="key"></param>
-        ///// <param name="value"></param>
-        ///// <param name="converter"></param>
-        //public static void AddParameter(this Dictionary<string, object> parameters, string key, string value, JsonConverter converter)
-        //{
-        //    parameters.Add(key, JsonConvert.SerializeObject(value, converter));
-        //}
-
         /// <summary>
         /// Add a parameter
         /// </summary>
@@ -49,18 +37,6 @@ namespace CryptoExchange.Net
         {
             parameters.Add(key, value);
         }
-
-        ///// <summary>
-        ///// Add a parameter
-        ///// </summary>
-        ///// <param name="parameters"></param>
-        ///// <param name="key"></param>
-        ///// <param name="value"></param>
-        ///// <param name="converter"></param>
-        //public static void AddParameter(this Dictionary<string, object> parameters, string key, object value, JsonConverter converter)
-        //{
-        //    parameters.Add(key, JsonConvert.SerializeObject(value, converter));
-        //}
 
         /// <summary>
         /// Add an optional parameter. Not added if value is null
@@ -73,19 +49,6 @@ namespace CryptoExchange.Net
             if (value != null)
                 parameters.Add(key, value);
         }
-
-        ///// <summary>
-        ///// Add an optional parameter. Not added if value is null
-        ///// </summary>
-        ///// <param name="parameters"></param>
-        ///// <param name="key"></param>
-        ///// <param name="value"></param>
-        ///// <param name="converter"></param>
-        //public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value, JsonConverter converter)
-        //{
-        //    if (value != null)
-        //        parameters.Add(key, JsonConvert.SerializeObject(value, converter));
-        //}
 
         /// <summary>
         /// Create a query string of the specified parameters

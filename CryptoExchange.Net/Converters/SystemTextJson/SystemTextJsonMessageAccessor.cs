@@ -69,10 +69,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var result = _document.Deserialize(type, _serializerOptions);
                 return new CallResult<object>(result!);
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                // TODO what exception/info can we catch
-                return new CallResult<object>(new DeserializeError(ex.Message, GetOriginalString()));
+                var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
+                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
             }
         }
 
@@ -87,10 +87,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var result = _document.Deserialize<T>(_serializerOptions);
                 return new CallResult<T>(result!);
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                // TODO what exception/info can we catch
-                return new CallResult<T>(new DeserializeError(ex.Message, GetOriginalString()));
+                var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
+                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
             }
         }
 
@@ -173,7 +173,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     // Int value
                     var val = (int)node.Value!;
-                    if (currentToken!.Value.ValueKind != JsonValueKind.Array /*|| ((Json)currentToken).Count <= val*/)
+                    if (currentToken!.Value.ValueKind != JsonValueKind.Array || currentToken.Value.GetArrayLength() <= val)
                         return null;
 
                     currentToken = currentToken.Value[val];
@@ -194,9 +194,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (currentToken!.Value.ValueKind != JsonValueKind.Object)
                         return null;
 
-                    // TODO
                     throw new NotImplementedException();
-                    //currentToken = (currentToken. as JProperty)?.Name;
                 }
 
                 if (currentToken == null)

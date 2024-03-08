@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
@@ -67,16 +68,6 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
 
-        /// <summary>
-        /// The message serializer for serializing outgoing messages
-        /// </summary>
-        protected IMessageSerializer? _serializer;
-
-        /// <summary>
-        /// The message accessor for inspecting and deserializing incoming messages
-        /// </summary>
-        protected IMessageAccessor? _accessor;
-
         /// <inheritdoc />
         public double IncomingKbps
         {
@@ -132,6 +123,18 @@ namespace CryptoExchange.Net.Clients
                 rateLimiters.Add(rateLimiter);
             RateLimiters = rateLimiters;
         }
+
+        /// <summary>
+        /// Create a message accessor instance
+        /// </summary>
+        /// <returns></returns>
+        protected internal virtual IMessageAccessor CreateAccessor() => new JsonNetMessageAccessor();
+
+        /// <summary>
+        /// Create a serializer instance
+        /// </summary>
+        /// <returns></returns>
+        protected internal virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
 
         /// <summary>
         /// Add a query to periodically send on each connection
@@ -475,10 +478,6 @@ namespace CryptoExchange.Net.Clients
             // Create new socket
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
-            if (_serializer != null)
-                socketConnection.SetSerializer(_serializer);
-            if (_accessor != null)
-                socketConnection.SetAccessor(_accessor);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
 
             foreach (var ptg in PeriodicTaskRegistrations)

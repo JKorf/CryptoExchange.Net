@@ -8,7 +8,6 @@ using CryptoExchange.Net.Objects;
 using System.Net.WebSockets;
 using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
-using System.Text;
 using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.JsonNet;
@@ -205,8 +204,8 @@ namespace CryptoExchange.Net.Sockets
             _listenersLock = new object();
             _listeners = new List<IMessageProcessor>();
 
-            _serializer = new JsonNetMessageSerializer();
-            _accessor = new JsonNetMessageAccessor();
+            _serializer = apiClient.CreateSerializer();
+            _accessor = apiClient.CreateAccessor();
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security;
-using CryptoExchange.Net.Converters.JsonNet;
+using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Converters.MessageParsing;
 
 namespace CryptoExchange.Net.Authentication
@@ -94,7 +94,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
         public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
         {
-            var accessor = new JsonNetMessageAccessor();
+            var accessor = new SystemTextJsonMessageAccessor();
             if (!accessor.Read(inputStream, false))
                 throw new ArgumentException("Input stream not valid json data");
 

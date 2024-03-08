@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -20,6 +21,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var value = reader.GetString();
                 if (string.IsNullOrEmpty(value))
                     return null;
+
+                return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
             }
 
             return reader.GetDecimal();
@@ -28,7 +31,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, decimal? value, JsonSerializerOptions options)
         {
-            writer.WriteNullValue();
+            if (value == null)
+                writer.WriteNullValue();
+            else
+                writer.WriteNumberValue(value.Value);
         }
     }
 }

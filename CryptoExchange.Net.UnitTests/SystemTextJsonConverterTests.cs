@@ -46,13 +46,13 @@ namespace CryptoExchange.Net.UnitTests
             Assert.AreEqual(output.Time, expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
-        //[TestCase(1620777600)]
-        //[TestCase(1620777600.000)]
-        //public void TestDateTimeConverterFromSeconds(double input)
-        //{
-        //    var output = DateTimeConverter.ConvertFromSeconds(input);
-        //    Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-        //}
+        [TestCase(1620777600)]
+        [TestCase(1620777600.000)]
+        public void TestDateTimeConverterFromSeconds(double input)
+        {
+            var output = DateTimeConverter.ConvertFromSeconds(input);
+            Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+        }
 
         [Test]
         public void TestDateTimeConverterToSeconds()
@@ -61,13 +61,13 @@ namespace CryptoExchange.Net.UnitTests
             Assert.AreEqual(output, 1620777600);
         }
 
-        //[TestCase(1620777600000)]
-        //[TestCase(1620777600000.000)]
-        //public void TestDateTimeConverterFromMilliseconds(double input)
-        //{
-        //    var output = DateTimeConverter.ConvertFromMilliseconds(input);
-        //    Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-        //}
+        [TestCase(1620777600000)]
+        [TestCase(1620777600000.000)]
+        public void TestDateTimeConverterFromMilliseconds(double input)
+        {
+            var output = DateTimeConverter.ConvertFromMilliseconds(input);
+            Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+        }
 
         [Test]
         public void TestDateTimeConverterToMilliseconds()
@@ -76,12 +76,12 @@ namespace CryptoExchange.Net.UnitTests
             Assert.AreEqual(output, 1620777600000);
         }
 
-        //[TestCase(1620777600000000)]
-        //public void TestDateTimeConverterFromMicroseconds(long input)
-        //{
-        //    var output = DateTimeConverter.ConvertFromMicroseconds(input);
-        //    Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-        //}
+        [TestCase(1620777600000000)]
+        public void TestDateTimeConverterFromMicroseconds(long input)
+        {
+            var output = DateTimeConverter.ConvertFromMicroseconds(input);
+            Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+        }
 
         [Test]
         public void TestDateTimeConverterToMicroseconds()
@@ -90,12 +90,12 @@ namespace CryptoExchange.Net.UnitTests
             Assert.AreEqual(output, 1620777600000000);
         }
 
-        //[TestCase(1620777600000000000)]
-        //public void TestDateTimeConverterFromNanoseconds(long input)
-        //{
-        //    var output = DateTimeConverter.ConvertFromNanoseconds(input);
-        //    Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-        //}
+        [TestCase(1620777600000000000)]
+        public void TestDateTimeConverterFromNanoseconds(long input)
+        {
+            var output = DateTimeConverter.ConvertFromNanoseconds(input);
+            Assert.AreEqual(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+        }
 
         [Test]
         public void TestDateTimeConverterToNanoseconds()
