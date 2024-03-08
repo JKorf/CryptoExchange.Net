@@ -209,18 +209,6 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Override the default serializer
-        /// </summary>
-        /// <param name="serializer"></param>
-        internal void SetSerializer(IMessageSerializer serializer) => _serializer = serializer;
-
-        /// <summary>
-        /// Overide the default accessor
-        /// </summary>
-        /// <param name="accessor"></param>
-        internal void SetAccessor(IMessageAccessor accessor) => _accessor = accessor;
-
-        /// <summary>
         /// Handler for a socket opening
         /// </summary>
         protected virtual Task HandleOpenAsync()
