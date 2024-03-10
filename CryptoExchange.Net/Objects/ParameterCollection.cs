@@ -160,6 +160,17 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void AddEnumAsInt<T>(string key, T value)
+        {
+            var stringVal = EnumConverter.GetString(value);
+            Add(key, EnumConverter.GetString(int.Parse(stringVal))!);
+        }
+
+        /// <summary>
         /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />. Not added if value is null
         /// </summary>
         /// <param name="key"></param>
@@ -168,6 +179,20 @@ namespace CryptoExchange.Net.Objects
         {
             if (value != null)
                 Add(key, EnumConverter.GetString(value));
+        }
+
+        /// <summary>
+        /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />. Not added if value is null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void AddOptionalEnumAsInt<T>(string key, T? value)
+        {
+            if (value != null)
+            {
+                var stringVal = EnumConverter.GetString(value);
+                Add(key, int.Parse(stringVal));
+            }
         }
     }
 }

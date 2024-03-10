@@ -321,6 +321,10 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                 }
 
+                if (typeof(T) == typeof(object))
+                    // Success status code and expected empty response, assume it's correct
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+
                 var valid = accessor.Read(responseStream, outputOriginalData);
                 if (!valid)
                 {
@@ -330,9 +334,10 @@ namespace CryptoExchange.Net.Clients
                 }
 
                 // Json response received
-                if (typeof(T) == typeof(object))
-                    // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+                var parsedError = TryParseError(accessor);
+                if (parsedError != null)
+                    // Success status code, but TryParseError determined it was an error response
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parsedError);
 
                 var deserializeResult = accessor.Deserialize<T>();
                 return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
@@ -346,8 +351,10 @@ namespace CryptoExchange.Net.Clients
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
+                {
                     // Cancellation token canceled by caller
                     return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new CancellationRequestedError());
+                }
                 else
                 {
                     // Request timed out
@@ -368,10 +375,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="accessor">Data accessor</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Task<ServerError?> TryParseErrorAsync(IMessageAccessor accessor)
-        {
-            return Task.FromResult<ServerError?>(null);
-        }
+        protected virtual ServerError? TryParseError(IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
