@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
         }
 
@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
         }
 

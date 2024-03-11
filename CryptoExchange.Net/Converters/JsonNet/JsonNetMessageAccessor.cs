@@ -79,18 +79,18 @@ namespace CryptoExchange.Net.Converters.JsonNet
             catch (JsonReaderException jre)
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
-                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}";
-                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToLogString();
                 var info = $"Deserialize Unknown Exception: {exceptionInfo}";
-                return new CallResult<object>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
         }
 
@@ -109,18 +109,18 @@ namespace CryptoExchange.Net.Converters.JsonNet
             catch (JsonReaderException jre)
             {
                 var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}";
-                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
             catch (JsonSerializationException jse)
             {
                 var info = $"Deserialize JsonSerializationException: {jse.Message}";
-                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
             catch (Exception ex)
             {
                 var exceptionInfo = ex.ToLogString();
                 var info = $"Deserialize Unknown Exception: {exceptionInfo}";
-                return new CallResult<T>(new DeserializeError(info, GetOriginalString()));
+                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
         }
 
