@@ -124,11 +124,11 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
+        public CallResult Handle(SocketConnection connection, DataEvent<object> message)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return await DoHandleMessageAsync(connection, message).ConfigureAwait(false);
+            return DoHandleMessage(connection, message);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message);
+        public abstract CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message);
 
         /// <summary>
         /// Invoke the exception event

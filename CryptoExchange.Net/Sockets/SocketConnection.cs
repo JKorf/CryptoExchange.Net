@@ -366,7 +366,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="stream"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual async Task HandleStreamMessage(WebSocketMessageType type, Stream stream)
+        protected virtual void HandleStreamMessage(WebSocketMessageType type, Stream stream)
         {
             var sw = Stopwatch.StartNew();
             var receiveTime = DateTime.UtcNow;
@@ -459,7 +459,7 @@ namespace CryptoExchange.Net.Sockets
                 try
                 {
                     var innerSw = Stopwatch.StartNew();
-                    await processor.HandleAsync(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null)).ConfigureAwait(false);
+                    processor.Handle(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null));
                     totalUserTime += (int)innerSw.ElapsedMilliseconds;
                 }
                 catch (Exception ex)

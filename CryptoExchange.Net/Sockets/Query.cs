@@ -135,7 +135,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message);
+        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message);
 
     }
 
@@ -164,13 +164,14 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
+        public override CallResult Handle(SocketConnection connection, DataEvent<object> message)
         {
             Completed = true;
             Response = message.Data;
-            Result = await HandleMessageAsync(connection, message.As((TResponse)message.Data)).ConfigureAwait(false);
+            Result = HandleMessage(connection, message.As((TResponse)message.Data));
             _event.Set();
-            await (ContinueAwaiter?.WaitAsync() ?? Task.CompletedTask).ConfigureAwait(false);
+            // TODO
+            //await (ContinueAwaiter?.WaitAsync() ?? Task.CompletedTask).ConfigureAwait(false);
             return Result;
         }
 
@@ -180,7 +181,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<TResponse> message) => Task.FromResult(new CallResult<TResponse>(message.Data, message.OriginalData, null));
+        public virtual CallResult<TResponse> HandleMessage(SocketConnection connection, DataEvent<TResponse> message) => new CallResult<TResponse>(message.Data, message.OriginalData, null);
 
         /// <inheritdoc />
         public override void Timeout()
