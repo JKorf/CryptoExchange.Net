@@ -35,8 +35,8 @@ namespace CryptoExchange.Net.Sockets
         public override Type GetMessageType(IMessageAccessor message) => typeof(T);
 
         /// <inheritdoc />
-        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message)
-            => HandleMessageAsync(connection, message.As((T)message.Data));
+        public override CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message)
+            => HandleMessage(connection, message.As((T)message.Data));
 
         /// <summary>
         /// ctor
@@ -53,6 +53,6 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleMessageAsync(SocketConnection connection, DataEvent<T> message);
+        public abstract CallResult HandleMessage(SocketConnection connection, DataEvent<T> message);
     }
 }

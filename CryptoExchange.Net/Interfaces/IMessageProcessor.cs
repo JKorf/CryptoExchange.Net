@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message);
+        CallResult Handle(SocketConnection connection, DataEvent<object> message);
         /// <summary>
         /// Get the type the message should be deserialized to
         /// </summary>

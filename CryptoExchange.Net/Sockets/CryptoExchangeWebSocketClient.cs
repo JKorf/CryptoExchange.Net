@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.Sockets
         public event Func<Task>? OnClose;
 
         /// <inheritdoc />
-        public event Func<WebSocketMessageType, Stream, Task>? OnStreamMessage;
+        public event Action<WebSocketMessageType, Stream>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Func<int, Task>? OnRequestSent;
@@ -521,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in single message");
-                                await ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count));
                             }
                             else
                             {
@@ -555,7 +555,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Reassemble complete message from memory stream
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {memoryStream!.Length} bytes");
-                            await ProcessData(receiveResult.MessageType, memoryStream).ConfigureAwait(false);
+                            ProcessData(receiveResult.MessageType, memoryStream);
                             memoryStream.Dispose();
                         }
                         else
@@ -586,13 +586,11 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="type"></param>
         /// <param name="stream"></param>
         /// <returns></returns>
-        protected async Task ProcessData(WebSocketMessageType type, Stream stream)
+        protected void ProcessData(WebSocketMessageType type, Stream stream)
         {
             LastActionTime = DateTime.UtcNow;
             stream.Position = 0;
-
-            if (OnStreamMessage != null)
-                await OnStreamMessage.Invoke(type, stream).ConfigureAwait(false);
+            OnStreamMessage?.Invoke(type, stream);
         }
 
         /// <summary>
