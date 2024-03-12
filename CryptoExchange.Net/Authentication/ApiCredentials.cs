@@ -94,7 +94,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
         public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
         {
-            var accessor = new SystemTextJsonMessageAccessor();
+            var accessor = new SystemTextJsonStreamMessageAccessor();
             if (!accessor.Read(inputStream, false))
                 throw new ArgumentException("Input stream not valid json data");
 

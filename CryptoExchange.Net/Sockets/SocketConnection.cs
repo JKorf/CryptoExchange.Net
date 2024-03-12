@@ -160,7 +160,7 @@ namespace CryptoExchange.Net.Sockets
         private SocketStatus _status;
 
         private IMessageSerializer _serializer;
-        private IMessageAccessor _accessor;
+        private IByteMessageAccessor _accessor;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
@@ -362,111 +362,113 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a message
         /// </summary>
-        /// <param name="stream"></param>
+        /// <param name="data"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual void HandleStreamMessage(WebSocketMessageType type, Stream stream)
+        protected virtual void HandleStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             var sw = Stopwatch.StartNew();
             var receiveTime = DateTime.UtcNow;
             string? originalData = null;
 
             // 1. Decrypt/Preprocess if necessary
-            stream = ApiClient.PreprocessStreamMessage(type, stream);
+            data = ApiClient.PreprocessStreamMessage(type, data);
 
             // 2. Read data into accessor
-            var outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
-            _accessor.Read(stream, outputOriginalData);
-            if (outputOriginalData)
-            {
-                originalData = _accessor.GetOriginalString();
-                _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
-            }
-
-            // 3. Determine the identifying properties of this message
-            var listenId = ApiClient.GetListenerIdentifier(_accessor);
-            if (listenId == null)
-            {
-                if (!ApiClient.UnhandledMessageExpected)
-                    _logger.LogWarning("[Sckt {SocketId}] failed to evaluate message", SocketId);
-
-                UnhandledMessage?.Invoke(_accessor);
-                stream.Dispose();
-                return;
-            }
-
-            // 4. Get the listeners interested in this message
-            List<IMessageProcessor> processors;
-            lock(_listenersLock)
-                processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
-
-            if (!processors.Any())
-            {
-                if (!ApiClient.UnhandledMessageExpected)
+            _accessor.Read(data);
+            try {
+                if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
                 {
-                    List<string> listenerIds;
-                    lock (_listenersLock)
-                        listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
-                    _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}", SocketId, listenId, listenerIds);
+                    originalData = _accessor.GetOriginalString();
+                    _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
+                }
+
+                // 3. Determine the identifying properties of this message
+                var listenId = ApiClient.GetListenerIdentifier(_accessor);
+                if (listenId == null)
+                {
+                    if (!ApiClient.UnhandledMessageExpected)
+                        _logger.LogWarning("[Sckt {SocketId}] failed to evaluate message", SocketId);
+
                     UnhandledMessage?.Invoke(_accessor);
+                    return;
                 }
 
-                stream.Dispose();
-                return;
-            }
+                // 4. Get the listeners interested in this message
+                List<IMessageProcessor> processors;
+                lock (_listenersLock)
+                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
 
-            _logger.LogTrace("[Sckt {SocketId}] {Count} processor(s) matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
-            var totalUserTime = 0;
-            Dictionary<Type, object>? desCache = null;
-            if (processors.Count > 1)
-            {
-                // Only instantiate a cache if there are multiple processors
-                desCache = new Dictionary<Type, object>();
-            }
-
-            foreach (var processor in processors)
-            {
-                // 5. Determine the type to deserialize to for this processor
-                var messageType = processor.GetMessageType(_accessor);
-                if (messageType == null)
+                if (!processors.Any())
                 {
-                    _logger.LogWarning("[Sckt {SocketId}] received message not recognized by handler {Id}", SocketId, processor.Id);
-                    continue;
-                }
-
-                // 6. Deserialize the message
-                object? deserialized = null;
-                desCache?.TryGetValue(messageType, out deserialized);
-
-                if (deserialized == null)
-                {
-                    var desResult = processor.Deserialize(_accessor, messageType);
-                    if (!desResult)
+                    if (!ApiClient.UnhandledMessageExpected)
                     {
-                        _logger.LogWarning("[Sckt {SocketId}] deserialization failed: {Error}", SocketId, desResult.Error);
+                        List<string> listenerIds;
+                        lock (_listenersLock)
+                            listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
+                        _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}", SocketId, listenId, listenerIds);
+                        UnhandledMessage?.Invoke(_accessor);
+                    }
+
+                    return;
+                }
+
+                _logger.LogTrace("[Sckt {SocketId}] {Count} processor(s) matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
+                var totalUserTime = 0;
+                Dictionary<Type, object>? desCache = null;
+                if (processors.Count > 1)
+                {
+                    // Only instantiate a cache if there are multiple processors
+                    desCache = new Dictionary<Type, object>();
+                }
+
+                foreach (var processor in processors)
+                {
+                    // 5. Determine the type to deserialize to for this processor
+                    var messageType = processor.GetMessageType(_accessor);
+                    if (messageType == null)
+                    {
+                        _logger.LogWarning("[Sckt {SocketId}] received message not recognized by handler {Id}", SocketId, processor.Id);
                         continue;
                     }
-                    deserialized = desResult.Data;
-                    desCache?.Add(messageType, deserialized);
+
+                    // 6. Deserialize the message
+                    object? deserialized = null;
+                    desCache?.TryGetValue(messageType, out deserialized);
+
+                    if (deserialized == null)
+                    {
+                        var desResult = processor.Deserialize(_accessor, messageType);
+                        if (!desResult)
+                        {
+                            _logger.LogWarning("[Sckt {SocketId}] deserialization failed: {Error}", SocketId, desResult.Error);
+                            continue;
+                        }
+                        deserialized = desResult.Data;
+                        desCache?.Add(messageType, deserialized);
+                    }
+
+                    // 7. Hand of the message to the subscription
+                    try
+                    {
+                        var innerSw = Stopwatch.StartNew();
+                        processor.Handle(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null));
+                        totalUserTime += (int)innerSw.ElapsedMilliseconds;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, ex.ToLogString());
+                        if (processor is Subscription subscription)
+                            subscription.InvokeExceptionHandler(ex);
+                    }
                 }
 
-                // 7. Hand of the message to the subscription
-                try
-                {
-                    var innerSw = Stopwatch.StartNew();
-                    processor.Handle(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null));
-                    totalUserTime += (int)innerSw.ElapsedMilliseconds;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, ex.ToLogString());
-                    if (processor is Subscription subscription)
-                        subscription.InvokeExceptionHandler(ex);
-                }
+                _logger.LogTrace($"[Sckt {SocketId}] message processed in {(int)sw.ElapsedMilliseconds}ms ({sw.ElapsedMilliseconds - totalUserTime}ms parsing)");
             }
-
-            stream.Dispose();
-            _logger.LogTrace($"[Sckt {SocketId}] message processed in {(int)sw.ElapsedMilliseconds}ms ({sw.ElapsedMilliseconds - totalUserTime}ms parsing)");
+            finally
+            {
+                _accessor.Clear();
+            }
         }
 
         /// <summary>

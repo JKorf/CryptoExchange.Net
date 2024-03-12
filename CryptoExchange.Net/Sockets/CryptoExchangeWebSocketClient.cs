@@ -45,6 +45,9 @@ namespace CryptoExchange.Net.Sockets
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
 
+        private const int _receiveBufferSize = 1048576;
+        private const int _sendBufferSize = 1024;
+
         /// <summary>
         /// Received messages, the size and the timstamp
         /// </summary>
@@ -101,7 +104,7 @@ namespace CryptoExchange.Net.Sockets
         public event Func<Task>? OnClose;
 
         /// <inheritdoc />
-        public event Action<WebSocketMessageType, Stream>? OnStreamMessage;
+        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Func<int, Task>? OnRequestSent;
@@ -168,7 +171,10 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var header in Parameters.Headers)
                     socket.Options.SetRequestHeader(header.Key, header.Value);
                 socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
-                socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+                if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription == ".NET Framework") 
+                    socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+                else
+                    socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
             }
@@ -463,7 +469,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task ReceiveLoopAsync()
         {
-            var buffer = new ArraySegment<byte>(new byte[65536]);
+            var buffer = new ArraySegment<byte>(new byte[_receiveBufferSize]);
             var received = 0;
             try
             {
@@ -512,6 +518,8 @@ namespace CryptoExchange.Net.Sockets
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
                             memoryStream ??= new MemoryStream();
+                            // TODO Should we use a List<byte[]> buffer instead of memory stream and then combine them using BlockCopy?
+                            // Or is MemoryStream just as fast/faster
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
                             await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
                         }
@@ -521,7 +529,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in single message");
-                                ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count));
+                                ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array));
                             }
                             else
                             {
@@ -555,7 +563,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // Reassemble complete message from memory stream
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {memoryStream!.Length} bytes");
-                            ProcessData(receiveResult.MessageType, memoryStream);
+                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(memoryStream.ToArray(), 0, (int)memoryStream.Length)); // TODO
                             memoryStream.Dispose();
                         }
                         else
@@ -584,13 +592,12 @@ namespace CryptoExchange.Net.Sockets
         /// Proccess a stream message
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="stream"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        protected void ProcessData(WebSocketMessageType type, Stream stream)
+        protected void ProcessData(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             LastActionTime = DateTime.UtcNow;
-            stream.Position = 0;
-            OnStreamMessage?.Invoke(type, stream);
+            OnStreamMessage?.Invoke(type, data);
         }
 
         /// <summary>

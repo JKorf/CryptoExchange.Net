@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IMessageAccessor CreateAccessor() => new JsonNetMessageAccessor();
+        protected virtual IStreamMessageAccessor CreateAccessor() => new JsonNetStreamMessageAccessor();
 
         /// <summary>
         /// Create a serializer instance
@@ -293,6 +293,7 @@ namespace CryptoExchange.Net.Clients
             var sw = Stopwatch.StartNew();
             Stream? responseStream = null;
             IResponse? response = null;
+            IStreamMessageAccessor? accessor = null;
             try
             {
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
@@ -303,7 +304,7 @@ namespace CryptoExchange.Net.Clients
                 responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
 
-                var accessor = CreateAccessor();
+                accessor = CreateAccessor();
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
@@ -363,6 +364,7 @@ namespace CryptoExchange.Net.Clients
             }
             finally
             {
+                accessor?.Clear();
                 responseStream?.Close();
                 response?.Close();
             }

@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Websocket message received event
         /// </summary>
-        event Action<WebSocketMessageType, Stream> OnStreamMessage;
+        event Action<WebSocketMessageType, ReadOnlyMemory<byte>> OnStreamMessage;
         /// <summary>
         /// Websocket sent event, RequestId as parameter
         /// </summary>

@@ -128,7 +128,7 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IMessageAccessor CreateAccessor() => new JsonNetMessageAccessor();
+        protected internal virtual IByteMessageAccessor CreateAccessor() => new JsonNetByteMessageAccessor();
 
         /// <summary>
         /// Create a serializer instance
@@ -676,8 +676,8 @@ namespace CryptoExchange.Net.Clients
         /// Preprocess a stream message
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="stream"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        public virtual Stream PreprocessStreamMessage(WebSocketMessageType type, Stream stream) => stream;
+        public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
     }
 }

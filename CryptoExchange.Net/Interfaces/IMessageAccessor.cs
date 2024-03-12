@@ -24,11 +24,9 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         object? Underlying { get; }
         /// <summary>
-        /// Load a stream message
+        /// Clear internal data structure
         /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="bufferStream"></param>
-        bool Read(Stream stream, bool bufferStream);
+        void Clear();
         /// <summary>
         /// Get the type of node
         /// </summary>
@@ -73,5 +71,30 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <returns></returns>
         string GetOriginalString();
+    }
+
+    /// <summary>
+    /// Stream message accessor
+    /// </summary>
+    public interface IStreamMessageAccessor : IMessageAccessor
+    {
+        /// <summary>
+        /// Load a stream message
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="bufferStream"></param>
+        bool Read(Stream stream, bool bufferStream);
+    }
+
+    /// <summary>
+    /// Byte message accessor
+    /// </summary>
+    public interface IByteMessageAccessor : IMessageAccessor
+    {
+        /// <summary>
+        /// Load a data message
+        /// </summary>
+        /// <param name="data"></param>
+        bool Read(ReadOnlyMemory<byte> data);
     }
 }

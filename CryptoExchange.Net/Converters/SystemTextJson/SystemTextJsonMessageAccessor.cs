@@ -6,51 +6,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
     /// System.Text.Json message accessor
     /// </summary>
-    public class SystemTextJsonMessageAccessor : IMessageAccessor
+    public abstract class SystemTextJsonMessageAccessor : IMessageAccessor
     {
-        private Stream? _stream;
-        private JsonDocument? _document;
+        protected JsonDocument? _document;
         private static JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
 
         /// <inheritdoc />
         public bool IsJson { get; set; }
 
         /// <inheritdoc />
-        public bool OriginalDataAvailable => _stream?.CanSeek == true;
-
-        /// <inheritdoc />
-        public bool Read(Stream stream, bool bufferStream)
-        {
-            if (bufferStream && stream is not MemoryStream)
-            {
-                _stream = new MemoryStream();
-                stream.CopyTo(_stream);
-                _stream.Position = 0;
-            }
-            else
-            {
-                _stream = stream;
-            }
-
-            try
-            {
-                _document = JsonDocument.Parse(_stream);
-                IsJson = true;
-            }
-            catch (Exception)
-            {
-                // Not a json message
-                IsJson = false;
-            }
-
-            return IsJson;
-        }
+        public abstract bool OriginalDataAvailable { get; }
 
         /// <inheritdoc />
         public object? Underlying => throw new NotImplementedException();
@@ -204,8 +176,47 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return currentToken;
         }
 
+        public abstract string GetOriginalString();
+
+        public abstract void Clear();
+    }
+
+    public class SystemTextJsonStreamMessageAccessor : SystemTextJsonMessageAccessor, IStreamMessageAccessor
+    {
+        private Stream? _stream;
+
         /// <inheritdoc />
-        public string GetOriginalString()
+        public override bool OriginalDataAvailable => _stream.CanSeek;
+
+        /// <inheritdoc />
+        public bool Read(Stream stream, bool bufferStream)
+        {
+            if (bufferStream && stream is not MemoryStream)
+            {
+                _stream = new MemoryStream();
+                stream.CopyTo(_stream);
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = stream;
+            }
+
+            try
+            {
+                _document = JsonDocument.Parse(_stream);
+                IsJson = true;
+            }
+            catch (Exception)
+            {
+                // Not a json message
+                IsJson = false;
+            }
+
+            return IsJson;
+        }
+        /// <inheritdoc />
+        public override string GetOriginalString()
         {
             if (_stream is null)
                 throw new NullReferenceException("Stream not initialized");
@@ -213,6 +224,50 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             _stream.Position = 0;
             using var textReader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
             return textReader.ReadToEnd();
+        }
+
+        /// <inheritdoc />
+        public override void Clear()
+        {
+            _stream?.Dispose();
+            _stream = null;
+            _document = null;
+        }
+
+    }
+
+    public class SystemTextJsonByteMessageAccessor : SystemTextJsonMessageAccessor, IByteMessageAccessor
+    {
+        private ReadOnlyMemory<byte> _bytes;
+
+        /// <inheritdoc />
+        public bool Read(ReadOnlyMemory<byte> data)
+        {
+            try
+            {
+                _document = JsonDocument.Parse(data);
+                IsJson = true;
+            }
+            catch (Exception)
+            {
+                // Not a json message
+                IsJson = false;
+            }
+
+            return IsJson;
+        }
+
+        /// <inheritdoc />
+        public override string GetOriginalString() => Encoding.UTF8.GetString(_bytes.ToArray());
+
+        /// <inheritdoc />
+        public override bool OriginalDataAvailable => true;
+
+        /// <inheritdoc />
+        public override void Clear()
+        {
+            _bytes = null;
+            _document = null;
         }
     }
 }

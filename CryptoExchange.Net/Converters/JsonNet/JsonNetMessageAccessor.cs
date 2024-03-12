@@ -7,59 +7,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Xml.Linq;
 
 namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Json.Net message accessor
     /// </summary>
-    public class JsonNetMessageAccessor : IMessageAccessor
+    public abstract class JsonNetMessageAccessor : IMessageAccessor
     {
-        private JToken? _token;
-        private Stream? _stream;
+        protected JToken? _token;
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
         /// <inheritdoc />
-        public bool IsJson { get; private set; }
+        public bool IsJson { get; protected set; }
 
         /// <inheritdoc />
-        public bool OriginalDataAvailable => _stream?.CanSeek == true;
+        public abstract bool OriginalDataAvailable { get; }
 
         /// <inheritdoc />
         public object? Underlying => _token;
-
-        /// <inheritdoc />
-        public bool Read(Stream stream, bool bufferStream)
-        {
-            if (bufferStream && stream is not MemoryStream)
-            {
-                _stream = new MemoryStream();
-                stream.CopyTo(_stream);
-                _stream.Position = 0;
-            }
-            else
-            {
-                _stream = stream;
-            }
-
-            var length = _stream.CanSeek ? _stream.Length : 4096;
-            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
-            using var jsonTextReader = new JsonTextReader(reader);
-
-            try
-            {
-                _token = JToken.Load(jsonTextReader);
-                IsJson = true;
-            }
-            catch (Exception)
-            {
-                // Not a json message
-                IsJson = false;
-            }
-
-            return IsJson;
-        }
 
         /// <inheritdoc />
         public CallResult<object> Deserialize(Type type, MessagePath? path = null)
@@ -234,8 +203,51 @@ namespace CryptoExchange.Net.Converters.JsonNet
             return currentToken;
         }
 
+        public abstract string GetOriginalString();
+
+        public abstract void Clear();
+    }
+
+    public class JsonNetStreamMessageAccessor : JsonNetMessageAccessor, IStreamMessageAccessor
+    {
+        private Stream? _stream;
+
         /// <inheritdoc />
-        public string GetOriginalString()
+        public override bool OriginalDataAvailable => _stream.CanSeek;
+
+        /// <inheritdoc />
+        public bool Read(Stream stream, bool bufferStream)
+        {
+            if (bufferStream && stream is not MemoryStream)
+            {
+                _stream = new MemoryStream();
+                stream.CopyTo(_stream);
+                _stream.Position = 0;
+            }
+            else
+            {
+                _stream = stream;
+            }
+
+            var length = _stream.CanSeek ? _stream.Length : 4096;
+            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
+            using var jsonTextReader = new JsonTextReader(reader);
+
+            try
+            {
+                _token = JToken.Load(jsonTextReader);
+                IsJson = true;
+            }
+            catch (Exception)
+            {
+                // Not a json message
+                IsJson = false;
+            }
+
+            return IsJson;
+        }
+        /// <inheritdoc />
+        public override string GetOriginalString()
         {
             if (_stream is null)
                 throw new NullReferenceException("Stream not initialized");
@@ -243,6 +255,55 @@ namespace CryptoExchange.Net.Converters.JsonNet
             _stream.Position = 0;
             using var textReader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
             return textReader.ReadToEnd();
+        }
+
+        /// <inheritdoc />
+        public override void Clear()
+        {
+            _stream?.Dispose();
+            _stream = null;
+            _token = null;
+        }
+
+    }
+
+    public class JsonNetByteMessageAccessor : JsonNetMessageAccessor, IByteMessageAccessor
+    {
+        private ReadOnlyMemory<byte> _bytes;
+
+        /// <inheritdoc />
+        public bool Read(ReadOnlyMemory<byte> data)
+        {
+            _bytes = data;
+            using var stream = new MemoryStream(data.ToArray());
+            using var reader = new StreamReader(stream, Encoding.UTF8, false, (int)Math.Max(2, data.Length), true);
+            using var jsonTextReader = new JsonTextReader(reader);
+
+            try
+            {
+                _token = JToken.Load(jsonTextReader);
+                IsJson = true;
+            }
+            catch (Exception)
+            {
+                // Not a json message
+                IsJson = false;
+            }
+
+            return IsJson;
+        }
+
+        /// <inheritdoc />
+        public override string GetOriginalString() => Encoding.UTF8.GetString(_bytes.ToArray());
+
+        /// <inheritdoc />
+        public override bool OriginalDataAvailable => true;
+
+        /// <inheritdoc />
+        public override void Clear()
+        {
+            _bytes = null;
+            _token = null;
         }
     }
 }
