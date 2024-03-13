@@ -478,7 +478,7 @@ namespace CryptoExchange.Net.Sockets
                     if (_ctsSource.IsCancellationRequested)
                         break;
 
-                    MemoryStream? memoryStream = null;
+                    var multipartBuffers = new List<byte[]>();
                     WebSocketReceiveResult? receiveResult = null;
                     bool multiPartMessage = false;
                     while (true)
@@ -517,11 +517,10 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
-                            memoryStream ??= new MemoryStream();
-                            // TODO Should we use a List<byte[]> buffer instead of memory stream and then combine them using BlockCopy?
-                            // Or is MemoryStream just as fast/faster
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
-                            await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
+                            // Add the buffer to the multipart buffers list, create new buffer for next message part
+                            multipartBuffers.Add(buffer.Array);
+                            buffer = new ArraySegment<byte>(new byte[_receiveBufferSize]);
                         }
                         else
                         {
@@ -535,7 +534,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
-                                await memoryStream!.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
+                                multipartBuffers.Add(buffer.Array);
                             }
                             break;
                         }
@@ -562,13 +561,20 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult?.EndOfMessage == true)
                         {
                             // Reassemble complete message from memory stream
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {memoryStream!.Length} bytes");
-                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(memoryStream.ToArray(), 0, (int)memoryStream.Length)); // TODO
-                            memoryStream.Dispose();
+                            var totalBuffer = new byte[multipartBuffers.Sum(b => b.Length)];
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {totalBuffer!.Length} bytes");
+                            var offset = 0;
+                            foreach (var multiPartBuffer in multipartBuffers)
+                            {
+                                Buffer.BlockCopy(multiPartBuffer, 0, totalBuffer, offset, multiPartBuffer.Length);
+                                offset += multiPartBuffer.Length;
+                            }
+
+                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(totalBuffer));
                         }
                         else
                         {
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {memoryStream!.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {multipartBuffers.Sum(b => b.Length)} bytes");
                         }
                     }
                 }

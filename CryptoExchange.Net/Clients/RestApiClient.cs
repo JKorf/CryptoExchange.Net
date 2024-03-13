@@ -35,6 +35,21 @@ namespace CryptoExchange.Net.Clients
         public int TotalRequestsMade { get; set; }
 
         /// <summary>
+        /// Request body content type
+        /// </summary>
+        protected RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
+
+        /// <summary>
+        /// How to serialize array parameters when making requests
+        /// </summary>
+        protected ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
+        /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
+        /// </summary>
+        protected string RequestBodyEmptyContent = "{}";
+
+        /// <summary>
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
@@ -265,7 +280,7 @@ namespace CryptoExchange.Net.Clients
 
             _logger.Log(LogLevel.Information, $"[Req {requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestBodyFormat ?? this.requestBodyFormat, requestId, additionalHeaders);
+            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? ArraySerialization, requestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
 
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
@@ -494,7 +509,7 @@ namespace CryptoExchange.Net.Clients
                 if (bodyParameters.Any())
                     WriteParamBody(request, bodyParameters, contentType);
                 else
-                    request.SetContent(requestBodyEmptyContent, contentType);
+                    request.SetContent(RequestBodyEmptyContent, contentType);
             }
 
             return request;

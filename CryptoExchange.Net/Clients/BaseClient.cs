@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// The name of the API the client is for
         /// </summary>
-        internal string Name { get; }
+        public string Exchange { get; }
 
         /// <summary>
         /// Api clients in this client
@@ -36,14 +36,14 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="name">The name of the API this client is for</param>
+        /// <param name="exchange">The name of the exchange this client is for</param>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        protected BaseClient(ILoggerFactory? logger, string name)
+        protected BaseClient(ILoggerFactory? logger, string exchange)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
-            _logger = logger?.CreateLogger(name) ?? NullLoggerFactory.Instance.CreateLogger(name);
+            _logger = logger?.CreateLogger(exchange) ?? NullLoggerFactory.Instance.CreateLogger(exchange);
 
-            Name = name;
+            Exchange = exchange;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Clients
                 throw new ArgumentNullException(nameof(options));
 
             ClientOptions = options;
-            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {Name}.Net: v{GetType().Assembly.GetName().Version}");
+            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {Exchange}.Net: v{GetType().Assembly.GetName().Version}");
         }
 
         /// <summary>

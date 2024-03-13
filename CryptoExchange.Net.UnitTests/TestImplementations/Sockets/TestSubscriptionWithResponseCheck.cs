@@ -24,11 +24,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             _channel = channel;
         }
 
-        public override Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message)
+        public override CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message)
         {
             var data = (T)message.Data;
             _handler.Invoke(message.As(data));
-            return Task.FromResult(new CallResult(null));
+            return new CallResult(null);
         }
 
         public override Type GetMessageType(IMessageAccessor message) => typeof(T);

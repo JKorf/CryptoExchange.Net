@@ -74,7 +74,7 @@ namespace CryptoExchange.Net.UnitTests
             }));
 
             // act
-            await socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
+            socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
             rstEvent.WaitOne(1000);
 
             // assert
@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.UnitTests
             var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
 
             // act
-            await socket.InvokeMessage(msgToSend);
+            socket.InvokeMessage(msgToSend);
             rstEvent.WaitOne(1000);
 
             // assert
@@ -200,7 +200,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
             await sub;
 
             // assert
@@ -223,7 +223,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
             await sub;
 
             // assert

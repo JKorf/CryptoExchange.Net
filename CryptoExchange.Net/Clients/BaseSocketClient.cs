@@ -33,8 +33,8 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="name">The name of the API this client is for</param>
-        protected BaseSocketClient(ILoggerFactory? logger, string name) : base(logger, name)
+        /// <param name="exchange">The name of the exchange this client is for</param>
+        protected BaseSocketClient(ILoggerFactory? logger, string exchange) : base(logger, exchange)
         {
         }
 

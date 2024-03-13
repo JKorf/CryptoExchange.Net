@@ -34,21 +34,6 @@ namespace CryptoExchange.Net.Clients
         public AuthenticationProvider? AuthenticationProvider { get; private set; }
 
         /// <summary>
-        /// Request body content type
-        /// </summary>
-        public RequestBodyFormat requestBodyFormat = RequestBodyFormat.Json;
-
-        /// <summary>
-        /// How to serialize array parameters when making requests
-        /// </summary>
-        public ArrayParametersSerialization arraySerialization = ArrayParametersSerialization.Array;
-
-        /// <summary>
-        /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
-        /// </summary>
-        public string requestBodyEmptyContent = "{}";
-
-        /// <summary>
         /// The environment this client communicates to
         /// </summary>
         public string BaseAddress { get; }
