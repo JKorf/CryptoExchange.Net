@@ -458,6 +458,7 @@ namespace CryptoExchange.Net.Clients
                         signed,
                         arraySerialization,
                         parameterPosition,
+                        bodyFormat,
                         out uriParameters,
                         out bodyParameters,
                         out headers);
