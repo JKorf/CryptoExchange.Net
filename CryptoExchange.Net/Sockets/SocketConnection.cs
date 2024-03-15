@@ -11,6 +11,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.JsonNet;
+using System.Threading;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -397,7 +398,7 @@ namespace CryptoExchange.Net.Sockets
                 // 4. Get the listeners interested in this message
                 List<IMessageProcessor> processors;
                 lock (_listenersLock)
-                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
+                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId) && s.CanHandleData).ToList();
 
                 if (!processors.Any())
                 {
@@ -623,7 +624,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, ManualResetEvent? continueEvent = null)
         {
             await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
             return query.Result ?? new CallResult(new ServerError("Timeout"));
@@ -636,13 +637,13 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query, AsyncResetEvent? continueEvent = null)
+        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query, ManualResetEvent? continueEvent = null)
         {
             await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<T>(new ServerError("Timeout"));
         }
 
-        private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent)
+        private async Task SendAndWaitIntAsync(Query query, ManualResetEvent? continueEvent)
         {
             lock(_listenersLock)
                 _listeners.Add(query);
@@ -785,7 +786,7 @@ namespace CryptoExchange.Net.Sockets
                     if (subQuery == null)
                         continue;
 
-                    var waitEvent = new AsyncResetEvent(false);
+                    var waitEvent = new ManualResetEvent(false);
                     taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
                     { 
                         subscription.HandleSubQueryResponse(subQuery.Response!);

@@ -7,9 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Xml.Linq;
 
 namespace CryptoExchange.Net.Converters.JsonNet
 {
@@ -18,6 +16,9 @@ namespace CryptoExchange.Net.Converters.JsonNet
     /// </summary>
     public abstract class JsonNetMessageAccessor : IMessageAccessor
     {
+        /// <summary>
+        /// The json token loaded
+        /// </summary>
         protected JToken? _token;
         private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
@@ -203,17 +204,22 @@ namespace CryptoExchange.Net.Converters.JsonNet
             return currentToken;
         }
 
+        /// <inheritdoc />
         public abstract string GetOriginalString();
 
+        /// <inheritdoc />
         public abstract void Clear();
     }
 
+    /// <summary>
+    /// Json.Net stream message accessor
+    /// </summary>
     public class JsonNetStreamMessageAccessor : JsonNetMessageAccessor, IStreamMessageAccessor
     {
         private Stream? _stream;
 
         /// <inheritdoc />
-        public override bool OriginalDataAvailable => _stream.CanSeek;
+        public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
         public bool Read(Stream stream, bool bufferStream)
@@ -267,6 +273,9 @@ namespace CryptoExchange.Net.Converters.JsonNet
 
     }
 
+    /// <summary>
+    /// Json.Net byte message accessor
+    /// </summary>
     public class JsonNetByteMessageAccessor : JsonNetMessageAccessor, IByteMessageAccessor
     {
         private ReadOnlyMemory<byte> _bytes;

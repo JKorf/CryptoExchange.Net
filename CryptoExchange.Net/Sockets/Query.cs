@@ -20,6 +20,11 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; } = ExchangeHelpers.NextId();
 
         /// <summary>
+        /// Can handle data
+        /// </summary>
+        public bool CanHandleData => true;
+
+        /// <summary>
         /// Has this query been completed
         /// </summary>
         public bool Completed { get; set; }
@@ -42,7 +47,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Wait event for the calling message processing thread
         /// </summary>
-        public AsyncResetEvent? ContinueAwaiter { get; set; }
+        public ManualResetEvent? ContinueAwaiter { get; set; }
 
         /// <summary>
         /// Strings to match this query to a received message
@@ -169,8 +174,7 @@ namespace CryptoExchange.Net.Sockets
             Response = message.Data;
             Result = HandleMessage(connection, message.As((TResponse)message.Data));
             _event.Set();
-            // TODO
-            //await (ContinueAwaiter?.WaitAsync() ?? Task.CompletedTask).ConfigureAwait(false);
+            ContinueAwaiter?.WaitOne();
             return Result;
         }
 

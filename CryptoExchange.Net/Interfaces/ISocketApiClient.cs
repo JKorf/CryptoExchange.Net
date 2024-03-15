@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Log the current state of connections and subscriptions
         /// </summary>
-        string GetSubscriptionsState();
+        string GetSubscriptionsState(bool includeSubDetails = true);
         /// <summary>
         /// Reconnect all connections
         /// </summary>

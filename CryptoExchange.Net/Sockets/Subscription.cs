@@ -20,6 +20,11 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; set; }
 
         /// <summary>
+        /// Can handle data
+        /// </summary>
+        public bool CanHandleData => Confirmed || HandleUpdatesBeforeConfirmation;
+
+        /// <summary>
         /// Total amount of invocations
         /// </summary>
         public int TotalInvocations { get; set; }
@@ -39,6 +44,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
         
+        /// <summary>
+        /// Whether this subscription should handle update messages before confirmation
+        /// </summary>
+        public bool HandleUpdatesBeforeConfirmation { get; set; }
+
         /// <summary>
         /// Is the subscription closed
         /// </summary>

@@ -208,9 +208,10 @@ namespace CryptoExchange.Net.Clients
                         return socketResult.As<UpdateSubscription>(null);
 
                     socketConnection = socketResult.Data;
+                    subscription.HandleUpdatesBeforeConfirmation = HandleMessageBeforeConfirmation;
 
                     // Add a subscription on the socket connection
-                    var success = socketConnection.CanAddSubscription();
+                    var success = socketConnection.AddSubscription(subscription);
                     if (!success)
                     {
                         _logger.Log(LogLevel.Trace, $"[Sckt {socketConnection.SocketId}] failed to add subscription, retrying on different connection");
@@ -245,13 +246,10 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
-            var waitEvent = new AsyncResetEvent(false);
+            var waitEvent = new ManualResetEvent(false);
             var subQuery = subscription.GetSubQuery(socketConnection);
             if (subQuery != null)
             {
-                if (HandleMessageBeforeConfirmation)
-                    socketConnection.AddSubscription(subscription);
-
                 // Send the request and wait for answer
                 var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent).ConfigureAwait(false);
                 if (!subResult)
@@ -261,7 +259,6 @@ namespace CryptoExchange.Net.Clients
                     // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
                     var unsubscribe = subResult.Error is CancellationRequestedError;
                     await socketConnection.CloseAsync(subscription, unsubscribe).ConfigureAwait(false);
-
                     return new CallResult<UpdateSubscription>(subResult.Error!);
                 }
 
@@ -277,9 +274,6 @@ namespace CryptoExchange.Net.Clients
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
-
-            if (!HandleMessageBeforeConfirmation)
-                socketConnection.AddSubscription(subscription);
 
             waitEvent?.Set();
             _logger.Log(LogLevel.Information, $"[Sckt {socketConnection.SocketId}] subscription {subscription.Id} completed successfully");
@@ -628,7 +622,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Log the current state of connections and subscriptions
         /// </summary>
-        public string GetSubscriptionsState()
+        public string GetSubscriptionsState(bool includeSubDetails = true)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"{GetType().Name}");
@@ -644,12 +638,15 @@ namespace CryptoExchange.Net.Clients
                 sb.AppendLine($"    Authenticated: {connection.Value.Authenticated}");
                 sb.AppendLine($"    Download speed: {connection.Value.IncomingKbps} kbps");
                 sb.AppendLine($"    Subscriptions:");
-                foreach (var subscription in connection.Value.Subscriptions)
+                if (includeSubDetails)
                 {
-                    sb.AppendLine($"      Id: {subscription.Id}");
-                    sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
-                    sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
-                    sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.ListenerIdentifiers)}]");
+                    foreach (var subscription in connection.Value.Subscriptions)
+                    {
+                        sb.AppendLine($"      Id: {subscription.Id}");
+                        sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
+                        sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
+                        sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.ListenerIdentifiers)}]");
+                    }
                 }
             }
             return sb.ToString();

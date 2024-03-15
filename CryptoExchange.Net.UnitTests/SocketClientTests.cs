@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public async Task SocketMessages_Should_BeProcessedInDataHandlers()
+        public void SocketMessages_Should_BeProcessedInDataHandlers()
         {
             // arrange
             var client = new TestSocketClient(options => {
@@ -67,11 +67,13 @@ namespace CryptoExchange.Net.UnitTests
 
             client.SubClient.ConnectSocketSub(sub);
 
-            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
+            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
             {
                 result = messageEvent.Data;
                 rstEvent.Set();
-            }));
+            });
+            subObj.HandleUpdatesBeforeConfirmation = true;
+            sub.AddSubscription(subObj);
 
             // act
             socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
@@ -83,7 +85,7 @@ namespace CryptoExchange.Net.UnitTests
 
         [TestCase(false)]
         [TestCase(true)]
-        public async Task SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
+        public void SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
         {
             // arrange
             var client = new TestSocketClient(options =>
@@ -100,11 +102,13 @@ namespace CryptoExchange.Net.UnitTests
             string original = null;
 
             client.SubClient.ConnectSocketSub(sub);
-            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
+            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
             {
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
-            }));
+            });
+            subObj.HandleUpdatesBeforeConfirmation = true;
+            sub.AddSubscription(subObj);
             var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
 
             // act

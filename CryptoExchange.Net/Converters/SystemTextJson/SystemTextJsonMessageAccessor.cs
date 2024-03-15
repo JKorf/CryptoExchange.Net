@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -15,7 +14,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// </summary>
     public abstract class SystemTextJsonMessageAccessor : IMessageAccessor
     {
+        /// <summary>
+        /// The JsonDocument loaded
+        /// </summary>
         protected JsonDocument? _document;
+
         private static JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
 
         /// <inheritdoc />
@@ -176,17 +179,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return currentToken;
         }
 
+        /// <inheritdoc />
         public abstract string GetOriginalString();
 
+        /// <inheritdoc />
         public abstract void Clear();
     }
 
+    /// <summary>
+    /// System.Text.Json stream message accessor
+    /// </summary>
     public class SystemTextJsonStreamMessageAccessor : SystemTextJsonMessageAccessor, IStreamMessageAccessor
     {
         private Stream? _stream;
 
         /// <inheritdoc />
-        public override bool OriginalDataAvailable => _stream.CanSeek;
+        public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
         public bool Read(Stream stream, bool bufferStream)
@@ -236,6 +244,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
     }
 
+    /// <summary>
+    /// System.Text.Json byte message accessor
+    /// </summary>
     public class SystemTextJsonByteMessageAccessor : SystemTextJsonMessageAccessor, IByteMessageAccessor
     {
         private ReadOnlyMemory<byte> _bytes;

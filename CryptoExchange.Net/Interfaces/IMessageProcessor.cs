@@ -17,6 +17,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         public int Id { get; }
         /// <summary>
+        /// Whether this listener can handle data
+        /// </summary>
+        public bool CanHandleData { get; }
+        /// <summary>
         /// The identifiers for this processor
         /// </summary>
         public HashSet<string> ListenerIdentifiers { get; }
