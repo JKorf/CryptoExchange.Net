@@ -171,7 +171,7 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var header in Parameters.Headers)
                     socket.Options.SetRequestHeader(header.Key, header.Value);
                 socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
-                if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription == ".NET Framework") 
+                if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework")) 
                     socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
                 else
                     socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
@@ -478,7 +478,7 @@ namespace CryptoExchange.Net.Sockets
                     if (_ctsSource.IsCancellationRequested)
                         break;
 
-                    var multipartBuffers = new List<byte[]>();
+                    MemoryStream? multipartStream = null;
                     WebSocketReceiveResult? receiveResult = null;
                     bool multiPartMessage = false;
                     while (true)
@@ -518,9 +518,11 @@ namespace CryptoExchange.Net.Sockets
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
+
                             // Add the buffer to the multipart buffers list, create new buffer for next message part
-                            multipartBuffers.Add(buffer.Array);
-                            buffer = new ArraySegment<byte>(new byte[_receiveBufferSize]);
+                            if (multipartStream == null)
+                                multipartStream = new MemoryStream();
+                            multipartStream.Write(buffer.Array, buffer.Offset, receiveResult.Count);
                         }
                         else
                         {
@@ -528,14 +530,15 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in single message");
-                                ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array));
+                                ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count));
                             }
                             else
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
-                                multipartBuffers.Add(buffer.Array);
+                                multipartStream!.Write(buffer.Array, buffer.Offset, receiveResult.Count);
                             }
+
                             break;
                         }
                     }
@@ -560,21 +563,13 @@ namespace CryptoExchange.Net.Sockets
                         // When the connection gets interupted we might not have received a full message
                         if (receiveResult?.EndOfMessage == true)
                         {
-                            // Reassemble complete message from memory stream
-                            var totalBuffer = new byte[multipartBuffers.Sum(b => b.Length)];
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {totalBuffer!.Length} bytes");
-                            var offset = 0;
-                            foreach (var multiPartBuffer in multipartBuffers)
-                            {
-                                Buffer.BlockCopy(multiPartBuffer, 0, totalBuffer, offset, multiPartBuffer.Length);
-                                offset += multiPartBuffer.Length;
-                            }
-
-                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(totalBuffer));
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {multipartStream!.Length} bytes");
+                            // Get the underlying buffer of the memorystream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
+                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
                         }
                         else
                         {
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {multipartBuffers.Sum(b => b.Length)} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {multipartStream!.Length} bytes");
                         }
                     }
                 }
