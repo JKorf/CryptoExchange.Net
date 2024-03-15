@@ -126,7 +126,7 @@ namespace CryptoExchange.Net.Sockets
         /// Mark request as failed
         /// </summary>
         /// <param name="error"></param>
-        public abstract void Fail(string error);
+        public abstract void Fail(Error error);
 
         /// <summary>
         /// Handle a response message
@@ -195,9 +195,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override void Fail(string error)
+        public override void Fail(Error error)
         {
-            Result = new CallResult<TResponse>(new ServerError(error));
+            Result = new CallResult<TResponse>(error);
             Completed = true;
             ContinueAwaiter?.Set();
             _event.Set();

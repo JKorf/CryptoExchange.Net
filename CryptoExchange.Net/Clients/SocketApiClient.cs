@@ -64,6 +64,11 @@ namespace CryptoExchange.Net.Clients
         protected internal IEnumerable<IRateLimiter>? RateLimiters { get; set; }
 
         /// <summary>
+        /// The max size a websocket message size can be
+        /// </summary>
+        protected internal int? MessageSendSizeLimit { get; set; }
+
+        /// <summary>
         /// Periodic task regisrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();

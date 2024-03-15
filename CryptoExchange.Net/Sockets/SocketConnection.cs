@@ -159,8 +159,8 @@ namespace CryptoExchange.Net.Sockets
         private readonly ILogger _logger;
         private SocketStatus _status;
 
-        private IMessageSerializer _serializer;
-        private IByteMessageAccessor _accessor;
+        private readonly IMessageSerializer _serializer;
+        private readonly IByteMessageAccessor _accessor;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
@@ -233,7 +233,7 @@ namespace CryptoExchange.Net.Sockets
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail("Connection interupted");
+                    query.Fail(new WebError("Connection interupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -258,7 +258,7 @@ namespace CryptoExchange.Net.Sockets
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail("Connection interupted");
+                    query.Fail(new WebError("Connection interupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -287,7 +287,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail("Connection interupted");
+                    query.Fail(new WebError("Connection interupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -648,10 +648,10 @@ namespace CryptoExchange.Net.Sockets
                 _listeners.Add(query);
 
             query.ContinueAwaiter = continueEvent;
-            var sendOk = Send(query.Id, query.Request, query.Weight);
-            if (!sendOk)
+            var sendResult = Send(query.Id, query.Request, query.Weight);
+            if (!sendResult)
             {
-                query.Fail("Failed to send");
+                query.Fail(sendResult.Error!);
                 lock (_listenersLock)
                     _listeners.Remove(query);
                 return;
@@ -663,7 +663,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     if (!_socket.IsOpen)
                     {
-                        query.Fail("Socket not open");
+                        query.Fail(new WebError("Socket not open"));
                         return;
                     }
 
@@ -690,12 +690,10 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">The request id</param>
         /// <param name="obj">The object to send</param>
         /// <param name="weight">The weight of the message</param>
-        public virtual bool Send<T>(int requestId, T obj, int weight)
+        public virtual CallResult Send<T>(int requestId, T obj, int weight)
         {
-            if(obj is string str)
-                return Send(requestId, str, weight);
-            else
-                return Send(requestId, _serializer.Serialize(obj!), weight);
+            var data = obj is string str ? str : _serializer.Serialize(obj!);
+            return Send(requestId, data, weight);
         }
 
         /// <summary>
@@ -704,17 +702,24 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="data">The data to send</param>
         /// <param name="weight">The weight of the message</param>
         /// <param name="requestId">The id of the request</param>
-        public virtual bool Send(int requestId, string data, int weight)
+        public virtual CallResult Send(int requestId, string data, int weight)
         {
+            if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
+            {
+                var info = $"Message to send exceeds the max server message size ({ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
+                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - {Info}", SocketId, requestId, info);
+                return new CallResult(new InvalidOperationError(info));
+            }
+
             _logger.Log(LogLevel.Trace, $"[Sckt {SocketId}] msg {requestId} - sending messsage: {data}");
             try
             {
                 _socket.Send(requestId, data, weight);
-                return true;
+                return new CallResult(null);
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                return false;
+                return new CallResult(new WebError("Failed to send message: " + ex.Message));
             }
         }
 

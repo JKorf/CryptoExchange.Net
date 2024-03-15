@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Sockets
         private DateTime _lastReconnectTime;
 
         private const int _receiveBufferSize = 1048576;
-        private const int _sendBufferSize = 1024;
+        private const int _sendBufferSize = 4096;
 
         /// <summary>
         /// Received messages, the size and the timstamp
@@ -507,7 +507,7 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed unexpectedly        
-                            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] received `Close` message");
+                            _logger.Log(LogLevel.Debug, "[Sckt {Id}] received `Close` message, CloseStatus: {Status}, CloseStatusDescription: {CloseStatusDescription}", Id, receiveResult.CloseStatus, receiveResult.CloseStatusDescription);
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
                             break;
