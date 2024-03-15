@@ -146,12 +146,12 @@ namespace CryptoExchange.Net.UnitTests
             });
 
             // assert
-            Assert.ReferenceEquals(request.Method, new HttpMethod(method));
-            Assert.ReferenceEquals(request.Content?.Contains("TestParam1") == true, pos == HttpMethodParameterPosition.InBody);
-            Assert.ReferenceEquals(request.Uri.ToString().Contains("TestParam1"), pos == HttpMethodParameterPosition.InUri);
-            Assert.ReferenceEquals(request.Content?.Contains("TestParam2") == true, pos == HttpMethodParameterPosition.InBody);
-            Assert.ReferenceEquals(request.Uri.ToString().Contains("TestParam2"), pos == HttpMethodParameterPosition.InUri);
-            Assert.ReferenceEquals(request.GetHeaders().First().Key, "TestHeader");
+            Assert.That(request.Method == new HttpMethod(method));
+            Assert.That((request.Content?.Contains("TestParam1") == true) == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((request.Uri.ToString().Contains("TestParam1")) == (pos == HttpMethodParameterPosition.InUri));
+            Assert.That((request.Content?.Contains("TestParam2") == true) == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((request.Uri.ToString().Contains("TestParam2")) == (pos == HttpMethodParameterPosition.InUri));
+            Assert.That(request.GetHeaders().First().Key == "TestHeader");
             Assert.That(request.GetHeaders().First().Value.Contains("123"));
         }
 

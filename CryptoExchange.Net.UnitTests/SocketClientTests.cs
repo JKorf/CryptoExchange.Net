@@ -29,10 +29,9 @@ namespace CryptoExchange.Net.UnitTests
                 options.SubOptions.MaxSocketConnections = 1;
             });
 
-
             //assert
             ClassicAssert.NotNull(client.SubClient.ApiOptions.ApiCredentials);
-            ClassicAssert.ReferenceEquals(1, client.SubClient.ApiOptions.MaxSocketConnections);
+            Assert.That(1 == client.SubClient.ApiOptions.MaxSocketConnections);
         }
 
         [TestCase(true)]

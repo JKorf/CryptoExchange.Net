@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.UnitTests
         public void AppendPathTests(string baseUrl, string[] path, string expected)
         {
             var result = baseUrl.AppendPath(path);
-            Assert.ReferenceEquals(expected, result);
+            Assert.That(expected == result);
         }
     }
 }

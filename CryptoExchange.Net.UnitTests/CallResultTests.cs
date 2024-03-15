@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new CallResult(new ServerError("TestError"));
 
-            Assert.ReferenceEquals(result.Error.Message, "TestError");
+            ClassicAssert.AreSame(result.Error.Message, "TestError");
             ClassicAssert.IsFalse(result);
             ClassicAssert.IsFalse(result.Success);
         }
@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new CallResult<object>(new ServerError("TestError"));
 
-            Assert.ReferenceEquals(result.Error.Message, "TestError");
+            ClassicAssert.AreSame(result.Error.Message, "TestError");
             ClassicAssert.IsNull(result.Data);
             ClassicAssert.IsFalse(result);
             ClassicAssert.IsFalse(result.Success);
@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.As<TestObject2>(default);
 
             ClassicAssert.IsNotNull(asResult.Error);
-            Assert.ReferenceEquals(asResult.Error.Message, "TestError");
+            ClassicAssert.AreSame(asResult.Error.Message, "TestError");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2"));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            Assert.ReferenceEquals(asResult.Error.Message, "TestError2");
+            ClassicAssert.AreSame(asResult.Error.Message, "TestError2");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2"));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            Assert.ReferenceEquals(asResult.Error.Message, "TestError2");
+            ClassicAssert.AreSame(asResult.Error.Message, "TestError2");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -126,11 +126,11 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2"));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            Assert.ReferenceEquals(asResult.Error.Message, "TestError2");
-            Assert.ReferenceEquals(asResult.ResponseStatusCode, System.Net.HttpStatusCode.OK);
-            Assert.ReferenceEquals(asResult.ResponseTime, TimeSpan.FromSeconds(1));
-            Assert.ReferenceEquals(asResult.RequestUrl, "https://test.com/api");
-            Assert.ReferenceEquals(asResult.RequestMethod, HttpMethod.Get);
+            Assert.That(asResult.Error.Message == "TestError2");
+            Assert.That(asResult.ResponseStatusCode == System.Net.HttpStatusCode.OK);
+            Assert.That(asResult.ResponseTime == TimeSpan.FromSeconds(1));
+            Assert.That(asResult.RequestUrl == "https://test.com/api");
+            Assert.That(asResult.RequestMethod == HttpMethod.Get);
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -155,10 +155,10 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.As<TestObject2>(result.Data.InnerData);
 
             ClassicAssert.IsNull(asResult.Error);
-            Assert.ReferenceEquals(asResult.ResponseStatusCode, System.Net.HttpStatusCode.OK);
-            Assert.ReferenceEquals(asResult.ResponseTime, TimeSpan.FromSeconds(1));
-            Assert.ReferenceEquals(asResult.RequestUrl, "https://test.com/api");
-            Assert.ReferenceEquals(asResult.RequestMethod, HttpMethod.Get);
+            Assert.That(asResult.ResponseStatusCode == System.Net.HttpStatusCode.OK);
+            Assert.That(asResult.ResponseTime == TimeSpan.FromSeconds(1));
+            Assert.That(asResult.RequestUrl == "https://test.com/api");
+            Assert.That(asResult.RequestMethod == HttpMethod.Get);
             ClassicAssert.IsNotNull(asResult.Data);
             Assert.That(asResult);
             Assert.That(asResult.Success);

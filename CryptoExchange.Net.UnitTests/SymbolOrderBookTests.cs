@@ -58,8 +58,8 @@ namespace CryptoExchange.Net.UnitTests
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
             ClassicAssert.IsNotNull(symbolOrderBook.BestBid);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestBid.Price);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestAsk.Quantity);
+            Assert.That(0m == symbolOrderBook.BestBid.Price);
+            Assert.That(0m == symbolOrderBook.BestAsk.Quantity);
         }
 
         [TestCase]
@@ -67,8 +67,8 @@ namespace CryptoExchange.Net.UnitTests
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
             ClassicAssert.IsNotNull(symbolOrderBook.BestBid);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestBid.Price);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestAsk.Quantity);
+            Assert.That(0m == symbolOrderBook.BestBid.Price);
+            Assert.That(0m == symbolOrderBook.BestAsk.Quantity);
         }
 
         [TestCase]
@@ -78,10 +78,10 @@ namespace CryptoExchange.Net.UnitTests
             ClassicAssert.IsNotNull(symbolOrderBook.BestOffers);
             ClassicAssert.IsNotNull(symbolOrderBook.BestOffers.Bid);
             ClassicAssert.IsNotNull(symbolOrderBook.BestOffers.Ask);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Bid.Price);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Bid.Quantity);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Ask.Price);
-            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Ask.Quantity);
+            Assert.That(0m == symbolOrderBook.BestOffers.Bid.Price);
+            Assert.That(0m == symbolOrderBook.BestOffers.Bid.Quantity);
+            Assert.That(0m == symbolOrderBook.BestOffers.Ask.Price);
+            Assert.That(0m == symbolOrderBook.BestOffers.Ask.Quantity);
         }
 
         [TestCase]
@@ -106,10 +106,10 @@ namespace CryptoExchange.Net.UnitTests
 
             Assert.That(resultBids.Success);
             Assert.That(resultAsks.Success);
-            Assert.ReferenceEquals(1.05m, resultBids.Data);
-            Assert.ReferenceEquals(1.25m, resultAsks.Data);
-            Assert.ReferenceEquals(1.06666667m, resultBids2.Data);
-            Assert.ReferenceEquals(1.23333333m, resultAsks2.Data);
+            Assert.That(1.05m == resultBids.Data);
+            Assert.That(1.25m == resultAsks.Data);
+            Assert.That(1.06666667m == resultBids2.Data);
+            Assert.That(1.23333333m == resultAsks2.Data);
         }
 
         [TestCase]
@@ -134,10 +134,10 @@ namespace CryptoExchange.Net.UnitTests
 
             Assert.That(resultBids.Success);
             Assert.That(resultAsks.Success);
-            Assert.ReferenceEquals(1.9m, resultBids.Data);
-            Assert.ReferenceEquals(1.61538462m, resultAsks.Data);
-            Assert.ReferenceEquals(1.4m, resultBids2.Data);
-            Assert.ReferenceEquals(1.23076923m, resultAsks2.Data);
+            Assert.That(1.9m == resultBids.Data);
+            Assert.That(1.61538462m == resultAsks.Data);
+            Assert.That(1.4m == resultBids2.Data);
+            Assert.That(1.23076923m == resultAsks2.Data);
         }
     }
 }

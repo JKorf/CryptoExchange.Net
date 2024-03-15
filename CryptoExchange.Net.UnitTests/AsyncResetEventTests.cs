@@ -106,12 +106,12 @@ namespace CryptoExchange.Net.UnitTests
             for(var i = 1; i <= 10; i++)
             {
                 evnt.Set();
-                Assert.ReferenceEquals(10 - i, waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
+                Assert.That(10 - i == waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
             }
 
             await resultsWaiter;
 
-            Assert.ReferenceEquals(10, results.Count(r => r));
+            Assert.That(10 == results.Count(r => r));
         }
 
         [Test]

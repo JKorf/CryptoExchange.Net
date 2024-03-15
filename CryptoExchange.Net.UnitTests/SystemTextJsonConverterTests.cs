@@ -4,6 +4,7 @@ using System.Text.Json;
 using NUnit.Framework;
 using System;
 using System.Text.Json.Serialization;
+using NUnit.Framework.Legacy;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -24,7 +25,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestDateTimeConverterString(string input, bool expectNull = false)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": \"{input}\" }}");
-            Assert.ReferenceEquals(output.Time, expectNull ? null: new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output.Time == (expectNull ? null: new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
         }
 
         [TestCase(1620777600.000)]
@@ -32,7 +33,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestDateTimeConverterDouble(double input)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": {input} }}");
-            Assert.ReferenceEquals(output.Time, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output.Time == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [TestCase(1620777600)]
@@ -43,7 +44,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestDateTimeConverterLong(long input, bool expectNull = false)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": {input} }}");
-            Assert.ReferenceEquals(output.Time, expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output.Time == (expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
         }
 
         [TestCase(1620777600)]
@@ -51,14 +52,14 @@ namespace CryptoExchange.Net.UnitTests
         public void TestDateTimeConverterFromSeconds(double input)
         {
             var output = DateTimeConverter.ConvertFromSeconds(input);
-            Assert.ReferenceEquals(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [Test]
         public void TestDateTimeConverterToSeconds()
         {
             var output = DateTimeConverter.ConvertToSeconds(new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-            Assert.ReferenceEquals(output, 1620777600);
+            Assert.That(output == 1620777600);
         }
 
         [TestCase(1620777600000)]
@@ -66,49 +67,49 @@ namespace CryptoExchange.Net.UnitTests
         public void TestDateTimeConverterFromMilliseconds(double input)
         {
             var output = DateTimeConverter.ConvertFromMilliseconds(input);
-            Assert.ReferenceEquals(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [Test]
         public void TestDateTimeConverterToMilliseconds()
         {
             var output = DateTimeConverter.ConvertToMilliseconds(new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-            Assert.ReferenceEquals(output, 1620777600000);
+            Assert.That(output == 1620777600000);
         }
 
         [TestCase(1620777600000000)]
         public void TestDateTimeConverterFromMicroseconds(long input)
         {
             var output = DateTimeConverter.ConvertFromMicroseconds(input);
-            Assert.ReferenceEquals(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [Test]
         public void TestDateTimeConverterToMicroseconds()
         {
             var output = DateTimeConverter.ConvertToMicroseconds(new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-            Assert.ReferenceEquals(output, 1620777600000000);
+            Assert.That(output == 1620777600000000);
         }
 
         [TestCase(1620777600000000000)]
         public void TestDateTimeConverterFromNanoseconds(long input)
         {
             var output = DateTimeConverter.ConvertFromNanoseconds(input);
-            Assert.ReferenceEquals(output, new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [Test]
         public void TestDateTimeConverterToNanoseconds()
         {
             var output = DateTimeConverter.ConvertToNanoseconds(new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
-            Assert.ReferenceEquals(output, 1620777600000000000);
+            Assert.That(output == 1620777600000000000);
         }
 
         [TestCase()]
         public void TestDateTimeConverterNull()
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": null }}");
-            Assert.ReferenceEquals(output.Time, null);
+            Assert.That(output.Time == null);
         }
 
         [TestCase(TestEnum.One, "1")]
@@ -119,7 +120,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestEnumConverterNullableGetStringTests(TestEnum? value, string expected)
         {
             var output = EnumConverter.GetString(value);
-            Assert.ReferenceEquals(output, expected);
+            Assert.That(output == expected);
         }
 
         [TestCase(TestEnum.One, "1")]
@@ -129,7 +130,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestEnumConverterGetStringTests(TestEnum value, string expected)
         {
             var output = EnumConverter.GetString(value);
-            Assert.ReferenceEquals(output, expected);
+            Assert.That(output == expected);
         }
 
         [TestCase("1", TestEnum.One)]
@@ -144,7 +145,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<STJEnumObject>($"{{ \"Value\": {val} }}");
-            Assert.ReferenceEquals(output.Value, expected);
+            Assert.That(output.Value == expected);
         }
 
         [TestCase("1", TestEnum.One)]
@@ -159,7 +160,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJEnumObject>($"{{ \"Value\": {val} }}");
-            Assert.ReferenceEquals(output.Value, expected);
+            Assert.That(output.Value == expected);
         }
 
         [TestCase("1", true)]
@@ -178,7 +179,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}");
-            Assert.ReferenceEquals(output.Value, expected);
+            Assert.That(output.Value == expected);
         }
 
         [TestCase("1", true)]
@@ -197,7 +198,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJBoolObject>($"{{ \"Value\": {val} }}");
-            Assert.ReferenceEquals(output.Value, expected);
+            Assert.That(output.Value == expected);
         }
     }
 
