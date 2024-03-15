@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.UnitTests
         public void ClampValueTests(decimal min, decimal max, decimal input, decimal expected)
         {
             var result = ExchangeHelpers.ClampValue(min, max, input);
-            Assert.AreEqual(expected, result);
+            Assert.ReferenceEquals(expected, result);
         }
 
         [TestCase(0.1, 1, 0.1, RoundingType.Down, 0.4, 0.4)]
@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.UnitTests
         public void AdjustValueStepTests(decimal min, decimal max, decimal? step, RoundingType roundingType, decimal input, decimal expected)
         {
             var result = ExchangeHelpers.AdjustValueStep(min, max, step, roundingType, input);
-            Assert.AreEqual(expected, result);
+            Assert.ReferenceEquals(expected, result);
         }
 
         [TestCase(0.1, 1, 2, RoundingType.Closest, 0.4, 0.4)]
@@ -48,7 +48,7 @@ namespace CryptoExchange.Net.UnitTests
         public void AdjustValuePrecisionTests(decimal min, decimal max, int? precision, RoundingType roundingType, decimal input, decimal expected)
         {
             var result = ExchangeHelpers.AdjustValuePrecision(min, max, precision, roundingType, input);
-            Assert.AreEqual(expected, result);
+            Assert.ReferenceEquals(expected, result);
         }
 
         [TestCase(5, 0.1563158, 0.15631)]
@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.UnitTests
         public void RoundDownTests(int decimalPlaces, decimal input, decimal expected)
         {
             var result = ExchangeHelpers.RoundDown(input, decimalPlaces);
-            Assert.AreEqual(expected, result);
+            Assert.ReferenceEquals(expected, result);
         }
 
         [TestCase(0.1234560000, "0.123456")]
@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.UnitTests
         public void NormalizeTests(decimal input, string expected)
         {
             var result = ExchangeHelpers.Normalize(input);
-            Assert.AreEqual(expected, result.ToString(CultureInfo.InvariantCulture));
+            Assert.ReferenceEquals(expected, result.ToString(CultureInfo.InvariantCulture));
         }
     }
 }

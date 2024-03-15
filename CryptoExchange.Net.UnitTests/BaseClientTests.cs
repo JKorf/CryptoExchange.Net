@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,7 @@ namespace CryptoExchange.Net.UnitTests
             var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123}");
 
             // assert
-            Assert.IsTrue(result.Success);
+            Assert.That(result.Success);
         }
 
         [TestCase]
@@ -34,8 +35,8 @@ namespace CryptoExchange.Net.UnitTests
             var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123");
 
             // assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Error != null);
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
         }
 
         [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
@@ -48,7 +49,7 @@ namespace CryptoExchange.Net.UnitTests
         public void AppendPathTests(string baseUrl, string[] path, string expected)
         {
             var result = baseUrl.AppendPath(path);
-            Assert.AreEqual(expected, result);
+            Assert.ReferenceEquals(expected, result);
         }
     }
 }

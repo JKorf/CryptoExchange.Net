@@ -8,6 +8,7 @@ using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.OrderBook;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -56,31 +57,31 @@ namespace CryptoExchange.Net.UnitTests
         public void GivenEmptyBidList_WhenBestBid_ThenEmptySymbolOrderBookEntry()
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
-            Assert.IsNotNull(symbolOrderBook.BestBid);
-            Assert.AreEqual(0m, symbolOrderBook.BestBid.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestAsk.Quantity);
+            ClassicAssert.IsNotNull(symbolOrderBook.BestBid);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestBid.Price);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestAsk.Quantity);
         }
 
         [TestCase]
         public void GivenEmptyAskList_WhenBestAsk_ThenEmptySymbolOrderBookEntry()
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
-            Assert.IsNotNull(symbolOrderBook.BestBid);
-            Assert.AreEqual(0m, symbolOrderBook.BestBid.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestAsk.Quantity);
+            ClassicAssert.IsNotNull(symbolOrderBook.BestBid);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestBid.Price);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestAsk.Quantity);
         }
 
         [TestCase]
         public void GivenEmptyBidAndAskList_WhenBestOffers_ThenEmptySymbolOrderBookEntries()
         {
             var symbolOrderBook = new TestableSymbolOrderBook();
-            Assert.IsNotNull(symbolOrderBook.BestOffers);
-            Assert.IsNotNull(symbolOrderBook.BestOffers.Bid);
-            Assert.IsNotNull(symbolOrderBook.BestOffers.Ask);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Bid.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Bid.Quantity);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Ask.Price);
-            Assert.AreEqual(0m, symbolOrderBook.BestOffers.Ask.Quantity);
+            ClassicAssert.IsNotNull(symbolOrderBook.BestOffers);
+            ClassicAssert.IsNotNull(symbolOrderBook.BestOffers.Bid);
+            ClassicAssert.IsNotNull(symbolOrderBook.BestOffers.Ask);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Bid.Price);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Bid.Quantity);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Ask.Price);
+            Assert.ReferenceEquals(0m, symbolOrderBook.BestOffers.Ask.Quantity);
         }
 
         [TestCase]
@@ -103,12 +104,12 @@ namespace CryptoExchange.Net.UnitTests
             var resultBids2 = orderbook.CalculateAverageFillPrice(1.5m, OrderBookEntryType.Bid);
             var resultAsks2 = orderbook.CalculateAverageFillPrice(1.5m, OrderBookEntryType.Ask);
 
-            Assert.True(resultBids.Success);
-            Assert.True(resultAsks.Success);
-            Assert.AreEqual(1.05m, resultBids.Data);
-            Assert.AreEqual(1.25m, resultAsks.Data);
-            Assert.AreEqual(1.06666667m, resultBids2.Data);
-            Assert.AreEqual(1.23333333m, resultAsks2.Data);
+            Assert.That(resultBids.Success);
+            Assert.That(resultAsks.Success);
+            Assert.ReferenceEquals(1.05m, resultBids.Data);
+            Assert.ReferenceEquals(1.25m, resultAsks.Data);
+            Assert.ReferenceEquals(1.06666667m, resultBids2.Data);
+            Assert.ReferenceEquals(1.23333333m, resultAsks2.Data);
         }
 
         [TestCase]
@@ -131,12 +132,12 @@ namespace CryptoExchange.Net.UnitTests
             var resultBids2 = orderbook.CalculateTradableAmount(1.5m, OrderBookEntryType.Bid);
             var resultAsks2 = orderbook.CalculateTradableAmount(1.5m, OrderBookEntryType.Ask);
 
-            Assert.True(resultBids.Success);
-            Assert.True(resultAsks.Success);
-            Assert.AreEqual(1.9m, resultBids.Data);
-            Assert.AreEqual(1.61538462m, resultAsks.Data);
-            Assert.AreEqual(1.4m, resultBids2.Data);
-            Assert.AreEqual(1.23076923m, resultAsks2.Data);
+            Assert.That(resultBids.Success);
+            Assert.That(resultAsks.Success);
+            Assert.ReferenceEquals(1.9m, resultBids.Data);
+            Assert.ReferenceEquals(1.61538462m, resultAsks.Data);
+            Assert.ReferenceEquals(1.4m, resultBids2.Data);
+            Assert.ReferenceEquals(1.23076923m, resultAsks2.Data);
         }
     }
 }

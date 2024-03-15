@@ -42,6 +42,6 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="exchangeName"></param>
         /// <returns></returns>
-        public ISpotClient? SpotClient(string exchangeName) => _serviceProvider.GetServices<ISpotClient>()?.SingleOrDefault(s => s.ExchangeName.Equals(exchangeName, StringComparison.InvariantCultureIgnoreCase));
+        public ISpotClient? SpotClient(string exchangeName) => _serviceProvider?.GetServices<ISpotClient>()?.SingleOrDefault(s => s.ExchangeName.Equals(exchangeName, StringComparison.InvariantCultureIgnoreCase));
     }
 }

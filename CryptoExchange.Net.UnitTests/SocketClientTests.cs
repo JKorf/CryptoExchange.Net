@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -30,8 +31,8 @@ namespace CryptoExchange.Net.UnitTests
 
 
             //assert
-            Assert.NotNull(client.SubClient.ApiOptions.ApiCredentials);
-            Assert.AreEqual(1, client.SubClient.ApiOptions.MaxSocketConnections);
+            ClassicAssert.NotNull(client.SubClient.ApiOptions.ApiCredentials);
+            ClassicAssert.ReferenceEquals(1, client.SubClient.ApiOptions.MaxSocketConnections);
         }
 
         [TestCase(true)]
@@ -47,7 +48,7 @@ namespace CryptoExchange.Net.UnitTests
             var connectResult = client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, null));
 
             //assert
-            Assert.IsTrue(connectResult.Success == canConnect);
+            Assert.That(connectResult.Success == canConnect);
         }
 
         [TestCase]
@@ -80,7 +81,7 @@ namespace CryptoExchange.Net.UnitTests
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue(result["property"] == "123");
+            Assert.That(result["property"] == "123");
         }
 
         [TestCase(false)]
@@ -116,7 +117,7 @@ namespace CryptoExchange.Net.UnitTests
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue(original == (enabled ? msgToSend : null));
+            Assert.That(original == (enabled ? msgToSend : null));
         }
 
         [TestCase()]
@@ -140,7 +141,7 @@ namespace CryptoExchange.Net.UnitTests
             client.UnsubscribeAsync(ups).Wait();
 
             // assert
-            Assert.IsTrue(socket.Connected == false);
+            Assert.That(socket.Connected == false);
         }
 
         [TestCase()]
@@ -168,8 +169,8 @@ namespace CryptoExchange.Net.UnitTests
             client.UnsubscribeAllAsync().Wait();
 
             // assert
-            Assert.IsTrue(socket1.Connected == false);
-            Assert.IsTrue(socket2.Connected == false);
+            Assert.That(socket1.Connected == false);
+            Assert.That(socket2.Connected == false);
         }
 
         [TestCase()]
@@ -185,7 +186,7 @@ namespace CryptoExchange.Net.UnitTests
             var connectResult = client.SubClient.ConnectSocketSub(sub1);
 
             // assert
-            Assert.IsFalse(connectResult.Success);
+            ClassicAssert.IsFalse(connectResult.Success);
         }
 
         [TestCase()]
@@ -208,7 +209,7 @@ namespace CryptoExchange.Net.UnitTests
             await sub;
 
             // assert
-            Assert.IsFalse(client.SubClient.TestSubscription.Confirmed);
+            ClassicAssert.IsFalse(client.SubClient.TestSubscription.Confirmed);
         }
 
         [TestCase()]
@@ -231,7 +232,7 @@ namespace CryptoExchange.Net.UnitTests
             await sub;
 
             // assert
-            Assert.IsTrue(client.SubClient.TestSubscription.Confirmed);
+            Assert.That(client.SubClient.TestSubscription.Confirmed);
         }
     }
 }
