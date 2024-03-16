@@ -11,6 +11,11 @@ namespace CryptoExchange.Net.Interfaces
     public interface ISocketClient: IDisposable
     {
         /// <summary>
+        /// The exchange name
+        /// </summary>
+        string Exchange { get; }
+
+        /// <summary>
         /// The options provided for this client
         /// </summary>
         ExchangeOptions ClientOptions { get; }

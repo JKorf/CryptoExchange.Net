@@ -519,7 +519,7 @@ namespace CryptoExchange.Net.Sockets
                             multiPartMessage = true;
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
 
-                            // Add the buffer to the multipart buffers list, create new buffer for next message part
+                            // Write the data to a memory stream to be reassembled later
                             if (multipartStream == null)
                                 multipartStream = new MemoryStream();
                             multipartStream.Write(buffer.Array, buffer.Offset, receiveResult.Count);
