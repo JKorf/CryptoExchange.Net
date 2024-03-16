@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing
+namespace CryptoExchange.Net.Converters.MessageParsing
 {
     /// <summary>
     /// Message access definition

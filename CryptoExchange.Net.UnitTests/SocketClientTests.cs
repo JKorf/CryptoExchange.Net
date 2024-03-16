@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -28,10 +29,9 @@ namespace CryptoExchange.Net.UnitTests
                 options.SubOptions.MaxSocketConnections = 1;
             });
 
-
             //assert
-            Assert.NotNull(client.SubClient.ApiOptions.ApiCredentials);
-            Assert.AreEqual(1, client.SubClient.ApiOptions.MaxSocketConnections);
+            ClassicAssert.NotNull(client.SubClient.ApiOptions.ApiCredentials);
+            Assert.That(1 == client.SubClient.ApiOptions.MaxSocketConnections);
         }
 
         [TestCase(true)]
@@ -47,11 +47,11 @@ namespace CryptoExchange.Net.UnitTests
             var connectResult = client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, null));
 
             //assert
-            Assert.IsTrue(connectResult.Success == canConnect);
+            Assert.That(connectResult.Success == canConnect);
         }
 
         [TestCase]
-        public async Task SocketMessages_Should_BeProcessedInDataHandlers()
+        public void SocketMessages_Should_BeProcessedInDataHandlers()
         {
             // arrange
             var client = new TestSocketClient(options => {
@@ -67,23 +67,25 @@ namespace CryptoExchange.Net.UnitTests
 
             client.SubClient.ConnectSocketSub(sub);
 
-            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
+            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
             {
                 result = messageEvent.Data;
                 rstEvent.Set();
-            }));
+            });
+            subObj.HandleUpdatesBeforeConfirmation = true;
+            sub.AddSubscription(subObj);
 
             // act
-            await socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
+            socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue(result["property"] == "123");
+            Assert.That(result["property"] == "123");
         }
 
         [TestCase(false)]
         [TestCase(true)]
-        public async Task SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
+        public void SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
         {
             // arrange
             var client = new TestSocketClient(options =>
@@ -100,19 +102,21 @@ namespace CryptoExchange.Net.UnitTests
             string original = null;
 
             client.SubClient.ConnectSocketSub(sub);
-            sub.AddSubscription(new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
+            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
             {
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
-            }));
+            });
+            subObj.HandleUpdatesBeforeConfirmation = true;
+            sub.AddSubscription(subObj);
             var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
 
             // act
-            await socket.InvokeMessage(msgToSend);
+            socket.InvokeMessage(msgToSend);
             rstEvent.WaitOne(1000);
 
             // assert
-            Assert.IsTrue(original == (enabled ? msgToSend : null));
+            Assert.That(original == (enabled ? msgToSend : null));
         }
 
         [TestCase()]
@@ -136,7 +140,7 @@ namespace CryptoExchange.Net.UnitTests
             client.UnsubscribeAsync(ups).Wait();
 
             // assert
-            Assert.IsTrue(socket.Connected == false);
+            Assert.That(socket.Connected == false);
         }
 
         [TestCase()]
@@ -164,8 +168,8 @@ namespace CryptoExchange.Net.UnitTests
             client.UnsubscribeAllAsync().Wait();
 
             // assert
-            Assert.IsTrue(socket1.Connected == false);
-            Assert.IsTrue(socket2.Connected == false);
+            Assert.That(socket1.Connected == false);
+            Assert.That(socket2.Connected == false);
         }
 
         [TestCase()]
@@ -181,7 +185,7 @@ namespace CryptoExchange.Net.UnitTests
             var connectResult = client.SubClient.ConnectSocketSub(sub1);
 
             // assert
-            Assert.IsFalse(connectResult.Success);
+            ClassicAssert.IsFalse(connectResult.Success);
         }
 
         [TestCase()]
@@ -200,11 +204,11 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
             await sub;
 
             // assert
-            Assert.IsFalse(client.SubClient.TestSubscription.Confirmed);
+            ClassicAssert.IsFalse(client.SubClient.TestSubscription.Confirmed);
         }
 
         [TestCase()]
@@ -223,11 +227,11 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            await socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
             await sub;
 
             // assert
-            Assert.IsTrue(client.SubClient.TestSubscription.Confirmed);
+            Assert.That(client.SubClient.TestSubscription.Confirmed);
         }
     }
 }

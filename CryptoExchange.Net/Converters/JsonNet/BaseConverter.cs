@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Base class for enum converters

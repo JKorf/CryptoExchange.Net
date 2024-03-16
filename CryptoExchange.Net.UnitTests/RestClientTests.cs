@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
+using NUnit.Framework.Legacy;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -30,8 +31,8 @@ namespace CryptoExchange.Net.UnitTests
             var result = client.Api1.Request<TestObject>().Result;
 
             // assert
-            Assert.IsTrue(result.Success);
-            Assert.IsTrue(TestHelpers.AreEqual(expected, result.Data));
+            Assert.That(result.Success);
+            Assert.That(TestHelpers.AreEqual(expected, result.Data));
         }
 
         [TestCase]
@@ -45,8 +46,8 @@ namespace CryptoExchange.Net.UnitTests
             var result = client.Api1.Request<TestObject>().Result;
 
             // assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Error != null);
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
         }
 
         [TestCase]
@@ -60,8 +61,8 @@ namespace CryptoExchange.Net.UnitTests
             var result = await client.Api1.Request<TestObject>();
 
             // assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Error != null);
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
         }
 
         [TestCase]
@@ -75,11 +76,11 @@ namespace CryptoExchange.Net.UnitTests
             var result = await client.Api1.Request<TestObject>();
 
             // assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Error != null);
-            Assert.IsTrue(result.Error is ServerError);
-            Assert.IsTrue(result.Error.Message.Contains("Invalid request"));
-            Assert.IsTrue(result.Error.Message.Contains("123"));
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
+            Assert.That(result.Error is ServerError);
+            Assert.That(result.Error.Message.Contains("Invalid request"));
+            Assert.That(result.Error.Message.Contains("123"));
         }
 
         [TestCase]
@@ -93,11 +94,11 @@ namespace CryptoExchange.Net.UnitTests
             var result = await client.Api2.Request<TestObject>();
 
             // assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Error != null);
-            Assert.IsTrue(result.Error is ServerError);
-            Assert.IsTrue(result.Error.Code == 123);
-            Assert.IsTrue(result.Error.Message == "Invalid request");
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
+            Assert.That(result.Error is ServerError);
+            Assert.That(result.Error.Code == 123);
+            Assert.That(result.Error.Message == "Invalid request");
         }
 
         [TestCase]
@@ -112,9 +113,9 @@ namespace CryptoExchange.Net.UnitTests
             var client = new TestBaseClient(options);
 
             // assert
-            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
-            Assert.IsTrue(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
-            Assert.IsTrue(((TestClientOptions)client.ClientOptions).RequestTimeout == TimeSpan.FromMinutes(1));
+            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
+            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
+            Assert.That(((TestClientOptions)client.ClientOptions).RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
@@ -145,13 +146,13 @@ namespace CryptoExchange.Net.UnitTests
             });
 
             // assert
-            Assert.AreEqual(request.Method, new HttpMethod(method));
-            Assert.AreEqual(request.Content?.Contains("TestParam1") == true, pos == HttpMethodParameterPosition.InBody);
-            Assert.AreEqual(request.Uri.ToString().Contains("TestParam1"), pos == HttpMethodParameterPosition.InUri);
-            Assert.AreEqual(request.Content?.Contains("TestParam2") == true, pos == HttpMethodParameterPosition.InBody);
-            Assert.AreEqual(request.Uri.ToString().Contains("TestParam2"), pos == HttpMethodParameterPosition.InUri);
-            Assert.AreEqual(request.GetHeaders().First().Key, "TestHeader");
-            Assert.IsTrue(request.GetHeaders().First().Value.Contains("123"));
+            Assert.That(request.Method == new HttpMethod(method));
+            Assert.That((request.Content?.Contains("TestParam1") == true) == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((request.Uri.ToString().Contains("TestParam1")) == (pos == HttpMethodParameterPosition.InUri));
+            Assert.That((request.Content?.Contains("TestParam2") == true) == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((request.Uri.ToString().Contains("TestParam2")) == (pos == HttpMethodParameterPosition.InUri));
+            Assert.That(request.GetHeaders().First().Key == "TestHeader");
+            Assert.That(request.GetHeaders().First().Value.Contains("123"));
         }
 
 
@@ -167,12 +168,12 @@ namespace CryptoExchange.Net.UnitTests
             for (var i = 0; i < requests + 1; i++)
             {
                 var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);             
-                Assert.IsTrue(i == requests? result1.Data > 1 : result1.Data == 0);
+                Assert.That(i == requests? result1.Data > 1 : result1.Data == 0);
             }
 
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result2.Data == 0);
+            Assert.That(result2.Data == 0);
         }
 
         [TestCase("/sapi/test1", true)]
@@ -189,7 +190,7 @@ namespace CryptoExchange.Net.UnitTests
             {
                 var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimiting ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
-                Assert.IsTrue(expected);
+                Assert.That(expected);
             }
         }
         [TestCase("/sapi/", "/sapi/", true)]
@@ -203,8 +204,8 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result1.Data == 0);            
-            Assert.IsTrue(expectLimiting ? result2.Data > 0 : result2.Data == 0);            
+            Assert.That(result1.Data == 0);            
+            Assert.That(expectLimiting ? result2.Data > 0 : result2.Data == 0);            
         }
 
         [TestCase(1, 0.1)]
@@ -219,12 +220,12 @@ namespace CryptoExchange.Net.UnitTests
             for (var i = 0; i < requests + 1; i++)
             {
                 var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-                Assert.IsTrue(i == requests ? result1.Data > 1 : result1.Data == 0);
+                Assert.That(i == requests ? result1.Data > 1 : result1.Data == 0);
             }
 
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result2.Data == 0);
+            Assert.That(result2.Data == 0);
         }
 
         [TestCase("/", false)]
@@ -239,7 +240,7 @@ namespace CryptoExchange.Net.UnitTests
             {
                 var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
-                Assert.IsTrue(expected);
+                Assert.That(expected);
             }
         }
 
@@ -256,7 +257,7 @@ namespace CryptoExchange.Net.UnitTests
             {
                 var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
                 bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0;
-                Assert.IsTrue(expected);
+                Assert.That(expected);
             }
         }
 
@@ -288,8 +289,8 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, signed1, key1?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, signed2, key2?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result1.Data == 0);
-            Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);            
+            Assert.That(result1.Data == 0);
+            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);            
         }
 
         [TestCase("/sapi/test", "/sapi/test", true)]
@@ -302,8 +303,8 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, true, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result1.Data == 0);
-            Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);
+            Assert.That(result1.Data == 0);
+            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);
         }
 
         [TestCase("/sapi/test", true, true, true, false)]
@@ -318,8 +319,8 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed1, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
             var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed2, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.IsTrue(result1.Data == 0);
-            Assert.IsTrue(expectLimited ? result2.Data > 0 : result2.Data == 0);
+            Assert.That(result1.Data == 0);
+            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);
         }
     }
 }

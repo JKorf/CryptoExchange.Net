@@ -31,8 +31,8 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class TraceLogger : ILogger
     {
-        private string? _categoryName;
-        private LogLevel _logLevel;
+        private readonly string? _categoryName;
+        private readonly LogLevel _logLevel;
 
         /// <summary>
         /// ctor
@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <inheritdoc />
-        public IDisposable BeginScope<TState>(TState state) => null!;
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null!;
 
         /// <inheritdoc />
         public bool IsEnabled(LogLevel logLevel) => (int)logLevel < (int)_logLevel;

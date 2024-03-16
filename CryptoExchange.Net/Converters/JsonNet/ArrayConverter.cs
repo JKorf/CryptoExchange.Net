@@ -8,7 +8,7 @@ using CryptoExchange.Net.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CryptoExchange.Net.Converters
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <summary>
     /// Converter for arrays to objects. Can deserialize data like [0.1, 0.2, "test"] to an object. Mapping is done by marking the class with [JsonConverter(typeof(ArrayConverter))] and the properties
@@ -191,26 +191,5 @@ namespace CryptoExchange.Net.Converters
 
         private static T? GetCustomAttribute<T>(Type type) where T : Attribute =>
             (T?)_attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
-    }
-
-    /// <summary>
-    /// Mark property as an index in the array
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ArrayPropertyAttribute: Attribute
-    {
-        /// <summary>
-        /// The index in the array
-        /// </summary>
-        public int Index { get; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="index"></param>
-        public ArrayPropertyAttribute(int index)
-        {
-            Index = index;
-        }
     }
 }

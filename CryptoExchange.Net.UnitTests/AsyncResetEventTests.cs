@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +25,8 @@ namespace CryptoExchange.Net.UnitTests
             var result1 = await waiter1;
             var result2 = await waiter2;
 
-            Assert.True(result1);
-            Assert.True(result2);
+            Assert.That(result1);
+            Assert.That(result2);
         }
 
         [Test]
@@ -39,8 +40,8 @@ namespace CryptoExchange.Net.UnitTests
             var result1 = await waiter1;
             var result2 = await waiter2;
 
-            Assert.True(result1);
-            Assert.True(result2);
+            Assert.That(result1);
+            Assert.That(result2);
         }
 
         [Test]
@@ -55,14 +56,14 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await waiter1;
 
-            Assert.True(result1);
-            Assert.True(waiter2.Status != TaskStatus.RanToCompletion);
+            Assert.That(result1);
+            Assert.That(waiter2.Status != TaskStatus.RanToCompletion);
 
             evnt.Set();
 
             var result2 = await waiter2;
 
-            Assert.True(result2);
+            Assert.That(result2);
         }
 
         [Test]
@@ -75,13 +76,13 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await waiter1;
 
-            Assert.True(result1);
-            Assert.True(waiter2.Status != TaskStatus.RanToCompletion);
+            Assert.That(result1);
+            Assert.That(waiter2.Status != TaskStatus.RanToCompletion);
             evnt.Set();
 
             var result2 = await waiter2;
 
-            Assert.True(result2);
+            Assert.That(result2);
         }
 
         [Test]
@@ -105,12 +106,12 @@ namespace CryptoExchange.Net.UnitTests
             for(var i = 1; i <= 10; i++)
             {
                 evnt.Set();
-                Assert.AreEqual(10 - i, waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
+                Assert.That(10 - i == waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
             }
 
             await resultsWaiter;
 
-            Assert.AreEqual(10, results.Count(r => r));
+            Assert.That(10 == results.Count(r => r));
         }
 
         [Test]
@@ -124,7 +125,7 @@ namespace CryptoExchange.Net.UnitTests
 
             var result1 = await waiter1;
 
-            Assert.True(result1);
+            Assert.That(result1);
         }
 
         [Test]
@@ -134,9 +135,9 @@ namespace CryptoExchange.Net.UnitTests
 
             var waiter1 = evnt.WaitAsync(TimeSpan.FromMilliseconds(100));
 
-            var result1 = await waiter1;            
+            var result1 = await waiter1;
 
-            Assert.False(result1);
+            ClassicAssert.False(result1);
         }
     }
 }

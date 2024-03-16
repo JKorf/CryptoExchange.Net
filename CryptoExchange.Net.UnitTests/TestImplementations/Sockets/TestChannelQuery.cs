@@ -32,14 +32,14 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             ListenerIdentifiers = new HashSet<string> { channel };
         }
 
-        public override Task<CallResult<SubResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<SubResponse> message)
+        public override CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)
         {
             if (!message.Data.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
             {
-                return Task.FromResult(new CallResult<SubResponse>(new ServerError(message.Data.Status)));
+                return new CallResult<SubResponse>(new ServerError(message.Data.Status));
             }
 
-            return base.HandleMessageAsync(connection, message);
+            return base.HandleMessage(connection, message);
         }
     }
 }

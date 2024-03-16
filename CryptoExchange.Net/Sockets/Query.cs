@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +18,11 @@ namespace CryptoExchange.Net.Sockets
         /// Unique identifier
         /// </summary>
         public int Id { get; } = ExchangeHelpers.NextId();
+
+        /// <summary>
+        /// Can handle data
+        /// </summary>
+        public bool CanHandleData => true;
 
         /// <summary>
         /// Has this query been completed
@@ -43,7 +47,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Wait event for the calling message processing thread
         /// </summary>
-        public AsyncResetEvent? ContinueAwaiter { get; set; }
+        public ManualResetEvent? ContinueAwaiter { get; set; }
 
         /// <summary>
         /// Strings to match this query to a received message
@@ -116,7 +120,7 @@ namespace CryptoExchange.Net.Sockets
         public async Task WaitAsync(TimeSpan timeout) => await _event.WaitAsync(timeout).ConfigureAwait(false);
 
         /// <inheritdoc />
-        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
+        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
 
         /// <summary>
         /// Mark request as timeout
@@ -127,7 +131,7 @@ namespace CryptoExchange.Net.Sockets
         /// Mark request as failed
         /// </summary>
         /// <param name="error"></param>
-        public abstract void Fail(string error);
+        public abstract void Fail(Error error);
 
         /// <summary>
         /// Handle a response message
@@ -135,7 +139,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message);
+        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message);
 
     }
 
@@ -164,13 +168,13 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
+        public override CallResult Handle(SocketConnection connection, DataEvent<object> message)
         {
             Completed = true;
             Response = message.Data;
-            Result = await HandleMessageAsync(connection, message.As((TResponse)message.Data)).ConfigureAwait(false);
+            Result = HandleMessage(connection, message.As((TResponse)message.Data));
             _event.Set();
-            await (ContinueAwaiter?.WaitAsync() ?? Task.CompletedTask).ConfigureAwait(false);
+            ContinueAwaiter?.WaitOne();
             return Result;
         }
 
@@ -180,7 +184,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<CallResult<TResponse>> HandleMessageAsync(SocketConnection connection, DataEvent<TResponse> message) => Task.FromResult(new CallResult<TResponse>(message.Data, message.OriginalData, null));
+        public virtual CallResult<TResponse> HandleMessage(SocketConnection connection, DataEvent<TResponse> message) => new CallResult<TResponse>(message.Data, message.OriginalData, null);
 
         /// <inheritdoc />
         public override void Timeout()
@@ -195,9 +199,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override void Fail(string error)
+        public override void Fail(Error error)
         {
-            Result = new CallResult<TResponse>(new ServerError(error));
+            Result = new CallResult<TResponse>(error);
             Completed = true;
             ContinueAwaiter?.Set();
             _event.Set();

@@ -17,5 +17,10 @@ namespace CryptoExchange.Net.Interfaces
         /// The total amount of requests made with this client
         /// </summary>
         int TotalRequestsMade { get; }
+
+        /// <summary>
+        /// The exchange name
+        /// </summary>
+        string Exchange { get; }
     }
 }

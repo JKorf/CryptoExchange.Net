@@ -8,15 +8,14 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// Base rest API client for interacting with a REST API
@@ -36,6 +35,21 @@ namespace CryptoExchange.Net
         public int TotalRequestsMade { get; set; }
 
         /// <summary>
+        /// Request body content type
+        /// </summary>
+        protected RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
+
+        /// <summary>
+        /// How to serialize array parameters when making requests
+        /// </summary>
+        protected ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
+
+        /// <summary>
+        /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
+        /// </summary>
+        protected string RequestBodyEmptyContent = "{}";
+
+        /// <summary>
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
@@ -45,11 +59,23 @@ namespace CryptoExchange.Net
         /// </summary>
         internal IEnumerable<IRateLimiter> RateLimiters { get; }
 
+        /// <summary>
+        /// Where to put the parameters for requests with different Http methods
+        /// </summary>
+        public Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
+        {
+            { HttpMethod.Get, HttpMethodParameterPosition.InUri },
+            { HttpMethod.Post, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
+            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
+        };
+
         /// <inheritdoc />
         public new RestExchangeOptions ClientOptions => (RestExchangeOptions)base.ClientOptions;
 
         /// <inheritdoc />
         public new RestApiOptions ApiOptions => (RestApiOptions)base.ApiOptions;
+
 
         /// <summary>
         /// ctor
@@ -59,9 +85,9 @@ namespace CryptoExchange.Net
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions) 
-            : base(logger, 
-                  apiOptions.OutputOriginalData ?? options.OutputOriginalData, 
+        public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions)
+            : base(logger,
+                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   apiOptions.ApiCredentials ?? options.ApiCredentials,
                   baseAddress,
                   options,
@@ -76,6 +102,18 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Create a message accessor instance
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IStreamMessageAccessor CreateAccessor() => new JsonNetStreamMessageAccessor();
+
+        /// <summary>
+        /// Create a serializer instance
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
+
+        /// <summary>
         /// Execute a request to the uri and returns if it was successful
         /// </summary>
         /// <param name="uri">The uri to send the request to</param>
@@ -87,7 +125,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -102,7 +139,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
@@ -110,15 +146,15 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
-                var result = await GetResponseAsync<object>(request.Data, deserializer, cancellationToken, true).ConfigureAwait(false);
+                var result = await GetResponseAsync<object>(request.Data, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -140,7 +176,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -155,7 +190,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false
             ) where T : class
@@ -164,15 +198,15 @@ namespace CryptoExchange.Net
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, deserializer, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
-                var result = await GetResponseAsync<T>(request.Data, deserializer, cancellationToken, false).ConfigureAwait(false);
+                var result = await GetResponseAsync<T>(request.Data, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? (": " + result.OriginalData) : "")}");
+                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -193,7 +227,6 @@ namespace CryptoExchange.Net
         /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
         /// <returns></returns>
@@ -207,7 +240,6 @@ namespace CryptoExchange.Net
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
-            JsonSerializer? deserializer = null,
             Dictionary<string, string>? additionalHeaders = null,
             bool ignoreRatelimit = false)
         {
@@ -248,7 +280,7 @@ namespace CryptoExchange.Net
 
             _logger.Log(LogLevel.Information, $"[Req {requestId}] Creating request for " + uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? this.arraySerialization, requestBodyFormat ?? this.requestBodyFormat, requestId, additionalHeaders);
+            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? ArraySerialization, requestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
 
             string? paramString = "";
             if (paramsPosition == HttpMethodParameterPosition.InBody)
@@ -267,109 +299,64 @@ namespace CryptoExchange.Net
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
         /// <param name="request">The request object to execute</param>
-        /// <param name="deserializer">The JsonSerializer to use for deserialization</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="expectedEmptyResponse">If an empty response is expected</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
             IRequest request,
-            JsonSerializer? deserializer,
-            CancellationToken cancellationToken,
-            bool expectedEmptyResponse)
+            CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
+            Stream? responseStream = null;
+            IResponse? response = null;
+            IStreamMessageAccessor? accessor = null;
             try
             {
-                var response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
+                response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
                 var statusCode = response.StatusCode;
                 var headers = response.ResponseHeaders;
                 var responseLength = response.ContentLength;
-                var responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
+                responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
+                var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
+
+                accessor = CreateAccessor();
+                if (!response.IsSuccessStatusCode)
                 {
-                    // If we have to manually parse error responses (can't rely on HttpStatusCode) we'll need to read the full
-                    // response before being able to deserialize it into the resulting type since we don't know if its an error response or data
-                    if (manualParseError)
-                    {
-                        using var reader = new StreamReader(responseStream);
-                        var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        responseLength ??= data.Length;
-                        responseStream.Close();
-                        response.Close();
-
-                        if (!expectedEmptyResponse)
-                        {
-                            // Validate if it is valid json. Sometimes other data will be returned, 502 error html pages for example
-                            var parseResult = ValidateJson(data);
-                            if (!parseResult.Success)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                            // Let the library implementation see if it is an error response, and if so parse the error
-                            var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                            if (error != null)
-                                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-
-                            // Not an error, so continue deserializing
-                            var deserializeResult = Deserialize<T>(parseResult.Data, deserializer, request.RequestId);
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
-                        }
-                        else
-                        {
-                            if (!string.IsNullOrEmpty(data))
-                            {
-                                var parseResult = ValidateJson(data);
-                                if (!parseResult.Success)
-                                    // Not empty, and not json
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parseResult.Error!);
-
-                                var error = await TryParseErrorAsync(parseResult.Data).ConfigureAwait(false);
-                                if (error != null)
-                                    // Error response
-                                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
-                            }
-
-                            // Empty success response; okay
-                            return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? data : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, default);
-                        }
-                    }
-                    else
-                    {
-                        if (expectedEmptyResponse)
-                        {
-                            // We expected an empty response and the request is successful and don't manually parse errors, so assume it's correct
-                            responseStream.Close();
-                            response.Close();
-
-                            return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
-                        }
-
-                        // Success status code, and we don't have to check for errors. Continue deserializing directly from the stream
-                        var desResult = await DeserializeAsync<T>(responseStream, deserializer, request.RequestId, sw.ElapsedMilliseconds).ConfigureAwait(false);
-                        responseStream.Close();
-                        response.Close();
-
-                        return new WebCallResult<T>(statusCode, headers, sw.Elapsed, responseLength, OutputOriginalData ? desResult.OriginalData : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), desResult.Data, desResult.Error);
-                    }
-                }
-                else
-                {
-                    // Http status code indicates error
-                    using var reader = new StreamReader(responseStream);
-                    var data = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    responseStream.Close();
-                    response.Close();
+                    // Error response
+                    accessor.Read(responseStream, true);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
-                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
                     else
-                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, data);
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
 
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, data.Length, data, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
+
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error!);
                 }
+
+                if (typeof(T) == typeof(object))
+                    // Success status code and expected empty response, assume it's correct
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
+
+                var valid = accessor.Read(responseStream, outputOriginalData);
+                if (!valid)
+                {
+                    // Invalid json
+                    var error = new ServerError(accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
+                }
+
+                // Json response received
+                var parsedError = TryParseError(accessor);
+                if (parsedError != null)
+                    // Success status code, but TryParseError determined it was an error response
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, parsedError);
+
+                var deserializeResult = accessor.Deserialize<T>();
+                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), deserializeResult.Data, deserializeResult.Error);
             }
             catch (HttpRequestException requestException)
             {
@@ -390,6 +377,12 @@ namespace CryptoExchange.Net
                     return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, new WebError($"Request timed out"));
                 }
             }
+            finally
+            {
+                accessor?.Clear();
+                responseStream?.Close();
+                response?.Close();
+            }
         }
 
         /// <summary>
@@ -397,12 +390,9 @@ namespace CryptoExchange.Net
         /// When setting manualParseError to true this method will be called for each response to be able to check if the response is an error or not.
         /// If the response is an error this method should return the parsed error, else it should return null
         /// </summary>
-        /// <param name="data">Received data</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Task<ServerError?> TryParseErrorAsync(JToken data)
-        {
-            return Task.FromResult<ServerError?>(null);
-        }
+        protected virtual ServerError? TryParseError(IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
@@ -468,6 +458,7 @@ namespace CryptoExchange.Net
                         signed,
                         arraySerialization,
                         parameterPosition,
+                        bodyFormat,
                         out uriParameters,
                         out bodyParameters,
                         out headers);
@@ -519,7 +510,7 @@ namespace CryptoExchange.Net
                 if (bodyParameters.Any())
                     WriteParamBody(request, bodyParameters, contentType);
                 else
-                    request.SetContent(requestBodyEmptyContent, contentType);
+                    request.SetContent(RequestBodyEmptyContent, contentType);
             }
 
             return request;
@@ -536,7 +527,7 @@ namespace CryptoExchange.Net
             if (contentType == Constants.JsonContentHeader)
             {
                 // Write the parameters as json in the body
-                var stringData = JsonConvert.SerializeObject(parameters);
+                var stringData = CreateSerializer().Serialize(parameters);
                 request.SetContent(stringData, contentType);
             }
             else if (contentType == Constants.FormContentHeader)
@@ -552,35 +543,38 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
-        /// <param name="data">The response data</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
+        protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {
-            return new ServerError(data);
+            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
+            return new ServerError(message);
         }
-        
+
         /// <summary>
         /// Parse a rate limit error response from the server. Only used when server returns http status 429 or 418
         /// </summary>
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
-        /// <param name="data">The response data</param>
+        /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual Error ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
+        protected virtual Error ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {
+            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
+
             // Handle retry after header
             var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
             if (retryAfterHeader.Value?.Any() != true)
-                return new ServerRateLimitError(data);
+                return new ServerRateLimitError(message);
 
             var value = retryAfterHeader.Value.First();
             if (int.TryParse(value, out var seconds))
-                return new ServerRateLimitError(data) { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
+                return new ServerRateLimitError(message) { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
 
             if (DateTime.TryParse(value, out var datetime))
-                return new ServerRateLimitError(data) { RetryAfter = datetime };
+                return new ServerRateLimitError(message) { RetryAfter = datetime };
 
-            return new ServerRateLimitError(data);
+            return new ServerRateLimitError(message);
         }
 
         /// <summary>
@@ -597,7 +591,7 @@ namespace CryptoExchange.Net
 
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
-                if (!timeSyncParams.SyncTime || (DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval))
+                if (!timeSyncParams.SyncTime || DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval)
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
                     return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
@@ -624,7 +618,7 @@ namespace CryptoExchange.Net
                 }
 
                 // Calculate time offset between local and server
-                var offset = result.Data - (localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2));
+                var offset = result.Data - localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2);
                 timeSyncParams.UpdateTimeOffset(offset);
                 timeSyncParams.TimeSyncState.Semaphore.Release();
             }

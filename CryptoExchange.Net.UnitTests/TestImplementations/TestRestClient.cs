@@ -14,6 +14,7 @@ using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
+using CryptoExchange.Net.Clients;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -182,11 +183,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct);
         }
 
-        protected override Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, string data)
+        protected override Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {
-            var errorData = ValidateJson(data);
+            var errorData = accessor.Deserialize<TestError>();
 
-            return new ServerError((int)errorData.Data["errorCode"], (string)errorData.Data["errorMessage"]);
+            return new ServerError(errorData.Data.ErrorCode, errorData.Data.ErrorMessage);
         }
 
         public override TimeSpan? GetTimeOffset()
@@ -206,6 +207,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class TestError
+    {
+        public int ErrorCode { get; set; }
+        public string ErrorMessage { get; set; }
     }
 
     public class ParseErrorTestRestClient: TestRestClient

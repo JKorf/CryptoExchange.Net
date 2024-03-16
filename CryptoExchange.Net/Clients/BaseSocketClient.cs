@@ -7,20 +7,20 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 
-namespace CryptoExchange.Net
+namespace CryptoExchange.Net.Clients
 {
     /// <summary>
     /// Base for socket client implementations
     /// </summary>
-    public abstract class BaseSocketClient: BaseClient, ISocketClient
+    public abstract class BaseSocketClient : BaseClient, ISocketClient
     {
         #region fields
-        
+
         /// <summary>
         /// If client is disposing
         /// </summary>
         protected bool _disposing;
-        
+
         /// <inheritdoc />
         public int CurrentConnections => ApiClients.OfType<SocketApiClient>().Sum(c => c.CurrentConnections);
         /// <inheritdoc />
@@ -33,8 +33,8 @@ namespace CryptoExchange.Net
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="name">The name of the API this client is for</param>
-        protected BaseSocketClient(ILoggerFactory? logger, string name) : base(logger, name)
+        /// <param name="exchange">The name of the exchange this client is for</param>
+        protected BaseSocketClient(ILoggerFactory? logger, string exchange) : base(logger, exchange)
         {
         }
 
@@ -45,11 +45,11 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAsync(int subscriptionId)
         {
-            foreach(var socket in ApiClients.OfType<SocketApiClient>())
+            foreach (var socket in ApiClients.OfType<SocketApiClient>())
             {
                 var result = await socket.UnsubscribeAsync(subscriptionId).ConfigureAwait(false);
                 if (result)
-                    break;                
+                    break;
             }
         }
 
@@ -73,10 +73,10 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
-            var tasks = new List<Task>();            
+            var tasks = new List<Task>();
             foreach (var client in ApiClients.OfType<SocketApiClient>())
                 tasks.Add(client.UnsubscribeAllAsync());
-            
+
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
         }
 

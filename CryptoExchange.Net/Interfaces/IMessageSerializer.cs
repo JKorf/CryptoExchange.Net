@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.Sockets.MessageParsing.Interfaces
+﻿namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Serializer interface

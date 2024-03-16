@@ -1,10 +1,10 @@
-﻿using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
+﻿using CryptoExchange.Net.Interfaces;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Net.Sockets.MessageParsing
+namespace CryptoExchange.Net.Converters.JsonNet
 {
     /// <inheritdoc />
-    public class JsonNetSerializer : IMessageSerializer
+    public class JsonNetMessageSerializer : IMessageSerializer
     {
         /// <inheritdoc />
         public string Serialize(object message) => JsonConvert.SerializeObject(message, Formatting.None);

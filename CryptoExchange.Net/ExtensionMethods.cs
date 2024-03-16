@@ -8,8 +8,6 @@ using System.Text;
 using System.Web;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {
@@ -35,33 +33,9 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        /// <param name="converter"></param>
-        public static void AddParameter(this Dictionary<string, object> parameters, string key, string value, JsonConverter converter)
-        {
-            parameters.Add(key, JsonConvert.SerializeObject(value, converter));
-        }
-
-        /// <summary>
-        /// Add a parameter
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
         public static void AddParameter(this Dictionary<string, object> parameters, string key, object value)
         {
             parameters.Add(key, value);
-        }
-
-        /// <summary>
-        /// Add a parameter
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="converter"></param>
-        public static void AddParameter(this Dictionary<string, object> parameters, string key, object value, JsonConverter converter)
-        {
-            parameters.Add(key, JsonConvert.SerializeObject(value, converter));
         }
 
         /// <summary>
@@ -74,19 +48,6 @@ namespace CryptoExchange.Net
         {
             if (value != null)
                 parameters.Add(key, value);
-        }
-
-        /// <summary>
-        /// Add an optional parameter. Not added if value is null
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="converter"></param>
-        public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value, JsonConverter converter)
-        {
-            if (value != null)
-                parameters.Add(key, JsonConvert.SerializeObject(value, converter));
         }
 
         /// <summary>
@@ -228,37 +189,6 @@ namespace CryptoExchange.Net
                 secureString.AppendChar(c);
             secureString.MakeReadOnly();
             return secureString;
-        }
-
-        /// <summary>
-        /// String to JToken
-        /// </summary>
-        /// <param name="stringData"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        public static JToken? ToJToken(this string stringData, ILogger? logger = null)
-        {
-            if (string.IsNullOrEmpty(stringData))
-                return null;
-
-            try
-            {
-                return JToken.Parse(stringData);
-            }
-            catch (JsonReaderException jre)
-            {
-                var info = $"Deserialize JsonReaderException: {jre.Message}, Path: {jre.Path}, LineNumber: {jre.LineNumber}, LinePosition: {jre.LinePosition}. Data: {stringData}";
-                logger?.Log(LogLevel.Error, info);
-                if (logger == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
-                return null;
-            }
-            catch (JsonSerializationException jse)
-            {
-                var info = $"Deserialize JsonSerializationException: {jse.Message}. Data: {stringData}";
-                logger?.Log(LogLevel.Error, info);
-                if (logger == null) Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | {info}");
-                return null;
-            }
         }
 
         /// <summary>

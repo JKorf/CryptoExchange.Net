@@ -4,6 +4,7 @@ using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,9 +50,9 @@ namespace CryptoExchange.Net.UnitTests
             };
 
             // assert
-            Assert.AreEqual(options.ReceiveWindow, TimeSpan.FromSeconds(10));
-            Assert.AreEqual(options.ApiCredentials.Key.GetString(), "123");
-            Assert.AreEqual(options.ApiCredentials.Secret.GetString(), "456");
+            Assert.That(options.ReceiveWindow == TimeSpan.FromSeconds(10));
+            Assert.That(options.ApiCredentials.Key.GetString() == "123");
+            Assert.That(options.ApiCredentials.Secret.GetString() == "456");
         }
 
         [Test]
@@ -63,10 +64,10 @@ namespace CryptoExchange.Net.UnitTests
             options.Api2Options.ApiCredentials = new ApiCredentials("789", "101");
 
             // assert
-            Assert.AreEqual(options.Api1Options.ApiCredentials.Key.GetString(), "123");
-            Assert.AreEqual(options.Api1Options.ApiCredentials.Secret.GetString(), "456");
-            Assert.AreEqual(options.Api2Options.ApiCredentials.Key.GetString(), "789");
-            Assert.AreEqual(options.Api2Options.ApiCredentials.Secret.GetString(), "101");
+            Assert.That(options.Api1Options.ApiCredentials.Key.GetString() == "123");
+            Assert.That(options.Api1Options.ApiCredentials.Secret.GetString() == "456");
+            Assert.That(options.Api2Options.ApiCredentials.Key.GetString() == "789");
+            Assert.That(options.Api2Options.ApiCredentials.Secret.GetString() == "101");
         }
 
         [Test]
@@ -79,10 +80,10 @@ namespace CryptoExchange.Net.UnitTests
 
             var authProvider1 = (TestAuthProvider)client.Api1.AuthenticationProvider;
             var authProvider2 = (TestAuthProvider)client.Api2.AuthenticationProvider;
-            Assert.AreEqual(authProvider1.GetKey(), "111");
-            Assert.AreEqual(authProvider1.GetSecret(), "222");
-            Assert.AreEqual(authProvider2.GetKey(), "333");
-            Assert.AreEqual(authProvider2.GetSecret(), "444");
+            Assert.That(authProvider1.GetKey() == "111");
+            Assert.That(authProvider1.GetSecret() == "222");
+            Assert.That(authProvider2.GetKey() == "333");
+            Assert.That(authProvider2.GetSecret() == "444");
         }
 
         [Test]
@@ -95,10 +96,10 @@ namespace CryptoExchange.Net.UnitTests
 
             var authProvider1 = (TestAuthProvider)client.Api1.AuthenticationProvider;
             var authProvider2 = (TestAuthProvider)client.Api2.AuthenticationProvider;
-            Assert.AreEqual(authProvider1.GetKey(), "111");
-            Assert.AreEqual(authProvider1.GetSecret(), "222");
-            Assert.AreEqual(authProvider2.GetKey(), "123");
-            Assert.AreEqual(authProvider2.GetSecret(), "456");
+            Assert.That(authProvider1.GetKey() == "111");
+            Assert.That(authProvider1.GetSecret() == "222");
+            Assert.That(authProvider2.GetKey() == "123");
+            Assert.That(authProvider2.GetSecret() == "456");
         }
 
         [Test]
@@ -115,11 +116,11 @@ namespace CryptoExchange.Net.UnitTests
 
             var authProvider1 = (TestAuthProvider)client.Api1.AuthenticationProvider;
             var authProvider2 = (TestAuthProvider)client.Api2.AuthenticationProvider;
-            Assert.AreEqual(authProvider1.GetKey(), "333");
-            Assert.AreEqual(authProvider1.GetSecret(), "444");
-            Assert.AreEqual(authProvider2.GetKey(), "123");
-            Assert.AreEqual(authProvider2.GetSecret(), "456");
-            Assert.AreEqual(client.Api2.BaseAddress, "https://localhost:123");
+            Assert.That(authProvider1.GetKey() == "333");
+            Assert.That(authProvider1.GetSecret() == "444");
+            Assert.That(authProvider2.GetKey() == "123");
+            Assert.That(authProvider2.GetSecret() == "456");
+            Assert.That(client.Api2.BaseAddress == "https://localhost:123");
         }
     }
 

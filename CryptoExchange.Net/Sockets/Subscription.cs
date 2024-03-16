@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets.MessageParsing.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,6 +18,11 @@ namespace CryptoExchange.Net.Sockets
         /// Subscription id
         /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Can handle data
+        /// </summary>
+        public bool CanHandleData => Confirmed || HandleUpdatesBeforeConfirmation;
 
         /// <summary>
         /// Total amount of invocations
@@ -40,6 +44,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Confirmed { get; set; }
         
+        /// <summary>
+        /// Whether this subscription should handle update messages before confirmation
+        /// </summary>
+        public bool HandleUpdatesBeforeConfirmation { get; set; }
+
         /// <summary>
         /// Is the subscription closed
         /// </summary>
@@ -116,7 +125,7 @@ namespace CryptoExchange.Net.Sockets
         public abstract Query? GetUnsubQuery();
 
         /// <inheritdoc />
-        public virtual object Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
+        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
 
         /// <summary>
         /// Handle an update message
@@ -124,11 +133,11 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<CallResult> HandleAsync(SocketConnection connection, DataEvent<object> message)
+        public CallResult Handle(SocketConnection connection, DataEvent<object> message)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return await DoHandleMessageAsync(connection, message).ConfigureAwait(false);
+            return DoHandleMessage(connection, message);
         }
 
         /// <summary>
@@ -137,7 +146,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public abstract Task<CallResult> DoHandleMessageAsync(SocketConnection connection, DataEvent<object> message);
+        public abstract CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message);
 
         /// <summary>
         /// Invoke the exception event

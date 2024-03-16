@@ -45,6 +45,9 @@ namespace CryptoExchange.Net.Sockets
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
 
+        private const int _receiveBufferSize = 1048576;
+        private const int _sendBufferSize = 4096;
+
         /// <summary>
         /// Received messages, the size and the timstamp
         /// </summary>
@@ -101,7 +104,7 @@ namespace CryptoExchange.Net.Sockets
         public event Func<Task>? OnClose;
 
         /// <inheritdoc />
-        public event Func<WebSocketMessageType, Stream, Task>? OnStreamMessage;
+        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Func<int, Task>? OnRequestSent;
@@ -168,7 +171,10 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var header in Parameters.Headers)
                     socket.Options.SetRequestHeader(header.Key, header.Value);
                 socket.Options.KeepAliveInterval = Parameters.KeepAliveInterval ?? TimeSpan.Zero;
-                socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+                if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework")) 
+                    socket.Options.SetBuffer(65536, 65536); // Setting it to anything bigger than 65536 throws an exception in .net framework
+                else
+                    socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
             }
@@ -463,7 +469,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task ReceiveLoopAsync()
         {
-            var buffer = new ArraySegment<byte>(new byte[65536]);
+            var buffer = new ArraySegment<byte>(new byte[_receiveBufferSize]);
             var received = 0;
             try
             {
@@ -472,7 +478,7 @@ namespace CryptoExchange.Net.Sockets
                     if (_ctsSource.IsCancellationRequested)
                         break;
 
-                    MemoryStream? memoryStream = null;
+                    MemoryStream? multipartStream = null;
                     WebSocketReceiveResult? receiveResult = null;
                     bool multiPartMessage = false;
                     while (true)
@@ -501,7 +507,7 @@ namespace CryptoExchange.Net.Sockets
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed unexpectedly        
-                            _logger.Log(LogLevel.Debug, $"[Sckt {Id}] received `Close` message");
+                            _logger.Log(LogLevel.Debug, "[Sckt {Id}] received `Close` message, CloseStatus: {Status}, CloseStatusDescription: {CloseStatusDescription}", Id, receiveResult.CloseStatus, receiveResult.CloseStatusDescription);
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
                             break;
@@ -511,9 +517,12 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // We received data, but it is not complete, write it to a memory stream for reassembling
                             multiPartMessage = true;
-                            memoryStream ??= new MemoryStream();
                             _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
-                            await memoryStream.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
+
+                            // Add the buffer to the multipart buffers list, create new buffer for next message part
+                            if (multipartStream == null)
+                                multipartStream = new MemoryStream();
+                            multipartStream.Write(buffer.Array, buffer.Offset, receiveResult.Count);
                         }
                         else
                         {
@@ -521,14 +530,15 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in single message");
-                                await ProcessData(receiveResult.MessageType, new MemoryStream(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count));
                             }
                             else
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
                                 _logger.Log(LogLevel.Trace, $"[Sckt {Id}] received {receiveResult.Count} bytes in partial message");
-                                await memoryStream!.WriteAsync(buffer.Array, buffer.Offset, receiveResult.Count).ConfigureAwait(false);
+                                multipartStream!.Write(buffer.Array, buffer.Offset, receiveResult.Count);
                             }
+
                             break;
                         }
                     }
@@ -553,14 +563,13 @@ namespace CryptoExchange.Net.Sockets
                         // When the connection gets interupted we might not have received a full message
                         if (receiveResult?.EndOfMessage == true)
                         {
-                            // Reassemble complete message from memory stream
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {memoryStream!.Length} bytes");
-                            await ProcessData(receiveResult.MessageType, memoryStream).ConfigureAwait(false);
-                            memoryStream.Dispose();
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] reassembled message of {multipartStream!.Length} bytes");
+                            // Get the underlying buffer of the memorystream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
+                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
                         }
                         else
                         {
-                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {memoryStream!.Length} bytes");
+                            _logger.Log(LogLevel.Trace, $"[Sckt {Id}] discarding incomplete message of {multipartStream!.Length} bytes");
                         }
                     }
                 }
@@ -584,15 +593,12 @@ namespace CryptoExchange.Net.Sockets
         /// Proccess a stream message
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="stream"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        protected async Task ProcessData(WebSocketMessageType type, Stream stream)
+        protected void ProcessData(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             LastActionTime = DateTime.UtcNow;
-            stream.Position = 0;
-
-            if (OnStreamMessage != null)
-                await OnStreamMessage.Invoke(type, stream).ConfigureAwait(false);
+            OnStreamMessage?.Invoke(type, data);
         }
 
         /// <summary>
