@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 
@@ -63,7 +64,7 @@ namespace CryptoExchange.Net.Clients
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            _logger.Log(LogLevel.Information, $"Socket {subscription.SocketId} Unsubscribing subscription  " + subscription.Id);
+            _logger.UnsubscribingSubscription(subscription.SocketId, subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
@@ -86,7 +87,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task ReconnectAsync()
         {
-            _logger.Log(LogLevel.Information, $"Reconnecting all {CurrentConnections} connections");
+            _logger.ReconnectingAllConnections(CurrentConnections);
             var tasks = new List<Task>();
             foreach (var client in ApiClients.OfType<SocketApiClient>())
             {
