@@ -254,6 +254,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public bool Read(ReadOnlyMemory<byte> data)
         {
+            _bytes = data;
+
             try
             {
                 _document = JsonDocument.Parse(data);
