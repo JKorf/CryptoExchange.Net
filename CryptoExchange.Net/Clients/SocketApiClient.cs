@@ -208,7 +208,7 @@ namespace CryptoExchange.Net.Clients
                         return socketResult.As<UpdateSubscription>(null);
 
                     socketConnection = socketResult.Data;
-                    subscription.HandleUpdatesBeforeConfirmation = HandleMessageBeforeConfirmation;
+                    subscription.HandleUpdatesBeforeConfirmation = subscription.HandleUpdatesBeforeConfirmation || HandleMessageBeforeConfirmation;
 
                     // Add a subscription on the socket connection
                     var success = socketConnection.AddSubscription(subscription);

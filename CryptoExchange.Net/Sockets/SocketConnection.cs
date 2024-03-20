@@ -406,7 +406,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         List<string> listenerIds;
                         lock (_listenersLock)
-                            listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
+                            listenerIds = _listeners.Where(l => l.CanHandleData).SelectMany(l => l.ListenerIdentifiers).ToList();
                         _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}", SocketId, listenId, listenerIds);
                         UnhandledMessage?.Invoke(_accessor);
                     }
