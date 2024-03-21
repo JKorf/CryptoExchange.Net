@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
         /// The json token loaded
         /// </summary>
         protected JToken? _token;
-        private static JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
+        private static readonly JsonSerializer _serializer = JsonSerializer.Create(SerializerOptions.WithConverters);
 
         /// <inheritdoc />
         public bool IsJson { get; protected set; }
@@ -174,7 +174,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 if (node.Type == 0)
                 {
                     // Int value
-                    var val = (int)node.Value!;
+                    var val = node.Index!.Value;
                     if (currentToken!.Type != JTokenType.Array || ((JArray)currentToken).Count <= val)
                         return null;
 
@@ -186,7 +186,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                     if (currentToken!.Type != JTokenType.Object)
                         return null;
 
-                    currentToken = currentToken[(string)node.Value!];
+                    currentToken = currentToken[node.Property!];
                 }
                 else
                 {

@@ -6,17 +6,23 @@
     public struct NodeAccessor
     {
         /// <summary>
-        /// Value
+        /// Index
         /// </summary>
-        public object? Value { get; }
+        public int? Index { get; }
+        /// <summary>
+        /// Property name
+        /// </summary>
+        public string? Property { get; }
+
         /// <summary>
         /// Type (0 = int, 1 = string, 2 = prop name)
         /// </summary>
         public int Type { get; }
 
-        private NodeAccessor(object? value, int type)
+        private NodeAccessor(int? index, string? property, int type)
         {
-            Value = value;
+            Index = index;
+            Property = property;
             Type = type;
         }
 
@@ -25,20 +31,19 @@
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static NodeAccessor Int(int value) { return new NodeAccessor(value, 0); }
+        public static NodeAccessor Int(int value) { return new NodeAccessor(value, null, 0); }
 
         /// <summary>
         /// Create a string node accessor
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static NodeAccessor String(string value) { return new NodeAccessor(value, 1); }
+        public static NodeAccessor String(string value) { return new NodeAccessor(null, value, 1); }
 
         /// <summary>
         /// Create a property name node accessor
         /// </summary>
         /// <returns></returns>
-        public static NodeAccessor PropertyName() { return new NodeAccessor(null, 2); }
+        public static NodeAccessor PropertyName() { return new NodeAccessor(null, null, 2); }
     }
-
 }

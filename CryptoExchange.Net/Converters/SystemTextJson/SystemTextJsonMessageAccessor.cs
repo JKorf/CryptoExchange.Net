@@ -147,7 +147,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (node.Type == 0)
                 {
                     // Int value
-                    var val = (int)node.Value!;
+                    var val = node.Index!.Value;
                     if (currentToken!.Value.ValueKind != JsonValueKind.Array || currentToken.Value.GetArrayLength() <= val)
                         return null;
 
@@ -159,7 +159,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (currentToken!.Value.ValueKind != JsonValueKind.Object)
                         return null;
 
-                    if (!currentToken.Value.TryGetProperty((string)node.Value!, out var token))
+                    if (!currentToken.Value.TryGetProperty(node.Property!, out var token))
                         return null;
                     currentToken = token;
                 }
