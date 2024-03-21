@@ -323,7 +323,7 @@ namespace CryptoExchange.Net.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
-                    accessor.Read(responseStream, true);
+                    await accessor.Read(responseStream, true).ConfigureAwait(false);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
@@ -341,7 +341,7 @@ namespace CryptoExchange.Net.Clients
                     // Success status code and expected empty response, assume it's correct
                     return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, null);
 
-                var valid = accessor.Read(responseStream, outputOriginalData);
+                var valid = await accessor.Read(responseStream, outputOriginalData).ConfigureAwait(false);
                 if (!valid)
                 {
                     // Invalid json

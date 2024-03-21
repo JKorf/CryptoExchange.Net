@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -83,7 +84,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="bufferStream"></param>
-        bool Read(Stream stream, bool bufferStream);
+        Task<bool> Read(Stream stream, bool bufferStream);
     }
 
     /// <summary>

@@ -248,7 +248,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// HMACSHA512 sign the data and return the hash
+        /// HMACSHA256 sign the data and return the hash
         /// </summary>
         /// <param name="data">Data to sign</param>
         /// <param name="outputType">String type</param>
@@ -270,7 +270,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// HMACSHA512 sign the data and return the hash
+        /// HMACSHA384 sign the data and return the hash
         /// </summary>
         /// <param name="data">Data to sign</param>
         /// <param name="outputType">String type</param>

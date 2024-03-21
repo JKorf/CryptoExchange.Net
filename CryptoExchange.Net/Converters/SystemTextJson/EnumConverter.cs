@@ -192,9 +192,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         [return: NotNullIfNotNull("enumValue")]
         public static string? GetString<T>(T enumValue) => GetString(typeof(T), enumValue);
 
-
+        /// <summary>
+        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+        /// </summary>
+        /// <param name="objectType"></param>
+        /// <param name="enumValue"></param>
+        /// <returns></returns>
         [return: NotNullIfNotNull("enumValue")]
-        private static string? GetString(Type objectType, object? enumValue)
+        public static string? GetString(Type objectType, object? enumValue)
         {
             objectType = Nullable.GetUnderlyingType(objectType) ?? objectType;
 

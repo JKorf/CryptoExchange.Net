@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
             var accessor = CreateAccessor();
-            var valid = accessor.Read(stream, true);
+            var valid = accessor.Read(stream, true).Result;
             if (!valid)
                 return new CallResult<T>(new ServerError(data));
             

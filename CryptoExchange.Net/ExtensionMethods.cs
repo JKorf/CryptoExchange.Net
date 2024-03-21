@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Compression;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -410,6 +412,22 @@ namespace CryptoExchange.Net
             ub.Query = httpValueCollection.ToString();
 
             return ub.Uri;
+        }
+
+        /// <summary>
+        /// Decompress using Gzip
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static ReadOnlyMemory<byte> DecompressGzip(this ReadOnlyMemory<byte> data)
+        {
+            using var decompressedStream = new MemoryStream();
+            using var dataStream = MemoryMarshal.TryGetArray(data, out var arraySegment)
+                ? new MemoryStream(arraySegment.Array, arraySegment.Offset, arraySegment.Count)
+                : new MemoryStream(data.ToArray());
+            using var deflateStream = new GZipStream(new MemoryStream(data.ToArray()), CompressionMode.Decompress);
+            deflateStream.CopyTo(decompressedStream);
+            return new ReadOnlyMemory<byte>(decompressedStream.GetBuffer(), 0, (int)decompressedStream.Length);
         }
     }
 }

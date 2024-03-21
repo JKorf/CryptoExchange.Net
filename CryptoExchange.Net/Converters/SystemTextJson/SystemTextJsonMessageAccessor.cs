@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -197,22 +198,28 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
-        public bool Read(Stream stream, bool bufferStream)
+        public async Task<bool> Read(Stream stream, bool bufferStream)
         {
             if (bufferStream && stream is not MemoryStream)
             {
+                // We need to be buffer the stream, and it's not currently a seekable stream, so copy it to a new memory stream
                 _stream = new MemoryStream();
                 stream.CopyTo(_stream);
                 _stream.Position = 0;
             }
+            else if (bufferStream)
+            {
+                // We need to buffer the stream, and the current stream is seekable, store as is
+                _stream = stream;
+            }
             else
             {
-                _stream = stream;
+                // We don't need to buffer the stream, so don't bother keeping the reference
             }
 
             try
             {
-                _document = JsonDocument.Parse(_stream);
+                _document = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
                 IsJson = true;
             }
             catch (Exception)
@@ -271,7 +278,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
-        public override string GetOriginalString() => Encoding.UTF8.GetString(_bytes.ToArray());
+        public override string GetOriginalString() =>
+            // Netstandard 2.0 doesn't support GetString from a ReadonlySpan<byte>, so use ToArray there instead
+#if NETSTANDARD2_0
+            Encoding.UTF8.GetString(_bytes.ToArray());
+#else
+            Encoding.UTF8.GetString(_bytes.Span);
+#endif
 
         /// <inheritdoc />
         public override bool OriginalDataAvailable => true;

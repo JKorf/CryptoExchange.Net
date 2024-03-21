@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.Authentication
         public ApiCredentials(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
         {
             var accessor = new SystemTextJsonStreamMessageAccessor();
-            if (!accessor.Read(inputStream, false))
+            if (!accessor.Read(inputStream, false).Result)
                 throw new ArgumentException("Input stream not valid json data");
 
             var key = accessor.GetValue<string>(MessagePath.Get().Property(identifierKey ?? "apiKey"));

@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Converters.JsonNet
 {
@@ -222,26 +224,32 @@ namespace CryptoExchange.Net.Converters.JsonNet
         public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
-        public bool Read(Stream stream, bool bufferStream)
+        public async Task<bool> Read(Stream stream, bool bufferStream)
         {
             if (bufferStream && stream is not MemoryStream)
             {
+                // We need to be buffer the stream, and it's not currently a seekable stream, so copy it to a new memory stream
                 _stream = new MemoryStream();
                 stream.CopyTo(_stream);
                 _stream.Position = 0;
             }
-            else
+            else if (bufferStream)
             {
+                // We need to buffer the stream, and the current stream is seekable, store as is
                 _stream = stream;
             }
+            else
+            {
+                // We don't need to buffer the stream, so don't bother keeping the reference
+            }
 
-            var length = _stream.CanSeek ? _stream.Length : 4096;
-            using var reader = new StreamReader(_stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
+            var length = stream.CanSeek ? stream.Length : 4096;
+            using var reader = new StreamReader(stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
             using var jsonTextReader = new JsonTextReader(reader);
 
             try
             {
-                _token = JToken.Load(jsonTextReader);
+                _token = await JToken.LoadAsync(jsonTextReader).ConfigureAwait(false);
                 IsJson = true;
             }
             catch (Exception)
@@ -284,8 +292,12 @@ namespace CryptoExchange.Net.Converters.JsonNet
         public bool Read(ReadOnlyMemory<byte> data)
         {
             _bytes = data;
-            using var stream = new MemoryStream(data.ToArray());
-            using var reader = new StreamReader(stream, Encoding.UTF8, false, (int)Math.Max(2, data.Length), true);
+
+            // Try getting the underlying byte[] instead of the ToArray to prevent creating a copy
+            using var stream = MemoryMarshal.TryGetArray(data, out var arraySegment)
+                ? new MemoryStream(arraySegment.Array, arraySegment.Offset, arraySegment.Count)
+                : new MemoryStream(data.ToArray());
+            using var reader = new StreamReader(stream, Encoding.UTF8, false, Math.Max(2, data.Length), true);
             using var jsonTextReader = new JsonTextReader(reader);
 
             try
@@ -303,7 +315,13 @@ namespace CryptoExchange.Net.Converters.JsonNet
         }
 
         /// <inheritdoc />
-        public override string GetOriginalString() => Encoding.UTF8.GetString(_bytes.ToArray());
+        public override string GetOriginalString() =>
+            // Netstandard 2.0 doesn't support GetString from a ReadonlySpan<byte>, so use ToArray there instead
+#if NETSTANDARD2_0
+            Encoding.UTF8.GetString(_bytes.ToArray());
+#else
+            Encoding.UTF8.GetString(_bytes.Span);
+#endif
 
         /// <inheritdoc />
         public override bool OriginalDataAvailable => true;

@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <returns></returns>
         Type? GetMessageType(IMessageAccessor messageAccessor);
         /// <summary>
-        /// Deserialize a message int oobject of type
+        /// Deserialize a message into object of type
         /// </summary>
         /// <param name="accessor"></param>
         /// <param name="type"></param>

@@ -377,7 +377,8 @@ namespace CryptoExchange.Net.Sockets
 
             // 2. Read data into accessor
             _accessor.Read(data);
-            try {
+            try
+            {
                 if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
                 {
                     originalData = _accessor.GetOriginalString();
@@ -400,7 +401,7 @@ namespace CryptoExchange.Net.Sockets
                 lock (_listenersLock)
                     processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId) && s.CanHandleData).ToList();
 
-                if (!processors.Any())
+                if (processors.Count == 0)
                 {
                     if (!ApiClient.UnhandledMessageExpected)
                     {
