@@ -243,8 +243,9 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 // We don't need to buffer the stream, so don't bother keeping the reference
             }
 
-            var length = stream.CanSeek ? stream.Length : 4096;
-            using var reader = new StreamReader(stream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
+            var readStream = _stream ?? stream;
+            var length = readStream.CanSeek ? readStream.Length : 4096;
+            using var reader = new StreamReader(readStream, Encoding.UTF8, false, (int)Math.Max(2, length), true);
             using var jsonTextReader = new JsonTextReader(reader);
 
             try

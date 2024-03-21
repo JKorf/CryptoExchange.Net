@@ -92,6 +92,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     JsonTokenType.String => reader.GetString(),
                     JsonTokenType.Number => reader.GetInt16().ToString(),
+                    JsonTokenType.True => "true",
+                    JsonTokenType.False => "false",
                     _ => null
                 };
 

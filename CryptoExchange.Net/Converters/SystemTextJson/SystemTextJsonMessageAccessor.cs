@@ -219,7 +219,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
-                _document = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
+                _document = await JsonDocument.ParseAsync(_stream ?? stream).ConfigureAwait(false);
                 IsJson = true;
             }
             catch (Exception)
