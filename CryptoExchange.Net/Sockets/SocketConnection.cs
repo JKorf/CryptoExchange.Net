@@ -378,7 +378,8 @@ namespace CryptoExchange.Net.Sockets
             _accessor.Read(data);
             try
             {
-                if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
+                bool outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
+                if (outputOriginalData)
                 {
                     originalData = _accessor.GetOriginalString();
                     _logger.ReceivedData(SocketId, originalData);
@@ -388,8 +389,9 @@ namespace CryptoExchange.Net.Sockets
                 var listenId = ApiClient.GetListenerIdentifier(_accessor);
                 if (listenId == null)
                 {
+                    originalData = outputOriginalData ? _accessor.GetOriginalString() : "[OutputOriginalData is false]";
                     if (!ApiClient.UnhandledMessageExpected)
-                        _logger.FailedToEvaluateMessage(SocketId);
+                        _logger.FailedToEvaluateMessage(SocketId, originalData);
 
                     UnhandledMessage?.Invoke(_accessor);
                     return;

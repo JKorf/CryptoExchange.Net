@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, string?, Exception?> _webSocketError;
         private static readonly Action<ILogger, int, int, Exception?> _messageSentNotPending;
         private static readonly Action<ILogger, int, string, Exception?> _receivedData;
-        private static readonly Action<ILogger, int, Exception?> _failedToEvaluateMessage;
+        private static readonly Action<ILogger, int, string, Exception?> _failedToEvaluateMessage;
         private static readonly Action<ILogger, int, Exception?> _errorProcessingMessage;
         private static readonly Action<ILogger, int, int, string, Exception?> _processorMatched;
         private static readonly Action<ILogger, int, int, Exception?> _receivedMessageNotRecognized;
@@ -80,10 +80,10 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(2007, "ReceivedData"),
                 "[Sckt {SocketId}] received {OriginalData}");
 
-            _failedToEvaluateMessage = LoggerMessage.Define<int>(
+            _failedToEvaluateMessage = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,
                 new EventId(2008, "FailedToEvaluateMessage"),
-                "[Sckt {SocketId}] failed to evaluate message");
+                "[Sckt {SocketId}] failed to evaluate message. {OriginalData}");
 
             _errorProcessingMessage = LoggerMessage.Define<int>(
                 LogLevel.Error,
@@ -230,9 +230,9 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _receivedData(logger, socketId, originalData, null);
         }
-        public static void FailedToEvaluateMessage(this ILogger logger, int socketId)
+        public static void FailedToEvaluateMessage(this ILogger logger, int socketId, string originalData)
         {
-            _failedToEvaluateMessage(logger, socketId, null);
+            _failedToEvaluateMessage(logger, socketId, originalData, null);
         }
         public static void ErrorProcessingMessage(this ILogger logger, int socketId, Exception e)
         {
