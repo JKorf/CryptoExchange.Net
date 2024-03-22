@@ -99,15 +99,22 @@
     /// Define how array parameters should be send
     /// </summary>
     public enum ArrayParametersSerialization
+#pragma warning disable CS1570 // XML comment has badly formed XML
     {
         /// <summary>
-        /// Send multiple key=value for each entry
+        /// Send as key=value1&key=value2
         /// </summary>
         MultipleValues,
+
         /// <summary>
-        /// Create an []=value array
+        /// Send as key[]=value1&key[]=value2
         /// </summary>
-        Array
+        Array,
+        /// <summary>
+        /// Send as key=[value1, value2]
+        /// </summary>
+        JsonArray
+#pragma warning restore CS1570 // XML comment has badly formed XML
     }
 
     /// <summary>

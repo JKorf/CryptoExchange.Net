@@ -12,9 +12,14 @@ namespace CryptoExchange.Net.Interfaces
     public interface ISymbolOrderBook
     {
         /// <summary>
-        /// Identifier
+        /// The exchange the book is for
         /// </summary>
-        string Id { get; }
+        string Exchange { get; }
+
+        /// <summary>
+        /// The Api the book is for
+        /// </summary>
+        string Api { get; }
 
         /// <summary>
         /// The status of the order book. Order book is up to date when the status is `Synced`

@@ -92,9 +92,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     JsonTokenType.String => reader.GetString(),
                     JsonTokenType.Number => reader.GetInt16().ToString(),
-                    JsonTokenType.True => "true",
-                    JsonTokenType.False => "false",
-                    _ => null
+                    JsonTokenType.True => reader.GetBoolean().ToString(),
+                    JsonTokenType.False => reader.GetBoolean().ToString(),
+                    JsonTokenType.Null => null,
+                    _ => throw new Exception("Invalid token type for enum deserialization: " + reader.TokenType)
                 };
 
                 if (string.IsNullOrEmpty(stringValue))
