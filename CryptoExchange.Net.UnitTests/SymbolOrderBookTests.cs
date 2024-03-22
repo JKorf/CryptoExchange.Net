@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.UnitTests
 
         private class TestableSymbolOrderBook : SymbolOrderBook
         {
-            public TestableSymbolOrderBook() : base(null, "Test", "BTC/USD")
+            public TestableSymbolOrderBook() : base(null, "Test", "Test", "BTC/USD")
             {
                 Initialize(_defaultOrderBookOptions);
             }
