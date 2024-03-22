@@ -52,6 +52,11 @@ namespace CryptoExchange.Net.Clients
         protected internal bool UnhandledMessageExpected { get; set; }
 
         /// <summary>
+        /// To be used if <see cref="UnhandledMessageExpected"/> is false and some messages should be ignored
+        /// </summary>
+        protected internal HashSet<string>? IgnoredUnhandledMessages { get; set; } = null;
+
+        /// <summary>
         /// If true a subscription will accept message before the confirmation of a subscription has been received
         /// </summary>
         protected bool HandleMessageBeforeConfirmation { get; set; }
@@ -495,6 +500,16 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
+        /// Check if an unhandled message with the given listen id should be ignored
+        /// </summary>
+        /// <param name="listenId"></param>
+        /// <returns></returns>
+        public bool IsUnhandledMessageIgnored(string listenId)
+        {
+            return IgnoredUnhandledMessages?.Contains(listenId) ?? false;
+        }
+
+        /// <summary>
         /// Connect a socket
         /// </summary>
         /// <param name="socketConnection">The socket to connect</param>
@@ -503,6 +518,7 @@ namespace CryptoExchange.Net.Clients
         {
             if (await socketConnection.ConnectAsync().ConfigureAwait(false))
             {
+                socketConnection.UnhandledMessage += HandleUnhandledMessage;
                 socketConnections.TryAdd(socketConnection.SocketId, socketConnection);
                 return new CallResult<bool>(true);
             }

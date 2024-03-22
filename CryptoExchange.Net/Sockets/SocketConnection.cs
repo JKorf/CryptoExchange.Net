@@ -404,7 +404,7 @@ namespace CryptoExchange.Net.Sockets
 
                 if (processors.Count == 0)
                 {
-                    if (!ApiClient.UnhandledMessageExpected)
+                    if (!ApiClient.UnhandledMessageExpected && !ApiClient.IsUnhandledMessageIgnored(listenId))
                     {
                         List<string> listenerIds;
                         lock (_listenersLock)

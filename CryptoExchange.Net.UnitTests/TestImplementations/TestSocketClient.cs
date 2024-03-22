@@ -13,6 +13,7 @@ using CryptoExchange.Net.Sockets;
 using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
@@ -74,6 +75,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestSubSocketClient : SocketApiClient
     {
+        public List<object> UnhandledMessages { get; } = new List<object>();
         private MessagePath _channelPath = MessagePath.Get().Property("channel");
         private MessagePath _topicPath = MessagePath.Get().Property("topic");
 
@@ -82,6 +84,18 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestSubSocketClient(TestSocketOptions options, SocketApiOptions apiOptions) : base(new TraceLogger(), options.Environment.TestAddress, options, apiOptions)
         {
 
+        }
+
+        protected override void HandleUnhandledMessage(IMessageAccessor message)
+        {
+            if (message.Underlying is JObject json)
+            {
+                UnhandledMessages.Add(json.ToString(Formatting.None));
+            }
+            else
+            {
+                UnhandledMessages.Add(message.Underlying);
+            }
         }
 
         internal IWebsocket CreateSocketInternal(string address)
