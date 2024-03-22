@@ -49,11 +49,11 @@ namespace CryptoExchange.Net.Objects
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null!;
 
         /// <inheritdoc />
-        public bool IsEnabled(LogLevel logLevel) => (int)logLevel < (int)_logLevel;
+        public bool IsEnabled(LogLevel logLevel) => (int)logLevel >= (int)_logLevel;
         /// <inheritdoc />
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            if ((int)logLevel < (int)_logLevel)
+            if (!IsEnabled(logLevel))
                 return;
 
             var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logLevel} | {(_categoryName == null ? "" : $"{_categoryName} | ")}{formatter(state, exception)}";

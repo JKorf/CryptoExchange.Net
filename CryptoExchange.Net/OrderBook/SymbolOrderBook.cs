@@ -12,6 +12,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.OrderBook
 {
@@ -89,7 +90,10 @@ namespace CryptoExchange.Net.OrderBook
         protected int? Levels { get; set; } = null;
 
         /// <inheritdoc/>
-        public string Id { get; }
+        public string Exchange { get; }
+
+        /// <inheritdoc/>
+        public string Api { get; }
 
         /// <inheritdoc/>
         public OrderBookStatus Status 
@@ -102,7 +106,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 var old = _status;
                 _status = value;
-                _logger.OrderBookStatusChanged(Id, Symbol, old, value);
+                _logger.OrderBookStatusChanged(Api, Symbol, old, value);
                 OnStatusChange?.Invoke(old, _status);
             }
         }
@@ -193,14 +197,17 @@ namespace CryptoExchange.Net.OrderBook
         /// ctor
         /// </summary>
         /// <param name="logger">Logger to use. If not provided will create a TraceLogger</param>
-        /// <param name="id">The id of the order book. Should be set to {Exchange}[{type}], for example: Kucoin[Spot]</param>
+        /// <param name="exchange">The exchange of the order book</param>
+        /// <param name="api">The API the book is for, for example Spot</param>
         /// <param name="symbol">The symbol the order book is for</param>
-        protected SymbolOrderBook(ILogger? logger, string id, string symbol)
+        protected SymbolOrderBook(ILoggerFactory? logger, string exchange, string api, string symbol)
         {
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
 
-            Id = id;
+            Exchange = exchange;
+            Api = api;
+
             _processBuffer = new List<ProcessBufferRangeSequenceEntry>();
             _processQueue = new ConcurrentQueue<object>();
             _queueEvent = new AsyncResetEvent(false, true);
@@ -211,7 +218,7 @@ namespace CryptoExchange.Net.OrderBook
             _asks = new SortedList<decimal, ISymbolOrderBookEntry>();
             _bids = new SortedList<decimal, ISymbolOrderBookEntry>(new DescComparer<decimal>());
 
-            _logger = logger ?? new TraceLogger();
+            _logger = logger?.CreateLogger(Exchange) ?? NullLoggerFactory.Instance.CreateLogger(Exchange);
         }
 
         /// <summary>
@@ -233,7 +240,7 @@ namespace CryptoExchange.Net.OrderBook
             if (Status != OrderBookStatus.Disconnected)
                 throw new InvalidOperationException($"Can't start book unless state is {OrderBookStatus.Disconnected}. Current state: {Status}");
 
-            _logger.OrderBookStarting(Id, Symbol);
+            _logger.OrderBookStarting(Api, Symbol);
             _cts = new CancellationTokenSource();
             ct?.Register(async () =>
             {
@@ -258,7 +265,7 @@ namespace CryptoExchange.Net.OrderBook
 
             if (_cts.IsCancellationRequested)
             {
-                _logger.OrderBookStoppedStarting(Id, Symbol);
+                _logger.OrderBookStoppedStarting(Api, Symbol);
                 await startResult.Data.CloseAsync().ConfigureAwait(false);
                 Status = OrderBookStatus.Disconnected;
                 return new CallResult<bool>(new CancellationRequestedError());
@@ -273,8 +280,9 @@ namespace CryptoExchange.Net.OrderBook
             return new CallResult<bool>(true);
         }
 
-        private void HandleConnectionLost() {
-            _logger.OrderBookConnectionLost(Id, Symbol);    
+        private void HandleConnectionLost() 
+        {
+            _logger.OrderBookConnectionLost(Api, Symbol);    
             if (Status != OrderBookStatus.Disposed) {
                 Status = OrderBookStatus.Reconnecting;
                 Reset();
@@ -282,7 +290,7 @@ namespace CryptoExchange.Net.OrderBook
         }
 
         private void HandleConnectionClosed() {
-            _logger.OrderBookDisconnected(Id, Symbol);
+            _logger.OrderBookDisconnected(Api, Symbol);
             Status = OrderBookStatus.Disconnected;
             _ = StopAsync();
         }
@@ -294,7 +302,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <inheritdoc/>
         public async Task StopAsync()
         {
-            _logger.OrderBookStopping(Id, Symbol);
+            _logger.OrderBookStopping(Api, Symbol);
             Status = OrderBookStatus.Disconnected;
             _cts?.Cancel();
             _queueEvent.Set();
@@ -307,7 +315,8 @@ namespace CryptoExchange.Net.OrderBook
                 _subscription.ConnectionClosed -= HandleConnectionClosed;
                 _subscription.ConnectionRestored -= HandleConnectionRestored;
             }
-            _logger.OrderBookStopped(Id, Symbol);
+
+            _logger.OrderBookStopped(Api, Symbol);
         }
 
         /// <inheritdoc/>
@@ -465,7 +474,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             var pbList = _processBuffer.ToList();
             if (pbList.Count > 0)
-                _logger.OrderBookProcessingBufferedUpdates(Id, pbList.Count);
+                _logger.OrderBookProcessingBufferedUpdates(Api, Symbol, pbList.Count);
 
             foreach (var bufferEntry in pbList)
             {
@@ -484,14 +493,14 @@ namespace CryptoExchange.Net.OrderBook
         {
             if (sequence <= LastSequenceNumber)
             {
-                _logger.OrderBookSkippedMessage(Id, Symbol, sequence, LastSequenceNumber);
+                _logger.OrderBookSkippedMessage(Api, Symbol, sequence, LastSequenceNumber);
                 return false;
             }
 
             if (_sequencesAreConsecutive && sequence > LastSequenceNumber + 1)
             {
                 // Out of sync
-                _logger.OrderBookOutOfSync(Id, Symbol, LastSequenceNumber + 1, sequence);
+                _logger.OrderBookOutOfSync(Api, Symbol, LastSequenceNumber + 1, sequence);
                 _stopProcessing = true;
                 Resubscribe();
                 return false;
@@ -645,7 +654,7 @@ namespace CryptoExchange.Net.OrderBook
                 success = resyncResult;
             }
 
-            _logger.OrderBookResynced(Id, Symbol);
+            _logger.OrderBookResynced(Api, Symbol);
             Status = OrderBookStatus.Synced;
         }
 
@@ -662,7 +671,7 @@ namespace CryptoExchange.Net.OrderBook
 
                     if (_stopProcessing)
                     {
-                        _logger.OrderBookMessageSkippedResubscribing(Id);
+                        _logger.OrderBookMessageSkippedResubscribing(Api, Symbol);
                         continue;
                     }
 
@@ -694,7 +703,7 @@ namespace CryptoExchange.Net.OrderBook
                 BidCount = _bids.Count;
 
                 UpdateTime = DateTime.UtcNow;
-                _logger.OrderBookDataSet(Id, Symbol, BidCount, AskCount, item.EndUpdateId);
+                _logger.OrderBookDataSet(Api, Symbol, BidCount, AskCount, item.EndUpdateId);
                 CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke((item.Bids, item.Asks));
                 OnBestOffersChanged?.Invoke((BestBid, BestAsk));
@@ -714,7 +723,8 @@ namespace CryptoExchange.Net.OrderBook
                         FirstUpdateId = item.StartUpdateId,
                         LastUpdateId = item.EndUpdateId,
                     });
-                    _logger.OrderBookUpdateBuffered(Id, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Count(), item.Bids.Count());
+
+                    _logger.OrderBookUpdateBuffered(Api, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Count(), item.Bids.Count());
                 }
                 else
                 {
@@ -727,7 +737,7 @@ namespace CryptoExchange.Net.OrderBook
 
                     if (_asks.First().Key < _bids.First().Key)
                     {
-                        _logger.OrderBookOutOfSyncDetected(Id, Symbol, _asks.First().Key, _bids.First().Key);
+                        _logger.OrderBookOutOfSyncDetected(Api, Symbol, _asks.First().Key, _bids.First().Key);
                         _stopProcessing = true;
                         Resubscribe();
                         return;
@@ -761,7 +771,7 @@ namespace CryptoExchange.Net.OrderBook
 
                 if (!checksumResult)
                 {
-                    _logger.OrderBookOutOfSyncChecksum(Id, Symbol);
+                    _logger.OrderBookOutOfSyncChecksum(Api, Symbol);
                     _stopProcessing = true;
                     Resubscribe();
                 }
@@ -785,7 +795,7 @@ namespace CryptoExchange.Net.OrderBook
                 if (!await _subscription!.ResubscribeAsync().ConfigureAwait(false))
                 {
                     // Resubscribing failed, reconnect the socket
-                    _logger.OrderBookResyncFailed(Id, Symbol);
+                    _logger.OrderBookResyncFailed(Api, Symbol);
                     Status = OrderBookStatus.Reconnecting;
                     _ = _subscription!.ReconnectAsync();
                 }
@@ -800,7 +810,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             if (lastUpdateId <= LastSequenceNumber)
             {
-                _logger.OrderBookUpdateSkipped(Id, Symbol, firstUpdateId, lastUpdateId);
+                _logger.OrderBookUpdateSkipped(Api, Symbol, firstUpdateId, lastUpdateId);
                 return;
             }
 
@@ -826,7 +836,8 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             LastSequenceNumber = lastUpdateId;
-            _logger.OrderBookProcessedMessage(Id, Symbol, firstUpdateId, lastUpdateId);
+
+            _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId, lastUpdateId);
         }        
     }
 
