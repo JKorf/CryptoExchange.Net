@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _receivedMessageNotMatchedToAnyListener = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,
                 new EventId(2029, "ReceivedMessageNotMatchedToAnyListener"),
-                "[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: [{ListenIds}]");
+                "[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}");
         }
 
         public static void ActivityPaused(this ILogger logger, int socketId, bool paused)
