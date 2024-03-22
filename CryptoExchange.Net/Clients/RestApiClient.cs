@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Requests;
@@ -152,9 +153,9 @@ namespace CryptoExchange.Net.Clients
 
                 var result = await GetResponseAsync<object>(request.Data, cancellationToken).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
+                    _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -204,9 +205,9 @@ namespace CryptoExchange.Net.Clients
 
                 var result = await GetResponseAsync<T>(request.Data, cancellationToken).ConfigureAwait(false);
                 if (!result)
-                    _logger.Log(LogLevel.Warning, $"[Req {result.RequestId}] {result.ResponseStatusCode} Error received in {result.ResponseTime!.Value.TotalMilliseconds}ms: {result.Error}");
+                    _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
                 else
-                    _logger.Log(LogLevel.Debug, $"[Req {result.RequestId}] {result.ResponseStatusCode} Response received in {result.ResponseTime!.Value.TotalMilliseconds}ms{(OutputOriginalData ? ": " + result.OriginalData : "")}");
+                    _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
 
                 if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
                     continue;
@@ -256,7 +257,7 @@ namespace CryptoExchange.Net.Clients
                     var syncTimeResult = await syncTask.ConfigureAwait(false);
                     if (!syncTimeResult)
                     {
-                        _logger.Log(LogLevel.Debug, $"[Req {requestId}] Failed to sync time, aborting request: " + syncTimeResult.Error);
+                        _logger.RestApiFailedToSyncTime(requestId, syncTimeResult.Error!.ToString());
                         return syncTimeResult.As<IRequest>(default);
                     }
                 }
@@ -274,11 +275,11 @@ namespace CryptoExchange.Net.Clients
 
             if (signed && AuthenticationProvider == null)
             {
-                _logger.Log(LogLevel.Warning, $"[Req {requestId}] Request {uri.AbsolutePath} failed because no ApiCredentials were provided");
+                _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
                 return new CallResult<IRequest>(new NoApiCredentialsError());
             }
 
-            _logger.Log(LogLevel.Information, $"[Req {requestId}] Creating request for " + uri);
+            _logger.RestApiCreatingRequest(requestId, uri);
             var paramsPosition = parameterPosition ?? ParameterPositions[method];
             var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? ArraySerialization, requestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
 
@@ -291,7 +292,7 @@ namespace CryptoExchange.Net.Clients
                 paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
 
             TotalRequestsMade++;
-            _logger.Log(LogLevel.Trace, $"[Req {requestId}] Sending {method}{(signed ? " signed" : "")} request to {request.Uri}{paramString ?? " "}");
+            _logger.RestApiSendingRequest(requestId, method, signed ? "signed": "", request.Uri, paramString);
             return new CallResult<IRequest>(request);
         }
 

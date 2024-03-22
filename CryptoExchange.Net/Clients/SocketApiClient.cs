@@ -1,5 +1,6 @@
 using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
@@ -8,10 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -214,7 +212,7 @@ namespace CryptoExchange.Net.Clients
                     var success = socketConnection.AddSubscription(subscription);
                     if (!success)
                     {
-                        _logger.Log(LogLevel.Trace, $"[Sckt {socketConnection.SocketId}] failed to add subscription, retrying on different connection");
+                        _logger.FailedToAddSubscriptionRetryOnDifferentConnection(socketConnection.SocketId);
                         continue;
                     }
 
@@ -242,7 +240,7 @@ namespace CryptoExchange.Net.Clients
 
             if (socketConnection.PausedActivity)
             {
-                _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] has been paused, can't subscribe at this moment");
+                _logger.HasBeenPausedCantSubscribeAtThisMoment(socketConnection.SocketId);
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
@@ -255,7 +253,7 @@ namespace CryptoExchange.Net.Clients
                 if (!subResult)
                 {
                     waitEvent?.Set();
-                    _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] failed to subscribe: {subResult.Error}");
+                    _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
                     // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
                     var unsubscribe = subResult.Error is CancellationRequestedError;
                     await socketConnection.CloseAsync(subscription, unsubscribe).ConfigureAwait(false);
@@ -270,13 +268,13 @@ namespace CryptoExchange.Net.Clients
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
                 {
-                    _logger.Log(LogLevel.Information, $"[Sckt {socketConnection.SocketId}] Cancellation token set, closing subscription {subscription.Id}");
+                    _logger.CancellationTokenSetClosingSubscription(socketConnection.SocketId, subscription.Id);
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                 }, false);
             }
 
             waitEvent?.Set();
-            _logger.Log(LogLevel.Information, $"[Sckt {socketConnection.SocketId}] subscription {subscription.Id} completed successfully");
+            _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -333,7 +331,7 @@ namespace CryptoExchange.Net.Clients
 
             if (socketConnection.PausedActivity)
             {
-                _logger.Log(LogLevel.Warning, $"[Sckt {socketConnection.SocketId}] has been paused, can't send query at this moment");
+                _logger.HasBeenPausedCantSendQueryAtThisMoment(socketConnection.SocketId);
                 return new CallResult<T>(new ServerError("Socket is paused"));
             }
 
@@ -374,7 +372,7 @@ namespace CryptoExchange.Net.Clients
             if (AuthenticationProvider == null)
                 return new CallResult<bool>(new NoApiCredentialsError());
 
-            _logger.Log(LogLevel.Debug, $"[Sckt {socket.SocketId}] Attempting to authenticate");
+            _logger.AttemptingToAuthenticate(socket.SocketId);
             var authRequest = GetAuthenticationRequest();
             if (authRequest != null)
             {
@@ -382,7 +380,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (!result)
                 {
-                    _logger.Log(LogLevel.Warning, $"[Sckt {socket.SocketId}] authentication failed");
+                    _logger.AuthenticationFailed(socket.SocketId);
                     if (socket.Connected)
                         await socket.CloseAsync().ConfigureAwait(false);
 
@@ -391,7 +389,7 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            _logger.Log(LogLevel.Debug, $"[Sckt {socket.SocketId}] authenticated");
+            _logger.Authenticated(socket.SocketId);
             socket.Authenticated = true;
             return new CallResult<bool>(true);
         }
@@ -467,12 +465,12 @@ namespace CryptoExchange.Net.Clients
             var connectionAddress = await GetConnectionUrlAsync(address, authenticated).ConfigureAwait(false);
             if (!connectionAddress)
             {
-                _logger.Log(LogLevel.Warning, $"Failed to determine connection url: " + connectionAddress.Error);
+                _logger.FailedToDetermineConnectionUrl(connectionAddress.Error?.ToString());
                 return connectionAddress.As<SocketConnection>(null);
             }
 
             if (connectionAddress.Data != address)
-                _logger.Log(LogLevel.Debug, $"Connection address set to " + connectionAddress.Data);
+                _logger.ConnectionAddressSetTo(connectionAddress.Data!);
 
             // Create new socket
             var socket = CreateSocket(connectionAddress.Data!);
@@ -536,7 +534,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual IWebsocket CreateSocket(string address)
         {
             var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
-            _logger.Log(LogLevel.Debug, $"[Sckt {socket.Id}] created for " + address);
+            _logger.SocketCreatedForAddress(socket.Id, address);
             return socket;
         }
 
@@ -562,7 +560,7 @@ namespace CryptoExchange.Net.Clients
             if (subscription == null || connection == null)
                 return false;
 
-            _logger.Log(LogLevel.Information, $"[Sckt {connection.SocketId}] unsubscribing subscription " + subscriptionId);
+            _logger.UnsubscribingSubscription(connection.SocketId, subscriptionId);
             await connection.CloseAsync(subscription).ConfigureAwait(false);
             return true;
         }
@@ -577,7 +575,7 @@ namespace CryptoExchange.Net.Clients
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
 
-            _logger.Log(LogLevel.Information, $"[Sckt {subscription.SocketId}] Unsubscribing subscription  " + subscription.Id);
+            _logger.UnsubscribingSubscription(subscription.SocketId, subscription.Id);
             await subscription.CloseAsync().ConfigureAwait(false);
         }
 
@@ -591,7 +589,7 @@ namespace CryptoExchange.Net.Clients
             if (sum == 0)
                 return;
 
-            _logger.Log(LogLevel.Information, $"Unsubscribing all {socketConnections.Sum(s => s.Value.UserSubscriptionCount)} subscriptions");
+            _logger.UnsubscribingAll(socketConnections.Sum(s => s.Value.UserSubscriptionCount));
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
@@ -608,7 +606,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task ReconnectAsync()
         {
-            _logger.Log(LogLevel.Information, $"Reconnecting all {socketConnections.Count} connections");
+            _logger.ReconnectingAllConnections(socketConnections.Count);
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
@@ -660,7 +658,7 @@ namespace CryptoExchange.Net.Clients
             _disposing = true;
             if (socketConnections.Sum(s => s.Value.UserSubscriptionCount) > 0)
             {
-                _logger.Log(LogLevel.Debug, "Disposing socket client, closing all subscriptions");
+                _logger.DisposingSocketClient();
                 _ = UnsubscribeAllAsync();
             }
             semaphoreSlim?.Dispose();

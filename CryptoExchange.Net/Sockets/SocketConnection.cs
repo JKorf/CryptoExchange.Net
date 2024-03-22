@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Objects;
 using System.Net.WebSockets;
-using System.IO;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Diagnostics;
 using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Converters.JsonNet;
+using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
 
 namespace CryptoExchange.Net.Sockets
@@ -130,7 +129,7 @@ namespace CryptoExchange.Net.Sockets
                 if (_pausedActivity != value)
                 {
                     _pausedActivity = value;
-                    _logger.Log(LogLevel.Information, $"[Sckt {SocketId}] paused activity: " + value);
+                    _logger.ActivityPaused(SocketId, value);
                     if(_pausedActivity) _ = Task.Run(() => ActivityPaused?.Invoke());
                     else _ = Task.Run(() => ActivityUnpaused?.Invoke());
                 }
@@ -150,7 +149,7 @@ namespace CryptoExchange.Net.Sockets
 
                 var oldStatus = _status;
                 _status = value;
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] status changed from {oldStatus} to {_status}");
+                _logger.SocketStatusChanged(SocketId, oldStatus, value);
             }
         }
 
@@ -301,7 +300,7 @@ namespace CryptoExchange.Net.Sockets
                     var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
                     if (!reconnectSuccessful)
                     {
-                        _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed reconnect processing: {reconnectSuccessful.Error}, reconnecting again");
+                        _logger.FailedReconnectProcessing(SocketId, reconnectSuccessful.Error?.ToString());
                         _ = _socket.ReconnectAsync().ConfigureAwait(false);
                     }
                     else
@@ -316,7 +315,7 @@ namespace CryptoExchange.Net.Sockets
                 }
                 catch(Exception ex)
                 {
-                    _logger.Log(LogLevel.Warning, ex, $"[Sckt {SocketId}] Unknown exception while processing reconnection, reconnecting again");
+                    _logger.UnkownExceptionWhileProcessingReconnection(SocketId, ex);
                     _ = _socket.ReconnectAsync().ConfigureAwait(false);
                 }
             });
@@ -331,9 +330,9 @@ namespace CryptoExchange.Net.Sockets
         protected virtual Task HandleErrorAsync(Exception e)
         {
             if (e is WebSocketException wse)
-                _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] error: Websocket error code {wse.WebSocketErrorCode}, details: " + e.ToLogString());
+                _logger.WebSocketErrorCodeAndDetails(SocketId, wse.WebSocketErrorCode, wse.Message, wse);
             else
-                _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] error: " + e.ToLogString());
+                _logger.WebSocketError(SocketId, e.Message, e);
 
             return Task.CompletedTask;
         }
@@ -352,7 +351,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (query == null)
             {
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] msg {requestId} - message sent, but not pending");
+                _logger.MessageSentNotPending(SocketId, requestId);
                 return Task.CompletedTask;
             }
 
@@ -379,18 +378,20 @@ namespace CryptoExchange.Net.Sockets
             _accessor.Read(data);
             try
             {
-                if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
+                bool outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
+                if (outputOriginalData)
                 {
                     originalData = _accessor.GetOriginalString();
-                    _logger.LogTrace("[Sckt {SocketId}] received {Data}", SocketId, originalData);
+                    _logger.ReceivedData(SocketId, originalData);
                 }
 
                 // 3. Determine the identifying properties of this message
                 var listenId = ApiClient.GetListenerIdentifier(_accessor);
                 if (listenId == null)
                 {
+                    originalData = outputOriginalData ? _accessor.GetOriginalString() : "[OutputOriginalData is false]";
                     if (!ApiClient.UnhandledMessageExpected)
-                        _logger.LogWarning("[Sckt {SocketId}] failed to evaluate message", SocketId);
+                        _logger.FailedToEvaluateMessage(SocketId, originalData);
 
                     UnhandledMessage?.Invoke(_accessor);
                     return;
@@ -408,14 +409,14 @@ namespace CryptoExchange.Net.Sockets
                         List<string> listenerIds;
                         lock (_listenersLock)
                             listenerIds = _listeners.Where(l => l.CanHandleData).SelectMany(l => l.ListenerIdentifiers).ToList();
-                        _logger.LogWarning("[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}", SocketId, listenId, listenerIds);
+                        _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
                         UnhandledMessage?.Invoke(_accessor);
                     }
 
                     return;
                 }
 
-                _logger.LogTrace("[Sckt {SocketId}] {Count} processor(s) matched to message with listener identifier {ListenerId}", SocketId, processors.Count, listenId);
+                _logger.ProcessorMatched(SocketId, processors.Count, listenId);
                 var totalUserTime = 0;
                 Dictionary<Type, object>? desCache = null;
                 if (processors.Count > 1)
@@ -430,7 +431,7 @@ namespace CryptoExchange.Net.Sockets
                     var messageType = processor.GetMessageType(_accessor);
                     if (messageType == null)
                     {
-                        _logger.LogWarning("[Sckt {SocketId}] received message not recognized by handler {Id}", SocketId, processor.Id);
+                        _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
                         continue;
                     }
 
@@ -443,7 +444,7 @@ namespace CryptoExchange.Net.Sockets
                         var desResult = processor.Deserialize(_accessor, messageType);
                         if (!desResult)
                         {
-                            _logger.LogWarning("[Sckt {SocketId}] deserialization failed: {Error}", SocketId, desResult.Error);
+                            _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString());
                             continue;
                         }
                         deserialized = desResult.Data;
@@ -459,13 +460,13 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning("[Sckt {SocketId}] user message processing failed: {Exception}", SocketId, ex.ToLogString());
+                        _logger.UserMessageProcessingFailed(SocketId, ex.ToLogString(), ex);
                         if (processor is Subscription subscription)
                             subscription.InvokeExceptionHandler(ex);
                     }
                 }
 
-                _logger.LogTrace($"[Sckt {SocketId}] message processed in {(int)sw.ElapsedMilliseconds}ms ({sw.ElapsedMilliseconds - totalUserTime}ms parsing)");
+                _logger.MessageProcessed(SocketId, sw.ElapsedMilliseconds, sw.ElapsedMilliseconds - totalUserTime);
             }
             finally
             {
@@ -529,7 +530,7 @@ namespace CryptoExchange.Net.Sockets
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] closing subscription {subscription.Id}");
+            _logger.ClosingSubscription(SocketId, subscription.Id);
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
@@ -548,12 +549,12 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] not unsubscribing subscription as there is still a duplicate subscription running");
+                _logger.NotUnsubscribingSubscriptionBecauseDuplicateRunning(SocketId);
             }
 
             if (Status == SocketStatus.Closing)
             {
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] already closing");
+                _logger.AlreadyClosing(SocketId);
                 return;
             }
 
@@ -567,7 +568,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (shouldCloseConnection)
             {
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] closing as there are no more subscriptions");
+                _logger.ClosingNoMoreSubscriptions(SocketId);
                 await CloseAsync().ConfigureAwait(false);
             }
 
@@ -605,7 +606,7 @@ namespace CryptoExchange.Net.Sockets
                 _listeners.Add(subscription);
 
             if (subscription.UserSubscription)
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] adding new subscription with id {subscription.Id}, total subscriptions on connection: {UserSubscriptionCount}");
+                _logger.AddingNewSubscription(SocketId, subscription.Id, UserSubscriptionCount);
             return true;
         }
 
@@ -713,7 +714,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult(new InvalidOperationError(info));
             }
 
-            _logger.Log(LogLevel.Trace, $"[Sckt {SocketId}] msg {requestId} - sending messsage: {data}");
+            _logger.SendingData(SocketId, requestId, data);
             try
             {
                 _socket.Send(requestId, data, weight);
@@ -736,7 +737,7 @@ namespace CryptoExchange.Net.Sockets
             if (!anySubscriptions)
             {
                 // No need to resubscribe anything
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] nothing to resubscribe, closing connection");
+                _logger.NothingToResubscribeCloseConnection(SocketId);
                 _ = _socket.CloseAsync();
                 return new CallResult<bool>(true);
             }
@@ -750,12 +751,12 @@ namespace CryptoExchange.Net.Sockets
                 var authResult = await ApiClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
                 if (!authResult)
                 {
-                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] authentication failed on reconnected socket. Disconnecting and reconnecting.");
+                    _logger.FailedAuthenticationDisconnectAndRecoonect(SocketId);
                     return authResult;
                 }
 
                 Authenticated = true;
-                _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] authentication succeeded on reconnected socket.");
+                _logger.AuthenticationSucceeded(SocketId);
             }
 
             // Get a list of all subscriptions on the socket
@@ -769,7 +770,7 @@ namespace CryptoExchange.Net.Sockets
                 var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
                 if (!result)
                 {
-                    _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] failed request revitalization: " + result.Error);
+                    _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
                     return result;
                 }
             }
@@ -807,7 +808,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult<bool>(new WebError("Socket not connected"));
 
-            _logger.Log(LogLevel.Debug, $"[Sckt {SocketId}] all subscription successfully resubscribed on reconnected socket.");
+            _logger.AllSubscriptionResubscribed(SocketId);
             return new CallResult<bool>(true);
         }
 
@@ -818,7 +819,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
-            _logger.Log(LogLevel.Information, $"[Sckt {SocketId}] subscription {subscription!.Id} unsubscribed");
+            _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
         }
 
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)
@@ -869,7 +870,7 @@ namespace CryptoExchange.Net.Sockets
                     if (query == null)
                         continue;
 
-                    _logger.Log(LogLevel.Trace, $"[Sckt {SocketId}] sending periodic {identifier}");
+                    _logger.SendingPeriodic(SocketId, identifier);
 
                     try
                     {
@@ -878,7 +879,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (Exception ex)
                     {
-                        _logger.Log(LogLevel.Warning, $"[Sckt {SocketId}] Periodic send {identifier} failed: " + ex.ToLogString());
+                        _logger.PeriodicSendFailed(SocketId, identifier, ex.ToLogString(), ex);
                     }
                 }
             });
