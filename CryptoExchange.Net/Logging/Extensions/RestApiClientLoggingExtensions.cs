@@ -7,8 +7,8 @@ namespace CryptoExchange.Net.Logging.Extensions
 {
     internal static class RestApiClientLoggingExtensions
     {
-        private static readonly Action<ILogger, int?, HttpStatusCode?, long, string?, Exception?> _restApiErrorReceived;
-        private static readonly Action<ILogger, int?, HttpStatusCode?, long, string?, Exception?> _restApiResponseReceived;
+        private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiErrorReceived;
+        private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiResponseReceived;
         private static readonly Action<ILogger, int, string, Exception?> _restApiFailedToSyncTime;
         private static readonly Action<ILogger, int, string, Exception?> _restApiNoApiCredentials;
         private static readonly Action<ILogger, int, Uri, Exception?> _restApiCreatingRequest;
@@ -17,15 +17,15 @@ namespace CryptoExchange.Net.Logging.Extensions
 
         static RestApiClientLoggingExtensions()
         {
-            _restApiErrorReceived = LoggerMessage.Define<int?, HttpStatusCode?, long, string?>(
+            _restApiErrorReceived = LoggerMessage.Define<int?, int?, long, string?>(
                 LogLevel.Warning,
                 new EventId(4000, "RestApiErrorReceived"),
-                "[Req {RequestId}] {ResponseStatusCode} Error received in {ResponseTime}ms: {ErrorMessage}");
+                "[Req {RequestId}] {ResponseStatusCode} - Error received in {ResponseTime}ms: {ErrorMessage}");
 
-            _restApiResponseReceived = LoggerMessage.Define<int?, HttpStatusCode?, long, string?>(
+            _restApiResponseReceived = LoggerMessage.Define<int?, int?, long, string?>(
                 LogLevel.Debug,
                 new EventId(4001, "RestApiResponseReceived"),
-                "[Req {RequestId}] {ResponseStatusCode} Response received in {ResponseTime}ms: {OriginalData}");
+                "[Req {RequestId}] {ResponseStatusCode} - Response received in {ResponseTime}ms: {OriginalData}");
 
             _restApiFailedToSyncTime = LoggerMessage.Define<int, string>(
                 LogLevel.Debug,
@@ -45,17 +45,17 @@ namespace CryptoExchange.Net.Logging.Extensions
             _restApiSendingRequest = LoggerMessage.Define<int, HttpMethod, string, Uri, string>(
                 LogLevel.Trace,
                 new EventId(4005, "RestApiSendingRequest"),
-                "[Req {RequestId}] Sending {Method}{Signed} request to {RestApiUri}{Query}");
+                "[Req {RequestId}] Sending {Method} {Signed} request to {RestApiUri}{Query}");
         }
 
         public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error)
         {
-            _restApiErrorReceived(logger, requestId, responseStatusCode, responseTime, error, null);
+            _restApiErrorReceived(logger, requestId, (int?)responseStatusCode, responseTime, error, null);
         }
 
         public static void RestApiResponseReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? originalData)
         {
-            _restApiResponseReceived(logger, requestId, responseStatusCode, responseTime, originalData, null);
+            _restApiResponseReceived(logger, requestId, (int?)responseStatusCode, responseTime, originalData, null);
         }
 
         public static void RestApiFailedToSyncTime(this ILogger logger, int requestId, string error)
