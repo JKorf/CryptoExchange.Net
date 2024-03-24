@@ -40,6 +40,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.2.0 - 24 Mar 2024
+    * Added ArrayParametersSerialization.JsonArray support
+    * Refactored to high-performance logging for hot paths
+    * Updated SymbolOrderBook to use LoggerFactory
+    * Performance improvements
+    * Small bug fixes
+    * Updated logging
+
 * Version 7.1.0 - 16 Mar 2024
 	* Added initial System.Text.Json deserialization support
 	* Added support for setting MessageSendSizeLimit for websocket clients to limit message size
