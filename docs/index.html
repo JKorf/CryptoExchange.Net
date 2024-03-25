@@ -135,6 +135,7 @@
 				<th>Nuget</th>
 			</tr>
 			<tr><td>Binance</td><td><a href="https://github.com/JKorf/Binance.Net">JKorf/Binance.Net</a></td><td><a href="https://www.nuget.org/packages/Binance.Net"><img src="https://img.shields.io/nuget/v/Binance.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>BingX</td><td><a href="https://github.com/JKorf/BingX.Net">JKorf/BingX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.BingX.Net"><img src="https://img.shields.io/nuget/v/JK.BingX.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Bitfinex</td><td><a href="https://github.com/JKorf/Bitfinex.Net">JKorf/Bitfinex.Net</a></td><td><a href="https://www.nuget.org/packages/Bitfinex.Net"><img src="https://img.shields.io/nuget/v/Bitfinex.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Bitget</td><td><a href="https://github.com/JKorf/Bitget.Net">JKorf/Bitget.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Bitget.Net"><img src="https://img.shields.io/nuget/v/JK.Bitget.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Bybit</td><td><a href="https://github.com/JKorf/Bybit.Net">JKorf/Bybit.Net</a></td><td><a href="https://www.nuget.org/packages/Bybit.Net"><img src="https://img.shields.io/nuget/v/Bybit.net.svg?style=flat-square" /></a></td></tr>
@@ -207,6 +208,9 @@
 				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bingx-tab" data-toggle="tab" href="#install-bingx" role="tab" aria-controls="install-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-bitfinex-tab" data-toggle="tab" href="#install-bitfinex" role="tab" aria-controls="install-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -241,6 +245,9 @@
 			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
 				<pre><code>dotnet add package Binance.Net</code></pre>
 				<img src="assets/images/BinanceInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-bingx" role="tabpanel" aria-labelledby="install-bingx-tab">
+				<pre><code>dotnet add package JK.BingX.Net</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="install-bitfinex" role="tabpanel" aria-labelledby="install-bitfinex-tab">
 				<pre><code>dotnet add package Bitfinex.Net</code></pre>
@@ -300,6 +307,9 @@
 				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bingx-tab" data-toggle="tab" href="#di-bingx" role="tab" aria-controls="di-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-bitfinex-tab" data-toggle="tab" href="#di-bitfinex" role="tab" aria-controls="di-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -333,6 +343,9 @@
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="di-binance" role="tabpanel" aria-labelledby="di-binance-tab">
 <pre><code>builder.Services.AddBinance();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-bingx" role="tabpanel" aria-labelledby="di-bingx-tab">
+<pre><code>builder.Services.AddBingX();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-bitfinex" role="tabpanel" aria-labelledby="di-bitfinex-tab">
 <pre><code>builder.Services.AddBitfinex();</code></pre>
@@ -372,6 +385,9 @@
 			<ul class="nav nav-tabs" id="interfaces" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bingx-tab" data-toggle="tab" href="#interfaces-bingx" role="tab" aria-controls="interfaces-bingx" aria-selected="false">BingX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-bitfinex-tab" data-toggle="tab" href="#interfaces-bitfinex" role="tab" aria-controls="interfaces-bitfinex" aria-selected="false">Bitfinex</a>
@@ -431,6 +447,35 @@
 					<tr>
 						<td><code>ISpotClient</code></td>
 						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bingx" role="tabpanel" aria-labelledby="interfaces-bingx-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBingXRestClient</code></td>
+						<td>The client for accessing the BingX REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBingXSocketClient</code></td>
+						<td>The client for accessing the BingX Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBingXOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the BingX API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for BingX. The ISpotClient offers basic Spot API functionality in a combined interface</td>
 					</tr>
 				</table>
 			  </div>
@@ -727,6 +772,9 @@
 				<a class="nav-link active" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bingx-tab" data-toggle="tab" href="#rest-bingx" role="tab" aria-controls="rest-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-bitfinex-tab" data-toggle="tab" href="#rest-bitfinex" role="tab" aria-controls="rest-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -760,6 +808,18 @@
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="rest-binance" role="tabpanel" aria-labelledby="rest-binance-tab">
 				<pre><code>var client = new BinanceRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-bingx" role="tabpanel" aria-labelledby="rest-bingx-tab">
+				<pre><code>var client = new BingXRestClient();
 var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
 if (!tickersResult.Success)
 {
@@ -966,6 +1026,9 @@ else
 				<a class="nav-link active" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bingx-tab" data-toggle="tab" href="#socket-bingx" role="tab" aria-controls="socket-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-bitfinex-tab" data-toggle="tab" href="#socket-bitfinex" role="tab" aria-controls="socket-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -997,6 +1060,17 @@ else
 			  <div class="tab-pane fade show active" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
 				<pre><code>var client = new BinanceSocketClient();
 var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-bingx" role="tabpanel" aria-labelledby="socket-bingx-tab">
+				<pre><code>var client = new BingXSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETH-USDT", update => {
   // Handle the data update, update.Data will contain the actual data
 });
 if (!subscribeResult.Success)
@@ -1311,6 +1385,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-bingx" role="tab" aria-controls="options-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-bitfinex" role="tab" aria-controls="options-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1344,6 +1421,15 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
 <pre><code>builder.Services.AddBinance(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bingx" role="tabpanel" aria-labelledby="options-bingx-tab">
+<pre><code>builder.Services.AddBingX(
   restOptions => {
     restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
   },
@@ -1449,6 +1535,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-constr-bingx" role="tab" aria-controls="options-constr-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-constr-bitfinex" role="tab" aria-controls="options-constr-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1482,6 +1571,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="options-constr-binance" role="tabpanel" aria-labelledby="options-binance-tab">
 <pre><code>var binanceRestClient = new BinanceRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-bingx" role="tabpanel" aria-labelledby="options-bingx-tab">
+<pre><code>var client = new BingXRestClient(opts =>
 {
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
@@ -1557,6 +1652,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-default-binance" role="tab" aria-controls="options-default-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-default-bingx" role="tab" aria-controls="options-default-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-default-bitfinex" role="tab" aria-controls="options-default-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1594,6 +1692,13 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new BinanceRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-bingx" role="tabpanel" aria-labelledby="options-bingx-tab">
+<pre><code>BingXRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BingXRestClient();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-default-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
 <pre><code>BitfinexRestClient.SetDefaultOptions(options =>
@@ -1847,6 +1952,9 @@ var client = new OKXRestClient();</code></pre>
 				<a class="nav-link active" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bingx-tab" data-toggle="tab" href="#book-bingx" role="tab" aria-controls="book-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-bitfinex-tab" data-toggle="tab" href="#book-bitfinex" role="tab" aria-controls="book-bitfinex" aria-selected="false">Bitfinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1877,6 +1985,19 @@ var client = new OKXRestClient();</code></pre>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="book-binance" role="tabpanel" aria-labelledby="book-binance-tab">
 <pre><code>var book = new BinanceSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-bingx" role="tabpanel" aria-labelledby="book-bingx-tab">
+<pre><code>var book = new BingXSpotSymbolOrderBook("ETH-USDT");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
