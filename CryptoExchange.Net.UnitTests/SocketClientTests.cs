@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
@@ -232,6 +233,32 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.That(client.SubClient.TestSubscription.Confirmed);
+        }
+
+        [TestCase()]
+        public void ExpectedUnhandledMessaged_Should_BeIgnored()
+        {
+            // arrange
+            var client = new TestSocketClient(opt =>
+            {
+                opt.OutputOriginalData = true;
+            });
+            var socket = client.CreateSocket();
+            socket.CanConnect = true;
+            var connection = new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test");
+            client.SubClient.ConnectSocketSub(connection);
+            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), messageEvent => { });
+            connection.AddSubscription(subObj);
+
+            // act
+            client.SubClient.IgnoredUnhandledMessages = new HashSet<string> { "connected" };
+            var unhandledMessage = JsonConvert.SerializeObject(new { topic = "unhandled" });
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { topic = "connected" }));
+            socket.InvokeMessage(unhandledMessage);
+
+            // assert
+            Assert.That(client.SubClient.UnhandledMessages.Count == 1);
+            Assert.That(client.SubClient.UnhandledMessages.First().Equals(unhandledMessage));
         }
     }
 }
