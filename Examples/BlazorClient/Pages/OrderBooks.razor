@@ -2,6 +2,7 @@
 @using System.Collections.Concurrent
 @using System.Timers
 @using Binance.Net.Interfaces
+@using BingX.Net.Interfaces
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
 @using Bybit.Net.Interfaces
@@ -13,6 +14,7 @@
 @using Kucoin.Net.Interfaces
 @using OKX.Net.Interfaces;
 @inject IBinanceOrderBookFactory binanceFactory
+@inject IBingXOrderBookFactory bingXFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
 @inject IBitgetOrderBookFactory bitgetFactory
 @inject IBybitOrderBookFactory bybitFactory
@@ -55,6 +57,7 @@
         _books = new Dictionary<string, ISymbolOrderBook>
             {
                 { "Binance", binanceFactory.CreateSpot("ETHBTC") },
+                { "BingX", bingXFactory.CreateSpot("ETH-BTC") },
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },

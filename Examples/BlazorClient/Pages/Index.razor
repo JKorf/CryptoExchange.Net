@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject IBinanceRestClient binanceClient
+@inject IBingXRestClient bingXClient
 @inject IBitfinexRestClient bitfinexClient
 @inject IBitgetRestClient bitgetClient
 @inject IBybitRestClient bybitClient
@@ -21,6 +22,7 @@
     protected override async Task OnInitializedAsync()
     {
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
         var bitgetTask = bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
@@ -30,10 +32,13 @@
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTCUSDT");
 
-        await Task.WhenAll(binanceTask, bitfinexTask, bybitTask, coinexTask, huobiTask, krakenTask, kucoinTask);
+        await Task.WhenAll(binanceTask, bingXTask, bitfinexTask, bybitTask, coinexTask, huobiTask, krakenTask, kucoinTask);
 
         if (binanceTask.Result.Success)
             _prices.Add("Binance", binanceTask.Result.Data.LastPrice);
+            
+        if (bingXTask.Result.Success)
+            _prices.Add("BingX", bingXTask.Result.Data.First().LastPrice);
 
         if (bitfinexTask.Result.Success)
             _prices.Add("Bitfinex", bitfinexTask.Result.Data.LastPrice);

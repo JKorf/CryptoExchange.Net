@@ -36,6 +36,7 @@ namespace BlazorClient
                 socketOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
             });
 
+            services.AddBingX();
             services.AddBitfinex();
             services.AddBitget();
             services.AddBybit();

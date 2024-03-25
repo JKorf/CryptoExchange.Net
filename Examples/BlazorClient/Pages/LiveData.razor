@@ -1,5 +1,6 @@
 ﻿@page "/LiveData"
 @inject IBinanceSocketClient binanceSocketClient
+@inject IBingXSocketClient bingXSocketClient
 @inject IBitfinexSocketClient bitfinexSocketClient
 @inject IBitgetSocketClient bitgetSocketClient
 @inject IBybitSocketClient bybitSocketClient
@@ -29,6 +30,7 @@
         var tasks = new Task<CallResult<UpdateSubscription>>[]
         {
             binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Binance", data.Data.LastPrice)),
+            bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BingX", data.Data.LastPrice)),
             bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
             bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
