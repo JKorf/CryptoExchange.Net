@@ -2326,7 +2326,10 @@ This adds another limit of 10 requests per 2 seconds for the order endpoint in a
 						<a class="nav-link active" id="example-symbols-general-tab" data-toggle="tab" href="#example-symbols-general" role="tab" aria-controls="example-symbols-general" aria-selected="true">CryptoRestClient</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-symbols-binance-tab" data-toggle="tab" href="#example-symbols-binance" role="tab" aria-controls="example-symbols-binance" aria-selected="true">Binance</a>
+						<a class="nav-link" id="example-symbols-binance-tab" data-toggle="tab" href="#example-symbols-binance" role="tab" aria-controls="example-symbols-binance" aria-selected="false">Binance</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-bingx-tab" data-toggle="tab" href="#example-symbols-bingx" role="tab" aria-controls="example-symbols-bingx" aria-selected="false">BingX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-bitfinex-tab" data-toggle="tab" href="#example-symbols-bitfinex" role="tab" aria-controls="example-symbols-bitfinex" aria-selected="false">Bitfinex</a>
@@ -2364,6 +2367,9 @@ await spotClient.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-binance" role="tabpanel" aria-labelledby="example-symbols-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-bingx" role="tabpanel" aria-labelledby="example-symbols-bingx-tab">
+		<pre><code>await bingXClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-bitfinex" role="tabpanel" aria-labelledby="example-symbols-bitfinex-tab">
 		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -2417,6 +2423,9 @@ await spotClient.GetSymbolsAsync();</code></pre>
 						<a class="nav-link" id="example-ticker-binance-tab" data-toggle="tab" href="#example-ticker-binance" role="tab" aria-controls="example-ticker-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-bingx-tab" data-toggle="tab" href="#example-ticker-bingx" role="tab" aria-controls="example-ticker-bingx" aria-selected="true">BingX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-bitfinex-tab" data-toggle="tab" href="#example-ticker-bitfinex" role="tab" aria-controls="example-ticker-bitfinex" aria-selected="false">Bitfinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -2452,6 +2461,9 @@ await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-binance" role="tabpanel" aria-labelledby="example-ticker-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-bingx" role="tabpanel" aria-labelledby="example-ticker-bingx-tab">
+		<pre><code>await bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-bitfinex" role="tabpanel" aria-labelledby="example-ticker-bitfinex-tab">
 		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUST");</code></pre>
@@ -2505,6 +2517,9 @@ await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code>
 						<a class="nav-link" id="example-balances-binance-tab" data-toggle="tab" href="#example-balances-binance" role="tab" aria-controls="example-balances-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-bingx-tab" data-toggle="tab" href="#example-balances-bingx" role="tab" aria-controls="example-balances-bingx" aria-selected="true">BingX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-bitfinex-tab" data-toggle="tab" href="#example-balances-bitfinex" role="tab" aria-controls="example-balances-bitfinex" aria-selected="false">Bitfinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -2540,6 +2555,9 @@ await spotClient.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-binance" role="tabpanel" aria-labelledby="example-balances-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-bingx" role="tabpanel" aria-labelledby="example-balances-bingx-tab">
+		<pre><code>await bingXClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-bitfinex" role="tabpanel" aria-labelledby="example-balances-bitfinex-tab">
 		<pre><code>await bitfinexClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -2597,6 +2615,9 @@ var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-binance-tab" data-toggle="tab" href="#example-place-binance" role="tab" aria-controls="example-place-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-binance-tab" data-toggle="tab" href="#example-place-bingx" role="tab" aria-controls="example-place-bingx" aria-selected="true">BingX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-bitfinex-tab" data-toggle="tab" href="#example-place-bitfinex" role="tab" aria-controls="example-place-bitfinex" aria-selected="false">Bitfinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -2632,6 +2653,9 @@ await spotClient.PlaceOrderAsync(spotClient.GetSymbolName("BTC", "USDT"), Common
 					  </div>
 					  <div class="tab-pane fade" id="example-place-binance" role="tabpanel" aria-labelledby="example-place-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-bingx" role="tabpanel" aria-labelledby="example-place-bingx-tab">
+		<pre><code>await bingXClient.SpotApi.Trading.PlaceOrderAsync("BTC-USDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-bitfinex" role="tabpanel" aria-labelledby="example-place-bitfinex-tab">
 		<pre><code>await bitfinexClient.SpotApi.Trading.PlaceOrderAsync("tBTCUST", OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
@@ -2686,6 +2710,9 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 						<a class="nav-link active" id="example-stream-ticker-binance-tab" data-toggle="tab" href="#example-stream-ticker-binance" role="tab" aria-controls="example-stream-ticker-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bingx-tab" data-toggle="tab" href="#example-stream-ticker-bingx" role="tab" aria-controls="example-stream-ticker-bingx" aria-selected="false">BingX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-bitfinex-tab" data-toggle="tab" href="#example-stream-ticker-bitfinex" role="tab" aria-controls="example-stream-ticker-bitfinex" aria-selected="false">Bitfinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -2716,6 +2743,11 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
 		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bingx" role="tabpanel" aria-labelledby="example-stream-ticker-bingx-tab">
+		<pre><code>await bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -2787,6 +2819,9 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 						<a class="nav-link active" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bingx" role="tab" aria-controls="example-stream-order-bingx" aria-selected="false">BingX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bitfinex" role="tab" aria-controls="example-stream-order-bitfinex" aria-selected="false">Bitfinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -2830,7 +2865,26 @@ _ = Task.Run(async () => {
     while (true)
     {
         await Task.Delay(Timespan.FromMinutes(30));
-        await binanceClient.SpotApi.Account.KeepAliveUserStreamAsync(token.Data);
+        await binanceClient.SpotApi.Account.KeepAliveUserStreamAsync(listenKey.Data);
+    }
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bingx" role="tabpanel" aria-labelledby="example-stream-order-bingx-tab">
+		<pre><code>// Retrieve the listen key
+var listenKey = await bingXRestClient.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await bingXSocketClient.SpotApi.SubscribeToBalanceUpdatesAsync(listenKey.Data, data => {
+    // Handle update
+});
+
+// The listen key will stay valid for 60 minutes, after this no updates will be send anymore
+// To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method every 30 minutes
+_ = Task.Run(async () => {
+    while (true)
+    {
+        await Task.Delay(Timespan.FromMinutes(30));
+        await bingXClient.SpotApi.Account.KeepAliveUserStreamAsync(listenKey.Data);
     }
 });</code></pre>
 					  </div>
