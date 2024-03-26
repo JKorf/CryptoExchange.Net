@@ -108,5 +108,19 @@ namespace CryptoExchange.Net.Clients
             }
             return result.ToString();
         }
+
+        /// <summary>
+        /// Returns the state of all socket api clients
+        /// </summary>
+        /// <returns></returns>
+        public List<SocketApiClient.SocketApiClientState> GetSocketApiClientStates()
+        {
+            var result = new List<SocketApiClient.SocketApiClientState>();
+            foreach (var client in ApiClients.OfType<SocketApiClient>())
+            {
+                result.Add(client.GetState());
+            }
+            return result;
+        }
     }
 }

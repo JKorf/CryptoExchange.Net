@@ -20,6 +20,28 @@ namespace CryptoExchange.Net.Sockets
     public class SocketConnection
     {
         /// <summary>
+        /// State of a the connection
+        /// </summary>
+        /// <param name="Id">The id of the socket connection</param>
+        /// <param name="Address">The connection URI</param>
+        /// <param name="Subscriptions">Number of subscriptions on this socket</param>
+        /// <param name="Status">Socket status</param>
+        /// <param name="Authenticated">If the connection is authenticated</param>
+        /// <param name="DownloadSpeed">Download speed over this socket</param>
+        /// <param name="PendingQueries">Number of non-completed queries</param>
+        /// <param name="SubscriptionStates">State for each subscription on this socket</param>
+        public record SocketConnectionState(
+            int Id,
+            string Address,
+            int Subscriptions,
+            SocketStatus Status,
+            bool Authenticated,
+            double DownloadSpeed,
+            int PendingQueries,
+            List<Subscription.SubscriptionState> SubscriptionStates
+        );
+
+        /// <summary>
         /// Connection lost event
         /// </summary>
         public event Action? ConnectionLost;
@@ -618,6 +640,24 @@ namespace CryptoExchange.Net.Sockets
         {
             lock (_listenersLock)
                 return _listeners.OfType<Subscription>().SingleOrDefault(s => s.Id == id);
+        }
+
+        /// <summary>
+        /// Get the state of the connection
+        /// </summary>
+        /// <returns></returns>
+        public SocketConnectionState GetState(bool includeSubDetails)
+        {
+            return new SocketConnectionState(
+                SocketId,
+                ConnectionUri.AbsoluteUri,
+                UserSubscriptionCount,
+                Status,
+                Authenticated,
+                IncomingKbps,
+                PendingQueries: _listeners.OfType<Query>().Count(x => !x.Completed),
+                includeSubDetails ? Subscriptions.Select(sub => sub.GetState()).ToList() : new List<Subscription.SubscriptionState>()
+            );
         }
 
         /// <summary>

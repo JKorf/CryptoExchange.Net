@@ -622,32 +622,76 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public string GetSubscriptionsState(bool includeSubDetails = true)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine($"{GetType().Name}");
-            sb.AppendLine($"  Connections: {socketConnections.Count}");
-            sb.AppendLine($"  Subscriptions: {CurrentSubscriptions}");
-            sb.AppendLine($"  Download speed: {IncomingKbps} kbps");
-            foreach (var connection in socketConnections)
+            return GetState(includeSubDetails).ToString();
+        }
+
+        /// <summary>
+        /// Gets the state of the client
+        /// </summary>
+        /// <param name="includeSubDetails">True to get details for each subscription</param>
+        /// <returns></returns>
+        public SocketApiClientState GetState(bool includeSubDetails = true)
+        {
+            var connectionStates = new List<SocketConnection.SocketConnectionState>();
+            foreach (var socketIdAndConnection in socketConnections)
             {
-                sb.AppendLine($"    Id: {connection.Key}");
-                sb.AppendLine($"    Address: {connection.Value.ConnectionUri}");
-                sb.AppendLine($"    Subscriptions: {connection.Value.UserSubscriptionCount}");
-                sb.AppendLine($"    Status: {connection.Value.Status}");
-                sb.AppendLine($"    Authenticated: {connection.Value.Authenticated}");
-                sb.AppendLine($"    Download speed: {connection.Value.IncomingKbps} kbps");
-                sb.AppendLine($"    Subscriptions:");
-                if (includeSubDetails)
-                {
-                    foreach (var subscription in connection.Value.Subscriptions)
-                    {
-                        sb.AppendLine($"      Id: {subscription.Id}");
-                        sb.AppendLine($"      Confirmed: {subscription.Confirmed}");
-                        sb.AppendLine($"      Invocations: {subscription.TotalInvocations}");
-                        sb.AppendLine($"      Identifiers: [{string.Join(", ", subscription.ListenerIdentifiers)}]");
-                    }
-                }
+                SocketConnection connection = socketIdAndConnection.Value;
+                SocketConnection.SocketConnectionState connectionState = connection.GetState(includeSubDetails);
+                connectionStates.Add(connectionState);
             }
-            return sb.ToString();
+
+            return new SocketApiClientState(socketConnections.Count, CurrentSubscriptions, IncomingKbps, connectionStates);
+        }
+
+        /// <summary>
+        /// Get the current state of the client
+        /// </summary>
+        /// <param name="Connections">Number of sockets for this client</param>
+        /// <param name="Subscriptions">Total number of subscriptions</param>
+        /// <param name="DownloadSpeed">Total download speed</param>
+        /// <param name="ConnectionStates">State of each socket connection</param>
+        public record SocketApiClientState(
+            int Connections,
+            int Subscriptions,
+            double DownloadSpeed,
+            List<SocketConnection.SocketConnectionState> ConnectionStates)
+        {
+            /// <summary>
+            /// Print the state of the client
+            /// </summary>
+            /// <param name="sb"></param>
+            /// <returns></returns>
+            protected virtual bool PrintMembers(StringBuilder sb)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"\tTotal connections: {Connections}");
+                sb.AppendLine($"\tTotal subscriptions: {Subscriptions}");
+                sb.AppendLine($"\tDownload speed: {DownloadSpeed} kbps");
+                sb.AppendLine($"\tConnections:");
+                ConnectionStates.ForEach(cs =>
+                {
+                    sb.AppendLine($"\t\tId: {cs.Id}");
+                    sb.AppendLine($"\t\tAddress: {cs.Address}");
+                    sb.AppendLine($"\t\tTotal subscriptions: {cs.Subscriptions}");
+                    sb.AppendLine($"\t\tStatus: {cs.Status}");
+                    sb.AppendLine($"\t\tAuthenticated: {cs.Authenticated}");
+                    sb.AppendLine($"\t\tDownload speed: {cs.DownloadSpeed} kbps");
+                    sb.AppendLine($"\t\tPending queries: {cs.PendingQueries}");
+                    if (cs.SubscriptionStates?.Count > 0)
+                    {
+                        sb.AppendLine($"\t\tSubscriptions:");
+                        cs.SubscriptionStates.ForEach(subState =>
+                        {
+                            sb.AppendLine($"\t\t\tId: {subState.Id}");
+                            sb.AppendLine($"\t\t\tConfirmed: {subState.Confirmed}");
+                            sb.AppendLine($"\t\t\tInvocations: {subState.Invocations}");
+                            sb.AppendLine($"\t\t\tIdentifiers: [{string.Join(",", subState.Identifiers)}]");
+                        });
+                    }
+                });
+
+                return true;
+            }
         }
 
         /// <summary>
