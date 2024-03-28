@@ -194,11 +194,16 @@ namespace CryptoExchange.Net.Sockets
             try
             {
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
-                await _socket.ConnectAsync(Uri, tcs.Token).ConfigureAwait(false);
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token);
+                await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                _logger.SocketConnectionFailed(Id, e.Message, e);
+                if (!_ctsSource.IsCancellationRequested)
+                {
+                    // if _ctsSource was canceled this was already logged
+                    _logger.SocketConnectionFailed(Id, e.Message, e);
+                }
                 return false;
             }
 
@@ -386,10 +391,13 @@ namespace CryptoExchange.Net.Sockets
             if (_disposed)
                 return;
 
+            if (_ctsSource?.IsCancellationRequested == false)
+                _ctsSource.Cancel();
+
             _logger.SocketDisposing(Id);
             _disposed = true;
             _socket.Dispose();
-            _ctsSource.Dispose();
+            _ctsSource?.Dispose();
             _logger.SocketDisposed(Id);
         }
 

@@ -714,6 +714,12 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult(new InvalidOperationError(info));
             }
 
+            if (!_socket.IsOpen)
+            {
+                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - Failed to send, socket no longer open", SocketId, requestId);
+                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+            }
+
             _logger.SendingData(SocketId, requestId, data);
             try
             {
