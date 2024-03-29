@@ -118,17 +118,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (value.Value.ValueKind == JsonValueKind.Object || value.Value.ValueKind == JsonValueKind.Array)
                 return default;
 
-            var ttype = typeof(T);
-            if (ttype == typeof(string))
-                return (T?)(object?)value.Value.GetString();
-            if (ttype == typeof(short))
-                return (T)(object)value.Value.GetInt16();
-            if (ttype == typeof(int))
-                return (T)(object)value.Value.GetInt32();
-            if (ttype == typeof(long))
-                return (T)(object)value.Value.GetInt64();
-
-            return default;
+            return value.Value.Deserialize<T>();
         }
 
         /// <inheritdoc />
