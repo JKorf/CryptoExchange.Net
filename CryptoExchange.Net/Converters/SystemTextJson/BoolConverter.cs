@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
                 => (T)((object?)ReadBool(ref reader, typeToConvert, options) ?? default(T))!;
-
+            
             public bool? ReadBool(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 if (reader.TokenType == JsonTokenType.True)
@@ -74,7 +74,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
-                writer.WriteNullValue();
+                if (value is bool boolVal)
+                    writer.WriteBooleanValue(boolVal);
+                else
+                    writer.WriteNullValue();
             }
         }
 
