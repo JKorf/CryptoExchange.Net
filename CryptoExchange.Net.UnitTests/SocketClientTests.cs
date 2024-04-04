@@ -245,10 +245,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            var connection = new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test");
-            client.SubClient.ConnectSocketSub(connection);
-            var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), messageEvent => { });
-            connection.AddSubscription(subObj);
+            var _ = client.SubClient.SubscribeToSomethingAsync("BTCUSD", onUpdate => { }, default);
 
             // act
             client.SubClient.IgnoredUnhandledMessages = new HashSet<string> { "connected" };
