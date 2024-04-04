@@ -518,7 +518,6 @@ namespace CryptoExchange.Net.Clients
         {
             if (await socketConnection.ConnectAsync().ConfigureAwait(false))
             {
-                socketConnection.UnhandledMessage += HandleUnhandledMessage;
                 socketConnections.TryAdd(socketConnection.SocketId, socketConnection);
                 return new CallResult<bool>(true);
             }
