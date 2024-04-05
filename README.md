@@ -42,6 +42,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.2.1 - 05 Apr 2024
+    * Improved websocket reconnect logic
+    * Simplified SystemTextJsonMessageAccessor value retrieval
+    * Fixed System.Text.Json BoolConverter value writing
+
 * Version 7.2.0 - 24 Mar 2024
     * Added ArrayParametersSerialization.JsonArray support
     * Refactored to high-performance logging for hot paths
