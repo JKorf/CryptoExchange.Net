@@ -732,17 +732,16 @@ namespace CryptoExchange.Net.OrderBook
                     var (prevBestBid, prevBestAsk) = BestOffers;
                     ProcessRangeUpdates(item.StartUpdateId, item.EndUpdateId, item.Bids, item.Asks);
 
-                    if (!_asks.Any() || !_bids.Any())
-                        return;
-
-                    if (_asks.First().Key < _bids.First().Key)
+                    if (_asks.Any() && _bids.Any())
                     {
-                        _logger.OrderBookOutOfSyncDetected(Api, Symbol, _asks.First().Key, _bids.First().Key);
-                        _stopProcessing = true;
-                        Resubscribe();
-                        return;
+                        if (_asks.First().Key < _bids.First().Key)
+                        {
+                            _logger.OrderBookOutOfSyncDetected(Api, Symbol, _asks.First().Key, _bids.First().Key);
+                            _stopProcessing = true;
+                            Resubscribe();
+                            return;
+                        }
                     }
-
                     OnOrderBookUpdate?.Invoke((item.Bids, item.Asks));
                     CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
