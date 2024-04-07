@@ -11,6 +11,13 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects
 {
+    // Only 1 request can go through the gate at once, else there is no way correctly handling
+    // Add event when rate limiting is applied
+    // Add RetryAfter handling
+    // Add dynamic updating of limits (binance orders limits)
+    // Rolling vs Fixed window, Binance is fixed window
+
+
     /// <summary>
     /// Limits the amount of requests to a certain constraint
     /// </summary>
@@ -40,7 +47,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Add a rate lmit for the amount of requests per time for an endpoint
+        /// Add a rate limit for the amount of requests per time for an endpoint
         /// </summary>
         /// <param name="endpoint">The endpoint the limit is for</param>
         /// <param name="limit">The limit per period. Note that this is weight, not single request, altough by default requests have a weight of 1</param>
@@ -347,6 +354,21 @@ namespace CryptoExchange.Net.Objects
             }
         }
 
+        internal class AfterDateTimeLimiter
+        {
+            private readonly DateTime _after;
+
+            public AfterDateTimeLimiter(DateTime after)
+            {
+                _after = after;
+            }
+
+            public override string ToString()
+            {
+                return nameof(TotalRateLimiter);
+            }
+        }
+
         internal class ConnectionRateLimiter : PartialEndpointRateLimiter
         {
             public ConnectionRateLimiter(int limit, TimeSpan perPeriod)
@@ -435,6 +457,7 @@ namespace CryptoExchange.Net.Objects
         internal enum RateLimitType 
         { 
             Total,
+            After,
             Endpoint,
             PartialEndpoint,
             ApiKey

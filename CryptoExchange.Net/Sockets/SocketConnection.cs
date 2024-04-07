@@ -216,6 +216,7 @@ namespace CryptoExchange.Net.Sockets
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
+            _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
             _socket.OnOpen += HandleOpenAsync;
             _socket.OnClose += HandleCloseAsync;
             _socket.OnReconnecting += HandleReconnectingAsync;
@@ -356,6 +357,26 @@ namespace CryptoExchange.Net.Sockets
             else
                 _logger.WebSocketError(SocketId, e.Message, e);
 
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handler for whenever a request is rate limited and rate limit behaviour is set to fail
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
+        protected virtual Task HandleRequestRateLimitedAsync(int requestId)
+        {
+            Query query;
+            lock (_listenersLock)
+            {
+                query = _listeners.OfType<Query>().FirstOrDefault(x => x.Id == requestId);
+            }
+
+            if (query == null)
+                return Task.CompletedTask;
+
+            query.Fail(new ClientRateLimitError("Connection rate limit reached"));
             return Task.CompletedTask;
         }
 

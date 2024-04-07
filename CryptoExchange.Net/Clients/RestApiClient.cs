@@ -13,6 +13,8 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.RateLimiting;
+using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 
@@ -58,7 +60,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// List of rate limiters
         /// </summary>
-        internal IEnumerable<IRateLimiter> RateLimiters { get; }
+        internal IRateLimitGate? RateLimiter { get; }
 
         /// <summary>
         /// Where to put the parameters for requests with different Http methods
@@ -94,10 +96,7 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            var rateLimiters = new List<IRateLimiter>();
-            foreach (var rateLimiter in apiOptions.RateLimiters)
-                rateLimiters.Add(rateLimiter);
-            RateLimiters = rateLimiters;
+            RateLimiter = apiOptions.RateLimiter;
 
             RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
         }
@@ -263,14 +262,11 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            if (!ignoreRatelimit)
+            if (!ignoreRatelimit && RateLimiter != null)
             {
-                foreach (var limiter in RateLimiters)
-                {
-                    var limitResult = await limiter.LimitRequestAsync(_logger, uri.AbsolutePath, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, ApiOptions.RateLimitingBehaviour, requestWeight, cancellationToken).ConfigureAwait(false);
-                    if (!limitResult.Success)
-                        return new CallResult<IRequest>(limitResult.Error!);
-                }
+                var limitResult = await RateLimiter.ProcessAsync(_logger, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, cancellationToken).ConfigureAwait(false);
+                if (!limitResult)
+                    return new CallResult<IRequest>(limitResult.Error!);
             }
 
             if (signed && AuthenticationProvider == null)
@@ -328,7 +324,16 @@ namespace CryptoExchange.Net.Clients
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
-                        error = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                    {
+                        var rateError = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                        if (rateError.RetryAfter != null && RateLimiter != null)
+                        {
+                            _logger.LogWarning("Ratelimit error from server, pausing requests until {Until}", rateError.RetryAfter.Value);
+                            RateLimiter.AddGuard(new RetryAfterGuard(rateError.RetryAfter.Value));
+                        }
+
+                        error = rateError;
+                    }
                     else
                         error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
 
@@ -559,7 +564,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual Error ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
         {
             var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
 

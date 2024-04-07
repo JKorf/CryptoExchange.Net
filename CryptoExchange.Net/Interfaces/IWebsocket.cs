@@ -23,6 +23,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         event Func<int, Task> OnRequestSent;
         /// <summary>
+        /// Websocket query was ratelimited and couldn't be send
+        /// </summary>
+        event Func<int, Task>? OnRequestRateLimited;
+        /// <summary>
         /// Websocket error event
         /// </summary>
         event Func<Exception, Task> OnError;

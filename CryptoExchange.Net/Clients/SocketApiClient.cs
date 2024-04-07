@@ -4,6 +4,7 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
@@ -59,7 +60,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// The rate limiters 
         /// </summary>
-        protected internal IEnumerable<IRateLimiter>? RateLimiters { get; set; }
+        protected internal IRateLimitGate? RateLimiter { get; set; }
 
         /// <summary>
         /// The max size a websocket message size can be
@@ -121,10 +122,7 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            var rateLimiters = new List<IRateLimiter>();
-            foreach (var rateLimiter in apiOptions.RateLimiters)
-                rateLimiters.Add(rateLimiter);
-            RateLimiters = rateLimiters;
+            RateLimiter = apiOptions.RateLimiter;
         }
 
         /// <summary>
@@ -521,7 +519,7 @@ namespace CryptoExchange.Net.Clients
             {
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
-                RateLimiters = RateLimiters,
+                RateLimiter = RateLimiter,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };

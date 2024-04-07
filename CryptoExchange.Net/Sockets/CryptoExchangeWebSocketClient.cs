@@ -111,6 +111,9 @@ namespace CryptoExchange.Net.Sockets
         public event Func<int, Task>? OnRequestSent;
 
         /// <inheritdoc />
+        public event Func<int, Task>? OnRequestRateLimited;
+
+        /// <inheritdoc />
         public event Func<Exception, Task>? OnError;
 
         /// <inheritdoc />
@@ -409,7 +412,7 @@ namespace CryptoExchange.Net.Sockets
         {
             try
             {
-                var limitKey = Uri.ToString() + "/" + Id.ToString();
+                var limitKey = new Uri($"{Uri.Scheme}://{Uri.Host}{Uri.AbsolutePath.AppendPath(Id.ToString())}");
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -422,16 +425,13 @@ namespace CryptoExchange.Net.Sockets
 
                     while (_sendBuffer.TryDequeue(out var data))
                     {
-                        if (Parameters.RateLimiters != null)
+                        if (Parameters.RateLimiter != null)
                         {
-                            foreach(var ratelimiter in Parameters.RateLimiters)
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, limitKey, HttpMethod.Get, false, null, data.Weight, _ctsSource.Token).ConfigureAwait(false);
+                            if (!limitResult)
                             {
-                                var limitResult = await ratelimiter.LimitRequestAsync(_logger, limitKey, HttpMethod.Get, false, null, RateLimitingBehaviour.Wait, data.Weight, _ctsSource.Token).ConfigureAwait(false);
-                                if (limitResult.Success)
-                                {
-                                    if (limitResult.Data > 0)
-                                        _logger.SocketSendDelayedBecauseOfRateLimit(Id, data.Id, limitResult.Data);
-                                }
+                                await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
+                                continue;
                             }
                         }
 

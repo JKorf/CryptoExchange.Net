@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.RateLimiting;
 using System;
 using System.Collections.Generic;
 
@@ -11,14 +12,9 @@ namespace CryptoExchange.Net.Objects.Options
     public class RestApiOptions : ApiOptions
     {
         /// <summary>
-        /// List of rate limiters to use
+        /// Rate limiters to use
         /// </summary>
-        public List<IRateLimiter> RateLimiters { get; set; } = new List<IRateLimiter>();
-
-        /// <summary>
-        /// What to do when a call would exceed the rate limit
-        /// </summary>
-        public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+        public IRateLimitGate? RateLimiter { get; set; }
 
         /// <summary>
         /// Whether or not to automatically sync the local time with the server time
@@ -42,8 +38,7 @@ namespace CryptoExchange.Net.Objects.Options
                 ApiCredentials = ApiCredentials?.Copy(),
                 OutputOriginalData = OutputOriginalData,
                 AutoTimestamp = AutoTimestamp,
-                RateLimiters = RateLimiters,
-                RateLimitingBehaviour = RateLimitingBehaviour,
+                RateLimiter = RateLimiter,
                 TimestampRecalculationInterval = TimestampRecalculationInterval
             };
         }

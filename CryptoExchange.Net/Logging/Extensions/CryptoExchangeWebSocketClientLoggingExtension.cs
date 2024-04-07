@@ -20,7 +20,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _closed;
         private static readonly Action<ILogger, int, Exception?> _disposing;
         private static readonly Action<ILogger, int, Exception?> _disposed;
-        private static readonly Action<ILogger, int, int, int, Exception?> _sendDelayedBecauseOfRateLimit;
         private static readonly Action<ILogger, int, int, int, Exception?> _sentBytes;
         private static readonly Action<ILogger, int, string, Exception?> _sendLoopStoppedWithException;
         private static readonly Action<ILogger, int, Exception?> _sendLoopFinished;
@@ -110,11 +109,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Trace,
                 new EventId(1014, "Disposed"),
                 "[Sckt {SocketId}] disposed");
-
-            _sendDelayedBecauseOfRateLimit = LoggerMessage.Define<int, int, int>(
-                LogLevel.Debug,
-                new EventId(1015, "SendDelayedBecauseOfRateLimit"),
-                "[Sckt {SocketId}] msg {RequestId} - send delayed {DelayMS}ms because of rate limit");
 
             _sentBytes = LoggerMessage.Define<int, int, int>(
                 LogLevel.Trace,
@@ -265,12 +259,6 @@ namespace CryptoExchange.Net.Logging.Extensions
             this ILogger logger, int socketId)
         {
             _disposed(logger, socketId, null);
-        }
-
-        public static void SocketSendDelayedBecauseOfRateLimit(
-            this ILogger logger, int socketId, int requestId, int delay)
-        {
-            _sendDelayedBecauseOfRateLimit(logger, socketId, requestId, delay, null);
         }
 
         public static void SocketSentBytes(
