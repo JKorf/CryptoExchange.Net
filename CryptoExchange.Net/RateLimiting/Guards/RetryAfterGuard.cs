@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
     {
         public string Name => "RetryAfterGuard";
 
-        private readonly DateTime _after;
+        private DateTime _after;
 
         public RetryAfterGuard(DateTime after)
         {
@@ -29,6 +29,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
             return dif;
         }
+
+        public void UpdateAfter(DateTime after) => _after = after;
 
         public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {

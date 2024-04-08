@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -7,16 +8,15 @@ using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
-    public class HostLimitGuard : IRateLimitGuard
+    public class HostLimitGuard : LimitGuard, IRateLimitGuard
     {
         public string Name => "HostLimitGuard";
 
         private readonly string _host;
-        private readonly RateLimitTracker _tracker;
+        private WindowTracker _tracker;
 
-        public HostLimitGuard(string host, int limit, TimeSpan timespan)
+        public HostLimitGuard(string host, int limit, TimeSpan timespan) : base(limit, timespan)
         {
-            _tracker = new RateLimitTracker(limit, timespan);
             _host = host;
         }
 
@@ -25,11 +25,17 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
                 return TimeSpan.Zero;
 
+            if (_tracker == null)
+                _tracker = CreateTracker();
+
             return _tracker.ProcessTopic(requestWeight);
         }
 
         public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
+                return;
+
             _tracker.AddEntry(requestWeight);
         }
 

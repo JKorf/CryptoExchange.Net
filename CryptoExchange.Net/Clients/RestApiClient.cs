@@ -329,7 +329,7 @@ namespace CryptoExchange.Net.Clients
                         if (rateError.RetryAfter != null && RateLimiter != null)
                         {
                             _logger.LogWarning("Ratelimit error from server, pausing requests until {Until}", rateError.RetryAfter.Value);
-                            RateLimiter.AddGuard(new RetryAfterGuard(rateError.RetryAfter.Value));
+                            await RateLimiter.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);
                         }
 
                         error = rateError;

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,20 +10,20 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
-    public class TotalLimitGuard : IRateLimitGuard
+    public class TotalLimitGuard : LimitGuard, IRateLimitGuard
     {
         public string Name => "TotalLimitGuard";
 
-        private readonly RateLimitTracker _tracker;
+        private WindowTracker _tracker;
 
-        public TotalLimitGuard(int limit, TimeSpan timespan)
+        public TotalLimitGuard(int limit, TimeSpan timespan) : base(limit, timespan)
         {
-            _tracker = new RateLimitTracker(limit, timespan);
         }
 
 
         public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            _tracker ??= CreateTracker();
             return _tracker.ProcessTopic(requestWeight);
         }
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Guards;
+using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,21 +11,17 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
-    public class PartialEndpointIndividualLimitGuard : IRateLimitGuard
+    public class PartialEndpointIndividualLimitGuard : LimitGuard, IRateLimitGuard
     {
         public string Name => "PartialEndpointIndividualLimitGuard";
 
         private readonly string _endpoint;
-        private readonly Dictionary<string, RateLimitTracker> _trackers;
-        private readonly int _limit;
-        private readonly TimeSpan _timespan;
+        private readonly Dictionary<string, WindowTracker> _trackers;
 
-        public PartialEndpointIndividualLimitGuard(string endpoint, int limit, TimeSpan timespan)
+        public PartialEndpointIndividualLimitGuard(string endpoint, int limit, TimeSpan timespan) : base(limit, timespan)
         {
             _endpoint = endpoint;
-            _limit = limit;
-            _timespan = timespan;
-            _trackers = new Dictionary<string, RateLimitTracker>();
+            _trackers = new Dictionary<string, WindowTracker>();
         }
 
 
@@ -34,7 +32,7 @@ namespace CryptoExchange.Net.RateLimiting
 
             if (!_trackers.TryGetValue(url.AbsolutePath, out var tracker))
             {
-                tracker = new RateLimitTracker(_limit, _timespan);
+                tracker = CreateTracker();
                 _trackers[url.AbsolutePath] = tracker;
             }
 

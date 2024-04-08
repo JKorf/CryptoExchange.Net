@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Guards;
+using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,21 +11,19 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
-    public class EndpointLimitGuard : IRateLimitGuard
+    public class EndpointLimitGuard : LimitGuard, IRateLimitGuard
     {
         public string Name => "EndpointLimitGuard";
 
         private readonly string _endpoint;
-        private readonly RateLimitTracker _tracker;
+        private WindowTracker _tracker;
         private HttpMethod? _method;
 
-        public EndpointLimitGuard(string endpoint, int limit, TimeSpan timespan, HttpMethod? method)
+        public EndpointLimitGuard(string endpoint, int limit, TimeSpan timespan, HttpMethod? method): base(limit, timespan)
         {
-            _tracker = new RateLimitTracker(limit, timespan);
             _endpoint = endpoint;
             _method = method;
         }
-
 
         public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
@@ -33,11 +33,20 @@ namespace CryptoExchange.Net.RateLimiting
             if (_method != null && _method != method)
                 return TimeSpan.Zero;
 
+            if (_tracker == null)
+                _tracker = CreateTracker();
+
             return _tracker.ProcessTopic(requestWeight);
         }
 
         public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            if (!string.Equals(url.AbsolutePath, _endpoint, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (_method != null && _method != method)
+                return;
+
             _tracker.AddEntry(requestWeight);
         }
 

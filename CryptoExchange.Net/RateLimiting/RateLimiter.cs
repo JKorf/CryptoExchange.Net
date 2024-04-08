@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects
 {
-    // Only 1 request can go through the gate at once, else there is no way correctly handling
-    // Add event when rate limiting is applied
-    // Add RetryAfter handling
-    // Add dynamic updating of limits (binance orders limits)
-    // Rolling vs Fixed window, Binance is fixed window
+    // Request order is not guarenteed if rate limited
 
+    // Add event when rate limiting is applied
+    // Add dynamic updating of limits (binance orders limits)
+    // Rate limiter should be shared between clients
+    // Retry-After = 0 for some Binance limits
+    // Binance has IP and UID limits, endpoints don't always apply both, so should be able per call to distinquish which limit is applied. Allow some sort of topic per request which filters the ratelimit guards
 
     /// <summary>
     /// Limits the amount of requests to a certain constraint

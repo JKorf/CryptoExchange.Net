@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting.Guards;
+using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,21 +12,16 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
-    public class ApiKeyLimitGuard : IRateLimitGuard
+    public class ApiKeyLimitGuard : LimitGuard, IRateLimitGuard
     {
         public string Name => "ApiKeyLimitGuard";
 
-        private readonly Dictionary<string, RateLimitTracker> _trackers;
-        private readonly int _limit;
-        private readonly TimeSpan _timespan;
+        private readonly Dictionary<string, WindowTracker> _trackers;
 
-        public ApiKeyLimitGuard(int limit, TimeSpan timespan)
+        public ApiKeyLimitGuard(int limit, TimeSpan timespan): base(limit, timespan)
         {
-            _limit = limit;
-            _timespan = timespan;
-            _trackers = new Dictionary<string, RateLimitTracker>();
+            _trackers = new Dictionary<string, WindowTracker>();
         }
-
 
         public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
@@ -33,7 +31,7 @@ namespace CryptoExchange.Net.RateLimiting
             var ky = apiKey.GetString();
             if(!_trackers.TryGetValue(ky, out var tracker))
             {
-                tracker = new RateLimitTracker(_limit, _timespan);
+                tracker = CreateTracker();
                 _trackers[ky] = tracker;
             }    
 
