@@ -58,11 +58,6 @@ namespace CryptoExchange.Net.Clients
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
 
         /// <summary>
-        /// List of rate limiters
-        /// </summary>
-        internal IRateLimitGate? RateLimiter { get; }
-
-        /// <summary>
         /// Where to put the parameters for requests with different Http methods
         /// </summary>
         public Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
@@ -96,8 +91,6 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            RateLimiter = apiOptions.RateLimiter;
-
             RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
         }
 
@@ -140,17 +133,17 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            bool ignoreRatelimit = false)
+            IRateLimitGate? gate = null)
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
-                var result = await GetResponseAsync<object>(request.Data, cancellationToken).ConfigureAwait(false);
+                var result = await GetResponseAsync<object>(request.Data, gate, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
                 else
@@ -191,18 +184,18 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            bool ignoreRatelimit = false
+            IRateLimitGate? gate = null
             ) where T : class
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, ignoreRatelimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
-                var result = await GetResponseAsync<T>(request.Data, cancellationToken).ConfigureAwait(false);
+                var result = await GetResponseAsync<T>(request.Data, gate, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
                 else
@@ -228,7 +221,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
+        /// <param name="gate">The rate limit gate to use</param>
         /// <returns></returns>
         protected virtual async Task<CallResult<IRequest>> PrepareRequestAsync(
             Uri uri,
@@ -241,7 +234,7 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            bool ignoreRatelimit = false)
+            IRateLimitGate? gate = null)
         {
             var requestId = ExchangeHelpers.NextId();
 
@@ -262,9 +255,12 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            if (!ignoreRatelimit && RateLimiter != null)
+            if (requestWeight != 0 && gate == null)
+                throw new Exception("Ratelimit gate not set when request weight is not 0");
+
+            if (gate != null)
             {
-                var limitResult = await RateLimiter.ProcessAsync(_logger, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, cancellationToken).ConfigureAwait(false);
+                var limitResult = await gate.ProcessAsync(_logger, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, cancellationToken).ConfigureAwait(false);
                 if (!limitResult)
                     return new CallResult<IRequest>(limitResult.Error!);
             }
@@ -300,6 +296,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
             IRequest request,
+            IRateLimitGate? gate,
             CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
@@ -326,10 +323,10 @@ namespace CryptoExchange.Net.Clients
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
                     {
                         var rateError = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
-                        if (rateError.RetryAfter != null && RateLimiter != null)
+                        if (rateError.RetryAfter != null && gate != null)
                         {
                             _logger.LogWarning("Ratelimit error from server, pausing requests until {Until}", rateError.RetryAfter.Value);
-                            await RateLimiter.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);
+                            await gate.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);
                         }
 
                         error = rateError;

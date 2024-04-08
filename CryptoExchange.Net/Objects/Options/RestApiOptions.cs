@@ -12,11 +12,6 @@ namespace CryptoExchange.Net.Objects.Options
     public class RestApiOptions : ApiOptions
     {
         /// <summary>
-        /// Rate limiters to use
-        /// </summary>
-        public IRateLimitGate? RateLimiter { get; set; }
-
-        /// <summary>
         /// Whether or not to automatically sync the local time with the server time
         /// </summary>
         public bool? AutoTimestamp { get; set; }
@@ -38,7 +33,6 @@ namespace CryptoExchange.Net.Objects.Options
                 ApiCredentials = ApiCredentials?.Copy(),
                 OutputOriginalData = OutputOriginalData,
                 AutoTimestamp = AutoTimestamp,
-                RateLimiter = RateLimiter,
                 TimestampRecalculationInterval = TimestampRecalculationInterval
             };
         }
