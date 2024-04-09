@@ -11,38 +11,50 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
+    /// <summary>
+    /// Partial endpoint total limit guard, limit the amount of requests to endpoints starting with a certain string, adding all requests matching to the same limit
+    /// </summary>
     public class PartialEndpointTotalLimitGuard : LimitGuard, IRateLimitGuard
     {
+        /// <inheritdoc />
         public string Name => "PartialEndpointLimitGuard";
 
         private readonly string _endpoint;
         private WindowTracker _tracker;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="limit"></param>
+        /// <param name="timespan"></param>
         public PartialEndpointTotalLimitGuard(string endpoint, int limit, TimeSpan timespan): base(limit, timespan)
         {
             _endpoint = endpoint;
         }
 
 
-        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!url.AbsolutePath.StartsWith(_endpoint))
-                return TimeSpan.Zero;
+                return LimitCheck.NotApplicable;
 
             if (_tracker == null)
                 _tracker = CreateTracker();
 
-            return _tracker.ProcessTopic(requestWeight);
+            var delay = _tracker.GetWaitTime(requestWeight);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
 
-        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!url.AbsolutePath.StartsWith(_endpoint))
-                return;
+                return RateLimitState.NotApplied;
 
-            _tracker.AddEntry(requestWeight);
+            _tracker.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(_tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
-
-        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _tracker;
     }
 }

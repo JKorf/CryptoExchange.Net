@@ -262,7 +262,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, RateLimitType.Request, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }

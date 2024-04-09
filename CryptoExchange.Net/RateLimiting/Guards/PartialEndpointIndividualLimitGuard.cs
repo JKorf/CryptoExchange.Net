@@ -11,24 +11,34 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
+    /// <summary>
+    /// Partial endpoint individual limit guard, limit the amount of requests to endpoints starting with a certain string on an individual endpoint basis
+    /// </summary>
     public class PartialEndpointIndividualLimitGuard : LimitGuard, IRateLimitGuard
     {
+        /// <inheritdoc />
         public string Name => "PartialEndpointIndividualLimitGuard";
 
         private readonly string _endpoint;
         private readonly Dictionary<string, WindowTracker> _trackers;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="limit"></param>
+        /// <param name="timespan"></param>
         public PartialEndpointIndividualLimitGuard(string endpoint, int limit, TimeSpan timespan) : base(limit, timespan)
         {
             _endpoint = endpoint;
             _trackers = new Dictionary<string, WindowTracker>();
         }
 
-
-        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!url.AbsolutePath.StartsWith(_endpoint))
-                return TimeSpan.Zero;
+                return LimitCheck.NotApplicable;
 
             if (!_trackers.TryGetValue(url.AbsolutePath, out var tracker))
             {
@@ -36,18 +46,19 @@ namespace CryptoExchange.Net.RateLimiting
                 _trackers[url.AbsolutePath] = tracker;
             }
 
-            return tracker.ProcessTopic(requestWeight);
+            var delay = tracker.GetWaitTime(requestWeight);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, tracker.Limit, tracker.Timeperiod, tracker.Current);
         }
 
-        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!url.AbsolutePath.StartsWith(_endpoint))
-                return;
+                return RateLimitState.NotApplied;
 
-            _trackers[url.AbsolutePath].AddEntry(requestWeight);
-        }
-
-        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _trackers[url.AbsolutePath];
-        
+            var tracker = _trackers[url.AbsolutePath];
+            tracker.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(tracker.Limit, tracker.Timeperiod, tracker.Current);
+        }        
     }
 }

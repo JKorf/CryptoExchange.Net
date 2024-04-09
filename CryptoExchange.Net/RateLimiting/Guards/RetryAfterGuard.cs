@@ -10,33 +10,45 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
+    /// <summary>
+    /// Retry after guard, limit until after a certain timstamp
+    /// </summary>
     public class RetryAfterGuard : IRateLimitGuard
     {
+        /// <inheritdoc />
         public string Name => "RetryAfterGuard";
 
         private DateTime _after;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="after"></param>
         public RetryAfterGuard(DateTime after)
         {
             _after = after;
         }
 
-
-        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             var dif = _after - DateTime.UtcNow;
-            if (dif < TimeSpan.Zero)
-                return TimeSpan.Zero;
+            if (dif <= TimeSpan.Zero)
+                return LimitCheck.NotApplicable;
 
-            return dif;
+            return LimitCheck.Needed(dif, default, default, default);
         }
 
+        /// <summary>
+        /// Update the 'after' time
+        /// </summary>
+        /// <param name="after"></param>
         public void UpdateAfter(DateTime after) => _after = after;
 
-        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            return RateLimitState.NotApplied;
         }
-
-        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => null;
     }
 }

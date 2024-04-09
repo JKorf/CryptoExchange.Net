@@ -8,45 +8,58 @@ using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
+    /// <summary>
+    /// Host limit guard, limit the amount of call to a certain host
+    /// </summary>
     public class HostLimitGuard : LimitGuard, IRateLimitGuard
     {
+        /// <inheritdoc />
         public string Name => "HostLimitGuard";
 
         private readonly string _host;
         private WindowTracker _tracker;
-        private RateLimitType _types;
+        private RateLimitItemType _types;
 
-        public HostLimitGuard(string host, int limit, TimeSpan timespan, RateLimitType types = RateLimitType.Request) : base(limit, timespan)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="limit"></param>
+        /// <param name="timespan"></param>
+        /// <param name="types"></param>
+        public HostLimitGuard(string host, int limit, TimeSpan timespan, RateLimitItemType types = RateLimitItemType.Request) : base(limit, timespan)
         {
             _host = host;
             _types = types;
         }
 
-        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!_types.HasFlag(type))
-                return TimeSpan.Zero;
+                return LimitCheck.NotApplicable;
 
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
-                return TimeSpan.Zero;
+                return LimitCheck.NotApplicable;
 
             if (_tracker == null)
                 _tracker = CreateTracker();
 
-            return _tracker.ProcessTopic(requestWeight);
+            var delay = _tracker.GetWaitTime(requestWeight);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
 
-        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!_types.HasFlag(type))
-                return;
+                return RateLimitState.NotApplied;
 
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
-                return;
+                return RateLimitState.NotApplied;
 
-            _tracker.AddEntry(requestWeight);
+            _tracker.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(_tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
-
-        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _tracker;
     }
 }

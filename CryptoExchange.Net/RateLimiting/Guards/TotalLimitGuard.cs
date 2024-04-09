@@ -10,28 +10,39 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
+    /// <summary>
+    /// Total limit guard, limit the amount of total calls
+    /// </summary>
     public class TotalLimitGuard : LimitGuard, IRateLimitGuard
     {
+        /// <inheritdoc />
         public string Name => "TotalLimitGuard";
 
-        private WindowTracker _tracker;
+        private WindowTracker? _tracker;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <param name="timespan"></param>
         public TotalLimitGuard(int limit, TimeSpan timespan) : base(limit, timespan)
         {
         }
 
 
-        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             _tracker ??= CreateTracker();
-            return _tracker.ProcessTopic(requestWeight);
+            var delay = _tracker.GetWaitTime(requestWeight);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
 
-        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        /// <inheritdoc />
+        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            _tracker.AddEntry(requestWeight);
+            _tracker!.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(_tracker.Limit, _tracker.Timeperiod, _tracker.Current);
         }
-
-        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _tracker;
     }
 }

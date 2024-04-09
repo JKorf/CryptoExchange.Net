@@ -17,17 +17,19 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
         }
 
-        public override TimeSpan ProcessTopic(int weight)
+        public override TimeSpan GetWaitTime(int weight)
         {
             // Remove requests no longer in time period from the history
             var checkTime = DateTime.UtcNow;
             RemoveBefore(checkTime.AddTicks(-(checkTime.Ticks % Timeperiod.Ticks)));
 
-            if (_currentWeight + weight > Limit)
+            if (Current + weight > Limit)
             {
-                if (_currentWeight == 0)
+                if (Current == 0)
+                {
                     throw new Exception("Request limit reached without any prior request. " +
                         $"This request can never execute with the current rate limiter. Request weight: {weight}, Ratelimit: {Limit}");
+                }
 
                 // Wait until the next entry should be removed from the history
                 return DetermineWaitTime();

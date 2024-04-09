@@ -201,7 +201,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitType.Connection, _limitKey, null, false, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Connection, _limitKey, null, false, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
                     {
                         // TODO logging, maybe return Error here?
@@ -439,7 +439,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         if (Parameters.RateLimiter != null)
                         {
-                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitType.Request, _limitKey, null, false, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Request, _limitKey, null, false, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                             if (!limitResult)
                             {
                                 await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
