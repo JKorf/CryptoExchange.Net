@@ -6,6 +6,7 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using CryptoExchange.Net.RateLimiting.Trackers;
 
 namespace CryptoExchange.Net.RateLimiting
 {
@@ -13,9 +14,9 @@ namespace CryptoExchange.Net.RateLimiting
     {
         string Name { get; }
 
-        TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight);
-        void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight);
+        TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
+        void Enter(RateLimitType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
 
-        string GetState(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight);
+        WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey);
     }
 }

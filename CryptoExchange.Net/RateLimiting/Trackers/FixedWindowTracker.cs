@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         /// </summary>
         private static TimeSpan _fixedWindowBuffer = TimeSpan.FromMilliseconds(500);
 
-        public FixedWindowTracker(int limit, TimeSpan period) : base(limit, period)
+        public FixedWindowTracker(int limit, TimeSpan period, int initialCount) : base(limit, period, initialCount)
         {
         }
 

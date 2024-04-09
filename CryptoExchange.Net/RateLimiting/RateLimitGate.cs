@@ -13,17 +13,23 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.RateLimiting
 {
+    [Flags]
+    public enum RateLimitType
+    {
+        Connection = 1,
+        Request = 2
+    }
+
     public class RateLimitGate : IRateLimitGate
     {
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private RetryAfterGuard _retryAfterGuard;
 
         private readonly SemaphoreSlim _semaphore;
-        private RateLimitingBehaviour _limitBehaviour = RateLimitingBehaviour.Wait;
         private RateLimitWindowType _windowType = RateLimitWindowType.Sliding;
         private int _waitingCount;
 
-        public event Action<string, HttpMethod, TimeSpan> RateLimitTriggered;
+        public event Action<string, HttpMethod?, TimeSpan> RateLimitTriggered;
 
         public RateLimitGate()
         {
@@ -31,13 +37,13 @@ namespace CryptoExchange.Net.RateLimiting
             _semaphore = new SemaphoreSlim(1);
         }
 
-        public async Task<CallResult> ProcessAsync(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight, CancellationToken ct)
+        public async Task<CallResult> ProcessAsync(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(logger, url, method, signed, apiKey, requestWeight, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(logger, type, url, method, signed, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
             finally
             {
@@ -46,39 +52,61 @@ namespace CryptoExchange.Net.RateLimiting
             }
         }
 
-        private async Task<CallResult> CheckGuardsAsync(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight, CancellationToken ct)
+        private async Task<CallResult> CheckGuardsAsync(ILogger logger, RateLimitType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             foreach (var guard in _guards)
             {
                 // Check if a wait is needed for this guard
-                var result = guard.Check(logger, url, method, signed, apiKey, requestWeight);
-                if (result != TimeSpan.Zero && _limitBehaviour == RateLimitingBehaviour.Fail)
+                var result = guard.Check(logger, type, url, method, signed, apiKey, requestWeight);
+                var tracker = guard.GetTracker(type, url, method, signed, apiKey);
+
+                if (result != TimeSpan.Zero && rateLimitingBehaviour == RateLimitingBehaviour.Fail)
+                {
+                    if (tracker == null)
+                        logger.LogWarning($"Call to {url} failed because of ratelimit guard {guard.Name}");
+                    else
+                        logger.LogWarning($"Call to {url} failed because of ratelimit guard {guard.Name}; Request weight: {requestWeight}, Count {tracker?.Current}, Limit: {tracker?.Limit}, requests now being limited: {_waitingCount}");
+
                     return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}"));
+                }
 
                 if (result != TimeSpan.Zero)
                 {
                     _semaphore.Release();
-                    logger.LogWarning($"Delaying call to {url} by {result} because of ratelimit guard {guard.Name}; Request weight: {requestWeight}, {guard.GetState(url, method, signed, apiKey, requestWeight)}, requests currently limited: {_waitingCount}");
+
+                    if (tracker == null)
+                        logger.LogWarning($"Delaying call to {url} by {result} because of ratelimit guard {guard.Name}");
+                    else
+                        logger.LogWarning($"Delaying call to {url} by {result} because of ratelimit guard {guard.Name}; Request weight: {requestWeight}, Count {tracker?.Current}, Limit: {tracker?.Limit}, requests now being limited: {_waitingCount}");
+                    
                     RateLimitTriggered?.Invoke(url.ToString(), method, result);
                     await Task.Delay(result).ConfigureAwait(false);
                     await _semaphore.WaitAsync().ConfigureAwait(false);
-                    return await CheckGuardsAsync(logger, url, method, signed, apiKey, requestWeight, ct).ConfigureAwait(false);
+                    return await CheckGuardsAsync(logger, type, url, method, signed, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
                 }
             }
 
             // Apply the weight on each guard
             foreach (var guard in _guards)
-                guard.Enter(url, method, signed, apiKey, requestWeight);
+            {
+                guard.Enter(type, url, method, signed, apiKey, requestWeight);
+
+                var tracker = guard.GetTracker(type, url, method, signed, apiKey);
+                if (tracker != null)
+                    logger.LogTrace($"Call to {url} passed ratelimit guard {guard.Name}; Request weight: {requestWeight}, New count: {tracker.Current}, Limit: {tracker?.Limit}");
+            }
 
             return new CallResult(null);
         }
 
-        public IRateLimitGate AddGuard(IRateLimitGuard guard)
+        public IRateLimitGate AddGuard(IRateLimitGuard guard, int initialCount = 0)
         {
             _guards.Add(guard);
             if (guard is LimitGuard lg)
+            {
+                lg.SetInitialCount(initialCount);
                 lg.SetWindowType(_windowType);
-
+            }
             return this;
         }
 
@@ -100,12 +128,6 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 _semaphore.Release();
             }
-        }
-
-        public IRateLimitGate WithLimitBehaviour(RateLimitingBehaviour behaviour) 
-        {
-            _limitBehaviour = behaviour;
-            return this;
         }
 
         public IRateLimitGate WithWindowType(RateLimitWindowType type)

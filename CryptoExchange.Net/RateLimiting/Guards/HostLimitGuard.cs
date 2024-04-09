@@ -14,14 +14,19 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
         private readonly string _host;
         private WindowTracker _tracker;
+        private RateLimitType _types;
 
-        public HostLimitGuard(string host, int limit, TimeSpan timespan) : base(limit, timespan)
+        public HostLimitGuard(string host, int limit, TimeSpan timespan, RateLimitType types = RateLimitType.Request) : base(limit, timespan)
         {
             _host = host;
+            _types = types;
         }
 
-        public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            if (!_types.HasFlag(type))
+                return TimeSpan.Zero;
+
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
                 return TimeSpan.Zero;
 
@@ -31,15 +36,17 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             return _tracker.ProcessTopic(requestWeight);
         }
 
-        public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
+            if (!_types.HasFlag(type))
+                return;
+
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
                 return;
 
             _tracker.AddEntry(requestWeight);
         }
 
-        public string GetState(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
-            => $"Current: {_tracker.Current}, limit {_tracker.Limit}";
+        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _tracker;
     }
 }

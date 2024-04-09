@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.RateLimiting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -45,6 +46,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _disposed;
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
+        private Uri _limitKey;
 
         private const int _receiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
@@ -146,6 +148,7 @@ namespace CryptoExchange.Net.Sockets
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
+            _limitKey = new Uri($"{Uri.Scheme}://{Uri.Host}{Uri.AbsolutePath.AppendPath(Id.ToString())}");
         }
 
         /// <inheritdoc />
@@ -196,6 +199,16 @@ namespace CryptoExchange.Net.Sockets
             _logger.SocketConnecting(Id);
             try
             {
+                if (Parameters.RateLimiter != null)
+                {
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitType.Connection, _limitKey, null, false, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    if (!limitResult)
+                    {
+                        // TODO logging, maybe return Error here?
+                        return false;
+                    }
+                }
+
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token);
                 await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
@@ -412,7 +425,6 @@ namespace CryptoExchange.Net.Sockets
         {
             try
             {
-                var limitKey = new Uri($"{Uri.Scheme}://{Uri.Host}{Uri.AbsolutePath.AppendPath(Id.ToString())}");
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -427,7 +439,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         if (Parameters.RateLimiter != null)
                         {
-                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, limitKey, HttpMethod.Get, false, null, data.Weight, _ctsSource.Token).ConfigureAwait(false);
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitType.Request, _limitKey, null, false, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                             if (!limitResult)
                             {
                                 await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);

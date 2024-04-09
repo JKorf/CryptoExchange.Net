@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Trackers;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -21,7 +22,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
 
-        public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
             var dif = _after - DateTime.UtcNow;
             if (dif < TimeSpan.Zero)
@@ -32,11 +33,10 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
         public void UpdateAfter(DateTime after) => _after = after;
 
-        public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
         }
 
-        public string GetState(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
-            => $"Limited until {_after}";
+        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => null;
     }
 }

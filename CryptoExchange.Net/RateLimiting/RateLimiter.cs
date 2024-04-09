@@ -15,9 +15,8 @@ namespace CryptoExchange.Net.Objects
 
     // Add event when rate limiting is applied
     // Add dynamic updating of limits (binance orders limits)
-    // Rate limiter should be shared between clients
-    // Retry-After = 0 for some Binance limits
-    // Binance has IP and UID limits, endpoints don't always apply both, so should be able per call to distinquish which limit is applied. Allow some sort of topic per request which filters the ratelimit guards
+    // High performance logging
+
 
     /// <summary>
     /// Limits the amount of requests to a certain constraint

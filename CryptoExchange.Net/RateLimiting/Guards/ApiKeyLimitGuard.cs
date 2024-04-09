@@ -18,27 +18,27 @@ namespace CryptoExchange.Net.RateLimiting
 
         private readonly Dictionary<string, WindowTracker> _trackers;
 
-        public ApiKeyLimitGuard(int limit, TimeSpan timespan): base(limit, timespan)
+        public ApiKeyLimitGuard(int limit, TimeSpan timespan) : base(limit, timespan)
         {
             _trackers = new Dictionary<string, WindowTracker>();
         }
 
-        public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (apiKey == null)
+            if (type != RateLimitType.Request || apiKey == null)
                 return TimeSpan.Zero;
 
             var ky = apiKey.GetString();
-            if(!_trackers.TryGetValue(ky, out var tracker))
+            if (!_trackers.TryGetValue(ky, out var tracker))
             {
                 tracker = CreateTracker();
                 _trackers[ky] = tracker;
-            }    
+            }
 
             return tracker.ProcessTopic(requestWeight);
         }
 
-        public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (apiKey == null)
                 return;
@@ -47,11 +47,12 @@ namespace CryptoExchange.Net.RateLimiting
             _trackers[ky].AddEntry(requestWeight);
         }
 
-        public string GetState(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey)
         {
-            var ky = apiKey!.GetString();
-            var tracker = _trackers[ky];
-            return $"Current: {tracker.Current}, limit {tracker.Limit}";
+            if (apiKey == null)
+                return null;
+
+            return _trackers[apiKey!.GetString()];
         }
     }
 }

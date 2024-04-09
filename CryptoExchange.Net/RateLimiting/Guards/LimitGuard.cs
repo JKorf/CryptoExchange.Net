@@ -8,7 +8,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 {
     public abstract class LimitGuard
     {
-        private readonly int _limit;
+        protected readonly int _limit;
+        private int _initialCount;
         private readonly TimeSpan _timespan;
         private RateLimitWindowType _windowType;
 
@@ -20,9 +21,10 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
         protected WindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _timespan) : new FixedWindowTracker(_limit, _timespan);
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(_limit, _timespan, _initialCount) : new FixedWindowTracker(_limit, _timespan, _initialCount);
         }
 
         public void SetWindowType(RateLimitWindowType type) => _windowType = type;
+        public void SetInitialCount(int initialCount) => _initialCount = initialCount;
     }
 }

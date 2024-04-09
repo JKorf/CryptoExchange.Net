@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.RateLimiting
             _method = method;
         }
 
-        public TimeSpan Check(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public TimeSpan Check(ILogger logger, RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!string.Equals(url.AbsolutePath, _endpoint, StringComparison.OrdinalIgnoreCase))
                 return TimeSpan.Zero;
@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.RateLimiting
             return _tracker.ProcessTopic(requestWeight);
         }
 
-        public void Enter(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
+        public void Enter(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!string.Equals(url.AbsolutePath, _endpoint, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -50,7 +50,6 @@ namespace CryptoExchange.Net.RateLimiting
             _tracker.AddEntry(requestWeight);
         }
 
-        public string GetState(Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight)
-            => $"Current: {_tracker.Current}, limit {_tracker.Limit}";
+        public WindowTracker? GetTracker(RateLimitType type, Uri url, HttpMethod method, bool signed, SecureString? apiKey) => _tracker;
     }
 }

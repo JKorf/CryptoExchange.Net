@@ -122,7 +122,6 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            RateLimiter = apiOptions.RateLimiter;
         }
 
         /// <summary>
@@ -519,7 +518,8 @@ namespace CryptoExchange.Net.Clients
             {
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
-                RateLimiter = RateLimiter,
+                RateLimiter = ClientOptions.RatelimiterEnabled ? RateLimiter : null,
+                RateLimitingBehaviour = ClientOptions.RateLimitingBehaviour,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };

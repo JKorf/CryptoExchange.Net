@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
 {
     internal class SlidingWindowTracker : WindowTracker
     {
-        public SlidingWindowTracker(int limit, TimeSpan period) : base (limit, period)
+        public SlidingWindowTracker(int limit, TimeSpan period, int initialCount) : base (limit, period, initialCount)
         {
         }
 

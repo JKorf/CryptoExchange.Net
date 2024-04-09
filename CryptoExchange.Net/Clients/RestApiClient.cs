@@ -254,17 +254,20 @@ namespace CryptoExchange.Net.Clients
                     }
                 }
             }
-
-            if (requestWeight != 0 && gate == null)
-                throw new Exception("Ratelimit gate not set when request weight is not 0");
-
-            if (gate != null)
+            
+            if (requestWeight != 0)
             {
-                var limitResult = await gate.ProcessAsync(_logger, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, cancellationToken).ConfigureAwait(false);
-                if (!limitResult)
-                    return new CallResult<IRequest>(limitResult.Error!);
-            }
+                if (gate == null)
+                    throw new Exception("Ratelimit gate not set when request weight is not 0");
 
+                if (ClientOptions.RatelimiterEnabled)
+                {
+                    var limitResult = await gate.ProcessAsync(_logger, RateLimitType.Request, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    if (!limitResult)
+                        return new CallResult<IRequest>(limitResult.Error!);
+                }
+            }
+            
             if (signed && AuthenticationProvider == null)
             {
                 _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
@@ -323,7 +326,7 @@ namespace CryptoExchange.Net.Clients
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
                     {
                         var rateError = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
-                        if (rateError.RetryAfter != null && gate != null)
+                        if (rateError.RetryAfter != null && gate != null && ClientOptions.RatelimiterEnabled)
                         {
                             _logger.LogWarning("Ratelimit error from server, pausing requests until {Until}", rateError.RetryAfter.Value);
                             await gate.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);

@@ -14,11 +14,10 @@ namespace CryptoExchange.Net.RateLimiting
     {
         event Action<string, HttpMethod, TimeSpan> RateLimitTriggered;
 
-        IRateLimitGate AddGuard(IRateLimitGuard guard);
-        IRateLimitGate WithLimitBehaviour(RateLimitingBehaviour behaviour);
+        IRateLimitGate AddGuard(IRateLimitGuard guard, int initialCount = 0);
         IRateLimitGate WithWindowType(RateLimitWindowType type);
 
         Task SetRetryAfterGuardAsync(DateTime retryAfter);
-        Task<CallResult> ProcessAsync(ILogger logger, Uri url, HttpMethod method, bool signed, SecureString? apiKey, int requestWeight, CancellationToken ct);
+        Task<CallResult> ProcessAsync(ILogger logger, RateLimitType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
     }
 }

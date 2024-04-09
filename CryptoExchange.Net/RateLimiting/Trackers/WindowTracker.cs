@@ -14,11 +14,16 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         protected List<LimitEntry> _entries;
         protected int _currentWeight = 0;
 
-        public WindowTracker(int limit, TimeSpan period)
+        public WindowTracker(int limit, TimeSpan period, int initialCount)
         {
             Limit = limit;
             Timeperiod = period;
             _entries = new List<LimitEntry>();
+            if (initialCount != 0)
+            {
+                _entries.Add(new LimitEntry(DateTime.UtcNow, initialCount));
+                _currentWeight += initialCount;
+            }
         }
 
         public abstract TimeSpan ProcessTopic(int weight);

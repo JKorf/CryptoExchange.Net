@@ -12,11 +12,6 @@ namespace CryptoExchange.Net.Objects.Options
     public class SocketApiOptions : ApiOptions
     {
         /// <summary>
-        /// Rate limiters to use
-        /// </summary>
-        public IRateLimitGate? RateLimiter { get; set; }
-
-        /// <summary>
         /// The max time of not receiving any data after which the connection is assumed to be dropped. This can only be used for socket connections where a steady flow of data is expected,
         /// for example when the server sends intermittent ping requests
         /// </summary>
@@ -38,7 +33,6 @@ namespace CryptoExchange.Net.Objects.Options
             {
                 ApiCredentials = ApiCredentials?.Copy(),
                 OutputOriginalData = OutputOriginalData,
-                RateLimiter = RateLimiter,
                 SocketNoDataTimeout = SocketNoDataTimeout,
                 MaxSocketConnections = MaxSocketConnections,
             };
