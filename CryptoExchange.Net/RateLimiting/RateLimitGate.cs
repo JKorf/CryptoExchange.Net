@@ -17,6 +17,7 @@ namespace CryptoExchange.Net.RateLimiting
     /// <inheritdoc />
     public class RateLimitGate : IRateLimitGate
     {
+        private EndpointIndividualLimitGuard? _singleEndpointGuard;
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private readonly SemaphoreSlim _semaphore;
         private readonly string _name;
@@ -52,6 +53,51 @@ namespace CryptoExchange.Net.RateLimiting
                 _waitingCount--;
                 _semaphore.Release();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<CallResult> ProcessSingleAsync(ILogger logger, string key, int limit, TimeSpan period, RateLimitItemType type, Uri url, HttpMethod? method, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
+        {
+            await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+            _waitingCount++;
+            try
+            {
+               return await CheckGuardAsync(logger, key, limit, period, type, url, method, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                _waitingCount--;
+                _semaphore.Release();
+            }
+        }
+
+        private async Task<CallResult> CheckGuardAsync(ILogger logger, string key, int limit, TimeSpan period, RateLimitItemType type, Uri url, HttpMethod? method, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
+        {
+            _singleEndpointGuard ??= new EndpointIndividualLimitGuard(_windowType);
+            var desc = $"Limit of {limit}[Requests] per {period}";
+            var result = _singleEndpointGuard.Check(key, limit, period, requestWeight);
+            if (result.Delay != TimeSpan.Zero && rateLimitingBehaviour == RateLimitingBehaviour.Fail)
+            {
+                logger.LogWarning($"[{_name}] Call {key} failed because of ratelimit");
+                RateLimitTriggered?.Invoke(new RateLimitEvent(_name, desc, method, url, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                return new CallResult(new ClientRateLimitError($"Rate limit check failed; {desc}"));
+            }
+
+            if (result.Delay != TimeSpan.Zero)
+            {
+                _semaphore.Release();
+
+                logger.LogWarning($"[{_name}] Delaying call to {url} by {result.Delay} because of endpoint specific guard; {desc}, Request weight: {requestWeight}, Current: {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}");
+
+                RateLimitTriggered?.Invoke(new RateLimitEvent(_name, desc, method, url, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                await Task.Delay(result.Delay).ConfigureAwait(false);
+                await _semaphore.WaitAsync().ConfigureAwait(false);
+                return await CheckGuardAsync(logger, key, limit, period, type, url, method, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
+            }
+
+            var applyResult = _singleEndpointGuard.ApplyWeight(key, requestWeight);
+            logger.LogTrace($"[{_name}] Call to {url} passed endpoint specific guard; {desc}, New count: {applyResult.Current}");
+            return new CallResult(null);
         }
 
         private async Task<CallResult> CheckGuardsAsync(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)

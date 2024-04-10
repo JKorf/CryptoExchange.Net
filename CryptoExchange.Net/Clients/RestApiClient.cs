@@ -133,13 +133,14 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null)
+            IRateLimitGate? gate = null,
+            EndpointLimit? endpointLimit = null)
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate, endpointLimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
@@ -184,14 +185,15 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null
+            IRateLimitGate? gate = null,
+            EndpointLimit? endpointLimit = null
             ) where T : class
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate, endpointLimit).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
@@ -234,7 +236,8 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null)
+            IRateLimitGate? gate = null,
+            EndpointLimit? endpointLimit = null)
         {
             var requestId = ExchangeHelpers.NextId();
 
@@ -263,6 +266,19 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RatelimiterEnabled)
                 {
                     var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    if (!limitResult)
+                        return new CallResult<IRequest>(limitResult.Error!);
+                }
+            }
+
+            if (endpointLimit != null)
+            {
+                if (gate == null)
+                    throw new Exception("Ratelimit gate not set when endpoint limit is specified");
+
+                if (ClientOptions.RatelimiterEnabled)
+                {
+                    var limitResult = await gate.ProcessSingleAsync(_logger, uri.Host+uri.AbsolutePath+method, endpointLimit.Value.Limit, endpointLimit.Value.Period, RateLimitItemType.Request, uri, method, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }
