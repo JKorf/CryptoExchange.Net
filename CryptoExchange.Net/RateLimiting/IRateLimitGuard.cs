@@ -27,7 +27,6 @@ namespace CryptoExchange.Net.RateLimiting
         /// <summary>
         /// Check the rate limit
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="type"></param>
         /// <param name="url"></param>
         /// <param name="method"></param>
@@ -35,7 +34,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="apiKey"></param>
         /// <param name="requestWeight"></param>
         /// <returns></returns>
-        LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
+        LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
         /// <summary>
         /// Apply the rate limit token to the guard for tracking
         /// </summary>

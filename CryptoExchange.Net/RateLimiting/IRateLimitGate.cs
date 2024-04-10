@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <summary>
         /// Event when the rate limit is triggered
         /// </summary>
-        event Action<string, HttpMethod?, TimeSpan> RateLimitTriggered;
+        event Action<RateLimitEvent> RateLimitTriggered;
 
         /// <summary>
         /// Add a limit guard

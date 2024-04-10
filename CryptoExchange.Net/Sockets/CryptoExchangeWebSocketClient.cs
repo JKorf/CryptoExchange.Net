@@ -152,14 +152,15 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public virtual async Task<bool> ConnectAsync()
+        public virtual async Task<CallResult> ConnectAsync()
         {
-            if (!await ConnectInternalAsync().ConfigureAwait(false))
-                return false;
+            var connectResult = await ConnectInternalAsync().ConfigureAwait(false);
+            if (!connectResult)
+                return connectResult;
             
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();
-            return true;            
+            return connectResult;
         }
 
         /// <summary>
@@ -194,7 +195,7 @@ namespace CryptoExchange.Net.Sockets
             return socket;
         }
 
-        private async Task<bool> ConnectInternalAsync()
+        private async Task<CallResult> ConnectInternalAsync()
         {
             _logger.SocketConnecting(Id);
             try
@@ -203,10 +204,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Connection, _limitKey, null, false, null, Parameters.ConnectionWeight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
-                    {
-                        // TODO logging, maybe return Error here?
-                        return false;
-                    }
+                        return new CallResult(new ClientRateLimitError("Connection limit reached"));
                 }
 
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
@@ -220,11 +218,11 @@ namespace CryptoExchange.Net.Sockets
                     // if _ctsSource was canceled this was already logged
                     _logger.SocketConnectionFailed(Id, e.Message, e);
                 }
-                return false;
+                return new CallResult(new CantConnectError());
             }
 
             _logger.SocketConnected(Id, Uri);
-            return true;
+            return new CallResult(null);
         }
 
         /// <inheritdoc />

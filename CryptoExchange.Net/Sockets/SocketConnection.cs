@@ -521,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
         /// Connect the websocket
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> ConnectAsync() => await _socket.ConnectAsync().ConfigureAwait(false);
+        public async Task<CallResult> ConnectAsync() => await _socket.ConnectAsync().ConfigureAwait(false);
 
         /// <summary>
         /// Retrieve the underlying socket
@@ -796,7 +796,7 @@ namespace CryptoExchange.Net.Sockets
         private async Task<CallResult> ProcessReconnectAsync()
         {
             if (!_socket.IsOpen)
-                return new CallResult<bool>(new WebError("Socket not connected"));
+                return new CallResult(new WebError("Socket not connected"));
 
             bool anySubscriptions;
             lock (_listenersLock)
@@ -806,7 +806,7 @@ namespace CryptoExchange.Net.Sockets
                 // No need to resubscribe anything
                 _logger.NothingToResubscribeCloseConnection(SocketId);
                 _ = _socket.CloseAsync();
-                return new CallResult<bool>(true);
+                return new CallResult(null);
             }
 
             bool anyAuthenticated;
@@ -846,7 +846,7 @@ namespace CryptoExchange.Net.Sockets
             for (var i = 0; i < subList.Count; i += ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
             {
                 if (!_socket.IsOpen)
-                    return new CallResult<bool>(new WebError("Socket not connected"));
+                    return new CallResult(new WebError("Socket not connected"));
 
                 var taskList = new List<Task<CallResult>>();
                 foreach (var subscription in subList.Skip(i).Take(ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
@@ -873,10 +873,10 @@ namespace CryptoExchange.Net.Sockets
                 subscription.Confirmed = true;
 
             if (!_socket.IsOpen)
-                return new CallResult<bool>(new WebError("Socket not connected"));
+                return new CallResult(new WebError("Socket not connected"));
 
             _logger.AllSubscriptionResubscribed(SocketId);
-            return new CallResult<bool>(true);
+            return new CallResult(null);
         }
 
         internal async Task UnsubscribeAsync(Subscription subscription)

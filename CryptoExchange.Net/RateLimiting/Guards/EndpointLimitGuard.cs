@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!string.Equals(url.AbsolutePath, _endpoint, StringComparison.OrdinalIgnoreCase))
                 return LimitCheck.NotApplicable;
