@@ -106,6 +106,107 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
 
+        protected virtual async Task<WebCallResult<T>> SendAsync<T>(
+            RequestDefinition definition,
+            ParameterCollection? parameters,
+            CancellationToken cancellationToken,
+            Dictionary<string, string>? additionalHeaders = null) where T : class
+        {
+            int currentTry = 0;
+            while (true)
+            {
+                currentTry++;
+                var request = await PreProcessAsync(definition, parameters, cancellationToken, additionalHeaders).ConfigureAwait(false);
+                if (!request)
+                    return new WebCallResult<T>(request.Error!);
+
+                var result = await GetResponseAsync<T>(request.Data, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
+                if (!result)
+                    _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
+                else
+                    _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
+
+                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                    continue;
+
+                return result;
+            }
+        }
+
+        protected virtual async Task<CallResult<IRequest>> PreProcessAsync(
+            RequestDefinition defintion,
+            ParameterCollection? parameters,
+            CancellationToken cancellationToken,
+            Dictionary<string, string>? additionalHeaders = null)
+        {
+            var requestId = ExchangeHelpers.NextId();
+
+            if (defintion.Authenticated)
+            {
+                var syncTask = SyncTimeAsync();
+                var timeSyncInfo = GetTimeSyncInfo();
+
+                if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
+                {
+                    // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
+                    var syncTimeResult = await syncTask.ConfigureAwait(false);
+                    if (!syncTimeResult)
+                    {
+                        _logger.RestApiFailedToSyncTime(requestId, syncTimeResult.Error!.ToString());
+                        return syncTimeResult.As<IRequest>(default);
+                    }
+                }
+            }
+
+            if (defintion.Weight != 0)
+            {
+                if (defintion.RateLimitGate == null)
+                    throw new Exception("Ratelimit gate not set when request weight is not 0");
+
+                if (ClientOptions.RatelimiterEnabled)
+                {
+                    var limitResult = await defintion.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, defintion.Uri, defintion.Method, defintion.Authenticated, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, defintion.Weight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    if (!limitResult)
+                        return new CallResult<IRequest>(limitResult.Error!);
+                }
+            }
+
+            if (defintion.EndpointLimitCount != null && defintion.EndpointLimitPeriod != null)
+            {
+                if (defintion.RateLimitGate == null)
+                    throw new Exception("Ratelimit gate not set when endpoint limit is specified");
+
+                if (ClientOptions.RatelimiterEnabled)
+                {
+                    var limitResult = await defintion.RateLimitGate.ProcessSingleAsync(_logger, defintion.Uri.Host + defintion.Uri.AbsolutePath + defintion.Method, defintion.EndpointLimitCount.Value, defintion.EndpointLimitPeriod.Value, RateLimitItemType.Request, defintion.Uri, defintion.Method, defintion.Weight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    if (!limitResult)
+                        return new CallResult<IRequest>(limitResult.Error!);
+                }
+            }
+
+            if (defintion.Authenticated && AuthenticationProvider == null)
+            {
+                _logger.RestApiNoApiCredentials(requestId, defintion.Uri.AbsolutePath);
+                return new CallResult<IRequest>(new NoApiCredentialsError());
+            }
+
+            _logger.RestApiCreatingRequest(requestId, defintion.Uri);
+            var paramsPosition = defintion.ParameterPosition ?? ParameterPositions[defintion.Method];
+            var request = ConstructRequest(defintion.Uri, defintion.Method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), defintion.Authenticated, paramsPosition, defintion.ArraySerialization ?? ArraySerialization, defintion.RequestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
+
+            string? paramString = "";
+            if (paramsPosition == HttpMethodParameterPosition.InBody)
+                paramString = $" with request body '{request.Content}'";
+
+            var headers = request.GetHeaders();
+            if (headers.Any())
+                paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
+
+            TotalRequestsMade++;
+            _logger.RestApiSendingRequest(requestId, defintion.Method, defintion.Authenticated ? "signed" : "", request.Uri, paramString);
+            return new CallResult<IRequest>(request);
+        }
+
         /// <summary>
         /// Execute a request to the uri and returns if it was successful
         /// </summary>
@@ -133,14 +234,13 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null,
-            EndpointLimit? endpointLimit = null)
+            IRateLimitGate? gate = null)
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate, endpointLimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult(request.Error!);
 
@@ -185,15 +285,14 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null,
-            EndpointLimit? endpointLimit = null
+            IRateLimitGate? gate = null
             ) where T : class
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate, endpointLimit).ConfigureAwait(false);
+                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
                 if (!request)
                     return new WebCallResult<T>(request.Error!);
 
@@ -236,8 +335,7 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null,
-            EndpointLimit? endpointLimit = null)
+            IRateLimitGate? gate = null)
         {
             var requestId = ExchangeHelpers.NextId();
 
@@ -271,19 +369,6 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            if (endpointLimit != null)
-            {
-                if (gate == null)
-                    throw new Exception("Ratelimit gate not set when endpoint limit is specified");
-
-                if (ClientOptions.RatelimiterEnabled)
-                {
-                    var limitResult = await gate.ProcessSingleAsync(_logger, uri.Host+uri.AbsolutePath+method, endpointLimit.Value.Limit, endpointLimit.Value.Period, RateLimitItemType.Request, uri, method, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
-                    if (!limitResult)
-                        return new CallResult<IRequest>(limitResult.Error!);
-                }
-            }
-            
             if (signed && AuthenticationProvider == null)
             {
                 _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
