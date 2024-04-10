@@ -20,7 +20,6 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// </summary>
         public TimeSpan TimeSpan { get; }
 
-        private int _initialCount;
         private RateLimitWindowType _windowType;
 
         /// <summary>
@@ -38,9 +37,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// Create a new WindowTracker
         /// </summary>
         /// <returns></returns>
-        protected WindowTracker CreateTracker()
+        protected IWindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan, _initialCount) : new FixedWindowTracker(Limit, TimeSpan, _initialCount);
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan) : new FixedWindowTracker(Limit, TimeSpan);
         }
 
         /// <summary>
@@ -48,10 +47,5 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// </summary>
         /// <param name="type"></param>
         public void SetWindowType(RateLimitWindowType type) => _windowType = type;
-        /// <summary>
-        /// Set the initial weight count
-        /// </summary>
-        /// <param name="initialCount"></param>
-        public void SetInitialCount(int initialCount) => _initialCount = initialCount;
     }
 }

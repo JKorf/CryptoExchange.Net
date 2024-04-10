@@ -16,7 +16,6 @@
 
 // Add dynamic updating of limits (binance orders limits)
 // High performance logging
-// Update naming with description for endpoint/host/etc
 
 
 //    /// <summary>

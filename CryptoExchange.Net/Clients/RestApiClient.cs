@@ -119,7 +119,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
+        /// <param name="gate">The ratelimit gate to use</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult> SendRequestAsync(
@@ -170,7 +170,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
         /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="ignoreRatelimit">Ignore rate limits for this request</param>
+        /// <param name="gate">The ratelimit gate to use</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
@@ -295,6 +295,7 @@ namespace CryptoExchange.Net.Clients
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
         /// <param name="request">The request object to execute</param>
+        /// <param name="gate">The ratelimit gate used</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(

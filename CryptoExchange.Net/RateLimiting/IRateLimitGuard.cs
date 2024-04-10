@@ -19,6 +19,10 @@ namespace CryptoExchange.Net.RateLimiting
         /// Name
         /// </summary>
         string Name { get; }
+        /// <summary>
+        /// Description
+        /// </summary>
+        string Description { get; }
 
         /// <summary>
         /// Check the rate limit

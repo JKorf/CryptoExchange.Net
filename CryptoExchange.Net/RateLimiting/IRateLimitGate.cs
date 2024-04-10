@@ -24,9 +24,8 @@ namespace CryptoExchange.Net.RateLimiting
         /// Add a limit guard
         /// </summary>
         /// <param name="guard">Guard to add</param>
-        /// <param name="initialCount">Initial count</param>
         /// <returns></returns>
-        IRateLimitGate AddGuard(IRateLimitGuard guard, int initialCount = 0);
+        IRateLimitGate AddGuard(IRateLimitGuard guard);
         /// <summary>
         /// Set a specific window type
         /// </summary>

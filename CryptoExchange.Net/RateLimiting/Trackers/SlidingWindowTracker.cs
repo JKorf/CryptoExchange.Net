@@ -6,16 +6,39 @@ using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Trackers
 {
-    internal class SlidingWindowTracker : WindowTracker
+    internal class SlidingWindowTracker : IWindowTracker
     {
-        public SlidingWindowTracker(int limit, TimeSpan period, int initialCount) : base (limit, period, initialCount)
+        /// <summary>
+        /// The time period for this tracker
+        /// </summary>
+        public TimeSpan TimePeriod { get; }
+        /// <summary>
+        /// Limit for this tracker
+        /// </summary>
+        public int Limit { get; }
+        /// <summary>
+        /// Current
+        /// </summary>
+        public int Current => _currentWeight;
+
+        /// <summary>
+        /// Rate limit entries
+        /// </summary>
+        protected List<LimitEntry> _entries;
+
+        private int _currentWeight = 0;
+
+        public SlidingWindowTracker(int limit, TimeSpan period)
         {
+            Limit = limit;
+            TimePeriod = period;
+            _entries = new List<LimitEntry>();
         }
 
-        public override TimeSpan GetWaitTime(int weight)
+        public TimeSpan GetWaitTime(int weight)
         {
             // Remove requests no longer in time period from the history
-            RemoveBefore(DateTime.UtcNow - Timeperiod);
+            RemoveBefore(DateTime.UtcNow - TimePeriod);
 
             if (Current + weight > Limit)
             {
@@ -32,6 +55,38 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             return TimeSpan.Zero;
         }
 
+        /// <summary>
+        /// Apply a new weighted item
+        /// </summary>
+        /// <param name="weight"></param>
+        public void ApplyWeight(int weight)
+        {
+            _currentWeight += weight;
+            _entries.Add(new LimitEntry(DateTime.UtcNow, weight));
+        }
+
+        /// <summary>
+        /// Remove items before a certain type
+        /// </summary>
+        /// <param name="time"></param>
+        protected void RemoveBefore(DateTime time)
+        {
+            for (var i = 0; i < _entries.Count; i++)
+            {
+                if (_entries[i].Timestamp < time)
+                {
+                    var entry = _entries[i];
+                    _entries.Remove(entry);
+                    _currentWeight -= entry.Weight;
+                    i--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         private TimeSpan DetermineWaitTime(int requestWeight)
         {
             var weightToRemove = Math.Max(Current - (Limit - requestWeight), 0);
@@ -42,7 +97,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 removedWeight += entry.Weight;
                 if (removedWeight >= weightToRemove)
                 {
-                    return entry.Timestamp + Timeperiod - DateTime.UtcNow;
+                    return entry.Timestamp + TimePeriod - DateTime.UtcNow;
                 }
             }
 

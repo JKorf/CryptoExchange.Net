@@ -20,7 +20,10 @@ namespace CryptoExchange.Net.RateLimiting
         /// <inheritdoc />
         public string Name => "ApiKeyLimitGuard";
 
-        private readonly Dictionary<string, WindowTracker> _trackers;
+        /// <inheritdoc />
+        public string Description => $"Limit of {Limit}[Requests] per {TimeSpan} per API key";
+
+        private readonly Dictionary<string, IWindowTracker> _trackers;
 
         /// <summary>
         /// ctor
@@ -29,7 +32,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="timespan">The time period of the limit</param>
         public ApiKeyLimitGuard(int limit, TimeSpan timespan) : base(limit, timespan)
         {
-            _trackers = new Dictionary<string, WindowTracker>();
+            _trackers = new Dictionary<string, IWindowTracker>();
         }
 
         /// <inheritdoc />
@@ -46,7 +49,7 @@ namespace CryptoExchange.Net.RateLimiting
             }
 
             var delay = tracker.GetWaitTime(requestWeight);
-            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, tracker.Limit, tracker.Timeperiod, tracker.Current);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, tracker.Limit, tracker.TimePeriod, tracker.Current);
         }
 
         /// <inheritdoc />
@@ -58,7 +61,7 @@ namespace CryptoExchange.Net.RateLimiting
             var ky = apiKey.GetString();
             var tracker = _trackers[ky];
             tracker.ApplyWeight(requestWeight);
-            return RateLimitState.Applied(tracker.Limit, tracker.Timeperiod, tracker.Current);
+            return RateLimitState.Applied(tracker.Limit, tracker.TimePeriod, tracker.Current);
         }
     }
 }

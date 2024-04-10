@@ -59,8 +59,8 @@ namespace CryptoExchange.Net.RateLimiting
                 var result = guard.Check(logger, type, url, method, signed, apiKey, requestWeight);
                 if (result.Delay != TimeSpan.Zero && rateLimitingBehaviour == RateLimitingBehaviour.Fail)
                 {
-                    logger.LogWarning($"Call to {url} failed because of ratelimit guard {guard.Name}");
-                    return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}"));
+                    logger.LogWarning($"Call to {url} failed because of ratelimit guard {guard.Name}; {guard.Description}");
+                    return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }
 
                 if (result.Delay != TimeSpan.Zero)
@@ -68,9 +68,9 @@ namespace CryptoExchange.Net.RateLimiting
                     _semaphore.Release();
 
                     if (result.Limit == null)
-                        logger.LogWarning($"Delaying call to {url} by {result.Delay} because of ratelimit guard {guard.Name}");
+                        logger.LogWarning($"Delaying call to {url} by {result.Delay} because of ratelimit guard {guard.Name}; {guard.Description}");
                     else
-                        logger.LogWarning($"Delaying call to {url} by {result.Delay} because of ratelimit guard {guard.Name}; Request weight: {requestWeight}, Count {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}");
+                        logger.LogWarning($"Delaying call to {url} by {result.Delay} because of ratelimit guard {guard.Name}; {guard.Description}, Request weight: {requestWeight}, Current: {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}");
                     
                     RateLimitTriggered?.Invoke(url.ToString(), method, result.Delay);
                     await Task.Delay(result.Delay).ConfigureAwait(false);
@@ -84,19 +84,18 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 var result = guard.ApplyWeight(type, url, method, signed, apiKey, requestWeight);
                 if (result.IsApplied)
-                    logger.LogTrace($"Call to {url} passed ratelimit guard {guard.Name}; Request weight: {requestWeight}, New count: {result.Current}, Limit: {result.Limit}");
+                    logger.LogTrace($"Call to {url} passed ratelimit guard {guard.Name}; {guard.Description}, New count: {result.Current}");
             }
 
             return new CallResult(null);
         }
 
         /// <inheritdoc />
-        public IRateLimitGate AddGuard(IRateLimitGuard guard, int initialCount = 0)
+        public IRateLimitGate AddGuard(IRateLimitGuard guard)
         {
             _guards.Add(guard);
             if (guard is LimitGuard lg)
             {
-                lg.SetInitialCount(initialCount);
                 lg.SetWindowType(_windowType);
             }
             return this;

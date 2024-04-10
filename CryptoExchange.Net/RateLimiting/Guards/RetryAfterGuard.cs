@@ -18,6 +18,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public string Name => "RetryAfterGuard";
 
+        /// <inheritdoc />
+        public string Description => $"Limit all [Requests] until after {_after}";
+
         private DateTime _after;
 
         /// <summary>

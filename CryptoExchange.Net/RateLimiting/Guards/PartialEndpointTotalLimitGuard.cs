@@ -19,8 +19,11 @@ namespace CryptoExchange.Net.RateLimiting
         /// <inheritdoc />
         public string Name => "PartialEndpointLimitGuard";
 
+        /// <inheritdoc />
+        public string Description => $"Limit of {Limit}[Requests] per {TimeSpan} for all endpoints starting with {_endpoint}";
+
         private readonly string _endpoint;
-        private WindowTracker _tracker;
+        private IWindowTracker? _tracker;
 
         /// <summary>
         /// ctor
@@ -44,7 +47,7 @@ namespace CryptoExchange.Net.RateLimiting
                 _tracker = CreateTracker();
 
             var delay = _tracker.GetWaitTime(requestWeight);
-            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.Timeperiod, _tracker.Current);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.TimePeriod, _tracker.Current);
         }
 
         /// <inheritdoc />
@@ -53,8 +56,8 @@ namespace CryptoExchange.Net.RateLimiting
             if (!url.AbsolutePath.StartsWith(_endpoint))
                 return RateLimitState.NotApplied;
 
-            _tracker.ApplyWeight(requestWeight);
-            return RateLimitState.Applied(_tracker.Limit, _tracker.Timeperiod, _tracker.Current);
+            _tracker!.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(_tracker.Limit, _tracker.TimePeriod, _tracker.Current);
         }
     }
 }

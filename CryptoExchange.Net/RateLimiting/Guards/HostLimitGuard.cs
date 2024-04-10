@@ -16,9 +16,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public string Name => "HostLimitGuard";
 
+        /// <inheritdoc />
+        public string Description => $"Limit of {Limit}[{string.Join(",", _types)}] per {TimeSpan} to host {_host}";
+
         private readonly string _host;
-        private WindowTracker _tracker;
-        private RateLimitItemType _types;
+        private IWindowTracker? _tracker;
+        private readonly RateLimitItemType _types;
 
         /// <summary>
         /// ctor
@@ -46,7 +49,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                 _tracker = CreateTracker();
 
             var delay = _tracker.GetWaitTime(requestWeight);
-            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.Timeperiod, _tracker.Current);
+            return delay == default ? LimitCheck.NotNeeded : LimitCheck.Needed(delay, _tracker.Limit, _tracker.TimePeriod, _tracker.Current);
         }
 
         /// <inheritdoc />
@@ -58,8 +61,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
                 return RateLimitState.NotApplied;
 
-            _tracker.ApplyWeight(requestWeight);
-            return RateLimitState.Applied(_tracker.Limit, _tracker.Timeperiod, _tracker.Current);
+            _tracker!.ApplyWeight(requestWeight);
+            return RateLimitState.Applied(_tracker.Limit, _tracker.TimePeriod, _tracker.Current);
         }
     }
 }
