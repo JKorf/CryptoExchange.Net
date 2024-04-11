@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             var dif = _after - DateTime.UtcNow;
             if (dif <= TimeSpan.Zero)
@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public void UpdateAfter(DateTime after) => _after = after;
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             return RateLimitState.NotApplied;
         }

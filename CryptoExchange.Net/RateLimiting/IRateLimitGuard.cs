@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="apiKey"></param>
         /// <param name="requestWeight"></param>
         /// <returns></returns>
-        LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
+        LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
         /// <summary>
         /// Apply the rate limit token to the guard for tracking
         /// </summary>
@@ -45,6 +45,6 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="apiKey"></param>
         /// <param name="requestWeight"></param>
         /// <returns></returns>
-        RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
+        RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight);
     }
 }

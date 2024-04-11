@@ -1,54 +1,81 @@
 ﻿using CryptoExchange.Net.RateLimiting;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 
 namespace CryptoExchange.Net.Objects
 {
+    /// <summary>
+    /// The definition of a rest request
+    /// </summary>
     public class RequestDefinition
     {
+        private string? _stringRep;
+
         // Basics
-        public Uri Uri { get; set; }
+
+        /// <summary>
+        /// Path of the request
+        /// </summary>
+        public string Path { get; set; }
+        /// <summary>
+        /// Http method of the request
+        /// </summary>
         public HttpMethod Method { get; set; }
+        /// <summary>
+        /// Is the request authenticated
+        /// </summary>
         public bool Authenticated { get; set; }
 
+
         // Formating
+
+        /// <summary>
+        /// The body format for this request
+        /// </summary>
         public RequestBodyFormat? RequestBodyFormat { get; set; }
+        /// <summary>
+        /// The position of parameters for this request
+        /// </summary>
         public HttpMethodParameterPosition? ParameterPosition { get; set; }
+        /// <summary>
+        /// The array serialization type for this request
+        /// </summary>
         public ArrayParametersSerialization? ArraySerialization { get; set; }
 
         // Rate limiting
+        
+        /// <summary>
+        /// Request weight
+        /// </summary>
         public int Weight { get; set; } = 1;
-        public IRateLimitGate RateLimitGate { get; set; }
+        /// <summary>
+        /// Rate limit gate to use
+        /// </summary>
+        public IRateLimitGate? RateLimitGate { get; set; }
+        /// <summary>
+        /// Rate limit for this specific endpoint
+        /// </summary>
         public int? EndpointLimitCount { get; set; }
+        /// <summary>
+        /// Rate limit period for this specific endpoint
+        /// </summary>
         public TimeSpan? EndpointLimitPeriod { get; set; }
 
-        public RequestDefinition(HttpMethod method, Uri uri, bool signed = false)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="method"></param>
+        public RequestDefinition(string path, HttpMethod method)
         {
-            Uri = uri;
+            Path = path;
             Method = method;
         }
 
-        public RequestDefinition(HttpMethod method, Uri uri, IRateLimitGate rateLimitGate, int weight = 1, bool authenticated = false)
+        /// <inheritdoc />
+        public override string ToString()
         {
-            Uri = uri;
-            Method = method;
-            RateLimitGate = rateLimitGate;
-            Weight = weight;
-            Authenticated = authenticated;
-        }
-
-        public RequestDefinition(HttpMethod method, Uri uri, IRateLimitGate rateLimitGate, int endpointLimitCount, TimeSpan endpointLimitPeriod, int weight = 1, bool authenticated = false)
-        {
-            Uri = uri;
-            Method = method;
-            RateLimitGate = rateLimitGate;
-            EndpointLimitCount = endpointLimitCount;
-            EndpointLimitPeriod = endpointLimitPeriod;
-            Weight = weight;
-            Authenticated = authenticated;
+            return _stringRep ??= $"{Method} {Path}{(Authenticated ? "authenticated " : "")}";
         }
     }
 }

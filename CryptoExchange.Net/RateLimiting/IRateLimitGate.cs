@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="behaviour"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CallResult> ProcessAsync(ILogger logger, RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessAsync(ILogger logger, RateLimitItemType type, string baseAddress, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
 
         /// <summary>
         /// Process a request with an individual rate limit
@@ -69,6 +69,6 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="rateLimitingBehaviour"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CallResult> ProcessSingleAsync(ILogger logger, string key, int limit, TimeSpan period, RateLimitItemType type, Uri url, HttpMethod? method, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct);
+        Task<CallResult> ProcessSingleAsync(ILogger logger, string key, int limit, TimeSpan period, RateLimitItemType type, string baseAddress, string path, HttpMethod? method, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct);
     }
 }

@@ -106,21 +106,58 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
 
-        protected virtual async Task<WebCallResult<T>> SendAsync<T>(
+        /// <summary>
+        /// Send a request to the base address based on the request definition
+        /// </summary>
+        /// <param name="baseAddress">Host and schema</param>
+        /// <param name="definition">Request definition</param>
+        /// <param name="parameters">Request parameters</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="additionalHeaders">Additional headers for this request</param>
+        /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
+        /// <returns></returns>
+        protected virtual async Task<WebCallResult> SendAsync(
+            string baseAddress,
             RequestDefinition definition,
             ParameterCollection? parameters,
             CancellationToken cancellationToken,
-            Dictionary<string, string>? additionalHeaders = null) where T : class
+            Dictionary<string, string>? additionalHeaders = null,
+            int? weight = null)
+        { 
+            var result = await SendAsync<object>(baseAddress, definition, parameters, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
+            return result.AsDataless();
+        }
+
+        /// <summary>
+        /// Send a request to the base address based on the request definition
+        /// </summary>
+        /// <typeparam name="T">Response type</typeparam>
+        /// <param name="baseAddress">Host and schema</param>
+        /// <param name="definition">Request definition</param>
+        /// <param name="parameters">Request parameters</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="additionalHeaders">Additional headers for this request</param>
+        /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
+        /// <returns></returns>
+        protected virtual async Task<WebCallResult<T>> SendAsync<T>(
+            string baseAddress,
+            RequestDefinition definition,
+            ParameterCollection? parameters,
+            CancellationToken cancellationToken,
+            Dictionary<string, string>? additionalHeaders = null,
+            int? weight = null) where T : class
         {
             int currentTry = 0;
             while (true)
             {
                 currentTry++;
-                var request = await PreProcessAsync(definition, parameters, cancellationToken, additionalHeaders).ConfigureAwait(false);
-                if (!request)
-                    return new WebCallResult<T>(request.Error!);
+                var prepareResult = await PrepareAsync(baseAddress, definition, parameters, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
+                if (!prepareResult)
+                    return new WebCallResult<T>(prepareResult.Error!);
 
-                var result = await GetResponseAsync<T>(request.Data, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
+                var request = CreateRequest(baseAddress, definition, parameters, additionalHeaders);
+                _logger.LogDebug("[Req {RequestId}] Sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}", request.RequestId, definition, request.Content, request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+                var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
                 else
@@ -133,16 +170,37 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
-        protected virtual async Task<CallResult<IRequest>> PreProcessAsync(
-            RequestDefinition defintion,
+        /// <summary>
+        /// Prepare before sending a request. Sync time between client and server and check rate limits
+        /// </summary>
+        /// <param name="baseAddress">Host and schema</param>
+        /// <param name="definition">Request definition</param>
+        /// <param name="parameters">Request parameters</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="additionalHeaders">Additional headers for this request</param>
+        /// <param name="weight">Override the request weight for this request</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        protected virtual async Task<CallResult> PrepareAsync(
+            string baseAddress,
+            RequestDefinition definition,
             ParameterCollection? parameters,
             CancellationToken cancellationToken,
-            Dictionary<string, string>? additionalHeaders = null)
+            Dictionary<string, string>? additionalHeaders = null,
+            int? weight = null)
         {
             var requestId = ExchangeHelpers.NextId();
+            var requestWeight = weight ?? definition.Weight;
 
-            if (defintion.Authenticated)
+            // Time sync
+            if (definition.Authenticated)
             {
+                if (AuthenticationProvider == null)
+                {
+                    _logger.RestApiNoApiCredentials(requestId, definition.Path);
+                    return new CallResult<IRequest>(new NoApiCredentialsError());
+                }
+
                 var syncTask = SyncTimeAsync();
                 var timeSyncInfo = GetTimeSyncInfo();
 
@@ -153,58 +211,147 @@ namespace CryptoExchange.Net.Clients
                     if (!syncTimeResult)
                     {
                         _logger.RestApiFailedToSyncTime(requestId, syncTimeResult.Error!.ToString());
-                        return syncTimeResult.As<IRequest>(default);
+                        return syncTimeResult.AsDataless();
                     }
                 }
-            }
+            }            
 
-            if (defintion.Weight != 0)
+            // Rate limiting
+            if (requestWeight != 0)
             {
-                if (defintion.RateLimitGate == null)
+                if (definition.RateLimitGate == null)
                     throw new Exception("Ratelimit gate not set when request weight is not 0");
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await defintion.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, defintion.Uri, defintion.Method, defintion.Authenticated, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, defintion.Weight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, baseAddress, definition.Path, definition.Method, definition.Authenticated, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult<IRequest>(limitResult.Error!);
+                        return new CallResult(limitResult.Error!);
                 }
             }
 
-            if (defintion.EndpointLimitCount != null && defintion.EndpointLimitPeriod != null)
+            // Endpoint specific rate limiting
+            if (definition.EndpointLimitCount != null && definition.EndpointLimitPeriod != null)
             {
-                if (defintion.RateLimitGate == null)
+                if (definition.RateLimitGate == null)
                     throw new Exception("Ratelimit gate not set when endpoint limit is specified");
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await defintion.RateLimitGate.ProcessSingleAsync(_logger, defintion.Uri.Host + defintion.Uri.AbsolutePath + defintion.Method, defintion.EndpointLimitCount.Value, defintion.EndpointLimitPeriod.Value, RateLimitItemType.Request, defintion.Uri, defintion.Method, defintion.Weight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, baseAddress + definition.Path + definition.Method, definition.EndpointLimitCount.Value, definition.EndpointLimitPeriod.Value, RateLimitItemType.Request, baseAddress, definition.Path, definition.Method, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult<IRequest>(limitResult.Error!);
+                        return new CallResult(limitResult.Error!);
                 }
             }
 
-            if (defintion.Authenticated && AuthenticationProvider == null)
+            return new CallResult(null);
+        }
+
+        /// <summary>
+        /// Creates a request object
+        /// </summary>
+        /// <param name="baseAddress">Host and schema</param>
+        /// <param name="definition">Request definition</param>
+        /// <param name="parameters">The parameters of the request</param>
+        /// <param name="additionalHeaders">Additional headers to send with the request</param>
+        /// <returns></returns>
+        protected virtual IRequest CreateRequest(
+            string baseAddress,
+            RequestDefinition definition,
+            ParameterCollection? parameters,
+            Dictionary<string, string>? additionalHeaders)
+        {
+            parameters ??= new ParameterCollection();
+            var uri = new Uri(baseAddress.AppendPath(definition.Path));
+            var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
+            var arraySerialization = definition.ArraySerialization ?? ArraySerialization;
+            var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
+            var requestId = ExchangeHelpers.NextId();
+
+            for (var i = 0; i < parameters.Count; i++)
             {
-                _logger.RestApiNoApiCredentials(requestId, defintion.Uri.AbsolutePath);
-                return new CallResult<IRequest>(new NoApiCredentialsError());
+                var kvp = parameters.ElementAt(i);
+                if (kvp.Value is Func<object> delegateValue)
+                    parameters[kvp.Key] = delegateValue();
             }
 
-            _logger.RestApiCreatingRequest(requestId, defintion.Uri);
-            var paramsPosition = defintion.ParameterPosition ?? ParameterPositions[defintion.Method];
-            var request = ConstructRequest(defintion.Uri, defintion.Method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), defintion.Authenticated, paramsPosition, defintion.ArraySerialization ?? ArraySerialization, defintion.RequestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
+            if (parameterPosition == HttpMethodParameterPosition.InUri)
+            {
+                foreach (var parameter in parameters)
+                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());
+            }
 
-            string? paramString = "";
-            if (paramsPosition == HttpMethodParameterPosition.InBody)
-                paramString = $" with request body '{request.Content}'";
+            var headers = new Dictionary<string, string>();
+            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
+            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
+            if (AuthenticationProvider != null)
+            {
+                try
+                {
+                    AuthenticationProvider.AuthenticateRequest(
+                        this,
+                        uri,
+                        definition.Method,
+                        parameters,
+                        definition.Authenticated,
+                        arraySerialization,
+                        parameterPosition,
+                        bodyFormat,
+                        out uriParameters,
+                        out bodyParameters,
+                        out headers);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
+                }
+            }
 
-            var headers = request.GetHeaders();
-            if (headers.Any())
-                paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
+            // Sanity check
+            foreach (var param in parameters)
+            {
+                if (!uriParameters.ContainsKey(param.Key) && !bodyParameters.ContainsKey(param.Key))
+                {
+                    throw new Exception($"Missing parameter {param.Key} after authentication processing. AuthenticationProvider implementation " +
+                        $"should return provided parameters in either the uri or body parameters output");
+                }
+            }
 
-            TotalRequestsMade++;
-            _logger.RestApiSendingRequest(requestId, defintion.Method, defintion.Authenticated ? "signed" : "", request.Uri, paramString);
-            return new CallResult<IRequest>(request);
+            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
+            uri = uri.SetParameters(uriParameters, arraySerialization);
+
+            var request = RequestFactory.Create(definition.Method, uri, requestId);
+            request.Accept = Constants.JsonContentHeader;
+
+            foreach (var header in headers)
+                request.AddHeader(header.Key, header.Value);
+
+            if (additionalHeaders != null)
+            {
+                foreach (var header in additionalHeaders)
+                    request.AddHeader(header.Key, header.Value);
+            }
+
+            if (StandardRequestHeaders != null)
+            {
+                foreach (var header in StandardRequestHeaders)
+                {
+                    // Only add it if it isn't overwritten
+                    if (additionalHeaders?.ContainsKey(header.Key) != true)
+                        request.AddHeader(header.Key, header.Value);
+                }
+            }
+
+            if (parameterPosition == HttpMethodParameterPosition.InBody)
+            {
+                var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+                if (bodyParameters.Any())
+                    WriteParamBody(request, bodyParameters, contentType);
+                else
+                    request.SetContent(RequestBodyEmptyContent, contentType);
+            }
+
+            return request;
         }
 
         /// <summary>
@@ -363,7 +510,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, uri, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, uri.Host, uri.AbsolutePath, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }

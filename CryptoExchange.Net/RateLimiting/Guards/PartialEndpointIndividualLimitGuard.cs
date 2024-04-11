@@ -38,15 +38,15 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (!url.AbsolutePath.StartsWith(_endpoint))
+            if (!path.StartsWith(_endpoint))
                 return LimitCheck.NotApplicable;
 
-            if (!_trackers.TryGetValue(url.AbsolutePath, out var tracker))
+            if (!_trackers.TryGetValue(path, out var tracker))
             {
                 tracker = CreateTracker();
-                _trackers[url.AbsolutePath] = tracker;
+                _trackers[path] = tracker;
             }
 
             var delay = tracker.GetWaitTime(requestWeight);
@@ -54,12 +54,12 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (!url.AbsolutePath.StartsWith(_endpoint))
+            if (!path.StartsWith(_endpoint))
                 return RateLimitState.NotApplied;
 
-            var tracker = _trackers[url.AbsolutePath];
+            var tracker = _trackers[path];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(tracker.Limit, tracker.TimePeriod, tracker.Current);
         }        

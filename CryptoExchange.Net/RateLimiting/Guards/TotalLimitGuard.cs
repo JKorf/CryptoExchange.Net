@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             _tracker ??= CreateTracker();
             var delay = _tracker.GetWaitTime(requestWeight);
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             _tracker!.ApplyWeight(requestWeight);
             return RateLimitState.Applied(_tracker.Limit, _tracker.TimePeriod, _tracker.Current);

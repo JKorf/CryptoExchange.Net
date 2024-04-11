@@ -37,12 +37,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!_types.HasFlag(type))
                 return LimitCheck.NotApplicable;
 
-            if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return LimitCheck.NotApplicable;
 
             if (_tracker == null)
@@ -53,12 +53,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
             if (!_types.HasFlag(type))
                 return RateLimitState.NotApplied;
 
-            if (!string.Equals(url.Host, _host, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return RateLimitState.NotApplied;
 
             _tracker!.ApplyWeight(requestWeight);

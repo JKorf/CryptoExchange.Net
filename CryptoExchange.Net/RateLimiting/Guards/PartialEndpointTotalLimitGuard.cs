@@ -38,9 +38,9 @@ namespace CryptoExchange.Net.RateLimiting
 
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (!url.AbsolutePath.StartsWith(_endpoint))
+            if (!path.StartsWith(_endpoint))
                 return LimitCheck.NotApplicable;
 
             if (_tracker == null)
@@ -51,9 +51,9 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, Uri url, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (!url.AbsolutePath.StartsWith(_endpoint))
+            if (!path.StartsWith(_endpoint))
                 return RateLimitState.NotApplied;
 
             _tracker!.ApplyWeight(requestWeight);
