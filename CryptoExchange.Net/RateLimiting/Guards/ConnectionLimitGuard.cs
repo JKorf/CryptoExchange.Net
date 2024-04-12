@@ -14,10 +14,19 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public string Name => "ConnectionLimitGuard";
 
         /// <inheritdoc />
-        public string Description => $"Limit of {Limit}[Connections] per {TimeSpan} to host {_host}";
+        public string Description => $"Limit of {Limit}[Connections] per {TimeSpan} to host {_host ?? "host"}";
 
-        private readonly string _host;
+        private readonly string? _host;
         private IWindowTracker? _tracker;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <param name="timespan"></param>
+        public ConnectionLimitGuard(int limit, TimeSpan timespan) : base(limit, timespan)
+        {
+        }
 
         /// <summary>
         /// ctor
@@ -36,7 +45,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type != RateLimitItemType.Connection)
                 return LimitCheck.NotApplicable;
 
-            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
+            if (_host != null && !string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return LimitCheck.NotApplicable;
 
             if (_tracker == null)
@@ -52,7 +61,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type != RateLimitItemType.Connection)
                 return RateLimitState.NotApplied;
 
-            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
+            if (_host != null && !string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return RateLimitState.NotApplied;
 
             _tracker!.ApplyWeight(1);

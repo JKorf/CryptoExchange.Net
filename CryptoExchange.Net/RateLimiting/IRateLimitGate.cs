@@ -22,14 +22,16 @@ namespace CryptoExchange.Net.RateLimiting
         /// Add a limit guard
         /// </summary>
         /// <param name="guard">Guard to add</param>
+        /// <param name="windowType">Window type</param>
+        /// <param name="decayRate">Optional decay rate for decay window</param>
         /// <returns></returns>
-        IRateLimitGate AddGuard(IRateLimitGuard guard);
+        IRateLimitGate AddGuard(IRateLimitGuard guard, RateLimitWindowType windowType, double? decayRate = null);
         /// <summary>
-        /// Set a specific window type
+        /// Set a specific window type for the 'per endpoint' limit
         /// </summary>
         /// <param name="type">Type of window</param>
         /// <returns></returns>
-        IRateLimitGate WithWindowType(RateLimitWindowType type);
+        IRateLimitGate WithSingleEndpointRateLimitType(RateLimitWindowType type);
 
         /// <summary>
         /// Set a RetryAfter guard, can be used when a server rate limit is hit and a RetryAfter header is specified

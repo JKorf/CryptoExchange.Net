@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (type != RateLimitItemType.Request || apiKey == null)
+            if (type != RateLimitItemType.Request || apiKey == null || !signed)
                 return LimitCheck.NotApplicable;
 
             var ky = apiKey.GetString();
@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
         {
-            if (apiKey == null)
+            if (apiKey == null || !signed)
                 return RateLimitState.NotApplied;
 
             var ky = apiKey.GetString();

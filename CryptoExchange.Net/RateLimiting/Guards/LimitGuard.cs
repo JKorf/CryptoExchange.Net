@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public TimeSpan TimeSpan { get; }
 
         private RateLimitWindowType _windowType;
+        private double? _decayRate;
 
         /// <summary>
         /// ctor
@@ -37,13 +38,20 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <returns></returns>
         protected IWindowTracker CreateTracker()
         {
-            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan) : new FixedWindowTracker(Limit, TimeSpan);
+            return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan) 
+                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(Limit, TimeSpan):
+                new DecayWindowTracker(Limit, TimeSpan, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
 
         /// <summary>
         /// Set the window type
         /// </summary>
         /// <param name="type"></param>
-        public void SetWindowType(RateLimitWindowType type) => _windowType = type;
+        /// <param name="decayRate"></param>
+        public void SetWindowType(RateLimitWindowType type, double? decayRate = null)
+        {
+            _windowType = type;
+            _decayRate = decayRate;
+        }
     }
 }

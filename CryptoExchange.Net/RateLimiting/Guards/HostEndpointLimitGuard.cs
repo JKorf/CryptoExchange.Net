@@ -7,31 +7,32 @@ using System.Security;
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
     /// <summary>
-    /// Partial endpoint individual limit guard, limit the amount of requests to endpoints starting with a certain string on an individual endpoint basis
+    /// Host limit guard, limit the amount of call to a certain host
     /// </summary>
-    public class PartialEndpointIndividualLimitGuard : LimitGuard, IRateLimitGuard
+    public class HostEndpointLimitGuard : LimitGuard, IRateLimitGuard
     {
         /// <inheritdoc />
-        public string Name => "PartialEndpointIndividualLimitGuard";
+        public string Name => "HostEndpointLimitGuard";
 
         /// <inheritdoc />
-        public string Description => $"Limit of {Limit}[Requests] per {TimeSpan} for each endpoint starting with {_endpoint}";
+        public string Description => $"Limit of {Limit}[{string.Join(",", _types)}] per {TimeSpan} per endpoint to host {_host}";
 
-        private readonly string _endpoint;
+        private readonly string _host;
         private readonly RateLimitItemType _types;
         private readonly Dictionary<string, IWindowTracker> _trackers;
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="host"></param>
         /// <param name="limit"></param>
         /// <param name="timespan"></param>
-        public PartialEndpointIndividualLimitGuard(string endpoint, int limit, TimeSpan timespan, RateLimitItemType types = RateLimitItemType.Request) : base(limit, timespan)
+        /// <param name="types"></param>
+        public HostEndpointLimitGuard(string host, int limit, TimeSpan timespan, RateLimitItemType types = RateLimitItemType.Request) : base(limit, timespan)
         {
-            _endpoint = endpoint;
-            _trackers = new Dictionary<string, IWindowTracker>();
+            _host = host;
             _types = types;
+            _trackers = new Dictionary<string, IWindowTracker>();
         }
 
         /// <inheritdoc />
@@ -40,7 +41,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (!_types.HasFlag(type))
                 return LimitCheck.NotApplicable;
 
-            if (!path.StartsWith(_endpoint))
+            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return LimitCheck.NotApplicable;
 
             if (!_trackers.TryGetValue(path, out var tracker))
@@ -59,12 +60,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (!_types.HasFlag(type))
                 return RateLimitState.NotApplied;
 
-            if (!path.StartsWith(_endpoint))
+            if (!string.Equals(host, _host, StringComparison.OrdinalIgnoreCase))
                 return RateLimitState.NotApplied;
 
             var tracker = _trackers[path];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(tracker.Limit, tracker.TimePeriod, tracker.Current);
-        }        
+        }
     }
 }

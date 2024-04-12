@@ -138,12 +138,12 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public IRateLimitGate AddGuard(IRateLimitGuard guard)
+        public IRateLimitGate AddGuard(IRateLimitGuard guard, RateLimitWindowType windowType, double? decayRate = null)
         {
             _guards.Add(guard);
             if (guard is LimitGuard lg)
             {
-                lg.SetWindowType(_windowType);
+                lg.SetWindowType(windowType, decayRate);
             }
             return this;
         }
@@ -172,13 +172,9 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public IRateLimitGate WithWindowType(RateLimitWindowType type)
+        public IRateLimitGate WithSingleEndpointRateLimitType(RateLimitWindowType type)
         {
             _windowType = type;
-
-            foreach (var guard in _guards.OfType<LimitGuard>())
-                guard.SetWindowType(type);
-
             return this;
         }
     }

@@ -27,7 +27,11 @@
         /// <summary>
         /// A fixed interval window
         /// </summary>
-        Fixed
+        Fixed,
+        /// <summary>
+        /// Decaying window
+        /// </summary>
+        Decay
     }
 
     /// <summary>
