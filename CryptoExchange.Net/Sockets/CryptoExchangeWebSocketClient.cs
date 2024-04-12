@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +45,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _disposed;
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
-        private string _limitKey;
+        private string _baseAddress;
 
         private const int _receiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
@@ -148,7 +147,7 @@ namespace CryptoExchange.Net.Sockets
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
-            _limitKey = $"{Uri.Host}{Uri.AbsolutePath.AppendPath(Id.ToString())}";
+            _baseAddress = $"{Uri.Scheme}://{Uri.Host}";
         }
 
         /// <inheritdoc />
@@ -202,7 +201,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Connection, _limitKey, string.Empty, null, false, null, Parameters.ConnectionWeight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Connection, _baseAddress, Id.ToString(), null, false, null, Parameters.ConnectionWeight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -437,7 +436,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         if (Parameters.RateLimiter != null)
                         {
-                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Request, _limitKey, string.Empty, null, false, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Request, _baseAddress, Id.ToString(), null, false, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                             if (!limitResult)
                             {
                                 await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);

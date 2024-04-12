@@ -1,10 +1,7 @@
 ﻿using CryptoExchange.Net.RateLimiting.Trackers;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Security;
-using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {

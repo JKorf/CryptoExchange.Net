@@ -1,6 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
-using System.IO;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 

@@ -1,16 +1,10 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiting.Guards;
-using CryptoExchange.Net.RateLimiting.Trackers;
-using Microsoft.Extensions.Logging;
+﻿using CryptoExchange.Net.RateLimiting.Trackers;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.RateLimiting
+namespace CryptoExchange.Net.RateLimiting.Guards
 {
     /// <summary>
     /// API key limit guard, limit the amount of calls per API key

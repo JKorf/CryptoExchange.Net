@@ -14,7 +14,6 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.RateLimiting;
-using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 
@@ -157,6 +156,7 @@ namespace CryptoExchange.Net.Clients
 
                 var request = CreateRequest(baseAddress, definition, parameters, additionalHeaders);
                 _logger.LogDebug("[Req {RequestId}] Sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}", request.RequestId, definition, request.Content, request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+                TotalRequestsMade++;
                 var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());

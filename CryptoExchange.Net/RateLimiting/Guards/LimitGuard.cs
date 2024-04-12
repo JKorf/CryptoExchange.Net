@@ -1,8 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiting.Trackers;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {

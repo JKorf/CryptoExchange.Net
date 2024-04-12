@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.RateLimiting;
+﻿using CryptoExchange.Net.RateLimiting;
 using System;
 using System.Collections.Generic;
 using System.Text;

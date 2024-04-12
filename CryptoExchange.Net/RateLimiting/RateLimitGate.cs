@@ -3,14 +3,11 @@ using CryptoExchange.Net.RateLimiting.Guards;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace CryptoExchange.Net.RateLimiting
 {
@@ -62,7 +59,7 @@ namespace CryptoExchange.Net.RateLimiting
             _waitingCount++;
             try
             {
-               return await CheckGuardAsync(logger, key, limit, period, type, host, path, method, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
+               return await CheckGuardAsync(logger, key, limit, period, type, host, path, method, 1, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
             finally
             {

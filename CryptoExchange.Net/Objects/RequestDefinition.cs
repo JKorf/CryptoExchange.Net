@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public override string ToString()
         {
-            return _stringRep ??= $"{Method} {Path}{(Authenticated ? "authenticated " : "")}";
+            return _stringRep ??= $"{Method} {Path}{(Authenticated ? " authenticated" : "")}";
         }
     }
 }

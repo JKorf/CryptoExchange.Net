@@ -1,12 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using CryptoExchange.Net.RateLimiting.Trackers;
 
 namespace CryptoExchange.Net.RateLimiting
 {

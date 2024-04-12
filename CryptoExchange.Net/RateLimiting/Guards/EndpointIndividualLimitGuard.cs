@@ -1,16 +1,9 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Trackers;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Security;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.RateLimiting
+namespace CryptoExchange.Net.RateLimiting.Guards
 {
     /// <summary>
     /// Partial endpoint individual limit guard, limit the amount of requests to endpoints starting with a certain string on an individual endpoint basis

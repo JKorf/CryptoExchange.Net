@@ -1,8 +1,5 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.RateLimiting;
 using System;
-using System.Collections.Generic;
 
 namespace CryptoExchange.Net.Objects.Options
 {
