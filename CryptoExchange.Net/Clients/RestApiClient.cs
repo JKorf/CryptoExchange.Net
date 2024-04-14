@@ -224,7 +224,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, baseAddress, definition.Path, definition.Method, definition.Authenticated, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -238,7 +238,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, baseAddress + definition.Path + definition.Method, definition.EndpointLimitCount.Value, definition.EndpointLimitPeriod.Value, RateLimitItemType.Request, baseAddress, definition.Path, definition.Method, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -510,7 +510,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, uri.Host, uri.AbsolutePath, method, signed, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath, method) { Authenticated = signed }, uri.Host, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }

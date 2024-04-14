@@ -18,17 +18,13 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         public string LimitDescription { get; set; } = string.Empty;
         /// <summary>
-        /// The http method of the request if applicable
+        /// The request definition
         /// </summary>
-        public HttpMethod? Method { get; set; }
+        public RequestDefinition RequestDefinition { get; set; }
         /// <summary>
         /// The host of the request
         /// </summary>
         public string Host { get; set; } = default!;
-        /// <summary>
-        /// The path of the request
-        /// </summary>
-        public string Path { get; set; } = default!;
         /// <summary>
         /// The current limit count
         /// </summary>
@@ -68,13 +64,12 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="timePeriod"></param>
         /// <param name="delayTime"></param>
         /// <param name="behaviour"></param>
-        public RateLimitEvent(string apiLimit, string limitDescription, HttpMethod? method, string host, string path, int current, int requestWeight, int? limit, TimeSpan? timePeriod, TimeSpan? delayTime, RateLimitingBehaviour behaviour)
+        public RateLimitEvent(string apiLimit, string limitDescription, RequestDefinition definition, string host, int current, int requestWeight, int? limit, TimeSpan? timePeriod, TimeSpan? delayTime, RateLimitingBehaviour behaviour)
         {
             ApiLimit = apiLimit;
             LimitDescription = limitDescription;
-            Method = method;
+            RequestDefinition = definition;
             Host = host;
-            Path = path;
             Current = current;
             RequestWeight = requestWeight;
             Limit = limit;

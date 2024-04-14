@@ -166,7 +166,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterBasics(int requests, double perSeconds)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new PartialEndpointIndividualLimitGuard("/sapi/", requests, TimeSpan.FromSeconds(perSeconds)), RateLimitWindowType.Fixed);
+            rateLimiter.AddGuard(new EndpointPartIndividualLimitGuard("/sapi/", requests, TimeSpan.FromSeconds(perSeconds)), RateLimitWindowType.Fixed);
 
             var triggered = false;
             rateLimiter.RateLimitTriggered += (x) => { triggered = true; };
@@ -190,7 +190,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint, bool expectLimiting)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new PartialEndpointIndividualLimitGuard("/sapi/", 1, TimeSpan.FromSeconds(0.1)), RateLimitWindowType.Fixed);
+            rateLimiter.AddGuard(new EndpointPartIndividualLimitGuard("/sapi/", 1, TimeSpan.FromSeconds(0.1)), RateLimitWindowType.Fixed);
 
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
@@ -209,7 +209,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint1, string endpoint2, bool expectLimiting)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new PartialEndpointIndividualLimitGuard("/sapi/", 1, TimeSpan.FromSeconds(0.1)), RateLimitWindowType.Fixed);
+            rateLimiter.AddGuard(new EndpointPartIndividualLimitGuard("/sapi/", 1, TimeSpan.FromSeconds(0.1)), RateLimitWindowType.Fixed);
 
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };

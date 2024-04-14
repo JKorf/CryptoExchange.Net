@@ -1,19 +1,17 @@
-﻿using System;
-using System.Net.Http;
+﻿using CryptoExchange.Net.Objects;
+using System;
+using System.Collections.Generic;
 using System.Security;
+using System.Text;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
-    /// <summary>
-    /// Retry after guard, limit until after a certain timstamp
-    /// </summary>
     public class RetryAfterGuard : IRateLimitGuard
     {
-        /// <inheritdoc />
-        public string Name => "RetryAfterGuard";
+        public string Name => throw new NotImplementedException();
 
-        /// <inheritdoc />
-        public string Description => $"Limit all [Requests] until after {_after}";
+        public string Description => throw new NotImplementedException();
+
 
         private DateTime _after;
 
@@ -26,8 +24,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             _after = after;
         }
 
-        /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
         {
             var dif = _after - DateTime.UtcNow;
             if (dif <= TimeSpan.Zero)
@@ -36,16 +33,15 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             return LimitCheck.Needed(dif, default, default, default);
         }
 
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
+        {
+            return RateLimitState.NotApplied;
+        }
+
         /// <summary>
         /// Update the 'after' time
         /// </summary>
         /// <param name="after"></param>
         public void UpdateAfter(DateTime after) => _after = after;
-
-        /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, string host, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight)
-        {
-            return RateLimitState.NotApplied;
-        }
     }
 }

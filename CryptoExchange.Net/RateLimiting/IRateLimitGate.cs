@@ -25,13 +25,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="windowType">Window type</param>
         /// <param name="decayRate">Optional decay rate for decay window</param>
         /// <returns></returns>
-        IRateLimitGate AddGuard(IRateLimitGuard guard, RateLimitWindowType windowType, double? decayRate = null);
-        /// <summary>
-        /// Set a specific window type for the 'per endpoint' limit
-        /// </summary>
-        /// <param name="type">Type of window</param>
-        /// <returns></returns>
-        IRateLimitGate WithSingleEndpointRateLimitType(RateLimitWindowType type);
+        IRateLimitGate AddGuard(IRateLimitGuard guard);
 
         /// <summary>
         /// Set a RetryAfter guard, can be used when a server rate limit is hit and a RetryAfter header is specified
@@ -53,7 +47,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="behaviour"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CallResult> ProcessAsync(ILogger logger, RateLimitItemType type, string baseAddress, string path, HttpMethod? method, bool signed, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessAsync(ILogger logger, RateLimitItemType type, RequestDefinition definition, string baseAddress, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
 
         /// <summary>
         /// Process a request with an individual rate limit
@@ -69,6 +63,6 @@ namespace CryptoExchange.Net.RateLimiting
         /// <param name="rateLimitingBehaviour"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<CallResult> ProcessSingleAsync(ILogger logger, string key, int limit, TimeSpan period, RateLimitItemType type, string baseAddress, string path, HttpMethod? method, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct);
+        Task<CallResult> ProcessSingleAsync(ILogger logger, RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct);
     }
 }
