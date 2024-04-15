@@ -163,7 +163,7 @@ namespace CryptoExchange.Net.Clients
                 else
                     _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
 
-                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                if (await ShouldRetryRequestAsync(definition.RateLimitGate, result, currentTry).ConfigureAwait(false))
                     continue;
 
                 return result;
@@ -397,7 +397,7 @@ namespace CryptoExchange.Net.Clients
                 else
                     _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
 
-                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                if (await ShouldRetryRequestAsync(gate, result, currentTry).ConfigureAwait(false))
                     continue;
 
                 return result.AsDataless();
@@ -449,7 +449,7 @@ namespace CryptoExchange.Net.Clients
                 else
                     _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
 
-                if (await ShouldRetryRequestAsync(result, currentTry).ConfigureAwait(false))
+                if (await ShouldRetryRequestAsync(gate, result, currentTry).ConfigureAwait(false))
                     continue;
 
                 return result;
@@ -488,6 +488,12 @@ namespace CryptoExchange.Net.Clients
 
             if (signed)
             {
+                if (AuthenticationProvider == null)
+                {
+                    _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
+                    return new CallResult<IRequest>(new NoApiCredentialsError());
+                }
+
                 var syncTask = SyncTimeAsync();
                 var timeSyncInfo = GetTimeSyncInfo();
 
@@ -510,16 +516,10 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath, method) { Authenticated = signed }, uri.Host, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }
-            }
-
-            if (signed && AuthenticationProvider == null)
-            {
-                _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
-                return new CallResult<IRequest>(new NoApiCredentialsError());
             }
 
             _logger.RestApiCreatingRequest(requestId, uri);
@@ -654,10 +654,34 @@ namespace CryptoExchange.Net.Clients
         /// Note that this is always called; even when the request might be successful
         /// </summary>
         /// <typeparam name="T">WebCallResult type parameter</typeparam>
+        /// <param name="gate">The rate limit gate the call used</param>
         /// <param name="callResult">The result of the call</param>
         /// <param name="tries">The current try number</param>
         /// <returns>True if call should retry, false if the call should return</returns>
-        protected virtual Task<bool> ShouldRetryRequestAsync<T>(WebCallResult<T> callResult, int tries) => Task.FromResult(false);
+        protected virtual async Task<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
+        {
+            if (tries >= 2)
+                // Only retry once
+                return false;
+
+            if ((int?)callResult.ResponseStatusCode == 429 
+                && ClientOptions.RatelimiterEnabled
+                && ClientOptions.RateLimitingBehaviour != RateLimitingBehaviour.Fail
+                && gate != null)
+            {
+                var retryTime = await gate.GetRetryAfterTime().ConfigureAwait(false);
+                if (retryTime == null)
+                    return false;
+
+                if (retryTime.Value - DateTime.UtcNow < TimeSpan.FromSeconds(60))
+                {
+                    _logger.LogWarning("Received ratelimit error, retrying after {Timestamp}", retryTime.Value);
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Creates a request object

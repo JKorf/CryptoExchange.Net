@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Guards;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,7 +16,7 @@ namespace CryptoExchange.Net.RateLimiting
     /// <inheritdoc />
     public class RateLimitGate : IRateLimitGate
     {
-        private readonly IRateLimitGuard _singleLimitGuard;
+        private readonly IRateLimitGuard _singleLimitGuard = new SingleLimitGuard();
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private readonly SemaphoreSlim _semaphore;
         private readonly string _name;
@@ -55,6 +56,9 @@ namespace CryptoExchange.Net.RateLimiting
         public async Task<CallResult> ProcessSingleAsync(ILogger logger, RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+            if (requestWeight == 0)
+                requestWeight = 1;
+
             _waitingCount++;
             try
             {
@@ -126,6 +130,21 @@ namespace CryptoExchange.Net.RateLimiting
                     _guards.Add(new RetryAfterGuard(retryAfter));
                 else
                     retryAfterGuard.UpdateAfter(retryAfter);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<DateTime?> GetRetryAfterTime()
+        {
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                var retryAfterGuard = _guards.OfType<RetryAfterGuard>().SingleOrDefault();
+                return retryAfterGuard?.After;
             }
             finally
             {

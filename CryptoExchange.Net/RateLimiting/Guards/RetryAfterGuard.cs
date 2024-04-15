@@ -8,12 +8,17 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 {
     public class RetryAfterGuard : IRateLimitGuard
     {
-        public string Name => "";
+        /// <summary>
+        /// Additional wait time to apply to account for time offset between server and client
+        /// </summary>
+        private static TimeSpan _windowBuffer = TimeSpan.FromMilliseconds(1000);
 
-        public string Description => "";
+        public string Name => "RetryAfterGuard";
+
+        public string Description => $"Pause requests until after {After}";
 
 
-        private DateTime _after;
+        public DateTime After { get; private set; }
 
         /// <summary>
         /// ctor
@@ -21,12 +26,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="after"></param>
         public RetryAfterGuard(DateTime after)
         {
-            _after = after;
+            After = after;
         }
 
         public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
         {
-            var dif = _after - DateTime.UtcNow;
+            var dif = (After + _windowBuffer) - DateTime.UtcNow;
             if (dif <= TimeSpan.Zero)
                 return LimitCheck.NotApplicable;
 
@@ -42,6 +47,6 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// Update the 'after' time
         /// </summary>
         /// <param name="after"></param>
-        public void UpdateAfter(DateTime after) => _after = after;
+        public void UpdateAfter(DateTime after) => After = after;
     }
 }

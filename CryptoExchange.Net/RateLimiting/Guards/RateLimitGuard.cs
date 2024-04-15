@@ -14,11 +14,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private RateLimitWindowType _windowType;
         private double? _decayRate;
+        private int? _connectionWeight;
         private readonly Func<RequestDefinition, string, SecureString?, string> _keySelector;
 
-        public string Name => "";
+        public string Name => "RateLimitGuard";
 
-        public string Description => "";
+        public string Description => _windowType == RateLimitWindowType.Decay ? $"Limit of {Limit} with a decay rate of {_decayRate}" : $"Limit of {Limit} per {TimeSpan}";
 
         /// <summary>
         /// The limit
@@ -29,12 +30,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// </summary>
         public TimeSpan TimeSpan { get; }
 
-        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IGuardFilter filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null)
-            : this(keySelector, new[] { filters }, limit, timeSpan, windowType, decayPerTimeSpan)
+        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IGuardFilter filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
+            : this(keySelector, new[] { filters }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight)
         {
         }
 
-        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null)
+        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
         {
             _filters = filters;
             _trackers = new Dictionary<string, IWindowTracker>();
@@ -43,6 +44,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             TimeSpan = timeSpan;
             _keySelector = keySelector;
             _decayRate = decayPerTimeSpan;
+            _connectionWeight = connectionWeight;
         }
 
         public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
@@ -52,6 +54,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                 if (!filter.Passes(type, definition, host, apiKey))
                     return LimitCheck.NotApplicable;
             }
+
+            if (type == RateLimitItemType.Connection)
+                requestWeight = _connectionWeight ?? requestWeight;
 
             var key = _keySelector(definition, host, apiKey);
             if (!_trackers.TryGetValue(key, out var tracker))
@@ -75,6 +80,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                     return RateLimitState.NotApplied;
             }
 
+            if (type == RateLimitItemType.Connection)
+                requestWeight = _connectionWeight ?? requestWeight;
+
             var key = _keySelector(definition, host, apiKey);
             var tracker = _trackers[key];
             tracker.ApplyWeight(requestWeight);
@@ -88,7 +96,8 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         protected IWindowTracker CreateTracker()
         {
             return _windowType == RateLimitWindowType.Sliding ? new SlidingWindowTracker(Limit, TimeSpan)
-                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(Limit, TimeSpan) :
+                : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(Limit, TimeSpan)
+                : _windowType == RateLimitWindowType.FixedAfterFirst ? new FixedAfterStartWindowTracker(Limit, TimeSpan) :
                 new DecayWindowTracker(Limit, TimeSpan, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
     }

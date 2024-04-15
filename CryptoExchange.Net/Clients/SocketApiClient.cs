@@ -68,12 +68,7 @@ namespace CryptoExchange.Net.Clients
         protected internal int? MessageSendSizeLimit { get; set; }
 
         /// <summary>
-        /// The weight to apply for ratelimiting when a new connection is made
-        /// </summary>
-        protected internal int ConnectionWeight { get; set; } = 1;
-
-        /// <summary>
-        /// Periodic task regisrations
+        /// Periodic task registrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
 
@@ -527,8 +522,7 @@ namespace CryptoExchange.Net.Clients
                 RateLimiter = ClientOptions.RatelimiterEnabled ? RateLimiter : null,
                 RateLimitingBehaviour = ClientOptions.RateLimitingBehaviour,
                 Proxy = ClientOptions.Proxy,
-                Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
-                ConnectionWeight = ConnectionWeight
+                Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };
 
         /// <summary>

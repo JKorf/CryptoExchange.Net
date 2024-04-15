@@ -14,9 +14,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private RateLimitWindowType _windowType;
         private double? _decayRate;
 
-        public string Name => "";
+        public string Name => "EndpointLimitGuard";
 
-        public string Description => "";
+        public string Description => $"Limit requests to endpoint";
 
         public SingleLimitGuard()
         {

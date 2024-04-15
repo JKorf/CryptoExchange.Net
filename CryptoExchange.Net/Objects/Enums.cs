@@ -29,6 +29,10 @@
         /// </summary>
         Fixed,
         /// <summary>
+        /// A fixed interval starting after the first request
+        /// </summary>
+        FixedAfterFirst,
+        /// <summary>
         /// Decaying window
         /// </summary>
         Decay

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.RateLimiting
     /// <summary>
     /// Rate limit event
     /// </summary>
-    public class RateLimitEvent
+    public record RateLimitEvent
     {
         /// <summary>
         /// Name of the API limit that is reached
@@ -55,9 +55,8 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         /// <param name="apiLimit"></param>
         /// <param name="limitDescription"></param>
-        /// <param name="method"></param>
+        /// <param name="definition"></param>
         /// <param name="host"></param>
-        /// <param name="path"></param>
         /// <param name="current"></param>
         /// <param name="requestWeight"></param>
         /// <param name="limit"></param>

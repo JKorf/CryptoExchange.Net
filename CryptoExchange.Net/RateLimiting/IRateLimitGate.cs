@@ -35,6 +35,12 @@ namespace CryptoExchange.Net.RateLimiting
         Task SetRetryAfterGuardAsync(DateTime retryAfter);
 
         /// <summary>
+        /// Returns the 'retry after' timestamp if set
+        /// </summary>
+        /// <returns></returns>
+        Task<DateTime?> GetRetryAfterTime();
+
+        /// <summary>
         /// Process a request
         /// </summary>
         /// <param name="logger"></param>

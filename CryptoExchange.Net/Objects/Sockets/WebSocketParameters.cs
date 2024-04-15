@@ -60,11 +60,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; }
 
         /// <summary>
-        /// Weight of a new connection for ratelimiting
-        /// </summary>
-        public int ConnectionWeight { get; set; }
-
-        /// <summary>
         /// Encoding for sending/receiving data
         /// </summary>
         public Encoding Encoding { get; set; } = Encoding.UTF8;
