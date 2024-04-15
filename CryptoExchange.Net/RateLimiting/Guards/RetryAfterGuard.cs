@@ -8,9 +8,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 {
     public class RetryAfterGuard : IRateLimitGuard
     {
-        public string Name => throw new NotImplementedException();
+        public string Name => "";
 
-        public string Description => throw new NotImplementedException();
+        public string Description => "";
 
 
         private DateTime _after;

@@ -16,9 +16,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private double? _decayRate;
         private readonly Func<RequestDefinition, string, SecureString?, string> _keySelector;
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "";
 
-        public string Description => throw new NotImplementedException();
+        public string Description => "";
 
         /// <summary>
         /// The limit

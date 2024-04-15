@@ -14,9 +14,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private RateLimitWindowType _windowType;
         private double? _decayRate;
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "";
 
-        public string Description => throw new NotImplementedException();
+        public string Description => "";
 
         public SingleLimitGuard()
         {

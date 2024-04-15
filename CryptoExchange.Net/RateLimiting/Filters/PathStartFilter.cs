@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.RateLimiting.Filters
         }
 
         public bool Passes(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey)
-            => _path.StartsWith(_path, StringComparison.OrdinalIgnoreCase);
+            => definition.Path.StartsWith(_path, StringComparison.OrdinalIgnoreCase);
     }
 }
