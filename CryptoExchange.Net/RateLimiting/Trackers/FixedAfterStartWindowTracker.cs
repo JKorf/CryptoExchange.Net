@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         protected Queue<LimitEntry> _entries;
 
         private int _currentWeight = 0;
-        private TimeSpan? _trackPeriodOffset;
+        private DateTime? _nextReset;
 
         /// <summary>
         /// Additional wait time to apply to account for time offset between server and client
@@ -42,12 +42,11 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         {
             // Remove requests no longer in time period from the history
             var checkTime = DateTime.UtcNow;
-            var before = TimePeriod.Ticks;
-            if (_trackPeriodOffset != null)
-                before -= _trackPeriodOffset.Value.Ticks;
+            if (_nextReset != null && checkTime > _nextReset)
+                RemoveBefore(_nextReset.Value);
 
-            // TODO Test
-            RemoveBefore(checkTime.AddTicks(-before));
+            if (Current == 0)
+                _nextReset = null;
 
             if (Current + weight > Limit)
             {
@@ -70,9 +69,9 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         /// <param name="weight"></param>
         public void ApplyWeight(int weight)
         {
-            _currentWeight += weight;
             if (_currentWeight == 0)
-                _trackPeriodOffset = TimeSpan.FromTicks(DateTime.UtcNow.Ticks % TimePeriod.Ticks);
+                _nextReset = DateTime.UtcNow + TimePeriod;
+            _currentWeight += weight;
             _entries.Enqueue(new LimitEntry(DateTime.UtcNow, weight));
         }
 
@@ -104,9 +103,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private TimeSpan DetermineWaitTime()
         {
             var checkTime = DateTime.UtcNow;
-            var startCurrentWindow = checkTime.AddTicks(-(checkTime.Ticks % TimePeriod.Ticks));
-            var wait = startCurrentWindow.Add(TimePeriod) - checkTime;
-            return wait.Add(_fixedWindowBuffer);
+            return (_nextReset!.Value - checkTime) + _fixedWindowBuffer;
         }
     }
 }
