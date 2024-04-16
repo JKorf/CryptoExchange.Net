@@ -771,13 +771,13 @@ namespace CryptoExchange.Net.Sockets
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
                 var info = $"Message to send exceeds the max server message size ({ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
-                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - {Info}", SocketId, requestId, info);
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
                 return new CallResult(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
-                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - Failed to send, socket no longer open", SocketId, requestId);
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 

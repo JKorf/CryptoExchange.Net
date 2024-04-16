@@ -14,6 +14,7 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.RateLimiting;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
 
@@ -155,7 +156,7 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(prepareResult.Error!);
 
                 var request = CreateRequest(baseAddress, definition, parameters, additionalHeaders);
-                _logger.LogDebug("[Req {RequestId}] Sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}", request.RequestId, definition, request.Content, request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+                _logger.RestApiSendRequest(request.RequestId, definition, request.Content, request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
                 var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (!result)
@@ -224,7 +225,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -238,7 +239,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -516,7 +517,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RatelimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, ApiOptions.ApiCredentials?.Key ?? ClientOptions.ApiCredentials?.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }
@@ -577,7 +578,7 @@ namespace CryptoExchange.Net.Clients
                         var rateError = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
                         if (rateError.RetryAfter != null && gate != null && ClientOptions.RatelimiterEnabled)
                         {
-                            _logger.LogWarning("Ratelimit error from server, pausing requests until {Until}", rateError.RetryAfter.Value);
+                            _logger.RestApiRateLimitPauseUntil(request.RequestId, rateError.RetryAfter.Value);
                             await gate.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);
                         }
 
@@ -675,7 +676,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (retryTime.Value - DateTime.UtcNow < TimeSpan.FromSeconds(60))
                 {
-                    _logger.LogWarning("Received ratelimit error, retrying after {Timestamp}", retryTime.Value);
+                    _logger.RestApiRateLimitRetry(callResult.RequestId!.Value, retryTime.Value);
                     return true;
                 }
             }

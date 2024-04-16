@@ -1,28 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 
 namespace CryptoExchange.Net.RateLimiting.Trackers
 {
     internal class FixedAfterStartWindowTracker : IWindowTracker
     {
-        /// <summary>
-        /// The time period for this tracker
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan TimePeriod { get; }
-        /// <summary>
-        /// Limit for this tracker
-        /// </summary>
+        /// <inheritdoc />
         public int Limit { get; }
-        /// <summary>
-        /// Current
-        /// </summary>
+        /// <inheritdoc />
         public int Current => _currentWeight;
 
-        /// <summary>
-        /// Rate limit entries
-        /// </summary>
-        protected Queue<LimitEntry> _entries;
-
+        private readonly Queue<LimitEntry> _entries;
         private int _currentWeight = 0;
         private DateTime? _nextReset;
 
@@ -50,23 +41,22 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
 
             if (Current + weight > Limit)
             {
+                // The weight would cause the rate limit to be passed
                 if (Current == 0)
                 {
                     throw new Exception("Request limit reached without any prior request. " +
                         $"This request can never execute with the current rate limiter. Request weight: {weight}, Ratelimit: {Limit}");
                 }
 
-                // Wait until the next entry should be removed from the history
+                // Determine the time to wait before this weight can be applied without going over the rate limit
                 return DetermineWaitTime();
             }
 
+            // Weight can fit without going over limit
             return TimeSpan.Zero;
         }
 
-        /// <summary>
-        /// Apply a new weighted item
-        /// </summary>
-        /// <param name="weight"></param>
+        /// <inheritdoc />
         public void ApplyWeight(int weight)
         {
             if (_currentWeight == 0)
@@ -76,7 +66,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <summary>
-        /// Remove items before a certain type
+        /// Remove items before a certain time
         /// </summary>
         /// <param name="time"></param>
         protected void RemoveBefore(DateTime time)
@@ -100,6 +90,10 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             }
         }
 
+        /// <summary>
+        /// Determine the time to wait before a new item would fit
+        /// </summary>
+        /// <returns></returns>
         private TimeSpan DetermineWaitTime()
         {
             var checkTime = DateTime.UtcNow;

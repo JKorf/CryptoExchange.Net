@@ -203,7 +203,7 @@ namespace CryptoExchange.Net.Sockets
                 if (Parameters.RateLimiter != null)
                 {
                     var definition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -439,7 +439,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         if (Parameters.RateLimiter != null)
                         {
-                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, RateLimitItemType.Request, requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                             if (!limitResult)
                             {
                                 await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);

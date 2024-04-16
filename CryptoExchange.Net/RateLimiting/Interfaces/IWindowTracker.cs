@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.RateLimiting.Trackers
+namespace CryptoExchange.Net.RateLimiting.Interfaces
 {
     /// <summary>
-    /// Window tracker
+    /// Rate limit window tracker
     /// </summary>
     public interface IWindowTracker
     {
@@ -26,9 +26,9 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         /// <returns></returns>
         TimeSpan GetWaitTime(int weight);
         /// <summary>
-        /// Apply the weight
+        /// Register the weight in this window
         /// </summary>
-        /// <param name="weight"></param>
+        /// <param name="weight">Request weight</param>
         void ApplyWeight(int weight);
     }
 }

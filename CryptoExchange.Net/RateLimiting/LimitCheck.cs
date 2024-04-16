@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.RateLimiting
     /// <summary>
     /// Limit check
     /// </summary>
-    public struct LimitCheck
+    public readonly struct LimitCheck
     {
         /// <summary>
         /// Is guard applicable
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         public TimeSpan Delay { get; }
         /// <summary>
-        /// Current count
+        /// Current counter
         /// </summary>
         public int Current { get; }
         /// <summary>
@@ -41,18 +41,20 @@ namespace CryptoExchange.Net.RateLimiting
         /// Not applicable
         /// </summary>
         public static LimitCheck NotApplicable { get; } = new LimitCheck(false, default, default, default, default);
+
         /// <summary>
         /// No wait needed
         /// </summary>
         public static LimitCheck NotNeeded { get; } = new LimitCheck(true, default, default, default, default);
+
         /// <summary>
         /// Wait needed
         /// </summary>
-        /// <param name="delay"></param>
-        /// <param name="limit"></param>
-        /// <param name="period"></param>
-        /// <param name="current"></param>
+        /// <param name="delay">The delay needed</param>
+        /// <param name="limit">Limit per period</param>
+        /// <param name="period">Period the limit is for</param>
+        /// <param name="current">Current counter</param>
         /// <returns></returns>
-        public static LimitCheck Needed(TimeSpan delay, int limit, TimeSpan period, int current) => new LimitCheck(true, delay, limit, period, current);
+        public static LimitCheck Needed(TimeSpan delay, int limit, TimeSpan period, int current) => new(true, delay, limit, period, current);
     }
 }

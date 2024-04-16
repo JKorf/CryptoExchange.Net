@@ -73,7 +73,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _addingBytesToSendBuffer = LoggerMessage.Define<int, int, int>(
                 LogLevel.Trace,
                 new EventId(1007, "AddingBytesToSendBuffer"),
-                "[Sckt {SocketId}] msg {RequestId} - Adding {NumBytes} bytes to send buffer");
+                "[Sckt {SocketId}] [Req {RequestId}] adding {NumBytes} bytes to send buffer");
 
             _reconnectRequested = LoggerMessage.Define<int>(
                 LogLevel.Debug,
@@ -113,7 +113,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _sentBytes = LoggerMessage.Define<int, int, int>(
                 LogLevel.Trace,
                 new EventId(1016, "SentBytes"),
-                "[Sckt {SocketId}] msg {RequestId} - sent {NumBytes} bytes");
+                "[Sckt {SocketId}] [Req {RequestId}] sent {NumBytes} bytes");
 
             _sendLoopStoppedWithException = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,

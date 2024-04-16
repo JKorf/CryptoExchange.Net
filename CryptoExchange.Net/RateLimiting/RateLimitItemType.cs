@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.RateLimiting
     public enum RateLimitItemType
     {
         /// <summary>
-        /// A new connection
+        /// A connection attempt
         /// </summary>
         Connection = 1,
         /// <summary>

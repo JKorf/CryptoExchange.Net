@@ -1,24 +1,19 @@
 ﻿using System;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 
 namespace CryptoExchange.Net.RateLimiting.Trackers
 {
     internal class DecayWindowTracker : IWindowTracker
     {
-        /// <summary>
-        /// The time period for this tracker
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan TimePeriod { get; }
         /// <summary>
         /// Decrease rate per TimePeriod
         /// </summary>
         public double DecreaseRate { get; }
-        /// <summary>
-        /// Limit for this tracker
-        /// </summary>
+        /// <inheritdoc />
         public int Limit { get; }
-        /// <summary>
-        /// Current
-        /// </summary>
+        /// <inheritdoc />
         public int Current => _currentWeight;
 
         private int _currentWeight = 0;
@@ -31,30 +26,30 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             DecreaseRate = decayRate;
         }
 
+        /// <inheritdoc />
         public TimeSpan GetWaitTime(int weight)
         {
-            // Remove requests no longer in time period from the history
+            // Decrease the counter based on the last update time and decay rate
             DecreaseCounter(DateTime.UtcNow);
 
             if (Current + weight > Limit)
             {
+                // The weight would cause the rate limit to be passed
                 if (Current == 0)
                 {
                     throw new Exception("Request limit reached without any prior request. " +
                         $"This request can never execute with the current rate limiter. Request weight: {weight}, Ratelimit: {Limit}");
                 }
 
-                // Wait until the next entry should be removed from the history
+                // Determine the time to wait before this weight can be applied without going over the rate limit
                 return DetermineWaitTime(weight);
             }
 
+            // Weight can fit without going over limit
             return TimeSpan.Zero;
         }
 
-        /// <summary>
-        /// Apply a new weighted item
-        /// </summary>
-        /// <param name="weight"></param>
+        /// <inheritdoc />
         public void ApplyWeight(int weight)
         {
             if (_currentWeight == 0)
@@ -63,7 +58,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <summary>
-        /// Remove items before a certain type
+        /// Decrease the counter based on time passed since last update and the decay rate
         /// </summary>
         /// <param name="time"></param>
         protected void DecreaseCounter(DateTime time)
@@ -73,10 +68,15 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             if (decrease >= 1)
             {
                 _currentWeight = Math.Max(0, _currentWeight - (int)Math.Floor(dif));
-                _lastDecrease = DateTime.UtcNow;
+                _lastDecrease = time;
             }
         }
 
+        /// <summary>
+        /// Determine the time to wait before the weight would fit
+        /// </summary>
+        /// <param name="requestWeight"></param>
+        /// <returns></returns>
         private TimeSpan DetermineWaitTime(int requestWeight)
         {
             var weightToRemove = Math.Max(Current - (Limit - requestWeight), 0);

@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _messageSentNotPending = LoggerMessage.Define<int, int>(
                 LogLevel.Debug,
                 new EventId(2006, "MessageSentNotPending"),
-                "[Sckt {SocketId}] msg {RequestId} - message sent, but not pending");
+                "[Sckt {SocketId}] [Req {RequestId}] message sent, but not pending");
 
             _receivedData = LoggerMessage.Define<int, string>(
                 LogLevel.Trace,
@@ -177,12 +177,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             _periodicSendFailed = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,
                 new EventId(2027, "PeriodicSendFailed"),
-                "[Sckt {SocketId}] Periodic send {Identifier} failed: {ErrorMessage}");
+                "[Sckt {SocketId}] periodic send {Identifier} failed: {ErrorMessage}");
 
             _sendingData = LoggerMessage.Define<int, int, string>(
                 LogLevel.Trace,
                 new EventId(2028, "SendingData"),
-                "[Sckt {SocketId}] msg {RequestId} - sending messsage: {Data}");
+                "[Sckt {SocketId}] [Req {RequestId}] sending messsage: {Data}");
 
             _receivedMessageNotMatchedToAnyListener = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,

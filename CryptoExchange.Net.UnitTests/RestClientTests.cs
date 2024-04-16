@@ -17,6 +17,7 @@ using CryptoExchange.Net.RateLimiting;
 using System.Net;
 using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Filters;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -167,7 +168,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterBasics(int requests, double perSeconds)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => host, new PathStartFilter("/sapi/"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new PathStartFilter("/sapi/"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
 
             var triggered = false;
             rateLimiter.RateLimitTriggered += (x) => { triggered = true; };
@@ -192,7 +193,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint, bool expectLimiting)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => host, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
@@ -213,7 +214,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint1, string endpoint2, bool expectLimiting)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => def.Path, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get);
@@ -234,7 +235,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task EndpointRateLimiterBasics(int requests, double perSeconds)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => def.Method + def.Path, new PathStartFilter("/sapi/test"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new PathStartFilter("/sapi/test"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
 
             bool triggered = false;
             rateLimiter.RateLimitTriggered += (x) => { triggered = true; };
@@ -257,8 +258,8 @@ namespace CryptoExchange.Net.UnitTests
         public async Task EndpointRateLimiterEndpoints(string endpoint, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => def.Method + def.Path, new ExactPathFilter("/sapi/test"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
-            //rateLimiter.AddGuard(new EndpointLimitGuard("/sapi/test", 1, TimeSpan.FromSeconds(0.1), HttpMethod.Get), RateLimitWindowType.Fixed);
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathFilter("/sapi/test"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
             RateLimitEvent evnt = null;
@@ -278,7 +279,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task EndpointRateLimiterMultipleEndpoints(string endpoint, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => def.Method + def.Path, new ExactPathsFilter(new[] { "/sapi/test", "/sapi/test2" }), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathsFilter(new[] { "/sapi/test", "/sapi/test2" }), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
             RateLimitEvent evnt = null;
@@ -301,7 +302,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task ApiKeyRateLimiterBasics(string key1, string key2, string endpoint1, string endpoint2, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => key.GetString(), new AuthenticatedEndpointFilter(true), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerApiKey, new AuthenticatedEndpointFilter(true), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get) { Authenticated = key1 != null };
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = key2 != null };
 
@@ -320,7 +321,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task TotalRateLimiterBasics(string endpoint1, string endpoint2, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => host, Array.Empty<IGuardFilter>(), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, Array.Empty<IGuardFilter>(), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
@@ -340,7 +341,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task HostRateLimiterBasics(string host1, string endpoint1, string host2, string endpoint2, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => host, new HostFilter("https://test.com"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new HostFilter("https://test.com"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
@@ -359,7 +360,7 @@ namespace CryptoExchange.Net.UnitTests
         public async Task ConnectionRateLimiterBasics(string host1, string host2, bool expectLimited)
         {
             var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard((def, host, key) => host, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };

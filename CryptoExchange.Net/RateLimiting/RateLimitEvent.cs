@@ -1,6 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
-using System.Net.Http;
 
 namespace CryptoExchange.Net.RateLimiting
 {
@@ -22,11 +21,11 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         public RequestDefinition RequestDefinition { get; set; }
         /// <summary>
-        /// The host of the request
+        /// The host the request is for
         /// </summary>
         public string Host { get; set; } = default!;
         /// <summary>
-        /// The current limit count
+        /// The current counter value
         /// </summary>
         public int Current { get; set; }
         /// <summary>
@@ -34,11 +33,11 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         public int RequestWeight { get; set; }
         /// <summary>
-        /// The limit number per time period
+        /// The limit per time period
         /// </summary>
         public int? Limit { get; set; }
         /// <summary>
-        /// The time period of the limiter
+        /// The time period the limit is for
         /// </summary>
         public TimeSpan? TimePeriod { get; set; }
         /// <summary>
