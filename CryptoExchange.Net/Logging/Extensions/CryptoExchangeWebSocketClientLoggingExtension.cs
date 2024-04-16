@@ -20,7 +20,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _closed;
         private static readonly Action<ILogger, int, Exception?> _disposing;
         private static readonly Action<ILogger, int, Exception?> _disposed;
-        private static readonly Action<ILogger, int, int, int, Exception?> _sendDelayedBecauseOfRateLimit;
         private static readonly Action<ILogger, int, int, int, Exception?> _sentBytes;
         private static readonly Action<ILogger, int, string, Exception?> _sendLoopStoppedWithException;
         private static readonly Action<ILogger, int, Exception?> _sendLoopFinished;
@@ -74,7 +73,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _addingBytesToSendBuffer = LoggerMessage.Define<int, int, int>(
                 LogLevel.Trace,
                 new EventId(1007, "AddingBytesToSendBuffer"),
-                "[Sckt {SocketId}] msg {RequestId} - Adding {NumBytes} bytes to send buffer");
+                "[Sckt {SocketId}] [Req {RequestId}] adding {NumBytes} bytes to send buffer");
 
             _reconnectRequested = LoggerMessage.Define<int>(
                 LogLevel.Debug,
@@ -111,15 +110,10 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(1014, "Disposed"),
                 "[Sckt {SocketId}] disposed");
 
-            _sendDelayedBecauseOfRateLimit = LoggerMessage.Define<int, int, int>(
-                LogLevel.Debug,
-                new EventId(1015, "SendDelayedBecauseOfRateLimit"),
-                "[Sckt {SocketId}] msg {RequestId} - send delayed {DelayMS}ms because of rate limit");
-
             _sentBytes = LoggerMessage.Define<int, int, int>(
                 LogLevel.Trace,
                 new EventId(1016, "SentBytes"),
-                "[Sckt {SocketId}] msg {RequestId} - sent {NumBytes} bytes");
+                "[Sckt {SocketId}] [Req {RequestId}] sent {NumBytes} bytes");
 
             _sendLoopStoppedWithException = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,
@@ -265,12 +259,6 @@ namespace CryptoExchange.Net.Logging.Extensions
             this ILogger logger, int socketId)
         {
             _disposed(logger, socketId, null);
-        }
-
-        public static void SocketSendDelayedBecauseOfRateLimit(
-            this ILogger logger, int socketId, int requestId, int delay)
-        {
-            _sendDelayedBecauseOfRateLimit(logger, socketId, requestId, delay, null);
         }
 
         public static void SocketSentBytes(

@@ -4,6 +4,7 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
@@ -59,7 +60,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// The rate limiters 
         /// </summary>
-        protected internal IEnumerable<IRateLimiter>? RateLimiters { get; set; }
+        protected internal IRateLimitGate? RateLimiter { get; set; }
 
         /// <summary>
         /// The max size a websocket message size can be
@@ -67,7 +68,7 @@ namespace CryptoExchange.Net.Clients
         protected internal int? MessageSendSizeLimit { get; set; }
 
         /// <summary>
-        /// Periodic task regisrations
+        /// Periodic task registrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
 
@@ -121,10 +122,6 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            var rateLimiters = new List<IRateLimiter>();
-            foreach (var rateLimiter in apiOptions.RateLimiters)
-                rateLimiters.Add(rateLimiter);
-            RateLimiters = rateLimiters;
         }
 
         /// <summary>
@@ -344,20 +341,20 @@ namespace CryptoExchange.Net.Clients
         /// <param name="socket">The connection to check</param>
         /// <param name="authenticated">Whether the socket should authenticated</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<bool>> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
+        protected virtual async Task<CallResult> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
         {
             if (socket.Connected)
-                return new CallResult<bool>(true);
+                return new CallResult(null);
 
             var connectResult = await ConnectSocketAsync(socket).ConfigureAwait(false);
             if (!connectResult)
-                return new CallResult<bool>(connectResult.Error!);
+                return connectResult;
 
             if (ClientOptions.DelayAfterConnect != TimeSpan.Zero)
                 await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
 
             if (!authenticated || socket.Authenticated)
-                return new CallResult<bool>(true);
+                return new CallResult(null);
 
             return await AuthenticateSocketAsync(socket).ConfigureAwait(false);
         }
@@ -367,10 +364,10 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="socket">Socket to authenticate</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<bool>> AuthenticateSocketAsync(SocketConnection socket)
+        public virtual async Task<CallResult> AuthenticateSocketAsync(SocketConnection socket)
         {
             if (AuthenticationProvider == null)
-                return new CallResult<bool>(new NoApiCredentialsError());
+                return new CallResult(new NoApiCredentialsError());
 
             _logger.AttemptingToAuthenticate(socket.SocketId);
             var authRequest = GetAuthenticationRequest();
@@ -385,13 +382,13 @@ namespace CryptoExchange.Net.Clients
                         await socket.CloseAsync().ConfigureAwait(false);
 
                     result.Error!.Message = "Authentication failed: " + result.Error.Message;
-                    return new CallResult<bool>(result.Error)!;
+                    return new CallResult(result.Error)!;
                 }
             }
 
             _logger.Authenticated(socket.SocketId);
             socket.Authenticated = true;
-            return new CallResult<bool>(true);
+            return new CallResult(null);
         }
 
         /// <summary>
@@ -499,16 +496,17 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="socketConnection">The socket to connect</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<bool>> ConnectSocketAsync(SocketConnection socketConnection)
+        protected virtual async Task<CallResult> ConnectSocketAsync(SocketConnection socketConnection)
         {
-            if (await socketConnection.ConnectAsync().ConfigureAwait(false))
+            var connectResult = await socketConnection.ConnectAsync().ConfigureAwait(false);
+            if (connectResult)
             {
                 socketConnections.TryAdd(socketConnection.SocketId, socketConnection);
-                return new CallResult<bool>(true);
+                return connectResult;
             }
 
             socketConnection.Dispose();
-            return new CallResult<bool>(new CantConnectError());
+            return connectResult;
         }
 
         /// <summary>
@@ -521,7 +519,8 @@ namespace CryptoExchange.Net.Clients
             {
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
-                RateLimiters = RateLimiters,
+                RateLimiter = ClientOptions.RatelimiterEnabled ? RateLimiter : null,
+                RateLimitingBehaviour = ClientOptions.RateLimitingBehaviour,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };

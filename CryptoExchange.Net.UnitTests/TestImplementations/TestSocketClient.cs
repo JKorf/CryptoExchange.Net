@@ -92,7 +92,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
 
-        public CallResult<bool> ConnectSocketSub(SocketConnection sub)
+        public CallResult ConnectSocketSub(SocketConnection sub)
         {
             return ConnectSocketAsync(sub).Result;
         }

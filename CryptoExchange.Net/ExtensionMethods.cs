@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO.Compression;
 using System.IO;
 using System.Linq;
@@ -9,12 +8,7 @@ using System.Security;
 using System.Text;
 using System.Web;
 using CryptoExchange.Net.Objects;
-using Microsoft.Extensions.Logging;
 using System.Globalization;
-using System.Collections;
-using System.Net.Http;
-using System.Data.Common;
-using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Net
 {

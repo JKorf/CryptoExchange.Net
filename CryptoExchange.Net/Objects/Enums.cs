@@ -16,6 +16,29 @@
     }
 
     /// <summary>
+    /// What to do when a request would exceed the rate limit
+    /// </summary>
+    public enum RateLimitWindowType
+    {
+        /// <summary>
+        /// A sliding window
+        /// </summary>
+        Sliding,
+        /// <summary>
+        /// A fixed interval window
+        /// </summary>
+        Fixed,
+        /// <summary>
+        /// A fixed interval starting after the first request
+        /// </summary>
+        FixedAfterFirst,
+        /// <summary>
+        /// Decaying window
+        /// </summary>
+        Decay
+    }
+
+    /// <summary>
     /// Where the parameters for a HttpMethod should be added in a request
     /// </summary>
     public enum HttpMethodParameterPosition
