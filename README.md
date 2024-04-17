@@ -43,7 +43,16 @@ Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/s
 
 ## Release notes
 * Version 7.3.0 - 17 Apr 2024
-    * Rate limit update
+    * Added new method for sending Rest requests which splits the static and dynamic parameters
+	* Refactored rate limiting implementation
+		* Ratelimiters now statically applied for all clients
+		* Added support for different rate limit window types
+		* Added modular configuration of rate limits
+		* Added rate limit check when creating websocket connections
+		* Added automatic handling and retry for Retry-After responses
+		* Added configuration for setting ratelimit for each individual endpoint
+		* Added event for when rate limit is triggered
+	* Added SocketClient GetSocketApiClientStates method
 
 * Version 7.2.1 - 05 Apr 2024
     * Improved websocket reconnect logic

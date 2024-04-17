@@ -2276,7 +2276,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 
 		  </p>
 		  <p>
-		  Client side rate limiting can only correctly work if there is only a single program talking to the exchange. When multiple different application send requests at the same time it's impossible for the client side to keep track of the rate limits. When using multiple concurrent applications it is advised to turn off rate limiting.
+		  Client side rate limiting can only correctly work if there is only a single program talking to the exchange. When multiple different application send requests at the same time it's impossible for the client side to keep track of the rate limits. When using multiple concurrent applications it is advised to turn off rate limiting. Also note that when requests are rate limited with RateLimitBehaviour.Wait that the order of the requests being send is not guarenteed.
 		  </p>
 		  
 		  <p>Client side rate limiting is currently implemented for the following libraries:</p>
