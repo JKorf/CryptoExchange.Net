@@ -881,7 +881,7 @@ else
 			  </div>
 			  <div class="tab-pane fade" id="rest-coinex" role="tabpanel" aria-labelledby="rest-coinex-tab">
 				<pre><code>var client = new CoinExRestClient();
-var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+var tickersResult = await client.SpotApiV2.ExchangeData.GetTickersAsync();
 if (!tickersResult.Success)
 {
   // Handle error, tickersResult.Error contains more information
@@ -1115,12 +1115,12 @@ if (!subscribeResult.Success)
 			  </div>
 			  <div class="tab-pane fade" id="socket-coinex" role="tabpanel" aria-labelledby="socket-coinex-tab">
 				<pre><code>var client = new CoinExSocketClient();
-var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
-  // Handle the data update, update.Data will contain the actual data
+var subscribeResult = await sclient.SpotApiV2.SubscribeToTickerUpdatesAsync(new[] { "ETHUSDT" }, update => {
+    // Handle the data update, update.Data will contain the actual data
 });
 if (!subscribeResult.Success)
 {
-  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+    // Handle error, subscribeResult.Error contains more information on why the subscription failed
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
@@ -1810,6 +1810,16 @@ var client = new OKXRestClient();</code></pre>
 				<td><code>false</code></td>
 			</tr>
 			<tr>
+				<td>RateLimiterEnabled</td>
+				<td>Whether or not client side rate limiting should be applied. Note that not all libraries have ratelimiting implemented, if it's not implemented this flag does nothing</td>
+				<td><code>true</code></td>
+			</tr>
+			<tr>
+				<td>RateLimitingBehaviour</td>
+				<td>What should happen when a rate limit is reached. RateLimitingBehaviour.Wait: the request waits until it can be send while staying within the limits, RateLimitingBehaviour.Fail: the request will return an error</td>
+				<td><code>RateLimitingBehaviour.Wait</code></td>
+			</tr>
+			<tr>
 				<td>Environment</td>
 				<td>The environment the library should connect to. Some exchanges have testnet/sandbox environments which can be used instead of the real exchange. The environment option can be used to switch between different trade environments</td>
 				<td><code>Live environment</code></td>
@@ -1830,16 +1840,6 @@ var client = new OKXRestClient();</code></pre>
 					<td>TimestampRecalculationInterval</td>
 					<td>The interval of how often the time synchronization between client and server should be executed</td>
 					<td><code>TimeSpan.FromHours(1)</code></td>
-				</tr>
-				<tr>
-					<td>[API].RateLimiters</td>
-					<td>A list of <code>IRateLimiter</code>s to use</td>
-					<td><code>Dependent on the library</code></td>
-				</tr>
-				<tr>
-					<td>[API].RateLimitingBehaviour</td>
-					<td>What should happen when a rate limit is reached</td>
-					<td><code>RateLimitingBehaviour.Wait</code></td>
 				</tr>
 				<tr>
 					<td>[API].ApiCredentials</td>
@@ -1904,11 +1904,6 @@ var client = new OKXRestClient();</code></pre>
 					<td>DelayAfterConnect</td>
 					<td>The time to wait before sending messages after connecting to the server</td>
 					<td><code>null</code></td>
-				</tr>
-				<tr>
-					<td>[API].RateLimiters</td>
-					<td>A list of <code>IRateLimiter</code>s to use</td>
-					<td><code>Dependent on the library</code></td>
 				</tr>
 				<tr>
 					<td>[API].SocketNoDataTimeout</td>
@@ -2275,32 +2270,81 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
         <section id="idocs_ratelimiting">
           <h2>Ratelimiting</h2>
 		  <p>
-		  The client libraries have build in rate limiting. These rate limits can be configured per client. Some client implementations where the exchange has clear rate limits will also have a default rate limiter already set up.
-Rate limiting is configured in the client options, and can be set on a specific client or for all clients by either providing it in the constructor for a client, or by using the <code>SetDefaultOptions</code> on a client.
-
-<div class="alert alert-info">What to do when a limit is reached can be configured with the <code>RateLimitingBehaviour</code> client options, either <code>Fail</code> or <code>Wait</code>.</div>
+		  The client libraries have build in support for rate limiting. Rate limiting in this case means that requests are throttled (or failed before sending based on configuration) when the client detects a server rate limit will be exceeded. Whether or not rate limiting is applied can be configured in the DI registration or client options. Not all libraries currently have rate limiting configured.
+		  
+<div class="alert alert-info">What to do when a limit is reached can be configured with the <code>RateLimitingBehaviour</code> client options, either <code>Fail</code> for returning an error or <code>Wait</code> to wait until the request can safely be send.</div>
 
 		  </p>
 		  <p>
-			<b>Ratelimit configuration</b><br />
-			A rate limiter can be configured in the options like so:
-<pre><code>new ClientOptions
-{
-    RateLimitingBehaviour = RateLimitingBehaviour.Wait,
-    RateLimiters = new List<IRateLimiter>
-    {
-        new RateLimiter()
-            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
-    }
-}</code></pre>
-
-This will add a rate limiter for 50 requests per 10 seconds.
-A rate limiter can have multiple limits:
-<pre><code>new RateLimiter()
-            .AddTotalRateLimit(50, TimeSpan.FromSeconds(10))
-            .AddEndpointLimit("/api/order", 10, TimeSpan.FromSeconds(2))</code></pre>
-This adds another limit of 10 requests per 2 seconds for the order endpoint in addition to the 50 requests per 10 seconds limit.
+		  Client side rate limiting can only correctly work if there is only a single program talking to the exchange. When multiple different application send requests at the same time it's impossible for the client side to keep track of the rate limits. When using multiple concurrent applications it is advised to turn off rate limiting.
 		  </p>
+		  
+		  <p>Client side rate limiting is currently implemented for the following libraries:</p>
+		  <div class="tab-wrap">
+			<ul class="nav nav-tabs" id="limit" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-kraken-tab" data-toggle="tab" href="#limit-kraken" role="tab" aria-controls="limit-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-kucoin-tab" data-toggle="tab" href="#limit-kucoin" role="tab" aria-controls="limit-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="limit-binance" role="tabpanel" aria-labelledby="limit-binance-tab">
+<pre><code>services.AddBinance(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>BinanceExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>BinanceExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+// Output: Limit triggered: RateLimitEvent { ApiLimit = Spot Socket, LimitDescription = Limit of 6000 per 00:01:00, RequestDefinition = GET 1, Host = wss://ws-api.binance.com, Current = 5752, RequestWeight = 250, Limit = 6000, TimePeriod = 00:01:00, DelayTime = 00:00:38.7784145, Behaviour = Wait }
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-kraken" role="tabpanel" aria-labelledby="limit-kraken-tab">
+<pre><code>services.AddKraken(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>KrakenExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>KrakenExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+// Output: Limit triggered: RateLimitEvent { ApiLimit = Spot Rest, LimitDescription = Limit of 15 with a decay rate of 0,33, RequestDefinition = POST 0/private/TradesHistory authenticated, Host = api.kraken.com, Current = 14, RequestWeight = 2, Limit = 15, TimePeriod = 00:00:01, DelayTime = 00:00:04, Behaviour = Wait }</code></pre>
+
+		  <p>Kraken applies different rate limits based on the account verification tier. By default the rate limit is set to the most conservative <code>Starter</code> tier. To change the rate limit tier call the <code>Configure</code> method</p>
+		  <pre><code>KrakenExchange.RateLimiter.Configure(Kraken.Net.Enums.RateLimitTier.Pro);</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-kucoin" role="tabpanel" aria-labelledby="limit-kucoin-tab">
+<pre><code>services.AddKucoin(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>KucoinExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>KucoinExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+// Output: Limit triggered: RateLimitEvent { ApiLimit = Public Rest, LimitDescription = Limit of 2000 per 00:00:30, RequestDefinition = GET api/v1/market/stats, Host = https://api.kucoin.com/, Current = 1995, RequestWeight = 15, Limit = 2000, TimePeriod = 00:00:30, DelayTime = 00:00:19.8111238, Behaviour = Wait }</code></pre>
+
+		  <p>Kucoin applies different rate limits based on the account VIP level. By default the rate limit is set to the most conservative <code>VIP0</code> tier. To change the rate limit tier call the <code>Configure</code> method</p>
+		  <pre><code>KucoinExchange.RateLimiter.Configure(Kucoin.Net.Enums.VipLevel.Vip5);</code></pre>
+			  </div>
+			</div>
+			</div>
+		  
         </section>
 		
 		<hr class="divider">
@@ -2382,7 +2426,7 @@ await spotClient.GetSymbolsAsync();</code></pre>
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-coinex" role="tabpanel" aria-labelledby="example-symbols-coinex-tab">
-		<pre><code>await coinExClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-huobi" role="tabpanel" aria-labelledby="example-symbols-huobi-tab">
 		<pre><code>await huobiClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -2476,7 +2520,7 @@ await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code>
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-coinex" role="tabpanel" aria-labelledby="example-ticker-coinex-tab">
-		<pre><code>await coinExClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetTickersAsync(new[] { "BTCUSDT" });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-huobi" role="tabpanel" aria-labelledby="example-ticker-huobi-tab">
 		<pre><code>await huobiClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
@@ -2570,7 +2614,7 @@ await spotClient.GetBalancesAsync();</code></pre>
 		<pre><code>await bybitClient.V5Api.Account.GetBalancesAsync(AccountType.Spot);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-coinex" role="tabpanel" aria-labelledby="example-balances-coinex-tab">
-		<pre><code>await coinExClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+		<pre><code>await coinExClient.SpotApiV2.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-huobi" role="tabpanel" aria-labelledby="example-balances-huobi-tab">
 		<pre><code>// Need an account id, you probably want to already have done this before placing the order
@@ -2668,7 +2712,7 @@ await spotClient.PlaceOrderAsync(spotClient.GetSymbolName("BTC", "USDT"), Common
 		<pre><code>await bybitClient.V5Api.Trading.PlaceOrderAsync(Category.Spot, "BTCUSDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
-		<pre><code>await coinExClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
+		<pre><code>await coinExClient.SpotApiV2.Trading.PlaceOrderAsync("BTCUSDT", AccountType.Spot, OrderSide.Buy, OrderTypeV2.Limit, 0.1m, 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-huobi" role="tabpanel" aria-labelledby="example-place-huobi-tab">
 		<pre><code>// Need an account id, you probably want to already have done this before placing the order
@@ -2768,7 +2812,7 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-coinex" role="tabpanel" aria-labelledby="example-stream-ticker-coinex-tab">
-		<pre><code>await coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+		<pre><code>await coinExSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync(new[] { "ETHUSDT" }, data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -2905,7 +2949,7 @@ _ = Task.Run(async () => {
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-coinex" role="tabpanel" aria-labelledby="example-stream-order-coinex-tab">
-		<pre><code>await coinExSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+		<pre><code>await coinExSocketClient.SpotApiV2.SubscribeToOrderUpdatesAsync(data => {
     // Handle update
 });</code></pre>
 					  </div>

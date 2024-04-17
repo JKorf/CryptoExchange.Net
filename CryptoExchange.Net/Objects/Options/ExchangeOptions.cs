@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Whether or not client side rate limiting should be applied
         /// </summary>
-        public bool RatelimiterEnabled { get; set; } = true;
+        public bool RateLimiterEnabled { get; set; } = true;
         /// <summary>
         /// What should happen when a rate limit is reached
         /// </summary>

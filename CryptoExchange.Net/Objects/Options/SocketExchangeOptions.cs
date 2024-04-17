@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.Objects.Options
                 Proxy = Proxy,
                 RequestTimeout = RequestTimeout,
                 RateLimitingBehaviour = RateLimitingBehaviour,
-                RatelimiterEnabled = RatelimiterEnabled,
+                RateLimiterEnabled = RateLimiterEnabled,
             };
         }
     }
