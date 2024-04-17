@@ -42,6 +42,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.3.0 - 17 Apr 2024
+    * Rate limit update
+
 * Version 7.2.1 - 05 Apr 2024
     * Improved websocket reconnect logic
     * Simplified SystemTextJsonMessageAccessor value retrieval
