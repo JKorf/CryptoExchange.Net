@@ -42,6 +42,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.3.1 - 18 Apr 2024
+    * Fixed websocket system subscriptions getting marked as unconfirmed when reconnecting
+
 * Version 7.3.0 - 17 Apr 2024
     * Added new method for sending Rest requests which splits the static and dynamic parameters
 	* Refactored rate limiting implementation
