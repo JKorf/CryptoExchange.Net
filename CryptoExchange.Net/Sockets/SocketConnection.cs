@@ -251,7 +251,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners.OfType<Subscription>())
+                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
                     subscription.Confirmed = false;
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
@@ -276,7 +276,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners.OfType<Subscription>())
+                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
                     subscription.Confirmed = false;
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
