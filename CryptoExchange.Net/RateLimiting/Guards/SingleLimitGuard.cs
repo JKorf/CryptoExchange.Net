@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
         {
-            var key = definition.Path + definition.Method + definition;
+            var key = definition.Path + definition.Method;
             var tracker = _trackers[key];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(definition.EndpointLimitCount!.Value, definition.EndpointLimitPeriod!.Value, tracker.Current);
