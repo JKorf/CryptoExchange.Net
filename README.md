@@ -42,6 +42,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.3.2 - 19 Apr 2024
+    * Fix for endpoint specific rate limiting throwing exception
+
 * Version 7.3.1 - 18 Apr 2024
     * Fixed websocket system subscriptions getting marked as unconfirmed when reconnecting
 
