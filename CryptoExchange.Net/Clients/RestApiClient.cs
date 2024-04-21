@@ -585,7 +585,9 @@ namespace CryptoExchange.Net.Clients
                         error = rateError;
                     }
                     else
+                    {
                         error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                    }
 
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
@@ -601,7 +603,7 @@ namespace CryptoExchange.Net.Clients
                 if (!valid)
                 {
                     // Invalid json
-                    var error = new ServerError(accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    var error = new ServerError("Failed to parse response", accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
 
