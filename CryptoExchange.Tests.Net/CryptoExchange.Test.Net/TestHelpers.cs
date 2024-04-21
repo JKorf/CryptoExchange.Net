@@ -12,12 +12,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Test.Net.TestImplementations
+namespace CryptoExchange.Test.Net
 {
     public class TestHelpers
     {
         [ExcludeFromCodeCoverage]
-        public static bool AreEqual<T>(T self, T to, params string[] ignore) where T : class
+        public static bool AreEqual<T>(T? self, T? to, params string[] ignore) where T : class
         {
             if (self != null && to != null)
             {
@@ -28,8 +28,8 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     if (ignoreList.Contains(pi.Name))
                         continue;
 
-                    var selfValue = type.GetProperty(pi.Name).GetValue(self, null);
-                    var toValue = type.GetProperty(pi.Name).GetValue(to, null);
+                    var selfValue = type.GetProperty(pi.Name)!.GetValue(self, null);
+                    var toValue = type.GetProperty(pi.Name)!.GetValue(to, null);
 
                     if (pi.PropertyType.IsClass && !pi.PropertyType.Module.ScopeName.Equals("System.Private.CoreLib.dll"))
                     {
@@ -50,7 +50,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
             return self == to;
         }
 
-        public static T CreateSocketClient<T>(IWebsocket socket) where T: BaseSocketClient, new()
+        public static T CreateSocketClient<T>(IWebsocket socket) where T : BaseSocketClient, new()
         {
             BaseSocketClient client = new T();
             foreach (var apiClient in client.ApiClients.OfType<SocketApiClient>())
@@ -63,9 +63,9 @@ namespace CryptoExchange.Test.Net.TestImplementations
             return (T)client;
         }
 
-        public static T CreateRestClient<T>(string data, HttpStatusCode code) where T : BaseRestClient, new()
+        public static T CreateRestClient<T>(string data, HttpStatusCode code) where T : BaseRestClient
         {
-            BaseRestClient client = new T();
+            BaseRestClient client = (T)Activator.CreateInstance(typeof(T), new object[] { null })!;
             foreach (var apiClient in client.ApiClients.OfType<RestApiClient>())
             {
                 apiClient.RequestFactory = Mock.Of<IRequestFactory>();
@@ -81,19 +81,23 @@ namespace CryptoExchange.Test.Net.TestImplementations
                 response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
 
                 var request = new Mock<IRequest>();
-                request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
                 request.Setup(c => c.GetHeaders()).Returns(new Dictionary<string, IEnumerable<string>>());
                 request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
 
                 var factory = Mock.Get(apiClient.RequestFactory);
                 factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
-                    .Returns(request.Object);
+                    .Returns((HttpMethod method, Uri uri, int id) =>
+                    {
+                        request.Setup(c => c.Method).Returns(method);
+                        request.Setup(c => c.Uri).Returns(uri);
+                        return request.Object;
+                    });
             }
 
             return (T)client;
         }
 
-        public static object GetTestValue(Type type, int i)
+        public static object? GetTestValue(Type type, int i)
         {
             if (type == typeof(bool))
                 return true;
@@ -132,7 +136,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                 return new[] { "string" + i };
 
             if (type.IsEnum)
-                return Activator.CreateInstance(type);
+                return Activator.CreateInstance(type)!;
 
             if (type.IsArray)
             {
@@ -164,10 +168,10 @@ namespace CryptoExchange.Test.Net.TestImplementations
 
         public static async Task<object> InvokeAsync(MethodInfo @this, object obj, params object[] parameters)
         {
-            var task = (Task)@this.Invoke(obj, parameters);
+            var task = (Task)@this.Invoke(obj, parameters)!;
             await task.ConfigureAwait(false);
             var resultProperty = task.GetType().GetProperty("Result");
-            return resultProperty.GetValue(task);
+            return resultProperty!.GetValue(task)!;
         }
     }
 }

@@ -8,23 +8,23 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Test.Net.TestImplementations
+namespace CryptoExchange.Test.Net
 {
     public class TestSocket : IWebsocket
     {
         public bool CanConnect { get; set; } = true;
         public bool Connected { get; set; }
 
-        public event Func<Task> OnClose;
+        public event Func<Task>? OnClose;
 #pragma warning disable 0067
-        public event Func<Task> OnReconnected;
-        public event Func<Task> OnReconnecting;
-        public event Func<int, Task> OnRequestRateLimited;
-        public event Func<Exception, Task> OnError;
+        public event Func<Task>? OnReconnected;
+        public event Func<Task>? OnReconnecting;
+        public event Func<int, Task>? OnRequestRateLimited;
+        public event Func<Exception, Task>? OnError;
 #pragma warning restore 0067
-        public event Func<int, Task> OnRequestSent;
-        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>> OnStreamMessage;
-        public event Func<Task> OnOpen;
+        public event Func<int, Task>? OnRequestSent;
+        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>>? OnStreamMessage;
+        public event Func<Task>? OnOpen;
 
         public int Id { get; }
         public bool IsClosed => !Connected;
@@ -73,5 +73,8 @@ namespace CryptoExchange.Test.Net.TestImplementations
         {
             OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data))));
         }
+
+        public Task ReconnectAsync() => throw new NotImplementedException();
+        public void Dispose() => throw new NotImplementedException();
     }
 }

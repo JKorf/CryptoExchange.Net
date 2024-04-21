@@ -9,109 +9,88 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 
-namespace CryptoExchange.Test.Net.TestImplementations
+namespace CryptoExchange.Test.Net
 {
-    public class JsonToObjectComparer<T> where T : BaseRestClient, new()
+    public class EndpointTester<TClient> where TClient : BaseRestClient
     {
-        public JsonToObjectComparer()
+        private readonly Func<WebCallResult, bool> _isAuthenticated;
+        private readonly string _folder;
+        private readonly string _baseAddress;
+        private readonly string? _nestedPropertyForCompare;
+
+        public EndpointTester(string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
         {
+            _folder = folder;
+            _baseAddress = baseAddress;
+            _nestedPropertyForCompare = nestedPropertyForCompare;
+            _isAuthenticated = isAuthenticated;
         }
 
-        public async Task ProcessSubject<K>(
-           string folderPrefix,
-           Func<T, K> getSubject,
-           string[] parametersToSetNull = null,
-           Dictionary<string, string> useNestedJsonPropertyForCompare = null,
-           Dictionary<string, List<string>> ignoreProperties = null)
+        public async Task ValidateAsync<TResponse>(
+            Func<TClient, Task<WebCallResult<TResponse>>> methodInvoke,
+            string name,
+            string? nestedJsonProperty = null,
+            List<string>? ignoreProperties = null)
         {
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
-
-            var methods = typeof(K).GetMethods();
-            var callResultMethods = methods.Where(m => m.Name.EndsWith("Async")).ToList();
-
-            var skippedMethods = new List<string>();
-            var handledMethods = new List<string>();
-
-            foreach (var method in callResultMethods)
+            
+            var path = Directory.GetParent(Environment.CurrentDirectory)!.Parent!.Parent!.FullName;
+            FileStream? file = null;
+            try
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    var path = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
-                    FileStream file = null;
-                    try
-                    {
-                        file = File.OpenRead(Path.Combine(path, $"JsonResponses", folderPrefix, $"{method.Name}{(i == 0 ? "" : i.ToString())}.txt"));
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        if (i == 0)
-                            skippedMethods.Add(method.Name);
-                        break;
-                    }
-
-                    var buffer = new byte[file.Length];
-                    await file.ReadAsync(buffer, 0, buffer.Length);
-                    file.Close();
-
-                    var json = Encoding.UTF8.GetString(buffer);
-                    var client = TestHelpers.CreateRestClient<T>(json, System.Net.HttpStatusCode.OK);
-
-                    var parameters = method.GetParameters();
-                    var input = new List<object>();
-                    foreach (var parameter in parameters)
-                    {
-                        if (parametersToSetNull?.Contains(parameter.Name) == true)
-                            input.Add(null);
-                        else
-                            input.Add(TestHelpers.GetTestValue(parameter.ParameterType, 1));
-                    }
-
-                    // act
-                    var result = (CallResult)await TestHelpers.InvokeAsync(method, getSubject(client), input.ToArray());
-
-                    // asset
-                    Assert.That(result.Error, Is.Null, method.Name + " returned error");
-
-                    var dataProperty = result.GetType().GetProperty("Data", BindingFlags.Public | BindingFlags.Instance);
-                    if (dataProperty == null)
-                        continue;
-
-                    var resultData = dataProperty.GetValue(result);
-                    ProcessData(method.Name + (i == 0 ? "" : i.ToString()), resultData, json, parametersToSetNull, useNestedJsonPropertyForCompare, ignoreProperties);
-                    handledMethods.Add(method.Name);
-                }
+                file = File.OpenRead(Path.Combine(path, _folder, $"{name}.txt"));
+            }
+            catch (FileNotFoundException)
+            {
+                throw new Exception("Response file not found");
             }
 
-            if (skippedMethods.Any())
-                Debug.WriteLine("Skipped methods:");
-            foreach (var method in skippedMethods)
-                Debug.WriteLine(method);
+            var buffer = new byte[file.Length];
+            await file.ReadAsync(buffer, 0, buffer.Length);
+            file.Close();
 
-            Debug.WriteLine("Handled methods:");
-            foreach (var method in handledMethods)
-                Debug.WriteLine(method);
+            var data = Encoding.UTF8.GetString(buffer);
+            using var reader = new StringReader(data);
+            var expectedMethod = reader.ReadLine();
+            var expectedPath = reader.ReadLine();
+            var expectedAuth = bool.Parse(reader.ReadLine()!);
+            var response = reader.ReadToEnd();
 
+            var client = TestHelpers.CreateRestClient<TClient>(response, System.Net.HttpStatusCode.OK);
+            var result = await methodInvoke(client);
+
+            // asset
+            Assert.That(result.Error, Is.Null, name + " returned error");
+            Assert.That(_isAuthenticated(result.AsDataless()), Is.EqualTo(expectedAuth));
+            Assert.That(result.RequestMethod, Is.EqualTo(new HttpMethod(expectedMethod!)));
+            Assert.That(expectedPath, Is.EqualTo(result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]));
+
+            object responseData = result.Data!;
+            ProcessData(name, result.Data!, response, nestedJsonProperty, ignoreProperties);
+           
             Trace.Listeners.Remove(listener);
         }
 
-        internal static void ProcessData(
+        internal void ProcessData(
             string method,
             object resultData,
             string json,
-            string[] parametersToSetNull = null,
-            Dictionary<string, string> useNestedJsonPropertyForCompare = null,
-            Dictionary<string, List<string>> ignoreProperties = null)
+            string nestedJsonProperty,
+            List<string>? ignoreProperties = null)
         {
-            var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyAttribute)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault()));
+            var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyAttribute?)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault()));
             var jsonObject = JToken.Parse(json);
-            if (useNestedJsonPropertyForCompare?.ContainsKey(method) == true)
-                jsonObject = jsonObject[useNestedJsonPropertyForCompare[method]];
+            if (_nestedPropertyForCompare != null)
+                jsonObject = jsonObject[_nestedPropertyForCompare]!;
+
+            if (nestedJsonProperty != null)
+                jsonObject = jsonObject[nestedJsonProperty];
 
             if (resultData.GetType().GetInterfaces().Contains(typeof(IDictionary)))
             {
                 var dict = (IDictionary)resultData;
-                var jObj = (JObject)jsonObject;
+                var jObj = (JObject)jsonObject!;
                 var properties = jObj.Properties();
                 foreach (var dictProp in properties)
                 {
@@ -122,7 +101,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     {
                         // TODO Some additional checking for objects
                         foreach (var prop in ((JObject)dictProp.Value).Properties())
-                            CheckObject(method, prop, dict[dictProp.Name], ignoreProperties);
+                            CheckObject(method, prop, dict[dictProp.Name]!, ignoreProperties!);
                     }
                     else
                     {
@@ -132,7 +111,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     }
                 }
             }
-            else if (jsonObject.Type == JTokenType.Array)
+            else if (jsonObject!.Type == JTokenType.Array)
             {
                 var jObjs = (JArray)jsonObject;
                 var list = (IEnumerable)resultData;
@@ -144,9 +123,9 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     {
                         foreach (var subProp in ((JObject)jObj).Properties())
                         {
-                            if (ignoreProperties?.ContainsKey(method) == true && ignoreProperties[method].Contains(subProp.Name))
+                            if (ignoreProperties?.Contains(subProp.Name) == true)
                                 continue;
-                            CheckObject(method, subProp, enumerator.Current, ignoreProperties);
+                            CheckObject(method, subProp, enumerator.Current, ignoreProperties!);
                         }
                     }
                     else if (jObj.Type == JTokenType.Array)
@@ -154,7 +133,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                         var resultObj = enumerator.Current;
                         var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                         var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
-                        var jsonConverter = (arrayConverterProperty as JsonConverterAttribute).ConverterType;
+                        var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
                         if (jsonConverter != typeof(ArrayConverter))
                             // Not array converter?
                             continue;
@@ -162,9 +141,9 @@ namespace CryptoExchange.Test.Net.TestImplementations
                         int i = 0;
                         foreach (var item in jObj.Values())
                         {
-                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2.Index == i).p;
+                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.Name, "Array index " + i, arrayProp, ignoreProperties);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.Name, "Array index " + i, ignoreProperties!);
                             i++;
                         }
                     }
@@ -182,7 +161,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                 {
                     if (item is JProperty prop)
                     {
-                        if (ignoreProperties?.ContainsKey(method) == true && ignoreProperties[method].Contains(prop.Name))
+                        if (ignoreProperties?.Contains(prop.Name) == true)
                             continue;
 
                         CheckObject(method, prop, resultData, ignoreProperties);
@@ -193,12 +172,12 @@ namespace CryptoExchange.Test.Net.TestImplementations
             Debug.WriteLine($"Successfully validated {method}");
         }
 
-        private static void CheckObject(string method, JProperty prop, object obj, Dictionary<string, List<string>> ignoreProperties)
+        private static void CheckObject(string method, JProperty prop, object obj, List<string>? ignoreProperties)
         {
-            var resultProperties = obj.GetType().GetProperties().Select(p => (p, (JsonPropertyAttribute)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault()));
+            var resultProperties = obj.GetType().GetProperties().Select(p => (p, ((JsonPropertyAttribute?)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault())?.PropertyName));
 
             // Property has a value
-            var property = resultProperties.SingleOrDefault(p => p.Item2?.PropertyName == prop.Name).p;
+            var property = resultProperties.SingleOrDefault(p => p.Item2 == prop.Name).p;
             property ??= resultProperties.SingleOrDefault(p => p.p.Name == prop.Name).p;
             property ??= resultProperties.SingleOrDefault(p => p.p.Name.ToUpperInvariant() == prop.Name.ToUpperInvariant()).p;
 
@@ -208,10 +187,10 @@ namespace CryptoExchange.Test.Net.TestImplementations
 
             var propertyValue = property.GetValue(obj);
             if (property.GetCustomAttribute<JsonPropertyAttribute>(true)?.ItemConverterType == null)
-                CheckPropertyValue(method, prop.Value, propertyValue, property.Name, prop.Name, property, ignoreProperties);
+                CheckPropertyValue(method, prop.Value, propertyValue, property.Name, prop.Name, ignoreProperties);
         }
 
-        private static void CheckPropertyValue(string method, JToken propValue, object propertyValue, string propertyName = null, string propName = null, PropertyInfo info = null, Dictionary<string, List<string>> ignoreProperties = null)
+        private static void CheckPropertyValue(string method, JToken propValue, object? propertyValue, string? propertyName = null, string? propName = null, List<string>? ignoreProperties = null)
         {
             if (propertyValue == default && propValue.Type != JTokenType.Null && !string.IsNullOrEmpty(propValue.ToString()))
             {
@@ -223,7 +202,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
             if (propertyValue == default && (propValue.Type == JTokenType.Null || string.IsNullOrEmpty(propValue.ToString())) || propValue.ToString() == "0")
                 return;
 
-            if (propertyValue.GetType().GetInterfaces().Contains(typeof(IDictionary)))
+            if (propertyValue!.GetType().GetInterfaces().Contains(typeof(IDictionary)))
             {
                 var dict = (IDictionary)propertyValue;
                 var jObj = (JObject)propValue;
@@ -235,7 +214,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
 
                     if (dictProp.Value.Type == JTokenType.Object)
                     {
-                        // TODO Some additional checking for objects
+                        CheckObject(method, dictProp, dict[dictProp.Name]!, ignoreProperties);
                     }
                     else
                     {
@@ -263,7 +242,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     {
                         foreach (var subProp in ((JObject)jtoken).Properties())
                         {
-                            if (ignoreProperties?.ContainsKey(method) == true && ignoreProperties[method].Contains(subProp.Name))
+                            if (ignoreProperties?.Contains(subProp.Name) == true)
                                 continue;
 
                             CheckObject(method, subProp, enumerator.Current, ignoreProperties);
@@ -274,7 +253,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                         var resultObj = enumerator.Current;
                         var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                         var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
-                        var jsonConverter = (arrayConverterProperty as JsonConverterAttribute).ConverterType;
+                        var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
                         if (jsonConverter != typeof(ArrayConverter))
                             // Not array converter?
                             continue;
@@ -282,9 +261,9 @@ namespace CryptoExchange.Test.Net.TestImplementations
                         int i = 0;
                         foreach (var item in jtoken.Values())
                         {
-                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2.Index == i).p;
+                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.Name, "Array index " + i, arrayProp, ignoreProperties);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.Name, "Array index " + i, ignoreProperties);
 
                             i++;
                         }
@@ -295,7 +274,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                         if (value == default && ((JValue)jtoken).Type != JTokenType.Null)
                             throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jtoken}");
 
-                        CheckValues(method, propertyName, (JValue)jtoken, value);
+                        CheckValues(method, propertyName!, (JValue)jtoken, value!);
                     }
                 }
             }
@@ -307,7 +286,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     {
                         if (item is JProperty prop)
                         {
-                            if (ignoreProperties?.ContainsKey(method) == true && ignoreProperties[method].Contains(prop.Name))
+                            if (ignoreProperties?.Contains(prop.Name) == true)
                                 continue;
 
                             CheckObject(method, prop, propertyValue, ignoreProperties);
@@ -316,11 +295,7 @@ namespace CryptoExchange.Test.Net.TestImplementations
                 }
                 else
                 {
-                    if (info.GetCustomAttribute<JsonConverterAttribute>(true) == null
-                        && info.GetCustomAttribute<JsonPropertyAttribute>(true)?.ItemConverterType == null)
-                    {
-                        CheckValues(method, propertyName, (JValue)propValue, propertyValue);
-                    }
+                    CheckValues(method, propertyName!, (JValue)propValue, propertyValue);
                 }
             }
         }
@@ -336,17 +311,25 @@ namespace CryptoExchange.Test.Net.TestImplementations
                 }
                 else if (objectValue is DateTime time)
                 {
-                    // timestamp, hard to check..
+                    if (time != DateTimeConverter.ParseFromString(jsonValue.Value<string>()!))
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
                 }
-                else if (jsonValue.Value<string>().ToLowerInvariant() != objectValue.ToString().ToLowerInvariant())
+                else if (jsonValue.Value<string>()!.ToLowerInvariant() != objectValue.ToString()!.ToLowerInvariant())
                 {
-                    throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {objectValue.ToString()}");
+                    throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {objectValue}");
                 }
             }
             else if (jsonValue.Type == JTokenType.Integer)
             {
-                if (jsonValue.Value<long>() != Convert.ToInt64(objectValue))
+                if (objectValue is DateTime time)
+                {
+                    if (time != DateTimeConverter.ParseFromLong(jsonValue.Value<long>()!))
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
+                }
+                else if (jsonValue.Value<long>() != Convert.ToInt64(objectValue))
+                {
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<long>()} vs {Convert.ToInt64(objectValue)}");
+                }
             }
             else if (jsonValue.Type == JTokenType.Boolean)
             {
@@ -354,5 +337,6 @@ namespace CryptoExchange.Test.Net.TestImplementations
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<bool>()} vs {(bool)objectValue}");
             }
         }
+
     }
 }

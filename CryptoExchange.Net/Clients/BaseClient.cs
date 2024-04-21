@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Api clients in this client
         /// </summary>
-        internal List<BaseApiClient> ApiClients { get; } = new List<BaseApiClient>();
+        protected internal List<BaseApiClient> ApiClients { get; } = new List<BaseApiClient>();
 
         /// <summary>
         /// The log object
