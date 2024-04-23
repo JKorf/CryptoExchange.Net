@@ -42,6 +42,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.3.3 - 23 Apr 2024
+    * Added support for new DateTime format parsing
+    * Updated some logging
+    * Fixed concurrency issue in rest request sending
+
 * Version 7.3.2 - 19 Apr 2024
     * Fix for endpoint specific rate limiting throwing exception
 
