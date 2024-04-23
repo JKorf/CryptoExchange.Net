@@ -270,7 +270,7 @@ namespace CryptoExchange.Net.Sockets
                     if (task != null)
                     {
                         var reconnectUri = await task.ConfigureAwait(false);
-                        if (reconnectUri != null && Parameters.Uri != reconnectUri)
+                        if (reconnectUri != null && Parameters.Uri.ToString() != reconnectUri.ToString())
                         {
                             _logger.SocketSetReconnectUri(Id, reconnectUri);
                             Parameters.Uri = reconnectUri;
