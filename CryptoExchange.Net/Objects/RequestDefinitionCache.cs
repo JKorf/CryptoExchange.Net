@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.RateLimiting.Interfaces;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class RequestDefinitionCache
     {
-        private readonly Dictionary<string, RequestDefinition> _definitions = new();
+        private readonly ConcurrentDictionary<string, RequestDefinition> _definitions = new();
 
         /// <summary>
         /// Get a definition if it is already in the cache or create a new definition and add it to the cache
@@ -74,7 +75,7 @@ namespace CryptoExchange.Net.Objects
                     RequestBodyFormat = requestBodyFormat,
                     ParameterPosition = parameterPosition,
                 };
-                _definitions.Add(method + path, def);
+                _definitions.TryAdd(method + path, def);
             }
 
             return def;
