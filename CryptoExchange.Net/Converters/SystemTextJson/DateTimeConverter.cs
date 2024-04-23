@@ -77,7 +77,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             || !int.TryParse(stringValue.Substring(8, 2), out var hour)
                             || !int.TryParse(stringValue.Substring(10, 2), out var minute))
                         {
-                            Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
+                            Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
                             return default;
                         }
                         return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
