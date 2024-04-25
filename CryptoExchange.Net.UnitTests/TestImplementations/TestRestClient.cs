@@ -137,6 +137,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
+        /// <inheritdoc />
+        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
+
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
             return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct, requestWeight: 0);
@@ -177,6 +180,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
+
+        /// <inheritdoc />
+        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {

@@ -84,6 +84,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
+        /// <inheritdoc />
+        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
+
         internal IWebsocket CreateSocketInternal(string address)
         {
             return CreateSocket(address);

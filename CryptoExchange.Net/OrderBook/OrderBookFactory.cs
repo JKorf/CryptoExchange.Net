@@ -25,6 +25,6 @@ namespace CryptoExchange.Net.OrderBook
         public ISymbolOrderBook Create(string symbol, Action<TOptions>? options = null) => _symbolCtor(symbol, options);
 
         /// <inheritdoc />
-        public ISymbolOrderBook Create(string baseAsset, string quoteAsset, Action<TOptions>? options = null) => _assetsCtor(quoteAsset, baseAsset, options);
+        public ISymbolOrderBook Create(string baseAsset, string quoteAsset, Action<TOptions>? options = null) => _assetsCtor(baseAsset, quoteAsset, options);
     }
 }
