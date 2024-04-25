@@ -79,6 +79,9 @@ namespace CryptoExchange.Net.Clients
         protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <inheritdoc />
+        public abstract string FormatSymbol(string baseAsset, string quoteAsset);
+
+        /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
             if (credentials != null)
