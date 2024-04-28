@@ -44,8 +44,8 @@ Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/s
 ## Release notes
 * Version 7.4.0 - 28 Apr 2024
     * Added FormatSymbol on IBaseApiClient interface
-	* Added IOrderBookFactory interface
-	* Removed ExchangeOptions as base class for OrderBookOptions
+    * Added IOrderBookFactory interface
+    * Removed ExchangeOptions as base class for OrderBookOptions
 
 * Version 7.3.3 - 23 Apr 2024
     * Added support for new DateTime format parsing
