@@ -3,7 +3,7 @@
     /// <summary>
     /// Base for order book options
     /// </summary>
-    public class OrderBookOptions : ExchangeOptions
+    public class OrderBookOptions
     {
         /// <summary>
         /// Whether or not checksum validation is enabled. Default is true, disabling will ignore checksum messages.
@@ -19,11 +19,7 @@
         {
             return new T
             {
-                ApiCredentials = ApiCredentials?.Copy(),
-                OutputOriginalData = OutputOriginalData,
                 ChecksumValidationEnabled = ChecksumValidationEnabled,
-                Proxy = Proxy,
-                RequestTimeout = RequestTimeout
             };
         }
     }
