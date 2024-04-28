@@ -13,13 +13,15 @@ namespace CryptoExchange.Test.Net
 {
     public class EndpointTester<TClient> where TClient : BaseRestClient
     {
+        private readonly TClient _client;
         private readonly Func<WebCallResult, bool> _isAuthenticated;
         private readonly string _folder;
         private readonly string _baseAddress;
         private readonly string? _nestedPropertyForCompare;
 
-        public EndpointTester(string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
+        public EndpointTester(TClient client, string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
         {
+            _client = client;
             _folder = folder;
             _baseAddress = baseAddress;
             _nestedPropertyForCompare = nestedPropertyForCompare;
@@ -57,8 +59,8 @@ namespace CryptoExchange.Test.Net
             var expectedAuth = bool.Parse(reader.ReadLine()!);
             var response = reader.ReadToEnd();
 
-            var client = TestHelpers.CreateRestClient<TClient>(response, System.Net.HttpStatusCode.OK);
-            var result = await methodInvoke(client);
+            TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
+            var result = await methodInvoke(_client);
 
             // asset
             Assert.That(result.Error, Is.Null, name + " returned error");

@@ -63,9 +63,8 @@ namespace CryptoExchange.Test.Net
             return (T)client;
         }
 
-        public static T CreateRestClient<T>(string data, HttpStatusCode code) where T : BaseRestClient
+        public static T ConfigureRestClient<T>(T client, string data, HttpStatusCode code) where T : BaseRestClient
         {
-            BaseRestClient client = (T)Activator.CreateInstance(typeof(T), new object[] { null })!;
             foreach (var apiClient in client.ApiClients.OfType<RestApiClient>())
             {
                 apiClient.RequestFactory = Mock.Of<IRequestFactory>();
