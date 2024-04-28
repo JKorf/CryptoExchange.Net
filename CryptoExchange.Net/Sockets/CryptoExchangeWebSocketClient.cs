@@ -729,7 +729,7 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; set; }
 
         /// <summary>
-        /// The request id
+        /// The request weight
         /// </summary>
         public int Weight { get; set; }
 
