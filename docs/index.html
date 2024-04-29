@@ -250,7 +250,6 @@
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="install-cc" role="tabpanel" aria-labelledby="install-cc-tab">
 				<pre><code>dotnet add package CryptoClients.Net</code></pre>
-				<img src="assets/images/BinanceInstall.png" />
 			  </div>
 			  <div class="tab-pane fade show" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
 				<pre><code>dotnet add package Binance.Net</code></pre>
@@ -469,7 +468,7 @@
 					</tr>
 					<tr>
 						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td>An implementation of the ISpotClient interface for each exchange. The ISpotClient offers basic Spot API functionality in a combined interface</td>
 					</tr>
 				</table>
 			  </div>
@@ -1139,7 +1138,7 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
-			  <div class="tab-pane fade show active" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
+			  <div class="tab-pane fade" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
 				<pre><code>var client = new BinanceSocketClient();
 var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
   // Handle the data update, update.Data will contain the actual data
@@ -1381,7 +1380,7 @@ await client.UnsubscribeAllAsync();</code></pre>
 			The <code>ExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
 		  </p>
 		  <p>
-		  For example, having the Binance, Bybit and Kucoin packages installed allows you to use it like this:
+		  For example, using the Binance, Bybit and Kucoin API's can be done like this:
 			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service
 var binanceTicker = await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickersAsync();
 var bybitTicker = await exchangeRestClient.Bybit.V5Api.ExchangeData.GetTickers();
@@ -1389,7 +1388,7 @@ var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTicke
 		  </p>
 		  
           <p><b>(I)ExchangeSocketClient</b><br />
-		  Similarly as the (I)ExchangeRestClient this client allows you to access the different Websocket clients through a single access point.
+		  Similarly as the <code>(I)ExchangeRestClient</code> this client allows you to access the different Websocket clients through a single access point.
 		  </p>
 		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
 		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the ExchangeSocketClient into your service
@@ -1399,10 +1398,10 @@ var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToT
 		  </p>
 		  
           <p><b>ISpotClient</b><br />
-		  The ISpotClient is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
+		  The <code>ISpotClient</code> is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
 		  </p>
 		  <p>
-		  The ISpotClient is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
+		  The <code>ISpotClient</code> is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
 		  <pre><code>var spotClient = restClient.SpotApi.CommonSpotClient;</code></pre>
 		  </p>
         </section>
@@ -1505,8 +1504,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="options-cc" role="tabpanel" aria-labelledby="options-cc-tab">
-<pre><code>builder.Services.AddCryptoClients(globalOptions =>{
+<pre><code>builder.Services.AddCryptoClients(globalOptions => {
     globalOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  // Exchange specific options can be provided as well
+  bybitRestOptions: bybitOptions => {
+    // Set options specific for the Bybit rest client here
   });</code></pre>
 			  </div>
 			   <div class="tab-pane fade" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
@@ -1623,7 +1626,7 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 		  <ul class="nav nav-tabs" id="options-constr" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="options-cc-tab" data-toggle="tab" href="#options-constr-cc" role="tab" aria-controls="options-constr-cc" aria-selected="true">CryptoClients</a>
-			  </li
+			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
 			  </li>
@@ -2384,7 +2387,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 				<a class="nav-link active" id="limit-cc-tab" data-toggle="tab" href="#limit-cc" role="tab" aria-controls="limit-cc" aria-selected="true">CryptoClients</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="true">Binance</a>
+				<a class="nav-link" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-kraken-tab" data-toggle="tab" href="#limit-kraken" role="tab" aria-controls="limit-kraken" aria-selected="false">Kraken</a>
@@ -2405,7 +2408,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 // Output: Limit triggered: RateLimitEvent { ApiLimit = Spot Socket, LimitDescription = Limit of 6000 per 00:01:00, RequestDefinition = GET 1, Host = wss://ws-api.binance.com, Current = 5752, RequestWeight = 250, Limit = 6000, TimePeriod = 00:01:00, DelayTime = 00:00:38.7784145, Behaviour = Wait }
 </code></pre>
 			  </div>
-			  <div class="tab-pane fade show active" id="limit-binance" role="tabpanel" aria-labelledby="limit-binance-tab">
+			  <div class="tab-pane fade" id="limit-binance" role="tabpanel" aria-labelledby="limit-binance-tab">
 <pre><code>services.AddBinance(x =>
     x.RatelimiterEnabled = true;
     x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
