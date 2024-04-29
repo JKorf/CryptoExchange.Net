@@ -1086,6 +1086,8 @@ else
         
 		  <p>The client can be injected via <a href="#di">dependency injection</a>, or constructed manually. When constructing manually keep in mind that when the client is disposed all connections will get closed as well.</p>
         
+		 <div class="alert alert-info">The socket client requires a continous connection to the server. The connection can be lost due to internet interuptions, or the server disconnecting the client. This is expected behaviour and the socket client will automatically reconnect when this happens.</div>
+
 		<h4>Subscribing</h4>
 		<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="socket" role="tablist" style="margin-bottom: -16px;">
