@@ -125,7 +125,7 @@
 			<h1>CryptoExchange.Net</h1>
 			
 		<p>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</p>
-		<div class="alert alert-info">All libraries can be used in the same project as well as indivually, just install the exchange libraries you need!</div>
+		<div class="alert alert-info">All libraries can be used in the same project as well as individually, just install the exchange libraries you need!</div>
 		<p>The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me</p>
 
 		<table class="table table-bordered">
@@ -147,6 +147,8 @@
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square" /></a></td></tr>
 		</table>
+		
+		<p>Alternatively, use <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> which combines these packages and allows easy access to all exchange API's.</p>
 		
 		<h4>Supported Frameworks</h4>
 		<p>
@@ -202,11 +204,14 @@
         <section id="idocs_installation">
           <h2>Installation</h2>
           
-		  <p>Add the package via dotnet, or add it via the package manager. Any number of libraries can be installed, just make sure you're always using the latest at that moment.</p>
+		  <p>Add the package via dotnet, or add it via the package manager. Any number of libraries can be installed, just make sure you're always using the latest at that moment. Instead of installing all libraries seperately the CryptoClients.Net library can be installed to include all the exchange package in one go.</p>
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="install" role="tablist">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="install-cc-tab" data-toggle="tab" href="#install-cc" role="tab" aria-controls="install-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-binance-tab" data-toggle="tab" href="#install-binance" role="tab" aria-controls="install-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-bingx-tab" data-toggle="tab" href="#install-bingx" role="tab" aria-controls="install-bingx" aria-selected="false">BingX</a>
@@ -243,7 +248,11 @@
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
+			  <div class="tab-pane fade show active" id="install-cc" role="tabpanel" aria-labelledby="install-cc-tab">
+				<pre><code>dotnet add package CryptoClients.Net</code></pre>
+				<img src="assets/images/BinanceInstall.png" />
+			  </div>
+			  <div class="tab-pane fade show" id="install-binance" role="tabpanel" aria-labelledby="install-binance-tab">
 				<pre><code>dotnet add package Binance.Net</code></pre>
 				<img src="assets/images/BinanceInstall.png" />
 			  </div>
@@ -299,13 +308,16 @@
         <section id="idocs_di">
           <h2>Dependency Injection</h2>
           <p>
-			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services by calling the <code>Add[Library]();</code> extension method on the service collection. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
+			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services per exchange by calling the <code>Add[Library]();</code> extension method on the service collection, or use <code>AddCryptoClients()</code> to add all exchange services in a single class. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
 		  </p>
 		  <div class="alert alert-info">Using the dependecy injection mechanism also makes sure the HttpClient is used correctly</div>
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="di" role="tablist" style="margin-bottom: -16px;">
+			<li class="nav-item" role="presentation">
+				<a class="nav-link active" id="di-cc-tab" data-toggle="tab" href="#di-cc" role="tab" aria-controls="di-cc" aria-selected="true">CryptoClients</a>
+			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
+				<a class="nav-link" id="di-binance-tab" data-toggle="tab" href="#di-binance" role="tab" aria-controls="di-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-bingx-tab" data-toggle="tab" href="#di-bingx" role="tab" aria-controls="di-bingx" aria-selected="false">BingX</a>
@@ -342,7 +354,10 @@
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="di-binance" role="tabpanel" aria-labelledby="di-binance-tab">
+			  <div class="tab-pane fade show active" id="di-cc" role="tabpanel" aria-labelledby="di-cc-tab">
+<pre><code>builder.Services.AddCryptoClients();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-binance" role="tabpanel" aria-labelledby="di-binance-tab">
 <pre><code>builder.Services.AddBinance();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-bingx" role="tabpanel" aria-labelledby="di-bingx-tab">
@@ -385,7 +400,10 @@
 			<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="interfaces" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="interfaces-cc-tab" data-toggle="tab" href="#interfaces-cc" role="tab" aria-controls="interfaces-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-bingx-tab" data-toggle="tab" href="#interfaces-bingx" role="tab" aria-controls="interfaces-bingx" aria-selected="false">BingX</a>
@@ -422,7 +440,41 @@
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="interfaces-binance" role="tabpanel" aria-labelledby="interfaces-binance-tab">
+			  <div class="tab-pane fade show active" id="interfaces-cc" role="tabpanel" aria-labelledby="interfaces-cc-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IExchangeRestClient</code></td>
+						<td>The client for accessing all exchanges REST API's</td>
+					</tr>
+					<tr>
+						<td><code>IExchangeSocketClient</code></td>
+						<td>The client for accessing all exchanges Websocket API's</td>
+					</tr>
+					<tr>
+						<td><code>IExchangeOrderBookFactory</code></td>
+						<td>A factory class for accessing all exchanges SymbolOrderBook (locally synced order books) factory methods</td>
+					</tr>
+					<tr>
+						<td><code>I[Library]RestClient</code></td>
+						<td>All exchange specific REST clients, for example <code>IBinanceRestClient</code> and <code>IMexcRestClient</code></td>
+					</tr>
+					<tr>
+						<td><code>I[Library]SocketClient</code></td>
+						<td>All exchange specific Websocket clients, for example <code>IBinanceSocketClient</code> and <code>IMexcSocketClient</code></td>
+					</tr>
+					<tr>
+						<td><code>I[Library]OrderBookFactory</code></td>
+						<td>All exchange specific order book factories. The factory can be used for creating SymbolOrderBook (locally synced order books) instances for the exchange</td>
+					</tr>
+					<tr>
+						<td><code>ISpotClient</code></td>
+						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+					</tr>
+				</table>
+			  </div>
+			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade" id="interfaces-binance" role="tabpanel" aria-labelledby="interfaces-binance-tab">
 				<table class="table table-bordered">
 					<tr><th>Interface</th><th>Description</th></tr>
 					<tr>
@@ -770,7 +822,10 @@
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="rest" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="rest-cc-tab" data-toggle="tab" href="#rest-cc" role="tab" aria-controls="rest-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-binance-tab" data-toggle="tab" href="#rest-binance" role="tab" aria-controls="rest-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-bingx-tab" data-toggle="tab" href="#rest-bingx" role="tab" aria-controls="rest-bingx" aria-selected="false">BingX</a>
@@ -807,7 +862,19 @@
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="rest-binance" role="tabpanel" aria-labelledby="rest-binance-tab">
+			<div class="tab-pane fade show active" id="rest-cc" role="tabpanel" aria-labelledby="rest-cc-tab">
+				<pre><code>var client = new ExchangeRestClient();
+var tickersResult = await client.Binance.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-binance" role="tabpanel" aria-labelledby="rest-binance-tab">
 				<pre><code>var client = new BinanceRestClient();
 var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
 if (!tickersResult.Success)
@@ -1024,7 +1091,10 @@ else
 		<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="socket" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="socket-cc-tab" data-toggle="tab" href="#socket-cc" role="tab" aria-controls="socket-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-binance-tab" data-toggle="tab" href="#socket-binance" role="tab" aria-controls="socket-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-bingx-tab" data-toggle="tab" href="#socket-bingx" role="tab" aria-controls="socket-bingx" aria-selected="false">BingX</a>
@@ -1058,6 +1128,17 @@ else
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
+			  <div class="tab-pane fade show active" id="socket-cc" role="tabpanel" aria-labelledby="socket-cc-tab">
+				<pre><code>var client = new ExchangeSocketClient();
+var subscribeResult = await client.Binance.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
 			  <div class="tab-pane fade show active" id="socket-binance" role="tabpanel" aria-labelledby="socket-binance-tab">
 				<pre><code>var client = new BinanceSocketClient();
 var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToAllTickerUpdatesAsync(update => {
@@ -1294,27 +1375,27 @@ await client.UnsubscribeAllAsync();</code></pre>
 		============================ -->
         <section id="idocs_common">
           <h2>Common Clients</h2>
-		  <p>CryptoExchange.Net exposes some common clients. These clients aim to make using the different API's easier.</p>
+		  <p>CryptoClients.Net exposes some common clients. These clients aim to make using the different API's easier.</p>
 		  
-          <p><b>(I)CryptoRestClient</b><br />
-			The <code>ICryptoRestClient</code> (or <code>CryptoRestClient</code> when used directly) can be used to easily access REST clients for different API's through the different packages that have been installed. Each package adds it extension method to the interface, which allows the user to access the clients via it.
+          <p><b>(I)ExchangeRestClient</b><br />
+			The <code>ExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
 		  </p>
 		  <p>
 		  For example, having the Binance, Bybit and Kucoin packages installed allows you to use it like this:
-			<pre><code>var cryptoRestClient = new CryptoRestClient(); // Either construct it or inject the ICryptoRestClient into your service
-var binanceTicker = await cryptoRestClient.Binance().SpotApi.ExchangeData.GetTickersAsync();
-var bybitTicker = await cryptoRestClient.Bybit().V5Api.ExchangeData.GetTickers();
-var kucoinTicker = await cryptoRestClient.Kucoin().SpotApi.ExchangeData.GetTickers();</code></pre>
+			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service
+var binanceTicker = await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickersAsync();
+var bybitTicker = await exchangeRestClient.Bybit.V5Api.ExchangeData.GetTickers();
+var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTickers();</code></pre>
 		  </p>
 		  
-          <p><b>(I)CryptoSocketClient</b><br />
-		  Similarly as the (I)CryptoRestClient this client allows you to access the different Websocket clients through a single access point.
+          <p><b>(I)ExchangeSocketClient</b><br />
+		  Similarly as the (I)ExchangeRestClient this client allows you to access the different Websocket clients through a single access point.
 		  </p>
-		  <p>Having the Bitget, Kraken and OKX packages installed would allow you to use it like this:
-		  <pre><code>var cryptoRestClient = new CryptoSocketClient(); // Either construct it or inject the ICryptoRestClient into your service
-var bitgetSub = await cryptoRestClient.Bitget().SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
-var krakenSub = await cryptoRestClient.Kraken().SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
-var okxSub = await cryptoRestClient.OKX().UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
+		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
+		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the ExchangeSocketClient into your service
+var bitgetSub = await exchangeSocketClient.Bitget.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
+var krakenSub = await exchangeSocketClient.Kraken.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
+var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
 		  </p>
 		  
           <p><b>ISpotClient</b><br />
@@ -1383,7 +1464,10 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="options-cc-tab" data-toggle="tab" href="#options-cc" role="tab" aria-controls="options-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-bingx" role="tab" aria-controls="options-bingx" aria-selected="false">BingX</a>
@@ -1420,7 +1504,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+			  <div class="tab-pane fade show active" id="options-cc" role="tabpanel" aria-labelledby="options-cc-tab">
+<pre><code>builder.Services.AddCryptoClients(globalOptions =>{
+    globalOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  });</code></pre>
+			  </div>
+			   <div class="tab-pane fade" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
 <pre><code>builder.Services.AddBinance(
   restOptions => {
     restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
@@ -1533,7 +1622,10 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options-constr" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="options-cc-tab" data-toggle="tab" href="#options-constr-cc" role="tab" aria-controls="options-constr-cc" aria-selected="true">CryptoClients</a>
+			  </li
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-binance-tab" data-toggle="tab" href="#options-constr-binance" role="tab" aria-controls="options-constr-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-constr-bingx" role="tab" aria-controls="options-constr-bingx" aria-selected="false">BingX</a>
@@ -1570,7 +1662,13 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="options-constr-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+			  <div class="tab-pane fade show active" id="options-constr-cc" role="tabpanel" aria-labelledby="options-cc-tab">
+<pre><code>var exchangeRestClient = new ExchangeRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-binance" role="tabpanel" aria-labelledby="options-binance-tab">
 <pre><code>var binanceRestClient = new BinanceRestClient(opts =>
 {
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
@@ -1796,7 +1894,7 @@ var client = new OKXRestClient();</code></pre>
 			</tr>
 			<tr>
 				<td>ApiCredentials</td>
-				<td>The credentials to use for private endpoints and streams. See <a href="idocs_auth">Authorization</a> for more info</td>
+				<td>The credentials to use for private endpoints and streams. See <a href="idocs_auth">Authorization</a> for more info. For CryptoClients this option allows the setting of ApiCredentials for all exchanges.</td>
 				<td><code>null</code></td>
 			</tr>
 			<tr>
@@ -2283,6 +2381,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 		  <div class="tab-wrap">
 			<ul class="nav nav-tabs" id="limit" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="limit-cc-tab" data-toggle="tab" href="#limit-cc" role="tab" aria-controls="limit-cc" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link active" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="true">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2293,6 +2394,17 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
+			 <div class="tab-pane fade show active" id="limit-cc" role="tabpanel" aria-labelledby="limit-cc-tab">
+<pre><code>services.AddCryptoClients(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>Exchanges.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>BinanceExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+// Output: Limit triggered: RateLimitEvent { ApiLimit = Spot Socket, LimitDescription = Limit of 6000 per 00:01:00, RequestDefinition = GET 1, Host = wss://ws-api.binance.com, Current = 5752, RequestWeight = 250, Limit = 6000, TimePeriod = 00:01:00, DelayTime = 00:00:38.7784145, Behaviour = Wait }
+</code></pre>
+			  </div>
 			  <div class="tab-pane fade show active" id="limit-binance" role="tabpanel" aria-labelledby="limit-binance-tab">
 <pre><code>services.AddBinance(x =>
     x.RatelimiterEnabled = true;
@@ -2368,7 +2480,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 			  
 				<ul class="nav nav-tabs" id="example-symbols" role="tablist" style="margin-bottom: -16px;">
 					<li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-symbols-general-tab" data-toggle="tab" href="#example-symbols-general" role="tab" aria-controls="example-symbols-general" aria-selected="true">CryptoRestClient</a>
+						<a class="nav-link active" id="example-symbols-general-tab" data-toggle="tab" href="#example-symbols-general" role="tab" aria-controls="example-symbols-general" aria-selected="true">CryptoClients</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-binance-tab" data-toggle="tab" href="#example-symbols-binance" role="tab" aria-controls="example-symbols-binance" aria-selected="false">Binance</a>
@@ -2406,9 +2518,8 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-symbols-general" role="tabpanel" aria-labelledby="example-symbols-general-tab">
-		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
-var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
-await spotClient.GetSymbolsAsync();</code></pre>
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-binance" role="tabpanel" aria-labelledby="example-symbols-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
@@ -2462,7 +2573,7 @@ await spotClient.GetSymbolsAsync();</code></pre>
 			  
 				<ul class="nav nav-tabs" id="example-ticker" role="tablist" style="margin-bottom: -16px;">
 					<li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-ticker-general-tab" data-toggle="tab" href="#example-ticker-general" role="tab" aria-controls="example-ticker-general" aria-selected="true">CryptoRestClient</a>
+						<a class="nav-link active" id="example-ticker-general-tab" data-toggle="tab" href="#example-ticker-general" role="tab" aria-controls="example-ticker-general" aria-selected="true">CryptoClients</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-binance-tab" data-toggle="tab" href="#example-ticker-binance" role="tab" aria-controls="example-ticker-binance" aria-selected="true">Binance</a>
@@ -2500,9 +2611,8 @@ await spotClient.GetSymbolsAsync();</code></pre>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-ticker-general" role="tabpanel" aria-labelledby="example-ticker-general-tab">
-		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
-var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
-await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code></pre>
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-binance" role="tabpanel" aria-labelledby="example-ticker-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
@@ -2556,7 +2666,7 @@ await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code>
 			  
 				<ul class="nav nav-tabs" id="example-balances" role="tablist" style="margin-bottom: -16px;">
 					<li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-balances-general-tab" data-toggle="tab" href="#example-balances-general" role="tab" aria-controls="example-balances-general" aria-selected="true">CryptoRestClient</a>
+						<a class="nav-link active" id="example-balances-general-tab" data-toggle="tab" href="#example-balances-general" role="tab" aria-controls="example-balances-general" aria-selected="true">CryptoClients</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-binance-tab" data-toggle="tab" href="#example-balances-binance" role="tab" aria-controls="example-balances-binance" aria-selected="true">Binance</a>
@@ -2594,9 +2704,8 @@ await spotClient.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-balances-general" role="tabpanel" aria-labelledby="example-balances-general-tab">
-		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
-var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
-await spotClient.GetBalancesAsync();</code></pre>
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-binance" role="tabpanel" aria-labelledby="example-balances-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -2654,7 +2763,7 @@ var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 			  
 				<ul class="nav nav-tabs" id="example-place" role="tablist" style="margin-bottom: -16px;">
 					<li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-place-general-tab" data-toggle="tab" href="#example-place-general" role="tab" aria-controls="example-place-general" aria-selected="true">CryptoRestClient</a>
+						<a class="nav-link active" id="example-place-general-tab" data-toggle="tab" href="#example-place-general" role="tab" aria-controls="example-place-general" aria-selected="true">CryptoClients</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-binance-tab" data-toggle="tab" href="#example-place-binance" role="tab" aria-controls="example-place-binance" aria-selected="true">Binance</a>
@@ -2692,9 +2801,8 @@ var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-place-general" role="tabpanel" aria-labelledby="example-place-general-tab">
-		<pre><code>// Name of the exchange can be whatever exchange library you have installed, for example Binance, Bybit, Kraken etc
-var spotClient = cryptoRestClient.SpotClient("[Name of the exchange]");
-await spotClient.PlaceOrderAsync(spotClient.GetSymbolName("BTC", "USDT"), CommonOrderSide.Buy, CommonOrderType.Limit, 0.1m, price: 50000);</code></pre>
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-binance" role="tabpanel" aria-labelledby="example-place-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
@@ -2751,8 +2859,11 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 			  <div>
 			  
 				<ul class="nav nav-tabs" id="example-stream-ticker" role="tablist" style="margin-bottom: -16px;">
+				  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-ticker-cc-tab" data-toggle="tab" href="#example-stream-ticker-cc" role="tab" aria-controls="example-stream-ticker-cc" aria-selected="true">CryptoClients</a>
+					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-stream-ticker-binance-tab" data-toggle="tab" href="#example-stream-ticker-binance" role="tab" aria-controls="example-stream-ticker-binance" aria-selected="true">Binance</a>
+						<a class="nav-link" id="example-stream-ticker-binance-tab" data-toggle="tab" href="#example-stream-ticker-binance" role="tab" aria-controls="example-stream-ticker-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-bingx-tab" data-toggle="tab" href="#example-stream-ticker-bingx" role="tab" aria-controls="example-stream-ticker-bingx" aria-selected="false">BingX</a>
@@ -2786,7 +2897,13 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
-					  <div class="tab-pane fade show active" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
+					  <div class="tab-pane fade show active" id="example-stream-ticker-cc" role="tabpanel" aria-labelledby="example-stream-ticker-cc-tab">
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
 		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
     // Handle update
 });</code></pre>
@@ -2860,8 +2977,11 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 			  <div>
 			  
 				<ul class="nav nav-tabs" id="example-stream-order" role="tablist" style="margin-bottom: -16px;">
+				  <li class="nav-item" role="presentation">
+						<a class="nav-link active" id="example-stream-order-cc-tab" data-toggle="tab" href="#example-stream-order-cc" role="tab" aria-controls="example-stream-order-cc" aria-selected="true">CryptoClients</a>
+					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link active" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
+						<a class="nav-link" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bingx" role="tab" aria-controls="example-stream-order-bingx" aria-selected="false">BingX</a>
@@ -2895,6 +3015,27 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
+					  <div class="tab-pane fade show active" id="example-stream-order-cc" role="tabpanel" aria-labelledby="example-stream-order-cc-tab">
+		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+
+// Retrieve the listen key
+var listenKey = await exchangeRestClient.Binance.SpotApi.Account.StartUserStreamAsync();
+
+// Subscribe using the key
+await exchangeSocketClient.Binance.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listenKey.Data, data => {
+    // Handle update
+}, null, null, null);
+
+// The listen key will stay valid for 60 minutes, after this no updates will be send anymore
+// To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method every 30 minutes
+_ = Task.Run(async () => {
+    while (true)
+    {
+        await Task.Delay(Timespan.FromMinutes(30));
+        await exchangeRestClient.Binance.SpotApi.Account.KeepAliveUserStreamAsync(listenKey.Data);
+    }
+});</code></pre>
+					  </div>
 					  <div class="tab-pane fade show active" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
 		<pre><code>// Retrieve the listen key
 var listenKey = await binanceClient.SpotApi.Account.StartUserStreamAsync();
@@ -3018,17 +3159,17 @@ _ = Task.Run(async () => {
 		  
 </p>
 		  <pre><code class="language-csharp">using CryptoExchange.Net.Interfaces;
+using CryptoClients.Net.Enums;
+using CryptoClients.Net.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddBitfinex();
-builder.Services.AddBitget();
-builder.Services.AddKraken();
+builder.Services.AddCryptoClients();
 var app = builder.Build();
 
-app.MapGet("Ticker/{exchange}/{baseAsset}/{quoteAsset}", async ([FromServices] ICryptoRestClient client, string exchange, string baseAsset, string quoteAsset) =>
+app.MapGet("Ticker/{exchange}/{baseAsset}/{quoteAsset}", async ([FromServices] IExchangeRestClient client, Exchange exchange, string baseAsset, string quoteAsset) =>
 {
-    var spotClient = client.SpotClient(exchange)!;
+    var spotClient = client.GetUnifiedSpotClient(exchange)!;
     var result = await spotClient.GetTickerAsync(spotClient.GetSymbolName(baseAsset, quoteAsset));
     return result.Data;
 });
