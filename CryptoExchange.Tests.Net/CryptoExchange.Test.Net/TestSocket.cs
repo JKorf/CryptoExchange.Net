@@ -12,6 +12,8 @@ namespace CryptoExchange.Test.Net
 {
     public class TestSocket : IWebsocket
     {
+        public event Action<string> OnMessageSend;
+
         public bool CanConnect { get; set; } = true;
         public bool Connected { get; set; }
 
@@ -45,6 +47,7 @@ namespace CryptoExchange.Test.Net
                 throw new Exception("Socket not connected");
 
             OnRequestSent?.Invoke(requestId);
+            OnMessageSend?.Invoke(data);
         }
 
         public Task CloseAsync()
@@ -75,6 +78,6 @@ namespace CryptoExchange.Test.Net
         }
 
         public Task ReconnectAsync() => throw new NotImplementedException();
-        public void Dispose() => throw new NotImplementedException();
+        public void Dispose() { }
     }
 }
