@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Converters;
+using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CryptoExchange.Test.Net
 {
