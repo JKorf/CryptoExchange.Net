@@ -68,6 +68,21 @@ namespace CryptoExchange.Net.Converters.JsonNet
                     return objectType == typeof(DateTime) ? default(DateTime) : null;
                 }
 
+                if (stringValue.Length == 12 && stringValue.StartsWith("202"))
+                {
+                    // Parse 202303261200 format
+                    if (!int.TryParse(stringValue.Substring(0, 4), out var year)
+                        || !int.TryParse(stringValue.Substring(4, 2), out var month)
+                        || !int.TryParse(stringValue.Substring(6, 2), out var day)
+                        || !int.TryParse(stringValue.Substring(8, 2), out var hour)
+                        || !int.TryParse(stringValue.Substring(10, 2), out var minute))
+                    {
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
+                        return default;
+                    }
+                    return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
+                }
+
                 if (stringValue.Length == 8)
                 {
                     // Parse 20211103 format

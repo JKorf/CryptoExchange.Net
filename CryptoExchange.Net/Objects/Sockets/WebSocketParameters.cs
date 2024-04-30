@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.RateLimiting.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -51,9 +51,13 @@ namespace CryptoExchange.Net.Objects.Sockets
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// The rate limiters for the socket connection
+        /// The rate limiter for the socket connection
         /// </summary>
-        public IEnumerable<IRateLimiter>? RateLimiters { get; set; }
+        public IRateLimitGate? RateLimiter { get; set; }
+        /// <summary>
+        /// What to do when rate limit is reached
+        /// </summary>
+        public RateLimitingBehaviour RateLimitingBehaviour { get; set; }
 
         /// <summary>
         /// Encoding for sending/receiving data

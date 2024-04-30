@@ -13,6 +13,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using NUnit.Framework.Legacy;
+using CryptoExchange.Net.RateLimiting;
+using System.Net;
+using CryptoExchange.Net.RateLimiting.Guards;
+using CryptoExchange.Net.RateLimiting.Filters;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -107,14 +112,14 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             // act
             var options = new TestClientOptions();
-            options.Api1Options.RateLimiters = new List<IRateLimiter> { new RateLimiter() };
-            options.Api1Options.RateLimitingBehaviour = RateLimitingBehaviour.Fail;
+            options.Api1Options.TimestampRecalculationInterval = TimeSpan.FromMinutes(10);
+            options.Api1Options.OutputOriginalData = true;
             options.RequestTimeout = TimeSpan.FromMinutes(1);
             var client = new TestBaseClient(options);
 
             // assert
-            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.RateLimiters.Count == 1);
-            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.RateLimitingBehaviour == RateLimitingBehaviour.Fail);
+            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.TimestampRecalculationInterval == TimeSpan.FromMinutes(10));
+            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.OutputOriginalData == true);
             Assert.That(((TestClientOptions)client.ClientOptions).RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
@@ -162,18 +167,22 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(1, 2)]
         public async Task PartialEndpointRateLimiterBasics(int requests, double perSeconds)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddPartialEndpointLimit("/sapi/", requests, TimeSpan.FromSeconds(perSeconds));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new PathStartFilter("/sapi/"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
+
+            var triggered = false;
+            rateLimiter.RateLimitTriggered += (x) => { triggered = true; };
+            var requestDefinition = new RequestDefinition("/sapi/v1/system/status", HttpMethod.Get);
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);             
-                Assert.That(i == requests? result1.Data > 1 : result1.Data == 0);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);             
+                Assert.That(i == requests? triggered : !triggered);
             }
-
+            triggered = false;
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/v1/system/status", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result2.Data == 0);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1,  RateLimitingBehaviour.Wait, default);
+            Assert.That(!triggered);
         }
 
         [TestCase("/sapi/test1", true)]
@@ -183,29 +192,40 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/", true)]
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint, bool expectLimiting)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddPartialEndpointLimit("/sapi/", 1, TimeSpan.FromSeconds(0.1));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
+            var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
+
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-                bool expected = i == 1 ? (expectLimiting ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                bool expected = i == 1 ? (expectLimiting ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
         }
+
         [TestCase("/sapi/", "/sapi/", true)]
         [TestCase("/sapi/test", "/sapi/test", true)]
         [TestCase("/sapi/test", "/sapi/test123", false)]
         [TestCase("/sapi/test", "/sapi/", false)]
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint1, string endpoint2, bool expectLimiting)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddPartialEndpointLimit("/sapi/", 1, TimeSpan.FromSeconds(0.1), countPerEndpoint: true);
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new PathStartFilter("/sapi/"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
-            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result1.Data == 0);            
-            Assert.That(expectLimiting ? result2.Data > 0 : result2.Data == 0);            
+            var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
+            var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get);
+
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(evnt == null);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(expectLimiting ? evnt != null : evnt == null);
         }
 
         [TestCase(1, 0.1)]
@@ -214,18 +234,22 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(1, 2)]
         public async Task EndpointRateLimiterBasics(int requests, double perSeconds)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddEndpointLimit("/sapi/test", requests, TimeSpan.FromSeconds(perSeconds));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new PathStartFilter("/sapi/test"), requests, TimeSpan.FromSeconds(perSeconds), RateLimitWindowType.Fixed));
+
+            bool triggered = false;
+            rateLimiter.RateLimitTriggered += (x) => { triggered = true; };
+            var requestDefinition = new RequestDefinition("/sapi/test", HttpMethod.Get);
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-                Assert.That(i == requests ? result1.Data > 1 : result1.Data == 0);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                Assert.That(i == requests ? triggered : !triggered);
             }
-
+            triggered = false;
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), "/sapi/test", HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result2.Data == 0);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(!triggered);
         }
 
         [TestCase("/", false)]
@@ -233,13 +257,17 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test/123", false)]
         public async Task EndpointRateLimiterEndpoints(string endpoint, bool expectLimited)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddEndpointLimit("/sapi/test", 1, TimeSpan.FromSeconds(0.1));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathFilter("/sapi/test"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            
+            var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-                bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0; 
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -250,47 +278,41 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test23", false)]
         public async Task EndpointRateLimiterMultipleEndpoints(string endpoint, bool expectLimited)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddEndpointLimit(new[] { "/sapi/test", "/sapi/test2" }, 1, TimeSpan.FromSeconds(0.1));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathsFilter(new[] { "/sapi/test", "/sapi/test2" }), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-                bool expected = i == 1 ? (expectLimited ? result1.Data > 1 : result1.Data == 0) : result1.Data == 0;
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
         }
 
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", true, true, true, true)]
-        [TestCase("123", "456", "/sapi/test", "/sapi/test", true, true, true, false)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test2", true, true, true, true)]
-        [TestCase("123", "123", "/sapi/test2", "/sapi/test", true, true, true, true)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", true, false, true, false)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", false, true, true, false)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", false, false, true, false)]
-        [TestCase(null, "123", "/sapi/test", "/sapi/test", false, true, true, false)]
-        [TestCase("123", null, "/sapi/test", "/sapi/test", true, false, true, false)]
-        [TestCase(null, null, "/sapi/test", "/sapi/test", false, false, true, false)]
-
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", true, true, false, true)]
-        [TestCase("123", "456", "/sapi/test", "/sapi/test", true, true, false, false)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test2", true, true, false, true)]
-        [TestCase("123", "123", "/sapi/test2", "/sapi/test", true, true, false, true)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", true, false, false, true)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", false, true, false, true)]
-        [TestCase("123", "123", "/sapi/test", "/sapi/test", false, false, false, true)]
-        [TestCase(null, "123", "/sapi/test", "/sapi/test", false, true, false, false)]
-        [TestCase("123", null, "/sapi/test", "/sapi/test", true, false, false, false)]
-        [TestCase(null, null, "/sapi/test", "/sapi/test", false, false, false, true)]
-        public async Task ApiKeyRateLimiterBasics(string key1, string key2, string endpoint1, string endpoint2, bool signed1, bool signed2, bool onlyForSignedRequests, bool expectLimited)
+        [TestCase("123", "123", "/sapi/test", "/sapi/test", true)]
+        [TestCase("123", "456", "/sapi/test", "/sapi/test", false)]
+        [TestCase("123", "123", "/sapi/test", "/sapi/test2", true)]
+        [TestCase("123", "123", "/sapi/test2", "/sapi/test", true)]
+        [TestCase(null, "123", "/sapi/test", "/sapi/test", false)]
+        [TestCase("123", null, "/sapi/test", "/sapi/test", false)]
+        [TestCase(null, null, "/sapi/test", "/sapi/test", false)]
+        public async Task ApiKeyRateLimiterBasics(string key1, string key2, string endpoint1, string endpoint2, bool expectLimited)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddApiKeyLimit(1, TimeSpan.FromSeconds(0.1), onlyForSignedRequests, false);
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerApiKey, new AuthenticatedEndpointFilter(true), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get) { Authenticated = key1 != null };
+            var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = key2 != null };
 
-            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, signed1, key1?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, signed2, key2?.ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result1.Data == 0);
-            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);            
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", key1?.ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(evnt == null);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", key2?.ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(expectLimited ? evnt != null : evnt == null);
         }
 
         [TestCase("/sapi/test", "/sapi/test", true)]
@@ -298,29 +320,55 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/", "/sapi/test2", true)]
         public async Task TotalRateLimiterBasics(string endpoint1, string endpoint2, bool expectLimited)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddTotalRateLimit(1, TimeSpan.FromSeconds(0.1));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, Array.Empty<IGuardFilter>(), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
+            var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
-            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint1, HttpMethod.Get, false, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint2, HttpMethod.Get, true, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result1.Data == 0);
-            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(evnt == null);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", null, 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(expectLimited ? evnt != null : evnt == null);
         }
 
-        [TestCase("/sapi/test", true, true, true, false)]
-        [TestCase("/sapi/test", false, true, true, false)]
-        [TestCase("/sapi/test", false, true, false, true)]
-        [TestCase("/sapi/test", true, true, false, true)]
-        public async Task ApiKeyRateLimiterIgnores_TotalRateLimiter_IfSet(string endpoint, bool signed1, bool signed2, bool ignoreTotal, bool expectLimited)
+        [TestCase("https://test.com", "/sapi/test", "https://test.com", "/sapi/test", true)]
+        [TestCase("https://test2.com", "/sapi/test", "https://test.com", "/sapi/test", false)]
+        [TestCase("https://test.com", "/sapi/test", "https://test2.com", "/sapi/test", false)]
+        [TestCase("https://test.com", "/sapi/test", "https://test.com", "/sapi/test2", true)]
+        public async Task HostRateLimiterBasics(string host1, string endpoint1, string host2, string endpoint2, bool expectLimited)
         {
-            var rateLimiter = new RateLimiter();
-            rateLimiter.AddApiKeyLimit(100, TimeSpan.FromSeconds(0.1), true, ignoreTotal);
-            rateLimiter.AddTotalRateLimit(1, TimeSpan.FromSeconds(0.1));
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new HostFilter("https://test.com"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+            var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
+            var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
-            var result1 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed1, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            var result2 = await rateLimiter.LimitRequestAsync(new TraceLogger(), endpoint, HttpMethod.Get, signed2, "123".ToSecureString(), RateLimitingBehaviour.Wait, 1, default);
-            Assert.That(result1.Data == 0);
-            Assert.That(expectLimited ? result2.Data > 0 : result2.Data == 0);
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host1, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(evnt == null);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host2, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(expectLimited ? evnt != null : evnt == null);
+        }
+
+        [TestCase("https://test.com", "https://test.com", true)]
+        [TestCase("https://test2.com", "https://test.com", false)]
+        [TestCase("https://test.com", "https://test2.com", false)]
+        public async Task ConnectionRateLimiterBasics(string host1, string host2, bool expectLimited)
+        {
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
+
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host1, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(evnt == null);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host2, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            Assert.That(expectLimited ? evnt != null : evnt == null);
         }
     }
 }

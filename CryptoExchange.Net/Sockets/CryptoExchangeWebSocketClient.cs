@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.RateLimiting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -45,6 +46,7 @@ namespace CryptoExchange.Net.Sockets
         private bool _disposed;
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
+        private string _baseAddress;
 
         private const int _receiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
@@ -111,6 +113,9 @@ namespace CryptoExchange.Net.Sockets
         public event Func<int, Task>? OnRequestSent;
 
         /// <inheritdoc />
+        public event Func<int, Task>? OnRequestRateLimited;
+
+        /// <inheritdoc />
         public event Func<Exception, Task>? OnError;
 
         /// <inheritdoc />
@@ -143,17 +148,19 @@ namespace CryptoExchange.Net.Sockets
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
+            _baseAddress = $"{Uri.Scheme}://{Uri.Host}";
         }
 
         /// <inheritdoc />
-        public virtual async Task<bool> ConnectAsync()
+        public virtual async Task<CallResult> ConnectAsync()
         {
-            if (!await ConnectInternalAsync().ConfigureAwait(false))
-                return false;
+            var connectResult = await ConnectInternalAsync().ConfigureAwait(false);
+            if (!connectResult)
+                return connectResult;
             
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();
-            return true;            
+            return connectResult;
         }
 
         /// <summary>
@@ -188,11 +195,19 @@ namespace CryptoExchange.Net.Sockets
             return socket;
         }
 
-        private async Task<bool> ConnectInternalAsync()
+        private async Task<CallResult> ConnectInternalAsync()
         {
             _logger.SocketConnecting(Id);
             try
             {
+                if (Parameters.RateLimiter != null)
+                {
+                    var definition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    if (!limitResult)
+                        return new CallResult(new ClientRateLimitError("Connection limit reached"));
+                }
+
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token);
                 await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
@@ -204,11 +219,11 @@ namespace CryptoExchange.Net.Sockets
                     // if _ctsSource was canceled this was already logged
                     _logger.SocketConnectionFailed(Id, e.Message, e);
                 }
-                return false;
+                return new CallResult(new CantConnectError());
             }
 
             _logger.SocketConnected(Id, Uri);
-            return true;
+            return new CallResult(null);
         }
 
         /// <inheritdoc />
@@ -255,7 +270,7 @@ namespace CryptoExchange.Net.Sockets
                     if (task != null)
                     {
                         var reconnectUri = await task.ConfigureAwait(false);
-                        if (reconnectUri != null && Parameters.Uri != reconnectUri)
+                        if (reconnectUri != null && Parameters.Uri.ToString() != reconnectUri.ToString())
                         {
                             _logger.SocketSetReconnectUri(Id, reconnectUri);
                             Parameters.Uri = reconnectUri;
@@ -407,9 +422,9 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task SendLoopAsync()
         {
+            var requestDefinition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
             try
             {
-                var limitKey = Uri.ToString() + "/" + Id.ToString();
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -422,16 +437,13 @@ namespace CryptoExchange.Net.Sockets
 
                     while (_sendBuffer.TryDequeue(out var data))
                     {
-                        if (Parameters.RateLimiters != null)
+                        if (Parameters.RateLimiter != null)
                         {
-                            foreach(var ratelimiter in Parameters.RateLimiters)
+                            var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                            if (!limitResult)
                             {
-                                var limitResult = await ratelimiter.LimitRequestAsync(_logger, limitKey, HttpMethod.Get, false, null, RateLimitingBehaviour.Wait, data.Weight, _ctsSource.Token).ConfigureAwait(false);
-                                if (limitResult.Success)
-                                {
-                                    if (limitResult.Data > 0)
-                                        _logger.SocketSendDelayedBecauseOfRateLimit(Id, data.Id, limitResult.Data);
-                                }
+                                await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
+                                continue;
                             }
                         }
 
@@ -717,7 +729,7 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; set; }
 
         /// <summary>
-        /// The request id
+        /// The request weight
         /// </summary>
         public int Weight { get; set; }
 

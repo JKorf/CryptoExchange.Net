@@ -84,6 +84,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
+        /// <inheritdoc />
+        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
+
         internal IWebsocket CreateSocketInternal(string address)
         {
             return CreateSocket(address);
@@ -92,7 +95,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
 
-        public CallResult<bool> ConnectSocketSub(SocketConnection sub)
+        public CallResult ConnectSocketSub(SocketConnection sub)
         {
             return ConnectSocketAsync(sub).Result;
         }

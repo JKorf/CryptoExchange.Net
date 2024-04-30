@@ -20,6 +20,28 @@ namespace CryptoExchange.Net.Sockets
     public class SocketConnection
     {
         /// <summary>
+        /// State of a the connection
+        /// </summary>
+        /// <param name="Id">The id of the socket connection</param>
+        /// <param name="Address">The connection URI</param>
+        /// <param name="Subscriptions">Number of subscriptions on this socket</param>
+        /// <param name="Status">Socket status</param>
+        /// <param name="Authenticated">If the connection is authenticated</param>
+        /// <param name="DownloadSpeed">Download speed over this socket</param>
+        /// <param name="PendingQueries">Number of non-completed queries</param>
+        /// <param name="SubscriptionStates">State for each subscription on this socket</param>
+        public record SocketConnectionState(
+            int Id,
+            string Address,
+            int Subscriptions,
+            SocketStatus Status,
+            bool Authenticated,
+            double DownloadSpeed,
+            int PendingQueries,
+            List<Subscription.SubscriptionState> SubscriptionStates
+        );
+
+        /// <summary>
         /// Connection lost event
         /// </summary>
         public event Action? ConnectionLost;
@@ -194,6 +216,7 @@ namespace CryptoExchange.Net.Sockets
             _socket = socket;
             _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
+            _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
             _socket.OnOpen += HandleOpenAsync;
             _socket.OnClose += HandleCloseAsync;
             _socket.OnReconnecting += HandleReconnectingAsync;
@@ -228,7 +251,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners.OfType<Subscription>())
+                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
                     subscription.Confirmed = false;
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
@@ -253,7 +276,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners.OfType<Subscription>())
+                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
                     subscription.Confirmed = false;
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
@@ -334,6 +357,26 @@ namespace CryptoExchange.Net.Sockets
             else
                 _logger.WebSocketError(SocketId, e.Message, e);
 
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handler for whenever a request is rate limited and rate limit behaviour is set to fail
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
+        protected virtual Task HandleRequestRateLimitedAsync(int requestId)
+        {
+            Query query;
+            lock (_listenersLock)
+            {
+                query = _listeners.OfType<Query>().FirstOrDefault(x => x.Id == requestId);
+            }
+
+            if (query == null)
+                return Task.CompletedTask;
+
+            query.Fail(new ClientRateLimitError("Connection rate limit reached"));
             return Task.CompletedTask;
         }
 
@@ -478,7 +521,7 @@ namespace CryptoExchange.Net.Sockets
         /// Connect the websocket
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> ConnectAsync() => await _socket.ConnectAsync().ConfigureAwait(false);
+        public async Task<CallResult> ConnectAsync() => await _socket.ConnectAsync().ConfigureAwait(false);
 
         /// <summary>
         /// Retrieve the underlying socket
@@ -621,6 +664,24 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Get the state of the connection
+        /// </summary>
+        /// <returns></returns>
+        public SocketConnectionState GetState(bool includeSubDetails)
+        {
+            return new SocketConnectionState(
+                SocketId,
+                ConnectionUri.AbsoluteUri,
+                UserSubscriptionCount,
+                Status,
+                Authenticated,
+                IncomingKbps,
+                PendingQueries: _listeners.OfType<Query>().Count(x => !x.Completed),
+                includeSubDetails ? Subscriptions.Select(sub => sub.GetState()).ToList() : new List<Subscription.SubscriptionState>()
+            );
+        }
+
+        /// <summary>
         /// Send a query request and wait for an answer
         /// </summary>
         /// <param name="query">Query to send</param>
@@ -710,13 +771,13 @@ namespace CryptoExchange.Net.Sockets
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
                 var info = $"Message to send exceeds the max server message size ({ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
-                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - {Info}", SocketId, requestId, info);
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
                 return new CallResult(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
-                _logger.LogWarning("[Sckt {SocketId}] msg {RequestId} - Failed to send, socket no longer open", SocketId, requestId);
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
@@ -735,7 +796,7 @@ namespace CryptoExchange.Net.Sockets
         private async Task<CallResult> ProcessReconnectAsync()
         {
             if (!_socket.IsOpen)
-                return new CallResult<bool>(new WebError("Socket not connected"));
+                return new CallResult(new WebError("Socket not connected"));
 
             bool anySubscriptions;
             lock (_listenersLock)
@@ -745,7 +806,7 @@ namespace CryptoExchange.Net.Sockets
                 // No need to resubscribe anything
                 _logger.NothingToResubscribeCloseConnection(SocketId);
                 _ = _socket.CloseAsync();
-                return new CallResult<bool>(true);
+                return new CallResult(null);
             }
 
             bool anyAuthenticated;
@@ -785,7 +846,7 @@ namespace CryptoExchange.Net.Sockets
             for (var i = 0; i < subList.Count; i += ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
             {
                 if (!_socket.IsOpen)
-                    return new CallResult<bool>(new WebError("Socket not connected"));
+                    return new CallResult(new WebError("Socket not connected"));
 
                 var taskList = new List<Task<CallResult>>();
                 foreach (var subscription in subList.Skip(i).Take(ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
@@ -812,10 +873,10 @@ namespace CryptoExchange.Net.Sockets
                 subscription.Confirmed = true;
 
             if (!_socket.IsOpen)
-                return new CallResult<bool>(new WebError("Socket not connected"));
+                return new CallResult(new WebError("Socket not connected"));
 
             _logger.AllSubscriptionResubscribed(SocketId);
-            return new CallResult<bool>(true);
+            return new CallResult(null);
         }
 
         internal async Task UnsubscribeAsync(Subscription subscription)

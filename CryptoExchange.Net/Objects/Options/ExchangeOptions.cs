@@ -28,6 +28,15 @@ namespace CryptoExchange.Net.Objects.Options
         /// </summary>        
         public ApiCredentials? ApiCredentials { get; set; }
 
+        /// <summary>
+        /// Whether or not client side rate limiting should be applied
+        /// </summary>
+        public bool RateLimiterEnabled { get; set; } = true;
+        /// <summary>
+        /// What should happen when a rate limit is reached
+        /// </summary>
+        public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
+
         /// <inheritdoc />
         public override string ToString()
         {

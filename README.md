@@ -3,6 +3,7 @@
 [![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/CryptoExchange.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg?style=for-the-badge)](https://www.nuget.org/packages/CryptoExchange.Net) ![License](https://img.shields.io/github/license/JKorf/CryptoExchange.Net?style=for-the-badge)
 
 CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations. 
+Note that the CryptoExchange.Net package itself can not be used directly for accessing API's. Either install a client library from the list below or use [CryptoClients.Net](https://github.com/jkorf/CryptoClients.Net) which includes access to all exchange API's.
 
 For more information on what CryptoExchange.Net and it's client libraries offers see the [Documentation](https://jkorf.github.io/CryptoExchange.Net/).
 
@@ -24,6 +25,8 @@ The following API's are directly supported. Note that there are 3rd party implem
 |Mexc|[JKorf/Mexc.Net](https://github.com/JKorf/Mexc.Net)|[![Nuget version](https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.Mexc.Net)|
 |OKX|[JKorf/OKX.Net](https://github.com/JKorf/OKX.Net)|[![Nuget version](https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.OKX.Net)|
 
+Any of these can be installed independently or install [CryptoClients.Net](https://github.com/jkorf/CryptoClients.Net) which includes all exchange API's.
+
 ## Discord
 [![Nuget version](https://img.shields.io/discord/847020490588422145?style=for-the-badge)](https://discord.gg/MSpeEtSY8t)  
 A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.
@@ -42,6 +45,39 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.4.0 - 28 Apr 2024
+    * Added FormatSymbol on IBaseApiClient interface
+    * Added IOrderBookFactory interface
+    * Removed ExchangeOptions as base class for OrderBookOptions
+
+* Version 7.3.3 - 23 Apr 2024
+    * Added support for new DateTime format parsing
+    * Updated some logging
+    * Fixed concurrency issue in rest request sending
+
+* Version 7.3.2 - 19 Apr 2024
+    * Fix for endpoint specific rate limiting throwing exception
+
+* Version 7.3.1 - 18 Apr 2024
+    * Fixed websocket system subscriptions getting marked as unconfirmed when reconnecting
+
+* Version 7.3.0 - 17 Apr 2024
+    * Added new method for sending Rest requests which splits the static and dynamic parameters
+	* Refactored rate limiting implementation
+		* Ratelimiters now statically applied for all clients
+		* Added support for different rate limit window types
+		* Added modular configuration of rate limits
+		* Added rate limit check when creating websocket connections
+		* Added automatic handling and retry for Retry-After responses
+		* Added configuration for setting ratelimit for each individual endpoint
+		* Added event for when rate limit is triggered
+	* Added SocketClient GetSocketApiClientStates method
+
+* Version 7.2.1 - 05 Apr 2024
+    * Improved websocket reconnect logic
+    * Simplified SystemTextJsonMessageAccessor value retrieval
+    * Fixed System.Text.Json BoolConverter value writing
+
 * Version 7.2.0 - 24 Mar 2024
     * Added ArrayParametersSerialization.JsonArray support
     * Refactored to high-performance logging for hot paths

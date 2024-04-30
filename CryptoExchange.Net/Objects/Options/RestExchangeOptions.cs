@@ -32,7 +32,9 @@ namespace CryptoExchange.Net.Objects.Options
                 TimestampRecalculationInterval = TimestampRecalculationInterval,
                 ApiCredentials = ApiCredentials?.Copy(),
                 Proxy = Proxy,
-                RequestTimeout = RequestTimeout
+                RequestTimeout = RequestTimeout,
+                RateLimiterEnabled = RateLimiterEnabled,
+                RateLimitingBehaviour = RateLimitingBehaviour
             };
         }
     }

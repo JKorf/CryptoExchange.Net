@@ -65,7 +65,9 @@ namespace CryptoExchange.Net.Objects.Options
                 SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget,
                 MaxSocketConnections = MaxSocketConnections,
                 Proxy = Proxy,
-                RequestTimeout = RequestTimeout
+                RequestTimeout = RequestTimeout,
+                RateLimitingBehaviour = RateLimitingBehaviour,
+                RateLimiterEnabled = RateLimiterEnabled,
             };
         }
     }

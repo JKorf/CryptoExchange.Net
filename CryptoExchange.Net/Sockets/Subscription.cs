@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -155,6 +154,29 @@ namespace CryptoExchange.Net.Sockets
         public void InvokeExceptionHandler(Exception e)
         {
             Exception?.Invoke(e);
+        }
+
+        /// <summary>
+        /// State of this subscription
+        /// </summary>
+        /// <param name="Id">The id of the subscription</param>
+        /// <param name="Confirmed">True when the subscription query is handled (either accepted or rejected)</param>
+        /// <param name="Invocations">Number of times this subscription got a message</param>
+        /// <param name="Identifiers">Identifiers the subscription is listening to</param>
+        public record SubscriptionState(
+            int Id,
+            bool Confirmed,
+            int Invocations,
+            HashSet<string> Identifiers
+        );
+
+        /// <summary>
+        /// Get the state of this subscription
+        /// </summary>
+        /// <returns></returns>
+        public SubscriptionState GetState()
+        {
+            return new SubscriptionState(Id, Confirmed, TotalInvocations, ListenerIdentifiers);
         }
     }
 

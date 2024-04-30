@@ -1,5 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 
@@ -22,6 +22,10 @@ namespace CryptoExchange.Net.Interfaces
         /// Websocket sent event, RequestId as parameter
         /// </summary>
         event Func<int, Task> OnRequestSent;
+        /// <summary>
+        /// Websocket query was ratelimited and couldn't be send
+        /// </summary>
+        event Func<int, Task>? OnRequestRateLimited;
         /// <summary>
         /// Websocket error event
         /// </summary>
@@ -67,7 +71,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Connect the socket
         /// </summary>
         /// <returns></returns>
-        Task<bool> ConnectAsync();
+        Task<CallResult> ConnectAsync();
         /// <summary>
         /// Send data
         /// </summary>
