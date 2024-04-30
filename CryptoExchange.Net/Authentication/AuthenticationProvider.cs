@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,9 @@ namespace CryptoExchange.Net.Authentication
     /// </summary>
     public abstract class AuthenticationProvider : IDisposable
     {
+        internal IAuthTimeProvider TimeProvider { get; set; } = new AuthTimeProvider();
+        internal IComparer<string>? ParameterComparer { get; set; } = default;
+
         /// <summary>
         /// Provided credentials
         /// </summary>
@@ -44,7 +48,6 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="apiClient">The Api client sending the request</param>
         /// <param name="uri">The uri for the request</param>
         /// <param name="method">The method of the request</param>
-        /// <param name="providedParameters">The request parameters</param>
         /// <param name="auth">If the requests should be authenticated</param>
         /// <param name="arraySerialization">Array serialization type</param>
         /// <param name="parameterPosition">The position where the providedParameters should go</param>
@@ -56,14 +59,13 @@ namespace CryptoExchange.Net.Authentication
             RestApiClient apiClient,
             Uri uri,
             HttpMethod method,
-            Dictionary<string, object> providedParameters,
+            IDictionary<string, object> uriParameters,
+            IDictionary<string, object> bodyParameters,
+            Dictionary<string, string> headers,
             bool auth,
             ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parameterPosition,
-            RequestBodyFormat requestBodyFormat,
-            out SortedDictionary<string, object> uriParameters,
-            out SortedDictionary<string, object> bodyParameters,
-            out Dictionary<string, string> headers
+            RequestBodyFormat requestBodyFormat
             );
 
         /// <summary>
@@ -418,9 +420,9 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="apiClient"></param>
         /// <returns></returns>
-        protected static DateTime GetTimestamp(RestApiClient apiClient)
+        protected DateTime GetTimestamp(RestApiClient apiClient)
         {
-            return DateTime.UtcNow.Add(apiClient.GetTimeOffset() ?? TimeSpan.Zero)!;
+            return TimeProvider.GetTime().Add(apiClient.GetTimeOffset() ?? TimeSpan.Zero)!;
         }
 
         /// <summary>
@@ -428,7 +430,7 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="apiClient"></param>
         /// <returns></returns>
-        protected static string GetMillisecondTimestamp(RestApiClient apiClient)
+        protected string GetMillisecondTimestamp(RestApiClient apiClient)
         {
             return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value.ToString(CultureInfo.InvariantCulture);
         }

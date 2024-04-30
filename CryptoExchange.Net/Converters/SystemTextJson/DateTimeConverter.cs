@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         return default;
                     }
 
-                    return ParseFromString(stringValue);
+                    return ParseFromString(stringValue!);
                 }
                 else
                 {

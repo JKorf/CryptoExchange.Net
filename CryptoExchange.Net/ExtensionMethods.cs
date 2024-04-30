@@ -342,7 +342,7 @@ namespace CryptoExchange.Net
         /// <param name="baseUri"></param>
         /// <param name="arraySerialization"></param>
         /// <returns></returns>
-        public static Uri SetParameters(this Uri baseUri, SortedDictionary<string, object> parameters, ArrayParametersSerialization arraySerialization)
+        public static Uri SetParameters(this Uri baseUri, IDictionary<string, object> parameters, ArrayParametersSerialization arraySerialization)
         {
             var uriBuilder = new UriBuilder();
             uriBuilder.Scheme = baseUri.Scheme;

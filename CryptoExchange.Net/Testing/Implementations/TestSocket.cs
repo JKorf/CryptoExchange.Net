@@ -1,18 +1,16 @@
 ﻿using System;
-using System.IO;
 using System.Net.WebSockets;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using Newtonsoft.Json;
 
-namespace CryptoExchange.Test.Net
+namespace CryptoExchange.Net.Testing.Implementations
 {
-    public class TestSocket : IWebsocket
+    internal class TestSocket : IWebsocket
     {
-        public event Action<string> OnMessageSend;
+        public event Action<string>? OnMessageSend;
 
         public bool CanConnect { get; set; } = true;
         public bool Connected { get; set; }
@@ -32,8 +30,8 @@ namespace CryptoExchange.Test.Net
         public bool IsClosed => !Connected;
         public bool IsOpen => Connected;
         public double IncomingKbps => 0;
-        public Uri Uri => new Uri("wss://test.com/ws");
-        public Func<Task<Uri>> GetReconnectionUrl { get; set; }
+        public Uri Uri => new("wss://test.com/ws");
+        public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
         public Task<CallResult> ConnectAsync()
         {

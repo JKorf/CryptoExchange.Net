@@ -2,23 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Reflection;
-using System.Text;
-using CryptoExchange.Net.Clients;
+using System.Linq;
+using System.Text.Json.Serialization;
 using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Converters.JsonNet;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects.Sockets;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Newtonsoft.Json;
+using CryptoExchange.Net.Converters.SystemTextJson;
 using Newtonsoft.Json.Linq;
 
-namespace CryptoExchange.Test.Net
+namespace CryptoExchange.Net.Testing.Comparers
 {
-    public class JsonNetComparer
+    internal class SystemTextJsonComparer
     {
         internal static void CompareData(
             string method,
@@ -28,7 +20,7 @@ namespace CryptoExchange.Test.Net
             List<string>? ignoreProperties = null,
             bool userSingleArrayItem = false)
         {
-            var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyAttribute?)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault()));
+            var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyNameAttribute?)p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true).SingleOrDefault()));
             var jsonObject = JToken.Parse(json);
             if (nestedJsonProperty != null)
                 jsonObject = jsonObject[nestedJsonProperty];
@@ -123,20 +115,19 @@ namespace CryptoExchange.Test.Net
 
         private static void CheckObject(string method, JProperty prop, object obj, List<string>? ignoreProperties)
         {
-            var resultProperties = obj.GetType().GetProperties().Select(p => (p, ((JsonPropertyAttribute?)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault())?.PropertyName));
+            var resultProperties = obj.GetType().GetProperties().Select(p => (p, ((JsonPropertyNameAttribute?)p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true).SingleOrDefault())?.Name));
 
             // Property has a value
-            var property = resultProperties.SingleOrDefault(p => p.Item2 == prop.Name).p;
+            var property = resultProperties.SingleOrDefault(p => p.Name == prop.Name).p;
             property ??= resultProperties.SingleOrDefault(p => p.p.Name == prop.Name).p;
-            property ??= resultProperties.SingleOrDefault(p => p.p.Name.ToUpperInvariant() == prop.Name.ToUpperInvariant()).p;
+            property ??= resultProperties.SingleOrDefault(p => p.p.Name.Equals(prop.Name, StringComparison.InvariantCultureIgnoreCase)).p;
 
             if (property is null)
                 // Property not found
                 throw new Exception($"{method}: Missing property `{prop.Name}` on `{obj.GetType().Name}`");
 
             var propertyValue = property.GetValue(obj);
-            if (property.GetCustomAttribute<JsonPropertyAttribute>(true)?.ItemConverterType == null)
-                CheckPropertyValue(method, prop.Value, propertyValue, property.PropertyType, property.Name, prop.Name, ignoreProperties);
+            CheckPropertyValue(method, prop.Value, propertyValue, property.PropertyType, property.Name, prop.Name, ignoreProperties);
         }
 
         private static void CheckPropertyValue(string method, JToken propValue, object? propertyValue, Type propertyType, string? propertyName = null, string? propName = null, List<string>? ignoreProperties = null)
@@ -183,7 +174,7 @@ namespace CryptoExchange.Test.Net
                 {
                     enumerator.MoveNext();
                     var typeConverter = enumerator.Current.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true);
-                    if (typeConverter.Any() && ((JsonConverterAttribute)typeConverter.First()).ConverterType != typeof(ArrayConverter))
+                    if (typeConverter.Length != 0 && ((JsonConverterAttribute)typeConverter.First()).ConverterType != typeof(ArrayConverter))
                         // Custom converter for the type, skip
                         continue;
 
@@ -267,7 +258,7 @@ namespace CryptoExchange.Test.Net
                 {
                     // TODO enum comparing
                 }
-                else if (jsonValue.Value<string>()!.ToLowerInvariant() != objectValue.ToString()!.ToLowerInvariant())
+                else if (!jsonValue.Value<string>()!.Equals(objectValue.ToString(), StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {objectValue}");
                 }
@@ -276,7 +267,7 @@ namespace CryptoExchange.Test.Net
             {
                 if (objectValue is DateTime time)
                 {
-                    if (time != DateTimeConverter.ParseFromLong(jsonValue.Value<long>()!))
+                    if (time != DateTimeConverter.ParseFromDouble(jsonValue.Value<long>()!))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
                 }
                 else if (jsonValue.Value<long>() != Convert.ToInt64(objectValue))

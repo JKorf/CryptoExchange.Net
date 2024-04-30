@@ -40,22 +40,32 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Request body content type
         /// </summary>
-        protected RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
+        protected internal RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
         /// How to serialize array parameters when making requests
         /// </summary>
-        protected ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
+        protected internal ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
 
         /// <summary>
         /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
         /// </summary>
-        protected string RequestBodyEmptyContent = "{}";
+        protected internal string RequestBodyEmptyContent = "{}";
 
         /// <summary>
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
+
+        /// <summary>
+        /// Whether parameters need to be ordered
+        /// </summary>
+        protected internal bool OrderParameters { get; set; } = true;
+
+        /// <summary>
+        /// Parameter order comparer
+        /// </summary>
+        protected IComparer<string> ParameterOrderComparer { get; } = new OrderedStringComparer();
 
         /// <summary>
         /// Where to put the parameters for requests with different Http methods
@@ -269,22 +279,9 @@ namespace CryptoExchange.Net.Clients
             var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
             var requestId = ExchangeHelpers.NextId();
 
-            for (var i = 0; i < parameters.Count; i++)
-            {
-                var kvp = parameters.ElementAt(i);
-                if (kvp.Value is Func<object> delegateValue)
-                    parameters[kvp.Key] = delegateValue();
-            }
-
-            if (parameterPosition == HttpMethodParameterPosition.InUri)
-            {
-                foreach (var parameter in parameters)
-                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());
-            }
-
             var headers = new Dictionary<string, string>();
-            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
-            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
+            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
+            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
             if (AuthenticationProvider != null)
             {
                 try
@@ -293,14 +290,13 @@ namespace CryptoExchange.Net.Clients
                         this,
                         uri,
                         definition.Method,
-                        parameters,
+                        uriParameters,
+                        bodyParameters,
+                        headers,
                         definition.Authenticated,
                         arraySerialization,
                         parameterPosition,
-                        bodyFormat,
-                        out uriParameters,
-                        out bodyParameters,
-                        out headers);
+                        bodyFormat);
                 }
                 catch (Exception ex)
                 {
@@ -346,13 +342,21 @@ namespace CryptoExchange.Net.Clients
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (bodyParameters.Any())
+                if (bodyParameters.Count != 0)
                     WriteParamBody(request, bodyParameters, contentType);
                 else
                     request.SetContent(RequestBodyEmptyContent, contentType);
             }
 
             return request;
+        }
+
+        protected internal IDictionary<string, object> CreateParameterDictionary(IDictionary<string, object> parameters)
+        {
+            if (!OrderParameters)
+                return parameters;
+
+            return new SortedDictionary<string, object>(parameters, ParameterOrderComparer);
         }
 
         /// <summary>
@@ -726,8 +730,8 @@ namespace CryptoExchange.Net.Clients
             }
 
             var headers = new Dictionary<string, string>();
-            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
-            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? new SortedDictionary<string, object>(parameters) : new SortedDictionary<string, object>();
+            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
+            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
             if (AuthenticationProvider != null)
             {
                 try
@@ -736,14 +740,13 @@ namespace CryptoExchange.Net.Clients
                         this,
                         uri,
                         method,
-                        parameters,
+                        uriParameters,
+                        bodyParameters,
+                        headers,
                         signed,
                         arraySerialization,
                         parameterPosition,
-                        bodyFormat,
-                        out uriParameters,
-                        out bodyParameters,
-                        out headers);
+                        bodyFormat);
                 }
                 catch (Exception ex)
                 {
@@ -804,7 +807,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="request">The request to set the parameters on</param>
         /// <param name="parameters">The parameters to set</param>
         /// <param name="contentType">The content type of the data</param>
-        protected virtual void WriteParamBody(IRequest request, SortedDictionary<string, object> parameters, string contentType)
+        protected virtual void WriteParamBody(IRequest request, IDictionary<string, object> parameters, string contentType)
         {
             if (contentType == Constants.JsonContentHeader)
             {

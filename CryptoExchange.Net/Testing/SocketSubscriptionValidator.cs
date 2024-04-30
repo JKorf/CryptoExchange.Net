@@ -1,19 +1,23 @@
 ﻿using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
-using Newtonsoft.Json;
+using CryptoExchange.Net.Testing.Comparers;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
+using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace CryptoExchange.Test.Net
+namespace CryptoExchange.Net.Testing
 {
-    public class SocketTester<TClient> where TClient : BaseSocketClient
+    /// <summary>
+    /// Validator for websocket subscriptions, checking expected requests and responses and comparing update models
+    /// </summary>
+    /// <typeparam name="TClient"></typeparam>
+    public class SocketSubscriptionValidator<TClient> where TClient : BaseSocketClient
     {
         private readonly TClient _client;
         private readonly string _folder;
@@ -21,7 +25,15 @@ namespace CryptoExchange.Test.Net
         private readonly string? _nestedPropertyForCompare;
         private readonly bool _stjCompare;
 
-        public SocketTester(TClient client, string folder, string baseAddress, string? nestedPropertyForCompare = null, bool stjCompare = true)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="client">Client to test</param>
+        /// <param name="folder">Folder for json test values</param>
+        /// <param name="baseAddress">The base address that is expected</param>
+        /// <param name="nestedPropertyForCompare">Property to use for compare</param>
+        /// <param name="stjCompare">Use System.Text.Json for comparing</param>
+        public SocketSubscriptionValidator(TClient client, string folder, string baseAddress, string? nestedPropertyForCompare = null, bool stjCompare = true)
         {
             _client = client;
             _folder = folder;
@@ -30,7 +42,17 @@ namespace CryptoExchange.Test.Net
             _stjCompare = stjCompare;
         }
 
-        public async Task ValidateAsync<TResponse, TUpdate>(
+        /// <summary>
+        /// Validate a subscription
+        /// </summary>
+        /// <typeparam name="TUpdate">The expected update type</typeparam>
+        /// <param name="methodInvoke">Subscription method invocation</param>
+        /// <param name="name">Method name for looking up json test values</param>
+        /// <param name="nestedJsonProperty">Use nested json property for compare</param>
+        /// <param name="ignoreProperties">Ignore certain properties</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task ValidateAsync<TUpdate>(
             Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke,
             string name,
             string? nestedJsonProperty = null,
@@ -40,7 +62,7 @@ namespace CryptoExchange.Test.Net
             Trace.Listeners.Add(listener);
             
             var path = Directory.GetParent(Environment.CurrentDirectory)!.Parent!.Parent!.FullName;
-            FileStream? file = null;
+            FileStream file ;
             try
             {
                 file = File.OpenRead(Path.Combine(path, _folder, $"{name}.txt"));
@@ -51,7 +73,7 @@ namespace CryptoExchange.Test.Net
             }
 
             var buffer = new byte[file.Length];
-            await file.ReadAsync(buffer, 0, buffer.Length);
+            await file.ReadAsync(buffer, 0, (int)file.Length).ConfigureAwait(false);
             file.Close();
 
             var data = Encoding.UTF8.GetString(buffer);
@@ -60,14 +82,17 @@ namespace CryptoExchange.Test.Net
             var socket = TestHelpers.ConfigureSocketClient(_client);
 
             var waiter = new AutoResetEvent(false);
-            var lastMessage = "";
+            string? lastMessage = null;
             socket.OnMessageSend += (x) =>
             {
                 lastMessage = x;
                 waiter.Set();
             };
-            TUpdate update = default;
+
+            TUpdate? update = default;
+            // Invoke subscription method
             var task = methodInvoke(_client, x => { update = x.Data; });
+
             string? overrideKey = null;
             string? overrideValue = null;
             while (true)
@@ -78,8 +103,12 @@ namespace CryptoExchange.Test.Net
 
                 if (line.StartsWith("> "))
                 {
-                    // Receive
-                    waiter.WaitOne();
+                    // Expect a message from client to server
+                    waiter.WaitOne(TimeSpan.FromSeconds(1));
+
+                    if (lastMessage == null)
+                        throw new Exception($"{name} expected to {line} to be send to server but did not receive anything");
+
                     var lastMessageJson = JToken.Parse(lastMessage);
                     var expectedJson = JToken.Parse(line.Substring(2));
                     foreach(var item in expectedJson)
@@ -88,11 +117,12 @@ namespace CryptoExchange.Test.Net
                         {
                             if (val.ToString().StartsWith("|") && val.ToString().EndsWith("|"))
                             {
+                                // |x| values are used to replace parts or response messages
                                 overrideKey = val.ToString();
                                 overrideValue = lastMessageJson[prop.Name]?.Value<string>();
                             }
                             else if (lastMessageJson[prop.Name]?.Value<string>() != val.ToString() && ignoreProperties?.Contains(prop.Name) != true)
-                                throw new Exception($"Expected {prop.Name} to be {val}, but was {lastMessageJson[prop.Name]?.Value<string>()}");
+                                throw new Exception($"{name} Expected {prop.Name} to be {val}, but was {lastMessageJson[prop.Name]?.Value<string>()}");
                         }
 
                         // TODO check objects and arrays
@@ -100,7 +130,7 @@ namespace CryptoExchange.Test.Net
                 }
                 else if (line.StartsWith("< "))
                 {
-                    // Send
+                    // Expect a message from server to client
                     if (overrideKey != null)
                     {
                         line = line.Replace(overrideKey, overrideValue);
@@ -112,12 +142,12 @@ namespace CryptoExchange.Test.Net
                 }
                 else
                 {
+                    // A update message from server to client
                     var compareData = reader.ReadToEnd();
                     socket.InvokeMessage(compareData);
 
                     if (update == null)
-                        throw new Exception("No update processed");
-
+                        throw new Exception($"{name} Update send to client did not trigger in update handler");
 
                     if (_stjCompare == true)
                         SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties);
@@ -126,7 +156,7 @@ namespace CryptoExchange.Test.Net
                 }
             }
 
-            await _client.UnsubscribeAllAsync();
+            await _client.UnsubscribeAllAsync().ConfigureAwait(false);
             Trace.Listeners.Remove(listener);
         }
     }
