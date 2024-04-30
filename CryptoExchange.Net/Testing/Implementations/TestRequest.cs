@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public string Accept { set { } }
 
-        public string? Content => null;
+        public string? Content { get; private set; }
 
         public HttpMethod Method { get; set; }
 
@@ -38,10 +39,12 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void SetContent(byte[] data)
         {
+            Content = Encoding.UTF8.GetString(data);
         }
 
         public void SetContent(string data, string contentType)
         {
+            Content = data;
         }
     }
 }

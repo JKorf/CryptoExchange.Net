@@ -54,12 +54,32 @@ namespace CryptoExchange.Net.Testing
         /// <param name="useSingleArrayItem">Use the first item of an json array response</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task ValidateAsync<TResponse>(
+        public Task ValidateAsync<TResponse>(
+           Func<TClient, Task<WebCallResult<TResponse>>> methodInvoke,
+           string name,
+           string? nestedJsonProperty = null,
+           List<string>? ignoreProperties = null,
+           bool useSingleArrayItem = false)
+            => ValidateAsync<TResponse, TResponse>(methodInvoke, name, nestedJsonProperty, ignoreProperties, useSingleArrayItem);
+
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        /// <typeparam name="TResponse">Expected response type</typeparam>
+        /// <typeparam name="TActualResponse">The concrete response type</typeparam>
+        /// <param name="methodInvoke">Method invocation</param>
+        /// <param name="name">Method name for looking up json test values</param>
+        /// <param name="nestedJsonProperty">Use nested json property for compare</param>
+        /// <param name="ignoreProperties">Ignore certain properties</param>
+        /// <param name="useSingleArrayItem">Use the first item of an json array response</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task ValidateAsync<TResponse, TActualResponse>(
             Func<TClient, Task<WebCallResult<TResponse>>> methodInvoke,
             string name,
             string? nestedJsonProperty = null,
             List<string>? ignoreProperties = null,
-            bool useSingleArrayItem = false)
+            bool useSingleArrayItem = false) where TActualResponse : TResponse
         {
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
@@ -91,20 +111,20 @@ namespace CryptoExchange.Net.Testing
 
             // Check request/response properties
             if (result.Error != null)
-                throw new Exception(name + " returned error");
+                throw new Exception(name + " returned error " + result.Error);
             if (_isAuthenticated(result.AsDataless()) != expectedAuth)
-                throw new Exception(name + " authentication not matched");
+                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result.AsDataless())}");
             if (result.RequestMethod != new HttpMethod(expectedMethod!))
-                throw new Exception(name + " http method not matched");
+                throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
-                throw new Exception(name + " path not matched");
+                throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
 
             // Check response data
-            object responseData = result.Data!;
+            object responseData = (TActualResponse)result.Data!;
             if (_stjCompare == true)
-                SystemTextJsonComparer.CompareData(name, result.Data!, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                SystemTextJsonComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
             else
-                JsonNetComparer.CompareData(name, result.Data!, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                JsonNetComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
            
             Trace.Listeners.Remove(listener);
         }
