@@ -25,7 +25,11 @@ namespace CryptoExchange.Net.Testing.Comparers
             var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyAttribute?)p.GetCustomAttributes(typeof(JsonPropertyAttribute), true).SingleOrDefault()));
             var jsonObject = JToken.Parse(json);
             if (nestedJsonProperty != null)
-                jsonObject = jsonObject[nestedJsonProperty];
+            {
+                var nested = nestedJsonProperty.Split('.');
+                foreach (var nest in nested)
+                    jsonObject = jsonObject![nest];
+            }
 
             if (userSingleArrayItem)
                 jsonObject = ((JArray)jsonObject!)[0];
