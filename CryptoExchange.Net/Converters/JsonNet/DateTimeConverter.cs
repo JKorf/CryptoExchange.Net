@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -38,14 +39,8 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 var longValue = (long)reader.Value;
                 if (longValue == 0 || longValue == -1)
                     return objectType == typeof(DateTime) ? default(DateTime): null;
-                if (longValue < 19999999999)
-                    return ConvertFromSeconds(longValue);
-                if (longValue < 19999999999999)
-                    return ConvertFromMilliseconds(longValue);
-                if (longValue < 19999999999999999)
-                    return ConvertFromMicroseconds(longValue);
-                
-                return ConvertFromNanoseconds(longValue);
+
+                return ParseFromLong(longValue);
             }
             else if (reader.TokenType is JsonToken.Float)
             {
@@ -68,76 +63,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                     return objectType == typeof(DateTime) ? default(DateTime) : null;
                 }
 
-                if (stringValue.Length == 12 && stringValue.StartsWith("202"))
-                {
-                    // Parse 202303261200 format
-                    if (!int.TryParse(stringValue.Substring(0, 4), out var year)
-                        || !int.TryParse(stringValue.Substring(4, 2), out var month)
-                        || !int.TryParse(stringValue.Substring(6, 2), out var day)
-                        || !int.TryParse(stringValue.Substring(8, 2), out var hour)
-                        || !int.TryParse(stringValue.Substring(10, 2), out var minute))
-                    {
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
-                        return default;
-                    }
-                    return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
-                }
-
-                if (stringValue.Length == 8)
-                {
-                    // Parse 20211103 format
-                    if (!int.TryParse(stringValue.Substring(0, 4), out var year)
-                        || !int.TryParse(stringValue.Substring(4, 2), out var month)
-                        || !int.TryParse(stringValue.Substring(6, 2), out var day))
-                    {
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
-                        return default;
-                    }
-                    return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
-                }
-
-                if (stringValue.Length == 6)
-                {
-                    // Parse 211103 format
-                    if (!int.TryParse(stringValue.Substring(0, 2), out var year)
-                        || !int.TryParse(stringValue.Substring(2, 2), out var month)
-                        || !int.TryParse(stringValue.Substring(4, 2), out var day))
-                    {
-                        Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
-                        return default;
-                    }
-                    return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
-                }
-
-                if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
-                {
-                    // Parse 1637745563.000 format
-                    if (doubleValue < 19999999999)
-                        return ConvertFromSeconds(doubleValue);
-                    if (doubleValue < 19999999999999)
-                        return ConvertFromMilliseconds((long)doubleValue);
-                    if (doubleValue < 19999999999999999)
-                        return ConvertFromMicroseconds((long)doubleValue);
-
-                    return ConvertFromNanoseconds((long)doubleValue);
-                }
-
-                if(stringValue.Length == 10)
-                {
-                    // Parse 2021-11-03 format
-                    var values = stringValue.Split('-');
-                    if(!int.TryParse(values[0], out var year)
-                        || !int.TryParse(values[1], out var month)
-                        || !int.TryParse(values[2], out var day))
-                    {
-                        Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
-                        return default;
-                    }
-
-                    return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
-                }
-
-                return DateTime.Parse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
+                return ParseFromString(stringValue);
             }
             else if(reader.TokenType == JsonToken.Date)
             {
@@ -148,6 +74,102 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + reader.Value);
                 return default;
             }
+        }
+
+        /// <summary>
+        /// Parse a long value to datetime
+        /// </summary>
+        /// <param name="longValue"></param>
+        /// <returns></returns>
+        public static DateTime ParseFromLong(long longValue)
+        {
+            if (longValue < 19999999999)
+                return ConvertFromSeconds(longValue);
+            if (longValue < 19999999999999)
+                return ConvertFromMilliseconds(longValue);
+            if (longValue < 19999999999999999)
+                return ConvertFromMicroseconds(longValue);
+
+            return ConvertFromNanoseconds(longValue);
+        }
+
+        /// <summary>
+        /// Parse a string value to datetime
+        /// </summary>
+        /// <param name="stringValue"></param>
+        /// <returns></returns>
+        public static DateTime ParseFromString(string stringValue)
+        {
+            if (stringValue.Length == 12 && stringValue.StartsWith("202"))
+            {
+                // Parse 202303261200 format
+                if (!int.TryParse(stringValue.Substring(0, 4), out var year)
+                    || !int.TryParse(stringValue.Substring(4, 2), out var month)
+                    || !int.TryParse(stringValue.Substring(6, 2), out var day)
+                    || !int.TryParse(stringValue.Substring(8, 2), out var hour)
+                    || !int.TryParse(stringValue.Substring(10, 2), out var minute))
+                {
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    return default;
+                }
+                return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
+            }
+
+            if (stringValue.Length == 8)
+            {
+                // Parse 20211103 format
+                if (!int.TryParse(stringValue.Substring(0, 4), out var year)
+                    || !int.TryParse(stringValue.Substring(4, 2), out var month)
+                    || !int.TryParse(stringValue.Substring(6, 2), out var day))
+                {
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    return default;
+                }
+                return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
+            }
+
+            if (stringValue.Length == 6)
+            {
+                // Parse 211103 format
+                if (!int.TryParse(stringValue.Substring(0, 2), out var year)
+                    || !int.TryParse(stringValue.Substring(2, 2), out var month)
+                    || !int.TryParse(stringValue.Substring(4, 2), out var day))
+                {
+                    Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    return default;
+                }
+                return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
+            }
+
+            if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
+            {
+                // Parse 1637745563.000 format
+                if (doubleValue < 19999999999)
+                    return ConvertFromSeconds(doubleValue);
+                if (doubleValue < 19999999999999)
+                    return ConvertFromMilliseconds((long)doubleValue);
+                if (doubleValue < 19999999999999999)
+                    return ConvertFromMicroseconds((long)doubleValue);
+
+                return ConvertFromNanoseconds((long)doubleValue);
+            }
+
+            if (stringValue.Length == 10)
+            {
+                // Parse 2021-11-03 format
+                var values = stringValue.Split('-');
+                if (!int.TryParse(values[0], out var year)
+                    || !int.TryParse(values[1], out var month)
+                    || !int.TryParse(values[2], out var day))
+                {
+                    Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    return default;
+                }
+
+                return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
+            }
+
+            return DateTime.Parse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
         }
 
         /// <summary>
