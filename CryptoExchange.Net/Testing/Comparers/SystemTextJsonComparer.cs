@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using CryptoExchange.Net.Converters;
@@ -134,6 +135,9 @@ namespace CryptoExchange.Net.Testing.Comparers
         {
             if (propertyValue == default && propValue.Type != JTokenType.Null && !string.IsNullOrEmpty(propValue.ToString()))
             {
+                if (propertyType == typeof(DateTime?) && (propValue.ToString() == "" || propValue.ToString() == "0" || propValue.ToString() == "-1"))
+                    return;
+
                 // Property value not correct
                 if (propValue.ToString() != "0")
                     throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}");
@@ -258,7 +262,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 {
                     // TODO enum comparing
                 }
-                else if (!jsonValue.Value<string>()!.Equals(objectValue.ToString(), StringComparison.InvariantCultureIgnoreCase))
+                else if (!jsonValue.Value<string>()!.Equals(Convert.ToString(objectValue, CultureInfo.InvariantCulture), StringComparison.InvariantCultureIgnoreCase))
                 {
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {objectValue}");
                 }

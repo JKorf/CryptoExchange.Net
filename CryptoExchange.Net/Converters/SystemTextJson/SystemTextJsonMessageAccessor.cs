@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
         /// <inheritdoc />
-        public async Task<bool> Read(Stream stream, bool bufferStream)
+        public async Task<CallResult> Read(Stream stream, bool bufferStream)
         {
             if (bufferStream && stream is not MemoryStream)
             {
@@ -211,15 +211,16 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 _document = await JsonDocument.ParseAsync(_stream ?? stream).ConfigureAwait(false);
                 IsJson = true;
+                return new CallResult(null);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Not a json message
                 IsJson = false;
+                return new CallResult(new ServerError("JsonError: " + ex.Message));
             }
-
-            return IsJson;
         }
+
         /// <inheritdoc />
         public override string GetOriginalString()
         {
@@ -249,7 +250,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private ReadOnlyMemory<byte> _bytes;
 
         /// <inheritdoc />
-        public bool Read(ReadOnlyMemory<byte> data)
+        public CallResult Read(ReadOnlyMemory<byte> data)
         {
             _bytes = data;
 
@@ -257,14 +258,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 _document = JsonDocument.Parse(data);
                 IsJson = true;
+                return new CallResult(null);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Not a json message
                 IsJson = false;
+                return new CallResult(new ServerError("JsonError: " + ex.Message));
             }
-
-            return IsJson;
         }
 
         /// <inheritdoc />

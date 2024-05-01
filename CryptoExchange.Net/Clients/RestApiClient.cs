@@ -574,7 +574,7 @@ namespace CryptoExchange.Net.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
-                    await accessor.Read(responseStream, true).ConfigureAwait(false);
+                    var result = await accessor.Read(responseStream, true).ConfigureAwait(false);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
@@ -607,7 +607,7 @@ namespace CryptoExchange.Net.Clients
                 if (!valid)
                 {
                     // Invalid json
-                    var error = new ServerError("Failed to parse response", accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    var error = new ServerError("Failed to parse response: " + valid.Error!.Message, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), default, error);
                 }
 

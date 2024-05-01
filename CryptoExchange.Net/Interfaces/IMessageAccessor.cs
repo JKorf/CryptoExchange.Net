@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="bufferStream"></param>
-        Task<bool> Read(Stream stream, bool bufferStream);
+        Task<CallResult> Read(Stream stream, bool bufferStream);
     }
 
     /// <summary>
@@ -96,6 +96,6 @@ namespace CryptoExchange.Net.Interfaces
         /// Load a data message
         /// </summary>
         /// <param name="data"></param>
-        bool Read(ReadOnlyMemory<byte> data);
+        CallResult Read(ReadOnlyMemory<byte> data);
     }
 }
