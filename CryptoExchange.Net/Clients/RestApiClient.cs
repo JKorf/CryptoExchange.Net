@@ -351,14 +351,6 @@ namespace CryptoExchange.Net.Clients
             return request;
         }
 
-        protected internal IDictionary<string, object> CreateParameterDictionary(IDictionary<string, object> parameters)
-        {
-            if (!OrderParameters)
-                return parameters;
-
-            return new SortedDictionary<string, object>(parameters, ParameterOrderComparer);
-        }
-
         /// <summary>
         /// Execute a request to the uri and returns if it was successful
         /// </summary>
@@ -574,7 +566,7 @@ namespace CryptoExchange.Net.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
-                    var result = await accessor.Read(responseStream, true).ConfigureAwait(false);
+                    await accessor.Read(responseStream, true).ConfigureAwait(false);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
@@ -860,6 +852,19 @@ namespace CryptoExchange.Net.Clients
                 return new ServerRateLimitError(message) { RetryAfter = datetime };
 
             return new ServerRateLimitError(message);
+        }
+
+        /// <summary>
+        /// Create the parameter IDictionary
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        protected internal IDictionary<string, object> CreateParameterDictionary(IDictionary<string, object> parameters)
+        {
+            if (!OrderParameters)
+                return parameters;
+
+            return new SortedDictionary<string, object>(parameters, ParameterOrderComparer);
         }
 
         /// <summary>

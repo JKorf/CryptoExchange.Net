@@ -17,7 +17,6 @@ namespace CryptoExchange.Net.Authentication
     public abstract class AuthenticationProvider : IDisposable
     {
         internal IAuthTimeProvider TimeProvider { get; set; } = new AuthTimeProvider();
-        internal IComparer<string>? ParameterComparer { get; set; } = default;
 
         /// <summary>
         /// Provided credentials
