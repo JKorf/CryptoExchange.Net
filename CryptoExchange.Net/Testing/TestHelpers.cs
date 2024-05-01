@@ -110,7 +110,7 @@ namespace CryptoExchange.Net.Testing
             DateTime? time = null,
             bool disableOrdering = false,
             bool compareCase = true,
-            string? host = "https://test.test-api.com")
+            string host = "https://test.test-api.com")
         {
             parameters ??= new Dictionary<string, object>
                 {

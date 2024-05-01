@@ -52,6 +52,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="nestedJsonProperty">Use nested json property for compare</param>
         /// <param name="ignoreProperties">Ignore certain properties</param>
         /// <param name="useSingleArrayItem">Use the first item of an json array response</param>
+        /// <param name="skipResponseValidation">Whether to skip the response model validation</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public Task ValidateAsync<TResponse>(
@@ -73,6 +74,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="nestedJsonProperty">Use nested json property for compare</param>
         /// <param name="ignoreProperties">Ignore certain properties</param>
         /// <param name="useSingleArrayItem">Use the first item of an json array response</param>
+        /// <param name="skipResponseValidation">Whether to skip the response model validation</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse, TActualResponse>(
