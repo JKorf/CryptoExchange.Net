@@ -170,8 +170,9 @@ namespace CryptoExchange.Net.Testing
             var expectedMethod = reader.ReadLine();
             var expectedPath = reader.ReadLine();
             var expectedAuth = bool.Parse(reader.ReadLine()!);
+            var response = reader.ReadToEnd();
 
-            TestHelpers.ConfigureRestClient(_client, "", System.Net.HttpStatusCode.OK);
+            TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
             var result = await methodInvoke(_client).ConfigureAwait(false);
 
             // Check request/response properties
