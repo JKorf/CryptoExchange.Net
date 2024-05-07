@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Provided credentials
         /// </summary>
-        protected readonly ApiCredentials _credentials;
+        protected internal readonly ApiCredentials _credentials;
 
         /// <summary>
         /// Byte representation of the secret
