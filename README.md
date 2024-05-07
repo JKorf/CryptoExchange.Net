@@ -45,6 +45,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.5.2 - 07 May 2024
+    * Fixed SetApiCredentials not correctly being used by rate limiter causing exception
+
 * Version 7.5.1 - 03 May 2024
     * Some small improvements in unit testing components
 
