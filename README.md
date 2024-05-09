@@ -45,6 +45,18 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.5.2 - 07 May 2024
+    * Fixed SetApiCredentials not correctly being used by rate limiter causing exception
+
+* Version 7.5.1 - 03 May 2024
+    * Some small improvements in unit testing components
+
+* Version 7.5.0 - 01 May 2024
+    * Added testing implementations
+    * Small refactor AuthenticationProvider to allow better testing
+    * Change result of MessageAccessor.Read methods to CallResult so error can be returned
+    * Moved some DateTimeConverter logic to seperate methods to allow access from outside converters
+
 * Version 7.4.0 - 28 Apr 2024
     * Added FormatSymbol on IBaseApiClient interface
     * Added IOrderBookFactory interface
