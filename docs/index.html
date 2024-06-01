@@ -1393,7 +1393,7 @@ var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTicke
 		  Similarly as the <code>(I)ExchangeRestClient</code> this client allows you to access the different Websocket clients through a single access point.
 		  </p>
 		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
-		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the ExchangeSocketClient into your service
+		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the IExchangeSocketClient into your service
 var bitgetSub = await exchangeSocketClient.Bitget.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
 var krakenSub = await exchangeSocketClient.Kraken.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
 var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
