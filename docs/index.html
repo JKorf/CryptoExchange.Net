@@ -122,15 +122,16 @@
     <div class="idocs-content">
       <div class="container"> 
         <section id="idocs_intro">
-			<h1>CryptoExchange.Net</h1>
+			<h1>CryptoExchange.Net & Implementations</h1>
 			
 		<p>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</p>
-		<div class="alert alert-info">All libraries can be used in the same project as well as individually, just install the exchange libraries you need!</div>
-		<p>The following API's are directly supported. Note that there are 3rd party implementations going around, but only these are created and supported by me</p>
+		<p>When access to multiple or all exchange API's is needed, the CryptoClients.Net library combines all different client libraries in a single Nuget package. The following image illustrates the structure:</p>
+		<p><img src="assets/images/struct.png" /></p>
+		<p>These Exchanges/API's are directly supported:</p>
 
 		<table class="table table-bordered">
 			<tr>
-				<th>Exchange</th>
+				<th>API</th>
 				<th>Repository</th>
 				<th>Nuget</th>
 			</tr>
@@ -147,12 +148,12 @@
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square" /></a></td></tr>
 		</table>
-		
-		<p>Alternatively, use <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> which combines these packages and allows easy access to all exchange API's.</p>
+		<p>Note that there are 3rd party implementations going around, but only the listed ones here are created and supported by me.</p>
+		<p>When using multiple of these API's the <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> package can be used which combines these packages and allows easy access to all exchange API's.</p>
 		
 		<h4>Supported Frameworks</h4>
 		<p>
-			The library is targeting both <code>.NET Standard 2.0</code> and <code>.NET Standard 2.1</code> for optimal compatibility
+			The libraries are targeting both <code>.NET Standard 2.0</code> and <code>.NET Standard 2.1</code> for optimal compatibility
 		</p>
 		<table class="table table-bordered">
 			<tr>
@@ -1376,14 +1377,14 @@ await client.UnsubscribeAllAsync();</code></pre>
 		============================ -->
         <section id="idocs_common">
           <h2>Common Clients</h2>
-		  <p>CryptoClients.Net exposes some common clients. These clients aim to make using the different API's easier.</p>
+		  <p>The CryptoClients.Net client exposes some common client classes. These clients aim to make using the different API's easier.</p>
 		  
           <p><b>(I)ExchangeRestClient</b><br />
-			The <code>ExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
+			The <code>IExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
 		  </p>
 		  <p>
 		  For example, using the Binance, Bybit and Kucoin API's can be done like this:
-			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service
+			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service after having called 'AddCryptoClients()' during service regirations
 var binanceTicker = await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickersAsync();
 var bybitTicker = await exchangeRestClient.Bybit.V5Api.ExchangeData.GetTickers();
 var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTickers();</code></pre>
@@ -1393,7 +1394,7 @@ var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTicke
 		  Similarly as the <code>(I)ExchangeRestClient</code> this client allows you to access the different Websocket clients through a single access point.
 		  </p>
 		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
-		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the IExchangeSocketClient into your service
+		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the IExchangeSocketClient into your service after having called 'AddCryptoClients()' during service regirations
 var bitgetSub = await exchangeSocketClient.Bitget.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
 var krakenSub = await exchangeSocketClient.Kraken.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
 var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
