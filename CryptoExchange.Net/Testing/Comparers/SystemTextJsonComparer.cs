@@ -162,7 +162,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                     if (dictProp.Value.Type == JTokenType.Object)
                     {
-                        CheckObject(method, dictProp, dict[dictProp.Name]!, ignoreProperties);
+                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name].GetType(), null, null, ignoreProperties);
                     }
                     else
                     {
@@ -260,9 +260,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                 else if (objectValue is DateTime time)
                 {
                     if (time != DateTimeConverter.ParseFromString(jsonValue.Value<string>()!))
-                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {time}");
                 }
-                else if (propertyType.IsEnum)
+                else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
                     // TODO enum comparing
                 }
