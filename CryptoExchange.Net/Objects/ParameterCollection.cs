@@ -3,6 +3,7 @@ using CryptoExchange.Net.Converters.SystemTextJson;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -192,6 +193,19 @@ namespace CryptoExchange.Net.Objects
                 var stringVal = EnumConverter.GetString(value);
                 Add(key, int.Parse(stringVal));
             }
+        }
+
+        /// <summary>
+        /// Set the request body. Can be used to specify a simple value or array as the body instead of an object
+        /// </summary>
+        /// <param name="body">Body to set</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void SetBody(object body)
+        {
+            if (this.Any())
+                throw new InvalidOperationException("Can't set body when other parameters already specified");
+
+            Add(Constants.BodyPlaceHolderKey, body);
         }
     }
 }

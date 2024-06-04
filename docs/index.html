@@ -82,16 +82,17 @@
           <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_installation">Installation</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_di">Dependency Injection</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_general">General Client Usage</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common clients</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common Clients</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
 		  <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_auth">Authorization</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_options_set">Setting options</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_options_def">Option definitions</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_set">Setting Options</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_options_def">Option Definitions</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_features">Additional Features</a>
@@ -811,6 +812,15 @@
         </section>
         
 		<hr class="divider">
+		
+		<section id="idocs_general">
+          <h2>General client usage</h2>
+		  <p>All clients work with the same principles:</p>
+		  <ul>
+		    <li>Mandatory parameters are non-nullable while optional parameters are nullable and will have a default value of null.</li>
+		    <li>Any operation will return a form of <code>CallResult</code>. This result can and should be check for success. The clients will not throw exceptions.</li>
+		  </ul>
+		</section>
 		
         <!-- HTML Structure
 		============================ -->

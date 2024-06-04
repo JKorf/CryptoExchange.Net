@@ -75,7 +75,8 @@ namespace CryptoExchange.Net.Clients
             { HttpMethod.Get, HttpMethodParameterPosition.InUri },
             { HttpMethod.Post, HttpMethodParameterPosition.InBody },
             { HttpMethod.Delete, HttpMethodParameterPosition.InBody },
-            { HttpMethod.Put, HttpMethodParameterPosition.InBody }
+            { HttpMethod.Put, HttpMethodParameterPosition.InBody },
+            { new HttpMethod("Patch"), HttpMethodParameterPosition.InBody },
         };
 
         /// <inheritdoc />
@@ -804,7 +805,11 @@ namespace CryptoExchange.Net.Clients
             if (contentType == Constants.JsonContentHeader)
             {
                 // Write the parameters as json in the body
-                var stringData = CreateSerializer().Serialize(parameters);
+                string stringData;
+                if (parameters.Count == 1 && parameters.ContainsKey(Constants.BodyPlaceHolderKey))
+                    stringData = CreateSerializer().Serialize(parameters[Constants.BodyPlaceHolderKey]);
+                else
+                    stringData = CreateSerializer().Serialize(parameters);
                 request.SetContent(stringData, contentType);
             }
             else if (contentType == Constants.FormContentHeader)

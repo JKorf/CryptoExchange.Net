@@ -434,6 +434,20 @@ namespace CryptoExchange.Net.Authentication
             return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value.ToString(CultureInfo.InvariantCulture);
         }
 
+        /// <summary>
+        /// Return the serialized request body
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        protected string GetSerializedBody(IMessageSerializer serializer, IDictionary<string, object> parameters)
+        {
+            if (parameters.Count == 1 && parameters.ContainsKey(Constants.BodyPlaceHolderKey))
+                return serializer.Serialize(parameters[Constants.BodyPlaceHolderKey]);
+            else
+                return serializer.Serialize(parameters);
+        }
+
         /// <inheritdoc />
         public void Dispose()
         {
