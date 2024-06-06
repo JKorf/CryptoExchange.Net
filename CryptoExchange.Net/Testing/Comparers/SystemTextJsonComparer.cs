@@ -52,8 +52,13 @@ namespace CryptoExchange.Net.Testing.Comparers
                     else
                     {
                         if (dict[dictProp.Name] == default && dictProp.Value.Type != JTokenType.Null)
+                        {
+                            if (dictProp.Value.ToString() == "")
+                                continue;
+
                             // Property value not correct
                             throw new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {dictProp.Value}");
+                        }
                     }
                 }
             }

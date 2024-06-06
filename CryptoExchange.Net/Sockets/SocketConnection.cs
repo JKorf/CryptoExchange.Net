@@ -498,7 +498,7 @@ namespace CryptoExchange.Net.Sockets
                     try
                     {
                         var innerSw = Stopwatch.StartNew();
-                        processor.Handle(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null));
+                        processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null));
                         totalUserTime += (int)innerSw.ElapsedMilliseconds;
                     }
                     catch (Exception ex)

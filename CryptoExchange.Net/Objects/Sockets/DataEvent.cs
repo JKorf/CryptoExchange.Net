@@ -14,9 +14,14 @@ namespace CryptoExchange.Net.Objects.Sockets
         public DateTime Timestamp { get; set; }
 
         /// <summary>
-        /// The topic of the update, what symbol/asset etc..
+        /// The stream producing the update
         /// </summary>
-        public string? Topic { get; set; }
+        public string? StreamId { get; set; }
+
+        /// <summary>
+        /// The symbol the update is for
+        /// </summary>
+        public string? Symbol { get; set; }
 
         /// <summary>
         /// The original data that was received, only available when OutputOriginalData is set to true in the client options
@@ -33,10 +38,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public T Data { get; set; }
 
-        internal DataEvent(T data, string? topic, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
+        internal DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
         {
             Data = data;
-            Topic = topic;
+            StreamId = streamId;
+            Symbol = symbol;
             OriginalData = originalData;
             Timestamp = timestamp;
             UpdateType = updateType;
@@ -50,7 +56,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data)
         {
-            return new DataEvent<K>(data, Topic, OriginalData, Timestamp, UpdateType);
+            return new DataEvent<K>(data, StreamId, Symbol, OriginalData, Timestamp, UpdateType);
         }
 
         /// <summary>
@@ -58,11 +64,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
-        /// <param name="topic">The new topic</param>
+        /// <param name="symbol">The new symbol</param>
         /// <returns></returns>
-        public DataEvent<K> As<K>(K data, string? topic)
+        public DataEvent<K> As<K>(K data, string? symbol)
         {
-            return new DataEvent<K>(data, topic, OriginalData, Timestamp, UpdateType);
+            return new DataEvent<K>(data, StreamId, symbol, OriginalData, Timestamp, UpdateType);
         }
 
         /// <summary>
@@ -70,12 +76,62 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
-        /// <param name="topic">The new topic</param>
+        /// <param name="streamId">The new stream id</param>
+        /// <param name="symbol">The new symbol</param>
         /// <param name="updateType">The type of update</param>
         /// <returns></returns>
-        public DataEvent<K> As<K>(K data, string? topic, SocketUpdateType updateType)
+        public DataEvent<K> As<K>(K data, string streamId, string? symbol, SocketUpdateType updateType)
         {
-            return new DataEvent<K>(data, topic, OriginalData, Timestamp, updateType);
+            return new DataEvent<K>(data, streamId, symbol, OriginalData, Timestamp, updateType);
+        }
+
+        /// <summary>
+        /// Specify the symbol
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public DataEvent<T> WithSymbol(string symbol)
+        {
+            Symbol = symbol;
+            return this;
+        }
+
+        /// <summary>
+        /// Specify the stream id
+        /// </summary>
+        /// <param name="streamId"></param>
+        /// <returns></returns>
+        public DataEvent<T> WithStreamId(string streamId)
+        {
+            StreamId = streamId;
+            return this;
+        }
+
+        /// <summary>
+        /// Create a CallResult from this DataEvent
+        /// </summary>
+        /// <returns></returns>
+        public CallResult<T> ToCallResult()
+        {
+            return new CallResult<T>(Data, OriginalData, null);
+        }
+
+        /// <summary>
+        /// Create a CallResult from this DataEvent
+        /// </summary>
+        /// <returns></returns>
+        public CallResult<K> ToCallResult<K>(K data)
+        {
+            return new CallResult<K>(data, OriginalData, null);
+        }
+
+        /// <summary>
+        /// Create a CallResult from this DataEvent
+        /// </summary>
+        /// <returns></returns>
+        public CallResult<K> ToCallResult<K>(Error error)
+        {
+            return new CallResult<K>(default, OriginalData, error);
         }
     }
 }
