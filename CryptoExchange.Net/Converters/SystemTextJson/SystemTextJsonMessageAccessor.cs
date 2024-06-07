@@ -68,6 +68,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
                 return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
             }
+            catch (Exception ex)
+            {
+                var info = $"Unknown exception: {ex.Message}";
+                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+            }
         }
 
         /// <inheritdoc />

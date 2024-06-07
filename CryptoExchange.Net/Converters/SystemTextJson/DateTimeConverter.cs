@@ -154,6 +154,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
             {
                 // Parse 1637745563.000 format
+                if (doubleValue <= 0)
+                    return default;
                 if (doubleValue < 19999999999)
                     return ConvertFromSeconds(doubleValue);
                 if (doubleValue < 19999999999999)
