@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.Requests
             if (client == null)
             {
                 var handler = new HttpClientHandler();
+                handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
                 if (proxy != null)
                 {
                     handler.Proxy = new WebProxy
