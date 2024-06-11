@@ -53,6 +53,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="uriParameters">Parameters that need to be in the Uri of the request. Should include the provided parameters if they should go in the uri</param>
         /// <param name="bodyParameters">Parameters that need to be in the body of the request. Should include the provided parameters if they should go in the body</param>
         /// <param name="headers">The headers that should be send with the request</param>
+        /// <param name="parameterPosition">The position where the providedParameters should go</param>
         public abstract void AuthenticateRequest(
             RestApiClient apiClient,
             Uri uri,
@@ -62,8 +63,8 @@ namespace CryptoExchange.Net.Authentication
             Dictionary<string, string> headers,
             bool auth,
             ArrayParametersSerialization arraySerialization,
-            RequestBodyFormat requestBodyFormat,
-            HttpMethodParameterPosition parameterPosition
+            HttpMethodParameterPosition parameterPosition,
+            RequestBodyFormat requestBodyFormat
             );
 
         /// <summary>

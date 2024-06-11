@@ -333,8 +333,8 @@ namespace CryptoExchange.Net.Clients
                         headers,
                         definition.Authenticated,
                         arraySerialization,
-                        bodyFormat,
-                        parameterPosition
+                        parameterPosition,
+                        bodyFormat                        
                         );
                 }
                 catch (Exception ex)
@@ -766,8 +766,9 @@ namespace CryptoExchange.Net.Clients
                         headers,
                         signed,
                         arraySerialization,
-                        bodyFormat,
-                        parameterPosition);
+                        parameterPosition,
+                        bodyFormat
+                        );
                 }
                 catch (Exception ex)
                 {
