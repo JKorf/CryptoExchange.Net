@@ -498,7 +498,7 @@ namespace CryptoExchange.Net.Sockets
                     try
                     {
                         var innerSw = Stopwatch.StartNew();
-                        processor.Handle(this, new DataEvent<object>(deserialized, null, originalData, receiveTime, null));
+                        processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null));
                         totalUserTime += (int)innerSw.ElapsedMilliseconds;
                     }
                     catch (Exception ex)
@@ -696,14 +696,15 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Send a query request and wait for an answer
         /// </summary>
-        /// <typeparam name="T">Query response type</typeparam>
+        /// <typeparam name="THandlerResponse">Expected result type</typeparam>
+        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<T>> SendAndWaitQueryAsync<T>(Query<T> query, ManualResetEvent? continueEvent = null)
+        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, ManualResetEvent? continueEvent = null)
         {
             await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
-            return query.TypedResult ?? new CallResult<T>(new ServerError("Timeout"));
+            return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
         }
 
         private async Task SendAndWaitIntAsync(Query query, ManualResetEvent? continueEvent)

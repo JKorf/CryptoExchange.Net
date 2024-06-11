@@ -52,8 +52,13 @@ namespace CryptoExchange.Net.Testing.Comparers
                     else
                     {
                         if (dict[dictProp.Name] == default && dictProp.Value.Type != JTokenType.Null)
+                        {
+                            if (dictProp.Value.ToString() == "")
+                                continue;
+
                             // Property value not correct
                             throw new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {dictProp.Value}");
+                        }
                     }
                 }
             }
@@ -162,7 +167,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                     if (dictProp.Value.Type == JTokenType.Object)
                     {
-                        CheckObject(method, dictProp, dict[dictProp.Name]!, ignoreProperties);
+                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name].GetType(), null, null, ignoreProperties);
                     }
                     else
                     {
@@ -180,7 +185,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 var enumerator = list.GetEnumerator();
                 foreach (JToken jtoken in jObjs)
                 {
-                    enumerator.MoveNext();
+                    var moved = enumerator.MoveNext();
+                    if (!moved)
+                        throw new Exception("Enumeration not moved; incorrect amount of results?");
+
                     var typeConverter = enumerator.Current.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true);
                     if (typeConverter.Length != 0 && ((JsonConverterAttribute)typeConverter.First()).ConverterType != typeof(ArrayConverter))
                         // Custom converter for the type, skip
@@ -260,9 +268,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                 else if (objectValue is DateTime time)
                 {
                     if (time != DateTimeConverter.ParseFromString(jsonValue.Value<string>()!))
-                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {time}");
                 }
-                else if (propertyType.IsEnum)
+                else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
                     // TODO enum comparing
                 }
@@ -277,6 +285,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 {
                     if (time != DateTimeConverter.ParseFromDouble(jsonValue.Value<long>()!))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
+                }
+                else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
+                {
+                    // TODO enum comparing
                 }
                 else if (jsonValue.Value<long>() != Convert.ToInt64(objectValue))
                 {

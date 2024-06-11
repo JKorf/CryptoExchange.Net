@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Requests;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -145,16 +146,17 @@ namespace CryptoExchange.Net.Sockets
     /// <summary>
     /// Query
     /// </summary>
-    /// <typeparam name="TResponse">Response object type</typeparam>
-    public abstract class Query<TResponse> : Query
+    /// <typeparam name="TServerResponse">The type returned from the server</typeparam>
+    /// <typeparam name="THandlerResponse">The type to be returned to the caller</typeparam>
+    public abstract class Query<TServerResponse, THandlerResponse> : Query
     {
         /// <inheritdoc />
-        public override Type? GetMessageType(IMessageAccessor message) => typeof(TResponse);
+        public override Type? GetMessageType(IMessageAccessor message) => typeof(TServerResponse);
 
         /// <summary>
         /// The typed call result
         /// </summary>
-        public CallResult<TResponse>? TypedResult => (CallResult<TResponse>?)Result;
+        public CallResult<THandlerResponse>? TypedResult => (CallResult<THandlerResponse>?)Result;
 
         /// <summary>
         /// ctor
@@ -171,7 +173,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Completed = true;
             Response = message.Data;
-            Result = HandleMessage(connection, message.As((TResponse)message.Data));
+            Result = HandleMessage(connection, message.As((TServerResponse)message.Data));
             _event.Set();
             ContinueAwaiter?.WaitOne();
             return Result;
@@ -183,7 +185,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual CallResult<TResponse> HandleMessage(SocketConnection connection, DataEvent<TResponse> message) => new CallResult<TResponse>(message.Data, message.OriginalData, null);
+        public abstract CallResult<THandlerResponse> HandleMessage(SocketConnection connection, DataEvent<TServerResponse> message);
 
         /// <inheritdoc />
         public override void Timeout()
@@ -192,7 +194,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             Completed = true;
-            Result = new CallResult<TResponse>(new CancellationRequestedError(null, "Query timeout", null));
+            Result = new CallResult<THandlerResponse>(new CancellationRequestedError(null, "Query timeout", null));
             ContinueAwaiter?.Set();
             _event.Set();
         }
@@ -200,10 +202,35 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override void Fail(Error error)
         {
-            Result = new CallResult<TResponse>(error);
+            Result = new CallResult<THandlerResponse>(error);
             Completed = true;
             ContinueAwaiter?.Set();
             _event.Set();
         }
+    }
+
+    /// <summary>
+    /// Query
+    /// </summary>
+    /// <typeparam name="TResponse">Response object type</typeparam>
+    public abstract class Query<TResponse> : Query<TResponse, TResponse>
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="authenticated"></param>
+        /// <param name="weight"></param>
+        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
+        {
+        }
+
+        /// <summary>
+        /// Handle the query response
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public override CallResult<TResponse> HandleMessage(SocketConnection connection, DataEvent<TResponse> message) => message.ToCallResult();
     }
 }
