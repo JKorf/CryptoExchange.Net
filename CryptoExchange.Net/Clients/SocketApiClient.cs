@@ -278,10 +278,11 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Send a query on a socket connection to the BaseAddress and wait for the response
         /// </summary>
-        /// <typeparam name="T">Expected result type</typeparam>
+        /// <typeparam name="THandlerResponse">Expected result type</typeparam>
+        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">The query</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<T>> QueryAsync<T>(Query<T> query)
+        protected virtual Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query)
         {
             return QueryAsync(BaseAddress, query);
         }
@@ -289,14 +290,15 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Send a query on a socket connection and wait for the response
         /// </summary>
-        /// <typeparam name="T">The expected result type</typeparam>
+        /// <typeparam name="THandlerResponse">Expected result type</typeparam>
+        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="url">The url for the request</param>
         /// <param name="query">The query</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<T>> QueryAsync<T>(string url, Query<T> query)
+        protected virtual async Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(string url, Query<TServerResponse, THandlerResponse> query)
         {
             if (_disposing)
-                return new CallResult<T>(new InvalidOperationError("Client disposed, can't query"));
+                return new CallResult<THandlerResponse>(new InvalidOperationError("Client disposed, can't query"));
 
             SocketConnection socketConnection;
             var released = false;
@@ -305,7 +307,7 @@ namespace CryptoExchange.Net.Clients
             {
                 var socketResult = await GetSocketConnection(url, query.Authenticated).ConfigureAwait(false);
                 if (!socketResult)
-                    return socketResult.As<T>(default);
+                    return socketResult.As<THandlerResponse>(default);
 
                 socketConnection = socketResult.Data;
 
@@ -318,7 +320,7 @@ namespace CryptoExchange.Net.Clients
 
                 var connectResult = await ConnectIfNeededAsync(socketConnection, query.Authenticated).ConfigureAwait(false);
                 if (!connectResult)
-                    return new CallResult<T>(connectResult.Error!);
+                    return new CallResult<THandlerResponse>(connectResult.Error!);
             }
             finally
             {
@@ -329,10 +331,10 @@ namespace CryptoExchange.Net.Clients
             if (socketConnection.PausedActivity)
             {
                 _logger.HasBeenPausedCantSendQueryAtThisMoment(socketConnection.SocketId);
-                return new CallResult<T>(new ServerError("Socket is paused"));
+                return new CallResult<THandlerResponse>(new ServerError("Socket is paused"));
             }
 
-            return await socketConnection.SendAndWaitQueryAsync(query).ConfigureAwait(false);
+            return await socketConnection.SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(query).ConfigureAwait(false);
         }
 
         /// <summary>

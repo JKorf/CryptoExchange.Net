@@ -136,7 +136,8 @@ namespace CryptoExchange.Net.Testing
                 headers,
                 true,
                 client.ArraySerialization, 
-                client.RequestBodyFormat);
+                client.RequestBodyFormat,
+                client.ParameterPositions[method]);
 
             var signature = getSignature(uriParams, bodyParams, headers);
 

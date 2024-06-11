@@ -62,7 +62,8 @@ namespace CryptoExchange.Net.Authentication
             Dictionary<string, string> headers,
             bool auth,
             ArrayParametersSerialization arraySerialization,
-            RequestBodyFormat requestBodyFormat
+            RequestBodyFormat requestBodyFormat,
+            HttpMethodParameterPosition parameterPosition
             );
 
         /// <summary>

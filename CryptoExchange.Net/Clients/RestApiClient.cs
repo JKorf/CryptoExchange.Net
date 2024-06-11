@@ -317,6 +317,7 @@ namespace CryptoExchange.Net.Clients
             var arraySerialization = definition.ArraySerialization ?? ArraySerialization;
             var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
             var requestId = ExchangeHelpers.NextId();
+            var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
 
             var headers = new Dictionary<string, string>();
             if (AuthenticationProvider != null)
@@ -332,7 +333,9 @@ namespace CryptoExchange.Net.Clients
                         headers,
                         definition.Authenticated,
                         arraySerialization,
-                        bodyFormat);
+                        bodyFormat,
+                        parameterPosition
+                        );
                 }
                 catch (Exception ex)
                 {
@@ -365,7 +368,6 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
@@ -764,7 +766,8 @@ namespace CryptoExchange.Net.Clients
                         headers,
                         signed,
                         arraySerialization,
-                        bodyFormat);
+                        bodyFormat,
+                        parameterPosition);
                 }
                 catch (Exception ex)
                 {

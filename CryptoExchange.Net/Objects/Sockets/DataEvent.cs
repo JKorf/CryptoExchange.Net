@@ -97,6 +97,17 @@ namespace CryptoExchange.Net.Objects.Sockets
         }
 
         /// <summary>
+        /// Specify the update type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public DataEvent<T> WithUpdateType(SocketUpdateType type)
+        {
+            UpdateType = type;
+            return this;
+        }
+
+        /// <summary>
         /// Specify the stream id
         /// </summary>
         /// <param name="streamId"></param>
