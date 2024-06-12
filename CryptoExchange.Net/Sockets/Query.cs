@@ -20,11 +20,6 @@ namespace CryptoExchange.Net.Sockets
         public int Id { get; } = ExchangeHelpers.NextId();
 
         /// <summary>
-        /// Can handle data
-        /// </summary>
-        public bool CanHandleData => true;
-
-        /// <summary>
         /// Has this query been completed
         /// </summary>
         public bool Completed { get; set; }

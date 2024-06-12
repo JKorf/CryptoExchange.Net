@@ -443,7 +443,7 @@ namespace CryptoExchange.Net.Sockets
                 // 4. Get the listeners interested in this message
                 List<IMessageProcessor> processors;
                 lock (_listenersLock)
-                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId) && s.CanHandleData).ToList();
+                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
 
                 if (processors.Count == 0)
                 {
@@ -451,7 +451,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         List<string> listenerIds;
                         lock (_listenersLock)
-                            listenerIds = _listeners.Where(l => l.CanHandleData).SelectMany(l => l.ListenerIdentifiers).ToList();
+                            listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
                         _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
                         UnhandledMessage?.Invoke(_accessor);
                     }
@@ -477,6 +477,10 @@ namespace CryptoExchange.Net.Sockets
                         _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
                         continue;
                     }
+
+                    if (processor is Subscription subscriptionProcessor && !subscriptionProcessor.Confirmed)
+                        // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
+                        subscriptionProcessor.Confirmed = true;
 
                     // 6. Deserialize the message
                     object? deserialized = null;
@@ -861,6 +865,8 @@ namespace CryptoExchange.Net.Sockets
                     { 
                         subscription.HandleSubQueryResponse(subQuery.Response!);
                         waitEvent.Set();
+                        if (r.Result.Success)
+                            subscription.Confirmed = true;
                         return r.Result;
                     }));
                 }
@@ -869,9 +875,6 @@ namespace CryptoExchange.Net.Sockets
                 if (taskList.Any(t => !t.Result.Success))
                     return taskList.First(t => !t.Result.Success).Result;
             }
-
-            foreach (var subscription in subList)
-                subscription.Confirmed = true;
 
             if (!_socket.IsOpen)
                 return new CallResult(new WebError("Socket not connected"));

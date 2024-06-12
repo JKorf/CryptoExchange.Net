@@ -53,11 +53,6 @@ namespace CryptoExchange.Net.Clients
         protected internal bool UnhandledMessageExpected { get; set; }
 
         /// <summary>
-        /// If true a subscription will accept message before the confirmation of a subscription has been received
-        /// </summary>
-        protected bool HandleMessageBeforeConfirmation { get; set; }
-
-        /// <summary>
         /// The rate limiters 
         /// </summary>
         protected internal IRateLimitGate? RateLimiter { get; set; }
@@ -203,7 +198,6 @@ namespace CryptoExchange.Net.Clients
                         return socketResult.As<UpdateSubscription>(null);
 
                     socketConnection = socketResult.Data;
-                    subscription.HandleUpdatesBeforeConfirmation = subscription.HandleUpdatesBeforeConfirmation || HandleMessageBeforeConfirmation;
 
                     // Add a subscription on the socket connection
                     var success = socketConnection.AddSubscription(subscription);
@@ -250,11 +244,18 @@ namespace CryptoExchange.Net.Clients
                 if (!subResult)
                 {
                     waitEvent?.Set();
-                    _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
-                    // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
-                    var unsubscribe = subResult.Error is CancellationRequestedError;
-                    await socketConnection.CloseAsync(subscription, unsubscribe).ConfigureAwait(false);
-                    return new CallResult<UpdateSubscription>(subResult.Error!);
+                    var isTimeout = subResult.Error is CancellationRequestedError;
+                    if (isTimeout && subscription.Confirmed)
+                    {
+                        // No response received, but the subscription did receive updates. We'll assume success
+                    }
+                    else
+                    {
+                        _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
+                        // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
+                        await socketConnection.CloseAsync(subscription, isTimeout).ConfigureAwait(false);
+                        return new CallResult<UpdateSubscription>(subResult.Error!);
+                    }
                 }
 
                 subscription.HandleSubQueryResponse(subQuery.Response!);
@@ -517,7 +518,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="address">The address to connect to</param>
         /// <returns></returns>
         protected virtual WebSocketParameters GetWebSocketParameters(string address)
-            => new(new Uri(address), ClientOptions.AutoReconnect)
+            => new(new Uri(address), ClientOptions.ReconnectPolicy)
             {
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,

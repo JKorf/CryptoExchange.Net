@@ -26,19 +26,19 @@ namespace CryptoExchange.Net.Objects.Sockets
         public IDictionary<string, string> Cookies { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
-        /// The time to wait between reconnect attempts
+        /// The fixed time to wait between reconnect attempts, only used when `ReconnectPolicy` is set to `ReconnectPolicy.ExponentialBackoff`
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Reconnect policy
+        /// </summary>
+        public ReconnectPolicy ReconnectPolicy { get; set; } = ReconnectPolicy.FixedDelay;
 
         /// <summary>
         /// Proxy for the connection
         /// </summary>
         public ApiProxy? Proxy { get; set; }
-
-        /// <summary>
-        /// Whether the socket should automatically reconnect when connection is lost
-        /// </summary>
-        public bool AutoReconnect { get; set; }
 
         /// <summary>
         /// The maximum time of no data received before considering the connection lost and closting/reconnecting the socket
@@ -68,11 +68,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// ctor
         /// </summary>
         /// <param name="uri">Uri</param>
-        /// <param name="autoReconnect">Auto reconnect</param>
-        public WebSocketParameters(Uri uri, bool autoReconnect)
+        /// <param name="policy">Reconnect policy</param>
+        public WebSocketParameters(Uri uri, ReconnectPolicy policy)
         {
             Uri = uri;
-            AutoReconnect = autoReconnect;
+            ReconnectPolicy = policy;
         }
     }
 }

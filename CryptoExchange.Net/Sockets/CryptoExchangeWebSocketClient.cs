@@ -47,6 +47,7 @@ namespace CryptoExchange.Net.Sockets
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
         private string _baseAddress;
+        private int _reconnectAttempt;
 
         private const int _receiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
@@ -246,12 +247,12 @@ namespace CryptoExchange.Net.Sockets
                 await _closeTask.ConfigureAwait(false);
                 _closeTask = null;
 
-                if (!Parameters.AutoReconnect)
+                if (Parameters.ReconnectPolicy == ReconnectPolicy.Disabled)
                 {
                     _processState = ProcessState.Idle;
                     await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                     return;
-                }    
+                }
 
                 if (!_stopRequested)
                 {
@@ -259,9 +260,9 @@ namespace CryptoExchange.Net.Sockets
                     await (OnReconnecting?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);                    
                 }
 
-                var sinceLastReconnect = DateTime.UtcNow - _lastReconnectTime;
-                if (sinceLastReconnect < Parameters.ReconnectInterval)
-                    await Task.Delay(Parameters.ReconnectInterval - sinceLastReconnect).ConfigureAwait(false);
+                // Delay here to prevent very repid looping when a connection to the server is accepted and immediately disconnected
+                var initialDelay = GetReconnectDelay();
+                await Task.Delay(initialDelay).ConfigureAwait(false);
 
                 while (!_stopRequested)
                 {
@@ -282,13 +283,17 @@ namespace CryptoExchange.Net.Sockets
                     _ctsSource = new CancellationTokenSource();
                     while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
 
+                    _reconnectAttempt++;
                     var connected = await ConnectInternalAsync().ConfigureAwait(false);
                     if (!connected)
                     {
-                        await Task.Delay(Parameters.ReconnectInterval).ConfigureAwait(false);
+                        // Delay between reconnect attempts
+                        var delay = GetReconnectDelay();
+                        await Task.Delay(delay).ConfigureAwait(false);
                         continue;
                     }
 
+                    _reconnectAttempt = 0;
                     _lastReconnectTime = DateTime.UtcNow;
                     await (OnReconnected?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                     break;
@@ -296,6 +301,24 @@ namespace CryptoExchange.Net.Sockets
             }
 
             _processState = ProcessState.Idle;
+        }
+
+        private TimeSpan GetReconnectDelay()
+        {
+            if (_reconnectAttempt == 0)
+            {
+                // Means this is directly after disconnecting. Only delay if the last reconnect time is very recent
+                var sinceLastReconnect = DateTime.UtcNow - _lastReconnectTime;
+                if (sinceLastReconnect < TimeSpan.FromSeconds(5))
+                    return TimeSpan.FromSeconds(5) - sinceLastReconnect;
+
+                return TimeSpan.FromMilliseconds(1);
+            }
+
+            var delay = Parameters.ReconnectPolicy == ReconnectPolicy.FixedDelay ? Parameters.ReconnectInterval : TimeSpan.FromSeconds(Math.Pow(2, Math.Min(5, _reconnectAttempt)));
+            if (delay > TimeSpan.Zero)
+                return delay;
+            return TimeSpan.FromMilliseconds(1);
         }
 
         /// <inheritdoc />

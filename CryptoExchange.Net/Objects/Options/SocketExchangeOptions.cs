@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects.Sockets;
 using System;
 
 namespace CryptoExchange.Net.Objects.Options
@@ -9,14 +10,14 @@ namespace CryptoExchange.Net.Objects.Options
     public class SocketExchangeOptions : ExchangeOptions
     {
         /// <summary>
-        /// Whether or not the socket should automatically reconnect when losing connection
-        /// </summary>
-        public bool AutoReconnect { get; set; } = true;
-
-        /// <summary>
-        /// Time to wait between reconnect attempts
+        /// The fixed time to wait between reconnect attempts, only used when `ReconnectPolicy` is set to `ReconnectPolicy.ExponentialBackoff`
         /// </summary>
         public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Reconnect policy
+        /// </summary>
+        public ReconnectPolicy ReconnectPolicy { get; set; } = ReconnectPolicy.FixedDelay;
 
         /// <summary>
         /// Max number of concurrent resubscription tasks per socket after reconnecting a socket
@@ -57,7 +58,7 @@ namespace CryptoExchange.Net.Objects.Options
             {
                 ApiCredentials = ApiCredentials?.Copy(),
                 OutputOriginalData = OutputOriginalData,
-                AutoReconnect = AutoReconnect,
+                ReconnectPolicy = ReconnectPolicy,
                 DelayAfterConnect = DelayAfterConnect,
                 MaxConcurrentResubscriptionsPerSocket = MaxConcurrentResubscriptionsPerSocket,
                 ReconnectInterval = ReconnectInterval,

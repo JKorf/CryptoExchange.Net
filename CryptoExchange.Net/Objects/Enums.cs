@@ -169,4 +169,23 @@
         /// </summary>
         Snapshot
     }
+
+    /// <summary>
+    /// Reconnect policy
+    /// </summary>
+    public enum ReconnectPolicy
+    {
+        /// <summary>
+        /// Reconnect is disabled
+        /// </summary>
+        Disabled,
+        /// <summary>
+        /// Fixed delay of `ReconnectInterval` between retries
+        /// </summary>
+        FixedDelay,
+        /// <summary>
+        /// Backof policy of 2^`reconnectAttempt`, where `reconnectAttempt` has a max value of 5
+        /// </summary>
+        ExponentialBackoff
+    }
 }
