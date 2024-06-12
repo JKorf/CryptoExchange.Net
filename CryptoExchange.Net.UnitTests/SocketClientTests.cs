@@ -72,7 +72,6 @@ namespace CryptoExchange.Net.UnitTests
                 result = messageEvent.Data;
                 rstEvent.Set();
             });
-            subObj.HandleUpdatesBeforeConfirmation = true;
             sub.AddSubscription(subObj);
 
             // act
@@ -107,7 +106,6 @@ namespace CryptoExchange.Net.UnitTests
                 original = messageEvent.OriginalData;
                 rstEvent.Set();
             });
-            subObj.HandleUpdatesBeforeConfirmation = true;
             sub.AddSubscription(subObj);
             var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
 
