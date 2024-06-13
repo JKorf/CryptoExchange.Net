@@ -17,6 +17,9 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, DateTime, Exception?> _restApiRateLimitRetry;
         private static readonly Action<ILogger, int, DateTime, Exception?> _restApiRateLimitPauseUntil;
         private static readonly Action<ILogger, int, RequestDefinition, string?, string, string, Exception?> _restApiSendRequest;
+        private static readonly Action<ILogger, string, Exception?> _restApiCheckingCache;
+        private static readonly Action<ILogger, string, Exception?> _restApiCacheHit;
+        private static readonly Action<ILogger, string, Exception?> _restApiCacheNotHit;
 
 
         static RestApiClientLoggingExtensions()
@@ -65,6 +68,21 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Debug,
                 new EventId(4008, "RestApiSendRequest"),
                 "[Req {RequestId}] Sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}");
+
+            _restApiCheckingCache = LoggerMessage.Define<string>(
+                LogLevel.Trace,
+                new EventId(4009, "RestApiCheckingCache"),
+                "Checking cache for key {Key}");
+
+            _restApiCacheHit = LoggerMessage.Define<string>(
+                LogLevel.Trace,
+                new EventId(4010, "RestApiCacheHit"),
+                "Cache hit for key {Key}");
+
+            _restApiCacheNotHit = LoggerMessage.Define<string>(
+                LogLevel.Trace,
+                new EventId(4011, "RestApiCacheNotHit"),
+                "Cache not hit for key {Key}");
         }
 
         public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error)
@@ -110,6 +128,21 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void RestApiSendRequest(this ILogger logger, int requestId, RequestDefinition definition, string? body, string query, string headers)
         {
             _restApiSendRequest(logger, requestId, definition, body, query, headers, null);
+        }
+
+        public static void CheckingCache(this ILogger logger, string key)
+        {
+            _restApiCheckingCache(logger, key, null);
+        }
+
+        public static void CacheHit(this ILogger logger, string key)
+        {
+            _restApiCacheHit(logger, key, null);
+        }
+
+        public static void CacheNotHit(this ILogger logger, string key)
+        {
+            _restApiCacheNotHit(logger, key, null);
         }
     }
 }

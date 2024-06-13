@@ -332,6 +332,11 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan? ResponseTime { get; set; }
 
         /// <summary>
+        /// The data source of this result
+        /// </summary>
+        public ResultDataSource DataSource { get; set; } = ResultDataSource.Server;
+
+        /// <summary>
         /// Create a new result
         /// </summary>
         /// <param name="code"></param>
@@ -415,6 +420,17 @@ namespace CryptoExchange.Net.Objects
         public new WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, default, error);
+        }
+
+        /// <summary>
+        /// Return a copy of this result with data source set to cache
+        /// </summary>
+        /// <returns></returns>
+        internal WebCallResult<T> Cached()
+        {
+            var result = new WebCallResult<T>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, default, Error);
+            result.DataSource = ResultDataSource.Cache;
+            return result;
         }
 
         /// <inheritdoc />

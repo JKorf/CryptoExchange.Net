@@ -188,4 +188,19 @@
         /// </summary>
         ExponentialBackoff
     }
+
+    /// <summary>
+    /// The data source of the result
+    /// </summary>
+    public enum ResultDataSource
+    {
+        /// <summary>
+        /// From server
+        /// </summary>
+        Server,
+        /// <summary>
+        /// From cache
+        /// </summary>
+        Cache
+    }
 }

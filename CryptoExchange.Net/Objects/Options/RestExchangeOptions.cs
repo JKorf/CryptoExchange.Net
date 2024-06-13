@@ -19,6 +19,16 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan TimestampRecalculationInterval { get; set; } = TimeSpan.FromHours(1);
 
         /// <summary>
+        /// Whether caching is enabled. Caching will only be applied to GET http requests. The lifetime of cached results can be determined by the `CachingMaxAge` option
+        /// </summary>
+        public bool CachingEnabled { get; set; } = false;
+
+        /// <summary>
+        /// The max age of a cached entry, only used when the `CachingEnabled` options is set to true. When a cached entry is older than the max age it will be discarded and a new server request will be done
+        /// </summary>
+        public TimeSpan CachingMaxAge { get; set; } = TimeSpan.FromSeconds(5);
+
+        /// <summary>
         /// Create a copy of this options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -34,7 +44,9 @@ namespace CryptoExchange.Net.Objects.Options
                 Proxy = Proxy,
                 RequestTimeout = RequestTimeout,
                 RateLimiterEnabled = RateLimiterEnabled,
-                RateLimitingBehaviour = RateLimitingBehaviour
+                RateLimitingBehaviour = RateLimitingBehaviour,
+                CachingEnabled = CachingEnabled,
+                CachingMaxAge = CachingMaxAge,
             };
         }
     }

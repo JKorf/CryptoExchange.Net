@@ -48,6 +48,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="requestBodyFormat">Request body format</param>
         /// <param name="parameterPosition">Parameter position</param>
         /// <param name="arraySerialization">Array serialization type</param>
+        /// <param name="preventCaching">Prevent request caching</param>
         /// <returns></returns>
         public RequestDefinition GetOrCreate(
             HttpMethod method,
@@ -59,7 +60,8 @@ namespace CryptoExchange.Net.Objects
             TimeSpan? endpointLimitPeriod = null,
             RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
-            ArrayParametersSerialization? arraySerialization = null)
+            ArrayParametersSerialization? arraySerialization = null,
+            bool? preventCaching = null)
         {
 
             if (!_definitions.TryGetValue(method + path, out var def))
@@ -74,6 +76,7 @@ namespace CryptoExchange.Net.Objects
                     ArraySerialization = arraySerialization,
                     RequestBodyFormat = requestBodyFormat,
                     ParameterPosition = parameterPosition,
+                    PreventCaching = preventCaching ?? false
                 };
                 _definitions.TryAdd(method + path, def);
             }

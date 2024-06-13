@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.Caching;
 using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
@@ -17,6 +18,7 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -85,6 +87,10 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public new RestApiOptions ApiOptions => (RestApiOptions)base.ApiOptions;
 
+        /// <summary>
+        /// Memory cache
+        /// </summary>
+        private static MemoryCache _cache = new MemoryCache();
 
         /// <summary>
         /// ctor
@@ -190,6 +196,21 @@ namespace CryptoExchange.Net.Clients
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null) where T : class
         {
+            var key = baseAddress + definition + uriParameters?.ToFormData();
+            if (ShouldCache(definition))
+            {
+                _logger.CheckingCache(key);
+                var cachedValue = _cache.Get(key, ClientOptions.CachingMaxAge);
+                if (cachedValue != null)
+                {
+                    _logger.CacheHit(key);
+                    var original = (WebCallResult<T>)cachedValue;
+                    return original.Cached();
+                }
+
+                _logger.CacheNotHit(key);
+            }
+
             int currentTry = 0;
             while (true)
             {
@@ -214,6 +235,12 @@ namespace CryptoExchange.Net.Clients
 
                 if (await ShouldRetryRequestAsync(definition.RateLimitGate, result, currentTry).ConfigureAwait(false))
                     continue;
+
+                if (result.Success &&
+                    ShouldCache(definition))
+                {
+                    _cache.Add(key, result);
+                }
 
                 return result;
             }
@@ -445,6 +472,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="requestWeight">Credits used for the request</param>
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <param name="gate">The ratelimit gate to use</param>
+        /// <param name="preventCaching">Whether caching should be prevented for this request</param>
         /// <returns></returns>
         [return: NotNull]
         protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
@@ -458,9 +486,25 @@ namespace CryptoExchange.Net.Clients
             ArrayParametersSerialization? arraySerialization = null,
             int requestWeight = 1,
             Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null
+            IRateLimitGate? gate = null,
+            bool preventCaching = false
             ) where T : class
         {
+            var key = uri.ToString() + method + signed + parameters?.ToFormData();
+            if (ShouldCache(method) && !preventCaching)
+            {
+                _logger.CheckingCache(key);
+                var cachedValue = _cache.Get(key, ClientOptions.CachingMaxAge);
+                if (cachedValue != null)
+                {
+                    _logger.CacheHit(key);
+                    var original = (WebCallResult<T>)cachedValue;
+                    return original.Cached();
+                }
+
+                _logger.CacheNotHit(key);
+            }
+
             int currentTry = 0;
             while (true)
             {
@@ -477,6 +521,13 @@ namespace CryptoExchange.Net.Clients
 
                 if (await ShouldRetryRequestAsync(gate, result, currentTry).ConfigureAwait(false))
                     continue;
+
+                if (result.Success &&
+                    ShouldCache(method) && 
+                    !preventCaching)
+                {
+                    _cache.Add(key, result);
+                }
 
                 return result;
             }
@@ -949,5 +1000,14 @@ namespace CryptoExchange.Net.Clients
 
             return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, true, null);
         }
+
+        private bool ShouldCache(RequestDefinition definition)
+            => ClientOptions.CachingEnabled
+            && definition.Method == HttpMethod.Get
+            && !definition.PreventCaching;
+
+        private bool ShouldCache(HttpMethod method)
+            => ClientOptions.CachingEnabled
+            && method == HttpMethod.Get;
     }
 }

@@ -61,6 +61,12 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan? EndpointLimitPeriod { get; set; }
 
+
+        /// <summary>
+        /// Whether this request should never be cached
+        /// </summary>
+        public bool PreventCaching { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>
