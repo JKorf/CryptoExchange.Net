@@ -282,10 +282,11 @@ namespace CryptoExchange.Net.Clients
         /// <typeparam name="THandlerResponse">Expected result type</typeparam>
         /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">The query</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query)
+        protected virtual Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, CancellationToken ct = default)
         {
-            return QueryAsync(BaseAddress, query);
+            return QueryAsync(BaseAddress, query, ct);
         }
 
         /// <summary>
@@ -295,11 +296,15 @@ namespace CryptoExchange.Net.Clients
         /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="url">The url for the request</param>
         /// <param name="query">The query</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(string url, Query<TServerResponse, THandlerResponse> query)
+        protected virtual async Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(string url, Query<TServerResponse, THandlerResponse> query, CancellationToken ct = default)
         {
             if (_disposing)
                 return new CallResult<THandlerResponse>(new InvalidOperationError("Client disposed, can't query"));
+
+            if (ct.IsCancellationRequested)
+                return new CallResult<THandlerResponse>(new CancellationRequestedError());
 
             SocketConnection socketConnection;
             var released = false;
@@ -335,7 +340,10 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<THandlerResponse>(new ServerError("Socket is paused"));
             }
 
-            return await socketConnection.SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(query).ConfigureAwait(false);
+            if (ct.IsCancellationRequested)
+                return new CallResult<THandlerResponse>(new CancellationRequestedError());
+
+            return await socketConnection.SendAndWaitQueryAsync(query, null, ct).ConfigureAwait(false);
         }
 
         /// <summary>

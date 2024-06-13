@@ -111,8 +111,9 @@ namespace CryptoExchange.Net.Sockets
         /// Wait untill timeout or the request is competed
         /// </summary>
         /// <param name="timeout"></param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public async Task WaitAsync(TimeSpan timeout) => await _event.WaitAsync(timeout).ConfigureAwait(false);
+        public async Task WaitAsync(TimeSpan timeout, CancellationToken ct) => await _event.WaitAsync(timeout, ct).ConfigureAwait(false);
 
         /// <inheritdoc />
         public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);

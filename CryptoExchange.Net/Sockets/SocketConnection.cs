@@ -690,10 +690,11 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, ManualResetEvent? continueEvent = null)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, ManualResetEvent? continueEvent = null, CancellationToken ct = default)
         {
-            await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
             return query.Result ?? new CallResult(new ServerError("Timeout"));
         }
 
@@ -704,14 +705,15 @@ namespace CryptoExchange.Net.Sockets
         /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, ManualResetEvent? continueEvent = null)
+        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, ManualResetEvent? continueEvent = null, CancellationToken ct = default)
         {
-            await SendAndWaitIntAsync(query, continueEvent).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
         }
 
-        private async Task SendAndWaitIntAsync(Query query, ManualResetEvent? continueEvent)
+        private async Task SendAndWaitIntAsync(Query query, ManualResetEvent? continueEvent, CancellationToken ct = default)
         {
             lock(_listenersLock)
                 _listeners.Add(query);
@@ -728,7 +730,7 @@ namespace CryptoExchange.Net.Sockets
 
             try
             {
-                while (true)
+                while (!ct.IsCancellationRequested)
                 {
                     if (!_socket.IsOpen)
                     {
@@ -739,10 +741,16 @@ namespace CryptoExchange.Net.Sockets
                     if (query.Completed)
                         return;
 
-                    await query.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await query.WaitAsync(TimeSpan.FromMilliseconds(500), ct).ConfigureAwait(false);
 
                     if (query.Completed)
                         return;
+                }
+
+                if (ct.IsCancellationRequested)
+                {
+                    query.Fail(new CancellationRequestedError());
+                    return;
                 }
             }
             finally
