@@ -381,7 +381,7 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult(new NoApiCredentialsError());
 
             _logger.AttemptingToAuthenticate(socket.SocketId);
-            var authRequest = GetAuthenticationRequest();
+            var authRequest = GetAuthenticationRequest(socket);
             if (authRequest != null)
             {
                 var result = await socket.SendAndWaitQueryAsync(authRequest).ConfigureAwait(false);
@@ -406,7 +406,7 @@ namespace CryptoExchange.Net.Clients
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual Query? GetAuthenticationRequest() => throw new NotImplementedException();
+        protected internal virtual Query? GetAuthenticationRequest(SocketConnection connection) => throw new NotImplementedException();
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
