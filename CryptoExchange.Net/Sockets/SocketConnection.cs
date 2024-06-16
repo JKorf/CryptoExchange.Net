@@ -175,6 +175,11 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// Whether this connection should be kept alive even when there is no subscription
+        /// </summary>
+        public bool DedicatedRequestConnection { get; internal set; }
+
         private bool _pausedActivity;
         private readonly object _listenersLock;
         private readonly List<IMessageProcessor> _listeners;
@@ -608,7 +613,7 @@ namespace CryptoExchange.Net.Sockets
             bool shouldCloseConnection;
             lock (_listenersLock)
             {
-                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed);
+                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection;
                 if (shouldCloseConnection)
                     Status = SocketStatus.Closing;
             }
@@ -811,20 +816,23 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult(new WebError("Socket not connected"));
 
-            bool anySubscriptions;
-            lock (_listenersLock)
-                anySubscriptions = _listeners.OfType<Subscription>().Any(s => s.UserSubscription);
-            if (!anySubscriptions)
+            if (!DedicatedRequestConnection)
             {
-                // No need to resubscribe anything
-                _logger.NothingToResubscribeCloseConnection(SocketId);
-                _ = _socket.CloseAsync();
-                return new CallResult(null);
+                bool anySubscriptions;
+                lock (_listenersLock)
+                    anySubscriptions = _listeners.OfType<Subscription>().Any(s => s.UserSubscription);
+                if (!anySubscriptions)
+                {
+                    // No need to resubscribe anything
+                    _logger.NothingToResubscribeCloseConnection(SocketId);
+                    _ = _socket.CloseAsync();
+                    return new CallResult(null);
+                }
             }
 
             bool anyAuthenticated;
             lock (_listenersLock)
-                anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated);
+                anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated) || DedicatedRequestConnection;
             if (anyAuthenticated)
             {
                 // If we reconnected a authenticated connection we need to re-authenticate

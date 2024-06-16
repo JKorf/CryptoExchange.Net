@@ -8,6 +8,7 @@ using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,6 +67,11 @@ namespace CryptoExchange.Net.Clients
         /// Periodic task registrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
+
+        /// <summary>
+        /// List of address to keep an alive connection to
+        /// </summary>
+        protected List<DedicatedConnectionConfig> DedicatedConnectionConfigs { get; set; } = new List<DedicatedConnectionConfig>();
 
         /// <inheritdoc />
         public double IncomingKbps
@@ -132,6 +138,16 @@ namespace CryptoExchange.Net.Clients
         protected internal virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
 
         /// <summary>
+        /// Keep an open connection to this url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="auth"></param>
+        protected virtual void SetDedicatedConnection(string url, bool auth)
+        {
+            DedicatedConnectionConfigs.Add(new DedicatedConnectionConfig() { SocketAddress = url, Authenticated = auth });
+        }
+
+        /// <summary>
         /// Add a query to periodically send on each connection
         /// </summary>
         /// <param name="identifier"></param>
@@ -193,7 +209,7 @@ namespace CryptoExchange.Net.Clients
                 while (true)
                 {
                     // Get a new or existing socket connection
-                    var socketResult = await GetSocketConnection(url, subscription.Authenticated).ConfigureAwait(false);
+                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false).ConfigureAwait(false);
                     if (!socketResult)
                         return socketResult.As<UpdateSubscription>(null);
 
@@ -311,7 +327,7 @@ namespace CryptoExchange.Net.Clients
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
             try
             {
-                var socketResult = await GetSocketConnection(url, query.Authenticated).ConfigureAwait(false);
+                var socketResult = await GetSocketConnection(url, query.Authenticated, true).ConfigureAwait(false);
                 if (!socketResult)
                     return socketResult.As<THandlerResponse>(default);
 
@@ -455,19 +471,31 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="address">The address the socket is for</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
+        /// <param name="dedicatedRequestConnection">Whether a dedicated request connection should be returned</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated)
+        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated, bool dedicatedRequestConnection)
         {
-            var socketResult = socketConnections.Where(s => (s.Value.Status == SocketConnection.SocketStatus.None || s.Value.Status == SocketConnection.SocketStatus.Connected)
-                                                  && s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
-                                                  && s.Value.ApiClient.GetType() == GetType()
-                                                  && (s.Value.Authenticated == authenticated || !authenticated) && s.Value.Connected).OrderBy(s => s.Value.UserSubscriptionCount).FirstOrDefault();
-            var result = socketResult.Equals(default(KeyValuePair<int, SocketConnection>)) ? null : socketResult.Value;
-            if (result != null)
+            var socketQuery = socketConnections.Where(s => (s.Value.Status == SocketConnection.SocketStatus.None || s.Value.Status == SocketConnection.SocketStatus.Connected)
+                                                      && s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
+                                                      && s.Value.ApiClient.GetType() == GetType()
+                                                      && (s.Value.Authenticated == authenticated || !authenticated)
+                                                      && s.Value.Connected);
+
+            SocketConnection connection;
+            if (!dedicatedRequestConnection)
             {
-                if (result.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget))
+                connection = socketQuery.Where(s => !s.Value.DedicatedRequestConnection).OrderBy(s => s.Value.UserSubscriptionCount).FirstOrDefault().Value;
+            }
+            else
+            {
+                connection = socketQuery.Where(s => s.Value.DedicatedRequestConnection).FirstOrDefault().Value;
+            }
+
+            if (connection != null)
+            {
+                if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget))
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
-                    return new CallResult<SocketConnection>(result);
+                    return new CallResult<SocketConnection>(connection);
             }
 
             var connectionAddress = await GetConnectionUrlAsync(address, authenticated).ConfigureAwait(false);
@@ -484,6 +512,7 @@ namespace CryptoExchange.Net.Clients
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
+            socketConnection.DedicatedRequestConnection = dedicatedRequestConnection;
 
             foreach (var ptg in PeriodicTaskRegistrations)
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.QueryDelegate, ptg.Callback);
@@ -603,8 +632,8 @@ namespace CryptoExchange.Net.Clients
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
-                foreach (var sub in socketList)
-                    tasks.Add(sub.CloseAsync());
+                foreach (var connection in socketList.Where(s => !s.DedicatedRequestConnection))
+                    tasks.Add(connection.CloseAsync());
             }
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
@@ -625,6 +654,23 @@ namespace CryptoExchange.Net.Clients
             }
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<CallResult> PrepareConnectionsAsync()
+        {
+            foreach (var item in DedicatedConnectionConfigs)
+            {
+                var socketResult = await GetSocketConnection(item.SocketAddress, item.Authenticated, true).ConfigureAwait(false);
+                if (!socketResult)
+                    return socketResult.AsDataless();
+
+                var connectResult = await ConnectIfNeededAsync(socketResult.Data, item.Authenticated).ConfigureAwait(false);
+                if (!connectResult)
+                    return new CallResult(connectResult.Error!);
+            }
+
+            return new CallResult(null);
         }
 
         /// <summary>
@@ -710,11 +756,18 @@ namespace CryptoExchange.Net.Clients
         public override void Dispose()
         {
             _disposing = true;
-            if (socketConnections.Sum(s => s.Value.UserSubscriptionCount) > 0)
+            var tasks = new List<Task>();
             {
-                _logger.DisposingSocketClient();
-                _ = UnsubscribeAllAsync();
+                var socketList = socketConnections.Values.Where(x => x.UserSubscriptionCount > 0 || x.Connected);
+                if (socketList.Any())
+                    _logger.DisposingSocketClient();
+
+                foreach (var connection in socketList)
+                {
+                    tasks.Add(connection.CloseAsync());
+                }
             }
+
             semaphoreSlim?.Dispose();
             base.Dispose();
         }

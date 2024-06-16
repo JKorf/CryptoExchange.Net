@@ -30,8 +30,13 @@ namespace CryptoExchange.Net.Testing.Implementations
         public bool IsClosed => !Connected;
         public bool IsOpen => Connected;
         public double IncomingKbps => 0;
-        public Uri Uri => new("wss://test.com/ws");
+        public Uri Uri { get; set; }
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
+
+        public TestSocket(string address)
+        {
+            Uri = new Uri(address);
+        }
 
         public Task<CallResult> ConnectAsync()
         {

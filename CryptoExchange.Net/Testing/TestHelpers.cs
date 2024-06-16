@@ -57,9 +57,9 @@ namespace CryptoExchange.Net.Testing
             return self == to;
         }
 
-        internal static TestSocket ConfigureSocketClient<T>(T client) where T : BaseSocketClient
+        internal static TestSocket ConfigureSocketClient<T>(T client, string address) where T : BaseSocketClient
         {
-            var socket = new TestSocket();
+            var socket = new TestSocket(address);
             foreach (var apiClient in client.ApiClients.OfType<SocketApiClient>())
             {
                 apiClient.SocketFactory = new TestWebsocketFactory(socket);

@@ -50,13 +50,15 @@ namespace CryptoExchange.Net.Testing
         /// <param name="name">Method name for looking up json test values</param>
         /// <param name="nestedJsonProperty">Use nested json property for compare</param>
         /// <param name="ignoreProperties">Ignore certain properties</param>
+        /// <param name="addressPath">Path</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TUpdate>(
             Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke,
             string name,
             string? nestedJsonProperty = null,
-            List<string>? ignoreProperties = null)
+            List<string>? ignoreProperties = null,
+            string? addressPath = null)
         {
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
@@ -79,7 +81,7 @@ namespace CryptoExchange.Net.Testing
             var data = Encoding.UTF8.GetString(buffer);
             using var reader = new StringReader(data);
 
-            var socket = TestHelpers.ConfigureSocketClient(_client);
+            var socket = TestHelpers.ConfigureSocketClient(_client, addressPath == null ? _baseAddress : _baseAddress.AppendPath(addressPath));
 
             var waiter = new AutoResetEvent(false);
             string? lastMessage = null;

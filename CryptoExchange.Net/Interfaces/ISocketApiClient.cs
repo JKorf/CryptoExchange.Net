@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects.Options;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using System.Threading.Tasks;
 
@@ -59,5 +60,11 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="subscription">The subscription to unsubscribe</param>
         /// <returns></returns>
         Task UnsubscribeAsync(UpdateSubscription subscription);
+
+        /// <summary>
+        /// Prepare connections which can subsequently be used for sending websocket requests.
+        /// </summary>
+        /// <returns></returns>
+        Task<CallResult> PrepareConnectionsAsync();
     }
 }
