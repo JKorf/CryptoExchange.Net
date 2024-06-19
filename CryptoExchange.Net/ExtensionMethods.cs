@@ -96,6 +96,9 @@ namespace CryptoExchange.Net
             var formData = HttpUtility.ParseQueryString(string.Empty);
             foreach (var kvp in parameters)
             {
+                if (kvp.Value is null)
+                    continue;
+
                 if (kvp.Value.GetType().IsArray)
                 {
                     var array = (Array)kvp.Value;
