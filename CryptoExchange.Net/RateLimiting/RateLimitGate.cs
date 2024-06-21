@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.RateLimiting
                         logger.RateLimitDelayingRequest(itemId, definition.Path, result.Delay, guard.Name, description);
 
                     RateLimitTriggered?.Invoke(new RateLimitEvent(_name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
-                    await Task.Delay(result.Delay, ct).ConfigureAwait(false);
+                    await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
                     return await CheckGuardsAsync(guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
                 }
