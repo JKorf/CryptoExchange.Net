@@ -121,6 +121,7 @@ namespace CryptoExchange.Net.UnitTests
                 null,
                 HttpMethod.Get,
                 new List<KeyValuePair<string, IEnumerable<string>>>(),
+                ResultDataSource.Server,
                 new TestObjectResult(),
                 null);
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2"));
@@ -150,6 +151,7 @@ namespace CryptoExchange.Net.UnitTests
                 null,
                 HttpMethod.Get,
                 new List<KeyValuePair<string, IEnumerable<string>>>(),
+                ResultDataSource.Server,
                 new TestObjectResult(),
                 null);
             var asResult = result.As<TestObject2>(result.Data.InnerData);
