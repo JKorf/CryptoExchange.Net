@@ -46,6 +46,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.7.1 - 23 Jun 2024
+    * Fixes for caching implementation
+
 * Version 7.7.0 - 23 Jun 2024
     * Caching support
         * Caching is supported for GET requests within a certain time frame
