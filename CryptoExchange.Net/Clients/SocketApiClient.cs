@@ -383,7 +383,11 @@ namespace CryptoExchange.Net.Clients
             if (!authenticated || socket.Authenticated)
                 return new CallResult(null);
 
-            return await AuthenticateSocketAsync(socket).ConfigureAwait(false);
+            var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
+            if (!result)
+                await socket.CloseAsync().ConfigureAwait(false);
+
+            return result;
         }
 
         /// <summary>
