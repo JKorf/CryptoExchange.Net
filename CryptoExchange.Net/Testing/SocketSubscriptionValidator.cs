@@ -50,6 +50,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="name">Method name for looking up json test values</param>
         /// <param name="nestedJsonProperty">Use nested json property for compare</param>
         /// <param name="ignoreProperties">Ignore certain properties</param>
+        /// <param name="useFirstUpdateItem">Use the first item of an array update</param>
         /// <param name="addressPath">Path</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
@@ -58,7 +59,8 @@ namespace CryptoExchange.Net.Testing
             string name,
             string? nestedJsonProperty = null,
             List<string>? ignoreProperties = null,
-            string? addressPath = null)
+            string? addressPath = null,
+            bool? useFirstUpdateItem = null)
         {
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
@@ -159,9 +161,9 @@ namespace CryptoExchange.Net.Testing
                         throw new Exception($"{name} Update send to client did not trigger in update handler");
 
                     if (_stjCompare == true)
-                        SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties);
+                        SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
                     else
-                        JsonNetComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties);
+                        JsonNetComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
                 }
             }
 

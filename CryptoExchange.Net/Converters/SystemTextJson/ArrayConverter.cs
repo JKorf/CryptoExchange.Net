@@ -92,8 +92,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (reader.TokenType == JsonTokenType.EndArray)
                         break;
 
-                var attribute = attributes.SingleOrDefault(a => a.ArrayProperty.Index == index);
-                var targetType = attribute.PropertyInfo.PropertyType;
+                    var attribute = attributes.SingleOrDefault(a => a.ArrayProperty.Index == index);
+                    if (attribute == null)
+                        continue;
+
+                    var targetType = attribute.PropertyInfo.PropertyType;
 
                     object? value = null;
                     if (attribute.JsonConverterType != null)
