@@ -46,6 +46,24 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.7.0 - 23 Jun 2024
+    * Caching support
+        * Caching is supported for GET requests within a certain time frame
+        * Enable caching by setting CachingEnabled to true in the client options
+        * Added DataSource to CallResult object
+    * Dedicated websocket connection
+        * Added functionality for always having a connection open which can then be used for order operations
+        * This eliminates the initial connection time for the first request
+        * WebSocket connection can be prepared by calling PrepareConnectionsAsync on the Api client, for example `await binanceSocketClient.SpotApi.PrepareConnectionsAsync()`. This is only needed initially; it will be reconnected when connection is lost.
+    * Added CancellationToken support for websocket queries
+    * Added SocketConnection parameter to SocketApiClient.GetAuthenticationRequest method
+    * Added ObjectStringConverter base converter for deserializing nested json strings
+    * Fixed websocket issue with ratelimiting and reconnecting interaction
+    * Fixed rate limiting issue with sub-millisecond delays
+    * Fixed websocket connection will now close if authentication fails because of not set credentials
+    * Updated websocket reconnection handling and options, added backoff policy
+    * Removed check for confirmed subscription as data often is pushed before the subscription is confirmed
+
 * Version 7.6.0 - 11 Jun 2024
     * Added support for specifying seperate uri and body parameters
     * Added support for different message and handling generic types on socket queries
