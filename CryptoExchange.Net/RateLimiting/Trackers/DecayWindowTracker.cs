@@ -80,7 +80,10 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private TimeSpan DetermineWaitTime(int requestWeight)
         {
             var weightToRemove = Math.Max(Current - (Limit - requestWeight), 0);
-            return TimeSpan.FromMilliseconds(Math.Ceiling(weightToRemove / DecreaseRate) * TimePeriod.TotalMilliseconds);
+            var result = TimeSpan.FromMilliseconds(Math.Ceiling(weightToRemove / DecreaseRate) * TimePeriod.TotalMilliseconds);
+            if (result < TimeSpan.Zero)
+                return TimeSpan.Zero;
+            return result;
         }
     }
 }

@@ -97,7 +97,10 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private TimeSpan DetermineWaitTime()
         {
             var checkTime = DateTime.UtcNow;
-            return (_nextReset!.Value - checkTime) + _fixedWindowBuffer;
+            var result = (_nextReset!.Value - checkTime) + _fixedWindowBuffer;
+            if (result < TimeSpan.Zero)
+                return TimeSpan.Zero;
+            return result;
         }
     }
 }

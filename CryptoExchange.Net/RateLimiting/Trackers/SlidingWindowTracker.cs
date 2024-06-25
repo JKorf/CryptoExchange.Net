@@ -16,6 +16,11 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         private readonly List<LimitEntry> _entries;
         private int _currentWeight = 0;
 
+        /// <summary>
+        /// Additional wait time to apply to account for fluctuating request times
+        /// </summary>
+        private static readonly TimeSpan _slidingWindowBuffer = TimeSpan.FromMilliseconds(1000);
+
         public SlidingWindowTracker(int limit, TimeSpan period)
         {
             Limit = limit;
@@ -89,7 +94,10 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 removedWeight += entry.Weight;
                 if (removedWeight >= weightToRemove)
                 {
-                    return entry.Timestamp + TimePeriod - DateTime.UtcNow;
+                    var result = entry.Timestamp + TimePeriod + _slidingWindowBuffer - DateTime.UtcNow;
+                    if (result < TimeSpan.Zero)
+                        return TimeSpan.Zero;
+                    return result;
                 }
             }
 

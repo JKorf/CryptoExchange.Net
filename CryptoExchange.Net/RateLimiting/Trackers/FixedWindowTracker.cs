@@ -93,7 +93,10 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
             var checkTime = DateTime.UtcNow;
             var startCurrentWindow = checkTime.AddTicks(-(checkTime.Ticks % TimePeriod.Ticks));
             var wait = startCurrentWindow.Add(TimePeriod) - checkTime;
-            return wait.Add(_fixedWindowBuffer);
+            var result = wait.Add(_fixedWindowBuffer);
+            if (result < TimeSpan.Zero)
+                return TimeSpan.Zero;
+            return result;
         }
     }
 }

@@ -80,6 +80,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                         else if (jObj.Type == JTokenType.Array)
                         {
                             var resultObj = enumerator.Current;
+                            if (resultObj is string)
+                                // string list
+                                continue;
+
                             var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                             var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
                             var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
