@@ -46,6 +46,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.7.2 - 25 Jun 2024
+    * Fixed ratelimiting issue possibly creating negative delays
+
 * Version 7.7.1 - 23 Jun 2024
     * Fixes for caching implementation
 
