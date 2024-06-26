@@ -215,11 +215,14 @@ namespace CryptoExchange.Net.Clients
             while (true)
             {
                 currentTry++;
-                var prepareResult = await PrepareAsync(baseAddress, definition, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
+                var requestId = ExchangeHelpers.NextId();
+
+                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
                 if (!prepareResult)
                     return new WebCallResult<T>(prepareResult.Error!);
 
                 var request = CreateRequest(
+                    requestId,
                     baseAddress,
                     definition,
                     uriParameters,
@@ -249,6 +252,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Prepare before sending a request. Sync time between client and server and check rate limits
         /// </summary>
+        /// <param name="requestId">Request id</param>
         /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="cancellationToken">Cancellation token</param>
@@ -257,13 +261,13 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         protected virtual async Task<CallResult> PrepareAsync(
+            int requestId,
             string baseAddress,
             RequestDefinition definition,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null)
         {
-            var requestId = ExchangeHelpers.NextId();
             var requestWeight = weight ?? definition.Weight;
 
             // Time sync
@@ -324,6 +328,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Creates a request object
         /// </summary>
+        /// <param name="requestId">Id of the request</param>
         /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="uriParameters">The query parameters of the request</param>
@@ -331,6 +336,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="additionalHeaders">Additional headers to send with the request</param>
         /// <returns></returns>
         protected virtual IRequest CreateRequest(
+            int requestId,
             string baseAddress,
             RequestDefinition definition,
             ParameterCollection? uriParameters,
@@ -343,7 +349,6 @@ namespace CryptoExchange.Net.Clients
             var uri = new Uri(baseAddress.AppendPath(definition.Path));
             var arraySerialization = definition.ArraySerialization ?? ArraySerialization;
             var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
-            var requestId = ExchangeHelpers.NextId();
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
 
             var headers = new Dictionary<string, string>();
