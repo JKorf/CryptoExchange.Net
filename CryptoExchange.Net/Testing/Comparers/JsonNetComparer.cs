@@ -29,7 +29,12 @@ namespace CryptoExchange.Net.Testing.Comparers
             {
                 var nested = nestedJsonProperty.Split('.');
                 foreach (var nest in nested)
-                    jsonObject = jsonObject![nest];
+                {
+                    if (int.TryParse(nest, out var index))
+                        jsonObject = jsonObject![index];
+                    else
+                        jsonObject = jsonObject![nest];
+                }
             }
 
             if (userSingleArrayItem)
@@ -92,9 +97,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                                 continue;
 
                             int i = 0;
-                            foreach (var item in jObj.Values())
+                            foreach (var item in jObj.Children())
                             {
-                                var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
+                                var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
                                 if (arrayProp != null)
                                     CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                                 i++;
@@ -112,9 +117,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                 {
                     var resultProps = resultData.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                     int i = 0;
-                    foreach (var item in jObjs.Values())
+                    foreach (var item in jObjs.Children())
                     {
-                        var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
+                        var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
                         if (arrayProp != null)
                             CheckPropertyValue(method, item, arrayProp.GetValue(resultData), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                         i++;
@@ -228,11 +233,11 @@ namespace CryptoExchange.Net.Testing.Comparers
                             continue;
 
                         int i = 0;
-                        foreach (var item in jtoken.Values())
+                        foreach (var item in jtoken.Children())
                         {
-                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
+                            var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), propertyType, arrayProp.Name, "Array index " + i, ignoreProperties);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
 
                             i++;
                         }
@@ -270,7 +275,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                         var enumerator = list.GetEnumerator();
                         foreach (var jObj in jObjs)
                         {
-                            enumerator.MoveNext();
+                            if (!enumerator.MoveNext())
+                            {
+                            }
+
                             if (jObj.Type == JTokenType.Object)
                             {
                                 foreach (var subProp in ((JObject)jObj).Properties())
@@ -311,9 +319,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                     {
                         var resultProps = propertyValue.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                         int i = 0;
-                        foreach (var item in jObjs.Values())
+                        foreach (var item in jObjs.Children())
                         {
-                            var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
+                            var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
                                 CheckPropertyValue(method, item, arrayProp.GetValue(propertyValue), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                             i++;
