@@ -100,6 +100,7 @@
             <li class="nav-item"><a class="nav-link" href="#idocs_orderbooks">Orderbooks</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_logging">Logging</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_ratelimiting">Ratelimiting</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_caching">Caching</a></li>
           </ul>
 		</li>
 		<li class="nav-item"><a class="nav-link" href="#idocs_examples">Examples</a>
@@ -1957,6 +1958,16 @@ var client = new OKXRestClient();</code></pre>
 					<td><code>TimeSpan.FromHours(1)</code></td>
 				</tr>
 				<tr>
+					<td>CachingEnabled</td>
+					<td>Whether or not client side caching should be enabled for GET requests, see <a href="#idocs_caching">Caching</a></td>
+					<td><code>false</code></td>
+				</tr>
+				<tr>
+					<td>CachingMaxAge</td>
+					<td>The max age of data to return from the cache. If the same data is requested and the data is available in the client side cache and not older than this value the cached value is returned, else a new request will be done</td>
+					<td><code>TimeSpan.FromSeconds(5)</code></td>
+				</tr>
+				<tr>
 					<td>[API].ApiCredentials</td>
 					<td>Same as the in the base options, allows overriding per sub-API</td>
 					<td><code>null</code></td>
@@ -2473,6 +2484,30 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 			  </div>
 			</div>
 			</div>
+		  
+        </section>
+		
+		<section id="idocs_caching">
+          <h2>Caching</h2>
+		  <p>
+		  Every REST API client based on the CryptoExchange.Net base library automatically supports caching of GET HTTP requests. A few advantages of caching:
+		  <ol>
+		  <li>Performance improvement, data response will be much faster as no roundtrip to the server is needed</li>
+		  <li>Reduced resource usage, returning data from the cache uses less resources than reading the server response, though there is some memory overhead</li>
+		  <li>Prevent rate limiting, the cache can be queried as many times as you like without having to worry about getting rate limited by the server</li>
+		  </ol>
+		  
+<div class="alert alert-info">Caching is only applied for successful GET requests as GET requests by definition should not change state. Other HTTP method (POST, DELETE, etc) generally do change state, so caching those call would prevent an action being executed.</div>
+		  
+		  </p>
+		  <p>
+		  To enable caching for GET requests set <code>CachingEnabled</code> to <code>true</code> in the client options. Optionally set the <code>CachingMaxAge</code> option to the desired value (default is 5 seconds).
+		  </p>
+		  <p>
+		  To determine whether a request has gotten the data from the server or from the local cache the <code>DataSource</code> property on the call result can inspected:
+		  <pre><code>var result = await bitfinexRestClient.SpotApi.Account.Get30DaySummaryAndFeesAsync();
+var responseSource = result.DataSource;</code></pre>
+		  </p>
 		  
         </section>
 		
