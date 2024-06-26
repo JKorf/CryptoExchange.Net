@@ -46,6 +46,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.7.3 - 26 Jun 2024
+    * Fixed request ids not matching in logging
+    * Added nullable int converter for System.Text.Json
+    * Small fixes in tests
+
 * Version 7.7.2 - 25 Jun 2024
     * Fixed ratelimiting issue possibly creating negative delays
 
