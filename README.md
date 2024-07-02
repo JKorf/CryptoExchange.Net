@@ -46,6 +46,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.8.0 - 02 Jul 2024
+    * Updated single endpoint limit configuration
+    * Added LongConverter for nullable longs
+    * Updated SystemTextJsonComparer logic
+
 * Version 7.7.3 - 26 Jun 2024
     * Fixed request ids not matching in logging
     * Added nullable int converter for System.Text.Json
