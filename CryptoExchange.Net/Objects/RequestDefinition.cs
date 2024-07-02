@@ -48,18 +48,16 @@ namespace CryptoExchange.Net.Objects
         /// Request weight
         /// </summary>
         public int Weight { get; set; } = 1;
+
         /// <summary>
         /// Rate limit gate to use
         /// </summary>
         public IRateLimitGate? RateLimitGate { get; set; }
+
         /// <summary>
-        /// Rate limit for this specific endpoint
+        /// Individual endpoint rate limit guard to use
         /// </summary>
-        public int? EndpointLimitCount { get; set; }
-        /// <summary>
-        /// Rate limit period for this specific endpoint
-        /// </summary>
-        public TimeSpan? EndpointLimitPeriod { get; set; }
+        public IRateLimitGuard? LimitGuard { get; set; }
 
 
         /// <summary>

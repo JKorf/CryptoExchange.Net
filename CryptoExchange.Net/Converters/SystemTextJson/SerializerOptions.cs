@@ -21,7 +21,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         new EnumConverter(),
                         new BoolConverter(),
                         new DecimalConverter(),
-                        new IntConverter()
+                        new IntConverter(),
+                        new LongConverter()
                     }
         };
     }

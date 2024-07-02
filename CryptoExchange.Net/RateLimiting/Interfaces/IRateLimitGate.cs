@@ -33,13 +33,6 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         Task SetRetryAfterGuardAsync(DateTime retryAfter);
 
         /// <summary>
-        /// Set the SingleLimitGuard for handling individual endpoint rate limits
-        /// </summary>
-        /// <param name="guard"></param>
-        /// <returns></returns>
-        IRateLimitGate SetSingleLimitGuard(SingleLimitGuard guard);
-
-        /// <summary>
         /// Returns the 'retry after' timestamp if set
         /// </summary>
         /// <returns></returns>
@@ -65,14 +58,14 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// </summary>
         /// <param name="logger">Logger</param>
         /// <param name="itemId">Id of the item to check</param>
+        /// <param name="guard">The guard</param>
         /// <param name="type">The rate limit item type</param>
         /// <param name="definition">The request definition</param>
         /// <param name="baseAddress">The host address</param>
         /// <param name="apiKey">The API key</param>
-        /// <param name="requestWeight">Request weight</param>
         /// <param name="behaviour">Behaviour when rate limit is hit</param>
         /// <param name="ct">Cancelation token</param>
         /// <returns>Error if RateLimitingBehaviour is Fail and rate limit is hit</returns>
-        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string baseAddress, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, IRateLimitGuard guard, RateLimitItemType type, RequestDefinition definition, string baseAddress, SecureString? apiKey, RateLimitingBehaviour behaviour, CancellationToken ct);
     }
 }

@@ -309,14 +309,14 @@ namespace CryptoExchange.Net.Clients
             }
 
             // Endpoint specific rate limiting
-            if (definition.EndpointLimitCount != null && definition.EndpointLimitPeriod != null)
+            if (definition.LimitGuard != null && ClientOptions.RateLimiterEnabled)
             {
                 if (definition.RateLimitGate == null)
                     throw new Exception("Ratelimit gate not set when endpoint limit is specified");
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }

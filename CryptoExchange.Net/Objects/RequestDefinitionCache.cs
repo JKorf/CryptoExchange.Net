@@ -41,8 +41,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="method">The HttpMethod</param>
         /// <param name="path">Endpoint path</param>
         /// <param name="rateLimitGate">The rate limit gate</param>
-        /// <param name="endpointLimitCount">The limit count for this specific endpoint</param>
-        /// <param name="endpointLimitPeriod">The period for the limit for this specific endpoint</param>
+        /// <param name="limitGuard">The rate limit guard for this specific endpoint</param>
         /// <param name="weight">Request weight</param>
         /// <param name="authenticated">Endpoint is authenticated</param>
         /// <param name="requestBodyFormat">Request body format</param>
@@ -56,8 +55,7 @@ namespace CryptoExchange.Net.Objects
             IRateLimitGate? rateLimitGate,
             int weight,
             bool authenticated,
-            int? endpointLimitCount = null,
-            TimeSpan? endpointLimitPeriod = null,
+            IRateLimitGuard? limitGuard = null,
             RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
@@ -69,8 +67,7 @@ namespace CryptoExchange.Net.Objects
                 def = new RequestDefinition(path, method)
                 {
                     Authenticated = authenticated,
-                    EndpointLimitCount = endpointLimitCount,
-                    EndpointLimitPeriod = endpointLimitPeriod,
+                    LimitGuard = limitGuard,
                     RateLimitGate = rateLimitGate,
                     Weight = weight,
                     ArraySerialization = arraySerialization,

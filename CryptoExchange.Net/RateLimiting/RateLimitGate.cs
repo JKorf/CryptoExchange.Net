@@ -16,7 +16,6 @@ namespace CryptoExchange.Net.RateLimiting
     /// <inheritdoc />
     public class RateLimitGate : IRateLimitGate
     {
-        private IRateLimitGuard _singleLimitGuard = new SingleLimitGuard(RateLimitWindowType.Sliding);
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private readonly SemaphoreSlim _semaphore;
         private readonly string _name;
@@ -53,16 +52,23 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public async Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
+        public async Task<CallResult> ProcessSingleAsync(
+            ILogger logger,
+            int itemId,
+            IRateLimitGuard guard,
+            RateLimitItemType type,
+            RequestDefinition definition, 
+            string host, 
+            SecureString? apiKey,
+            RateLimitingBehaviour rateLimitingBehaviour,
+            CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-            if (requestWeight == 0)
-                requestWeight = 1;
 
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(new IRateLimitGuard[] { _singleLimitGuard }, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, 1, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
             finally
             {
@@ -127,13 +133,6 @@ namespace CryptoExchange.Net.RateLimiting
         public IRateLimitGate AddGuard(IRateLimitGuard guard)
         {
             _guards.Add(guard);
-            return this;
-        }
-
-        /// <inheritdoc />
-        public IRateLimitGate SetSingleLimitGuard(SingleLimitGuard guard)
-        {
-            _singleLimitGuard = guard;
             return this;
         }
 
