@@ -32,6 +32,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             public ArrayPropertyAttribute ArrayProperty { get; set; } = null!;
             public Type? JsonConverterType { get; set; }
             public bool DefaultDeserialization { get; set; }
+            public Type TargetType { get; set; }
         }
 
         private class ArrayConverterInner<T> : JsonConverter<T>
@@ -70,7 +71,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         ArrayProperty = att,
                         PropertyInfo = property,
                         DefaultDeserialization = property.GetCustomAttribute<JsonConversionAttribute>() != null,
-                        JsonConverterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType
+                        JsonConverterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType,
+                        TargetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType
                     });
                 }
 
@@ -96,8 +98,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (attribute == null)
                         continue;
 
-                    var targetType = attribute.PropertyInfo.PropertyType;
-
+                    var targetType = attribute.TargetType;
                     object? value = null;
                     if (attribute.JsonConverterType != null)
                     {
@@ -124,7 +125,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         };
                     }
 
-                    attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, attribute.PropertyInfo.PropertyType, CultureInfo.InvariantCulture));
+                    attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
                     
                     index++;
                 }
