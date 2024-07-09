@@ -251,7 +251,7 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
             }
 
-            var waitEvent = new ManualResetEvent(false);
+            var waitEvent = new AsyncResetEvent(false);
             var subQuery = subscription.GetSubQuery(socketConnection);
             if (subQuery != null)
             {

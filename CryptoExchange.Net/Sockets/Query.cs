@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Wait event for the calling message processing thread
         /// </summary>
-        public ManualResetEvent? ContinueAwaiter { get; set; }
+        public AsyncResetEvent? ContinueAwaiter { get; set; }
 
         /// <summary>
         /// Strings to match this query to a received message
@@ -135,7 +135,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="message"></param>
         /// <param name="connection"></param>
         /// <returns></returns>
-        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message);
+        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message);
 
     }
 
@@ -165,13 +165,14 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DataEvent<object> message)
+        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
         {
             Completed = true;
             Response = message.Data;
             Result = HandleMessage(connection, message.As((TServerResponse)message.Data));
             _event.Set();
-            ContinueAwaiter?.WaitOne();
+            if (ContinueAwaiter != null)
+                await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
             return Result;
         }
 

@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.Sockets
         public event Func<Task>? OnClose;
 
         /// <inheritdoc />
-        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>>? OnStreamMessage;
+        public event Func<WebSocketMessageType, ReadOnlyMemory<byte>, Task>? OnStreamMessage;
 
         /// <inheritdoc />
         public event Func<int, Task>? OnRequestSent;
@@ -582,7 +582,8 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
-                                ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count));
+                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                _logger.LogTrace($"[Sckt {Id}] process completed");
                             }
                             else
                             {
@@ -617,7 +618,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             _logger.SocketReassembledMessage(Id, multipartStream!.Length);
                             // Get the underlying buffer of the memorystream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
-                            ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
+                            await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
                         }
                         else
                         {
@@ -633,7 +634,8 @@ namespace CryptoExchange.Net.Sockets
                 // Make sure we at least let the owner know there was an error
                 _logger.SocketReceiveLoopStoppedWithException(Id, e);
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
-                throw;
+                if (_closeTask?.IsCompleted != false)
+                    _closeTask = CloseInternalAsync();
             }
             finally
             {
@@ -647,10 +649,10 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="type"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected void ProcessData(WebSocketMessageType type, ReadOnlyMemory<byte> data)
+        protected async Task ProcessData(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             LastActionTime = DateTime.UtcNow;
-            OnStreamMessage?.Invoke(type, data);
+            await (OnStreamMessage?.Invoke(type, data) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         /// <summary>

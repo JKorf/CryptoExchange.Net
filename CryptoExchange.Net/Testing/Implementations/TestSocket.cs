@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         public event Func<Exception, Task>? OnError;
 #pragma warning restore 0067
         public event Func<int, Task>? OnRequestSent;
-        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>>? OnStreamMessage;
+        public event Func<WebSocketMessageType, ReadOnlyMemory<byte>, Task>? OnStreamMessage;
         public event Func<Task>? OnOpen;
 
         public int Id { get; }

@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -25,7 +26,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        CallResult Handle(SocketConnection connection, DataEvent<object> message);
+        Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message);
         /// <summary>
         /// Get the type the message should be deserialized to
         /// </summary>

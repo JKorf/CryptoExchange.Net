@@ -413,7 +413,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="data"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected virtual void HandleStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data)
+        protected virtual async Task HandleStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             var sw = Stopwatch.StartNew();
             var receiveTime = DateTime.UtcNow;
@@ -507,7 +507,7 @@ namespace CryptoExchange.Net.Sockets
                     try
                     {
                         var innerSw = Stopwatch.StartNew();
-                        processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null));
+                        await processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null)).ConfigureAwait(false);
                         totalUserTime += (int)innerSw.ElapsedMilliseconds;
                     }
                     catch (Exception ex)
@@ -697,7 +697,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, ManualResetEvent? continueEvent = null, CancellationToken ct = default)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
             return query.Result ?? new CallResult(new ServerError("Timeout"));
@@ -712,13 +712,13 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, ManualResetEvent? continueEvent = null, CancellationToken ct = default)
+        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
         }
 
-        private async Task SendAndWaitIntAsync(Query query, ManualResetEvent? continueEvent, CancellationToken ct = default)
+        private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)
         {
             lock(_listenersLock)
                 _listeners.Add(query);
@@ -876,7 +876,7 @@ namespace CryptoExchange.Net.Sockets
                     if (subQuery == null)
                         continue;
 
-                    var waitEvent = new ManualResetEvent(false);
+                    var waitEvent = new AsyncResetEvent(false);
                     taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
                     { 
                         subscription.HandleSubQueryResponse(subQuery.Response!);

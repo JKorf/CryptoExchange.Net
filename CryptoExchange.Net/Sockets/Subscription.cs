@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -122,11 +123,11 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="connection"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public CallResult Handle(SocketConnection connection, DataEvent<object> message)
+        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return DoHandleMessage(connection, message);
+            return Task.FromResult(DoHandleMessage(connection, message));
         }
 
         /// <summary>

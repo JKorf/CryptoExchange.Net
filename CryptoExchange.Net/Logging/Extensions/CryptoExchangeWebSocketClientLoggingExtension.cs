@@ -151,7 +151,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "[Sckt {SocketId}] discarding incomplete message of {NumBytes} bytes");
 
             _receiveLoopStoppedWithException = LoggerMessage.Define<int>(
-                LogLevel.Warning,
+                LogLevel.Error,
                 new EventId(1024, "ReceiveLoopStoppedWithException"),
                 "[Sckt {SocketId}] receive loop stopped with exception");
 
