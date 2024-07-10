@@ -75,7 +75,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                     var enumerator = list.GetEnumerator();
                     foreach (var jObj in jObjs)
                     {
-                        enumerator.MoveNext();
+                        if (!enumerator.MoveNext())
+                        {
+                        }
+
                         if (jObj.Type == JTokenType.Object)
                         {
                             foreach (var subProp in ((JObject)jObj).Properties())
@@ -272,6 +275,67 @@ namespace CryptoExchange.Net.Testing.Comparers
                         }
                     }
                 }
+                else if (propValue.Type == JTokenType.Array)
+                {
+                    var jObjs = (JArray)propValue;
+                    if (propertyValue is IEnumerable list)
+                    {
+                        var enumerator = list.GetEnumerator();
+                        foreach (var jObj in jObjs)
+                        {
+                            if (!enumerator.MoveNext())
+                            {
+                            }
+
+                            if (jObj.Type == JTokenType.Object)
+                            {
+                                foreach (var subProp in ((JObject)jObj).Properties())
+                                {
+                                    if (ignoreProperties?.Contains(subProp.Name) == true)
+                                        continue;
+                                    CheckObject(method, subProp, enumerator.Current, ignoreProperties!);
+                                }
+                            }
+                            else if (jObj.Type == JTokenType.Array)
+                            {
+                                var resultObj = enumerator.Current;
+                                var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
+                                var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
+                                var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
+                                if (jsonConverter != typeof(ArrayConverter))
+                                    // Not array converter?
+                                    continue;
+
+                                int i = 0;
+                                foreach (var item in jObj.Values())
+                                {
+                                    var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
+                                    if (arrayProp != null)
+                                        CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                var value = enumerator.Current;
+                                if (value == default && ((JValue)jObj).Type != JTokenType.Null)
+                                    throw new Exception($"{method}: Array has no value while input json array has value {jObj}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var resultProps = propertyValue.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
+                        int i = 0;
+                        foreach (var item in jObjs.Children())
+                        {
+                            var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
+                            if (arrayProp != null)
+                                CheckPropertyValue(method, item, arrayProp.GetValue(propertyValue), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                            i++;
+                        }
+                    }
+                }
                 else
                 {
                     CheckValues(method, propertyName!, propertyType, (JValue)propValue, propertyValue);
@@ -307,7 +371,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 if (objectValue is DateTime time)
                 {
                     if (time != DateTimeConverter.ParseFromDouble(jsonValue.Value<long>()!))
-                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<decimal>()} vs {time}");
+                        throw new Exception($"{method}: {property} not equal: {DateTimeConverter.ParseFromDouble(jsonValue.Value<long>()!)} vs {time}");
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
