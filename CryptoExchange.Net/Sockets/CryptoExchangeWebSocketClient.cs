@@ -322,15 +322,16 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public virtual void Send(int id, string data, int weight)
+        public virtual bool Send(int id, string data, int weight)
         {
-            if (_ctsSource.IsCancellationRequested)
-                return;
+            if (_ctsSource.IsCancellationRequested || _processState != ProcessState.Processing)
+                return false;
 
             var bytes = Parameters.Encoding.GetBytes(data);
             _logger.SocketAddingBytesToSendBuffer(Id, id, bytes);
             _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
             _sendEvent.Set();
+            return true;
         }
 
         /// <inheritdoc />
@@ -389,9 +390,7 @@ namespace CryptoExchange.Net.Sockets
             if (_disposed)
                 return;
 
-            //_closeState = CloseState.Closing;
             _ctsSource.Cancel();
-            _sendEvent.Set();
 
             if (_socket.State == WebSocketState.Open)
             {
@@ -436,6 +435,7 @@ namespace CryptoExchange.Net.Sockets
             _disposed = true;
             _socket.Dispose();
             _ctsSource?.Dispose();
+            _sendEvent.Dispose();
             _logger.SocketDisposed(Id);
         }
 
@@ -450,10 +450,15 @@ namespace CryptoExchange.Net.Sockets
             {
                 while (true)
                 {
-                    if (_ctsSource.IsCancellationRequested)
+                    try
+                    {
+                        if (!_sendBuffer.Any())
+                            await _sendEvent.WaitAsync(ct: _ctsSource.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
                         break;
-
-                    await _sendEvent.WaitAsync().ConfigureAwait(false);
+                    }
 
                     if (_ctsSource.IsCancellationRequested)
                         break;
@@ -507,7 +512,8 @@ namespace CryptoExchange.Net.Sockets
                 // Make sure we at least let the owner know there was an error
                 _logger.SocketSendLoopStoppedWithException(Id, e.Message, e);
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
-                throw;
+                if (_closeTask?.IsCompleted != false)
+                    _closeTask = CloseInternalAsync();
             }
             finally
             {
@@ -583,7 +589,6 @@ namespace CryptoExchange.Net.Sockets
                                 // Received a complete message and it's not multi part
                                 _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
                                 await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
-                                _logger.LogTrace($"[Sckt {Id}] process completed");
                             }
                             else
                             {
@@ -693,7 +698,6 @@ namespace CryptoExchange.Net.Sockets
                 // any exception here will stop the timeout checking, but do so silently unless the socket get's stopped.
                 // Make sure we at least let the owner know there was an error
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
-                throw;
             }
         }
 
@@ -718,10 +722,14 @@ namespace CryptoExchange.Net.Sockets
             var checkTime = DateTime.UtcNow;
             if (checkTime - _lastReceivedMessagesUpdate > TimeSpan.FromSeconds(1))
             {
-                foreach (var msg in _receivedMessages.ToList()) // To list here because we're removing from the list
+                for (var i = 0; i < _receivedMessages.Count; i++)
                 {
+                    var msg = _receivedMessages[i];
                     if (checkTime - msg.Timestamp > TimeSpan.FromSeconds(3))
+                    {
                         _receivedMessages.Remove(msg);
+                        i--;
+                    }
                 }
 
                 _lastReceivedMessagesUpdate = checkTime;

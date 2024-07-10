@@ -802,7 +802,9 @@ namespace CryptoExchange.Net.Sockets
             _logger.SendingData(SocketId, requestId, data);
             try
             {
-                _socket.Send(requestId, data, weight);
+                if (!_socket.Send(requestId, data, weight))
+                    return new CallResult(new WebError("Failed to send message, connection not open"));
+
                 return new CallResult(null);
             }
             catch(Exception ex)

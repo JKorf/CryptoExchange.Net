@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             public ArrayPropertyAttribute ArrayProperty { get; set; } = null!;
             public Type? JsonConverterType { get; set; }
             public bool DefaultDeserialization { get; set; }
-            public Type TargetType { get; set; }
+            public Type TargetType { get; set; } = null!;
         }
 
         private class ArrayConverterInner<T> : JsonConverter<T>

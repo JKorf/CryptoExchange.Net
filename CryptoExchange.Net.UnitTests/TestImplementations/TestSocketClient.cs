@@ -13,11 +13,11 @@ using CryptoExchange.Net.Sockets;
 using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json.Linq;
+using CryptoExchange.Net.Testing.Implementations;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
-    public class TestSocketClient: BaseSocketClient
+    internal class TestSocketClient: BaseSocketClient
     {
         public TestSubSocketClient SubClient { get; }
 
@@ -41,12 +41,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             SubClient = AddApiClient(new TestSubSocketClient(options, options.SubOptions));
             SubClient.SocketFactory = new Mock<IWebsocketFactory>().Object;
-            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket("https://test.com"));
         }
 
         public TestSocket CreateSocket()
         {
-            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket());
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket("https://test.com"));
             return (TestSocket)SubClient.CreateSocketInternal("https://localhost:123/");
         }
                 
@@ -75,6 +75,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     public class TestSubSocketClient : SocketApiClient
     {
         private MessagePath _channelPath = MessagePath.Get().Property("channel");
+        private MessagePath _actionPath = MessagePath.Get().Property("action");
         private MessagePath _topicPath = MessagePath.Get().Property("topic");
 
         public Subscription TestSubscription { get; private set; } = null;
@@ -110,7 +111,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             var id = message.GetValue<string>(_channelPath);
             id ??= message.GetValue<string>(_topicPath);
 
-            return id;
+            return message.GetValue<string>(_actionPath) + "-" + id;
         }
 
         public Task<CallResult<UpdateSubscription>> SubscribeToSomethingAsync(string channel, Action<DataEvent<string>> onUpdate, CancellationToken ct)

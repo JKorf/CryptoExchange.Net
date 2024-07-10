@@ -33,9 +33,17 @@ namespace CryptoExchange.Net.Testing.Implementations
         public Uri Uri { get; set; }
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
+        public static int lastId = 0;
+        public static object lastIdLock = new object();
+
         public TestSocket(string address)
         {
             Uri = new Uri(address);
+            lock (lastIdLock)
+            {
+                Id = lastId + 1;
+                lastId++;
+            }
         }
 
         public Task<CallResult> ConnectAsync()
@@ -44,13 +52,14 @@ namespace CryptoExchange.Net.Testing.Implementations
             return Task.FromResult(CanConnect ? new CallResult(null) : new CallResult(new CantConnectError()));
         }
 
-        public void Send(int requestId, string data, int weight)
+        public bool Send(int requestId, string data, int weight)
         {
             if (!Connected)
                 throw new Exception("Socket not connected");
 
             OnRequestSent?.Invoke(requestId);
             OnMessageSend?.Invoke(data);
+            return true;
         }
 
         public Task CloseAsync()

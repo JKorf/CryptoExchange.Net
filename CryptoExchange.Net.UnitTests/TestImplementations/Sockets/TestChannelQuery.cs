@@ -10,6 +10,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 {
     internal class SubResponse
     {
+
+        [JsonProperty("action")]
+        public string Action { get; set; } = null!;
+
         [JsonProperty("channel")]
         public string Channel { get; set; } = null!;
 
@@ -19,6 +23,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 
     internal class UnsubResponse
     {
+        [JsonProperty("action")]
+        public string Action { get; set; } = null!;
+
         [JsonProperty("status")]
         public string Status { get; set; } = null!;
     }
@@ -29,7 +36,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 
         public TestChannelQuery(string channel, string request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
         {
-            ListenerIdentifiers = new HashSet<string> { channel };
+            ListenerIdentifiers = new HashSet<string> { request + "-" + channel };
         }
 
         public override CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)

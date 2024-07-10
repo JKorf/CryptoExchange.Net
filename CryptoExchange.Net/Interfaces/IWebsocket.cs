@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="id"></param>
         /// <param name="data"></param>
         /// <param name="weight"></param>
-        void Send(int id, string data, int weight);
+        bool Send(int id, string data, int weight);
         /// <summary>
         /// Reconnect the socket
         /// </summary>

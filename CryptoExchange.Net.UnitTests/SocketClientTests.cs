@@ -58,9 +58,7 @@ namespace CryptoExchange.Net.UnitTests
                 options.ReconnectInterval = TimeSpan.Zero;
             });
             var socket = client.CreateSocket();
-            socket.ShouldReconnect = true;
             socket.CanConnect = true;
-            socket.DisconnectTime = DateTime.UtcNow;
             var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
             var rstEvent = new ManualResetEvent(false);
             Dictionary<string, string> result = null;
@@ -75,7 +73,7 @@ namespace CryptoExchange.Net.UnitTests
             sub.AddSubscription(subObj);
 
             // act
-            socket.InvokeMessage("{\"property\": \"123\", \"topic\": \"topic\"}");
+            socket.InvokeMessage("{\"property\": \"123\", \"action\": \"update\", \"topic\": \"topic\"}");
             rstEvent.WaitOne(1000);
 
             // assert
@@ -93,9 +91,7 @@ namespace CryptoExchange.Net.UnitTests
                 options.SubOptions.OutputOriginalData = enabled;
             });
             var socket = client.CreateSocket();
-            socket.ShouldReconnect = true;
             socket.CanConnect = true;
-            socket.DisconnectTime = DateTime.UtcNow;
             var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
             var rstEvent = new ManualResetEvent(false);
             string original = null;
@@ -107,7 +103,7 @@ namespace CryptoExchange.Net.UnitTests
                 rstEvent.Set();
             });
             sub.AddSubscription(subObj);
-            var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", property = 123 });
+            var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", action = "update", property = 123 });
 
             // act
             socket.InvokeMessage(msgToSend);
@@ -202,7 +198,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "error" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, action = "subscribe", status = "error" }));
             await sub;
 
             // assert
@@ -225,7 +221,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, status = "confirmed" }));
+            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, action = "subscribe", status = "confirmed" }));
             await sub;
 
             // assert
