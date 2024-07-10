@@ -72,12 +72,12 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void InvokeMessage(string data)
         {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data)));
+            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
         }
 
         public void InvokeMessage<T>(T data)
         {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data))));
+            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)))).Wait();
         }
 
         public Task ReconnectAsync() => throw new NotImplementedException();

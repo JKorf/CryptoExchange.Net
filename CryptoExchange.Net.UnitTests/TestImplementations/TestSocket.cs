@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public event Func<int, Task> OnRequestRateLimited;
 #pragma warning restore 0067
         public event Func<int, Task> OnRequestSent;
-        public event Action<WebSocketMessageType, ReadOnlyMemory<byte>> OnStreamMessage;
+        public event Func<WebSocketMessageType, ReadOnlyMemory<byte>, Task> OnStreamMessage;
         public event Func<Exception, Task> OnError;
         public event Func<Task> OnOpen;
         public Func<Task<Uri>> GetReconnectionUrl { get; set; }
@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public void InvokeMessage(string data)
         {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data)));
+            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
         }
 
         public void SetProxy(ApiProxy proxy)
