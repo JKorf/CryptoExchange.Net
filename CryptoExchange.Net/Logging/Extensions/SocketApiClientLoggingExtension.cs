@@ -3,7 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class SocketApiClientLoggingExtension
+    public static class SocketApiClientLoggingExtension
     {
         private static readonly Action<ILogger, int, Exception?> _failedToAddSubscriptionRetryOnDifferentConnection;
         private static readonly Action<ILogger, int, Exception?> _hasBeenPausedCantSubscribeAtThisMoment;

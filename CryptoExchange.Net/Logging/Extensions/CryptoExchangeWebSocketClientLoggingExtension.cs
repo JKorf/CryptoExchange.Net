@@ -3,7 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class CryptoExchangeWebSocketClientLoggingExtension
+    public static class CryptoExchangeWebSocketClientLoggingExtension
     {
         private static readonly Action<ILogger, int, Exception?> _connecting;
         private static readonly Action<ILogger, int, string, Exception?> _connectionFailed;

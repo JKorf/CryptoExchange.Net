@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class SymbolOrderBookLoggingExtensions
+    public static class SymbolOrderBookLoggingExtensions
     {
         private static readonly Action<ILogger, string, string, OrderBookStatus, OrderBookStatus, Exception?> _orderBookStatusChanged;
         private static readonly Action<ILogger, string, string, Exception?> _orderBookStarting;

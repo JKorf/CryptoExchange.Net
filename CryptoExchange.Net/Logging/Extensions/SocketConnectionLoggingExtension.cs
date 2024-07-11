@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class SocketConnectionLoggingExtension
+    public static class SocketConnectionLoggingExtension
     {
         private static readonly Action<ILogger, int, bool, Exception?> _activityPaused;
         private static readonly Action<ILogger, int, Sockets.SocketConnection.SocketStatus, Sockets.SocketConnection.SocketStatus, Exception?> _socketStatusChanged;

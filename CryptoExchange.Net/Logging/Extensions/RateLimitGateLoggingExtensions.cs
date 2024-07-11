@@ -3,7 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class RateLimitGateLoggingExtensions
+    public static class RateLimitGateLoggingExtensions
     {
         private static readonly Action<ILogger, int, string, string, string, Exception?> _rateLimitRequestFailed;
         private static readonly Action<ILogger, int, string, string, Exception?> _rateLimitConnectionFailed;

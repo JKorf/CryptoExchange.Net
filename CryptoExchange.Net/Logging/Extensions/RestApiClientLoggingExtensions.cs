@@ -6,7 +6,7 @@ using System.Net.Http;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
-    internal static class RestApiClientLoggingExtensions
+    public static class RestApiClientLoggingExtensions
     {
         private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiErrorReceived;
         private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiResponseReceived;
