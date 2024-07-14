@@ -834,7 +834,11 @@ namespace CryptoExchange.Net.Sockets
 
             bool anyAuthenticated;
             lock (_listenersLock)
-                anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated) || DedicatedRequestConnection;
+            {
+                anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated)
+                    || (DedicatedRequestConnection && ApiClient.AuthenticationProvider != null);
+            }
+
             if (anyAuthenticated)
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
