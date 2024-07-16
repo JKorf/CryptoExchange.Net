@@ -242,6 +242,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             _stream?.Dispose();
             _stream = null;
+            _document?.Dispose();
             _document = null;
         }
 
@@ -261,6 +262,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
+                var firstByte = data.Span[0];
+                if (firstByte != 0x7b && firstByte != 0x5b)
+                {
+                    // Value doesn't start with `{` or `[`, prevent deserialization attempt as it's slow
+                    IsJson = false;
+                    return new CallResult(new ServerError("Not a json value"));
+                }
+
                 _document = JsonDocument.Parse(data);
                 IsJson = true;
                 return new CallResult(null);
@@ -289,6 +298,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override void Clear()
         {
             _bytes = null;
+            _document?.Dispose();
             _document = null;
         }
     }
