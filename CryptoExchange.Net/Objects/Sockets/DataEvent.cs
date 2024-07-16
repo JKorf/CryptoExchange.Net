@@ -144,5 +144,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         {
             return new CallResult<K>(default, OriginalData, error);
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{StreamId} - {(Symbol == null ? "" : (Symbol + " - "))}{(UpdateType == null ? "" : (UpdateType + " - "))}{Data}";
+        }
     }
 }

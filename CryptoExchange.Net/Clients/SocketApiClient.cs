@@ -269,7 +269,7 @@ namespace CryptoExchange.Net.Clients
                     {
                         _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
                         // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
-                        await socketConnection.CloseAsync(subscription, isTimeout).ConfigureAwait(false);
+                        await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                         return new CallResult<UpdateSubscription>(subResult.Error!);
                     }
                 }

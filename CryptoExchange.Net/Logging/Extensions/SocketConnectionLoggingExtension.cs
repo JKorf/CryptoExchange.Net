@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class SocketConnectionLoggingExtension
     {
         private static readonly Action<ILogger, int, bool, Exception?> _activityPaused;

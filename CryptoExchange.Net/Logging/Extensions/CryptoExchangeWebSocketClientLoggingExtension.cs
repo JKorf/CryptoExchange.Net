@@ -3,6 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class CryptoExchangeWebSocketClientLoggingExtension
     {
         private static readonly Action<ILogger, int, Exception?> _connecting;

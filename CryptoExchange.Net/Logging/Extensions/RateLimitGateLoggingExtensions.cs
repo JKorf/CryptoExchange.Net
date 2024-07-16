@@ -3,6 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.Logging.Extensions
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class RateLimitGateLoggingExtensions
     {
         private static readonly Action<ILogger, int, string, string, string, Exception?> _rateLimitRequestFailed;

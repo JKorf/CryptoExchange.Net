@@ -508,6 +508,8 @@ namespace CryptoExchange.Net.Sockets
                     {
                         var innerSw = Stopwatch.StartNew();
                         await processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null)).ConfigureAwait(false);
+                        if (processor is Query query && query.RequiredResponses != 1)
+                            _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
                         totalUserTime += (int)innerSw.ElapsedMilliseconds;
                     }
                     catch (Exception ex)
@@ -573,9 +575,8 @@ namespace CryptoExchange.Net.Sockets
         /// Close a subscription on this connection. If all subscriptions on this connection are closed the connection gets closed as well
         /// </summary>
         /// <param name="subscription">Subscription to close</param>
-        /// <param name="unsubEvenIfNotConfirmed">Whether to send an unsub request even if the subscription wasn't confirmed</param>
         /// <returns></returns>
-        public async Task CloseAsync(Subscription subscription, bool unsubEvenIfNotConfirmed = false)
+        public async Task CloseAsync(Subscription subscription)
         {
             subscription.Closed = true;
 
@@ -596,7 +597,7 @@ namespace CryptoExchange.Net.Sockets
                 lock (_listenersLock)
                     needUnsub = _listeners.Contains(subscription);
 
-                if (needUnsub && (unsubEvenIfNotConfirmed || subscription.Confirmed) && _socket.IsOpen)
+                if (needUnsub && _socket.IsOpen)
                     await UnsubscribeAsync(subscription).ConfigureAwait(false);
             }
             else

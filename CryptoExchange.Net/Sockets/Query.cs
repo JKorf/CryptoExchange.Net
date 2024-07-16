@@ -25,6 +25,17 @@ namespace CryptoExchange.Net.Sockets
         public bool Completed { get; set; }
 
         /// <summary>
+        /// The number of required responses. Can be more than 1 when for example subscribing multiple symbols streams in a single request,
+        /// and each symbol receives it's own confirmation response
+        /// </summary>
+        public int RequiredResponses { get; set; } = 1;
+
+        /// <summary>
+        /// The current number of responses received on this query
+        /// </summary>
+        public int CurrentResponses { get; set; }
+
+        /// <summary>
         /// Timestamp of when the request was send
         /// </summary>
         public DateTime RequestTimestamp { get; set; }
@@ -108,7 +119,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Wait untill timeout or the request is competed
+        /// Wait until timeout or the request is completed
         /// </summary>
         /// <param name="timeout"></param>
         /// <param name="ct">Cancellation token</param>
@@ -167,12 +178,24 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
         {
-            Completed = true;
-            Response = message.Data;
-            Result = HandleMessage(connection, message.As((TServerResponse)message.Data));
-            _event.Set();
-            if (ContinueAwaiter != null)
-                await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
+            CurrentResponses++;
+            if (CurrentResponses == RequiredResponses)
+            {
+                Completed = true;
+                Response = message.Data;
+            }
+
+            if (Result?.Success != false)
+                // If an error result is already set don't override that
+                Result = HandleMessage(connection, message.As((TServerResponse)message.Data));
+
+            if (CurrentResponses == RequiredResponses)
+            {
+                _event.Set();
+                if (ContinueAwaiter != null)
+                    await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
+            }
+
             return Result;
         }
 

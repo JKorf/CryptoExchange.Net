@@ -245,7 +245,8 @@ namespace CryptoExchange.Net.Sockets
                     await Task.Delay(50).ConfigureAwait(false);
 
                 await _closeTask.ConfigureAwait(false);
-                _closeTask = null;
+                if (!_stopRequested)
+                    _closeTask = null;
 
                 if (Parameters.ReconnectPolicy == ReconnectPolicy.Disabled)
                 {
