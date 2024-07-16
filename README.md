@@ -46,6 +46,17 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.9.0 - 16 Jul 2024
+    * Added some checks in websocket connection handling
+    * Added As<T> and AsError<T> methods on untyped WebCallResult
+    * Updated System.Text.Json package to version 8.0.4 to fix vulnerability
+    * Updated websocket subscription response handling to remove the thread blocking ManualResetEvent usage
+    * Updated static logging classes access modifier from internal to public so they can be called in overriden methods
+    * Updated some testing object implementations
+    * Fixed authentication error when reconnecting an unauthenticated connection which was marked as dedicated query connection
+    * Small improvements in SystemTextJsonMessageAccessor
+    * Fixed System.Text.Json ArrayConverter implementation nullable value types handling
+
 * Version 7.8.0 - 02 Jul 2024
     * Updated single endpoint limit configuration
     * Added LongConverter for nullable longs
