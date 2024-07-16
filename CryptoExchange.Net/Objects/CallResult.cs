@@ -273,6 +273,28 @@ namespace CryptoExchange.Net.Objects
             return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
 
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="data">The data of the new type</param>
+        /// <returns></returns>
+        public WebCallResult<K> As<K>([AllowNull] K data)
+        {
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, 0, null, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Server, data, Error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public WebCallResult<K> AsError<K>(Error error)
+        {
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, 0, null, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Server, default, error);
+        }
+
         /// <inheritdoc />
         public override string ToString()
         {
