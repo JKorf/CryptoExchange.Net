@@ -810,7 +810,7 @@ namespace CryptoExchange.Net.OrderBook
         {
             if (lastUpdateId <= LastSequenceNumber)
             {
-                _logger.OrderBookUpdateSkipped(Api, Symbol, firstUpdateId, lastUpdateId);
+                _logger.OrderBookUpdateSkipped(Api, Symbol, lastUpdateId, LastSequenceNumber);
                 return;
             }
 
