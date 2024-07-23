@@ -854,31 +854,32 @@ namespace CryptoExchange.Net.Sockets
                 _logger.AuthenticationSucceeded(SocketId);
             }
 
-            // Get a list of all subscriptions on the socket
-            List<Subscription> subList;
-            lock (_listenersLock)
-                subList = _listeners.OfType<Subscription>().ToList();
-
-            foreach(var subscription in subList)
-            {
-                subscription.ConnectionInvocations = 0;
-                var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
-                if (!result)
-                {
-                    _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
-                    return result;
-                }
-            }
-
             // Foreach subscription which is subscribed by a subscription request we will need to resend that request to resubscribe
-            for (var i = 0; i < subList.Count; i += ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket)
+            int batch = 0;
+            int batchSize = ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket;
+            while (true)
             {
                 if (!_socket.IsOpen)
                     return new CallResult(new WebError("Socket not connected"));
 
+                List<Subscription> subList;
+                lock (_listenersLock)
+                    subList = _listeners.OfType<Subscription>().Skip(batch * batchSize).Take(batchSize).ToList();
+
+                if (subList.Count == 0)
+                    break;
+
                 var taskList = new List<Task<CallResult>>();
-                foreach (var subscription in subList.Skip(i).Take(ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket))
+                foreach (var subscription in subList)
                 {
+                    subscription.ConnectionInvocations = 0;
+                    var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
+                    if (!result)
+                    {
+                        _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
+                        return result;
+                    }
+
                     var subQuery = subscription.GetSubQuery(this);
                     if (subQuery == null)
                         continue;
@@ -897,6 +898,8 @@ namespace CryptoExchange.Net.Sockets
                 await Task.WhenAll(taskList).ConfigureAwait(false);
                 if (taskList.Any(t => !t.Result.Success))
                     return taskList.First(t => !t.Result.Success).Result;
+
+                batch++;
             }
 
             if (!_socket.IsOpen)
