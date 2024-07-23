@@ -96,7 +96,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                     var attribute = attributes.SingleOrDefault(a => a.ArrayProperty.Index == index);
                     if (attribute == null)
+                    {
+                        index++;
                         continue;
+                    }
 
                     var targetType = attribute.TargetType;
                     object? value = null;
