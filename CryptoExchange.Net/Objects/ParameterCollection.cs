@@ -150,6 +150,27 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Add a datetime value as string seconds timestamp
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void AddSecondsString(string key, DateTime value)
+        {
+            Add(key, DateTimeConverter.ConvertToSeconds(value).ToString());
+        }
+
+        /// <summary>
+        /// Add a datetime value as string seconds timestamp. Not added if value is null
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void AddOptionalSecondsString(string key, DateTime? value)
+        {
+            if (value != null)
+                Add(key, DateTimeConverter.ConvertToSeconds(value).ToString());
+        }
+
+        /// <summary>
         /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />
         /// </summary>
         /// <param name="key"></param>
