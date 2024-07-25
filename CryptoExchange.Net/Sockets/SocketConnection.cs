@@ -420,7 +420,7 @@ namespace CryptoExchange.Net.Sockets
             string? originalData = null;
 
             // 1. Decrypt/Preprocess if necessary
-            data = ApiClient.PreprocessStreamMessage(type, data);
+            data = ApiClient.PreprocessStreamMessage(this, type, data);
 
             // 2. Read data into accessor
             _accessor.Read(data);

@@ -189,7 +189,10 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
 
             if (subscription.Authenticated && AuthenticationProvider == null)
+            {
+                _logger.LogWarning("Failed to subscribe, private subscription but no API credentials set");
                 return new CallResult<UpdateSubscription>(new NoApiCredentialsError());
+            }
 
             SocketConnection socketConnection;
             var released = false;
@@ -786,9 +789,10 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Preprocess a stream message
         /// </summary>
+        /// <param name="connection"></param>
         /// <param name="type"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
+        public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
     }
 }

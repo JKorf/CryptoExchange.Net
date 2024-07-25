@@ -453,7 +453,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Decompress using Gzip
+        /// Decompress using GzipStream
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -466,6 +466,23 @@ namespace CryptoExchange.Net
             using var deflateStream = new GZipStream(new MemoryStream(data.ToArray()), CompressionMode.Decompress);
             deflateStream.CopyTo(decompressedStream);
             return new ReadOnlyMemory<byte>(decompressedStream.GetBuffer(), 0, (int)decompressedStream.Length);
+        }
+
+        /// <summary>
+        /// Decompress using DeflateStream
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static ReadOnlyMemory<byte> Decompress(this ReadOnlyMemory<byte> input)
+        {
+            var output = new MemoryStream();
+
+            using (var compressStream = new MemoryStream(input.ToArray()))
+            using (var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress))
+                decompressor.CopyTo(output);
+
+            output.Position = 0;
+            return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
     }
 }

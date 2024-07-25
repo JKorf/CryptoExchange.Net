@@ -228,7 +228,7 @@ namespace CryptoExchange.Net.Clients
                     uriParameters,
                     bodyParameters,
                     additionalHeaders);
-                _logger.RestApiSendRequest(request.RequestId, definition, request.Content, request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+                _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
                 var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (!result)

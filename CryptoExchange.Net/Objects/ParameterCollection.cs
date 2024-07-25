@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Objects
         public void AddEnumAsInt<T>(string key, T value)
         {
             var stringVal = EnumConverter.GetString(value);
-            Add(key, EnumConverter.GetString(int.Parse(stringVal))!);
+            Add(key, int.Parse(stringVal)!);
         }
 
         /// <summary>
