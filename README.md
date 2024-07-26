@@ -46,6 +46,17 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.10.0 - 26 Jul 2024
+    * Added System.Text.Json NumberStringConverter
+    * Added integration testing base class
+    * Added AddSecondsString and AddOptionalSecondsString to ParameterCollection
+    * Added Decompress method for ReadOnlyMemory using non-GZip deflate
+    * Added SocketConnection parameter to SocketConnection PreprocessStreamMessage
+    * Fixed websocket reconnect/unsubscribe timing bug
+    * Fixed issue in System.Text.Json array object deserialization skipping property when skipping an index
+    * Fixed order book logging bug
+    * Fixed bug in ParameterCollection AddEnumAsInt
+
 * Version 7.9.0 - 16 Jul 2024
     * Added some checks in websocket connection handling
     * Added As<T> and AsError<T> methods on untyped WebCallResult
