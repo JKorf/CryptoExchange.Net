@@ -211,5 +211,37 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             return enumValue == null ? null : (mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
         }
+
+        /// <summary>
+        /// Get the enum value from a string
+        /// </summary>
+        /// <typeparam name="T">Enum type</typeparam>
+        /// <param name="value">String value</param>
+        /// <returns></returns>
+        public static T? ParseString<T>(string value) where T : Enum
+        {
+            var type = typeof(T);
+            if (!_mapping.TryGetValue(type, out var enumMapping))
+                enumMapping = AddMapping(type);
+
+            var mapping = enumMapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
+            if (mapping.Equals(default(KeyValuePair<object, string>)))
+                mapping = enumMapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+
+            if (!mapping.Equals(default(KeyValuePair<object, string>)))
+            {
+                return (T)mapping.Key;
+            }
+
+            try
+            {
+                // If no explicit mapping is found try to parse string
+                return (T)Enum.Parse(type, value, true);
+            }
+            catch (Exception)
+            {
+                return default;
+            }
+        }
     }
 }

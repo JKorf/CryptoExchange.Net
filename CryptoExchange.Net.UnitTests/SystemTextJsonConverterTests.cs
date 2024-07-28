@@ -163,6 +163,20 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(output.Value == expected);
         }
 
+        [TestCase("1", TestEnum.One)]
+        [TestCase("2", TestEnum.Two)]
+        [TestCase("3", TestEnum.Three)]
+        [TestCase("three", TestEnum.Three)]
+        [TestCase("Four", TestEnum.Four)]
+        [TestCase("four", TestEnum.Four)]
+        [TestCase("Four1", TestEnum.One)]
+        [TestCase(null, TestEnum.One)]
+        public void TestEnumConverterParseStringTests(string value, TestEnum? expected)
+        {
+            var result = EnumConverter.ParseString<TestEnum>(value);
+            Assert.That(result == expected);
+        }
+
         [TestCase("1", true)]
         [TestCase("true", true)]
         [TestCase("yes", true)]
