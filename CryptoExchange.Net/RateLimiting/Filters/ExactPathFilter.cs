@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.RateLimiting.Filters
         }
 
         /// <inheritdoc />
-        public bool Passes(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey)
+        public bool Passes(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey)
             => string.Equals(definition.Path, _path, StringComparison.OrdinalIgnoreCase);
     }
 }

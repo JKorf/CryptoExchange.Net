@@ -24,6 +24,6 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="requestWeight">The weight of the request</param>
         /// <param name="ct">Cancellation token to cancel waiting</param>
         /// <returns>The time in milliseconds spend waiting</returns>
-        Task<CallResult<int>> LimitRequestAsync(ILogger log, string endpoint, HttpMethod method, bool signed, SecureString? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct);
+        Task<CallResult<int>> LimitRequestAsync(ILogger log, string endpoint, HttpMethod method, bool signed, string? apiKey, RateLimitingBehaviour limitBehaviour, int requestWeight, CancellationToken ct);
     }
 }

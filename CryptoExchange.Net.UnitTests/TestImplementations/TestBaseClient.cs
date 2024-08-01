@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public string GetKey() => _credentials.Key.GetString();
-        public string GetSecret() => _credentials.Secret.GetString();
+        public string GetKey() => _credentials.Key;
+        public string GetSecret() => _credentials.Secret;
     }
 }

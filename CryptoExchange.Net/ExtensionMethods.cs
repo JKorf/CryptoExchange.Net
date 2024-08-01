@@ -114,92 +114,6 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Get the string the secure string is representing
-        /// </summary>
-        /// <param name="source">The source secure string</param>
-        /// <returns></returns>
-        public static string GetString(this SecureString source)
-        {
-            lock (source)
-            {
-                string result;
-                var length = source.Length;
-                var pointer = IntPtr.Zero;
-                var chars = new char[length];
-
-                try
-                {
-                    pointer = Marshal.SecureStringToBSTR(source);
-                    Marshal.Copy(pointer, chars, 0, length);
-
-                    result = string.Join("", chars);
-                }
-                finally
-                {
-                    if (pointer != IntPtr.Zero)
-                    {
-                        Marshal.ZeroFreeBSTR(pointer);
-                    }
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Are 2 secure strings equal
-        /// </summary>
-        /// <param name="ss1">Source secure string</param>
-        /// <param name="ss2">Compare secure string</param>
-        /// <returns>True if equal by value</returns>
-        public static bool IsEqualTo(this SecureString ss1, SecureString ss2)
-        {
-            IntPtr bstr1 = IntPtr.Zero;
-            IntPtr bstr2 = IntPtr.Zero;
-            try
-            {
-                bstr1 = Marshal.SecureStringToBSTR(ss1);
-                bstr2 = Marshal.SecureStringToBSTR(ss2);
-                int length1 = Marshal.ReadInt32(bstr1, -4);
-                int length2 = Marshal.ReadInt32(bstr2, -4);
-                if (length1 == length2)
-                {
-                    for (int x = 0; x < length1; ++x)
-                    {
-                        byte b1 = Marshal.ReadByte(bstr1, x);
-                        byte b2 = Marshal.ReadByte(bstr2, x);
-                        if (b1 != b2) return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-
-                return true;
-            }
-            finally
-            {
-                if (bstr2 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr2);
-                if (bstr1 != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr1);
-            }
-        }
-
-        /// <summary>
-        /// Create a secure string from a string
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public static SecureString ToSecureString(this string source)
-        {
-            var secureString = new SecureString();
-            foreach (var c in source)
-                secureString.AppendChar(c);
-            secureString.MakeReadOnly();
-            return secureString;
-        }
-
-        /// <summary>
         /// Validates an int is one of the allowed values
         /// </summary>
         /// <param name="value">Value of the int</param>
@@ -316,26 +230,6 @@ namespace CryptoExchange.Net
                 url += item.Trim('/') + "/";
 
             return url.TrimEnd('/');
-        }
-
-        /// <summary>
-        /// Fill parameters in a path. Parameters are specified by '{}' and should be specified in occuring sequence
-        /// </summary>
-        /// <param name="path">The total path string</param>
-        /// <param name="values">The values to fill</param>
-        /// <returns></returns>
-        public static string FillPathParameters(this string path, params string[] values)
-        {
-            foreach (var value in values)
-            {
-                var index = path.IndexOf("{}", StringComparison.Ordinal);
-                if (index >= 0)
-                {
-                    path = path.Remove(index, 2);
-                    path = path.Insert(index, value);
-                }
-            }
-            return path;
         }
 
         /// <summary>

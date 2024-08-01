@@ -176,12 +176,12 @@ namespace CryptoExchange.Net.UnitTests
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);             
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);             
                 Assert.That(i == requests? triggered : !triggered);
             }
             triggered = false;
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1,  RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1,  RateLimitingBehaviour.Wait, default);
             Assert.That(!triggered);
         }
 
@@ -201,7 +201,7 @@ namespace CryptoExchange.Net.UnitTests
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
                 bool expected = i == 1 ? (expectLimiting ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
@@ -222,9 +222,9 @@ namespace CryptoExchange.Net.UnitTests
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(evnt == null);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimiting ? evnt != null : evnt == null);
         }
 
@@ -243,12 +243,12 @@ namespace CryptoExchange.Net.UnitTests
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
                 Assert.That(i == requests ? triggered : !triggered);
             }
             triggered = false;
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(!triggered);
         }
 
@@ -266,7 +266,7 @@ namespace CryptoExchange.Net.UnitTests
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
                 bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.UnitTests
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
                 bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
                 Assert.That(expected);
             }
@@ -309,9 +309,9 @@ namespace CryptoExchange.Net.UnitTests
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", key1?.ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", key1, 1, RateLimitingBehaviour.Wait, default);
             Assert.That(evnt == null);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", key2?.ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", key2, 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimited ? evnt != null : evnt == null);
         }
 
@@ -328,7 +328,7 @@ namespace CryptoExchange.Net.UnitTests
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(evnt == null);
             var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition2, "https://test.com", null, 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimited ? evnt != null : evnt == null);
@@ -348,9 +348,9 @@ namespace CryptoExchange.Net.UnitTests
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host1, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host1, "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(evnt == null);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host2, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host2, "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimited ? evnt != null : evnt == null);
         }
 
@@ -365,9 +365,9 @@ namespace CryptoExchange.Net.UnitTests
             RateLimitEvent evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host1, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host1, "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(evnt == null);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host2, "123".ToSecureString(), 1, RateLimitingBehaviour.Wait, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host2, "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimited ? evnt != null : evnt == null);
         }
     }

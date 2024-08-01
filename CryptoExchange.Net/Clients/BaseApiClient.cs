@@ -65,10 +65,7 @@ namespace CryptoExchange.Net.Clients
             BaseAddress = baseAddress;
 
             if (apiCredentials != null)
-            {
-                AuthenticationProvider?.Dispose();
                 AuthenticationProvider = CreateAuthenticationProvider(apiCredentials.Copy());
-            }
         }
 
         /// <summary>
@@ -85,10 +82,7 @@ namespace CryptoExchange.Net.Clients
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
             if (credentials != null)
-            {
-                AuthenticationProvider?.Dispose();
                 AuthenticationProvider = CreateAuthenticationProvider(credentials.Copy());
-            }
         }
 
         /// <summary>
@@ -97,7 +91,6 @@ namespace CryptoExchange.Net.Clients
         public virtual void Dispose()
         {
             _disposing = true;
-            AuthenticationProvider?.Dispose();
         }
     }
 }

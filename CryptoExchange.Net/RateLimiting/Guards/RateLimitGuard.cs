@@ -14,26 +14,26 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <summary>
         /// Apply guard per host
         /// </summary>
-        public static Func<RequestDefinition, string, SecureString?, string> PerHost { get; } = new Func<RequestDefinition, string, SecureString?, string>((def, host, key) => host);
+        public static Func<RequestDefinition, string, string?, string> PerHost { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => host);
         /// <summary>
         /// Apply guard per endpoint
         /// </summary>
-        public static Func<RequestDefinition, string, SecureString?, string> PerEndpoint { get; } = new Func<RequestDefinition, string, SecureString?, string>((def, host, key) => def.Path + def.Method);
+        public static Func<RequestDefinition, string, string?, string> PerEndpoint { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.Path + def.Method);
         /// <summary>
         /// Apply guard per API key
         /// </summary>
-        public static Func<RequestDefinition, string, SecureString?, string> PerApiKey { get; } = new Func<RequestDefinition, string, SecureString?, string>((def, host, key) => key!.GetString());
+        public static Func<RequestDefinition, string, string?, string> PerApiKey { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => key!);
         /// <summary>
         /// Apply guard per API key per endpoint
         /// </summary>
-        public static Func<RequestDefinition, string, SecureString?, string> PerApiKeyPerEndpoint { get; } = new Func<RequestDefinition, string, SecureString?, string>((def, host, key) => key!.GetString() + def.Path + def.Method);
+        public static Func<RequestDefinition, string, string?, string> PerApiKeyPerEndpoint { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => key! + def.Path + def.Method);
 
         private readonly IEnumerable<IGuardFilter> _filters;
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private RateLimitWindowType _windowType;
         private double? _decayRate;
         private int? _connectionWeight;
-        private readonly Func<RequestDefinition, string, SecureString?, string> _keySelector;
+        private readonly Func<RequestDefinition, string, string?, string> _keySelector;
 
         /// <inheritdoc />
         public string Name => "RateLimitGuard";
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="windowType">Type of rate limit window</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
-        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
+        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
             : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight)
         {
         }
@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="windowType">Type of rate limit window</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
-        public RateLimitGuard(Func<RequestDefinition, string, SecureString?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
+        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
         {
             _filters = filters;
             _trackers = new Dictionary<string, IWindowTracker>();
@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
         {
             foreach(var filter in _filters)
             {
@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
         {
             foreach (var filter in _filters)
             {

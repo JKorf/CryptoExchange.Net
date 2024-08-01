@@ -196,19 +196,20 @@ namespace CryptoExchange.Net.Clients
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null) where T : class
         {
-            var key = baseAddress + definition + uriParameters?.ToFormData();
+            string? cacheKey = null;
             if (ShouldCache(definition))
             {
-                _logger.CheckingCache(key);
-                var cachedValue = _cache.Get(key, ClientOptions.CachingMaxAge);
+                cacheKey = baseAddress + definition + uriParameters?.ToFormData();
+                _logger.CheckingCache(cacheKey);
+                var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
                 if (cachedValue != null)
                 {
-                    _logger.CacheHit(key);
+                    _logger.CacheHit(cacheKey);
                     var original = (WebCallResult<T>)cachedValue;
                     return original.Cached();
                 }
 
-                _logger.CacheNotHit(key);
+                _logger.CacheNotHit(cacheKey);
             }
 
             int currentTry = 0;
@@ -242,7 +243,7 @@ namespace CryptoExchange.Net.Clients
                 if (result.Success &&
                     ShouldCache(definition))
                 {
-                    _cache.Add(key, result);
+                    _cache.Add(cacheKey!, result);
                 }
 
                 return result;
@@ -343,15 +344,15 @@ namespace CryptoExchange.Net.Clients
             ParameterCollection? bodyParameters,
             Dictionary<string, string>? additionalHeaders)
         {
-            var uriParams = uriParameters == null ? new ParameterCollection() : CreateParameterDictionary(uriParameters);
-            var bodyParams = bodyParameters == null ? new ParameterCollection() : CreateParameterDictionary(bodyParameters);
+            var uriParams = uriParameters == null ? null : CreateParameterDictionary(uriParameters);
+            var bodyParams = bodyParameters == null ? null : CreateParameterDictionary(bodyParameters);
 
             var uri = new Uri(baseAddress.AppendPath(definition.Path));
             var arraySerialization = definition.ArraySerialization ?? ArraySerialization;
             var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
 
-            var headers = new Dictionary<string, string>();
+            Dictionary<string, string>? headers = null;
             if (AuthenticationProvider != null)
             {
                 try
@@ -360,9 +361,9 @@ namespace CryptoExchange.Net.Clients
                         this,
                         uri,
                         definition.Method,
-                        uriParams,
-                        bodyParams,
-                        headers,
+                        ref uriParams,
+                        ref bodyParams,
+                        ref headers,
                         definition.Authenticated,
                         arraySerialization,
                         parameterPosition,
@@ -375,14 +376,18 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
-            uri = uri.SetParameters(uriParams, arraySerialization);
+            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters
+            if (uriParams != null)
+                uri = uri.SetParameters(uriParams, arraySerialization);
 
             var request = RequestFactory.Create(definition.Method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
 
-            foreach (var header in headers)
-                request.AddHeader(header.Key, header.Value);
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    request.AddHeader(header.Key, header.Value);
+            }
 
             if (additionalHeaders != null)
             {
@@ -403,7 +408,7 @@ namespace CryptoExchange.Net.Clients
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (bodyParams.Count != 0)
+                if (bodyParams != null && bodyParams.Count != 0)
                     WriteParamBody(request, bodyParams, contentType);
                 else
                     request.SetContent(RequestBodyEmptyContent, contentType);
@@ -817,9 +822,9 @@ namespace CryptoExchange.Net.Clients
                         this,
                         uri,
                         method,
-                        uriParameters,
-                        bodyParameters,
-                        headers,
+                        ref uriParameters,
+                        ref bodyParameters,
+                        ref headers,
                         signed,
                         arraySerialization,
                         parameterPosition,

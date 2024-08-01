@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Converters.MessageParsing;
 
@@ -9,47 +8,22 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Api credentials, used to sign requests accessing private endpoints
     /// </summary>
-    public class ApiCredentials: IDisposable
+    public class ApiCredentials
     {
         /// <summary>
         /// The api key to authenticate requests
         /// </summary>
-        public SecureString? Key { get; }
+        public string Key { get; }
 
         /// <summary>
         /// The api secret to authenticate requests
         /// </summary>
-        public SecureString? Secret { get; }
+        public string Secret { get; }
 
         /// <summary>
         /// Type of the credentials
         /// </summary>
         public ApiCredentialsType CredentialType { get; }
-
-        /// <summary>
-        /// Create Api credentials providing an api key and secret for authentication
-        /// </summary>
-        /// <param name="key">The api key used for identification</param>
-        /// <param name="secret">The api secret used for signing</param>
-        public ApiCredentials(SecureString key, SecureString secret) : this(key, secret, ApiCredentialsType.Hmac)
-        {
-        }
-
-        /// <summary>
-        /// Create Api credentials providing an api key and secret for authentication
-        /// </summary>
-        /// <param name="key">The api key used for identification</param>
-        /// <param name="secret">The api secret used for signing</param>
-        /// <param name="credentialsType">The type of credentials</param>
-        public ApiCredentials(SecureString key, SecureString secret, ApiCredentialsType credentialsType)
-        {
-            if (key == null || secret == null)
-                throw new ArgumentException("Key and secret can't be null/empty");
-
-            CredentialType = credentialsType;
-            Key = key;
-            Secret = secret;
-        }
 
         /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
@@ -72,8 +46,8 @@ namespace CryptoExchange.Net.Authentication
                 throw new ArgumentException("Key and secret can't be null/empty");
 
             CredentialType = credentialsType;
-            Key = key.ToSecureString();
-            Secret = secret.ToSecureString();
+            Key = key;
+            Secret = secret;
         }
 
         /// <summary>
@@ -82,8 +56,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         public virtual ApiCredentials Copy()
         {
-            // Use .GetString() to create a copy of the SecureString
-            return new ApiCredentials(Key!.GetString(), Secret!.GetString(), CredentialType);
+            return new ApiCredentials(Key, Secret, CredentialType);
         }
 
         /// <summary>
@@ -103,19 +76,10 @@ namespace CryptoExchange.Net.Authentication
             if (key == null || secret == null)
                 throw new ArgumentException("apiKey or apiSecret value not found in Json credential file");
 
-            Key = key.ToSecureString();
-            Secret = secret.ToSecureString();
+            Key = key;
+            Secret = secret;
 
             inputStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
-        {
-            Key?.Dispose();
-            Secret?.Dispose();
         }
     }
 }

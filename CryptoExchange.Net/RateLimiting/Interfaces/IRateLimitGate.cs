@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="behaviour">Behaviour when rate limit is hit</param>
         /// <param name="ct">Cancelation token</param>
         /// <returns>Error if RateLimitingBehaviour is Fail and rate limit is hit</returns>
-        Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string baseAddress, SecureString? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string baseAddress, string? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
 
         /// <summary>
         /// Enforces the rate limit as defined in the request definition. When a rate limit is hit will wait for the rate limit to pass if RateLimitingBehaviour is Wait, or return an error if it is set to Fail
@@ -66,6 +66,6 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="behaviour">Behaviour when rate limit is hit</param>
         /// <param name="ct">Cancelation token</param>
         /// <returns>Error if RateLimitingBehaviour is Fail and rate limit is hit</returns>
-        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, IRateLimitGuard guard, RateLimitItemType type, RequestDefinition definition, string baseAddress, SecureString? apiKey, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, IRateLimitGuard guard, RateLimitItemType type, RequestDefinition definition, string baseAddress, string? apiKey, RateLimitingBehaviour behaviour, CancellationToken ct);
     }
 }

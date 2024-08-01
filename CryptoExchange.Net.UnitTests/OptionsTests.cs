@@ -51,8 +51,8 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.That(options.ReceiveWindow == TimeSpan.FromSeconds(10));
-            Assert.That(options.ApiCredentials.Key.GetString() == "123");
-            Assert.That(options.ApiCredentials.Secret.GetString() == "456");
+            Assert.That(options.ApiCredentials.Key == "123");
+            Assert.That(options.ApiCredentials.Secret == "456");
         }
 
         [Test]
@@ -64,10 +64,10 @@ namespace CryptoExchange.Net.UnitTests
             options.Api2Options.ApiCredentials = new ApiCredentials("789", "101");
 
             // assert
-            Assert.That(options.Api1Options.ApiCredentials.Key.GetString() == "123");
-            Assert.That(options.Api1Options.ApiCredentials.Secret.GetString() == "456");
-            Assert.That(options.Api2Options.ApiCredentials.Key.GetString() == "789");
-            Assert.That(options.Api2Options.ApiCredentials.Secret.GetString() == "101");
+            Assert.That(options.Api1Options.ApiCredentials.Key == "123");
+            Assert.That(options.Api1Options.ApiCredentials.Secret == "456");
+            Assert.That(options.Api2Options.ApiCredentials.Key == "789");
+            Assert.That(options.Api2Options.ApiCredentials.Secret == "101");
         }
 
         [Test]

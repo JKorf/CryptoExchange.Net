@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public async Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
+        public async Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             _waitingCount++;
@@ -58,8 +58,8 @@ namespace CryptoExchange.Net.RateLimiting
             IRateLimitGuard guard,
             RateLimitItemType type,
             RequestDefinition definition, 
-            string host, 
-            SecureString? apiKey,
+            string host,
+            string? apiKey,
             RateLimitingBehaviour rateLimitingBehaviour,
             CancellationToken ct)
         {
@@ -77,7 +77,7 @@ namespace CryptoExchange.Net.RateLimiting
             }
         }
 
-        private async Task<CallResult> CheckGuardsAsync(IEnumerable<IRateLimitGuard> guards, ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
+        private async Task<CallResult> CheckGuardsAsync(IEnumerable<IRateLimitGuard> guards, ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             foreach (var guard in guards)
             {

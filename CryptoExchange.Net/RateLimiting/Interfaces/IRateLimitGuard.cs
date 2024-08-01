@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="apiKey">The API key</param>
         /// <param name="requestWeight">The request weight</param>
         /// <returns></returns>
-        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight);
+        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight);
 
         /// <summary>
         /// Apply the request to this guard with the specified weight
@@ -39,6 +39,6 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="apiKey">The API key</param>
         /// <param name="requestWeight">The request weight</param>
         /// <returns></returns>
-        RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey, int requestWeight);
+        RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight);
     }
 }

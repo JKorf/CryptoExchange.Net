@@ -24,14 +24,14 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The password of the proxy
         /// </summary>
-        public SecureString? Password { get; }
+        public string? Password { get; }
 
         /// <summary>
         /// Create new settings for a proxy
         /// </summary>
         /// <param name="host">The proxy hostname/ip</param>
         /// <param name="port">The proxy port</param>
-        public ApiProxy(string host, int port): this(host, port, null, (SecureString?)null)
+        public ApiProxy(string host, int port): this(host, port, null, null)
         {
         }
 
@@ -42,18 +42,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="port">The proxy port</param>
         /// <param name="login">The proxy login</param>
         /// <param name="password">The proxy password</param>
-        public ApiProxy(string host, int port, string? login, string? password) : this(host, port, login, password?.ToSecureString())
-        {
-        }
-
-        /// <summary>
-        /// Create new settings for a proxy
-        /// </summary>
-        /// <param name="host">The proxy hostname/ip</param>
-        /// <param name="port">The proxy port</param>
-        /// <param name="login">The proxy login</param>
-        /// <param name="password">The proxy password</param>
-        public ApiProxy(string host, int port, string? login, SecureString? password)
+        public ApiProxy(string host, int port, string? login, string? password)
         {
             Host = host;
             Port = port;

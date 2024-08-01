@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Base class for authentication providers
     /// </summary>
-    public abstract class AuthenticationProvider : IDisposable
+    public abstract class AuthenticationProvider
     {
         internal IAuthTimeProvider TimeProvider { get; set; } = new AuthTimeProvider();
 
@@ -29,6 +29,11 @@ namespace CryptoExchange.Net.Authentication
         protected byte[] _sBytes;
 
         /// <summary>
+        /// Get the API key of the current credentials
+        /// </summary>
+        public string ApiKey => _credentials.Key;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="credentials"></param>
@@ -38,7 +43,7 @@ namespace CryptoExchange.Net.Authentication
                 throw new ArgumentException("ApiKey/Secret needed");
 
             _credentials = credentials;
-            _sBytes = Encoding.UTF8.GetBytes(credentials.Secret.GetString());
+            _sBytes = Encoding.UTF8.GetBytes(credentials.Secret);
         }
 
         /// <summary>
@@ -58,9 +63,9 @@ namespace CryptoExchange.Net.Authentication
             RestApiClient apiClient,
             Uri uri,
             HttpMethod method,
-            IDictionary<string, object> uriParameters,
-            IDictionary<string, object> bodyParameters,
-            Dictionary<string, string> headers,
+            ref IDictionary<string, object>? uriParameters,
+            ref IDictionary<string, object>? bodyParameters,
+            ref Dictionary<string, string>? headers,
             bool auth,
             ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parameterPosition,
@@ -366,7 +371,7 @@ namespace CryptoExchange.Net.Authentication
             {
 #if NETSTANDARD2_1_OR_GREATER
                 // Read from pem private key
-                var key = _credentials.Secret!.GetString()
+                var key = _credentials.Secret!
                         .Replace("\n", "")
                         .Replace("-----BEGIN PRIVATE KEY-----", "")
                         .Replace("-----END PRIVATE KEY-----", "")
@@ -381,7 +386,7 @@ namespace CryptoExchange.Net.Authentication
             else if (_credentials.CredentialType == ApiCredentialsType.RsaXml)
             {
                 // Read from xml private key format
-                rsa.FromXmlString(_credentials.Secret!.GetString());
+                rsa.FromXmlString(_credentials.Secret!);
             }
             else
             {
@@ -446,12 +451,6 @@ namespace CryptoExchange.Net.Authentication
                 return serializer.Serialize(parameters[Constants.BodyPlaceHolderKey]);
             else
                 return serializer.Serialize(parameters);
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            _credentials?.Dispose();
         }
     }
 

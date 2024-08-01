@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="host">The host address</param>
         /// <param name="apiKey">The API key</param>
         /// <returns>True if passed</returns>
-        bool Passes(RateLimitItemType type, RequestDefinition definition, string host, SecureString? apiKey);
+        bool Passes(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey);
     }
 }
