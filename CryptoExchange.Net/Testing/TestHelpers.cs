@@ -121,8 +121,8 @@ namespace CryptoExchange.Net.Testing
             if (disableOrdering)
                 client.OrderParameters = false;
 
-            var uriParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InUri ? client.CreateParameterDictionary(parameters) : new Dictionary<string, object>();
-            var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? client.CreateParameterDictionary(parameters) : new Dictionary<string, object>();
+            var uriParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InUri ? client.CreateParameterDictionary(parameters) : null;
+            var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? client.CreateParameterDictionary(parameters) : null;
 
             var headers = new Dictionary<string, string>();
 

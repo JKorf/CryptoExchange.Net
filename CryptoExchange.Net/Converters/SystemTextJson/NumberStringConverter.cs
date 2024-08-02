@@ -17,7 +17,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return null;
 
             if (reader.TokenType == JsonTokenType.Number)
-                return reader.GetInt64().ToString();
+            {
+                if (reader.TryGetInt64(out var value))
+                    return value.ToString();
+
+                return reader.GetDecimal().ToString();
+            }
 
             return reader.GetString();
         }

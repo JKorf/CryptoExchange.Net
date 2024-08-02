@@ -357,6 +357,13 @@ namespace CryptoExchange.Net.Testing.Comparers
                     if (time != DateTimeConverter.ParseFromString(jsonValue.Value<string>()!))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {time}");
                 }
+                else if (objectValue is bool bl)
+                {
+                    if (bl && jsonValue.Value<string>() != "1")
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {bl}");
+                    if (!bl && jsonValue.Value<string>() != "0")
+                        throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {bl}");
+                }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
                     // TODO enum comparing
