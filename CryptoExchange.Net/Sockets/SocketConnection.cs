@@ -590,12 +590,16 @@ namespace CryptoExchange.Net.Sockets
             bool anyDuplicateSubscription;
             lock (_listenersLock)
                 anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.ListenerIdentifiers.All(l => subscription.ListenerIdentifiers.Contains(l)));
+
+            bool shouldCloseConnection;
+            lock (_listenersLock)
+                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection;
             
             if (!anyDuplicateSubscription)
             {
                 bool needUnsub;
                 lock (_listenersLock)
-                    needUnsub = _listeners.Contains(subscription);
+                    needUnsub = _listeners.Contains(subscription) && !shouldCloseConnection;
 
                 if (needUnsub && _socket.IsOpen)
                     await UnsubscribeAsync(subscription).ConfigureAwait(false);
@@ -611,16 +615,9 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            bool shouldCloseConnection;
-            lock (_listenersLock)
-            {
-                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection;
-                if (shouldCloseConnection)
-                    Status = SocketStatus.Closing;
-            }
-
             if (shouldCloseConnection)
             {
+                Status = SocketStatus.Closing;
                 _logger.ClosingNoMoreSubscriptions(SocketId);
                 await CloseAsync().ConfigureAwait(false);
             }
