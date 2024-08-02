@@ -2072,7 +2072,10 @@ var client = new OKXRestClient();</code></pre>
 			<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="book" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link active" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="true">Binance</a>
+				<a class="nav-link active" id="book-cryptoclients-tab" data-toggle="tab" href="#book-cryptoclients" role="tab" aria-controls="book-cryptoclients" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-binance-tab" data-toggle="tab" href="#book-binance" role="tab" aria-controls="book-binance" aria-selected="false">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-bingx-tab" data-toggle="tab" href="#book-bingx" role="tab" aria-controls="book-bingx" aria-selected="false">BingX</a>
@@ -2106,7 +2109,21 @@ var client = new OKXRestClient();</code></pre>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
-			  <div class="tab-pane fade show active" id="book-binance" role="tabpanel" aria-labelledby="book-binance-tab">
+			<div class="tab-pane fade show active" id="book-cryptoclients" role="tabpanel" aria-labelledby="book-cryptoclients-tab">
+<pre><code>// Assuming IExchangeOrderBookFactory is injected as bookFactoryClient
+var book = bookFactoryClient.Binance.Spot.Create("ETH", "USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+    // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-binance" role="tabpanel" aria-labelledby="book-binance-tab">
 <pre><code>var book = new BinanceSpotSymbolOrderBook("ETHUSDT");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
