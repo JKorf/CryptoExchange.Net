@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.String)
             {
                 var value = reader.GetString();
-                if (string.IsNullOrEmpty(value))
+                if (string.IsNullOrEmpty(value) || string.Equals("null", value))
                     return null;
 
                 return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
