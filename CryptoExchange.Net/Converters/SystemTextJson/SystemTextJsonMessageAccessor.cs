@@ -123,6 +123,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (value.Value.ValueKind == JsonValueKind.Object || value.Value.ValueKind == JsonValueKind.Array)
                 return default;
 
+            if (typeof(T) == typeof(string))
+            {
+                if (value.Value.ValueKind == JsonValueKind.Number)
+                    return (T)(object)value.Value.GetInt64().ToString();
+            }
+
             return value.Value.Deserialize<T>();
         }
 

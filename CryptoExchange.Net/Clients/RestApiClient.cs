@@ -812,8 +812,8 @@ namespace CryptoExchange.Net.Clients
             }
 
             var headers = new Dictionary<string, string>();
-            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
-            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? CreateParameterDictionary(parameters) : new Dictionary<string, object>();
+            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? CreateParameterDictionary(parameters) : null;
+            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? CreateParameterDictionary(parameters) : null;
             if (AuthenticationProvider != null)
             {
                 try
@@ -837,24 +837,18 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            // Sanity check
-            foreach (var param in parameters)
-            {
-                if (!uriParameters.ContainsKey(param.Key) && !bodyParameters.ContainsKey(param.Key))
-                {
-                    throw new Exception($"Missing parameter {param.Key} after authentication processing. AuthenticationProvider implementation " +
-                        $"should return provided parameters in either the uri or body parameters output");
-                }
-            }
-
             // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
-            uri = uri.SetParameters(uriParameters, arraySerialization);
+            if (uriParameters != null)
+                uri = uri.SetParameters(uriParameters, arraySerialization);
 
             var request = RequestFactory.Create(method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
 
-            foreach (var header in headers)
-                request.AddHeader(header.Key, header.Value);
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    request.AddHeader(header.Key, header.Value);
+            }
 
             if (additionalHeaders != null)
             {
@@ -875,7 +869,7 @@ namespace CryptoExchange.Net.Clients
             if (parameterPosition == HttpMethodParameterPosition.InBody)
             {
                 var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (bodyParameters.Any())
+                if (bodyParameters?.Any() == true)
                     WriteParamBody(request, bodyParameters, contentType);
                 else
                     request.SetContent(RequestBodyEmptyContent, contentType);
