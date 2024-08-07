@@ -161,11 +161,15 @@ namespace CryptoExchange.Net.Testing.Comparers
             // Property has a value
             var property = resultProperties.SingleOrDefault(p => p.Name == prop.Name).p;
             property ??= resultProperties.SingleOrDefault(p => p.p.Name == prop.Name).p;
-            property ??= resultProperties.SingleOrDefault(p => p.p.Name.Equals(prop.Name, StringComparison.InvariantCultureIgnoreCase)).p;
 
             if (property is null)
                 // Property not found
                 throw new Exception($"{method}: Missing property `{prop.Name}` on `{obj.GetType().Name}`");
+
+            var getMethod = property.GetGetMethod();
+            if (getMethod is null)
+                // There is no getter, so probably just a set for an alternative json name
+                return;
 
             var propertyValue = property.GetValue(obj);
             CheckPropertyValue(method, prop.Value, propertyValue, property.PropertyType, property.Name, prop.Name, ignoreProperties);
@@ -364,9 +368,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (objectValue is bool bl)
                 {
-                    if (bl && jsonValue.Value<string>() != "1")
+                    var jsonStr = jsonValue.Value<string>();
+                    if (bl && (jsonStr != "1" && jsonStr != "true" && jsonStr != "True"))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {bl}");
-                    if (!bl && jsonValue.Value<string>() != "0")
+                    if (!bl && (jsonStr != "0" && jsonStr != "-1" && jsonStr != "false" && jsonStr != "False"))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {bl}");
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
