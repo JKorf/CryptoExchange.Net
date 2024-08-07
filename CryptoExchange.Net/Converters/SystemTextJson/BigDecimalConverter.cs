@@ -6,25 +6,18 @@ using System.Text.Json.Serialization;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// Decimal converter
+    /// Decimal converter that handles overflowing decimal values (by setting it to decimal.MaxValue)
     /// </summary>
-    public class DecimalConverter : JsonConverter<decimal?>
+    public class BigDecimalConverter : JsonConverter<decimal>
     {
         /// <inheritdoc />
-        public override decimal? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override decimal Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType == JsonTokenType.Null)
-                return null;
-
             if (reader.TokenType == JsonTokenType.String)
             {
-                var value = reader.GetString();
-                if (string.IsNullOrEmpty(value) || string.Equals("null", value))
-                    return null;
-
                 try
                 {
-                    return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return decimal.Parse(reader.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
                 catch(OverflowException)
                 {
@@ -45,12 +38,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
-        public override void Write(Utf8JsonWriter writer, decimal? value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, decimal value, JsonSerializerOptions options)
         {
-            if (value == null)
-                writer.WriteNullValue();
-            else
-                writer.WriteNumberValue(value.Value);
+            writer.WriteNumberValue(value);
         }
     }
 }
