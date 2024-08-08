@@ -151,12 +151,21 @@ namespace CryptoExchange.Net.Testing.Comparers
 
         private static void CheckObject(string method, JProperty prop, object obj, List<string>? ignoreProperties)
         {
-            var resultProperties = obj.GetType().GetProperties(
+            var publicProperties = obj.GetType().GetProperties(
                 System.Reflection.BindingFlags.Public 
-                | System.Reflection.BindingFlags.NonPublic 
                 | System.Reflection.BindingFlags.GetProperty 
                 | System.Reflection.BindingFlags.SetProperty
                 | System.Reflection.BindingFlags.Instance).Select(p => (p, ((JsonPropertyNameAttribute?)p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true).SingleOrDefault())?.Name));
+
+            var internalProperties = obj.GetType().GetProperties(
+                System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.GetProperty
+                | System.Reflection.BindingFlags.SetProperty
+                | System.Reflection.BindingFlags.Instance)
+                .Where(p => p.CustomAttributes.Any(x => x.AttributeType == typeof(JsonIncludeAttribute)))
+                .Select(p => (p, ((JsonPropertyNameAttribute?)p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true).SingleOrDefault())?.Name));
+
+            var resultProperties = publicProperties.Concat(internalProperties);
 
             // Property has a value
             var property = resultProperties.SingleOrDefault(p => p.Name == prop.Name).p;
