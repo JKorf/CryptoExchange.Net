@@ -7,6 +7,6 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
 {
     public record SharedRequest
     {
-        public FuturesType? FuturesType { get; set; }
+        public ApiType? ApiType { get; set; }
     }
 }

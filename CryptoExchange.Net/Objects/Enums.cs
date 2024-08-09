@@ -204,9 +204,10 @@
         Cache
     }
 
-    public enum FuturesType
+    public enum ApiType
     {
-        Linear,
-        Inverse
+        Spot,
+        LinearFutures,
+        InverseFutures
     }
 }
