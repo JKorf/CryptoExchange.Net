@@ -203,4 +203,10 @@
         /// </summary>
         Cache
     }
+
+    public enum FuturesType
+    {
+        Linear,
+        Inverse
+    }
 }

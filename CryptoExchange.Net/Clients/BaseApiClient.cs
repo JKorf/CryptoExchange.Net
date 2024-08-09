@@ -1,6 +1,7 @@
 using System;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 
@@ -76,7 +77,7 @@ namespace CryptoExchange.Net.Clients
         protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <inheritdoc />
-        public abstract string FormatSymbol(string baseAsset, string quoteAsset);
+        public abstract string FormatSymbol(string baseAsset, string quoteAsset, FuturesType? futuresType = null);
 
         /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
