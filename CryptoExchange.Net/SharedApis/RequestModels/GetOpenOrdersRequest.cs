@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.RequestModels
 {
-    public record SpotOpenOrderRequest : SharedRequest
+    public record GetOpenOrdersRequest : SharedRequest
     {
         public string? BaseAsset { get; set; }
         public string? QuoteAsset { get; set; }

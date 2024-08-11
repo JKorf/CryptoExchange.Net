@@ -1,6 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.RequestModels;
-using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface IDepositAddressClient
+    public interface IKlineRestClient: ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(DepositAddressRequest request, CancellationToken ct = default);
+        Task<WebCallResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, CancellationToken ct = default);
     }
 }

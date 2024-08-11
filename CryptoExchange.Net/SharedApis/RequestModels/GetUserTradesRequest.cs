@@ -1,23 +1,22 @@
-﻿using System;
+﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.SharedApis.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.RequestModels
 {
-    public record KlineRequest : SharedRequest
+    public record GetUserTradesRequest : SharedRequest
     {
         public string BaseAsset { get; set; }
         public string QuoteAsset { get; set; }
-        public TimeSpan Interval { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public int? Limit { get; set; }
 
-        public KlineRequest(string baseAsset, string quoteAsset, TimeSpan interval)
+        public GetUserTradesRequest(string baseAsset, string quoteAsset)
         {
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
-            Interval = interval;
         }
     }
 }

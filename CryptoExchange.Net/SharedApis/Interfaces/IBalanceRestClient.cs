@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface ITradeClient : ISharedClient
+    public interface IBalanceRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedTrade>>> GetTradesAsync(TradeRequest request, CancellationToken ct = default);
+        Task<WebCallResult<IEnumerable<SharedBalance>>> GetBalancesAsync(SharedRequest request, CancellationToken ct = default);
     }
 }

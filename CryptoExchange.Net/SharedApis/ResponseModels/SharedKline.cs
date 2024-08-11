@@ -12,5 +12,15 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
         public decimal LowPrice { get; set; }
         public decimal OpenPrice { get; set; }
         public decimal BaseVolume { get; set; }
+
+        public SharedKline(DateTime openTime, decimal closePrice, decimal highPrice, decimal lowPrice, decimal openPrice, decimal baseVolume)
+        {
+            OpenTime = openTime;
+            ClosePrice = closePrice;
+            HighPrice = highPrice;
+            LowPrice = lowPrice;
+            OpenPrice = openPrice;
+            BaseVolume = baseVolume;
+        }
     }
 }

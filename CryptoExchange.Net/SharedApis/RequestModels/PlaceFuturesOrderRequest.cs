@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.RequestModels
 {
-    public record FuturesOrderRequest
+    public record PlaceFuturesOrderRequest
     {
         public string BaseAsset { get; set; }
         public string QuoteAsset { get; set; }

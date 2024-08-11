@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface IOrderBookClient
+    public interface IFuturesOrderRestClient : ISharedClient
     {
-        Task<WebCallResult<SharedOrderBook>> PlaceOrderAsync(OrderBookRequest request, CancellationToken ct = default);
+        Task<WebCallResult<SharedOrderId>> PlaceOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
     }
 }

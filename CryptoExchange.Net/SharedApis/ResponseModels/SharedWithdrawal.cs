@@ -11,6 +11,16 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public string Address { get; set; }
         public decimal Quantity { get; set; }
         public DateTime Timestamp { get; set; }
+        public string? Network { get; set; }
+        public int? Confirmations { get; set; }
+
+        public SharedWithdrawal(string asset, string address, decimal quantity, DateTime timestamp)
+        {
+            Asset = asset;
+            Address = address;
+            Quantity = quantity;
+            Timestamp = timestamp;
+        }
     }
 
 }

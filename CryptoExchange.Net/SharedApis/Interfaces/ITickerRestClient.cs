@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface ITickerClient : ISharedClient
+    public interface ITickerRestClient : ISharedClient
     {
-        Task<WebCallResult<SharedTicker>> GetTickerAsync(TickerRequest request, CancellationToken ct = default);
+        Task<WebCallResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedTicker>>> GetTickersAsync(SharedRequest request, CancellationToken ct = default);
     }
 }

@@ -33,5 +33,12 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
         /// The max amount of decimal for price
         /// </summary>
         public int? PriceDecimals { get; set; }
+
+        public SharedSpotSymbol(string baseAsset, string quoteAsset, string symbol)
+        {
+            BaseAsset = baseAsset;
+            QuoteAsset = quoteAsset;
+            Name = symbol;
+        }
     }
 }

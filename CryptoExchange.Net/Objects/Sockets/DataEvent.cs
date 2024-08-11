@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public T Data { get; set; }
 
-        internal DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
+        public DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
         {
             Data = data;
             StreamId = streamId;

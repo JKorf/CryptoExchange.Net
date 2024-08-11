@@ -9,6 +9,12 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
     {
         public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; }
         public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; }
+
+        public SharedOrderBook(IEnumerable<ISymbolOrderBookEntry> asks, IEnumerable<ISymbolOrderBookEntry> bids)
+        {
+            Asks = asks;
+            Bids = bids;
+        }
     }
 
 }

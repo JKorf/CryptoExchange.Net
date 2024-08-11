@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.RequestModels
 {
-    public record DepositRequest
+    public record GetDepositsRequest
     {
         public string? Asset { get; set; }
         public DateTime? StartTime { get; set; }

@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface IAssetClient : ISharedClient
+    public interface IOrderBookRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedAsset>>> GetAssetAsync(SharedRequest request, CancellationToken ct = default);
+        Task<WebCallResult<SharedOrderBook>> PlaceOrderAsync(GetOrderBookRequest request, CancellationToken ct = default);
     }
 }

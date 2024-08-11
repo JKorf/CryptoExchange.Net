@@ -4,11 +4,11 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Enums
 {
-    public enum SharedOrderType
+    public enum SharedTimeInForce
     {
-        Limit,
-        LimitMaker,
-        Market,
-        Other
+        GoodTillCanceled,
+        ImmediateOrCancel,
+        FillOrKill,
+        GoodTillDate
     }
 }
