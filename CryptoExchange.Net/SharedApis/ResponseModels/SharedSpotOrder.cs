@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public SharedOrderType OrderType { get; set; }
         public SharedOrderSide Side { get; set; }
         public SharedOrderStatus Status { get; set; }
-        public SharedTimeInForce TimeInForce { get; set; }
+        public SharedTimeInForce? TimeInForce { get; set; }
         public decimal? Quantity { get; set; }
         public decimal? QuantityFilled { get; set; }
         public decimal? QuoteQuantity { get; set; }
@@ -21,7 +21,9 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public decimal? Price { get; set; }
         public decimal? AveragePrice { get; set; }
         public string? ClientOrderId { get; set; }
-        public DateTime CreateTime { get; set; }
+        public string? FeeAsset { get; set; }
+        public decimal? Fee { get; set; }
+        public DateTime? CreateTime { get; set; }
         public DateTime? UpdateTime { get; set; }
 
         public SharedSpotOrder(
@@ -30,7 +32,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
             SharedOrderType orderType,
             SharedOrderSide orderSide,
             SharedOrderStatus orderStatus,
-            DateTime createTime)
+            DateTime? createTime)
         {
             Symbol = symbol;
             OrderId = orderId;
