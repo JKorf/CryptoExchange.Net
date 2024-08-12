@@ -8,8 +8,6 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
     public record SharedSpotOrder
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public string Symbol { get; set; }
         public string OrderId { get; set; }
         public SharedOrderType OrderType { get; set; }
@@ -27,8 +25,6 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public DateTime? UpdateTime { get; set; }
 
         public SharedSpotOrder(
-            string baseAsset,
-            string quoteAsset,
             string symbol,
             string orderId,
             SharedOrderType orderType,
@@ -36,8 +32,6 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
             SharedOrderStatus orderStatus,
             DateTime createTime)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
             Symbol = symbol;
             OrderId = orderId;
             OrderType = orderType;
