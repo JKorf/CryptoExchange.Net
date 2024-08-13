@@ -7,7 +7,6 @@ namespace CryptoExchange.Net.SharedApis.Enums
     public enum SharedOrderStatus
     {
         Open,
-        PartiallyFilled,
         Filled,
         Canceled
     }

@@ -26,6 +26,8 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public DateTime? CreateTime { get; set; }
         public DateTime? UpdateTime { get; set; }
 
+        public SharedUserTrade? LastTrade { get; set; }
+
         public SharedSpotOrder(
             string symbol,
             string orderId,
