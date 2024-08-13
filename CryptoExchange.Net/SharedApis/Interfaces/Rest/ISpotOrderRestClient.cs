@@ -13,10 +13,8 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface ISpotOrderRestClient : ISharedClient
     {
         public IEnumerable<SharedOrderType> SupportedOrderType { get; }
-        public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; set; }
-
-#warning TODO
-        public IEnumerable<SharedOrderType> QuoteQuantitySupport { get; } 
+        public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; }
+        public SharedQuoteQuantitySupport QuoteQuantitySupport { get; } 
 
         Task<WebCallResult<SharedOrderId>> PlaceOrderAsync(PlaceSpotPlaceOrderRequest request, CancellationToken ct = default);
         Task<WebCallResult<SharedSpotOrder>> GetOrderAsync(GetOrderRequest request, CancellationToken ct = default);
