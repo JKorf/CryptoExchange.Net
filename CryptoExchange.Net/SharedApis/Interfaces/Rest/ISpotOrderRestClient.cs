@@ -17,10 +17,10 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 
         public SharedQuantitySupport OrderQuantitySupport { get; } 
 
-        Task<WebCallResult<SharedOrderId>> PlaceOrderAsync(PlaceSpotPlaceOrderRequest request, CancellationToken ct = default);
+        Task<WebCallResult<SharedOrderId>> PlaceOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
         Task<WebCallResult<SharedSpotOrder>> GetOrderAsync(GetOrderRequest request, CancellationToken ct = default);
-        Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetOpenOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
-        Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetClosedOrdersAsync(GetClosedOrdersRequest request, CancellationToken ct = default);
+        Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetOpenOrdersAsync(GetSpotOpenOrdersRequest request, CancellationToken ct = default);
+        Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetClosedOrdersAsync(GetSpotClosedOrdersRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedUserTrade>>> GetOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedUserTrade>>> GetUserTradesAsync(GetUserTradesRequest request, CancellationToken ct = default);
         Task<WebCallResult<SharedOrderId>> CancelOrderAsync(CancelOrderRequest request, CancellationToken ct = default);

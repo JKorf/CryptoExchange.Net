@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetOpenOrdersRequest : SharedRequest
+    public record GetSpotOpenOrdersRequest : SharedRequest
     {
         public string? BaseAsset { get; set; }
         public string? QuoteAsset { get; set; }
