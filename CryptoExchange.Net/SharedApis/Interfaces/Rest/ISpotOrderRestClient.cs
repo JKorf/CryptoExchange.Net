@@ -14,12 +14,14 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     {
         public IEnumerable<SharedOrderType> SupportedOrderType { get; }
         public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; }
-        public SharedQuoteQuantitySupport QuoteQuantitySupport { get; } 
+
+        public SharedQuantitySupport OrderQuantitySupport { get; } 
 
         Task<WebCallResult<SharedOrderId>> PlaceOrderAsync(PlaceSpotPlaceOrderRequest request, CancellationToken ct = default);
         Task<WebCallResult<SharedSpotOrder>> GetOrderAsync(GetOrderRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetOpenOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedSpotOrder>>> GetClosedOrdersAsync(GetClosedOrdersRequest request, CancellationToken ct = default);
+        Task<WebCallResult<IEnumerable<SharedUserTrade>>> GetOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
         Task<WebCallResult<IEnumerable<SharedUserTrade>>> GetUserTradesAsync(GetUserTradesRequest request, CancellationToken ct = default);
         Task<WebCallResult<SharedOrderId>> CancelOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 

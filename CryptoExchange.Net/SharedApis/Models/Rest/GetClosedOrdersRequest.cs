@@ -12,6 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public string QuoteAsset { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        public int? Limit { get; set; }
 
         public GetClosedOrdersRequest(string baseAsset, string quoteAsset)
         {

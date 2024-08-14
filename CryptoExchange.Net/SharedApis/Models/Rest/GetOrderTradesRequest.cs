@@ -7,18 +7,17 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetUserTradesRequest : SharedRequest
+    public record GetOrderTradesRequest : SharedRequest
     {
         public string BaseAsset { get; set; }
         public string QuoteAsset { get; set; }
-        public DateTime? StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
-        public int? Limit { get; set; }
+        public string OrderId { get; set; }
 
-        public GetUserTradesRequest(string baseAsset, string quoteAsset)
+        public GetOrderTradesRequest(string baseAsset, string quoteAsset, string orderId)
         {
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
+            OrderId = orderId;
         }
     }
 }
