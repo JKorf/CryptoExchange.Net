@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -11,6 +12,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IAssetRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedAsset>>> GetAssetAsync(SharedRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedAsset>>> GetAssetAsync(SharedRequest request, CancellationToken ct = default);
     }
 }

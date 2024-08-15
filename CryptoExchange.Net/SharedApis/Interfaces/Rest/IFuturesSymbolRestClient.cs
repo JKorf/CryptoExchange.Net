@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IFuturesSymbolRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedFuturesSymbol>>> GetSymbolsAsync(SharedRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetSymbolsAsync(SharedRequest request, CancellationToken ct = default);
     }
 }

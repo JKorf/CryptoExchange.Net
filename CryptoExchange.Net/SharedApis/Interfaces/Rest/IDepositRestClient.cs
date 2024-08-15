@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -11,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IDepositRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
-        Task<WebCallResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, CancellationToken ct = default);
     }
 }

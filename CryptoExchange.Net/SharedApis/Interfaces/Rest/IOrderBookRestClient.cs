@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -11,6 +12,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IOrderBookRestClient : ISharedClient
     {
-        Task<WebCallResult<SharedOrderBook>> PlaceOrderAsync(GetOrderBookRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedOrderBook>> PlaceOrderAsync(GetOrderBookRequest request, CancellationToken ct = default);
     }
 }

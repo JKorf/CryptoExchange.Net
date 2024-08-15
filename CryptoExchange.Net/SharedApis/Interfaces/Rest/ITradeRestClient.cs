@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -11,6 +12,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface ITradeRestClient : ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedTrade>>> GetTradesAsync(GetTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradesAsync(GetTradesRequest request, CancellationToken ct = default);
     }
 }

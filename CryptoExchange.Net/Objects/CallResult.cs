@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis.Models;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -290,6 +291,17 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data)
+        {
+            return new ExchangeWebResult<K>(exchange, this.As<K>(data));
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
         public WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, 0, null, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Server, default, error);
@@ -445,6 +457,39 @@ namespace CryptoExchange.Net.Objects
         public new WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, default, error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<T> AsExchangeResult(string exchange)
+        {
+            return new ExchangeWebResult<T>(exchange, this);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data)
+        {
+            return new ExchangeWebResult<K>(exchange, this.As<K>(data));
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
+        {
+            return new ExchangeWebResult<K>(exchange, error);
         }
 
         /// <summary>

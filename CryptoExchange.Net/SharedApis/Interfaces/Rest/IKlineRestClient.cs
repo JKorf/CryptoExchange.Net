@@ -1,4 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -11,6 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IKlineRestClient: ISharedClient
     {
-        Task<WebCallResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, CancellationToken ct = default);
+        //GetKlinesOptions GetKlinesOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, CancellationToken ct = default);
     }
 }
