@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface ITradeRestClient : ISharedClient
+    public interface IRecentTradeRestClient : ISharedClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradesAsync(GetTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
     }
 }

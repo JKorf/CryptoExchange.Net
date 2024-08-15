@@ -6,16 +6,17 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record CancelOrderRequest : SharedRequest
+    public record CancelOrderRequest : SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public string OrderId { get; set; }
 
-        public CancelOrderRequest(string baseAsset, string quoteAsset, string orderId)
+        public CancelOrderRequest(string baseAsset, string quoteAsset, string orderId) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+            OrderId = orderId;
+        }
+
+        public CancelOrderRequest(string symbol, string orderId) : base(symbol)
+        {
             OrderId = orderId;
         }
     }

@@ -7,36 +7,21 @@ using CryptoExchange.Net.SharedApis.RequestModels;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetKlinesRequest : SharedRequest
+    public record GetKlinesRequest : SharedSymbolRequest
     {
-        public string? BaseAsset { get; set; }
-        public string? QuoteAsset { get; set; }
-        public string? Symbol { get; set; }
-
         public SharedKlineInterval Interval { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public int? Limit { get; set; }
 
-        public GetKlinesRequest(string baseAsset, string quoteAsset, SharedKlineInterval interval)
+        public GetKlinesRequest(string baseAsset, string quoteAsset, SharedKlineInterval interval) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
             Interval = interval;
         }
 
-        public GetKlinesRequest(string symbol, SharedKlineInterval interval)
+        public GetKlinesRequest(string symbol, SharedKlineInterval interval) : base(symbol)
         {
-            Symbol = symbol;
             Interval = interval;
-        }
-
-        public string GetSymbol(Func<string, string, ApiType?, string> format)
-        {
-            if (!string.IsNullOrEmpty(Symbol))
-                return Symbol;
-
-            return format(BaseAsset, QuoteAsset, ApiType);
         }
     }
 }

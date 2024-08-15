@@ -7,10 +7,8 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record PlaceSpotOrderRequest : SharedRequest
+    public record PlaceSpotOrderRequest : SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public SharedOrderType OrderType { get; set; }
         public SharedOrderSide Side { get; set; }
         public SharedTimeInForce? TimeInForce { get; set; }
@@ -19,10 +17,14 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Price { get; set; }
         public string? ClientOrderId { get; set; }
 
-        public PlaceSpotOrderRequest(string baseAsset, string quoteAsset, SharedOrderType orderType, SharedOrderSide side)
+        public PlaceSpotOrderRequest(string baseAsset, string quoteAsset, SharedOrderType orderType, SharedOrderSide side) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+            OrderType = orderType;
+            Side = side;
+        }
+
+        public PlaceSpotOrderRequest(string symbol, SharedOrderType orderType, SharedOrderSide side) : base(symbol)
+        {
             OrderType = orderType;
             Side = side;
         }

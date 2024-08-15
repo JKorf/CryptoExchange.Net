@@ -21,9 +21,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
         Task<ExchangeWebResult<SharedOrderId>> PlaceOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
         Task<ExchangeWebResult<SharedSpotOrder>> GetOrderAsync(GetOrderRequest request, CancellationToken ct = default);
         Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetOpenOrdersAsync(GetSpotOpenOrdersRequest request, CancellationToken ct = default);
-        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedOrdersAsync(GetSpotClosedOrdersRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedOrdersAsync(GetSpotClosedOrdersRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
         Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
-        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetUserTradesAsync(GetUserTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
         Task<ExchangeWebResult<SharedOrderId>> CancelOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 
     }

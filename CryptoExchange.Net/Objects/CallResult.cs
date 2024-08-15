@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.SharedApis.Models;
+﻿using CryptoExchange.Net.SharedApis.Interfaces;
+using CryptoExchange.Net.SharedApis.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -476,9 +477,9 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data)
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data, INextPageToken? nextPageToken = null)
         {
-            return new ExchangeWebResult<K>(exchange, this.As<K>(data));
+            return new ExchangeWebResult<K>(exchange, this.As<K>(data), nextPageToken);
         }
 
         /// <summary>

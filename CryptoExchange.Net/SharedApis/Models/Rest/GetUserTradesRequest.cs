@@ -7,18 +7,18 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetUserTradesRequest : SharedRequest
+    public record GetUserTradesRequest : SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public int? Limit { get; set; }
 
-        public GetUserTradesRequest(string baseAsset, string quoteAsset)
+        public GetUserTradesRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+        }
+
+        public GetUserTradesRequest(string symbol) : base(symbol)
+        {
         }
     }
 }

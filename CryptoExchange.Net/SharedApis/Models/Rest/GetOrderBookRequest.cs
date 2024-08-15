@@ -1,19 +1,20 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis.RequestModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetOrderBookRequest
+    public record GetOrderBookRequest: SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public int? Limit { get; set; }
 
-        public GetOrderBookRequest(string baseAsset, string quoteAsset)
+        public GetOrderBookRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+        }
+
+        public GetOrderBookRequest(string symbol) : base(symbol)
+        {
         }
     }
 }

@@ -7,16 +7,17 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetOrderTradesRequest : SharedRequest
+    public record GetOrderTradesRequest : SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
         public string OrderId { get; set; }
 
-        public GetOrderTradesRequest(string baseAsset, string quoteAsset, string orderId)
+        public GetOrderTradesRequest(string baseAsset, string quoteAsset, string orderId) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+            OrderId = orderId;
+        }
+
+        public GetOrderTradesRequest(string symbol, string orderId) : base(symbol)
+        {
             OrderId = orderId;
         }
     }

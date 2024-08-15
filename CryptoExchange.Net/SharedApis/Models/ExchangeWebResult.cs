@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// </summary>
         public string Exchange { get; }
 
-        public string? NextPageToken { get; }
+        public INextPageToken? NextPageToken { get; }
 
         /// <summary>
         /// ctor
@@ -35,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         public ExchangeWebResult(
             string exchange,
             WebCallResult<T> result,
-            string? nextPageToken = null) :
+            INextPageToken? nextPageToken = null) :
             base(result.ResponseStatusCode,
                 result.ResponseHeaders,
                 result.ResponseTime,
@@ -52,6 +53,8 @@ namespace CryptoExchange.Net.SharedApis.Models
         {
             Exchange = exchange;
             NextPageToken = nextPageToken;
+            if (NextPageToken != null)
+                NextPageToken.Exchange = exchange;
         }
 
         /// <inheritdoc />

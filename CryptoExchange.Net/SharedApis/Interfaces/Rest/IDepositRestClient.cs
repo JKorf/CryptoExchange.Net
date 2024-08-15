@@ -13,6 +13,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IDepositRestClient : ISharedClient
     {
         Task<ExchangeWebResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
-        Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

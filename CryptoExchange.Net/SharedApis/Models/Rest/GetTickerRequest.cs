@@ -5,15 +5,15 @@ using CryptoExchange.Net.SharedApis.RequestModels;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetTickerRequest : SharedRequest
+    public record GetTickerRequest : SharedSymbolRequest
     {
-        public string BaseAsset { get; set; }
-        public string QuoteAsset { get; set; }
 
-        public GetTickerRequest(string baseAsset, string quoteAsset)
+        public GetTickerRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
         {
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
+        }
+
+        public GetTickerRequest(string symbol) : base(symbol)
+        {
         }
     }
 }
