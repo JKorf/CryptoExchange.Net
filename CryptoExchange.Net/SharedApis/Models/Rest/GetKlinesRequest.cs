@@ -10,9 +10,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     public record GetKlinesRequest : SharedSymbolRequest
     {
         public SharedKlineInterval Interval { get; set; }
-        public DateTime? StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
-        public int? Limit { get; set; }
+        public RequestFilter? Filter { get; set; }
 
         public GetKlinesRequest(string baseAsset, string quoteAsset, SharedKlineInterval interval) : base(baseAsset, quoteAsset)
         {
