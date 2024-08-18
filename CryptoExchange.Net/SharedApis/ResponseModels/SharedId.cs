@@ -4,13 +4,13 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
-    public record SharedOrderId
+    public record SharedId
     {
-        public string OrderId { get; set; }
+        public string Id { get; set; }
 
-        public SharedOrderId(string orderId)
+        public SharedId(string id)
         {
-            OrderId = orderId;
+            Id = id;
         }
     }
 }

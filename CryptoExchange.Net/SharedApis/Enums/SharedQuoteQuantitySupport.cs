@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -37,6 +38,21 @@ namespace CryptoExchange.Net.SharedApis.Enums
             if (side == SharedOrderSide.Sell && orderType == SharedOrderType.Market) return SellMarket;
 
             throw new ArgumentException("Unknown side/type combination");
+        }
+
+        public Error? Validate(SharedOrderSide side, SharedOrderType type, decimal? quantity, decimal? quoteQuantity)
+        {
+            var supportedType = GetSupportedQuantityType(side, type);
+            if (supportedType == SharedQuantityType.Both)
+                return null;
+
+            if (supportedType == SharedQuantityType.BaseAssetQuantity && quoteQuantity != null)
+                return new ArgumentError($"Quote quantity not supported for {side}.{type} order, specify Quantity instead");
+
+            if (supportedType == SharedQuantityType.QuoteAssetQuantity && quantity != null)
+                return new ArgumentError($"Quantity not supported for {side}.{type} order, specify QuoteQuantity instead");
+
+            return null;
         }
     }
 }

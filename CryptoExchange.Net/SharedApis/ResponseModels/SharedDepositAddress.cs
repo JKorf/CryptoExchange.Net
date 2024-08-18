@@ -7,11 +7,12 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
     public record SharedDepositAddress
     {
+        public string Asset { get; set; }
         public string Address { get; set; }
         public string? Network { get; set; }
         public string? Tag { get; set; }
 
-        public SharedDepositAddress(string address)
+        public SharedDepositAddress(string asset, string address)
         {
             Address = address;
         }

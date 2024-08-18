@@ -7,12 +7,10 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
     public record EndpointOptions
     {
-        public bool TimeFilterSupport { get; }
         public bool PaginationSupport { get; }
 
-        public EndpointOptions(bool timeFilterSupport, bool paginationSupport)
+        public EndpointOptions(bool paginationSupport)
         {
-            TimeFilterSupport = timeFilterSupport;
             PaginationSupport = paginationSupport;
         }
     }

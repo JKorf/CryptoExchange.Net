@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IKlineRestClient: ISharedClient
     {
-        //GetKlinesOptions GetKlinesOptions { get; }
+        GetKlinesOptions GetKlinesOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

@@ -13,6 +13,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface ITickerRestClient : ISharedClient
     {
         Task<ExchangeWebResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, CancellationToken ct = default);
-        Task<ExchangeWebResult<IEnumerable<SharedTicker>>> GetTickersAsync(SharedRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedTicker>>> GetTickersAsync(ApiType? apiType, CancellationToken ct = default);
     }
 }

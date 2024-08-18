@@ -9,6 +9,11 @@ using System.Text;
 using System.Web;
 using CryptoExchange.Net.Objects;
 using System.Globalization;
+using System.Threading.Tasks;
+using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.RequestModels;
+using CryptoExchange.Net.SharedApis.Interfaces;
+using System.Threading;
 
 namespace CryptoExchange.Net
 {
@@ -377,6 +382,25 @@ namespace CryptoExchange.Net
 
             output.Position = 0;
             return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
+        }
+
+        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)
+        {
+            var result = new List<T>();
+            ExchangeWebResult<IEnumerable<T>> batch;
+            INextPageToken? nextPageToken = null;
+            while (true)
+            {
+                batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
+                yield return batch;
+                if (!batch)
+                    break;
+
+                result.AddRange(batch.Data);
+                nextPageToken = batch.NextPageToken;
+                if (nextPageToken == null)
+                    break;
+            }
         }
     }
 }
