@@ -7,6 +7,8 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
     public record SharedDeposit
     {
+#warning set ids on existing mapping
+        public string Id { get; set; }
         public string Asset { get; set; }
         public decimal Quantity { get; set; }
         public DateTime Timestamp { get; set; }

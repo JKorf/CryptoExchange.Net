@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
 
         public SharedDepositAddress(string asset, string address)
         {
+            Asset = asset;
             Address = address;
         }
     }

@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     {
         WithdrawOptions WithdrawOptions { get; }
 
-        Task<ExchangeWebResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedId>> WithdrawAsync(WithdrawRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

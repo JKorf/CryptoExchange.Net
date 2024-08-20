@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public decimal? MinWithdrawQuantity { get; set; }
         public decimal? MaxWithdrawQuantity { get; set; }
         public bool? WithdrawEnabled { get; set; }
-        public bool DepositEnabled { get; set; }
+        public bool? DepositEnabled { get; set; }
         public int? MinConfirmations { get; set; }
 
         public SharedAssetNetwork(string name)

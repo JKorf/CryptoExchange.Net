@@ -7,6 +7,8 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
     public record SharedWithdrawal
     {
+#warning set ids on existing mapping
+        public string Id { get; set; }
         public string Asset { get; set; }
         public string Address { get; set; }
         public decimal Quantity { get; set; }

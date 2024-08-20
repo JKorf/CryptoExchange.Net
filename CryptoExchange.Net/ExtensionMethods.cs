@@ -384,6 +384,7 @@ namespace CryptoExchange.Net
             return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
+
         public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)
         {
             var result = new List<T>();
