@@ -13,6 +13,14 @@ namespace CryptoExchange.Net.SharedApis.Models
             _store[exchange + "." + parameter] = value;
         }
 
+        public bool HasValue(string exchange, string name, Type type)
+        {
+            if (!_store.TryGetValue(exchange + "." + name, out var val))
+                return false;
+
+            return val.GetType() == type;
+        }
+
         public T? GetValue<T>(string exchange, string name)
         {
             if (_store == null)

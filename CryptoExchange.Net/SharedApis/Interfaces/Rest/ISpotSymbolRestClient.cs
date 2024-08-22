@@ -11,6 +11,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface ISpotSymbolRestClient : ISharedClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedSpotSymbol>>> GetSpotSymbolsAsync(CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedSpotSymbol>>> GetSpotSymbolsAsync(ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

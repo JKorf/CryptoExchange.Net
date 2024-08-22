@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
 {
     public interface IPositionRestClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(SharedRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(ApiType? apiType, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
 
     }
 }

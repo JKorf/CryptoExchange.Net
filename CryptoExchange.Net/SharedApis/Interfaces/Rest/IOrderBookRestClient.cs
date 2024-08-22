@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IOrderBookRestClient : ISharedClient
     {
         GetOrderBookOptions GetOrderBookOptions { get; }
-        Task<ExchangeWebResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

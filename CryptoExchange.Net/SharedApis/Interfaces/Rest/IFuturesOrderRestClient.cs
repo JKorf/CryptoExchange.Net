@@ -12,6 +12,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IFuturesOrderRestClient : ISharedClient
     {
-        Task<ExchangeWebResult<SharedId>> PlaceOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedId>> PlaceOrderAsync(PlaceFuturesOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

@@ -5,13 +5,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.RequestModels
 {
-    public record SharedRequest
+    public record SharedSymbolRequest
     {
         public ApiType? ApiType { get; set; }
-    }
-
-    public record SharedSymbolRequest : SharedRequest
-    {
         public string? BaseAsset { get; set; }
         public string? QuoteAsset { get; set; }
         public string? Symbol { get; set; }

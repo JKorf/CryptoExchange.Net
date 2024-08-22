@@ -13,6 +13,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface ITradeHistoryRestClient : ISharedClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradeHistoryAsync(GetTradeHistoryRequest request, INextPageToken? pageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradeHistoryAsync(GetTradeHistoryRequest request, INextPageToken? pageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

@@ -9,14 +9,14 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record GetKlinesOptions : EndpointOptions
+    public record GetKlinesOptions : PaginatedEndpointOptions
     {
         public IEnumerable<SharedKlineInterval> SupportIntervals { get; }
         public int? MaxTotalDataPoints { get; set; }
         public int? MaxRequestDataPoints { get; set; }
         public TimeSpan? MaxAge { get; set; }
 
-        public GetKlinesOptions(bool paginationSupport) : base(paginationSupport)
+        public GetKlinesOptions(bool paginationSupport, bool needsAuthentication) : base(paginationSupport, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             };
         }
 
-        public GetKlinesOptions(bool paginationSupport, params SharedKlineInterval[] intervals) : base(paginationSupport)
+        public GetKlinesOptions(bool paginationSupport, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationSupport, needsAuthentication)
         {
             SupportIntervals = intervals;
         }

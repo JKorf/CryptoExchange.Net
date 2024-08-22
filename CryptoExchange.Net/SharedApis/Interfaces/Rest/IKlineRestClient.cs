@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IKlineRestClient: ISharedClient
     {
         GetKlinesOptions GetKlinesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

@@ -11,6 +11,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IFuturesSymbolRestClient : ISharedClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetSymbolsAsync(SharedRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(ApiType? apiType, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

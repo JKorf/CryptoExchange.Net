@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     {
         GetRecentTradesOptions GetRecentTradesOptions { get; }
 
-        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetRecentTradesAsync(GetRecentTradesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }
