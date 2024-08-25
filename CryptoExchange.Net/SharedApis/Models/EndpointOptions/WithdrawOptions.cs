@@ -12,6 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
     public record WithdrawOptions: EndpointOptions<WithdrawRequest>
     {
 
+
         public WithdrawOptions() : base(true)
         {
         }

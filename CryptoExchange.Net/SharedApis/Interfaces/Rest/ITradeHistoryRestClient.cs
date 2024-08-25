@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface ITradeHistoryRestClient : ISharedClient
     {
-        PaginatedEndpointOptions<GetTradeHistoryRequest> GetTradeHistoryOptions { get; }
+        GetTradeHistoryOptions GetTradeHistoryOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradeHistoryAsync(GetTradeHistoryRequest request, INextPageToken? pageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }
