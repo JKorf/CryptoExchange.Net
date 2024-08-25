@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -12,7 +13,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface ITickerRestClient : ISharedClient
     {
+        EndpointOptions<GetTickerRequest> GetTickerOptions { get; }
         Task<ExchangeWebResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions GetTickersOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedTicker>>> GetTickersAsync(ApiType? apiType, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

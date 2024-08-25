@@ -13,9 +13,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IDepositRestClient : ISharedClient
     {
-        //EndpointOptions GetDepositAddressesOptions { get; }
+        EndpointOptions<GetDepositAddressesRequest> GetDepositAddressesOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        //EndpointOptions GetDepositsOptions { get; }
+        PaginatedEndpointOptions<GetDepositsRequest> GetDepositsOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

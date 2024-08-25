@@ -9,11 +9,11 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record GetRecentTradesOptions
+    public record GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest>
     {
         public int MaxLimit { get; set; }
 
-        public GetRecentTradesOptions(int limit)
+        public GetRecentTradesOptions(int limit, bool authenticated) : base(authenticated)
         {
             MaxLimit = limit;
         }

@@ -9,7 +9,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record GetKlinesOptions : PaginatedEndpointOptions
+    public record GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest>
     {
         public IEnumerable<SharedKlineInterval> SupportIntervals { get; }
         public int? MaxTotalDataPoints { get; set; }
@@ -37,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
-        public Error? Validate(GetKlinesRequest request)
+        public override Error? ValidateRequest(string exchange, GetKlinesRequest request, ExchangeParameters? exchangeParameters)
         {
             if (!IsSupported(request.Interval))
                 return new ArgumentError("Interval not supported");
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
                 }
             }
 
-            return null;
+            return base.ValidateRequest(exchange, request, exchangeParameters);
         }
     }
 }

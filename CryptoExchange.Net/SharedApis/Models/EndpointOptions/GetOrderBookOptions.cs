@@ -9,24 +9,24 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record GetOrderBookOptions
+    public record GetOrderBookOptions : EndpointOptions<GetOrderBookRequest>
     {
         public IEnumerable<int>? SupportedLimits { get; set; }
         public int? MinLimit { get; set; }
         public int? MaxLimit { get; set; }
 
-        public GetOrderBookOptions(int minLimit, int maxLimit)
+        public GetOrderBookOptions(int minLimit, int maxLimit, bool authenticated) : base(authenticated)
         {
             MinLimit = minLimit;
             MaxLimit = maxLimit;
         }
 
-        public GetOrderBookOptions(IEnumerable<int> supportedLimits)
+        public GetOrderBookOptions(IEnumerable<int> supportedLimits, bool authenticated) : base(authenticated)
         {
             SupportedLimits = supportedLimits;
         }
 
-        public Error? Validate(GetOrderBookRequest request)
+        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, ExchangeParameters? exchangeParameters)
         {
             if (request.Limit == null)
                 return null;
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError($"Limit should be one of " + string.Join(", ", SupportedLimits));
 
-            return null;
+            return base.ValidateRequest(exchange, request, exchangeParameters);
         }
     }
 }

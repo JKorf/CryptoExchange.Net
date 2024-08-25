@@ -9,17 +9,12 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record WithdrawOptions
+    public record WithdrawOptions: EndpointOptions<WithdrawRequest>
     {
 
-        public WithdrawOptions()
+        public WithdrawOptions() : base(true)
         {
         }
 
-        public Error? Validate(WithdrawRequest request)
-        {
-
-            return null;
-        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -12,6 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IWithdrawalRestClient : ISharedClient
     {
+        PaginatedEndpointOptions<GetWithdrawalsRequest> GetWithdrawalsOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedWithdrawal>>> GetWithdrawalsAsync(GetWithdrawalsRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

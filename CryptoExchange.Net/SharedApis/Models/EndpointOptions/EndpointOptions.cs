@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
     {
 
         // parameters which are optional in the request, but required for this exchange
-        public List<ParameterDescription> RequiredOptionalParameters { get; } = new List<ParameterDescription>();
+        public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
 
         public EndpointOptions(bool needsAuthentication) : base(needsAuthentication)
         {
@@ -47,7 +47,23 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (exchangeParametersError != null)
                 return exchangeParametersError;
 
+            foreach (var param in RequiredOptionalParameters)
+            {
+                if (exchangeParameters?.HasValue(exchange, param.Name, param.ValueType) != true)
+                    return new ArgumentError($"Required parameter `{param.Name}` for exchange `{exchange}` is missing or has incorrect type. Excpected type is {param.ValueType.Name}.");
+            }
+
             return null;
+        }
+    }
+
+    public record PaginatedEndpointOptions<T> : EndpointOptions<T>
+    {
+        public bool PaginationSupport { get; }
+
+        public PaginatedEndpointOptions(bool paginationSupported, bool needsAuthentication) : base(needsAuthentication)
+        {
+            PaginationSupport = paginationSupported;
         }
     }
 
@@ -67,5 +83,13 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public Type ValueType { get; set; }
         public string Description { get; set; }
         public string ExampleValue { get; set; }
+
+        public ParameterDescription(string parameterName, Type valueType, string description, string exampleValue)
+        {
+            Name = parameterName;
+            ValueType = valueType;
+            Description = description;
+            ExampleValue = exampleValue;
+        }
     }
 }

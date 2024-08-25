@@ -9,21 +9,24 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record PlaceSpotOrderOptions
+    public record PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest>
     {
         public IEnumerable<SharedOrderType> SupportedOrderType { get; }
         public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; }
         public SharedQuantitySupport OrderQuantitySupport { get; }
 
-        public PlaceSpotOrderOptions(IEnumerable<SharedOrderType> orderTypes, IEnumerable<SharedTimeInForce> timeInForces, SharedQuantitySupport quantitySupport)
+        public PlaceSpotOrderOptions(IEnumerable<SharedOrderType> orderTypes, IEnumerable<SharedTimeInForce> timeInForces, SharedQuantitySupport quantitySupport) : base(true)
         {
             SupportedOrderType = orderTypes;
             SupportedTimeInForce = timeInForces;
             OrderQuantitySupport = quantitySupport;
         }
 
-        public Error? Validate(PlaceSpotOrderRequest request)
+        public override Error? ValidateRequest(string exchange, PlaceSpotOrderRequest request, ExchangeParameters? exchangeParameters)
         {
+            if (request.OrderType == SharedOrderType.Other)
+                throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
+
             if (!SupportedOrderType.Contains(request.OrderType))
                 return new ArgumentError("Order type not supported");
 
@@ -34,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (quantityError != null)
                 return quantityError;
 
-            return null;
+            return base.ValidateRequest(exchange, request, exchangeParameters);
         }
     }
 }
