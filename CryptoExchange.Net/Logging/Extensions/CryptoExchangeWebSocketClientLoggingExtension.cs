@@ -25,6 +25,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, string, Exception?> _sendLoopStoppedWithException;
         private static readonly Action<ILogger, int, Exception?> _sendLoopFinished;
         private static readonly Action<ILogger, int, string, string ,Exception?> _receivedCloseMessage;
+        private static readonly Action<ILogger, int, string, string ,Exception?> _receivedCloseConfirmation;
         private static readonly Action<ILogger, int, int, Exception?> _receivedPartialMessage;
         private static readonly Action<ILogger, int, int, Exception?> _receivedSingleMessage;
         private static readonly Action<ILogger, int, long, Exception?> _reassembledMessage;
@@ -33,6 +34,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _receiveLoopFinished;
         private static readonly Action<ILogger, int, TimeSpan?, Exception?> _startingTaskForNoDataReceivedCheck;
         private static readonly Action<ILogger, int, TimeSpan?, Exception?> _noDataReceiveTimoutReconnect;
+        private static readonly Action<ILogger, int, string, string, Exception?> _socketProcessingStateChanged;
 
         static CryptoExchangeWebSocketClientLoggingExtension()
         {
@@ -170,6 +172,17 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Debug,
                 new EventId(1027, "NoDataReceiveTimeoutReconnect"),
                 "[Sckt {SocketId}] no data received for {Timeout}, reconnecting socket");
+
+            _receivedCloseConfirmation = LoggerMessage.Define<int, string, string>(
+                LogLevel.Debug,
+                new EventId(1028, "ReceivedCloseMessage"),
+                "[Sckt {SocketId}] received `Close` message confirming our close request, CloseStatus: {CloseStatus}, CloseStatusDescription: {CloseStatusDescription}");
+
+            _socketProcessingStateChanged = LoggerMessage.Define<int, string, string>(
+                LogLevel.Trace,
+                new EventId(1028, "SocketProcessingStateChanged"),
+                "[Sckt {Id}] processing state change: {PreviousState} -> {NewState}");
+
         }
 
         public static void SocketConnecting(
@@ -286,6 +299,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             _receivedCloseMessage(logger, socketId, webSocketCloseStatus, closeStatusDescription, null);
         }
 
+        public static void SocketReceivedCloseConfirmation(
+            this ILogger logger, int socketId, string webSocketCloseStatus, string closeStatusDescription)
+        {
+            _receivedCloseConfirmation(logger, socketId, webSocketCloseStatus, closeStatusDescription, null);
+        }
+
         public static void SocketReceivedPartialMessage(
             this ILogger logger, int socketId, int countBytes)
         {
@@ -332,6 +351,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             this ILogger logger, int socketId, TimeSpan? timeSpan)
         {
             _noDataReceiveTimoutReconnect(logger, socketId, timeSpan, null);
+        }
+
+        public static void SocketProcessingStateChanged(
+            this ILogger logger, int socketId, string prevState, string newState)
+        {
+            _socketProcessingStateChanged(logger, socketId, prevState, newState, null);
         }
     }
 }
