@@ -32,22 +32,30 @@ namespace CryptoExchange.Net.RateLimiting
         {
             _name = name;
             _guards = new ConcurrentBag<IRateLimitGuard>();
-            _semaphore = new SemaphoreSlim(1);
+            _semaphore = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc />
         public async Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+            bool release = true;
             _waitingCount++;
             try
             {
                 return await CheckGuardsAsync(_guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
+            catch (TaskCanceledException)
+            {
+                // The semaphore has alraedy been released if the task was cancelled
+                release = false;
+                throw;
+            }
             finally
             {
                 _waitingCount--;
-                _semaphore.Release();
+                if (release)
+                    _semaphore.Release();
             }
         }
 
@@ -64,16 +72,23 @@ namespace CryptoExchange.Net.RateLimiting
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-
+            bool release = true;
             _waitingCount++;
             try
             {
                 return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, 1, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
+            catch (TaskCanceledException)
+            {
+                // The semaphore has alraedy been released if the task was cancelled
+                release = false;
+                throw;
+            }
             finally
             {
                 _waitingCount--;
-                _semaphore.Release();
+                if (release)
+                    _semaphore.Release();
             }
         }
 
