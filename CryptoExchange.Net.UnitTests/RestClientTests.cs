@@ -370,5 +370,20 @@ namespace CryptoExchange.Net.UnitTests
             var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host2, "123", 1, RateLimitingBehaviour.Wait, default);
             Assert.That(expectLimited ? evnt != null : evnt == null);
         }
+
+        [Test]
+        public async Task ConnectionRateLimiterCancel()
+        {
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(10), RateLimitWindowType.Fixed));
+
+            RateLimitEvent evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+            var ct = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, ct.Token);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, ct.Token);
+            Assert.That(result2.Error, Is.TypeOf<CancellationRequestedError>());
+        }
     }
 }

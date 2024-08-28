@@ -47,9 +47,9 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException)
             {
-                // The semaphore has alraedy been released if the task was cancelled
+                // The semaphore has already been released if the task was cancelled
                 release = false;
-                throw;
+                return new CallResult(new CancellationRequestedError());
             }
             finally
             {
@@ -80,9 +80,9 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException)
             {
-                // The semaphore has alraedy been released if the task was cancelled
+                // The semaphore has already been released if the task was cancelled
                 release = false;
-                throw;
+                return new CallResult(new CancellationRequestedError());
             }
             finally
             {
