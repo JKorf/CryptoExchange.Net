@@ -49,7 +49,11 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 // The semaphore has alraedy been released if the task was cancelled
                 release = false;
-                throw;
+                return new CallResult(new CancellationRequestedError());
+            }
+            catch (Exception e)
+            {
+                return new CallResult(new UnknownError(e.Message));
             }
             finally
             {
@@ -82,7 +86,11 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 // The semaphore has alraedy been released if the task was cancelled
                 release = false;
-                throw;
+                return new CallResult(new CancellationRequestedError());
+            }
+            catch (Exception e)
+            {
+                return new CallResult(new UnknownError(e.Message));
             }
             finally
             {

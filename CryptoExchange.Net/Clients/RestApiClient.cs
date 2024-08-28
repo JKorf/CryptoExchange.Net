@@ -305,7 +305,7 @@ namespace CryptoExchange.Net.Clients
                 {
                     var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult(limitResult.Error!);
+                        return new CallResult(limitResult?.Error ?? new UnknownError("ProcessAsync failed"));
                 }
             }
 
@@ -319,7 +319,7 @@ namespace CryptoExchange.Net.Clients
                 {
                     var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult(limitResult.Error!);
+                        return new CallResult(limitResult?.Error ?? new UnknownError("ProcessSingleAsync failed"));
                 }
             }
 

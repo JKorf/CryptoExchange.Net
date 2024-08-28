@@ -206,7 +206,7 @@ namespace CryptoExchange.Net.Sockets
                     var definition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
                     var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult(new ClientRateLimitError("Connection limit reached"));
+                        return new CallResult(limitResult?.Error ?? new ClientRateLimitError("Connection limit reached"));
                 }
 
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
