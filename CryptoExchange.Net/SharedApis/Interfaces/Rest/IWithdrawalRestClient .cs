@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IWithdrawalRestClient : ISharedClient
     {
-        PaginatedEndpointOptions<GetWithdrawalsRequest> GetWithdrawalsOptions { get; }
+        GetWithdrawalsOptions GetWithdrawalsOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedWithdrawal>>> GetWithdrawalsAsync(GetWithdrawalsRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

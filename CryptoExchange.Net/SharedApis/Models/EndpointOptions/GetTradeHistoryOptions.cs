@@ -9,7 +9,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 {
 
-    public record GetTradeHistoryOptions : PaginatedEndpointOptions<GetKlinesRequest>
+    public record GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest>
     {
         public TimeSpan? MaxAge { get; set; }
 
@@ -17,9 +17,9 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public override Error? ValidateRequest(string exchange, GetKlinesRequest request, ExchangeParameters? exchangeParameters)
+        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, ExchangeParameters? exchangeParameters)
         {
-            if (MaxAge.HasValue && request.Filter?.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
+            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} trades are available");
 
             return base.ValidateRequest(exchange, request, exchangeParameters);

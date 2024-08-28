@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     {
         EndpointOptions<GetDepositAddressesRequest> GetDepositAddressesOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        PaginatedEndpointOptions<GetDepositsRequest> GetDepositsOptions { get; }
+        GetDepositsOptions GetDepositsOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

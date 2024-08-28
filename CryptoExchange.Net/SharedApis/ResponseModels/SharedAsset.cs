@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public string Name { get; set; }
         public string? FullName { get; set; }
 
-        public IEnumerable<SharedAssetNetwork>? Networks { get; set; }
+        public IEnumerable<SharedAssetNetwork>? Networks { get; set; } = Array.Empty<SharedAssetNetwork>();
 
         public SharedAsset(string name)
         {
