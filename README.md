@@ -47,6 +47,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 7.11.2 - 28 Aug 2024
+    * Fixed issues when ratelimiting is canceled using the provided cancellation token
+
 * Version 7.11.1 - 25 Aug 2024
     * Improved closing logic websockets
 
