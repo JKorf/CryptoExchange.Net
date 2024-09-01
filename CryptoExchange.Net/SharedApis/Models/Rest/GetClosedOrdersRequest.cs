@@ -6,15 +6,11 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetSpotClosedOrdersRequest : SharedSymbolRequest
+    public record GetClosedOrdersRequest : SharedSymbolRequest
     {
         public RequestFilter? Filter { get; set; }
 
-        public GetSpotClosedOrdersRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
-        {
-        }
-
-        public GetSpotClosedOrdersRequest(string symbol) : base(symbol)
+        public GetClosedOrdersRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }

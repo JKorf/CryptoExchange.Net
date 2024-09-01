@@ -10,13 +10,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? StartTime { get; }
         public DateTime? EndTime { get; }
 
-        public GetTradeHistoryRequest(string baseAsset, string quoteAsset, DateTime startTime, DateTime endTime) : base(baseAsset, quoteAsset)
-        {
-            StartTime = startTime;
-            EndTime = endTime;
-        }
-
-        public GetTradeHistoryRequest(string symbol, DateTime startTime, DateTime endTime) : base(symbol)
+        public GetTradeHistoryRequest(SharedSymbol symbol, DateTime startTime, DateTime endTime) : base(symbol)
         {
             StartTime = startTime;
             EndTime = endTime;

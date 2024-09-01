@@ -5,11 +5,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetOrderBookRequest: SharedSymbolRequest
+    public record GetOpenInterestRequest : SharedSymbolRequest
     {
-        public int? Limit { get; set; }
-
-        public GetOrderBookRequest(SharedSymbol symbol) : base(symbol)
+        public GetOpenInterestRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }

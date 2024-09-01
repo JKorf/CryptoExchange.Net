@@ -11,11 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public RequestFilter? Filter { get; set; }
 
-        public GetUserTradesRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
-        {
-        }
-
-        public GetUserTradesRequest(string symbol) : base(symbol)
+        public GetUserTradesRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }

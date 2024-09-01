@@ -8,11 +8,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     public record GetTickerRequest : SharedSymbolRequest
     {
 
-        public GetTickerRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
-        {
-        }
-
-        public GetTickerRequest(string symbol) : base(symbol)
+        public GetTickerRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }

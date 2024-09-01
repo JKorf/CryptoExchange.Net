@@ -12,12 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedKlineInterval Interval { get; set; }
         public RequestFilter? Filter { get; set; }
 
-        public GetKlinesRequest(string baseAsset, string quoteAsset, SharedKlineInterval interval) : base(baseAsset, quoteAsset)
-        {
-            Interval = interval;
-        }
-
-        public GetKlinesRequest(string symbol, SharedKlineInterval interval) : base(symbol)
+        public GetKlinesRequest(SharedSymbol symbol, SharedKlineInterval interval) : base(symbol)
         {
             Interval = interval;
         }

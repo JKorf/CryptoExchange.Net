@@ -1,5 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -12,7 +14,8 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
 {
     public interface IPositionRestClient
     {
-        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(ApiType? apiType, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetPositionsRequest> GetPositionsOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(GetPositionsRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
 
     }
 }

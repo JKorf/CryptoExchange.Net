@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -11,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces
 {
-    public interface IAssetRestClient : ISharedClient
+    public interface IOpenInterestRestClient : ISharedClient
     {
-        EndpointOptions GetAssetsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedAsset>>> GetAssetsAsync(ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetOpenInterestRequest> GetOpenInterestOptions { get; }
+        Task<ExchangeWebResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

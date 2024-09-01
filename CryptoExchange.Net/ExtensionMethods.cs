@@ -14,6 +14,8 @@ using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.Interfaces;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using CryptoExchange.Net.SharedApis.Interfaces.Socket;
 
 namespace CryptoExchange.Net
 {
@@ -402,6 +404,56 @@ namespace CryptoExchange.Net
                 if (nextPageToken == null)
                     break;
             }
+        }
+
+        public static IServiceCollection RegisterSharedRestInterfaces<T>(this IServiceCollection services, Func<IServiceProvider, T> client)
+        {
+            if (typeof(IAssetsRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IAssetsRestClient)client(x)!);
+            if (typeof(IBalanceRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IBalanceRestClient)client(x)!);
+            if (typeof(IDepositRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IDepositRestClient)client(x)!);
+            if (typeof(IKlineRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IKlineRestClient)client(x)!);
+            if (typeof(IOrderBookRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IOrderBookRestClient)client(x)!);
+            if (typeof(IRecentTradeRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IRecentTradeRestClient)client(x)!);
+            if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
+            if (typeof(ISpotSymbolRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotSymbolRestClient)client(x)!);
+            if (typeof(ITickerRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITickerRestClient)client(x)!);
+            if (typeof(ITradeHistoryRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITradeHistoryRestClient)client(x)!);
+            if (typeof(IWithdrawalRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IWithdrawalRestClient)client(x)!);
+            if (typeof(IWithdrawRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IWithdrawRestClient)client(x)!);
+
+            return services;
+        }
+
+        public static IServiceCollection RegisterSharedSocketInterfaces<T>(this IServiceCollection services, Func<IServiceProvider, T> client)
+        {
+            if (typeof(IBalanceSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IBalanceSocketClient)client(x)!);
+            if (typeof(IBookTickerSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IBookTickerSocketClient)client(x)!);
+            if (typeof(ISpotOrderSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotOrderSocketClient)client(x)!);
+            if (typeof(ISpotUserTradeSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotUserTradeSocketClient)client(x)!);
+            if (typeof(ITickerSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITickerSocketClient)client(x)!);
+            if (typeof(ITickersSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITickersSocketClient)client(x)!);
+            if (typeof(ITradeSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITradeSocketClient)client(x)!);
+
+            return services;
         }
     }
 }

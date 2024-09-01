@@ -10,11 +10,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public int? Limit { get; set; }
 
-        public GetRecentTradesRequest(string baseAsset, string quoteAsset) : base(baseAsset, quoteAsset)
-        {
-        }
-
-        public GetRecentTradesRequest(string symbol) : base(symbol)
+        public GetRecentTradesRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }
