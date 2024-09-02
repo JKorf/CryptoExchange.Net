@@ -114,16 +114,16 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public string[]? Names { get; set; }
         public Type ValueType { get; set; }
         public string Description { get; set; }
-        public string ExampleValue { get; set; }
+        public object ExampleValue { get; set; }
 
-        public ParameterDescription(string parameterName, Type valueType, string description, string exampleValue)
+        public ParameterDescription(string parameterName, Type valueType, string description, object exampleValue)
         {
             Name = parameterName;
             ValueType = valueType;
             Description = description;
             ExampleValue = exampleValue;
         }
-        public ParameterDescription(string[] parameterNames, Type valueType, string description, string exampleValue)
+        public ParameterDescription(string[] parameterNames, Type valueType, string description, object exampleValue)
         {
             Names = parameterNames;
             ValueType = valueType;

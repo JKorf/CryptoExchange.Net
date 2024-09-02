@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot
 {
     public interface ISpotSymbolRestClient : ISharedClient
     {

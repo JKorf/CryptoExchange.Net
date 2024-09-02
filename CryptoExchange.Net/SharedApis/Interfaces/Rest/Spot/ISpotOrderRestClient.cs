@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot
 {
     public interface ISpotOrderRestClient : ISharedClient
     {
@@ -25,13 +25,13 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 
         PaginatedEndpointOptions<GetClosedOrdersRequest> GetClosedSpotOrdersOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        
+
         EndpointOptions<GetOrderTradesRequest> GetSpotOrderTradesOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        
+
         PaginatedEndpointOptions<GetUserTradesRequest> GetSpotUserTradesOptions { get; }
         Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        
+
         EndpointOptions<CancelOrderRequest> CancelSpotOrderOptions { get; }
         Task<ExchangeWebResult<SharedId>> CancelSpotOrderAsync(CancelOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
 

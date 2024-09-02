@@ -16,6 +16,7 @@ using CryptoExchange.Net.SharedApis.Interfaces;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using CryptoExchange.Net.SharedApis.Interfaces.Socket;
+using CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot;
 
 namespace CryptoExchange.Net
 {
@@ -424,8 +425,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
             if (typeof(ISpotSymbolRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotSymbolRestClient)client(x)!);
-            if (typeof(ITickerRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (ITickerRestClient)client(x)!);
+            if (typeof(ISpotTickerRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotTickerRestClient)client(x)!);
             if (typeof(ITradeHistoryRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ITradeHistoryRestClient)client(x)!);
             if (typeof(IWithdrawalRestClient).IsAssignableFrom(typeof(T)))

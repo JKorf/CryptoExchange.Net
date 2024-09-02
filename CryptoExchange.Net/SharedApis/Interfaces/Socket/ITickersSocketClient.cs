@@ -13,6 +13,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
     public interface ITickersSocketClient : ISharedClient
     {
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickerUpdatesAsync(ApiType? apiType, Action<DataEvent<IEnumerable<SharedTicker>>> handler, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickerUpdatesAsync(ApiType? apiType, Action<DataEvent<IEnumerable<SharedSpotTicker>>> handler, CancellationToken ct = default);
     }
 }

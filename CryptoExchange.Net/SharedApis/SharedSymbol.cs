@@ -7,8 +7,8 @@ namespace CryptoExchange.Net.SharedApis
 {
     public record SharedSymbol
     {
-        public string? BaseAsset { get; set; }
-        public string? QuoteAsset { get; set; }
+        public string BaseAsset { get; set; }
+        public string QuoteAsset { get; set; }
 
         public SharedSymbol(string baseAsset, string quoteAsset)
         {

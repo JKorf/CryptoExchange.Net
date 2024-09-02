@@ -10,12 +10,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
+namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 {
-    public interface IPositionRestClient
+    public interface IOpenInterestRestClient : ISharedClient
     {
-        EndpointOptions<GetPositionsRequest> GetPositionsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(GetPositionsRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-
+        EndpointOptions<GetOpenInterestRequest> GetOpenInterestOptions { get; }
+        Task<ExchangeWebResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

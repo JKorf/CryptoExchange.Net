@@ -22,9 +22,6 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedMarginMode? MarginMode { get; set; }
         public bool? ClosePosition { get; set; }
         public bool? ReduceOnly { get; set; }
-        // Other props?
-        // Leverage?
-        // Long/Short?
 
 
         public PlaceFuturesOrderRequest(SharedSymbol symbol) : base(symbol)
