@@ -15,6 +15,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public decimal? LiquidationPrice { get; set; }
         public decimal? InitialMargin { get; set; }
         public decimal? MaintenanceMargin { get; set; }
+        public decimal? Leverage { get; set; }
         public DateTime UpdateTime { get; set; }
 
         public SharedPosition(string symbol, decimal positionSize, DateTime updateTime)

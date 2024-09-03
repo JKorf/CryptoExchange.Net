@@ -16,12 +16,14 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? QuoteQuantity { get; set; }
         public decimal? Price { get; set; }
         public string? ClientOrderId { get; set; }
+        public SharedPositionSide PositionSide { get; set; }
 
 
-        public SharedPositionSide? PositionSide { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
-        public bool? ClosePosition { get; set; }
         public bool? ReduceOnly { get; set; }
+
+#warning should have note that it might not be applied depending on API
+        public decimal? Leverage { get; set; }
 
 
         public PlaceFuturesOrderRequest(SharedSymbol symbol) : base(symbol)

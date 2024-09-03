@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public IEnumerable<SharedOrderType> SupportedOrderType { get; }
         public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; }
         public SharedQuantitySupport OrderQuantitySupport { get; }
+        public bool OnlyHedgeMode { get; set; } = false;
 
         public PlaceFuturesOrderOptions(IEnumerable<SharedOrderType> orderTypes, IEnumerable<SharedTimeInForce> timeInForces, SharedQuantitySupport quantitySupport) : base(true)
         {
@@ -36,6 +37,9 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             var quantityError = OrderQuantitySupport.Validate(request.Side, request.OrderType, request.Quantity, request.QuoteQuantity);
             if (quantityError != null)
                 return quantityError;
+
+            if (OnlyHedgeMode && request.PositionSide == SharedPositionSide.Both)
+                return new ArgumentError("Only hedge mode (either long or short) is supported");
 
             return base.ValidateRequest(exchange, request, exchangeParameters);
         }

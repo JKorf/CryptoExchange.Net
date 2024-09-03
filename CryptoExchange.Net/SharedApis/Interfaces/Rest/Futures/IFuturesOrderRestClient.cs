@@ -33,5 +33,11 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 
         EndpointOptions<CancelOrderRequest> CancelFuturesOrderOptions { get; }
         Task<ExchangeWebResult<SharedId>> CancelFuturesOrderAsync(CancelOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+
+        EndpointOptions<GetPositionsRequest> GetPositionsOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedPosition>>> GetPositionsAsync(GetPositionsRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+
+        EndpointOptions<ClosePositionRequest> ClosePositionOptions { get; }
+        Task<ExchangeWebResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }
