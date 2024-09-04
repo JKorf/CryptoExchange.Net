@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public string OrderId { get; set; }
 
-        public CancelOrderRequest(SharedSymbol symbol, string orderId) : base(symbol)
+        public CancelOrderRequest(SharedSymbol symbol, string orderId, ApiType apiType) : base(symbol, apiType)
         {
             OrderId = orderId;
         }

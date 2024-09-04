@@ -207,7 +207,9 @@
     public enum ApiType
     {
         Spot,
-        LinearFutures,
-        InverseFutures
+        PerpetualLinear,
+        DeliveryLinear,
+        PerpetualInverse,
+        DeliveryInverse
     }
 }

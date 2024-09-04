@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedPositionSide? Side { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
 
-        public SetLeverageRequest(SharedSymbol symbol, decimal leverage) : base(symbol)
+        public SetLeverageRequest(SharedSymbol symbol, decimal leverage, ApiType apiType) : base(symbol, apiType)
         {
             Leverage = leverage;
         }

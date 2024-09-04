@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -26,8 +27,10 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Leverage { get; set; }
 
 
-        public PlaceFuturesOrderRequest(SharedSymbol symbol) : base(symbol)
+        public PlaceFuturesOrderRequest(SharedSymbol symbol, SharedOrderSide side, SharedOrderType type, ApiType apiType) : base(symbol, apiType)
         {
+            Side = side;
+            OrderType = type;
         }
     }
 }

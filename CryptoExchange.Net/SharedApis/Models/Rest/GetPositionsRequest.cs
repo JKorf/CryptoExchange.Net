@@ -7,7 +7,12 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetPositionsRequest
     {
-        public ApiType? ApiType { get; set; }
+        public ApiType ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
+
+        public GetPositionsRequest(ApiType apiType)
+        {
+            ApiType = apiType;
+        }
     }
 }

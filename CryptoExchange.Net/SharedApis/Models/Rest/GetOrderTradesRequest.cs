@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -11,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public string OrderId { get; set; }
 
-        public GetOrderTradesRequest(SharedSymbol symbol, string orderId) : base(symbol)
+        public GetOrderTradesRequest(SharedSymbol symbol, string orderId, ApiType apiType) : base(symbol, apiType)
         {
             OrderId = orderId;
         }

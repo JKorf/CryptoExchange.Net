@@ -7,12 +7,13 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
 {
     public record SharedSymbolRequest
     {
-        public ApiType? ApiType { get; set; }
+        public ApiType ApiType { get; set; }
         public SharedSymbol Symbol { get; set; }
 
-        public SharedSymbolRequest(SharedSymbol symbol)
+        public SharedSymbolRequest(SharedSymbol symbol, ApiType apiType)
         {
             Symbol = symbol;
+            ApiType = apiType;
         }
     }
 }

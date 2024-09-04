@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -11,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public RequestFilter? Filter { get; set; }
 
-        public GetUserTradesRequest(SharedSymbol symbol) : base(symbol)
+        public GetUserTradesRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
         {
         }
     }

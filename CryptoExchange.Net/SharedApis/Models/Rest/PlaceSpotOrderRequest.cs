@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -17,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Price { get; set; }
         public string? ClientOrderId { get; set; }
 
-        public PlaceSpotOrderRequest(SharedSymbol symbol, SharedOrderType orderType, SharedOrderSide side) : base(symbol)
+        public PlaceSpotOrderRequest(SharedSymbol symbol, SharedOrderType orderType, SharedOrderSide side, ApiType apiType) : base(symbol, apiType)
         {
             OrderType = orderType;
             Side = side;

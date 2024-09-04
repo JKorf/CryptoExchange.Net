@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedPositionSide PositionSide { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
 
-        public ClosePositionRequest(SharedSymbol symbol, SharedPositionSide side) : base(symbol)
+        public ClosePositionRequest(SharedSymbol symbol, SharedPositionSide side, ApiType apiType) : base(symbol, apiType)
         {
             PositionSide = side;
         }

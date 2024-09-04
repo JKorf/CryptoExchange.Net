@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Interfaces;
 using CryptoExchange.Net.SharedApis.RequestModels;
 
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public int? Limit { get; set; }
 
-        public GetRecentTradesRequest(SharedSymbol symbol) : base(symbol)
+        public GetRecentTradesRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
         {
         }
     }
