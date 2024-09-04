@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             OrderQuantitySupport = quantitySupport;
         }
 
-        public override Error? ValidateRequest(string exchange, PlaceFuturesOrderRequest request, ExchangeParameters? exchangeParameters)
+        public override Error? ValidateRequest(string exchange, PlaceFuturesOrderRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (OnlyHedgeMode && request.PositionSide == SharedPositionSide.Both)
                 return new ArgumentError("Only hedge mode (either long or short) is supported");
 
-            return base.ValidateRequest(exchange, request, exchangeParameters);
+            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }
     }
 }

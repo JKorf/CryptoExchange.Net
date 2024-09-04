@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public RequestFilter? Filter { get; set; }
 
-        public GetClosedOrdersRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
+        public GetClosedOrdersRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
         {
         }
     }

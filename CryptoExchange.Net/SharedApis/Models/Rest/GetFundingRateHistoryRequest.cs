@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
-        public GetFundingRateHistoryRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
+        public GetFundingRateHistoryRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
         {
         }
     }

@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public int? Limit { get; set; }
 
-        public GetRecentTradesRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
+        public GetRecentTradesRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
         {
         }
     }

@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedPositionSide PositionSide { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
 
-        public ClosePositionRequest(SharedSymbol symbol, SharedPositionSide side, ApiType apiType) : base(symbol, apiType)
+        public ClosePositionRequest(ApiType apiType, SharedSymbol symbol, SharedPositionSide side) : base(symbol, apiType)
         {
             PositionSide = side;
         }

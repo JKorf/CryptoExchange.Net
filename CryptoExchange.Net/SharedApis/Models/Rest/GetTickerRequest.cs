@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     public record GetTickerRequest : SharedSymbolRequest
     {
 
-        public GetTickerRequest(SharedSymbol symbol, ApiType apiType) : base(symbol, apiType)
+        public GetTickerRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
         {
         }
     }

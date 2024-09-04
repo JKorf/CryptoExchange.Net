@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Leverage { get; set; }
 
 
-        public PlaceFuturesOrderRequest(SharedSymbol symbol, SharedOrderSide side, SharedOrderType type, ApiType apiType) : base(symbol, apiType)
+        public PlaceFuturesOrderRequest(ApiType apiType, SharedSymbol symbol, SharedOrderSide side, SharedOrderType type) : base(symbol, apiType)
         {
             Side = side;
             OrderType = type;

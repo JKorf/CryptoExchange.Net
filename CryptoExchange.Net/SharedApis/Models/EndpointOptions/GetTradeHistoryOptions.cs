@@ -17,12 +17,12 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, ExchangeParameters? exchangeParameters)
+        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} trades are available");
 
-            return base.ValidateRequest(exchange, request, exchangeParameters);
+            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }
     }
 }

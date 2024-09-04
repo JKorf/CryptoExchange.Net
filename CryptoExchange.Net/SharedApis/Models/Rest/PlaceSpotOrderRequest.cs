@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Price { get; set; }
         public string? ClientOrderId { get; set; }
 
-        public PlaceSpotOrderRequest(SharedSymbol symbol, SharedOrderType orderType, SharedOrderSide side, ApiType apiType) : base(symbol, apiType)
+        public PlaceSpotOrderRequest(SharedSymbol symbol, SharedOrderType orderType, SharedOrderSide side) : base(symbol, ApiType.Spot)
         {
             OrderType = orderType;
             Side = side;

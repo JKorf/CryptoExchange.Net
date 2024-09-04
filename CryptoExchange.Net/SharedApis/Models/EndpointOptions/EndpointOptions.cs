@@ -21,8 +21,11 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             NeedsAuthentication = needAuthentication;
         }
 
-        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters)
+        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
+            if (!supportedApiTypes.Contains(apiType))
+                return new ArgumentError($"ApiType.{apiType} is not supported, supported types: {string.Join(", ", supportedApiTypes)}");
+
             foreach (var param in RequiredExchangeParameters)
             {
                 if (!string.IsNullOrEmpty(param.Name))
@@ -57,7 +60,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters)
+        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
             foreach (var param in RequiredOptionalParameters)
             {
@@ -75,7 +78,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             }
 
-            return ValidateRequest(exchange, exchangeParameters);
+            return ValidateRequest(exchange, exchangeParameters, apiType, supportedApiTypes);
         }
 
         public string ToString(string exchange)
