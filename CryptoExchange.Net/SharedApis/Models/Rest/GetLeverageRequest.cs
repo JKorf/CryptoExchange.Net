@@ -10,6 +10,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public SharedPositionSide Side { get; set; }
 
+        public SharedMarginMode? MarginMode { get; set; }
+
         public GetLeverageRequest(SharedSymbol symbol, SharedPositionSide side) : base(symbol)
         {
             Side = side;

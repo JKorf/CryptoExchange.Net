@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 {
-    public interface ILeverageRestClient
+    public interface ILeverageRestClient : ISharedClient
     {
         EndpointOptions<GetLeverageRequest> GetLeverageOptions { get; }
         Task<ExchangeWebResult<SharedLeverage>> GetLeverageAsync(GetLeverageRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);

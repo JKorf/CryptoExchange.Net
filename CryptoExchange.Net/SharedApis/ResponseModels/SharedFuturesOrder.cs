@@ -25,6 +25,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public string? ClientOrderId { get; set; }
         public string? FeeAsset { get; set; }
         public decimal? Fee { get; set; }
+        public decimal? Leverage { get; set; }
         public DateTime? CreateTime { get; set; }
         public DateTime? UpdateTime { get; set; }
 
