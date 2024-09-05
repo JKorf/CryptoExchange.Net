@@ -34,11 +34,14 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
         /// </summary>
         public int? PriceDecimals { get; set; }
 
-        public SharedSpotSymbol(string baseAsset, string quoteAsset, string symbol)
+        public bool Trading { get; set; }
+
+        public SharedSpotSymbol(string baseAsset, string quoteAsset, string symbol, bool trading)
         {
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             Name = symbol;
+            Trading = trading;
         }
     }
 }

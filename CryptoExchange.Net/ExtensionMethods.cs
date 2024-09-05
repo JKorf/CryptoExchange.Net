@@ -407,6 +407,11 @@ namespace CryptoExchange.Net
             }
         }
 
+        public static bool IsLinear(this ApiType type) => type == ApiType.PerpetualLinear || type == ApiType.DeliveryLinear;
+        public static bool IsInverse(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.DeliveryInverse;
+        public static bool IsPerpetual(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.PerpetualLinear;
+        public static bool IsDelivery(this ApiType type) => type == ApiType.DeliveryInverse || type == ApiType.DeliveryLinear;
+
         public static IServiceCollection RegisterSharedRestInterfaces<T>(this IServiceCollection services, Func<IServiceProvider, T> client)
         {
             if (typeof(IAssetsRestClient).IsAssignableFrom(typeof(T)))

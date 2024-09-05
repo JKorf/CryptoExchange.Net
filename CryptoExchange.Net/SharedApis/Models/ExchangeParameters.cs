@@ -1,39 +1,57 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models
 {
     public class ExchangeParameters
     {
-        private readonly Dictionary<string, object> _store = new Dictionary<string, object>();
+        private readonly List<ExchangeParameter> _parameters;
 
-        public void AddValue(string exchange, string parameter, object value)
+        public ExchangeParameters(params ExchangeParameter[] parameters)
         {
-            _store[exchange + "." + parameter] = value;
+            _parameters = parameters.ToList();
+        }
+
+        public void AddValue(ExchangeParameter exchangeParameter)
+        {
+            _parameters.Add(exchangeParameter);
         }
 
         public bool HasValue(string exchange, string name, Type type)
         {
-            if (!_store.TryGetValue(exchange + "." + name, out var val))
+            var val = _parameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
+            if (val == null)
                 return false;
 
-            return val.GetType() == type;
+            return val.Value.GetType() == type;
         }
 
         public T? GetValue<T>(string exchange, string name)
         {
-            if (_store == null)
+            var val = _parameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
+            if (val == null)
                 return default;
 
-            if (_store.TryGetValue(exchange + "." + name, out var exchangeValue))
-            {
-                if (exchangeValue is not T)
-                    throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, nameof(name));
-                return (T)exchangeValue;
-            }
+            if (val.Value is not T)
+                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, nameof(name));
+            return (T)val.Value;
+        }
+    }
 
-            return default;
+    public class ExchangeParameter
+    {
+        public string Exchange { get; set; }
+        public string Name { get; set; }
+        public object Value { get; set; }
+
+        public ExchangeParameter(string exchange, string name, object value)
+        {
+            Exchange = exchange;
+            Name = name;
+            Value = value;
         }
     }
 }
