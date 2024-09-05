@@ -10,12 +10,23 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record ClosePositionRequest : SharedSymbolRequest
     {
-        public SharedPositionSide PositionSide { get; set; }
+        public SharedPositionSide? PositionSide { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
+#warning Quantity is needed when we need to manually place an order
+        public decimal? Quantity { get; set; }
 
-        public ClosePositionRequest(ApiType apiType, SharedSymbol symbol, SharedPositionSide side) : base(symbol, apiType)
+        public ClosePositionRequest(
+            ApiType apiType,
+            SharedSymbol symbol,
+            SharedPositionSide side,
+            SharedPositionSide? positionSide = null,
+            SharedMarginMode? marginMode = null,
+            decimal? quantity = null) : base(symbol, apiType)
         {
             PositionSide = side;
+            PositionSide = positionSide;
+            MarginMode = marginMode;
+            Quantity = quantity;
         }
     }
 }

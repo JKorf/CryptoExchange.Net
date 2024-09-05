@@ -42,20 +42,20 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (!IsSupported(request.Interval))
                 return new ArgumentError("Interval not supported");
 
-            if (MaxAge.HasValue && request.Filter?.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
+            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} klines are available");
 
-             if (MaxRequestDataPoints.HasValue && request.Filter?.Limit > MaxRequestDataPoints.Value)
+             if (MaxRequestDataPoints.HasValue && request.Limit > MaxRequestDataPoints.Value)
                     return new ArgumentError($"Only {MaxRequestDataPoints} klines can be retrieved per request");
             
             if (MaxTotalDataPoints.HasValue)
             {
-                if (request.Filter?.Limit > MaxTotalDataPoints.Value)
+                if (request.Limit > MaxTotalDataPoints.Value)
                     return new ArgumentError($"Only the most recent {MaxTotalDataPoints} klines are available");
 
-                if (request.Filter?.StartTime.HasValue == true)
+                if (request.StartTime.HasValue == true)
                 {
-                    if ((request.Filter.EndTime!.Value - request.Filter.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
+                    if ((request.EndTime!.Value - request.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
                         return new ArgumentError($"Only the most recent {MaxTotalDataPoints} klines are available, time filter failed");
                 }
             }

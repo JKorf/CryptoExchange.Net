@@ -4,9 +4,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Enums
 {
-    public enum SharedPositionSide
+    public enum SharedPositionMode
     {
-        Long,
-        Short
+        LongShort,
+        OneWay
     }
 }

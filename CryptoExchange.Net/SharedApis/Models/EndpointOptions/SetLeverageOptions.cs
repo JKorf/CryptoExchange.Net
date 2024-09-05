@@ -18,8 +18,8 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
 
         public override Error? ValidateRequest(string exchange, SetLeverageRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
-            if (!LeveragePerSide && request.Side != Enums.SharedPositionSide.Both)
-                return new ArgumentError("Leverage per position side not supported");
+            if (LeveragePerSide && request.Side == null)
+                return new ArgumentError("Leverage needs to be set per side, please provide the PositionSide parameter");
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }

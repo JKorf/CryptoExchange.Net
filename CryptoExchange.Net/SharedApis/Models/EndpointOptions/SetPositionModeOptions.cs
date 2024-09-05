@@ -1,0 +1,38 @@
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+using CryptoExchange.Net.SharedApis.Models.Rest;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
+{
+    public record SetPositionModeOptions : EndpointOptions<SetPositionModeRequest>
+    {
+        public bool PerSymbol { get; set; }
+        public bool SupportsOneway { get; set; }
+        public bool SupportsLongShort { get; set; }
+
+        public SetPositionModeOptions(bool supportOneWay, bool supportLongShort, bool perSymbol) : base(true)
+        {
+            SupportsLongShort = supportLongShort;
+            SupportsOneway = supportOneWay;
+            PerSymbol = perSymbol;
+        }
+
+        public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        {
+            if ((request.Mode == Enums.SharedPositionMode.LongShort && !SupportsLongShort)
+                || (request.Mode == Enums.SharedPositionMode.OneWay && !SupportsOneway))
+                return new ArgumentError($"PositionMode.{request.Mode} is not supported");
+
+            if (request.Symbol == null && PerSymbol)
+                return new ArgumentError($"PositionMode is set per symbol, please provide the Symbol parameter");
+
+            if (request.Symbol != null && !PerSymbol)
+                return new ArgumentError($"PositionMode is set for all symbols, Symbol parameter is invalid");
+
+            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
+        }
+    }
+}

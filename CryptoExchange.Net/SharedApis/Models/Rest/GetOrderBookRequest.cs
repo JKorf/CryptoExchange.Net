@@ -10,8 +10,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public int? Limit { get; set; }
 
-        public GetOrderBookRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
+        public GetOrderBookRequest(ApiType apiType, SharedSymbol symbol, int? limit = null) : base(symbol, apiType)
         {
+            Limit = limit;
         }
     }
 }

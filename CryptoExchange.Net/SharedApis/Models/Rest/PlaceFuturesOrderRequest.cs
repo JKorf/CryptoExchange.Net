@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? QuoteQuantity { get; set; }
         public decimal? Price { get; set; }
         public string? ClientOrderId { get; set; }
-        public SharedPositionSide PositionSide { get; set; }
+        public SharedPositionSide? PositionSide { get; set; }
 
 
         public SharedMarginMode? MarginMode { get; set; }
@@ -27,10 +27,32 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public decimal? Leverage { get; set; }
 
 
-        public PlaceFuturesOrderRequest(ApiType apiType, SharedSymbol symbol, SharedOrderSide side, SharedOrderType type) : base(symbol, apiType)
+        public PlaceFuturesOrderRequest(
+            ApiType apiType,
+            SharedSymbol symbol,
+            SharedOrderSide side,
+            SharedOrderType type,
+            decimal? quantity = null,
+            decimal? quoteQuantity = null,
+            decimal? price = null,
+            bool? reduceOnly = null,
+            decimal? leverage = null,
+            SharedTimeInForce? timeInForce = null,
+            SharedPositionSide? positionSide = null,
+            SharedMarginMode? marginMode = null,
+            string? clientOrderId = null) : base(symbol, apiType)
         {
             Side = side;
             OrderType = type;
+            Quantity = quantity;
+            QuoteQuantity = quoteQuantity;
+            Price = price;
+            MarginMode = marginMode;
+            ClientOrderId = clientOrderId;
+            ReduceOnly = reduceOnly;
+            Leverage = leverage;
+            TimeInForce = timeInForce;
+            PositionSide = positionSide;
         }
     }
 }

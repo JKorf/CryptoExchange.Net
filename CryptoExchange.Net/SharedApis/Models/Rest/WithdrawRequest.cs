@@ -13,12 +13,13 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public string? AddressTag { get; set; }
         public string? Network { get; set; }
 
-        public WithdrawRequest(string asset, decimal quantity, string address, string network)
+        public WithdrawRequest(string asset, decimal quantity, string address, string? network = null, string? addressTag = null)
         {
             Asset = asset;
             Address = address;
             Quantity = quantity;
             Network = network;
+            AddressTag = addressTag;
         }
     }
 }

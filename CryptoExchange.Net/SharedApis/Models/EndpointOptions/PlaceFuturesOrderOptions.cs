@@ -38,8 +38,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (quantityError != null)
                 return quantityError;
 
-            if (OnlyHedgeMode && request.PositionSide == SharedPositionSide.Both)
-                return new ArgumentError("Only hedge mode (either long or short) is supported");
+            if (OnlyHedgeMode && request.PositionSide == null)
+                return new ArgumentError("Only hedge mode (either long or short) is supported. Please specify PositionSide");
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }

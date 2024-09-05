@@ -10,10 +10,15 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetUserTradesRequest : SharedSymbolRequest
     {
-        public RequestFilter? Filter { get; set; }
+        public DateTime? StartTime { get; }
+        public DateTime? EndTime { get; }
+        public int? Limit { get; }
 
-        public GetUserTradesRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
+        public GetUserTradesRequest(ApiType apiType, SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol, apiType)
         {
+            StartTime = startTime;
+            EndTime = endTime;
+            Limit = limit;
         }
     }
 }

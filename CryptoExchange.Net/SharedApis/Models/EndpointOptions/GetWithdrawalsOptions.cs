@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
         public override Error? ValidateRequest(string exchange, GetWithdrawalsRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
-            if (TimeFilterSupported && request.Filter?.StartTime != null)
+            if (TimeFilterSupported && request.StartTime != null)
                 return new ArgumentError($"Time filter is not supported");
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);

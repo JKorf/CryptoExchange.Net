@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis.Models
                 return default;
 
             if (val.Value is not T)
-                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, nameof(name));
+                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, name);
             return (T)val.Value;
         }
     }
