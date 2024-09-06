@@ -18,6 +18,17 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// </summary>
         public ExchangeResult(
             string exchange,
+            Error error) :
+            base(error)
+        {
+            Exchange = exchange;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ExchangeResult(
+            string exchange,
             CallResult<T> result) :
             base(
                 result.Data,

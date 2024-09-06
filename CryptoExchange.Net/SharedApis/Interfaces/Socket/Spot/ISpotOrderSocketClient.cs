@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
     public interface ISpotOrderSocketClient : ISharedClient
     {
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToSpotOrderUpdatesAsync(Action<DataEvent<IEnumerable<SharedSpotOrder>>> handler, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToSpotOrderUpdatesAsync(Action<ExchangeEvent<IEnumerable<SharedSpotOrder>>> handler, CancellationToken ct = default);
     }
 }

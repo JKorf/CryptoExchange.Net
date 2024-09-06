@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Socket;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
@@ -15,6 +16,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
     public interface IBalanceSocketClient : ISharedClient
     {
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(ApiType? apiType, Action<DataEvent<IEnumerable<SharedBalance>>> handler, CancellationToken ct = default);
+        SubscriptionOptions SubscribeBalanceOptions { get; }
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedBalance>>> handler, CancellationToken ct = default);
     }
 }

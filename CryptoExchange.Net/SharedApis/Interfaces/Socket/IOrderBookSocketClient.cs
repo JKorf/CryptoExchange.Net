@@ -1,10 +1,10 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Socket;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
-using CryptoExchange.Net.SharedApis.SubscribeModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
-    public interface ISpotUserTradeSocketClient : ISharedClient
+    public interface IOrderBookSocketClient : ISharedClient
     {
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToUserTradeUpdatesAsync(ApiType? apiType, Action<DataEvent<IEnumerable<SharedUserTrade>>> handler, CancellationToken ct = default);
+        SubscribeOrderBookOptions SubscribeOrderBookOptions { get; }
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<ExchangeEvent<SharedOrderBook>> handler, CancellationToken ct = default);
     }
 }

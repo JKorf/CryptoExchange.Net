@@ -450,8 +450,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IBookTickerSocketClient)client(x)!);
             if (typeof(ISpotOrderSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderSocketClient)client(x)!);
-            if (typeof(ISpotUserTradeSocketClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (ISpotUserTradeSocketClient)client(x)!);
+            if (typeof(IUserTradeSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IUserTradeSocketClient)client(x)!);
             if (typeof(ITickerSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ITickerSocketClient)client(x)!);
             if (typeof(ITickersSocketClient).IsAssignableFrom(typeof(T)))

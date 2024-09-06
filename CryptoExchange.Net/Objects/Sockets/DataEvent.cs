@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis.Models;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CryptoExchange.Net.Objects.Sockets
 {
@@ -84,6 +86,18 @@ namespace CryptoExchange.Net.Objects.Sockets
         {
             return new DataEvent<K>(data, streamId, symbol, OriginalData, Timestamp, updateType);
         }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, [AllowNull] K data)
+        {
+            return new ExchangeEvent<K>(exchange, this.As<K>(data));
+        }
+
 
         /// <summary>
         /// Specify the symbol

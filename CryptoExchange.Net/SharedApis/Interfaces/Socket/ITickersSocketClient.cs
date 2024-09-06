@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.SubscribeModels;
 using System;
@@ -13,6 +14,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
     public interface ITickersSocketClient : ISharedClient
     {
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickerUpdatesAsync(ApiType? apiType, Action<DataEvent<IEnumerable<SharedSpotTicker>>> handler, CancellationToken ct = default);
+        SubscriptionOptions SubscribeAllTickersOptions { get; }
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickersUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedSpotTicker>>> handler, CancellationToken ct = default);
     }
 }
