@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
-    public interface IBalanceSocketClient : ISharedClient
+    public interface IFuturesOrderSocketClient : ISharedClient
     {
-        SubscriptionOptions SubscribeBalanceOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedBalance>>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        SubscriptionOptions SubscribeFuturesOrderOptions { get; }
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToFuturesOrderUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedFuturesOrder>>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

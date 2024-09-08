@@ -9,6 +9,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
     public record SubscriptionOptions
     {
+        public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
         public string SubscriptionName { get; set; }
         // Exchange specific request info
         public string? ExchangeSubscriptionInfo { get; set; }
@@ -19,10 +20,25 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             NeedsAuthentication = needAuthentication;
         }
 
-        public virtual Error? ValidateRequest(string exchange, ApiType apiType, ApiType[] supportedApiTypes)
+        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
             if (!supportedApiTypes.Contains(apiType))
                 return new ArgumentError($"ApiType.{apiType} is not supported, supported types: {string.Join(", ", supportedApiTypes)}");
+
+
+            foreach (var param in RequiredExchangeParameters)
+            {
+                if (!string.IsNullOrEmpty(param.Name))
+                {
+                    if (exchangeParameters?.HasValue(exchange, param.Name, param.ValueType) != true)
+                        return new ArgumentError($"Required exchange parameter `{param.Name}` for exchange `{exchange}` is missing or has incorrect type. Expected type is {param.ValueType.Name}. Example: {param.ExampleValue}");
+                }
+                else
+                {
+                    if (param.Names.All(x => exchangeParameters?.HasValue(exchange, x, param.ValueType) != true))
+                        return new ArgumentError($"One of exchange parameters `{string.Join(", ", param.Names)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
+                }
+            }
 
             return null;
         }
@@ -43,10 +59,10 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public virtual Error? ValidateRequest(string exchange, T request, ApiType apiType, ApiType[] supportedApiTypes)
+        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
         {
 
-            return base.ValidateRequest(exchange, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, exchangeParameters, apiType, supportedApiTypes);
         }
 
         //public string ToString(string exchange)

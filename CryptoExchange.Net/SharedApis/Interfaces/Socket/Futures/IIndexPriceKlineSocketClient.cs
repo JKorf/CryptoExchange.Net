@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface IIndexPriceKlineSocketClient : ISharedClient
     {
         SubscribeKlineOptions SubscribeIndexPriceKlineOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToIndexPriceKlineUpdatesAsync(SubscribeKlineRequest request, Action<ExchangeEvent<SharedMarkKline>> handler, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToIndexPriceKlineUpdatesAsync(SubscribeKlineRequest request, Action<ExchangeEvent<SharedMarkKline>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }
