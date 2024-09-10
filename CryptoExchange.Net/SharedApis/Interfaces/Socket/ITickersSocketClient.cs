@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface ITickersSocketClient : ISharedClient
     {
         SubscriptionOptions SubscribeAllTickersOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickersUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedSpotTicker>>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToAllTickersUpdatesAsync(Action<ExchangeEvent<IEnumerable<SharedSpotTicker>>> handler, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

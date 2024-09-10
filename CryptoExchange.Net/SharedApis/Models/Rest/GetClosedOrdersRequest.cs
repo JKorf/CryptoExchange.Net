@@ -9,12 +9,14 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetClosedOrdersRequest : SharedSymbolRequest
     {
+        public ApiType ApiType { get; set; }
         public DateTime? StartTime { get; }
         public DateTime? EndTime { get; }
         public int? Limit { get; }
 
-        public GetClosedOrdersRequest(ApiType apiType, SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol, apiType)
+        public GetClosedOrdersRequest(ApiType apiType, SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol)
         {
+            ApiType = apiType;
         }
     }
 }

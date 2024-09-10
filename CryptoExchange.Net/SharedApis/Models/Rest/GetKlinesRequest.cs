@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? EndTime { get; set; }
         public int? Limit { get; set; }
 
-        public GetKlinesRequest(ApiType apiType, SharedSymbol symbol, SharedKlineInterval interval, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol, apiType)
+        public GetKlinesRequest(SharedSymbol symbol, SharedKlineInterval interval, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol)
         {
             Interval = interval;
             StartTime = startTime;

@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             decimal? quoteQuantity = null,
             decimal? price = null,
             SharedTimeInForce? timeInForce = null,
-            string? clientOrderId = null) : base(symbol, ApiType.Spot)
+            string? clientOrderId = null) : base(symbol)
         {
             OrderType = orderType;
             Side = side;

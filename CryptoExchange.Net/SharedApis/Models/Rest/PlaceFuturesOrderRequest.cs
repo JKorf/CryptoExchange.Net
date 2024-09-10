@@ -28,7 +28,6 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 
 
         public PlaceFuturesOrderRequest(
-            ApiType apiType,
             SharedSymbol symbol,
             SharedOrderSide side,
             SharedOrderType type,
@@ -40,7 +39,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             SharedTimeInForce? timeInForce = null,
             SharedPositionSide? positionSide = null,
             SharedMarginMode? marginMode = null,
-            string? clientOrderId = null) : base(symbol, apiType)
+            string? clientOrderId = null) : base(symbol)
         {
             Side = side;
             OrderType = type;

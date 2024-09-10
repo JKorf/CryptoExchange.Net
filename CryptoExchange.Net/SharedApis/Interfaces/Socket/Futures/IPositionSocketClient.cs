@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket.Futures
     public interface IPositionSocketClient : ISharedClient
     {
         SubscriptionOptions SubscribePositionOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToPositionUpdatesAsync(ApiType apiType, Action<ExchangeEvent<IEnumerable<SharedPosition>>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToPositionUpdatesAsync(Action<ExchangeEvent<IEnumerable<SharedPosition>>> handler, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

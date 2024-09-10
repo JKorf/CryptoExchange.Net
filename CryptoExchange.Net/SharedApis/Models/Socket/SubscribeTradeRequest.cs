@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis.SubscribeModels
 {
     public record SubscribeTradeRequest : SharedSymbolRequest
     {
-        public SubscribeTradeRequest(ApiType apiType, SharedSymbol symbol) : base(symbol, apiType)
+        public SubscribeTradeRequest(SharedSymbol symbol) : base(symbol)
         {
         }
     }

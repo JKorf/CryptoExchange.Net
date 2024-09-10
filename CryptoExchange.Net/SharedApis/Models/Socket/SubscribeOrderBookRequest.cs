@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
     {
         public int? Limit { get; set; }
 
-        public SubscribeOrderBookRequest(ApiType apiType, SharedSymbol symbol, int? limit = null) : base(symbol, apiType)
+        public SubscribeOrderBookRequest(SharedSymbol symbol, int? limit = null) : base(symbol)
         {
             Limit = limit;
         }

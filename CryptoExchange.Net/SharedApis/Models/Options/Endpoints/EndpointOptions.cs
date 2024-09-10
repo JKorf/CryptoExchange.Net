@@ -21,9 +21,9 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             NeedsAuthentication = needAuthentication;
         }
 
-        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
-            if (!supportedApiTypes.Contains(apiType))
+            if (apiType != null && !supportedApiTypes.Contains(apiType.Value))
                 return new ArgumentError($"ApiType.{apiType} is not supported, supported types: {string.Join(", ", supportedApiTypes)}");
 
             foreach (var param in RequiredExchangeParameters)

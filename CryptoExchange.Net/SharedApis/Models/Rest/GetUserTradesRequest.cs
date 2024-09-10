@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? EndTime { get; }
         public int? Limit { get; }
 
-        public GetUserTradesRequest(ApiType apiType, SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol, apiType)
+        public GetUserTradesRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol)
         {
             StartTime = startTime;
             EndTime = endTime;

@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public string OrderId { get; set; }
 
-        public CancelOrderRequest(ApiType apiType, SharedSymbol symbol, string orderId) : base(symbol, apiType)
+        public CancelOrderRequest(SharedSymbol symbol, string orderId) : base(symbol)
         {
             OrderId = orderId;
         }
