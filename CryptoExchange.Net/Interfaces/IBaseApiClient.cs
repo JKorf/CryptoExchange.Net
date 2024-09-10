@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="baseAsset">The base asset</param>
         /// <param name="quoteAsset">The quote asset</param>
         /// <returns></returns>
-        string FormatSymbol(string baseAsset, string quoteAsset, DateTime? deliverDate = null, ApiType? futuresType = null);
+        string FormatSymbol(string baseAsset, string quoteAsset, ApiType apiType, DateTime? deliverDate = null);
 
         /// <summary>
         /// Set the API credentials for this API client

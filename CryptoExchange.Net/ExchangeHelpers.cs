@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 
@@ -177,5 +178,22 @@ namespace CryptoExchange.Net
 
             return source + RandomString(totalLength - source.Length);
         }
+
+        private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
+        {
+            { 1, "F" },
+            { 2, "G" },
+            { 3, "H" },
+            { 4, "J" },
+            { 5, "K" },
+            { 6, "M" },
+            { 7, "N" },
+            { 8, "Q" },
+            { 9, "U" },
+            { 10, "V" },
+            { 11, "X" },
+            { 12, "Z" },
+        };
+        public static string GetDeliveryMonthSymbol(DateTime time) => _monthSymbols[time.Month];
     }
 }
