@@ -10,11 +10,13 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public DateTime StartTime { get; }
         public DateTime EndTime { get; }
+        public int? Limit { get; }
 
-        public GetTradeHistoryRequest(SharedSymbol symbol, DateTime startTime, DateTime endTime) : base(symbol)
+        public GetTradeHistoryRequest(SharedSymbol symbol, DateTime startTime, DateTime endTime, int? limit = null) : base(symbol)
         {
             StartTime = startTime;
             EndTime = endTime;
+            Limit = limit;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,21 +94,21 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
     public record PaginatedEndpointOptions<T> : EndpointOptions<T>
     {
-        public bool PaginationSupport { get; }
+        public SharedPaginationType PaginationType { get; }
 
-        public PaginatedEndpointOptions(bool paginationSupported, bool needsAuthentication) : base(needsAuthentication)
+        public PaginatedEndpointOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(needsAuthentication)
         {
-            PaginationSupport = paginationSupported;
+            PaginationType = paginationType;
         }
     }
 
     public record PaginatedEndpointOptions : EndpointOptions
     {
-        public bool PaginationSupport { get; }
+        public SharedPaginationType PaginationType { get; }
 
-        public PaginatedEndpointOptions(string endpointName, bool paginationSupported, bool needsAuthentication) : base(endpointName, needsAuthentication)
+        public PaginatedEndpointOptions(string endpointName, SharedPaginationType paginationType, bool needsAuthentication) : base(endpointName, needsAuthentication)
         {
-            PaginationSupport = paginationSupported;
+            PaginationType = paginationType;
         }
     }
 

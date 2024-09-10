@@ -14,6 +14,10 @@ namespace CryptoExchange.Net.SharedApis.RequestModels
         /// </summary>
         public decimal? MinTradeQuantity { get; set; }
         /// <summary>
+        /// Minimal notional value (quantity * price) of an order
+        /// </summary>
+        public decimal? MinNotionalValue { get; set; }
+        /// <summary>
         /// Max quantity of an order
         /// </summary>
         public decimal? MaxTradeQuantity { get; set; }

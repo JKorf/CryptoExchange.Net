@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
     {
         public bool TimeFilterSupported { get; set; }
 
-        public GetWithdrawalsOptions(bool paginationSupport, bool timeFilterSupported) : base(paginationSupport, true)
+        public GetWithdrawalsOptions(SharedPaginationType paginationType, bool timeFilterSupported) : base(paginationType, true)
         {
             TimeFilterSupported = timeFilterSupported;
         }

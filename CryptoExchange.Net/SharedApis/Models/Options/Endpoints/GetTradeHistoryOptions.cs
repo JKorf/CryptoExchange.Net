@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
     {
         public TimeSpan? MaxAge { get; set; }
 
-        public GetTradeHistoryOptions(bool paginationSupport, bool needsAuthentication) : base(paginationSupport, needsAuthentication)
+        public GetTradeHistoryOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
         {
         }
 

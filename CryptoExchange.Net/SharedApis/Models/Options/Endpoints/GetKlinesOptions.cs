@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public int? MaxRequestDataPoints { get; set; }
         public TimeSpan? MaxAge { get; set; }
 
-        public GetKlinesOptions(bool paginationSupport, bool needsAuthentication) : base(paginationSupport, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             };
         }
 
-        public GetKlinesOptions(bool paginationSupport, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationSupport, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationType paginationType, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, needsAuthentication)
         {
             SupportIntervals = intervals;
         }
