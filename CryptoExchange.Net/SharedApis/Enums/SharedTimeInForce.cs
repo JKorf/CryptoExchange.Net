@@ -8,7 +8,6 @@ namespace CryptoExchange.Net.SharedApis.Enums
     {
         GoodTillCanceled,
         ImmediateOrCancel,
-        FillOrKill,
-        GoodTillDate
+        FillOrKill
     }
 }

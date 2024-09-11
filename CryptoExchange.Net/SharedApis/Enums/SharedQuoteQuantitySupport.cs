@@ -54,5 +54,10 @@ namespace CryptoExchange.Net.SharedApis.Enums
 
             return null;
         }
+
+        public override string ToString()
+        {
+            return $"Limit buy: {BuyLimit}, limit sell: {SellLimit}, market buy: {BuyMarket}, market sell: {SellMarket}";
+        }
     }
 }

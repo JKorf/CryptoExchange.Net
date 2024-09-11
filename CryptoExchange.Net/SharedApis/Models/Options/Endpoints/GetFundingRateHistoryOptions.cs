@@ -8,11 +8,8 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
 {
     public record GetFundingRateHistoryOptions : EndpointOptions<GetFundingRateHistoryRequest>
     {
-        public bool TimeFilterSupported { get; set; }
-
-        public GetFundingRateHistoryOptions(bool timeFilterSupported, bool needsAuthentication) : base(needsAuthentication)
+        public GetFundingRateHistoryOptions(bool needsAuthentication) : base(needsAuthentication)
         {
-            TimeFilterSupported = timeFilterSupported;
         }
     }
 }

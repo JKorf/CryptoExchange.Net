@@ -24,5 +24,13 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }
+
+        public string ToString(string exchange)
+        {
+            var sb = new StringBuilder(base.ToString(exchange));
+            if (MaxAge != null)
+                sb.AppendLine($"Max age of data: {MaxAge}");
+            return sb.ToString();
+        }
     }
 }

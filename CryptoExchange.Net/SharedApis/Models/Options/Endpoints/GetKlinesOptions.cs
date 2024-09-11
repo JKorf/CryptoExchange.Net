@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
                 return new ArgumentError($"Only the most recent {MaxAge} klines are available");
 
              if (MaxRequestDataPoints.HasValue && request.Limit > MaxRequestDataPoints.Value)
-                    return new ArgumentError($"Only {MaxRequestDataPoints} klines can be retrieved per request");
+                return new ArgumentError($"Only {MaxRequestDataPoints} klines can be retrieved per request");
             
             if (MaxTotalDataPoints.HasValue)
             {
@@ -61,6 +61,19 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             }
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
+        }
+
+        public string ToString(string exchange)
+        {
+            var sb = new StringBuilder(base.ToString(exchange));
+            sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
+            if (MaxAge != null)
+                sb.AppendLine($"Max age of data: {MaxAge}");
+            if (MaxTotalDataPoints != null)
+                sb.AppendLine($"Max total data points available: {MaxTotalDataPoints}");
+            if (MaxRequestDataPoints != null)
+                sb.AppendLine($"Max data points per request: {MaxRequestDataPoints}");
+            return sb.ToString();
         }
     }
 }

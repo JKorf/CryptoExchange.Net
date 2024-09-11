@@ -25,5 +25,12 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             return null;
         }
+
+        public string ToString(string exchange)
+        {
+            var sb = new StringBuilder(base.ToString(exchange));
+            sb.AppendLine($"Max data points: {MaxLimit}");
+            return sb.ToString();
+        }
     }
 }

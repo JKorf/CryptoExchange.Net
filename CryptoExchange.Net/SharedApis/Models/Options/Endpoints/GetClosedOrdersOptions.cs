@@ -24,5 +24,12 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }
+
+        public string ToString(string exchange)
+        {
+            var sb = new StringBuilder(base.ToString(exchange));
+            sb.AppendLine($"Time filter supported: {TimeFilterSupported}");
+            return sb.ToString();
+        }
     }
 }

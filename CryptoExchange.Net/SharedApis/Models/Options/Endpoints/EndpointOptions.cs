@@ -46,7 +46,10 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public string ToString(string exchange)
         {
             var sb = new StringBuilder();
-            sb.Append($"Exchange {exchange} {EndpointName} endpoint");
+            sb.Append($"{exchange} {EndpointName}");
+            if (!string.IsNullOrEmpty(ExchangeRequestInfo))
+                sb.AppendLine(ExchangeRequestInfo);
+            sb.Append($"Needs authentication: {NeedsAuthentication}");
             sb.Append($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
         }
@@ -85,9 +88,14 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public string ToString(string exchange)
         {
             var sb = new StringBuilder();
-            sb.Append($"Exchange {exchange} {typeof(T).Name} endpoint");
-            sb.Append($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
-            sb.Append($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            sb.AppendLine($"{exchange} {typeof(T).Name}");
+            sb.Append($"Needs authentication: {NeedsAuthentication}");
+            if (!string.IsNullOrEmpty(ExchangeRequestInfo))
+                sb.AppendLine(ExchangeRequestInfo);
+            if (RequiredOptionalParameters.Any())
+                sb.AppendLine($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
+            if (RequiredExchangeParameters.Any())
+                sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
         }
     }
@@ -100,6 +108,13 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
             PaginationType = paginationType;
         }
+
+        public string ToString(string exchange)
+        {
+            var sb = new StringBuilder(base.ToString(exchange));
+            sb.AppendLine($"Pagination type: {PaginationType}");
+            return sb.ToString();
+        }
     }
 
     public record PaginatedEndpointOptions : EndpointOptions
@@ -110,6 +125,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
             PaginationType = paginationType;
         }
+
     }
 
     public record ParameterDescription
