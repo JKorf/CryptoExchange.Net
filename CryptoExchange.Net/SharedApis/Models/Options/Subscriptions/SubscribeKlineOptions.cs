@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
-        public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, ExchangeParameters? exchangeParameter, ApiType apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, ExchangeParameters? exchangeParameter, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (!IsSupported(request.Interval))
                 return new ArgumentError("Interval not supported");

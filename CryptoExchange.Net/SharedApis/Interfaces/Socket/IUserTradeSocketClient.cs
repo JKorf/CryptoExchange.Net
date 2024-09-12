@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
 {
     public interface IUserTradeSocketClient : ISharedClient
     {
-        SubscriptionOptions SubscribeUserTradeOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToUserTradeUpdatesAsync(Action<ExchangeEvent<IEnumerable<SharedUserTrade>>> handler, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        SubscriptionOptions<SubscribeUserTradeRequest> SubscribeUserTradeOptions { get; }
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToUserTradeUpdatesAsync(SubscribeUserTradeRequest request, Action<ExchangeEvent<IEnumerable<SharedUserTrade>>> handler, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

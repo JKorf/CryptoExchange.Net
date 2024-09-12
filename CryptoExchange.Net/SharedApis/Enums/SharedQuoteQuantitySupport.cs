@@ -10,9 +10,10 @@ namespace CryptoExchange.Net.SharedApis.Enums
     /// </summary>
     public enum SharedQuantityType
     {
-        BaseAssetQuantity,
-        QuoteAssetQuantity,
-        Both
+        BaseAsset,
+        QuoteAsset,
+        Contracts,
+        BaseAndQuoteAsset
     }
 
     public record SharedQuantitySupport
@@ -43,13 +44,13 @@ namespace CryptoExchange.Net.SharedApis.Enums
         public Error? Validate(SharedOrderSide side, SharedOrderType type, decimal? quantity, decimal? quoteQuantity)
         {
             var supportedType = GetSupportedQuantityType(side, type);
-            if (supportedType == SharedQuantityType.Both)
+            if (supportedType == SharedQuantityType.BaseAndQuoteAsset)
                 return null;
 
-            if (supportedType == SharedQuantityType.BaseAssetQuantity && quoteQuantity != null)
+            if (supportedType == SharedQuantityType.BaseAsset && quoteQuantity != null)
                 return new ArgumentError($"Quote quantity not supported for {side}.{type} order, specify Quantity instead");
 
-            if (supportedType == SharedQuantityType.QuoteAssetQuantity && quantity != null)
+            if (supportedType == SharedQuantityType.QuoteAsset && quantity != null)
                 return new ArgumentError($"Quantity not supported for {side}.{type} order, specify QuoteQuantity instead");
 
             return null;

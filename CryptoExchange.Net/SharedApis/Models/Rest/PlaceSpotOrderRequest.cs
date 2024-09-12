@@ -20,8 +20,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 
         public PlaceSpotOrderRequest(
             SharedSymbol symbol,
-            SharedOrderType orderType,
             SharedOrderSide side,
+            SharedOrderType orderType,
             decimal? quantity = null,
             decimal? quoteQuantity = null,
             decimal? price = null,
