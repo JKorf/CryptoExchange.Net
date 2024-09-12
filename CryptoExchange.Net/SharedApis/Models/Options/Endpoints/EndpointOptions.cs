@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             foreach (var param in RequiredOptionalParameters)
             {

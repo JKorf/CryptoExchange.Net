@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             SupportedLimits = supportedLimits;
         }
 
-        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (request.Limit == null)
                 return null;

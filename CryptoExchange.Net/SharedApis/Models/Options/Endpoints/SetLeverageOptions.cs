@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             LeveragePerSide = leveragePerSide;
         }
 
-        public override Error? ValidateRequest(string exchange, SetLeverageRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SetLeverageRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (LeveragePerSide && request.Side == null)
                 return new ArgumentError("Leverage needs to be set per side, please provide the PositionSide parameter");

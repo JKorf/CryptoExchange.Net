@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             TimeFilterSupported = timeFilterSupported;
         }
 
-        public override Error? ValidateRequest(string exchange, GetClosedOrdersRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetClosedOrdersRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (TimeFilterSupported && request.StartTime != null)
                 return new ArgumentError($"Time filter is not supported");

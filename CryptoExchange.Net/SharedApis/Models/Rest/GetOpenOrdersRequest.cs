@@ -9,12 +9,16 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetOpenOrdersRequest
     {
-        public ApiType ApiType { get; set; }
+        public ApiType? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetOpenOrdersRequest(ApiType apiType, SharedSymbol? symbol = null)
+        public GetOpenOrdersRequest(ApiType apiType)
         {
             ApiType = apiType;
+        }
+
+        public GetOpenOrdersRequest(SharedSymbol symbol)
+        {
             Symbol = symbol;
         }
     }

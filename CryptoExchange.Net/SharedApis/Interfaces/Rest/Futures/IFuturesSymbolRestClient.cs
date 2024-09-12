@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 {
     public interface IFuturesSymbolRestClient : ISharedClient
     {
-        EndpointOptions GetFuturesSymbolsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetFuturesSymbolsRequest> GetFuturesSymbolsOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(GetFuturesSymbolsRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

@@ -1,22 +1,25 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetPositionModeRequest
+    public record GetPositionHistoryRequest
     {
         public ApiType? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetPositionModeRequest(SharedSymbol symbol)
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public int? Limit { get; set; }
+
+        public GetPositionHistoryRequest(SharedSymbol? symbol)
         {
             Symbol = symbol;
         }
 
-        public GetPositionModeRequest(ApiType apiType)
+        public GetPositionHistoryRequest(ApiType apiType)
         {
             ApiType = apiType;
         }

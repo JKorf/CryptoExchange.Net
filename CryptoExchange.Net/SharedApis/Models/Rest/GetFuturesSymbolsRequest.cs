@@ -5,19 +5,13 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetPositionsRequest
+    public record GetFuturesSymbolsRequest
     {
         public ApiType? ApiType { get; set; }
-        public SharedSymbol? Symbol { get; set; }
 
-        public GetPositionsRequest(ApiType? apiType = null)
+        public GetFuturesSymbolsRequest(ApiType? apiType = null)
         {
             ApiType = apiType;
-        }
-
-        public GetPositionsRequest(SharedSymbol symbol)
-        {
-            Symbol = symbol;
         }
     }
 }

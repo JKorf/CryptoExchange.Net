@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.RequestModels;
 using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
@@ -13,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
 {
     public interface IBalanceRestClient : ISharedClient
     {
-        EndpointOptions GetBalancesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedBalance>>> GetBalancesAsync(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetBalancesRequest> GetBalancesOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedBalance>>> GetBalancesAsync(GetBalancesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

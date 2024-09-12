@@ -17,12 +17,10 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 
         public ClosePositionRequest(
             SharedSymbol symbol,
-            SharedPositionSide side,
             SharedPositionSide? positionSide = null,
             SharedMarginMode? marginMode = null,
             decimal? quantity = null) : base(symbol)
         {
-            PositionSide = side;
             PositionSide = positionSide;
             MarginMode = marginMode;
             Quantity = quantity;

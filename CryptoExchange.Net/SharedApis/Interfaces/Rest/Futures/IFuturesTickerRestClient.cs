@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     {
         EndpointOptions<GetTickerRequest> GetFuturesTickerOptions { get; }
         Task<ExchangeWebResult<SharedFuturesTicker>> GetFuturesTickerAsync(GetTickerRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        EndpointOptions GetFuturesTickersOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesTicker>>> GetFuturesTickersAsync(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetTickersRequest> GetFuturesTickersOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedFuturesTicker>>> GetFuturesTickersAsync(GetTickersRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
     }
 }

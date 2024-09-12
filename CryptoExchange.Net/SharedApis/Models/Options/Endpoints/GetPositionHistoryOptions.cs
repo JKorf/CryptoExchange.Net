@@ -8,19 +8,19 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
 {
-    public record GetPositionModeOptions : EndpointOptions<GetPositionModeRequest>
+    public record GetPositionHistoryOptions : PaginatedEndpointOptions<GetPositionHistoryRequest>
     {
         public bool PerSymbol { get; set; }
 
-        public GetPositionModeOptions(bool perSymbol) : base(true)
+        public GetPositionHistoryOptions(bool perSymbol, SharedPaginationType paginationType) : base(paginationType, true)
         {
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, GetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetPositionHistoryRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (request.Symbol == null && PerSymbol)
-                return new ArgumentError($"PositionMode is set per symbol, please provide the Symbol parameter");
+                return new ArgumentError($"Position history can only be retrieved per symbol, please provide the Symbol parameter");
 
             return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
         }
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
         public string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Position mode configured per symbol: {PerSymbol}");
+            sb.AppendLine($"Position history per symbol: {PerSymbol}");
             return sb.ToString();
         }
     }

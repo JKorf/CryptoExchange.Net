@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if ((request.Mode == Enums.SharedPositionMode.LongShort && !SupportsLongShort)
                 || (request.Mode == Enums.SharedPositionMode.OneWay && !SupportsOneway))

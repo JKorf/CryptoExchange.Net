@@ -8,13 +8,18 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record SetPositionModeRequest
     {
-        public ApiType ApiType { get; set; }
+        public SharedSymbol? Symbol { get; set; }
+        public ApiType? ApiType { get; set; }
         public SharedPositionMode Mode { get; set; }
 
-        public SharedSymbol? Symbol { get; set; }
-        public SetPositionModeRequest(ApiType apiType, SharedPositionMode mode, SharedSymbol? symbol)
+        public SetPositionModeRequest(ApiType apiType, SharedPositionMode mode)
         {
             ApiType = apiType;
+            Mode = mode;
+        }
+        
+        public SetPositionModeRequest(SharedSymbol? symbol, SharedPositionMode mode)
+        {
             Mode = mode;
             Symbol = symbol;
         }
