@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? EndTime { get; }
         public int? Limit { get; }
 
-        public GetClosedOrdersRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol)
+        public GetClosedOrdersRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             StartTime = startTime;
             EndTime = endTime;

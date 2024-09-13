@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record WithdrawRequest
+    public record WithdrawRequest : SharedRequest
     {
         public string Asset { get; set; }
         public string Address { get; set; }
@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public string? AddressTag { get; set; }
         public string? Network { get; set; }
 
-        public WithdrawRequest(string asset, decimal quantity, string address, string? network = null, string? addressTag = null)
+        public WithdrawRequest(string asset, decimal quantity, string address, string? network = null, string? addressTag = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Asset = asset;
             Address = address;

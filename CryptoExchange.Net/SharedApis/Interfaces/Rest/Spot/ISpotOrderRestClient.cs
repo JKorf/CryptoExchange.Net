@@ -15,25 +15,25 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot
     public interface ISpotOrderRestClient : ISharedClient
     {
         PlaceSpotOrderOptions PlaceSpotOrderOptions { get; }
-        Task<ExchangeWebResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
 
         EndpointOptions<GetOrderRequest> GetSpotOrderOptions { get; }
-        Task<ExchangeWebResult<SharedSpotOrder>> GetSpotOrderAsync(GetOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotOrder>> GetSpotOrderAsync(GetOrderRequest request, CancellationToken ct = default);
 
         EndpointOptions<GetOpenOrdersRequest> GetOpenSpotOrdersOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
 
         PaginatedEndpointOptions<GetClosedOrdersRequest> GetClosedSpotOrdersOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
 
         EndpointOptions<GetOrderTradesRequest> GetSpotOrderTradesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
 
         PaginatedEndpointOptions<GetUserTradesRequest> GetSpotUserTradesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
 
         EndpointOptions<CancelOrderRequest> CancelSpotOrderOptions { get; }
-        Task<ExchangeWebResult<SharedId>> CancelSpotOrderAsync(CancelOrderRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedId>> CancelSpotOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 
     }
 }

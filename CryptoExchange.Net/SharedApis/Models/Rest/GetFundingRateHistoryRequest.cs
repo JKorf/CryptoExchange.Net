@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? EndTime { get; set; }
         public int? Limit { get; set; }
 
-        public GetFundingRateHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null) : base(symbol)
+        public GetFundingRateHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             StartTime = startTime;
             EndTime = endTime;

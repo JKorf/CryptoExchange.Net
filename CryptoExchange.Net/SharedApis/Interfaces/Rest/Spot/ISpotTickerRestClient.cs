@@ -14,8 +14,8 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot
     public interface ISpotTickerRestClient : ISharedClient
     {
         EndpointOptions<GetTickerRequest> GetSpotTickerOptions { get; }
-        Task<ExchangeWebResult<SharedSpotTicker>> GetSpotTickerAsync(GetTickerRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        EndpointOptions GetSpotTickersOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedSpotTicker>>> GetSpotTickersAsync(ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotTicker>> GetSpotTickerAsync(GetTickerRequest request, CancellationToken ct = default);
+        EndpointOptions<GetTickersRequest> GetSpotTickersOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedSpotTicker>>> GetSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

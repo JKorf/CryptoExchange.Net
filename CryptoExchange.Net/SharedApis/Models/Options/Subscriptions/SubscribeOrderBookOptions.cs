@@ -19,12 +19,12 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             SupportedLimits = limits;
         }
 
-        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, ExchangeParameters? exchangeParameter, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError("Limit not supported");
 
-            return base.ValidateRequest(exchange, request, exchangeParameter, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
     }
 }

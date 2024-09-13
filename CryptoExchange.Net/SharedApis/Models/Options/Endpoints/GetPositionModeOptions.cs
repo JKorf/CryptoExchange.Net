@@ -17,12 +17,12 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, GetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetPositionModeRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (request.Symbol == null && PerSymbol)
                 return new ArgumentError($"PositionMode is set per symbol, please provide the Symbol parameter");
 
-            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
         public string ToString(string exchange)

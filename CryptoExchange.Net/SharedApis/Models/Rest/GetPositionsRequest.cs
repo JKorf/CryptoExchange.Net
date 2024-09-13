@@ -1,21 +1,22 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetPositionsRequest
+    public record GetPositionsRequest : SharedRequest
     {
         public ApiType? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetPositionsRequest(ApiType? apiType = null)
+        public GetPositionsRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }
 
-        public GetPositionsRequest(SharedSymbol symbol)
+        public GetPositionsRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters) 
         {
             Symbol = symbol;
         }

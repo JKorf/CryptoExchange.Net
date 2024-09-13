@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface IBookTickerSocketClient : ISharedClient
     {
         SubscriptionOptions<SubscribeBookTickerRequest> SubscribeBookTickerOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToBookTickerUpdatesAsync(SubscribeBookTickerRequest request, Action<ExchangeEvent<SharedBookTicker>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToBookTickerUpdatesAsync(SubscribeBookTickerRequest request, Action<ExchangeEvent<SharedBookTicker>> handler, CancellationToken ct = default);
     }
 }

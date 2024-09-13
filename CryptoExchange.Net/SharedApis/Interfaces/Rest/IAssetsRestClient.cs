@@ -15,8 +15,8 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IAssetsRestClient : ISharedClient
     {
         EndpointOptions<GetAssetRequest> GetAssetOptions { get; }
-        Task<ExchangeWebResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
-        EndpointOptions GetAssetsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedAsset>>> GetAssetsAsync(ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
+        EndpointOptions<GetAssetsRequest> GetAssetsOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedAsset>>> GetAssetsAsync(GetAssetsRequest request, CancellationToken ct = default);
     }
 }

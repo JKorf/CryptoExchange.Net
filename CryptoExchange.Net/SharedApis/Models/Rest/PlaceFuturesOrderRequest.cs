@@ -39,7 +39,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             SharedTimeInForce? timeInForce = null,
             SharedPositionSide? positionSide = null,
             SharedMarginMode? marginMode = null,
-            string? clientOrderId = null) : base(symbol)
+            string? clientOrderId = null,
+            ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             Side = side;
             OrderType = type;

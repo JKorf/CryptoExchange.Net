@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis.RequestModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetWithdrawalsRequest
+    public record GetWithdrawalsRequest : SharedRequest
     {
         public string? Asset { get; set; }
 
@@ -12,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public DateTime? EndTime { get; }
         public int? Limit { get; }
 
-        public GetWithdrawalsRequest(string? asset = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null)
+        public GetWithdrawalsRequest(string? asset = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Asset = asset;
             StartTime = startTime; 

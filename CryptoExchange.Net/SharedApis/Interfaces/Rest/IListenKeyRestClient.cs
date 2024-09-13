@@ -14,10 +14,10 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IListenKeyRestClient : ISharedClient
     {
         EndpointOptions<StartListenKeyRequest> StartOptions { get; }
-        Task<ExchangeWebResult<string>> StartListenKeyAsync(StartListenKeyRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<string>> StartListenKeyAsync(StartListenKeyRequest request, CancellationToken ct = default);
         EndpointOptions<KeepAliveListenKeyRequest> KeepAliveOptions { get; }
-        Task<ExchangeWebResult<string>> KeepAliveListenKeyAsync(KeepAliveListenKeyRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<string>> KeepAliveListenKeyAsync(KeepAliveListenKeyRequest request, CancellationToken ct = default);
         EndpointOptions<StopListenKeyRequest> StopOptions { get; }
-        Task<ExchangeWebResult<string>> StopListenKeyAsync(StopListenKeyRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<string>> StopListenKeyAsync(StopListenKeyRequest request, CancellationToken ct = default);
     }
 }

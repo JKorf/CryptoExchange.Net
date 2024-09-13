@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if ((request.Mode == Enums.SharedPositionMode.LongShort && !SupportsLongShort)
                 || (request.Mode == Enums.SharedPositionMode.OneWay && !SupportsOneway))
@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             if (request.Symbol != null && !PerSymbol)
                 return new ArgumentError($"PositionMode is set for all symbols, Symbol parameter is invalid");
 
-            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
         public string ToString(string exchange)

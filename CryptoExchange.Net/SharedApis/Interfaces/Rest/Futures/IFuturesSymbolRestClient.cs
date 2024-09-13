@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 {
     public interface IFuturesSymbolRestClient : ISharedClient
     {
-        EndpointOptions<GetFuturesSymbolsRequest> GetFuturesSymbolsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(GetFuturesSymbolsRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        EndpointOptions<GetSymbolsRequest> GetFuturesSymbolsOptions { get; }
+        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

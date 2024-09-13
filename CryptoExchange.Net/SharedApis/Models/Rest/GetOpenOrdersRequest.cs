@@ -7,17 +7,17 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetOpenOrdersRequest
+    public record GetOpenOrdersRequest : SharedRequest
     {
         public ApiType? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetOpenOrdersRequest(ApiType apiType)
+        public GetOpenOrdersRequest(ApiType apiType, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }
 
-        public GetOpenOrdersRequest(SharedSymbol symbol)
+        public GetOpenOrdersRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Symbol = symbol;
         }

@@ -17,6 +17,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface IBalanceSocketClient : ISharedClient
     {
         SubscriptionOptions<SubscribeBalancesRequest> SubscribeBalanceOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(SubscribeBalancesRequest request, Action<ExchangeEvent<IEnumerable<SharedBalance>>> handler, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToBalanceUpdatesAsync(SubscribeBalancesRequest request, Action<ExchangeEvent<IEnumerable<SharedBalance>>> handler, CancellationToken ct = default);
     }
 }

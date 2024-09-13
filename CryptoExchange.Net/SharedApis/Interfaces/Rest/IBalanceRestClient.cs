@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IBalanceRestClient : ISharedClient
     {
         EndpointOptions<GetBalancesRequest> GetBalancesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedBalance>>> GetBalancesAsync(GetBalancesRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedBalance>>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
     }
 }

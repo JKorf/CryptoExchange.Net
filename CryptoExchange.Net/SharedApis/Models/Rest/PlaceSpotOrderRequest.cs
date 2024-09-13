@@ -26,7 +26,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             decimal? quoteQuantity = null,
             decimal? price = null,
             SharedTimeInForce? timeInForce = null,
-            string? clientOrderId = null) : base(symbol)
+            string? clientOrderId = null,
+            ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             OrderType = orderType;
             Side = side;

@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     {
         public string OrderId { get; set; }
 
-        public GetOrderRequest(SharedSymbol symbol, string orderId) : base(symbol)
+        public GetOrderRequest(SharedSymbol symbol, string orderId, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             OrderId = orderId;
         }

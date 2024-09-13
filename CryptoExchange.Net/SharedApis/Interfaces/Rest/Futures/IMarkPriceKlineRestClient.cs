@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface IMarkPriceKlineRestClient : ISharedClient
     {
         GetKlinesOptions GetMarkPriceKlinesOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedMarkKline>>> GetMarkPriceKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedMarkKline>>> GetMarkPriceKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

@@ -19,7 +19,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             SharedSymbol symbol,
             SharedPositionSide? positionSide = null,
             SharedMarginMode? marginMode = null,
-            decimal? quantity = null) : base(symbol)
+            decimal? quantity = null,
+            ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             PositionSide = positionSide;
             MarginMode = marginMode;

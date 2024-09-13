@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
     {
         public SharedKlineInterval Interval { get; set; }
 
-        public SubscribeKlineRequest(SharedSymbol symbol, SharedKlineInterval interval) : base(symbol)
+        public SubscribeKlineRequest(SharedSymbol symbol, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             Interval = interval;
         }

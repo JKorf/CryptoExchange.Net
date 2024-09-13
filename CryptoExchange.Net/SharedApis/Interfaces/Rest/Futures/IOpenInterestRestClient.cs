@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface IOpenInterestRestClient : ISharedClient
     {
         EndpointOptions<GetOpenInterestRequest> GetOpenInterestOptions { get; }
-        Task<ExchangeWebResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, CancellationToken ct = default);
     }
 }

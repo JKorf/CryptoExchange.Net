@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface IOrderBookSocketClient : ISharedClient
     {
         SubscribeOrderBookOptions SubscribeOrderBookOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<ExchangeEvent<SharedOrderBook>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<ExchangeEvent<SharedOrderBook>> handler, CancellationToken ct = default);
     }
 }

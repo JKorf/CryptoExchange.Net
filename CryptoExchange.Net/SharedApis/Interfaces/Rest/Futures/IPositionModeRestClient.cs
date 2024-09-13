@@ -17,9 +17,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface IPositionModeRestClient : ISharedClient
     {
         GetPositionModeOptions GetPositionModeOptions { get; }
-        Task<ExchangeWebResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, CancellationToken ct = default);
 
         SetPositionModeOptions SetPositionModeOptions { get; }
-        Task<ExchangeWebResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
     }
 }

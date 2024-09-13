@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             SupportedLimits = supportedLimits;
         }
 
-        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             if (request.Limit == null)
                 return null;
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError($"Limit should be one of " + string.Join(", ", SupportedLimits));
 
-            return base.ValidateRequest(exchange, request, exchangeParameters, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
         public string ToString(string exchange)

@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
+using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +56,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         }
     }
 
-    public record EndpointOptions<T> : EndpointOptions
+    public record EndpointOptions<T> : EndpointOptions where T: SharedRequest
     {
         // parameters which are optional in the request, but required for this exchange
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
@@ -64,7 +65,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public virtual Error? ValidateRequest(string exchange, T request, ExchangeParameters? exchangeParameters, ApiType? apiType, ApiType[] supportedApiTypes)
+        public virtual Error? ValidateRequest(string exchange, T request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
             foreach (var param in RequiredOptionalParameters)
             {
@@ -82,7 +83,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             }
 
-            return ValidateRequest(exchange, exchangeParameters, apiType, supportedApiTypes);
+            return ValidateRequest(exchange, request.ExchangeParameters, apiType, supportedApiTypes);
         }
 
         public string ToString(string exchange)
@@ -100,7 +101,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         }
     }
 
-    public record PaginatedEndpointOptions<T> : EndpointOptions<T>
+    public record PaginatedEndpointOptions<T> : EndpointOptions<T> where T: SharedRequest
     {
         public SharedPaginationType PaginationType { get; }
 

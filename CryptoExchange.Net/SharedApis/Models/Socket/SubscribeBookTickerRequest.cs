@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
 {
     public record SubscribeBookTickerRequest : SharedSymbolRequest
     {
-        public SubscribeBookTickerRequest(SharedSymbol symbol) : base(symbol)
+        public SubscribeBookTickerRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
         }
     }

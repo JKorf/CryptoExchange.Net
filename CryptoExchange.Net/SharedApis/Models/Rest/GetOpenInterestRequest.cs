@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetOpenInterestRequest : SharedSymbolRequest
     {
-        public GetOpenInterestRequest(SharedSymbol symbol) : base(symbol)
+        public GetOpenInterestRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
         }
     }

@@ -6,11 +6,11 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
-    public record GetBalancesRequest : SharedRequest
+    public record GetAssetsRequest : SharedRequest
     {
         public ApiType? ApiType { get; set; }
 
-        public GetBalancesRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetAssetsRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

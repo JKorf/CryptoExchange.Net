@@ -14,9 +14,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface ILeverageRestClient : ISharedClient
     {
         EndpointOptions<GetLeverageRequest> GetLeverageOptions { get; }
-        Task<ExchangeWebResult<SharedLeverage>> GetLeverageAsync(GetLeverageRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedLeverage>> GetLeverageAsync(GetLeverageRequest request, CancellationToken ct = default);
         SetLeverageOptions SetLeverageOptions { get; }
-        Task<ExchangeWebResult<SharedLeverage>> SetLeverageAsync(SetLeverageRequest request, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedLeverage>> SetLeverageAsync(SetLeverageRequest request, CancellationToken ct = default);
 
     }
 }

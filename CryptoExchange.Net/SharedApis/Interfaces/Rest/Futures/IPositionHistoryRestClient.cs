@@ -17,6 +17,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface IPositionHistoryRestClient : ISharedClient
     {
         GetPositionHistoryOptions GetPositionHistoryOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedPositionHistory>>> GetPositionHistoryAsync(GetPositionHistoryRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedPositionHistory>>> GetPositionHistoryAsync(GetPositionHistoryRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

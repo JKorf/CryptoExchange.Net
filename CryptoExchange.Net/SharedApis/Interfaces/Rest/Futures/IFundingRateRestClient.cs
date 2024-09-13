@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
     public interface IFundingRateRestClient : ISharedClient
     {
         GetFundingRateHistoryOptions GetFundingRateHistoryOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedFundingRate>>> GetFundingRateHistoryAsync(GetFundingRateHistoryRequest request, INextPageToken? pageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedFundingRate>>> GetFundingRateHistoryAsync(GetFundingRateHistoryRequest request, INextPageToken? pageToken = null, CancellationToken ct = default);
     }
 }

@@ -14,6 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     public interface IWithdrawalRestClient : ISharedClient
     {
         GetWithdrawalsOptions GetWithdrawalsOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedWithdrawal>>> GetWithdrawalsAsync(GetWithdrawalsRequest request, INextPageToken? nextPageToken = null, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<IEnumerable<SharedWithdrawal>>> GetWithdrawalsAsync(GetWithdrawalsRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

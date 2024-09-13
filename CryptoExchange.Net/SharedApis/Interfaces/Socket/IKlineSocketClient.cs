@@ -16,6 +16,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
     public interface IKlineSocketClient : ISharedClient
     {
         SubscribeKlineOptions SubscribeKlineOptions { get; }
-        Task<ExchangeResult<UpdateSubscription>> SubscribeToKlineUpdatesAsync(SubscribeKlineRequest request, Action<ExchangeEvent<SharedKline>> handler, ExchangeParameters? exchangeParameters = null, CancellationToken ct = default);
+        Task<ExchangeResult<UpdateSubscription>> SubscribeToKlineUpdatesAsync(SubscribeKlineRequest request, Action<ExchangeEvent<SharedKline>> handler, CancellationToken ct = default);
     }
 }
