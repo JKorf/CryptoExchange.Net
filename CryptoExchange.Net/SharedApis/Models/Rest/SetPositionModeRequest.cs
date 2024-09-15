@@ -13,13 +13,13 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public ApiType? ApiType { get; set; }
         public SharedPositionMode Mode { get; set; }
 
-        public SetPositionModeRequest(ApiType apiType, SharedPositionMode mode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SetPositionModeRequest(SharedPositionMode mode, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
             Mode = mode;
         }
         
-        public SetPositionModeRequest(SharedSymbol? symbol, SharedPositionMode mode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SetPositionModeRequest(SharedSymbol symbol, SharedPositionMode mode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Mode = mode;
             Symbol = symbol;

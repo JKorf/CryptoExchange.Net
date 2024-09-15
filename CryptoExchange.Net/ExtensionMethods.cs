@@ -387,26 +387,6 @@ namespace CryptoExchange.Net
             return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
-
-        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)
-        {
-            var result = new List<T>();
-            ExchangeWebResult<IEnumerable<T>> batch;
-            INextPageToken? nextPageToken = null;
-            while (true)
-            {
-                batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
-                yield return batch;
-                if (!batch)
-                    break;
-
-                result.AddRange(batch.Data);
-                nextPageToken = batch.NextPageToken;
-                if (nextPageToken == null)
-                    break;
-            }
-        }
-
         public static bool IsLinear(this ApiType type) => type == ApiType.PerpetualLinear || type == ApiType.DeliveryLinear;
         public static bool IsInverse(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.DeliveryInverse;
         public static bool IsPerpetual(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.PerpetualLinear;

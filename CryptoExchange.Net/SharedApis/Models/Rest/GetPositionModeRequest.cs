@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             Symbol = symbol;
         }
 
-        public GetPositionModeRequest(ApiType apiType, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionModeRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

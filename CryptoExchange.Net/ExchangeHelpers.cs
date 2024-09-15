@@ -1,8 +1,11 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Interfaces;
+using CryptoExchange.Net.SharedApis.Models;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -195,5 +198,24 @@ namespace CryptoExchange.Net
             { 12, "Z" },
         };
         public static string GetDeliveryMonthSymbol(DateTime time) => _monthSymbols[time.Month];
+
+        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)
+        {
+            var result = new List<T>();
+            ExchangeWebResult<IEnumerable<T>> batch;
+            INextPageToken? nextPageToken = null;
+            while (true)
+            {
+                batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
+                yield return batch;
+                if (!batch)
+                    break;
+
+                result.AddRange(batch.Data);
+                nextPageToken = batch.NextPageToken;
+                if (nextPageToken == null)
+                    break;
+            }
+        }
     }
 }

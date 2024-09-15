@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public ApiType? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetOpenOrdersRequest(ApiType apiType, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetOpenOrdersRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }
