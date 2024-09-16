@@ -490,7 +490,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
         {
-            return new ExchangeWebResult<K>(exchange, error);
+            return new ExchangeWebResult<K>(exchange, AsError<K>(error));
         }
 
         /// <summary>
