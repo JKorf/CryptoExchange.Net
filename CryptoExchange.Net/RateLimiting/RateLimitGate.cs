@@ -152,7 +152,7 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public async Task SetRetryAfterGuardAsync(DateTime retryAfter)
+        public async Task SetRetryAfterGuardAsync(DateTime retryAfter, RateLimitItemType type)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
 
@@ -160,7 +160,7 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 var retryAfterGuard = _guards.OfType<RetryAfterGuard>().SingleOrDefault();
                 if (retryAfterGuard == null)
-                    _guards.Add(new RetryAfterGuard(retryAfter));
+                    _guards.Add(new RetryAfterGuard(retryAfter, type));
                 else
                     retryAfterGuard.UpdateAfter(retryAfter);
             }

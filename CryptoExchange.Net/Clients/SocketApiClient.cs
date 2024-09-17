@@ -519,6 +519,7 @@ namespace CryptoExchange.Net.Clients
             var socket = CreateSocket(connectionAddress.Data!);
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
+            socketConnection.ConnectRateLimitedAsync += HandleConnectRateLimitedAsync;
             socketConnection.DedicatedRequestConnection = dedicatedRequestConnection;
 
             foreach (var ptg in PeriodicTaskRegistrations)
@@ -536,6 +537,19 @@ namespace CryptoExchange.Net.Clients
         /// <param name="message">The message that wasn't processed</param>
         protected virtual void HandleUnhandledMessage(IMessageAccessor message)
         {
+        }
+
+        /// <summary>
+        /// Process connect rate limited
+        /// </summary>
+        protected async virtual Task HandleConnectRateLimitedAsync()
+        {
+            if (ClientOptions.RateLimiterEnabled && RateLimiter is not null && ClientOptions.ConnectDelayAfterRateLimited is not null)
+            {
+                var retryAfter = DateTime.UtcNow.Add(ClientOptions.ConnectDelayAfterRateLimited.Value);
+                _logger.AddingRetryAfterGuard(retryAfter);
+                await RateLimiter.SetRetryAfterGuardAsync(retryAfter, RateLimiting.RateLimitItemType.Connection).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
