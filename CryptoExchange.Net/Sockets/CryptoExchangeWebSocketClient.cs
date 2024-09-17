@@ -279,6 +279,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                     }
 
+                    _socket?.Dispose();
                     _socket = CreateSocket();
                     _ctsSource.Dispose();
                     _ctsSource = new CancellationTokenSource();
