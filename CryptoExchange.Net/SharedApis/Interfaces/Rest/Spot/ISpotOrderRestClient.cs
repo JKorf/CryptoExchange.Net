@@ -14,6 +14,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot
 {
     public interface ISpotOrderRestClient : ISharedClient
     {
+        SharedFeeDeductionType SpotFeeDeductionType { get; }
+        SharedFeeAssetType SpotFeeAssetType { get; }
+
         PlaceSpotOrderOptions PlaceSpotOrderOptions { get; }
         Task<ExchangeWebResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
 

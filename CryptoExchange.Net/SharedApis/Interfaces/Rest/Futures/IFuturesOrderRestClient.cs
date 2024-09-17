@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
@@ -13,6 +14,9 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
 {
     public interface IFuturesOrderRestClient : ISharedClient
     {
+        SharedFeeDeductionType FuturesFeeDeductionType { get; }
+        SharedFeeAssetType FuturesFeeAssetType { get; }
+
         PlaceFuturesOrderOptions PlaceFuturesOrderOptions { get; }
         Task<ExchangeWebResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
 
