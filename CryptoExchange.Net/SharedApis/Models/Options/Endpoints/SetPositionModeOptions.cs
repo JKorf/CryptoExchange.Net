@@ -29,9 +29,6 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             if (request.Symbol == null && PerSymbol)
                 return new ArgumentError($"PositionMode is set per symbol, please provide the Symbol parameter");
 
-            if (request.Symbol != null && !PerSymbol)
-                return new ArgumentError($"PositionMode is set for all symbols, Symbol parameter is invalid");
-
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
