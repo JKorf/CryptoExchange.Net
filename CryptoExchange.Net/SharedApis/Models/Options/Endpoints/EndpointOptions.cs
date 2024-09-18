@@ -32,12 +32,12 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             {
                 if (!string.IsNullOrEmpty(param.Name))
                 {
-                    if (exchangeParameters?.HasValue(exchange, param.Name, param.ValueType) != true)
+                    if (ExchangeParameters.HasValue(exchangeParameters, exchange, param.Name, param.ValueType) != true)
                         return new ArgumentError($"Required exchange parameter `{param.Name}` for exchange `{exchange}` is missing or has incorrect type. Expected type is {param.ValueType.Name}. Example: {param.ExampleValue}");
                 }
                 else
                 {
-                    if (param.Names.All(x => exchangeParameters?.HasValue(exchange, x, param.ValueType) != true))
+                    if (param.Names.All(x => ExchangeParameters.HasValue(exchangeParameters, exchange, x, param.ValueType) != true))
                         return new ArgumentError($"One of exchange parameters `{string.Join(", ", param.Names)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
                 }
             }

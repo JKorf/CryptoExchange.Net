@@ -10,5 +10,8 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
         string Exchange { get; }
 
         ApiType[] SupportedApiTypes { get; }
+
+        void SetDefaultExchangeParameter(string key, object value);
+        void ResetDefaultExchangeParameters();
     }
 }
