@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 
@@ -32,7 +33,8 @@ namespace CryptoExchange.Net.SharedApis.Models
 
             try
             {
-                Convert.ChangeType(val.Value, type);
+                Type t = Nullable.GetUnderlyingType(type) ?? type;
+                Convert.ChangeType(val.Value, t);
                 return true;
             }
             catch
@@ -51,7 +53,8 @@ namespace CryptoExchange.Net.SharedApis.Models
 
             try
             {
-                Convert.ChangeType(val.Value, type);
+                Type t = Nullable.GetUnderlyingType(type) ?? type;
+                Convert.ChangeType(val.Value, t);
                 return true;
             }
             catch
@@ -68,7 +71,8 @@ namespace CryptoExchange.Net.SharedApis.Models
 
             try
             {
-                return (T)Convert.ChangeType(val.Value, typeof(T));
+                Type t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+                return (T)Convert.ChangeType(val.Value, t);
             }
             catch
             {
@@ -85,9 +89,13 @@ namespace CryptoExchange.Net.SharedApis.Models
                 if (parameter == null)
                     return default;
 
+                if (parameter.Value is T val)
+                    return val;
+
                 try
                 {
-                    return (T)Convert.ChangeType(parameter.Value, typeof(T));
+                    Type t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+                    return (T)Convert.ChangeType(parameter.Value, t);
                 }
                 catch
                 {

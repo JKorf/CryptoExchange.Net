@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis.Enums
 {
     public enum SharedPositionMode
     {
-        LongShort,
+        HedgeMode,
         OneWay
     }
 }

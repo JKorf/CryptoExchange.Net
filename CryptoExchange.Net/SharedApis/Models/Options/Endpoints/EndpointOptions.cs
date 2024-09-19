@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
         public string EndpointName { get; set; }
         // Exchange specific request info
-        public string? ExchangeRequestInfo { get; set; }
+        public string? RequestNotes { get; set; }
         public bool NeedsAuthentication { get; set; }
 
         public EndpointOptions(string endpointName, bool needAuthentication)
@@ -48,8 +48,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
             var sb = new StringBuilder();
             sb.Append($"{exchange} {EndpointName}");
-            if (!string.IsNullOrEmpty(ExchangeRequestInfo))
-                sb.AppendLine(ExchangeRequestInfo);
+            if (!string.IsNullOrEmpty(RequestNotes))
+                sb.AppendLine(RequestNotes);
             sb.Append($"Needs authentication: {NeedsAuthentication}");
             sb.Append($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
@@ -91,8 +91,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             var sb = new StringBuilder();
             sb.AppendLine($"{exchange} {typeof(T).Name}");
             sb.Append($"Needs authentication: {NeedsAuthentication}");
-            if (!string.IsNullOrEmpty(ExchangeRequestInfo))
-                sb.AppendLine(ExchangeRequestInfo);
+            if (!string.IsNullOrEmpty(RequestNotes))
+                sb.AppendLine(RequestNotes);
             if (RequiredOptionalParameters.Any())
                 sb.AppendLine($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
             if (RequiredExchangeParameters.Any())

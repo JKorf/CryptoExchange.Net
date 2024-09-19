@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
 
         public override Error? ValidateRequest(string exchange, SetPositionModeRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
         {
-            if ((request.Mode == Enums.SharedPositionMode.LongShort && !SupportsLongShort)
+            if ((request.Mode == Enums.SharedPositionMode.HedgeMode && !SupportsLongShort)
                 || (request.Mode == Enums.SharedPositionMode.OneWay && !SupportsOneway))
                 return new ArgumentError($"PositionMode.{request.Mode} is not supported");
 
