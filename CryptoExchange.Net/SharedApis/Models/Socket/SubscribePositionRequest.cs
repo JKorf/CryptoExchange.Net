@@ -9,9 +9,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
     public record SubscribePositionRequest: SharedRequest
     {
         public string? ListenKey { get; set; }
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public SubscribePositionRequest(string? listenKey = null, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SubscribePositionRequest(string? listenKey = null, TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ListenKey = listenKey;
         }

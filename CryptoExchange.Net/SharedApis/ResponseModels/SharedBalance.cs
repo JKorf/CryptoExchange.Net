@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         public string Asset { get; set; }
         public decimal Available { get; set; }
         public decimal Total { get; set; }
-        public string? IsolatedMarginAsset { get; set; }
+        public string? IsolatedMarginSymbol { get; set; }
 
         public SharedBalance(string asset, decimal available, decimal total)
         {

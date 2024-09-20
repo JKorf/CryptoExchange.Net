@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             SupportedLimits = limits;
         }
 
-        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError("Limit not supported");

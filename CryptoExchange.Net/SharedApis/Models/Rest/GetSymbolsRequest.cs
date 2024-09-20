@@ -8,9 +8,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetSymbolsRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public GetSymbolsRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetSymbolsRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

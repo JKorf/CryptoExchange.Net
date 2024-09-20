@@ -9,9 +9,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
     public record StopListenKeyRequest : SharedRequest
     {
         public string ListenKey { get; set; }
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public StopListenKeyRequest(string listenKey, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public StopListenKeyRequest(string listenKey, TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ListenKey = listenKey;
             ApiType = apiType;

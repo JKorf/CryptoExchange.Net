@@ -292,9 +292,20 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data)
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data)
         {
-            return new ExchangeWebResult<K>(exchange, this.As<K>(data));
+            return new ExchangeWebResult<K>(exchange, tradeMode, this.As<K>(data));
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeModes, this.As<K>(data));
         }
 
         /// <summary>
@@ -466,9 +477,9 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public ExchangeWebResult<T> AsExchangeResult(string exchange)
+        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode tradeMode)
         {
-            return new ExchangeWebResult<T>(exchange, this);
+            return new ExchangeWebResult<T>(exchange, tradeMode, this);
         }
 
         /// <summary>
@@ -477,9 +488,31 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, [AllowNull] K data, INextPageToken? nextPageToken = null)
+        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode[] tradeModes)
         {
-            return new ExchangeWebResult<K>(exchange, this.As<K>(data), nextPageToken);
+            return new ExchangeWebResult<T>(exchange, tradeModes, this);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, INextPageToken? nextPageToken = null)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeMode, As<K>(data), nextPageToken);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data, INextPageToken? nextPageToken = null)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeModes, As<K>(data), nextPageToken);
         }
 
         /// <summary>
@@ -490,7 +523,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
         {
-            return new ExchangeWebResult<K>(exchange, AsError<K>(error));
+            return new ExchangeWebResult<K>(exchange, null, AsError<K>(error));
         }
 
         /// <summary>

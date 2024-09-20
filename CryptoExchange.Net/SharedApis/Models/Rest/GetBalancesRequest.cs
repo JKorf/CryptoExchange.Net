@@ -8,9 +8,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetBalancesRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public GetBalancesRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetBalancesRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

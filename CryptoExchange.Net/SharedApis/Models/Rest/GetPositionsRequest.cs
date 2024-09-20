@@ -8,10 +8,10 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetPositionsRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
-        public GetPositionsRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionsRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

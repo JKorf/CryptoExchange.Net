@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             TimeFilterSupported = timeFilterSupported;
         }
 
-        public override Error? ValidateRequest(string exchange, GetWithdrawalsRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetWithdrawalsRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (TimeFilterSupported && request.StartTime != null)
                 return new ArgumentError($"Time filter is not supported");

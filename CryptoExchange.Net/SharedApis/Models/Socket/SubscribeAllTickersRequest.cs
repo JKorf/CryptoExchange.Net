@@ -8,8 +8,8 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
 {
     public record SubscribeAllTickersRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public SubscribeAllTickersRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters) { }
+        public SubscribeAllTickersRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters) { }
     }
 }

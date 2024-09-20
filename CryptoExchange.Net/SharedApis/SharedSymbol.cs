@@ -10,10 +10,10 @@ namespace CryptoExchange.Net.SharedApis
         public string BaseAsset { get; set; }
         public string QuoteAsset { get; set; }
         public string SymbolName { get; set; }
-        public ApiType ApiType { get; set; }
+        public TradingMode ApiType { get; set; }
         public DateTime? DeliverTime { get; set; }
 
-        public SharedSymbol(ApiType apiType, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
+        public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
         {
             ApiType = apiType;
             BaseAsset = baseAsset;
@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
             DeliverTime = deliverTime;
         }
 
-        public SharedSymbol(ApiType apiType, string baseAsset, string quoteAsset, string symbolName)
+        public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, string symbolName)
         {
             ApiType = apiType;
             BaseAsset = baseAsset;
@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
             SymbolName = symbolName;
         }
 
-        public string GetSymbol(Func<string, string, ApiType, DateTime?, string> format)
+        public string GetSymbol(Func<string, string, TradingMode, DateTime?, string> format)
         {
             if (!string.IsNullOrEmpty(SymbolName))
                 return SymbolName;

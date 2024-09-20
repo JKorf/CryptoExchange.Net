@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         {
         }
 
-        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} trades are available");

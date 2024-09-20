@@ -9,9 +9,9 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetTickersRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
 
-        public GetTickersRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetTickersRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

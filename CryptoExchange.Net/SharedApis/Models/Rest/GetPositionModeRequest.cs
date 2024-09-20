@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetPositionModeRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
         public GetPositionModeRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             Symbol = symbol;
         }
 
-        public GetPositionModeRequest(ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionModeRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
         }

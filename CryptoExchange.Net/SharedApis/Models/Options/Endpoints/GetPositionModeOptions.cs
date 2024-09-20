@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, GetPositionModeRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetPositionModeRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (request.Symbol == null && PerSymbol)
                 return new ArgumentError($"PositionMode is set per symbol, please provide the Symbol parameter");

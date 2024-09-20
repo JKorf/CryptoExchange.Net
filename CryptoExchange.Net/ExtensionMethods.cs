@@ -387,10 +387,10 @@ namespace CryptoExchange.Net
             return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
-        public static bool IsLinear(this ApiType type) => type == ApiType.PerpetualLinear || type == ApiType.DeliveryLinear;
-        public static bool IsInverse(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.DeliveryInverse;
-        public static bool IsPerpetual(this ApiType type) => type == ApiType.PerpetualInverse || type == ApiType.PerpetualLinear;
-        public static bool IsDelivery(this ApiType type) => type == ApiType.DeliveryInverse || type == ApiType.DeliveryLinear;
+        public static bool IsLinear(this TradingMode type) => type == TradingMode.PerpetualLinear || type == TradingMode.DeliveryLinear;
+        public static bool IsInverse(this TradingMode type) => type == TradingMode.PerpetualInverse || type == TradingMode.DeliveryInverse;
+        public static bool IsPerpetual(this TradingMode type) => type == TradingMode.PerpetualInverse || type == TradingMode.PerpetualLinear;
+        public static bool IsDelivery(this TradingMode type) => type == TradingMode.DeliveryInverse || type == TradingMode.DeliveryLinear;
 
         public static IServiceCollection RegisterSharedRestInterfaces<T>(this IServiceCollection services, Func<IServiceProvider, T> client)
         {

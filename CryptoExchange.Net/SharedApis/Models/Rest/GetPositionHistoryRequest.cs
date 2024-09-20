@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
     public record GetPositionHistoryRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
         public SharedSymbol? Symbol { get; set; }
 
         public DateTime? StartTime { get; set; }
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
             Limit = limit;
         }
 
-        public GetPositionHistoryRequest(ApiType? apiType = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionHistoryRequest(TradingMode? apiType = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ApiType = apiType;
             StartTime = startTime;

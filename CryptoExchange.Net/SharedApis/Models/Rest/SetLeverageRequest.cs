@@ -13,11 +13,11 @@ namespace CryptoExchange.Net.SharedApis.Models.Rest
         public SharedPositionSide? Side { get; set; }
         public SharedMarginMode? MarginMode { get; set; }
 
-        public SetLeverageRequest(SharedSymbol symbol, decimal leverage, SharedPositionSide? side = null, SharedMarginMode? mode = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        public SetLeverageRequest(SharedSymbol symbol, decimal leverage, SharedPositionSide? side = null, SharedMarginMode? marginMode = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             Leverage = leverage;
             Side = side;
-            MarginMode = mode;
+            MarginMode = marginMode;
         }
     }
 }

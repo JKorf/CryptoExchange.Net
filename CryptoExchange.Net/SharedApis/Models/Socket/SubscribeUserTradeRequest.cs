@@ -8,10 +8,10 @@ namespace CryptoExchange.Net.SharedApis.Models.Socket
 {
     public record SubscribeUserTradeRequest : SharedRequest
     {
-        public ApiType? ApiType { get; set; }
+        public TradingMode? ApiType { get; set; }
         public string? ListenKey { get; set; }
 
-        public SubscribeUserTradeRequest(string? listenKey = null, ApiType? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SubscribeUserTradeRequest(string? listenKey = null, TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ListenKey = listenKey;
         }

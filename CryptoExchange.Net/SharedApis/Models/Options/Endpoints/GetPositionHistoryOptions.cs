@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             PerSymbol = perSymbol;
         }
 
-        public override Error? ValidateRequest(string exchange, GetPositionHistoryRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetPositionHistoryRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (request.Symbol == null && PerSymbol)
                 return new ArgumentError($"Position history can only be retrieved per symbol, please provide the Symbol parameter");

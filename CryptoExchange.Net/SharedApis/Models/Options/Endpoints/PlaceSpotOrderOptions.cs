@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             OrderQuantitySupport = quantitySupport;
         }
 
-        public override Error? ValidateRequest(string exchange, PlaceSpotOrderRequest request, ApiType? apiType, ApiType[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, PlaceSpotOrderRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
