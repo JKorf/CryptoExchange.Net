@@ -6,17 +6,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest>
+    /// <summary>
+    /// Options for requesting kline/candlestick data
+    /// </summary>
+    public class GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest>
     {
+        /// <summary>
+        /// The supported kline intervals
+        /// </summary>
         public IEnumerable<SharedKlineInterval> SupportIntervals { get; }
+        /// <summary>
+        /// Max number of data points which can be requested
+        /// </summary>
         public int? MaxTotalDataPoints { get; set; }
+        /// <summary>
+        /// Max number of data points which can be requested in a single request
+        /// </summary>
         public int? MaxRequestDataPoints { get; set; }
+        /// <summary>
+        /// The max age of the data that can be requested
+        /// </summary>
         public TimeSpan? MaxAge { get; set; }
 
-        public GetKlinesOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -30,13 +47,22 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             };
         }
 
-        public GetKlinesOptions(SharedPaginationType paginationType, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, needsAuthentication)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, needsAuthentication)
         {
             SupportIntervals = intervals;
         }
 
+        /// <summary>
+        /// Check whether a specific interval is supported
+        /// </summary>
+        /// <param name="interval"></param>
+        /// <returns></returns>
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
+        /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetKlinesRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (!IsSupported(request.Interval))
@@ -45,9 +71,9 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} klines are available");
 
-             if (MaxRequestDataPoints.HasValue && request.Limit > MaxRequestDataPoints.Value)
+            if (MaxRequestDataPoints.HasValue && request.Limit > MaxRequestDataPoints.Value)
                 return new ArgumentError($"Only {MaxRequestDataPoints} klines can be retrieved per request");
-            
+
             if (MaxTotalDataPoints.HasValue)
             {
                 if (request.Limit > MaxTotalDataPoints.Value)
@@ -63,7 +89,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
             sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");

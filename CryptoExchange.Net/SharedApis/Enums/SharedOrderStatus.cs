@@ -1,13 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis.Enums
 {
+    /// <summary>
+    /// Status of an order
+    /// </summary>
     public enum SharedOrderStatus
     {
+        /// <summary>
+        /// Order is open waiting to be filled
+        /// </summary>
         Open,
+        /// <summary>
+        /// Order has been fully filled
+        /// </summary>
         Filled,
+        /// <summary>
+        /// Order has been canceled
+        /// </summary>
         Canceled
     }
 }

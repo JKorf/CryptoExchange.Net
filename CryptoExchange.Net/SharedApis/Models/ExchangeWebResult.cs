@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models
 {
     /// <summary>
     /// A WebCallResult from an exchange
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The result type</typeparam>
     public class ExchangeWebResult<T> : WebCallResult<T>
     {
         /// <summary>
@@ -23,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// <summary>
         /// The trade modes for which the result data is
         /// </summary>
-        public TradingMode[]? ResultModes { get; }
+        public TradingMode[]? DataTradeMode { get; }
 
         /// <summary>
         /// Token to retrieve the next page with
@@ -46,7 +45,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// </summary>
         public ExchangeWebResult(
             string exchange,
-            TradingMode resultModes,
+            TradingMode dataTradeMode,
             WebCallResult<T> result,
             INextPageToken? nextPageToken = null) :
             base(result.ResponseStatusCode,
@@ -63,7 +62,7 @@ namespace CryptoExchange.Net.SharedApis.Models
                 result.Data,
                 result.Error)
         {
-            ResultModes = new[] { resultModes };
+            DataTradeMode = new[] { dataTradeMode };
             Exchange = exchange;
             NextPageToken = nextPageToken;
             if (NextPageToken != null)
@@ -75,7 +74,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// </summary>
         public ExchangeWebResult(
             string exchange,
-            TradingMode[]? resultModes,
+            TradingMode[]? dataTradeModes,
             WebCallResult<T> result,
             INextPageToken? nextPageToken = null) :
             base(result.ResponseStatusCode,
@@ -92,7 +91,7 @@ namespace CryptoExchange.Net.SharedApis.Models
                 result.Data,
                 result.Error)
         {
-            ResultModes = resultModes;
+            DataTradeMode = dataTradeModes;
             Exchange = exchange;
             NextPageToken = nextPageToken;
             if (NextPageToken != null)
@@ -104,7 +103,7 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// </summary>
         public ExchangeWebResult(
             string exchange,
-            TradingMode[]? resultMode,
+            TradingMode[]? dataTradeModes,
             HttpStatusCode? code,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
             TimeSpan? responseTime,
@@ -133,6 +132,7 @@ namespace CryptoExchange.Net.SharedApis.Models
                 data,
                 error)
         {
+            DataTradeMode = dataTradeModes;
             Exchange = exchange;
             NextPageToken = nextPageToken;
             if (NextPageToken != null)
@@ -141,14 +141,14 @@ namespace CryptoExchange.Net.SharedApis.Models
 
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the ExchangeWebResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="data">The data of the new type</param>
         /// <returns></returns>
         public new ExchangeWebResult<K> As<K>([AllowNull] K data)
         {
-            return new ExchangeWebResult<K>(Exchange, ResultModes, ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, Error, NextPageToken);
+            return new ExchangeWebResult<K>(Exchange, DataTradeMode, ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, Error, NextPageToken);
         }
 
         /// <inheritdoc />

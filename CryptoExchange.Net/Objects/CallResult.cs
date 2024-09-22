@@ -290,7 +290,9 @@ namespace CryptoExchange.Net.Objects
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <param name="data">The data</param>
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data)
         {
@@ -301,7 +303,9 @@ namespace CryptoExchange.Net.Objects
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
+        /// <param name="data">The data</param>
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data)
         {
@@ -474,8 +478,8 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
         /// <returns></returns>
         public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode tradeMode)
         {
@@ -485,8 +489,8 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
         /// <returns></returns>
         public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode[] tradeModes)
         {
@@ -497,7 +501,10 @@ namespace CryptoExchange.Net.Objects
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <param name="data">Data</param>
+        /// <param name="nextPageToken">Next page token</param>
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, INextPageToken? nextPageToken = null)
         {
@@ -508,7 +515,10 @@ namespace CryptoExchange.Net.Objects
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
+        /// <param name="data">Data</param>
+        /// <param name="nextPageToken">Next page token</param>
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data, INextPageToken? nextPageToken = null)
         {
@@ -519,6 +529,7 @@ namespace CryptoExchange.Net.Objects
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
         public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)

@@ -1,23 +1,29 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.Models.Rest;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record GetDepositsOptions : PaginatedEndpointOptions<GetDepositsRequest>
+    /// <summary>
+    /// Options for requesting deposits
+    /// </summary>
+    public class GetDepositsOptions : PaginatedEndpointOptions<GetDepositsRequest>
     {
+        /// <summary>
+        /// Whether the start/end time filter is supported
+        /// </summary>
         public bool TimeFilterSupported { get; set; }
 
-        public GetDepositsOptions(SharedPaginationType paginationType, bool timeFilterSupported) : base(paginationType, true)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetDepositsOptions(SharedPaginationSupport paginationType, bool timeFilterSupported) : base(paginationType, true)
         {
             TimeFilterSupported = timeFilterSupported;
         }
 
+        /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetDepositsRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (TimeFilterSupported && request.StartTime != null)
@@ -26,7 +32,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
             sb.AppendLine($"Time filter supported: {TimeFilterSupported}");

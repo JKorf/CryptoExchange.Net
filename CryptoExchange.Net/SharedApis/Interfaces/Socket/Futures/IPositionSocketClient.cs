@@ -1,20 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis.ResponseModels;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Socket;
+using CryptoExchange.Net.SharedApis.Models.Options.Subscriptions;
+using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
 
 namespace CryptoExchange.Net.SharedApis.Interfaces.Socket.Futures
 {
+    /// <summary>
+    /// Client for subscribing to position updates
+    /// </summary>
     public interface IPositionSocketClient : ISharedClient
     {
-        SubscriptionOptions<SubscribePositionRequest> SubscribePositionOptions { get; }
+        /// <summary>
+        /// Position subscription options
+        /// </summary>
+        EndpointOptions<SubscribePositionRequest> SubscribePositionOptions { get; }
+
+        /// <summary>
+        /// Subscribe to user position updates
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="handler">Update handler</param>
+        /// <param name="ct">Cancellation token, can be used to stop the updates</param>
+        /// <returns></returns>
         Task<ExchangeResult<UpdateSubscription>> SubscribeToPositionUpdatesAsync(SubscribePositionRequest request, Action<ExchangeEvent<IEnumerable<SharedPosition>>> handler, CancellationToken ct = default);
     }
 }

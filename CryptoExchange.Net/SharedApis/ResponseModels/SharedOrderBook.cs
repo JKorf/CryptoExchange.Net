@@ -1,15 +1,25 @@
 ﻿using CryptoExchange.Net.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
+    /// <summary>
+    /// Order book info
+    /// </summary>
     public record SharedOrderBook
     {
+        /// <summary>
+        /// Asks list
+        /// </summary>
         public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; }
+        /// <summary>
+        /// Bids list
+        /// </summary>
         public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SharedOrderBook(IEnumerable<ISymbolOrderBookEntry> asks, IEnumerable<ISymbolOrderBookEntry> bids)
         {
             Asks = asks;

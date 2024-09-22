@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis.Enums
 {
+    /// <summary>
+    /// Fee deduction type
+    /// </summary>
     public enum SharedFeeDeductionType
     {
         /// <summary>

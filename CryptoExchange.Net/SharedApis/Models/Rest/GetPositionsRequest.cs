@@ -1,21 +1,36 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve open positions
+    /// </summary>
     public record GetPositionsRequest : SharedRequest
     {
-        public TradingMode? ApiType { get; set; }
+        /// <summary>
+        /// Trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
+        /// <summary>
+        /// Symbol filter, required for some exchanges
+        /// </summary>
         public SharedSymbol? Symbol { get; set; }
 
-        public GetPositionsRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="tradingMode">Trading mode</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public GetPositionsRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
+            TradingMode = tradingMode;
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">Symbol to retriecve positions for</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
         public GetPositionsRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters) 
         {
             Symbol = symbol;

@@ -1,18 +1,25 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to start the update stream for the current user
+    /// </summary>
     public record StartListenKeyRequest : SharedRequest
     {
-        public TradingMode? ApiType { get; set; }
+        /// <summary>
+        /// Trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
 
-        public StartListenKeyRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="tradingMode">Trading mode</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public StartListenKeyRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
+            TradingMode = tradingMode;
         }
     }
 }

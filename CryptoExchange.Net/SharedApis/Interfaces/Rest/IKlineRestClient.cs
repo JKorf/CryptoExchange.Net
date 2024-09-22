@@ -1,19 +1,30 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Models;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+﻿using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
 using CryptoExchange.Net.SharedApis.Models.Rest;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
+using CryptoExchange.Net.SharedApis.ResponseModels;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
 {
-    public interface IKlineRestClient: ISharedClient
+    /// <summary>
+    /// Client for requesting kline/candlestick data
+    /// </summary>
+    public interface IKlineRestClient : ISharedClient
     {
+        /// <summary>
+        /// Kline request options
+        /// </summary>
         GetKlinesOptions GetKlinesOptions { get; }
+
+        /// <summary>
+        /// Get kline/candlestick data
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
         Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

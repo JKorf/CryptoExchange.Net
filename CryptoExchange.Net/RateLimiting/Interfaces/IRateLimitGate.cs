@@ -1,8 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.RateLimiting.Guards;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 

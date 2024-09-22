@@ -1,19 +1,30 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Models;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
+﻿using CryptoExchange.Net.SharedApis.Models;
+using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using CryptoExchange.Net.SharedApis.ResponseModels;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
 {
+    /// <summary>
+    /// Client for retrieving trading history
+    /// </summary>
     public interface ITradeHistoryRestClient : ISharedClient
     {
+        /// <summary>
+        /// Trade history request options
+        /// </summary>
         GetTradeHistoryOptions GetTradeHistoryOptions { get; }
-        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradeHistoryAsync(GetTradeHistoryRequest request, INextPageToken? pageToken = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get public trade history
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetTradeHistoryAsync(GetTradeHistoryRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

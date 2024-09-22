@@ -6,47 +6,47 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest>
+    /// <summary>
+    /// Options for placing a new futures order
+    /// </summary>
+    public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest>
     {
-        public IEnumerable<SharedOrderType> SupportedOrderType { get; }
-        public IEnumerable<SharedTimeInForce> SupportedTimeInForce { get; }
-        public SharedQuantitySupport OrderQuantitySupport { get; }
-
-        public PlaceFuturesOrderOptions(IEnumerable<SharedOrderType> orderTypes, IEnumerable<SharedTimeInForce> timeInForces, SharedQuantitySupport quantitySupport) : base(true)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public PlaceFuturesOrderOptions() : base(true)
         {
-            SupportedOrderType = orderTypes;
-            SupportedTimeInForce = timeInForces;
-            OrderQuantitySupport = quantitySupport;
         }
 
-        public override Error? ValidateRequest(string exchange, PlaceFuturesOrderRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        public Error? ValidateRequest(
+            string exchange,
+            PlaceFuturesOrderRequest request,
+            TradingMode? apiType,
+            TradingMode[] supportedApiTypes,
+            IEnumerable<SharedOrderType> supportedOrderTypes,
+            IEnumerable<SharedTimeInForce> supportedTimeInForce,
+            SharedQuantitySupport quantitySupport)
         {
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
-            if (!SupportedOrderType.Contains(request.OrderType))
+            if (!supportedOrderTypes.Contains(request.OrderType))
                 return new ArgumentError("Order type not supported");
 
-            if (request.TimeInForce != null && !SupportedTimeInForce.Contains(request.TimeInForce.Value))
+            if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
                 return new ArgumentError("Order time in force not supported");
 
-            var quantityError = OrderQuantitySupport.Validate(request.Side, request.OrderType, request.Quantity, request.QuoteQuantity);
+            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity, request.QuoteQuantity);
             if (quantityError != null)
                 return quantityError;
 
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public new string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Supported order types: {string.Join(", ", SupportedOrderType)}");
-            sb.AppendLine($"Supported time in force: {string.Join(", ", SupportedTimeInForce)}");
-            sb.AppendLine($"Asset quantity supports: {OrderQuantitySupport}");
-            return sb.ToString();
-        }
     }
 }

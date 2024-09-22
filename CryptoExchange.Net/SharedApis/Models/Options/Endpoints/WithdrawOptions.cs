@@ -1,15 +1,11 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.Models.Rest;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CryptoExchange.Net.SharedApis.Models.Rest;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record WithdrawOptions: EndpointOptions<WithdrawRequest>
+    /// <summary>
+    /// Options for requesting a withdrawal
+    /// </summary>
+    public class WithdrawOptions : EndpointOptions<WithdrawRequest>
     {
 
 

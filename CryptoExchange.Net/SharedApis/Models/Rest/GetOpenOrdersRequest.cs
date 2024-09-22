@@ -1,22 +1,36 @@
-﻿using CryptoExchange.Net.CommonObjects;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve the current open orders
+    /// </summary>
     public record GetOpenOrdersRequest : SharedRequest
     {
-        public TradingMode? ApiType { get; set; }
+        /// <summary>
+        /// Trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
+        /// <summary>
+        /// Symbol filter
+        /// </summary>
         public SharedSymbol? Symbol { get; set; }
 
-        public GetOpenOrdersRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="tradingMode">Trading mode</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public GetOpenOrdersRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
+            TradingMode = tradingMode;
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">Symbol to retrieve open orders for</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
         public GetOpenOrdersRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Symbol = symbol;

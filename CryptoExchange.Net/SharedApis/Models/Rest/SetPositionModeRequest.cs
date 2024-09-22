@@ -1,27 +1,47 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to change the current position mode 
+    /// </summary>
     public record SetPositionModeRequest : SharedRequest
     {
+        /// <summary>
+        /// Symbol to change the mode for. Depending on the exchange position mode is set for the whole account or per symbol
+        /// </summary>
         public SharedSymbol? Symbol { get; set; }
-        public TradingMode? ApiType { get; set; }
-        public SharedPositionMode Mode { get; set; }
+        /// <summary>
+        /// Trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
+        /// <summary>
+        /// Position mode to change to
+        /// </summary>
+        public SharedPositionMode PositionMode { get; set; }
 
-        public SetPositionModeRequest(SharedPositionMode mode, TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="positionMode">Position mode to change to</param>
+        /// <param name="tradingMode">Trading mode</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public SetPositionModeRequest(SharedPositionMode positionMode, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
-            Mode = mode;
+            TradingMode = tradingMode;
+            PositionMode = positionMode;
         }
-        
-        public SetPositionModeRequest(SharedSymbol symbol, SharedPositionMode mode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">Symbol to change to position mode for</param>
+        /// <param name="positionMode">Position mode to change to</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public SetPositionModeRequest(SharedSymbol symbol, SharedPositionMode positionMode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            Mode = mode;
+            PositionMode = positionMode;
             Symbol = symbol;
         }
     }

@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis.Enums
 {
+    /// <summary>
+    /// Side of an order
+    /// </summary>
     public enum SharedOrderSide
     {
+        /// <summary>
+        /// Buy order
+        /// </summary>
         Buy,
+        /// <summary>
+        /// Sell order
+        /// </summary>
         Sell
     }
 }

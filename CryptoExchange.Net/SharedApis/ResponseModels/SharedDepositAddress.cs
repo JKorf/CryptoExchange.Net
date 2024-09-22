@@ -1,17 +1,30 @@
-﻿using CryptoExchange.Net.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+﻿namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
+    /// <summary>
+    /// Deposit address info
+    /// </summary>
     public record SharedDepositAddress
     {
+        /// <summary>
+        /// Asset the address is for
+        /// </summary>
         public string Asset { get; set; }
+        /// <summary>
+        /// Deposit address
+        /// </summary>
         public string Address { get; set; }
+        /// <summary>
+        /// The network
+        /// </summary>
         public string? Network { get; set; }
+        /// <summary>
+        /// Tag or memo
+        /// </summary>
         public string? TagOrMemo { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SharedDepositAddress(string asset, string address)
         {
             Asset = asset;

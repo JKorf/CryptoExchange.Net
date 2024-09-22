@@ -1,18 +1,18 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve a list of supported assets
+    /// </summary>
     public record GetAssetsRequest : SharedRequest
     {
-        public TradingMode? ApiType { get; set; }
-
-        public GetAssetsRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public GetAssetsRequest(ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
         }
     }
 }

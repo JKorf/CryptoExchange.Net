@@ -1,6 +1,4 @@
-﻿using System.Security;
-
-namespace CryptoExchange.Net.Objects
+﻿namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// Proxy info

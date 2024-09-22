@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Sockets
+﻿namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
     /// Dedicated connection configuration

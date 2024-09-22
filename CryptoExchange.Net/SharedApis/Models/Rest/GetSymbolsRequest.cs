@@ -1,18 +1,25 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve symbol info
+    /// </summary>
     public record GetSymbolsRequest : SharedRequest
     {
-        public TradingMode? ApiType { get; set; }
+        /// <summary>
+        /// Filter by trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
 
-        public GetSymbolsRequest(TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="tradingMode">Trading mode filter</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public GetSymbolsRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
-            ApiType = apiType;
+            TradingMode = tradingMode;
         }
     }
 }

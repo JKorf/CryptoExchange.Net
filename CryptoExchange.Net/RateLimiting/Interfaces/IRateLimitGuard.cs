@@ -1,6 +1,4 @@
 ﻿using CryptoExchange.Net.Objects;
-using System.Net.Http;
-using System.Security;
 
 namespace CryptoExchange.Net.RateLimiting.Interfaces
 {

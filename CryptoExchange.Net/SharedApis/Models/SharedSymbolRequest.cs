@@ -1,25 +1,18 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.RequestModels
+﻿namespace CryptoExchange.Net.SharedApis.Models
 {
-    public record SharedRequest
+    /// <summary>
+    /// Symbol request
+    /// </summary>
+    public record SharedSymbolRequest : SharedRequest
     {
-        public ExchangeParameters? ExchangeParameters { get; set; }
-
-        public SharedRequest(ExchangeParameters? exchangeParameters = null)
-        {
-            ExchangeParameters = exchangeParameters;
-        }
-    }
-
-    public record SharedSymbolRequest: SharedRequest
-    {
+        /// <summary>
+        /// The symbol
+        /// </summary>
         public SharedSymbol Symbol { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SharedSymbolRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Symbol = symbol;

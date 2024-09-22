@@ -1,21 +1,38 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CryptoExchange.Net.SharedApis.Enums;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to close a currently open position
+    /// </summary>
     public record ClosePositionRequest : SharedSymbolRequest
     {
+        /// <summary>
+        /// The current position mode of the account for the symbol
+        /// </summary>
         public SharedPositionMode PositionMode { get; set; }
+        /// <summary>
+        /// The position side to close. Required when in hedge mode
+        /// </summary>
         public SharedPositionSide? PositionSide { get; set; }
+        /// <summary>
+        /// Margin mode
+        /// </summary>
         public SharedMarginMode? MarginMode { get; set; }
-#warning Quantity is needed when we need to manually place an order
+        /// <summary>
+        /// Quantity of the position to close. Note that the quantity is needed for some exchanges, but will not be respected on all exchanges
+        /// </summary>
         public decimal? Quantity { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">Symbol to close the position on</param>
+        /// <param name="mode">The current position mode of the account for the symbol</param>
+        /// <param name="positionSide">The position side to close. Required when in hedge mode</param>
+        /// <param name="marginMode">Margin mode</param>
+        /// <param name="quantity">Quantity of the position to close. Note that the quantity is needed for some exchanges, but will not be respected on all exchanges</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
         public ClosePositionRequest(
             SharedSymbol symbol,
             SharedPositionMode mode,

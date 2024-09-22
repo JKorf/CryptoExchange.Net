@@ -1,13 +1,15 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+﻿namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve the current open interest for a symbol
+    /// </summary>
     public record GetOpenInterestRequest : SharedSymbolRequest
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">Symbol to retrieve open orders for</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
         public GetOpenInterestRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
         }

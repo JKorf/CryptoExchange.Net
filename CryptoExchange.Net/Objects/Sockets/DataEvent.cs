@@ -40,6 +40,9 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public T Data { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
         {
             Data = data;
@@ -91,9 +94,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
-        /// <param name="error">The error returned</param>
+        /// <param name="exchange">The exchange the result is for</param>
+        /// <param name="data">The data</param>
         /// <returns></returns>
-        public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, [AllowNull] K data)
+        public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, K data)
         {
             return new ExchangeEvent<K>(exchange, this.As<K>(data));
         }

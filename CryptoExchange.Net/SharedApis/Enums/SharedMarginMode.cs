@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis.Enums
 {
+    /// <summary>
+    /// Margin mode
+    /// </summary>
     public enum SharedMarginMode
     {
+        /// <summary>
+        /// Cross margin, margin is shared across symbols
+        /// </summary>
         Cross,
+        /// <summary>
+        /// Isolated margin, margin is isolated on a symbol
+        /// </summary>
         Isolated
     }
 }

@@ -16,6 +16,22 @@ namespace CryptoExchange.Net
     {
         private const string _allowedRandomChars = "ABCDEFGHIJKLMONOPQRSTUVWXYZabcdefghijklmonopqrstuvwxyz0123456789";
 
+        private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
+        {
+            { 1, "F" },
+            { 2, "G" },
+            { 3, "H" },
+            { 4, "J" },
+            { 5, "K" },
+            { 6, "M" },
+            { 7, "N" },
+            { 8, "Q" },
+            { 9, "U" },
+            { 10, "V" },
+            { 11, "X" },
+            { 12, "Z" },
+        };
+
         /// <summary>
         /// The last used id, use NextId() to get the next id and up this
         /// </summary>
@@ -182,21 +198,11 @@ namespace CryptoExchange.Net
             return source + RandomString(totalLength - source.Length);
         }
 
-        private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
-        {
-            { 1, "F" },
-            { 2, "G" },
-            { 3, "H" },
-            { 4, "J" },
-            { 5, "K" },
-            { 6, "M" },
-            { 7, "N" },
-            { 8, "Q" },
-            { 9, "U" },
-            { 10, "V" },
-            { 11, "X" },
-            { 12, "Z" },
-        };
+        /// <summary>
+        /// Get the month representation for futures symbol based on the delivery month
+        /// </summary>
+        /// <param name="time">Delivery time</param>
+        /// <returns></returns>
         public static string GetDeliveryMonthSymbol(DateTime time) => _monthSymbols[time.Month];
 
         public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)

@@ -2,21 +2,28 @@
 using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest>
+    /// <summary>
+    /// Options for requesting trade history
+    /// </summary>
+    public class GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest>
     {
+        /// <summary>
+        /// The max age of data that can be requested
+        /// </summary>
         public TimeSpan? MaxAge { get; set; }
 
-        public GetTradeHistoryOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetTradeHistoryOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
         {
         }
 
+        /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
@@ -25,7 +32,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
             if (MaxAge != null)

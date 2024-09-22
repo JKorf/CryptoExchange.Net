@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis.Enums
 {
+    /// <summary>
+    /// The side of a position
+    /// </summary>
     public enum SharedPositionSide
     {
+        /// <summary>
+        /// Long position
+        /// </summary>
         Long,
+        /// <summary>
+        /// Short position
+        /// </summary>
         Short
     }
 }

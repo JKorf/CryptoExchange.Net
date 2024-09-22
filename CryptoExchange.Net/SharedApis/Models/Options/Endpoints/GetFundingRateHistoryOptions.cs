@@ -1,15 +1,17 @@
 ﻿using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-    public record GetFundingRateHistoryOptions : PaginatedEndpointOptions<GetFundingRateHistoryRequest>
+    /// <summary>
+    /// Options for requesting funding rate history
+    /// </summary>
+    public class GetFundingRateHistoryOptions : PaginatedEndpointOptions<GetFundingRateHistoryRequest>
     {
-        public GetFundingRateHistoryOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetFundingRateHistoryOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
         {
         }
     }

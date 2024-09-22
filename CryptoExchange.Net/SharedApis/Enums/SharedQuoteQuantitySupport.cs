@@ -1,7 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Enums
 {
@@ -10,58 +8,21 @@ namespace CryptoExchange.Net.SharedApis.Enums
     /// </summary>
     public enum SharedQuantityType
     {
+        /// <summary>
+        /// Quantity should be in the base asset
+        /// </summary>
         BaseAsset,
+        /// <summary>
+        /// Quantity should be in the quote asset
+        /// </summary>
         QuoteAsset,
+        /// <summary>
+        /// Quantity is in the number of contracts
+        /// </summary>
         Contracts,
+        /// <summary>
+        /// Quantity can be either base or quote quantity
+        /// </summary>
         BaseAndQuoteAsset
-    }
-
-    public record SharedQuantitySupport
-    {
-        public SharedQuantityType BuyLimit { get; }
-        public SharedQuantityType SellLimit { get; }
-        public SharedQuantityType BuyMarket { get; }
-        public SharedQuantityType SellMarket { get; }
-
-        public SharedQuantitySupport(SharedQuantityType buyLimit, SharedQuantityType sellLimit, SharedQuantityType buyMarket, SharedQuantityType sellMarket)
-        {
-            BuyLimit = buyLimit;
-            SellLimit = sellLimit;
-            BuyMarket = buyMarket;
-            SellMarket = sellMarket;
-        }
-
-        public SharedQuantityType GetSupportedQuantityType(SharedOrderSide side, SharedOrderType orderType)
-        {
-            if (side == SharedOrderSide.Buy && (orderType == SharedOrderType.Limit || orderType == SharedOrderType.LimitMaker)) return BuyLimit;
-            if (side == SharedOrderSide.Buy && orderType == SharedOrderType.Market) return BuyMarket;
-            if (side == SharedOrderSide.Sell && (orderType == SharedOrderType.Limit || orderType == SharedOrderType.LimitMaker)) return SellLimit;
-            if (side == SharedOrderSide.Sell && orderType == SharedOrderType.Market) return SellMarket;
-
-            throw new ArgumentException("Unknown side/type combination");
-        }
-
-        public Error? Validate(SharedOrderSide side, SharedOrderType type, decimal? quantity, decimal? quoteQuantity)
-        {
-            var supportedType = GetSupportedQuantityType(side, type);
-            if (supportedType == SharedQuantityType.BaseAndQuoteAsset)
-                return null;
-
-            if (supportedType == SharedQuantityType.BaseAsset || supportedType == SharedQuantityType.Contracts && quoteQuantity != null)
-                return new ArgumentError($"Quote quantity not supported for {side}.{type} order, specify Quantity instead");
-
-            if (supportedType == SharedQuantityType.QuoteAsset && quantity != null)
-                return new ArgumentError($"Quantity not supported for {side}.{type} order, specify QuoteQuantity instead");
-
-            if (supportedType == SharedQuantityType.Contracts && quantity % 1 != 0)
-                return new ArgumentError($"Order quantity is in number of contracts, request quantity should be a whole number");
-
-            return null;
-        }
-
-        public override string ToString()
-        {
-            return $"Limit buy: {BuyLimit}, limit sell: {SellLimit}, market buy: {BuyMarket}, market sell: {SellMarket}";
-        }
     }
 }

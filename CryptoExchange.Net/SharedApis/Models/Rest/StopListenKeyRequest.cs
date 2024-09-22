@@ -1,20 +1,31 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to stop the update stream for the specific listen key
+    /// </summary>
     public record StopListenKeyRequest : SharedRequest
     {
+        /// <summary>
+        /// The key to stop updates for
+        /// </summary>
         public string ListenKey { get; set; }
-        public TradingMode? ApiType { get; set; }
+        /// <summary>
+        /// Trading mode
+        /// </summary>
+        public TradingMode? TradingMode { get; set; }
 
-        public StopListenKeyRequest(string listenKey, TradingMode? apiType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="listenKey">The key to stop updates for</param>
+        /// <param name="tradingMode">Trading mode</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public StopListenKeyRequest(string listenKey, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             ListenKey = listenKey;
-            ApiType = apiType;
+            TradingMode = tradingMode;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.RateLimiting.Interfaces;
-using System;
 using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects

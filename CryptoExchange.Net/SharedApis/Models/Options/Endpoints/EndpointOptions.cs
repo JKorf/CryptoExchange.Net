@@ -1,32 +1,55 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.RequestModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record EndpointOptions
+    /// <summary>
+    /// Options for an exchange endpoint
+    /// </summary>
+    public class EndpointOptions
     {
-        // parameters which aren't defined in the request, but required for this exchange
+        /// <summary>
+        /// Required exchange-specific parameters
+        /// </summary>
         public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
+        /// <summary>
+        /// Endpoint name
+        /// </summary>
         public string EndpointName { get; set; }
-        // Exchange specific request info
+        /// <summary>
+        /// Information on the specific exchange request
+        /// </summary>
         public string? RequestNotes { get; set; }
+        /// <summary>
+        /// Whether the call requires authentication
+        /// </summary>
         public bool NeedsAuthentication { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public EndpointOptions(string endpointName, bool needAuthentication)
         {
+            EndpointName = endpointName;
             NeedsAuthentication = needAuthentication;
         }
 
-        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        /// <param name="exchange">Exchange name</param>
+        /// <param name="exchangeParameters">Provided exchange parameters</param>
+        /// <param name="tradingMode">Request trading mode</param>
+        /// <param name="supportedTradingModes">Supported trading modes</param>
+        /// <returns></returns>
+        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
         {
-            if (apiType != null && !supportedApiTypes.Contains(apiType.Value))
-                return new ArgumentError($"ApiType.{apiType} is not supported, supported types: {string.Join(", ", supportedApiTypes)}");
+            if (tradingMode != null && !supportedTradingModes.Contains(tradingMode.Value))
+                return new ArgumentError($"ApiType.{tradingMode} is not supported, supported types: {string.Join(", ", supportedTradingModes)}");
 
             foreach (var param in RequiredExchangeParameters)
             {
@@ -44,7 +67,9 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             return null;
         }
-        public string ToString(string exchange)
+
+        /// <inheritdoc />
+        public virtual string ToString(string exchange)
         {
             var sb = new StringBuilder();
             sb.Append($"{exchange} {EndpointName}");
@@ -56,16 +81,33 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         }
     }
 
-    public record EndpointOptions<T> : EndpointOptions where T: SharedRequest
+    /// <summary>
+    /// Options for an exchange endpoint
+    /// </summary>
+    /// <typeparam name="T">Type of data</typeparam>
+    public class EndpointOptions<T> : EndpointOptions where T : SharedRequest
     {
-        // parameters which are optional in the request, but required for this exchange
+        /// <summary>
+        /// Required optional parameters in the request
+        /// </summary>
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public EndpointOptions(bool needsAuthentication) : base(typeof(T).Name, needsAuthentication)
         {
         }
 
-        public virtual Error? ValidateRequest(string exchange, T request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        /// <param name="exchange">Exchange name</param>
+        /// <param name="request">The request</param>
+        /// <param name="tradingMode">Request trading mode</param>
+        /// <param name="supportedTradingModes">Supported trading modes</param>
+        /// <returns></returns>
+        public virtual Error? ValidateRequest(string exchange, T request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
         {
             foreach (var param in RequiredOptionalParameters)
             {
@@ -83,10 +125,11 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
 
             }
 
-            return ValidateRequest(exchange, request.ExchangeParameters, apiType, supportedApiTypes);
+            return ValidateRequest(exchange, request.ExchangeParameters, tradingMode, supportedTradingModes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"{exchange} {typeof(T).Name}");
@@ -101,62 +144,4 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
         }
     }
 
-    public record PaginatedEndpointOptions<T> : EndpointOptions<T> where T: SharedRequest
-    {
-        public SharedPaginationType PaginationType { get; }
-
-        public PaginatedEndpointOptions(SharedPaginationType paginationType, bool needsAuthentication) : base(needsAuthentication)
-        {
-            PaginationType = paginationType;
-        }
-
-        public string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Pagination type: {PaginationType}");
-            return sb.ToString();
-        }
-    }
-
-    public record PaginatedEndpointOptions : EndpointOptions
-    {
-        public SharedPaginationType PaginationType { get; }
-
-        public PaginatedEndpointOptions(string endpointName, SharedPaginationType paginationType, bool needsAuthentication) : base(endpointName, needsAuthentication)
-        {
-            PaginationType = paginationType;
-        }
-
-    }
-
-    public record ParameterDescription
-    {
-        public string? Name { get; set; }
-        public string[]? Names { get; set; }
-        public Type ValueType { get; set; }
-        public string Description { get; set; }
-        public object ExampleValue { get; set; }
-
-        public ParameterDescription(string parameterName, Type valueType, string description, object exampleValue)
-        {
-            Name = parameterName;
-            ValueType = valueType;
-            Description = description;
-            ExampleValue = exampleValue;
-        }
-        public ParameterDescription(string[] parameterNames, Type valueType, string description, object exampleValue)
-        {
-            Names = parameterNames;
-            ValueType = valueType;
-            Description = description;
-            ExampleValue = exampleValue;
-        }
-
-        public override string ToString()
-        {
-            if (Name != null)
-                return $"[{ValueType.Name}] {Name}: {Description} | example: {ExampleValue}";
-            return $"[{ValueType.Name}] {string.Join(" / ", Names)}: {Description} | example: {ExampleValue}";
-        }
-    }
 }

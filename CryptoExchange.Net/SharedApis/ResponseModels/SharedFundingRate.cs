@@ -1,14 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis.ResponseModels
 {
+    /// <summary>
+    /// Funding rate
+    /// </summary>
     public record SharedFundingRate
     {
+        /// <summary>
+        /// The funding rate
+        /// </summary>
         public decimal FundingRate { get; set; }
+        /// <summary>
+        /// Timestamp
+        /// </summary>
         public DateTime Timestamp { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public SharedFundingRate(decimal fundingRate, DateTime timestamp)
         {
             FundingRate = fundingRate;

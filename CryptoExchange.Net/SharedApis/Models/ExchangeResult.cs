@@ -14,11 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Models
         public string Exchange { get; }
 
         /// <summary>
-        /// The trade modes for which the result data is
-        /// </summary>
-        public TradingMode[]? ResultModes { get; }
-
-        /// <summary>
         /// ctor
         /// </summary>
         public ExchangeResult(
@@ -26,38 +21,6 @@ namespace CryptoExchange.Net.SharedApis.Models
             Error error) :
             base(error)
         {
-            Exchange = exchange;
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public ExchangeResult(
-            string exchange,
-            TradingMode[] resultModes,
-            CallResult<T> result) :
-            base(
-                result.Data,
-                result.OriginalData,
-                result.Error)
-        {
-            ResultModes = resultModes;
-            Exchange = exchange;
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public ExchangeResult(
-            string exchange,
-            TradingMode resultMode,
-            CallResult<T> result) :
-            base(
-                result.Data,
-                result.OriginalData,
-                result.Error)
-        {
-            ResultModes = new[] { resultMode };
             Exchange = exchange;
         }
 

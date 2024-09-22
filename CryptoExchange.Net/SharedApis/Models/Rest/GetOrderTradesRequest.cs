@@ -1,17 +1,21 @@
-﻿using CryptoExchange.Net.CommonObjects;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.RequestModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+﻿namespace CryptoExchange.Net.SharedApis.Models.Rest
 {
+    /// <summary>
+    /// Request to retrieve the trades for a specific order
+    /// </summary>
     public record GetOrderTradesRequest : SharedSymbolRequest
     {
+        /// <summary>
+        /// The id of the order to retrieve trades for
+        /// </summary>
         public string OrderId { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbol">The symbol the order is on</param>
+        /// <param name="orderId">The id of the order</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
         public GetOrderTradesRequest(SharedSymbol symbol, string orderId, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             OrderId = orderId;

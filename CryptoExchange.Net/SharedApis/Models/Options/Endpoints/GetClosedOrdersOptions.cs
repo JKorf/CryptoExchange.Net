@@ -1,22 +1,29 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.Models.FilterOptions;
 using CryptoExchange.Net.SharedApis.Models.Rest;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-    public record GetClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest>
+    /// <summary>
+    /// Options for requesting closed orders
+    /// </summary>
+    public class GetClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest>
     {
+        /// <summary>
+        /// Whether the start/end time filter is supported
+        /// </summary>
         public bool TimeFilterSupported { get; set; }
 
-        public GetClosedOrdersOptions(SharedPaginationType paginationType, bool timeFilterSupported) : base(paginationType, true)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetClosedOrdersOptions(SharedPaginationSupport paginationType, bool timeFilterSupported) : base(paginationType, true)
         {
             TimeFilterSupported = timeFilterSupported;
         }
 
+        /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetClosedOrdersRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (TimeFilterSupported && request.StartTime != null)
@@ -25,7 +32,8 @@ namespace CryptoExchange.Net.SharedApis.Models.EndpointOptions
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
             sb.AppendLine($"Time filter supported: {TimeFilterSupported}");

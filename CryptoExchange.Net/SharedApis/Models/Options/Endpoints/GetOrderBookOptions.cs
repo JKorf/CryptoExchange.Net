@@ -1,31 +1,49 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
 using CryptoExchange.Net.SharedApis.Models.Rest;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
+namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 {
-
-    public record GetOrderBookOptions : EndpointOptions<GetOrderBookRequest>
+    /// <summary>
+    /// Options for requesting order book
+    /// </summary>
+    public class GetOrderBookOptions : EndpointOptions<GetOrderBookRequest>
     {
+        /// <summary>
+        /// Supported order book depths
+        /// </summary>
         public IEnumerable<int>? SupportedLimits { get; set; }
+
+        /// <summary>
+        /// The min order book depth
+        /// </summary>
         public int? MinLimit { get; set; }
+        /// <summary>
+        /// The max order book depth
+        /// </summary>
         public int? MaxLimit { get; set; }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public GetOrderBookOptions(int minLimit, int maxLimit, bool authenticated) : base(authenticated)
         {
             MinLimit = minLimit;
             MaxLimit = maxLimit;
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public GetOrderBookOptions(IEnumerable<int> supportedLimits, bool authenticated) : base(authenticated)
         {
             SupportedLimits = supportedLimits;
         }
 
+        /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
         {
             if (request.Limit == null)
@@ -43,7 +61,8 @@ namespace CryptoExchange.Net.SharedApis.Models.FilterOptions
             return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
         }
 
-        public string ToString(string exchange)
+        /// <inheritdoc />
+        public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
             sb.AppendLine($"Supported limit values: [{(SupportedLimits == null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
