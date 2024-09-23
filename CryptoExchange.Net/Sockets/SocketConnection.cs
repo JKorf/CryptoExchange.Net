@@ -52,6 +52,11 @@ namespace CryptoExchange.Net.Sockets
         public event Action? ConnectionClosed;
 
         /// <summary>
+        /// Failed to resubscribe all subscription on the reconnected socket
+        /// </summary>
+        public event Action<Error>? ResubscribingFailed;
+
+        /// <summary>
         /// Connecting restored event
         /// </summary>
         public event Action<TimeSpan>? ConnectionRestored;
@@ -328,7 +333,8 @@ namespace CryptoExchange.Net.Sockets
                     var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
                     if (!reconnectSuccessful)
                     {
-                        _logger.FailedReconnectProcessing(SocketId, reconnectSuccessful.Error?.ToString());
+                        _logger.FailedReconnectProcessing(SocketId, reconnectSuccessful.Error!.ToString());
+                        _ = Task.Run(() => ResubscribingFailed?.Invoke(reconnectSuccessful.Error));
                         _ = _socket.ReconnectAsync().ConfigureAwait(false);
                     }
                     else
