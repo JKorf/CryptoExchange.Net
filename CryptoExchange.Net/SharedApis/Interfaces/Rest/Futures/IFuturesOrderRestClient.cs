@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
         /// <summary>
         /// Supported order types
         /// </summary>
-        IEnumerable<SharedOrderType> FuturesSupportedOrderType { get; }
+        IEnumerable<SharedOrderType> FuturesSupportedOrderTypes { get; }
         /// <summary>
         /// Supported time in force
         /// </summary>

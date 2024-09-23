@@ -3,6 +3,7 @@ using CryptoExchange.Net.SharedApis.Interfaces;
 using CryptoExchange.Net.SharedApis.Models;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -205,7 +206,16 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static string GetDeliveryMonthSymbol(DateTime time) => _monthSymbols[time.Month];
 
-        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, CancellationToken ct = default)
+        /// <summary>
+        /// Execute multiple requests to retrieve multiple pages of the result set
+        /// </summary>
+        /// <typeparam name="T">Type of the client</typeparam>
+        /// <typeparam name="U">Type of the request</typeparam>
+        /// <param name="paginatedFunc">The func to execute with each request</param>
+        /// <param name="request">The request parameters</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
         {
             var result = new List<T>();
             ExchangeWebResult<IEnumerable<T>> batch;
@@ -214,7 +224,7 @@ namespace CryptoExchange.Net
             {
                 batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
                 yield return batch;
-                if (!batch)
+                if (!batch || ct.IsCancellationRequested)
                     break;
 
                 result.AddRange(batch.Data);

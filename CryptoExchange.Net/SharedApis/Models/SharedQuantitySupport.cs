@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.SharedApis.Models
             if (supportedType == SharedQuantityType.BaseAndQuoteAsset)
                 return null;
 
-            if (supportedType == SharedQuantityType.BaseAsset || supportedType == SharedQuantityType.Contracts && quoteQuantity != null)
+            if ((supportedType == SharedQuantityType.BaseAsset || supportedType == SharedQuantityType.Contracts) && quoteQuantity != null)
                 return new ArgumentError($"Quote quantity not supported for {side}.{type} order, specify Quantity instead");
 
             if (supportedType == SharedQuantityType.QuoteAsset && quantity != null)

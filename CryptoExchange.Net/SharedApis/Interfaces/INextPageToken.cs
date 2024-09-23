@@ -7,7 +7,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public interface INextPageToken
     {
-        public string Exchange { get; set; }
     }
 
     /// <summary>
@@ -15,7 +14,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public record DateTimeToken: INextPageToken
     {
-        public string Exchange { get; set; }
         /// <summary>
         /// Last result time
         /// </summary>
@@ -35,7 +33,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public record PageToken: INextPageToken
     {
-        public string Exchange { get; set; }
         /// <summary>
         /// The next page index
         /// </summary>
@@ -60,7 +57,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public record FromIdToken : INextPageToken
     {
-        public string Exchange { get; set; }
         /// <summary>
         /// The last id from previous result
         /// </summary>
@@ -80,7 +76,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public record CursorToken : INextPageToken
     {
-        public string Exchange { get; set; }
         /// <summary>
         /// The next page cursor
         /// </summary>
@@ -100,7 +95,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces
     /// </summary>
     public record OffsetToken : INextPageToken
     {
-        public string Exchange { get; set; }
         /// <summary>
         /// Offset in the result set
         /// </summary>

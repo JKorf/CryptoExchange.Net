@@ -65,8 +65,6 @@ namespace CryptoExchange.Net.SharedApis.Models
             DataTradeMode = new[] { dataTradeMode };
             Exchange = exchange;
             NextPageToken = nextPageToken;
-            if (NextPageToken != null)
-                NextPageToken.Exchange = exchange;
         }
 
         /// <summary>
@@ -94,8 +92,6 @@ namespace CryptoExchange.Net.SharedApis.Models
             DataTradeMode = dataTradeModes;
             Exchange = exchange;
             NextPageToken = nextPageToken;
-            if (NextPageToken != null)
-                NextPageToken.Exchange = exchange;
         }
 
         /// <summary>
@@ -135,8 +131,6 @@ namespace CryptoExchange.Net.SharedApis.Models
             DataTradeMode = dataTradeModes;
             Exchange = exchange;
             NextPageToken = nextPageToken;
-            if (NextPageToken != null)
-                NextPageToken.Exchange = exchange;
         }
 
 

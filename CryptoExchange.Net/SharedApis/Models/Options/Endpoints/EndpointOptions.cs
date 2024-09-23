@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
             {
                 if (!string.IsNullOrEmpty(param.Name))
                 {
-                    if (ExchangeParameters.HasValue(exchangeParameters, exchange, param.Name, param.ValueType) != true)
+                    if (ExchangeParameters.HasValue(exchangeParameters, exchange, param.Name!, param.ValueType) != true)
                         return new ArgumentError($"Required exchange parameter `{param.Name}` for exchange `{exchange}` is missing or has incorrect type. Expected type is {param.ValueType.Name}. Example: {param.ExampleValue}");
                 }
                 else
