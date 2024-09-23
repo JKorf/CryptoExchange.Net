@@ -81,7 +81,7 @@ namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
 
                 if (request.StartTime.HasValue == true)
                 {
-                    if ((request.EndTime!.Value - request.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
+                    if (((request.EndTime ?? DateTime.UtcNow) - request.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
                         return new ArgumentError($"Only the most recent {MaxTotalDataPoints} klines are available, time filter failed");
                 }
             }

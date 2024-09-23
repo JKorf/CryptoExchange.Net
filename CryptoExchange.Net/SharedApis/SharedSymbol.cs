@@ -21,9 +21,9 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public string? SymbolName { get; set; }
         /// <summary>
-        /// The API type of the symbol. This determines how the base and quote asset should be formatted into the symbol name
+        /// The trading mode of the symbol. This determines how the base and quote asset should be formatted into the symbol name
         /// </summary>
-        public TradingMode ApiType { get; set; }
+        public TradingMode TradingMode { get; set; }
         /// <summary>
         /// Delivery time of the symbol, used for delivery futures to format the symbol name
         /// </summary>
@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
         {
-            ApiType = apiType;
+            TradingMode = apiType;
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             DeliverTime = deliverTime;
@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, string symbolName)
         {
-            ApiType = apiType;
+            TradingMode = apiType;
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             SymbolName = symbolName;
@@ -57,9 +57,9 @@ namespace CryptoExchange.Net.SharedApis
         public string GetSymbol(Func<string, string, TradingMode, DateTime?, string> format)
         {
             if (!string.IsNullOrEmpty(SymbolName))
-                return SymbolName;
+                return SymbolName!;
 
-            return format(BaseAsset, QuoteAsset, ApiType, DeliverTime);
+            return format(BaseAsset, QuoteAsset, TradingMode, DeliverTime);
         }
     }
 }

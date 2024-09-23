@@ -67,7 +67,9 @@ namespace CryptoExchange.Net.SharedApis.Models
         /// <returns></returns>
         public static bool HasValue(ExchangeParameters? exchangeParameters, string exchange, string name, Type type)
         {
-            if (exchangeParameters?.HasValue(exchange, name, type) == false) return false;
+            var provided = exchangeParameters?.HasValue(exchange, name, type);
+            if (provided == true)
+                return true;
 
             var val = _staticParameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
             if (val == null)
