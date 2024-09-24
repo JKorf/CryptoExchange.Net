@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -230,6 +231,31 @@ namespace CryptoExchange.Net
                 if (nextPageToken == null)
                     break;
             }
+        }
+
+        /// <summary>
+        /// Apply the rules (price and quantity step size and decimals precision, min/max quantity) from the symbol to the quantity and price
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="quantity"></param>
+        /// <param name="price"></param>
+        /// <param name="adjustedQuantity"></param>
+        /// <param name="adjustedPrice"></param>
+        public static void ApplySymbolRules(SharedSpotSymbol symbol, decimal quantity, decimal? price, out decimal adjustedQuantity, out decimal? adjustedPrice)
+        {
+            adjustedPrice = price;
+            adjustedQuantity = quantity;
+
+            if (price != null)
+            {
+                adjustedPrice = AdjustValueStep(0, decimal.MaxValue, symbol.PriceStep, RoundingType.Down, price.Value);
+                adjustedPrice = AdjustValuePrecision(0, decimal.MaxValue, symbol.PriceDecimals, RoundingType.Down, adjustedPrice.Value);
+                if (adjustedPrice != 0 && adjustedPrice * quantity < symbol.MinNotionalValue)
+                    adjustedQuantity = symbol.MinNotionalValue.Value / adjustedPrice.Value;
+            }
+
+            adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, RoundingType.Down, adjustedQuantity);
+            adjustedQuantity = AdjustValuePrecision(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityDecimals, RoundingType.Down, adjustedQuantity);
         }
     }
 }

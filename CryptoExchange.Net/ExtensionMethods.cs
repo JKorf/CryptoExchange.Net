@@ -9,6 +9,7 @@ using System.Web;
 using CryptoExchange.Net.Objects;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
+using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net
 {

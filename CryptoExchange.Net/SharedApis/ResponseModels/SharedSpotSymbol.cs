@@ -41,6 +41,7 @@
         /// The max amount of decimal places for quantity
         /// </summary>
         public int? QuantityDecimals { get; set; }
+#warning most exchanges seem to use precision (significant numbers), not decimal places. Check for all exchange, add new field
         /// <summary>
         /// The max amount of decimal places for price
         /// </summary>

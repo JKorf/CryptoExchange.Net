@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis;
+using System;
 
 namespace CryptoExchange.Net.Objects.Sockets
 {
