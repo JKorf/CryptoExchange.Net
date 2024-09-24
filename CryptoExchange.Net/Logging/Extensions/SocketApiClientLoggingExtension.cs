@@ -22,6 +22,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, Exception?> _disposingSocketClient;
         private static readonly Action<ILogger, int, int, Exception?> _unsubscribingSubscription;
         private static readonly Action<ILogger, int, Exception?> _reconnectingAllConnections;
+        private static readonly Action<ILogger, DateTime, Exception?> _addingRetryAfterGuard;
 
         static SocketApiClientLoggingExtension()
         {
@@ -104,6 +105,11 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Information,
                 new EventId(3017, "ReconnectingAll"),
                 "Reconnecting all {ConnectionCount} connections");
+
+            _addingRetryAfterGuard = LoggerMessage.Define<DateTime>(
+                LogLevel.Warning,
+                new EventId(3018, "AddRetryAfterGuard"),
+                "Adding RetryAfterGuard ({RetryAfter}) because the connection attempt was rate limited");
         }
 
         public static void FailedToAddSubscriptionRetryOnDifferentConnection(this ILogger logger, int socketId)
@@ -184,6 +190,11 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void ReconnectingAllConnections(this ILogger logger, int connectionCount)
         {
             _reconnectingAllConnections(logger, connectionCount, null);
+        }
+
+        public static void AddingRetryAfterGuard(this ILogger logger, DateTime retryAfter)
+        {
+            _addingRetryAfterGuard(logger, retryAfter, null);
         }
     }
 }

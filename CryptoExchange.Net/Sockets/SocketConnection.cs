@@ -72,6 +72,11 @@ namespace CryptoExchange.Net.Sockets
         public event Action<IMessageAccessor>? UnhandledMessage;
 
         /// <summary>
+        /// Connection was rate limited and couldn't be established
+        /// </summary>
+        public Func<Task>? ConnectRateLimitedAsync;
+
+        /// <summary>
         /// The amount of subscriptions on this connection
         /// </summary>
         public int UserSubscriptionCount
@@ -222,6 +227,7 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
             _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
+            _socket.OnConnectRateLimited += HandleConnectRateLimitedAsync;
             _socket.OnOpen += HandleOpenAsync;
             _socket.OnClose += HandleCloseAsync;
             _socket.OnReconnecting += HandleReconnectingAsync;
@@ -383,6 +389,16 @@ namespace CryptoExchange.Net.Sockets
 
             query.Fail(new ClientRateLimitError("Connection rate limit reached"));
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handler for whenever a connection was rate limited and couldn't be established
+        /// </summary>
+        /// <returns></returns>
+        protected async virtual Task HandleConnectRateLimitedAsync()
+        {
+             if (ConnectRateLimitedAsync is not null)
+                await ConnectRateLimitedAsync().ConfigureAwait(false);
         }
 
         /// <summary>

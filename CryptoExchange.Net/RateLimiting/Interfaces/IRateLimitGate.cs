@@ -29,8 +29,9 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// Set a RetryAfter guard, can be used when a server rate limit is hit and a RetryAfter header is specified
         /// </summary>
         /// <param name="retryAfter">The time after which requests can be send again</param>
+        /// <param name="type">RateLimitType</param>
         /// <returns></returns>
-        Task SetRetryAfterGuardAsync(DateTime retryAfter);
+        Task SetRetryAfterGuardAsync(DateTime retryAfter, RateLimitItemType type = RateLimitItemType.Request);
 
         /// <summary>
         /// Returns the 'retry after' timestamp if set

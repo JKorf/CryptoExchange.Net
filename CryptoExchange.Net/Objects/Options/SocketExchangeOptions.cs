@@ -48,6 +48,12 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan DelayAfterConnect { get; set; } = TimeSpan.Zero;
 
         /// <summary>
+        /// This delay is used to set a RetryAfter guard on the connection after a rate limit is hit on the server. 
+        /// This is used to prevent the client from reconnecting too quickly after a rate limit is hit.
+        /// </summary>
+        public TimeSpan? ConnectDelayAfterRateLimited { get; set; }
+
+        /// <summary>
         /// Create a copy of this options
         /// </summary>
         /// <typeparam name="T"></typeparam>
