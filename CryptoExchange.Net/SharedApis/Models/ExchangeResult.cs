@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.SharedApis.Models
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A CallResult from an exchange

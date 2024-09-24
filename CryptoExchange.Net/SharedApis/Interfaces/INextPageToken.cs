@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A token which a request can use to retrieve the next page if there are more pages in the result set

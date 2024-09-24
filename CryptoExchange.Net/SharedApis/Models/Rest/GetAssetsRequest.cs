@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to retrieve a list of supported assets

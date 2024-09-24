@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Kline interval

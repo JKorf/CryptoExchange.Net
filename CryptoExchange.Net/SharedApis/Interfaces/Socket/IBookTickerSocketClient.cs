@@ -1,14 +1,9 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.SharedApis.Models;
-using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
-using CryptoExchange.Net.SharedApis.Models.Options.Subscriptions;
-using CryptoExchange.Net.SharedApis.Models.Socket;
-using CryptoExchange.Net.SharedApis.ResponseModels;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Client for subscribing to book ticker updates for a symbol

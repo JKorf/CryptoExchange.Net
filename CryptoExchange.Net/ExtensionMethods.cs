@@ -9,12 +9,6 @@ using System.Web;
 using CryptoExchange.Net.Objects;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
-using CryptoExchange.Net.SharedApis.Interfaces.Socket;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.Spot;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest;
-using CryptoExchange.Net.SharedApis.Interfaces.Socket.Spot;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures;
-using CryptoExchange.Net.SharedApis.Interfaces.Socket.Futures;
 
 namespace CryptoExchange.Net
 {

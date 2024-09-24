@@ -1,10 +1,7 @@
-﻿using CryptoExchange.Net.SharedApis.Models;
-using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
-using CryptoExchange.Net.SharedApis.Models.Rest;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Rest
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Client for managing the listen key for user stream updates

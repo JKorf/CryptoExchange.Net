@@ -1,12 +1,11 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net;
 
-namespace CryptoExchange.Net.SharedApis.Models
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A WebCallResult from an exchange

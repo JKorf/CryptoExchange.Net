@@ -1,12 +1,7 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-using CryptoExchange.Net.SharedApis.Models;
-using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
-using CryptoExchange.Net.SharedApis.Models.Rest;
-using CryptoExchange.Net.SharedApis.ResponseModels;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.Futures
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Client for managing the position mode setting

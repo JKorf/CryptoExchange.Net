@@ -1,7 +1,6 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-using System;
+﻿using System;
 
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Spot order info
@@ -37,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         /// </summary>
         public decimal? Quantity { get; set; }
         /// <summary>
-        /// Quantity filled in base asset
+        /// Quantity filled in base asset, note that this quantity has not yet included trading fees paid
         /// </summary>
         public decimal? QuantityFilled { get; set; }
         /// <summary>
@@ -45,7 +44,7 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         /// </summary>
         public decimal? QuoteQuantity { get; set; }
         /// <summary>
-        /// Quantity filled in the quote asset
+        /// Quantity filled in the quote asset, note that this quantity has not yet included trading fees paid
         /// </summary>
         public decimal? QuoteQuantityFilled { get; set; }
         /// <summary>

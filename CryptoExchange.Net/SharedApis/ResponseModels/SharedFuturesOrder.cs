@@ -1,7 +1,6 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-using System;
+﻿using System;
 
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Futures order info

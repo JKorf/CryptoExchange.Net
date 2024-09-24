@@ -1,7 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using System;
-
-namespace CryptoExchange.Net.SharedApis.Enums
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Quote asset order quantity support

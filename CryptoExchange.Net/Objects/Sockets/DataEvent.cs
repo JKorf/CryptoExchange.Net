@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis.Models;
-using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
 
 namespace CryptoExchange.Net.Objects.Sockets
 {

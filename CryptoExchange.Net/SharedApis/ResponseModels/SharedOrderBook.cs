@@ -1,7 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using System.Collections.Generic;
 
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Order book info

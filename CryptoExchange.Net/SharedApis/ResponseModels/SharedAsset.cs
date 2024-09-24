@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Asset info

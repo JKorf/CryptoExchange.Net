@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.SharedApis.Models.Rest
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to retrieve info on a specifc order

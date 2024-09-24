@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.SharedApis.ResponseModels
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Book ticker

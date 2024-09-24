@@ -1,7 +1,6 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-using System;
+﻿using System;
 
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A user trade
@@ -33,6 +32,10 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         /// </summary>
         public string OrderId { get; set; }
         /// <summary>
+        /// Side of the trade
+        /// </summary>
+        public SharedOrderSide Side { get; set; }
+        /// <summary>
         /// Fee paid for the trade
         /// </summary>
         public decimal? Fee { get; set; }
@@ -48,11 +51,12 @@ namespace CryptoExchange.Net.SharedApis.ResponseModels
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedUserTrade(string symbol, string orderId, string id, decimal quantity, decimal price, DateTime timestamp)
+        public SharedUserTrade(string symbol, string orderId, string id, SharedOrderSide side, decimal quantity, decimal price, DateTime timestamp)
         {
             Symbol = symbol;
             OrderId = orderId;
             Id = id;
+            Side = side;
             Quantity = quantity;
             Price = price;
             Timestamp = timestamp;

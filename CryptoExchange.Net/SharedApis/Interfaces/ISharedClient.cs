@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A shared/common client interface

@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to close a currently open position

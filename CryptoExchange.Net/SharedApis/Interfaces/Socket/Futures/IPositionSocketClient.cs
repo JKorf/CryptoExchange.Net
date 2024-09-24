@@ -2,14 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
-using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.SharedApis.ResponseModels;
-using CryptoExchange.Net.SharedApis.Models.Socket;
-using CryptoExchange.Net.SharedApis.Models.Options.Subscriptions;
-using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Socket.Futures
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Client for subscribing to position updates

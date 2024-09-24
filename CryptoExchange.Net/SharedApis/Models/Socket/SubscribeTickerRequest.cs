@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.SharedApis.Models.Socket
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to subscribe to ticker updates

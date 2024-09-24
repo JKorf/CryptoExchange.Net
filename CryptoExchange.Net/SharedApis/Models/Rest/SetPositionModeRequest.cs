@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
 
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to change the current position mode 

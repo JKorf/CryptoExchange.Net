@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.Options
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Parameter description

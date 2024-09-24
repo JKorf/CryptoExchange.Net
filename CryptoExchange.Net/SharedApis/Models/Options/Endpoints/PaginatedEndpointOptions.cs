@@ -1,9 +1,6 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for paginated endpoints

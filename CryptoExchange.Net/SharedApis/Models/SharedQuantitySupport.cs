@@ -1,10 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Enums;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Models
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Support for different quantity notations

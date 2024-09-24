@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.SharedApis.Models.Rest
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to withdraw funds from the exchange

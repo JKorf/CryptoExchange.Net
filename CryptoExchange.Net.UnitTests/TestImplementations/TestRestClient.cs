@@ -138,7 +138,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
 
         /// <inheritdoc />
-        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
+        public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
@@ -182,7 +182,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
 
         /// <inheritdoc />
-        public override string FormatSymbol(string baseAsset, string quoteAsset) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
+        public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {

@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis.Models.Rest;
-
-namespace CryptoExchange.Net.SharedApis.Models.Options.Endpoints
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for requesting a withdrawal

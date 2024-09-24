@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-
-namespace CryptoExchange.Net.SharedApis.ResponseModels
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Leverage info

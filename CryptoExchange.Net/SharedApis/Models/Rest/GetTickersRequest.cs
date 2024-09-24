@@ -1,7 +1,7 @@
 ﻿
 using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to retrieve all symbol tickers

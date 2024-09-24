@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 
-namespace CryptoExchange.Net.SharedApis.Models.Socket
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to subscribe to user trade updates

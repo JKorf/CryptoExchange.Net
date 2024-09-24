@@ -1,11 +1,9 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Models.Options.Endpoints;
-using CryptoExchange.Net.SharedApis.Models.Socket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CryptoExchange.Net.SharedApis.Models.Options.Subscriptions
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for subscribing to order book snapshot updates

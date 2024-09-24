@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.SharedApis.Models.Rest
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to retrieve closed orders for a symbol

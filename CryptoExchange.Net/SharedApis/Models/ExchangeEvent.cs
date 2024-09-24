@@ -1,6 +1,6 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
 
-namespace CryptoExchange.Net.SharedApis.Models
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// An update event for a specific exchange

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Threading;
-using CryptoExchange.Net.SharedApis.Models;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.SharedApis.ResponseModels;
-using CryptoExchange.Net.SharedApis.Models.Socket;
-using CryptoExchange.Net.SharedApis.Models.Options.Subscriptions;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Socket
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Client for subscribing to kline/candlestick updates for a symbol

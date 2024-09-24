@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis.Enums;
-
-namespace CryptoExchange.Net.SharedApis.Models.Socket
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to subscribe to kline/candlestick updates
