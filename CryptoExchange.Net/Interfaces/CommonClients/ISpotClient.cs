@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Interfaces.CommonClients
     public interface ISpotClient: IBaseRestClient
     {
         /// <summary>
-        /// DEPRECATED; use <see cref="SharedApis.ISharedClient" /> instead for common/shared functionality. See <see href="SHAREDDOCSURL" /> for more info.
+        /// DEPRECATED; use <see cref="SharedApis.ISharedClient" /> instead for common/shared functionality. See <see href="https://jkorf.github.io/CryptoExchange.Net/docs/index.html#shared" /> for more info.
         /// </summary>
         Task<WebCallResult<OrderId>> PlaceOrderAsync(string symbol, CommonOrderSide side, CommonOrderType type, decimal quantity, decimal? price = null, string? accountId = null, string? clientOrderId = null, CancellationToken ct = default);
     }
