@@ -22,12 +22,12 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetClosedOrdersRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetClosedOrdersRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (TimeFilterSupported && request.StartTime != null)
                 return new ArgumentError($"Time filter is not supported");
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
 
         /// <inheritdoc />

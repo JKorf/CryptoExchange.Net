@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         public Error? ValidateRequest(
             string exchange,
             PlaceSpotOrderRequest request,
-            TradingMode? apiType,
+            TradingMode? tradingMode,
             TradingMode[] supportedApiTypes,
             IEnumerable<SharedOrderType> supportedOrderTypes,
             IEnumerable<SharedTimeInForce> supportedTimeInForce,
@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.SharedApis
             if (quantityError != null)
                 return quantityError;
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
     }
 }

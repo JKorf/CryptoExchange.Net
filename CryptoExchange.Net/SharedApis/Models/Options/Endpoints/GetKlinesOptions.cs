@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetKlinesRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetKlinesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (!IsSupported(request.Interval))
                 return new ArgumentError("Interval not supported");
@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
 
         /// <inheritdoc />

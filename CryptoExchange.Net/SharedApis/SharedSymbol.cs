@@ -32,9 +32,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Create a new SharedSymbol
         /// </summary>
-        public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
+        public SharedSymbol(TradingMode tradingMode, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
         {
-            TradingMode = apiType;
+            TradingMode = tradingMode;
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             DeliverTime = deliverTime;
@@ -43,9 +43,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Create a new SharedSymbol and override the formatted name
         /// </summary>
-        public SharedSymbol(TradingMode apiType, string baseAsset, string quoteAsset, string symbolName)
+        public SharedSymbol(TradingMode tradingMode, string baseAsset, string quoteAsset, string symbolName)
         {
-            TradingMode = apiType;
+            TradingMode = tradingMode;
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             SymbolName = symbolName;

@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (request.Limit == null)
                 return null;
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.SharedApis
             if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError($"Limit should be one of " + string.Join(", ", SupportedLimits));
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
 
         /// <inheritdoc />

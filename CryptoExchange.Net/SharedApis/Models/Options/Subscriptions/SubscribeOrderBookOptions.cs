@@ -26,12 +26,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return new ArgumentError("Limit not supported");
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
     }
 }

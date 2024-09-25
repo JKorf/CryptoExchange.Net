@@ -22,12 +22,12 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, TradingMode? apiType, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(string exchange, GetTradeHistoryRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} trades are available");
 
-            return base.ValidateRequest(exchange, request, apiType, supportedApiTypes);
+            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
 
         /// <inheritdoc />
