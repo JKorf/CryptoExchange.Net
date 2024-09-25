@@ -5,11 +5,11 @@
     /// </summary>
     public class WithdrawOptions : EndpointOptions<WithdrawRequest>
     {
-
-
+        /// <summary>
+        /// ctor
+        /// </summary>
         public WithdrawOptions() : base(true)
         {
         }
-
     }
 }

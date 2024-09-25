@@ -66,9 +66,6 @@ namespace CryptoExchange.Net.SharedApis
             if (supportedType == SharedQuantityType.QuoteAsset && quantity != null)
                 return new ArgumentError($"Quantity not supported for {side}.{type} order, specify QuoteQuantity instead");
 
-            if (supportedType == SharedQuantityType.Contracts && quantity % 1 != 0)
-                return new ArgumentError($"Order quantity is in number of contracts, request quantity should be a whole number");
-
             return null;
         }
 

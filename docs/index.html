@@ -85,7 +85,7 @@
             <li class="nav-item"><a class="nav-link" href="#idocs_general">General Client Usage</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common Clients</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_common">Shared Clients</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
@@ -1389,41 +1389,354 @@ await client.UnsubscribeAllAsync();</code></pre>
 		<!-- Customization
 		============================ -->
         <section id="idocs_common">
-          <h2>Common Clients</h2>
-		  <p>The CryptoClients.Net library exposes two client classes. These clients aim to make using the different API's easier.</p>
+          <h2>Shared Clients</h2>
 		  
-          <p><b>(I)ExchangeRestClient</b><br />
-			The <code>IExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
-		  </p>
-		  <p>
-		  For example, using the Binance, Bybit and Kucoin API's can be done like this:
-			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service after having called 'AddCryptoClients()' during service regirations
-var binanceTicker = await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickersAsync();
-var bybitTicker = await exchangeRestClient.Bybit.V5Api.ExchangeData.GetTickers();
-var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTickers();</code></pre>
-		  </p>
+		  <p>All exhange clients implement various <code>ISharedClient</code> interfaces. Which interfaces are implemented depends on what functionality the exchange API offers.</p>
+		  		  
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="options-binance-tab" data-toggle="tab" href="#options-binance" role="tab" aria-controls="options-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bingx-tab" data-toggle="tab" href="#options-bingx" role="tab" aria-controls="options-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitfinex-tab" data-toggle="tab" href="#options-bitfinex" role="tab" aria-controls="options-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-bitget" role="tab" aria-controls="options-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitmart-tab" data-toggle="tab" href="#options-bitmart" role="tab" aria-controls="options-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-bybit" role="tab" aria-controls="options-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-coinex" role="tab" aria-controls="options-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-gateio" role="tab" aria-controls="options-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-htx" role="tab" aria-controls="options-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-kraken" role="tab" aria-controls="options-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-kucoin-tab" data-toggle="tab" href="#options-kucoin" role="tab" aria-controls="options-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-mexc-tab" data-toggle="tab" href="#options-mexc" role="tab" aria-controls="options-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-okx" role="tab" aria-controls="options-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">			  
+			   <div class="tab-pane fade show active" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = binanceRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = binanceSocketClient.SpotApi.SharedClient; 
+
+// USD-M Futures API common functionality rest client
+var usdFuturesSharedRestClient = binanceRestClient.UsdFuturesApi.SharedClient;
+
+// USD-M Futures API common functionality socket client
+var usdFuturesSharedSocketClient = binanceSocketClient.UsdFuturesApi.SharedClient;
+
+// Coin-M Futures API common functionality rest client
+var coinFuturesSharedRestClient = binanceRestClient.CoinFuturesApi.SharedClient;
+
+// Coin-M Futures API common functionality socket client
+var coinFuturesSharedSocketClient = binanceSocketClient.CoinFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bingx" role="tabpanel" aria-labelledby="options-bingx-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bingXRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bingXSocketClient.SpotApi.SharedClient; 
+
+// Perpetual Futures API common functionality rest client
+var usdFuturesSharedRestClient = bingXRestClient.PerpetualFuturesApi.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bingXSocketClient.PerpetualFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitfinexRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitfinexSocketClient.SpotApi.SharedClient; </code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitgetRestClient.SpotApiV2.SharedClient;
+ 
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitgetSocketClient.SpotApiV2.SharedClient; 
+
+// Perpetual Futures API common functionality rest client
+var usdFuturesSharedRestClient = bitgetRestClient.FuturesApiV2.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bitgetSocketClient.FuturesApiV2.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bitmart" role="tabpanel" aria-labelledby="options-bitmart-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitMartRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitMartSocketClient.SpotApi.SharedClient;
+
+// USD Futures API common functionality rest client
+var usdFuturesSharedRestClient = bitMartRestClient.UsdFuturesApi.SharedClient;
+
+// USD Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bitMartSocketClient.UsdFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
+<pre><code>// Spot and Futures API common functionality rest client
+var spotSharedRestClients = bybitRestClient.V5Api.SharedClient;
+
+// Spot and Futures API common functionality socket client
+var spotSharedSocketClient = bybitSocketClient.V5SpotApi.SharedClient;
+
+// Linear Futures API common functionality socket client
+var linearFuturesSharedSocketClient = bybitSocketClient.V5LinearApi.SharedClient;
+
+// Inverse Futures API common functionality socket client
+var inverseFuturesspotSharedSocketClient = bybitSocketClient.V5InverseApi.SharedClient;
+
+// Private Futures API common functionality socket client
+var privateFuturesSharedSocketClient = bybitSocketClient.V5PrivateApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = coinExRestClient.SpotApiV2.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = coinExSocketClient.SpotApiV2.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = coinExRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = coinExSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>			  
+			  <div class="tab-pane fade" id="options-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = gateioRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = gateioSocketClient.SpotApi.SharedClient;
+
+// Perpetual Futures API common functionality rest client
+var perpFuturesSharedRestClient = gateioRestClient.PerpetualFuturesApi.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var perpFuturesSharedSocketClient = gateioSocketClient.PerpetualFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-htx" role="tabpanel" aria-labelledby="options-htx-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = htxRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = htxSocketClient.SpotApi.SharedClient;
+
+// USDT Futures API common functionality rest client
+var usdFuturesSharedRestClient = htxRestClient.UsdtFuturesApi.SharedClient;
+
+// USDT Futures API common functionality socket client
+var usdFuturesSharedSocketClient = htxSocketClient.UsdtFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = krakenRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = krakenSocketClient.SpotApi.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = krakenRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = krakenSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = kucoinRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = kucoinSocketClient.SpotApi.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = kucoinRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = kucoinSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = mexcRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = mexcSocketClient.SpotApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-okx" role="tabpanel" aria-labelledby="options-okx-tab">
+<pre><code>// Futures and Spot API common functionality rest client
+var spotSharedRestClients = okxRestClient.UnifiedApi.SharedClient;
+
+// Futures and Spot API common functionality socket client
+var spotSharedSocketClient = okxSocketClient.UnifiedApi.SharedClient;</code></pre>
+			  </div>
+			</div>
+						
+		  <h5>TradingMode</h5>  
+		  <p>The shared client interfaces and functionality work with the <code>TradingMode</code> enum. The shared clients of an exchange can supported multiple trading modes.</p>
+		  <pre><code>Console.WriteLine(string.Join(", ", binanceClient.UsdFuturesApi.SharedClient.SupportedTradingModes));
+// Output: DeliveryLinear, PerpetualLinear 
+
+Console.WriteLine(string.Join(", ", binanceClient.CoinFuturesApi.SharedClient.SupportedTradingModes));
+// Output: DeliveryInverse, PerpetualInverse
+
+Console.WriteLine(string.Join(", ", binanceClient.SpotApi.SharedClient.SupportedTradingModes));
+// Output: Spot</code></pre>
 		  
-          <p><b>(I)ExchangeSocketClient</b><br />
-		  Similarly as the <code>(I)ExchangeRestClient</code> this client allows you to access the different Websocket clients through a single access point.
-		  </p>
-		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
-		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the IExchangeSocketClient into your service after having called 'AddCryptoClients()' during service regirations
-var bitgetSub = await exchangeSocketClient.Bitget.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
-var krakenSub = await exchangeSocketClient.Kraken.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
-var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
-		  </p>
+		  <table class="table table-bordered">
+			<tr><th>Mode</th><th>Description</th></tr>
+			<tr><td><code>TradingMode.Spot</code></td><td>Spot trading</td></tr>
+			<tr><td><code>TradingMode.PerpetualLinear</code></td><td>Futures contract trading without delivery date using stablecoin as settlement</td></tr>
+			<tr><td><code>TradingMode.DeliveryLinear</code></td><td>Futures contract trading with specific delivery date using stablecoin as settlement</td></tr>
+			<tr><td><code>TradingMode.PerpetualInverse</code></td><td>Futures contract trading without delivery date using a crypto asset as settlement</td></tr>
+			<tr><td><code>TradingMode.DeliveryInverse</code></td><td>Futures contract trading with specific delivery date using a crypto asset as settlement</td></tr>
+		  </table>
 		  
-          <p><b>ISpotClient</b><br />
-		  The <code>ISpotClient</code> is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
-		  </p>
-		  <p>
-		  The <code>ISpotClient</code> is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
-		  <pre><code>var spotClient = restClient.SpotApi.CommonSpotClient;</code></pre>
-		  </p>
+		  <h5>SharedSymbol</h5>  
+		  <p>One of the main challenges of working with different exchanges is the different names and formats used for symbols. For example, the symbol the ETH/USDT spot trading pair is <code>ETHUSDT</code> on Binance, <code>ETH-USDT</code> on Kucoin and <code>ETH_USDT</code> on GateIo. With futures trading it's even worse, ranging from <code>ETH-USD-SWAP</code> to <code>ETHU24</code></p>
+		  
+		  <p>To combat this problem the <code>SharedSymbol</code> class was introduced. This class takes a <code>TradingMode</code>, base asset name and quote asset name which are used to format the symbol according to the exchange it will be used by.</p>
+		  <pre><code>// Create a symbol reference for ETH/USDT spot trading
+var symbol1 = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a symbol reference for BTC/USDC perpetual linear futures trading
+var symbol2 = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDC");
+
+// Create a symbol reference for BTC/USD perpetual inverse futures trading
+var symbol3 = new SharedSymbol(TradingMode.PerpetualInverse, "BTC", "USD");
+
+// Create a symbol reference for BTC/USDT linear futures trading with delivery on 9 Sept 2024
+var symbol4 = new SharedSymbol(TradingMode.DeliveryLinear, "BTC", "USDT", new DateTime(2024, 9, 27));
+
+// Create a symbol reference for ETH/USD inverse futures trading with delivery on 9 Sept 2024
+var symbol5 = new SharedSymbol(TradingMode.DeliveryLinear, "ETH", "USD", new DateTime(2024, 9, 27));
+		  </code></pre>
+		  
+		  <p>With the <code>SharedSymbol</code> functionality available we can request symbol data without having to think about how the exchange expects a symbol</p>
+		  <pre><code>var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+		  
+var tickerMexcResult = await mexcSharedRestClients.GetSpotTickerAsync(new GetTickerRequest(symbol));
+Console.WriteLine($"{mexcSharedRestClients.Exchange} {tickerMexcResult.Data.Symbol} last price: {tickerMexcResult.Data.LastPrice}");
+// Output: Mexc ETHUSDT last price: 2614,67
+
+var tickerKucoinResult = await kucoinSharedRestClients.GetSpotTickerAsync(new GetTickerRequest(symbol));
+Console.WriteLine($"{kucoinSharedRestClients.Exchange} {tickerKucoinResult.Data.Symbol} last price: {tickerKucoinResult.Data.LastPrice}");
+// Output: Kucoin ETH-USDT last price: 2614,49</code></pre>
+
+		<h5>Implementing functionality for multiple exchanges</h5>  
+		<p>When developing functionality supporting multiple exchanges the ISharedClient interfaces allow the functionality to be completely exchange agnostic.</p>
+		<pre><code>// Implementing functionality based on the ISharedClient interfaces
+public async Task<decimal?> GetLastPrice(ISpotTickerRestClient client, string baseAsset, string quoteAsset)
+{
+    var result = await client.GetSpotTickerAsync(new GetTickerRequest(new SharedSymbol(TradingMode.Spot, baseAsset, quoteAsset)));
+    return result.Data?.LastPrice;
+}
+
+// Using the implementation with different exchanges
+var lastBybitPrice = await GetLastPrice(restClient.Bybit.V5Api.SharedClient, "ETH", "USDT");
+var lastGateIoPrice = await GetLastPrice(restClient.GateIo.SpotApi.SharedClient, "ETH", "USDT");
+var lastBinancePrice = await GetLastPrice(restClient.Binance.SpotApi.SharedClient, "ETH", "USDT");</code></pre>
+
+		<h5>Pagination</h5>
+		<p>Some Rest history requests support pagination. These requests take a <code>INextPageToken</code> as parameter and results include a <code>NextPageToken</code> property on the result. These tokens can be used to automatically execute multiple paginated requests</p>
+
+<pre><code>var symbol = new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT");
+
+INextPageToken? nextToken = null;
+while (true)
+{
+    // Execute a request specifying the next page token which was returned from by the previous request (or null for the first request)
+    var pageResult = await client.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, limit: 2), nextToken);
+
+    Console.WriteLine($"{pageResult.Data.Count()} items");
+
+    // If NextPagToken is null there is no next page available
+    if (pageResult.NextPageToken == null)
+        break;
+
+    // Store next page token for the next request
+    nextToken = pageResult.NextPageToken;
+}</code></pre>
+
+Or simplify this by using the <code>ExchangeHelpers.ExecutePages</code> helper function to stream each page as a result in the form of a <code>IAsyncEnumerable</code> 
+
+<pre><code>await foreach (var pageResult in ExchangeHelpers.ExecutePages(client.GetClosedFuturesOrdersAsync, new GetClosedOrdersRequest(symbol, limit: 2)))
+    Console.WriteLine($"{pageResult.Data.Count()} items");</code></pre>
+
+		<h5>Available rest shared interfaces</h5>
+		
+		  <table class="table table-bordered">
+			<tr><th>Interface</th><th>Description</th></tr>
+			<tr><td><code>IAssetsRestClient</code></td><td>For requesting withdrawal and deposit info for assets</td></tr>
+			<tr><td><code>IKlineRestClient</code></td><td>For requesting public kline/candlestick data</td></tr>
+			<tr><td><code>IOrderBookRestClient</code></td><td>For requesting public order book data</td></tr>
+			<tr><td><code>IRecentTradeRestClient</code></td><td>For requesting the most recent public trades for a symbol</td></tr>
+			<tr><td><code>ITradeHistoryRestClient</code></td><td>For requesting historic public trade data for a symbol</td></tr>
+			<tr><td><code>ISpotSymbolRestClient</code></td><td>For requesting Spot symbols info</td></tr>
+			<tr><td><code>ISpotTickerRestClient</code></td><td>For requesting Spot ticker information</td></tr>
+			<tr><td><code>IFundingRateRestClient</code></td><td>For requesting funding rate history for a Futures symbol</td></tr>
+			<tr><td><code>IFuturesSymbolRestClient</code></td><td>For requesting Futures symbols info</td></tr>
+			<tr><td><code>IFuturesTickerRestClient</code></td><td>For requesting Futures ticker information</td></tr>
+			<tr><td><code>IIndexPriceKlineRestClient</code></td><td>For requesting index price kline history for a Futures symbol</td></tr>
+			<tr><td><code>IMarkPriceKlineRestClient</code></td><td>For requesting mark price kline history for a Futures symbol</td></tr>
+			<tr><td><code>IOpenInterestRestClient</code></td><td>For requesting the open interest for a Futures symbol</td></tr>
+			<tr><td><code>IBalanceRestClient</code></td><td>For requesting user asset balances</td></tr>
+			<tr><td><code>IDepositRestClient</code></td><td>For requesting user deposit history</td></tr>
+			<tr><td><code>IListenKeyRestClient</code></td><td>For managing the user listen key which can be used for subscribing to user data streams</td></tr>
+			<tr><td><code>IWithdrawalRestClient </code></td><td>For requesting user withdrawal history</td></tr>
+			<tr><td><code>IWithdrawRestClient</code></td><td>For requesting to withdraw funds from the exchange</td></tr>
+			<tr><td><code>ISpotOrderRestClient</code></td><td>For placing and managing Spot orders</td></tr>
+			<tr><td><code>IFuturesOrderRestClient</code></td><td>For placing and managing Futures orders</td></tr>
+			<tr><td><code>ILeverageRestClient</code></td><td>For managing leverage for a Futures symbol</td></tr>
+			<tr><td><code>IPositionHistoryRestClient</code></td><td>For requesting the user position closing history</td></tr>
+			<tr><td><code>IPositionModeRestClient</code></td><td>For managing the position mode for the user</td></tr>
+		  </table>
+		  
+		<h5>Available socket shared interfaces</h5>
+		  <table class="table table-bordered">
+			<tr><th>Interface</th><th>Description</th></tr>
+			<tr><td><code>IBookTickerSocketClient</code></td><td>For subscribing to book ticker (best bid/ask) updates for a symbol</td></tr>
+			<tr><td><code>IKlineSocketClient</code></td><td>For subscribing to kline/candlestick updates for a symbol</td></tr>
+			<tr><td><code>IOrderBookSocketClient</code></td><td>For subscribing to order book snapshot updates for a symbol</td></tr>
+			<tr><td><code>ITickerSocketClient</code></td><td>For subscribing to ticker updates for a symbol</td></tr>
+			<tr><td><code>ITickersSocketClient</code></td><td>For subscribing to ticker updates for all symbols</td></tr>
+			<tr><td><code>ITradeSocketClient</code></td><td>For subscribing to public trade updates for a symbol</td></tr>
+			<tr><td><code>IBalanceSocketClient</code></td><td>For subscribing to user balance updates</td></tr>
+			<tr><td><code>IUserTradeSocketClient</code></td><td>For subscribing to user trade updates</td></tr>
+			<tr><td><code>ISpotOrderSocketClient</code></td><td>For subscribing to user Spot order updates</td></tr>
+			<tr><td><code>IFuturesOrderSocketClient</code></td><td>For subscribing to user Futures order updates</td></tr>
+			<tr><td><code>IPositionSocketClient</code></td><td>For subscribing to user position updates</td></tr>
+		  </table>
+		  
         </section>
         
-		<hr class="divider">
-		
+				
         <!-- Logo Settings
 		============================ -->
         <section id="idocs_options">

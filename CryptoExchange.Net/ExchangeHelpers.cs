@@ -75,6 +75,11 @@ namespace CryptoExchange.Net
             {
                 value -= offset;
             }
+            else if(roundingType == RoundingType.Up)
+            {
+                if (offset != 0)
+                    value += (step.Value - offset);
+            }
             else
             {
                 if (offset < step / 2)
@@ -136,6 +141,18 @@ namespace CryptoExchange.Net
         {
             var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
             return Math.Floor(i * power) / power;
+        }
+
+        /// <summary>
+        /// Rounds a value down to 
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="decimalPlaces"></param>
+        /// <returns></returns>
+        public static decimal RoundUp(decimal i, double decimalPlaces)
+        {
+            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
+            return Math.Ceiling(i * power) / power;
         }
 
         /// <summary>
@@ -245,17 +262,22 @@ namespace CryptoExchange.Net
         {
             adjustedPrice = price;
             adjustedQuantity = quantity;
+            var minNotionalAdjust = false;
 
             if (price != null)
             {
                 adjustedPrice = AdjustValueStep(0, decimal.MaxValue, symbol.PriceStep, RoundingType.Down, price.Value);
-                adjustedPrice = AdjustValuePrecision(0, decimal.MaxValue, symbol.PriceDecimals, RoundingType.Down, adjustedPrice.Value);
+                adjustedPrice = symbol.PriceDecimals.HasValue ? RoundDown(price.Value, symbol.PriceDecimals.Value) : adjustedPrice;
                 if (adjustedPrice != 0 && adjustedPrice * quantity < symbol.MinNotionalValue)
+                {
                     adjustedQuantity = symbol.MinNotionalValue.Value / adjustedPrice.Value;
+                    minNotionalAdjust = true;
+                }
             }
 
-            adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, RoundingType.Down, adjustedQuantity);
-            adjustedQuantity = AdjustValuePrecision(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityDecimals, RoundingType.Down, adjustedQuantity);
+            adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, minNotionalAdjust ? RoundingType.Up : RoundingType.Down, adjustedQuantity);
+            adjustedQuantity = symbol.QuantityDecimals.HasValue ? (minNotionalAdjust ? RoundUp(adjustedQuantity, symbol.QuantityDecimals.Value) : RoundDown(adjustedQuantity, symbol.QuantityDecimals.Value)) : adjustedQuantity;
+
         }
     }
 }

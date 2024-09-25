@@ -152,7 +152,11 @@
         /// <summary>
         /// Round to closest value
         /// </summary>
-        Closest
+        Closest,
+        /// <summary>
+        /// Round up (ceil)
+        /// </summary>
+        Up
     }
 
     /// <summary>

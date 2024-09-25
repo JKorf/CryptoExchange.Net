@@ -18,7 +18,7 @@
         /// </summary>
         public SharedMarginMode? MarginMode { get; set; }
         /// <summary>
-        /// Quantity of the position to close. Note that the quantity is needed for some exchanges, but will not be respected on all exchanges
+        /// Quantity of the position to close. Note that the quantity is needed for some exchanges, but will not be respected on other exchanges; don't use it as partial close quantity
         /// </summary>
         public decimal? Quantity { get; set; }
 
