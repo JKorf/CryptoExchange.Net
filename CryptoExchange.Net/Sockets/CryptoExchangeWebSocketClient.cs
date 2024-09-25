@@ -117,6 +117,9 @@ namespace CryptoExchange.Net.Sockets
         public event Func<int, Task>? OnRequestRateLimited;
 
         /// <inheritdoc />
+        public event Func<Task>? OnConnectRateLimited;
+
+        /// <inheritdoc />
         public event Func<Exception, Task>? OnError;
 
         /// <inheritdoc />
@@ -186,6 +189,9 @@ namespace CryptoExchange.Net.Sockets
                     socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
+                #if NET6_0_OR_GREATER
+                socket.Options.CollectHttpResponseDetails = true;
+                #endif
             }
             catch (PlatformNotSupportedException)
             {
@@ -220,6 +226,26 @@ namespace CryptoExchange.Net.Sockets
                     // if _ctsSource was canceled this was already logged
                     _logger.SocketConnectionFailed(Id, e.Message, e);
                 }
+
+                if (e is WebSocketException we)
+                {
+                    #if (NET6_0_OR_GREATER)
+                    if (_socket.HttpStatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
+                        return new CallResult(new ServerRateLimitError(we.Message));
+                    }
+                    #else
+                    // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
+                    // Try to read 429 from the message instead
+                    if (we.Message.Contains("429"))
+                    {
+                        await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
+                        return new CallResult(new ServerRateLimitError(we.Message));
+                    }
+                    #endif
+                }
+
                 return new CallResult(new CantConnectError());
             }
 
@@ -279,6 +305,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                     }
 
+                    _socket?.Dispose();
                     _socket = CreateSocket();
                     _ctsSource.Dispose();
                     _ctsSource = new CancellationTokenSource();

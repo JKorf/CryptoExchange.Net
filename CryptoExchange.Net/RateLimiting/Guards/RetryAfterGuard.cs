@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public string Name => "RetryAfterGuard";
 
         /// <inheritdoc />
-        public string Description => $"Pause requests until after {After}";
+        public string Description => $"Pause {Type} until after {After}";
 
         /// <summary>
         /// The timestamp after which requests are allowed again
@@ -26,17 +26,27 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public DateTime After { get; private set; }
 
         /// <summary>
+        /// The type of rate limit item this guard is for
+        /// </summary>
+        public RateLimitItemType Type { get; private set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="after"></param>
-        public RetryAfterGuard(DateTime after)
+        /// <param name="type"></param>
+        public RetryAfterGuard(DateTime after, RateLimitItemType type)
         {
             After = after;
+            Type = type;
         }
 
         /// <inheritdoc />
         public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
         {
+            if (type != Type)
+                return LimitCheck.NotApplicable;
+
             var dif = (After + _windowBuffer) - DateTime.UtcNow;
             if (dif <= TimeSpan.Zero)
                 return LimitCheck.NotApplicable;
