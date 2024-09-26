@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -108,9 +109,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public virtual Error? ValidateRequest(string exchange, T request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
         {
+            var sw = Stopwatch.StartNew();
             foreach (var param in RequiredOptionalParameters)
             {
-#warning do we want to use reflection here? Maybe use it optionally?
                 if (!string.IsNullOrEmpty(param.Name))
                 {
                     if (typeof(T).GetProperty(param.Name).GetValue(request, null) == null)
@@ -123,7 +124,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
 
             }
-
+            Console.WriteLine(sw.ElapsedMilliseconds);
             return ValidateRequest(exchange, request.ExchangeParameters, tradingMode, supportedTradingModes);
         }
 

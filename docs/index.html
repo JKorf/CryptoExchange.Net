@@ -85,7 +85,16 @@
             <li class="nav-item"><a class="nav-link" href="#idocs_general">General Client Usage</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_common">Shared Clients</a></li>
+          </ul>
+        </li>
+		<li class="nav-item"><a class="nav-link active" href="#idocs_shared">Cross Exchange Development</a>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#shared_tradingmode">Trading mode</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_symbol">Shared symbol</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_pagination">Pagination</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_cross">Interface usage</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_interfaces">Available interfaces</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_cc">CryptoClients.Net</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
@@ -1533,10 +1542,12 @@ await client.UnsubscribeAllAsync();</code></pre>
 				
 		<!-- Customization
 		============================ -->
-        <section id="idocs_common">
-          <h2>Shared Clients</h2>
+        <section id="idocs_shared">
+          <h2>Cross Exchange Development</h2>
 		  
-		  <p>All exhange clients implement various <code>ISharedClient</code> interfaces. Which interfaces are implemented depends on what functionality the exchange API offers.</p>
+		  <p>Unfortunately there is no standard for exchanges when it comes to the API's they offer. Altough most of them offer roughly the same functionality each of them is structured differently and expects+ differently named and formatted parameters.</p>
+		  		  
+		  <p>With this in mind all exhange clients implement various <code>ISharedClient</code> interfaces. These interfaces split the functionality from the exchange specifics allowing for a common implementation for multiple exchanges. Which interfaces are implemented for each exchange depends on what functionality the exchange API offers.</p>
 		  		  
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="shared" role="tablist" style="margin-bottom: -16px;">
@@ -1743,8 +1754,8 @@ var spotSharedSocketClient = okxSocketClient.UnifiedApi.SharedClient;</code></pr
 			  </div>
 			</div>
 						
-		  <h5>TradingMode</h5>  
-		  <p>The shared client interfaces and functionality work with the <code>TradingMode</code> enum. The shared clients of an exchange can supported multiple trading modes.</p>
+		  <h4 id="shared_tradingmode">TradingMode</h4>  
+		  <p>The shared client interfaces and functionality work with the <code>TradingMode</code> enum. This enums determines what part of the API a request targets. Many exchanges support multiple trading modes, which might be split over different sub-clients:</p>
 		  <pre><code>Console.WriteLine(string.Join(", ", binanceClient.UsdFuturesApi.SharedClient.SupportedTradingModes));
 // Output: DeliveryLinear, PerpetualLinear 
 
@@ -1763,8 +1774,8 @@ Console.WriteLine(string.Join(", ", binanceClient.SpotApi.SharedClient.Supported
 			<tr><td><code>TradingMode.DeliveryInverse</code></td><td>Futures contract trading with specific delivery date using a crypto asset as settlement</td></tr>
 		  </table>
 		  
-		  <h5>SharedSymbol</h5>  
-		  <p>One of the main challenges of working with different exchanges is the different names and formats used for symbols. For example, the symbol the ETH/USDT spot trading pair is <code>ETHUSDT</code> on Binance, <code>ETH-USDT</code> on Kucoin and <code>ETH_USDT</code> on GateIo. With futures trading it's even worse, ranging from <code>ETH-USD-SWAP</code> to <code>ETHU24</code></p>
+		  <h4 id="shared_symbol">SharedSymbol</h5>  
+		  <p>One of the main challenges of working with different exchanges is the different names and formats used for symbols. For example, the ETH/USDT spot trading pair is called <code>ETHUSDT</code> on Binance, <code>ETH-USDT</code> on Kucoin and <code>ETH_USDT</code> on GateIo. With futures trading it's even worse, ranging from <code>ETH-USD-SWAP</code> to <code>ETHU24</code></p>
 		  
 		  <p>To combat this problem the <code>SharedSymbol</code> class was introduced. This class takes a <code>TradingMode</code>, base asset name and quote asset name which are used to format the symbol according to the exchange it will be used by.</p>
 		  <pre><code>// Create a symbol reference for ETH/USDT spot trading
@@ -1776,14 +1787,14 @@ var symbol2 = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDC");
 // Create a symbol reference for BTC/USD perpetual inverse futures trading
 var symbol3 = new SharedSymbol(TradingMode.PerpetualInverse, "BTC", "USD");
 
-// Create a symbol reference for BTC/USDT linear futures trading with delivery on 9 Sept 2024
+// Create a symbol reference for BTC/USDT linear futures trading with delivery on 27 Sept 2024
 var symbol4 = new SharedSymbol(TradingMode.DeliveryLinear, "BTC", "USDT", new DateTime(2024, 9, 27));
 
-// Create a symbol reference for ETH/USD inverse futures trading with delivery on 9 Sept 2024
+// Create a symbol reference for ETH/USD inverse futures trading with delivery on 27 Sept 2024
 var symbol5 = new SharedSymbol(TradingMode.DeliveryLinear, "ETH", "USD", new DateTime(2024, 9, 27));
 		  </code></pre>
 		  
-		  <p>With the <code>SharedSymbol</code> functionality available we can request symbol data without having to think about how the exchange expects a symbol</p>
+		  <p>With the <code>SharedSymbol</code> functionality available we can reference symbols without having to think about how the exchange expects a symbol.</p>
 		  <pre><code>var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
 		  
 var tickerMexcResult = await mexcSharedRestClients.GetSpotTickerAsync(new GetTickerRequest(symbol));
@@ -1794,21 +1805,7 @@ var tickerKucoinResult = await kucoinSharedRestClients.GetSpotTickerAsync(new Ge
 Console.WriteLine($"{kucoinSharedRestClients.Exchange} {tickerKucoinResult.Data.Symbol} last price: {tickerKucoinResult.Data.LastPrice}");
 // Output: Kucoin ETH-USDT last price: 2614,49</code></pre>
 
-		<h5>Implementing functionality for multiple exchanges</h5>  
-		<p>When developing functionality supporting multiple exchanges the ISharedClient interfaces allow the functionality to be completely exchange agnostic.</p>
-		<pre><code>// Implementing functionality based on the ISharedClient interfaces
-public async Task<decimal?> GetLastPrice(ISpotTickerRestClient client, string baseAsset, string quoteAsset)
-{
-    var result = await client.GetSpotTickerAsync(new GetTickerRequest(new SharedSymbol(TradingMode.Spot, baseAsset, quoteAsset)));
-    return result.Data?.LastPrice;
-}
-
-// Using the implementation with different exchanges
-var lastBybitPrice = await GetLastPrice(restClient.Bybit.V5Api.SharedClient, "ETH", "USDT");
-var lastGateIoPrice = await GetLastPrice(restClient.GateIo.SpotApi.SharedClient, "ETH", "USDT");
-var lastBinancePrice = await GetLastPrice(restClient.Binance.SpotApi.SharedClient, "ETH", "USDT");</code></pre>
-
-		<h5>Pagination</h5>
+		<h4 id="shared_pagination">Pagination</h4>
 		<p>Some Rest history requests support pagination. These requests take a <code>INextPageToken</code> as parameter and results include a <code>NextPageToken</code> property on the result. These tokens can be used to automatically execute multiple paginated requests</p>
 
 <pre><code>var symbol = new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT");
@@ -1834,8 +1831,23 @@ while (true)
 <pre><code>await foreach (var pageResult in ExchangeHelpers.ExecutePages(client.GetClosedFuturesOrdersAsync, new GetClosedOrdersRequest(symbol, limit: 2)))
     Console.WriteLine($"{pageResult.Data.Count()} items");</code></pre>
 
-		<h5>Available rest shared interfaces</h5>
+		<h4 id="shared_cross">Interface Usage</h4>  
+		<p>When developing functionality supporting multiple exchanges the <code>ISharedClient</code> interfaces allow the functionality to be completely exchange agnostic.</p>
+		<pre><code>// Implementing functionality based on the ISharedClient interfaces
+public async Task<decimal?> GetLastPrice(ISpotTickerRestClient client, string baseAsset, string quoteAsset)
+{
+    var result = await client.GetSpotTickerAsync(new GetTickerRequest(new SharedSymbol(TradingMode.Spot, baseAsset, quoteAsset)));
+    return result.Data?.LastPrice;
+}
+
+// Using the implementation with different exchanges
+var lastBybitPrice = await GetLastPrice(bybitResClient.V5Api.SharedClient, "ETH", "USDT");
+var lastGateIoPrice = await GetLastPrice(gateioRestClient.SpotApi.SharedClient, "ETH", "USDT");
+var lastBinancePrice = await GetLastPrice(binanceRestClient.SpotApi.SharedClient, "ETH", "USDT");</code></pre>
+
+		<h4 id="shared_interfaces">Available Interfaces</h4>
 		
+			<p>Available REST shared interfaces</p>
 		  <table class="table table-bordered">
 			<tr><th>Interface</th><th>Description</th></tr>
 			<tr><td><code>IAssetsRestClient</code></td><td>For requesting withdrawal and deposit info for assets</td></tr>
@@ -1863,7 +1875,7 @@ while (true)
 			<tr><td><code>IPositionModeRestClient</code></td><td>For managing the position mode for the user</td></tr>
 		  </table>
 		  
-		<h5>Available socket shared interfaces</h5>
+			<p>Available Socket shared interfaces</p>
 		  <table class="table table-bordered">
 			<tr><th>Interface</th><th>Description</th></tr>
 			<tr><td><code>IBookTickerSocketClient</code></td><td>For subscribing to book ticker (best bid/ask) updates for a symbol</td></tr>
@@ -1878,6 +1890,36 @@ while (true)
 			<tr><td><code>IFuturesOrderSocketClient</code></td><td>For subscribing to user Futures order updates</td></tr>
 			<tr><td><code>IPositionSocketClient</code></td><td>For subscribing to user position updates</td></tr>
 		  </table>
+		  
+		<h4 id="shared_cc">CryptoClients.Net</h4>
+		  <p>The <code>CryptoClients.Net</code> library has some additional tools for dynamically accessing different exchanges. Both the <code>(I)ExchangeRestClient</code> and <code>(I)ExchangeSocketClient</code> expose methods for executing requests and subscriptions on dynamically selected exchanges.</p>
+		  
+		  <p><b>Rest</b></p>
+		  <pre><code>var restClient = new ExchangeRestClient();
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Get ticker results from Binance and Kucoin
+var tickers = await restClient.GetSpotTickerAsync(new GetTickerRequest(symbol), [Exchange.Binance, Exchange.Kucoin]);
+
+// Get ticker results for all exchanges
+var tickers = await restClient.GetSpotTickerAsync(new GetTickerRequest(symbol));</code></pre>
+		  
+		  <p><b>Socket</b></p>
+		  <pre><code>var socketClient = new ExchangeSocketClient();
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Subscribe to ticker updates on Binance and Kucoin
+var tickers = await socketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
+{
+    Console.WriteLine($"{update.Exchange} update: {update.Data.LastPrice}");
+},
+[Exchange.Binance, Exchange.Kucoin]);
+
+// Subscribe to ticker updates on all exchanges
+var tickers = await socketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
+{
+    Console.WriteLine($"{update.Exchange} update: {update.Data.LastPrice}");
+});</code></pre>
 		  
         </section>
         
