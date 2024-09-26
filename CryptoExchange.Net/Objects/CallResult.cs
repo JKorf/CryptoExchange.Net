@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>
@@ -299,7 +299,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>
@@ -475,7 +475,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <param name="exchange">The exchange</param>
         /// <param name="tradeMode">Trade mode the result applies to</param>
@@ -486,7 +486,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <param name="exchange">The exchange</param>
         /// <param name="tradeModes">Trade modes the result applies to</param>
@@ -497,7 +497,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>
@@ -511,7 +511,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>
@@ -525,7 +525,7 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
-        /// Copy the WebCallResult to a new data type
+        /// Copy the WebCallResult to an ExchangeWebResult with a specific error
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>

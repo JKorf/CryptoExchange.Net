@@ -14,6 +14,7 @@ using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
 using CryptoExchange.Net.Testing.Implementations;
+using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {

@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
 using System;
 
 namespace CryptoExchange.Net.Interfaces

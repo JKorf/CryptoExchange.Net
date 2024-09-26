@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {

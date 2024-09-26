@@ -383,29 +383,21 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Whether the trading mode is linear
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         public static bool IsLinear(this TradingMode type) => type == TradingMode.PerpetualLinear || type == TradingMode.DeliveryLinear;
 
         /// <summary>
         /// Whether the trading mode is inverse
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         public static bool IsInverse(this TradingMode type) => type == TradingMode.PerpetualInverse || type == TradingMode.DeliveryInverse;
         
         /// <summary>
         /// Whether the trading mode is perpetual
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         public static bool IsPerpetual(this TradingMode type) => type == TradingMode.PerpetualInverse || type == TradingMode.PerpetualLinear;
 
         /// <summary>
         /// Whether the trading mode is delivery
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
         public static bool IsDelivery(this TradingMode type) => type == TradingMode.DeliveryInverse || type == TradingMode.DeliveryLinear;
 
         /// <summary>

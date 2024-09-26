@@ -132,11 +132,8 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Rounds a value down to 
+        /// Rounds a value down 
         /// </summary>
-        /// <param name="i"></param>
-        /// <param name="decimalPlaces"></param>
-        /// <returns></returns>
         public static decimal RoundDown(decimal i, double decimalPlaces)
         {
             var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
@@ -144,11 +141,8 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Rounds a value down to 
+        /// Rounds a value up
         /// </summary>
-        /// <param name="i"></param>
-        /// <param name="decimalPlaces"></param>
-        /// <returns></returns>
         public static decimal RoundUp(decimal i, double decimalPlaces)
         {
             var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
@@ -253,11 +247,11 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Apply the rules (price and quantity step size and decimals precision, min/max quantity) from the symbol to the quantity and price
         /// </summary>
-        /// <param name="symbol"></param>
-        /// <param name="quantity"></param>
-        /// <param name="price"></param>
-        /// <param name="adjustedQuantity"></param>
-        /// <param name="adjustedPrice"></param>
+        /// <param name="symbol">The symbol as retrieved from the exchange</param>
+        /// <param name="quantity">Quantity to trade</param>
+        /// <param name="price">Price to trade at</param>
+        /// <param name="adjustedQuantity">Quantity adjusted to match all trading rules</param>
+        /// <param name="adjustedPrice">Price adjusted to match all trading rules</param>
         public static void ApplySymbolRules(SharedSpotSymbol symbol, decimal quantity, decimal? price, out decimal adjustedQuantity, out decimal? adjustedPrice)
         {
             adjustedPrice = price;

@@ -72,11 +72,11 @@ namespace CryptoExchange.Net.SharedApis
         public virtual string ToString(string exchange)
         {
             var sb = new StringBuilder();
-            sb.Append($"{exchange} {EndpointName}");
+            sb.AppendLine($"{exchange} {EndpointName}");
             if (!string.IsNullOrEmpty(RequestNotes))
                 sb.AppendLine(RequestNotes);
-            sb.Append($"Needs authentication: {NeedsAuthentication}");
-            sb.Append($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
+            sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
         }
     }
@@ -109,7 +109,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public virtual Error? ValidateRequest(string exchange, T request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
         {
-            var sw = Stopwatch.StartNew();
             foreach (var param in RequiredOptionalParameters)
             {
                 if (!string.IsNullOrEmpty(param.Name))
@@ -124,7 +123,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
 
             }
-            Console.WriteLine(sw.ElapsedMilliseconds);
+
             return ValidateRequest(exchange, request.ExchangeParameters, tradingMode, supportedTradingModes);
         }
 
@@ -133,7 +132,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             var sb = new StringBuilder();
             sb.AppendLine($"{exchange} {typeof(T).Name}");
-            sb.Append($"Needs authentication: {NeedsAuthentication}");
+            sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
             if (!string.IsNullOrEmpty(RequestNotes))
                 sb.AppendLine(RequestNotes);
             if (RequiredOptionalParameters.Any())
