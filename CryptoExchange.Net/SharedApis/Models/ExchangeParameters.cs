@@ -166,7 +166,7 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <summary>
-        /// Reset the static parameters
+        /// Reset the static parameters, clears all parameters for all exchanges
         /// </summary>
         public static void ResetStaticParameters()
         {

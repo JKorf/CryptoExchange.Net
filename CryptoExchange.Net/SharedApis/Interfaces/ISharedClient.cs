@@ -29,14 +29,14 @@ namespace CryptoExchange.Net.SharedApis
         string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
 
         /// <summary>
-        /// Set default exchange parameters. This can be used instead of passing in an ExchangeParameters object which each request.
+        /// Set a default exchange parameter. This can be used instead of passing in an ExchangeParameters object which each request.
         /// </summary>
         /// <param name="name">Parameter name</param>
         /// <param name="value">Parameter value</param>
         void SetDefaultExchangeParameter(string name, object value);
 
         /// <summary>
-        /// Reset the default exchange parameters.
+        /// Reset the default exchange parameters, resets parameters for all exchanges
         /// </summary>
         void ResetDefaultExchangeParameters();
     }
