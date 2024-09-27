@@ -1859,7 +1859,26 @@ while (true)
 
 <pre><code>await foreach (var pageResult in ExchangeHelpers.ExecutePages(client.GetClosedFuturesOrdersAsync, new GetClosedOrdersRequest(symbol, limit: 2)))
     Console.WriteLine($"{pageResult.Data.Count()} items");</code></pre>
+	
+	<h4 id="shared_parameters">Optional and exchange specific parameters</h4>
+		<p>Not all exchanges require the same parameters. Some parameters are defined on the request model, but only required for specific exchanges. For example a <code>listenKey</code> parameter when subscribing to a user stream. When not provided for an exchange that needs it an <code>ArgumentError</code> will be returned.</p>
+		
+		<p>Other parameters are not defined on the request model at all because they're very specific to a single exchange. For example the <code>AccountId</code> parameter for Spot authenticated requests on HTX. To not pollute the request models with every single possible parameter for each single exchange there is an <code>ExchangeParameters</code> structure to provide these values.</p>
+		
+		<pre><code>// Set as static parameter, automatically used if not overridden
+ExchangeParameters.SetStaticParameter("HTX", "AccountId", 123123123);
+var balances1 = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new GetBalancesRequest());
 
+// Specify exchange parameters for a request
+var exchangeParameters = new ExchangeParameters(new ExchangeParameter("HTX", "AccountId", 456456456));
+var balances = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new GetBalancesRequest(exchangeParameters: exchangeParameters));</code></pre>
+		
+		<p>To determine which parameters are required for an exchange request either inspect the ArgmumentError when the call fails, or output the request inf:</p>
+		<pre><code>Console.WriteLine(restClient.HTX.SpotApi.SharedClient.GetBalancesOptions.ToString(Exchange.HTX));
+// Output:
+// HTX GetBalancesRequest
+// Needs authentication: True
+// Required exchange specific parameters: [Int64] AccountId: Account id of the user | example: 123123123</code></pre>
 		<h4 id="shared_interfaces">Available Interfaces</h4>
 		
 			<p>Available REST shared interfaces</p>
