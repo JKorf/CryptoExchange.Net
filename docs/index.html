@@ -1873,7 +1873,7 @@ var balances1 = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new G
 var exchangeParameters = new ExchangeParameters(new ExchangeParameter("HTX", "AccountId", 456456456));
 var balances = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new GetBalancesRequest(exchangeParameters: exchangeParameters));</code></pre>
 		
-		<p>To determine which parameters are required for an exchange request either inspect the ArgmumentError when the call fails, or output the request inf:</p>
+		<p>To determine which parameters are required for an exchange request either inspect the ArgmumentError when the call fails, or output the request info:</p>
 		<pre><code>Console.WriteLine(restClient.HTX.SpotApi.SharedClient.GetBalancesOptions.ToString(Exchange.HTX));
 // Output:
 // HTX GetBalancesRequest
