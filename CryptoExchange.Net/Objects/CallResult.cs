@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.SharedApis;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -285,6 +286,32 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <param name="data">The data</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeMode, this.As<K>(data));
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
+        /// <param name="data">The data</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeModes, this.As<K>(data));
+        }
+
+        /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
@@ -445,6 +472,68 @@ namespace CryptoExchange.Net.Objects
         public new WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, default, error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <returns></returns>
+        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode tradeMode)
+        {
+            return new ExchangeWebResult<T>(exchange, tradeMode, this);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
+        /// <returns></returns>
+        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode[] tradeModes)
+        {
+            return new ExchangeWebResult<T>(exchange, tradeModes, this);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <param name="data">Data</param>
+        /// <param name="nextPageToken">Next page token</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, INextPageToken? nextPageToken = null)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeMode, As<K>(data), nextPageToken);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="tradeModes">Trade modes the result applies to</param>
+        /// <param name="data">Data</param>
+        /// <param name="nextPageToken">Next page token</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data, INextPageToken? nextPageToken = null)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeModes, As<K>(data), nextPageToken);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult with a specific error
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
+        {
+            return new ExchangeWebResult<K>(exchange, null, AsError<K>(error));
         }
 
         /// <summary>

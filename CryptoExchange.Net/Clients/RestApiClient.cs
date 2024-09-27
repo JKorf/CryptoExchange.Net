@@ -18,7 +18,6 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace CryptoExchange.Net.Clients
 {

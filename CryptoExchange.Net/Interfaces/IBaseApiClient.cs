@@ -1,4 +1,7 @@
 ﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
+using System;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -17,8 +20,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="baseAsset">The base asset</param>
         /// <param name="quoteAsset">The quote asset</param>
+        /// <param name="tradingMode">The trading mode</param>
+        /// <param name="deliverDate">The deliver date for a delivery futures symbol</param>
         /// <returns></returns>
-        string FormatSymbol(string baseAsset, string quoteAsset);
+        string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
 
         /// <summary>
         /// Set the API credentials for this API client

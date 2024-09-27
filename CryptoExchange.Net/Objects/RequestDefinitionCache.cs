@@ -1,7 +1,5 @@
 ﻿using CryptoExchange.Net.RateLimiting.Interfaces;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects

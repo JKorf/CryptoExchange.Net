@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using System.Collections.Generic;
-using System.Security;
 
 namespace CryptoExchange.Net.RateLimiting.Filters
 {

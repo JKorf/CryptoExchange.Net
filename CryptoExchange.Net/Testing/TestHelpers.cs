@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -170,7 +169,7 @@ namespace CryptoExchange.Net.Testing
         {
             var assembly = Assembly.GetAssembly(clientType);
             var interfaceType = clientType.GetInterface("I" + clientType.Name);
-            var clientInterfaces = assembly.GetTypes().Where(t => t.Name.StartsWith("I" + clientType.Name));
+            var clientInterfaces = assembly.GetTypes().Where(t => t.Name.StartsWith("I" + clientType.Name) && !t.Name.EndsWith("Shared"));
 
             foreach (var clientInterface in clientInterfaces)
             {

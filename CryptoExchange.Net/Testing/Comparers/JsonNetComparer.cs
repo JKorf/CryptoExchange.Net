@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Nodes;
 using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Converters.JsonNet;
 using Newtonsoft.Json;

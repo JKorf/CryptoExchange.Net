@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects.Sockets;
 using System;
 
 namespace CryptoExchange.Net.Objects.Options

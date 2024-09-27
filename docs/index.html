@@ -85,7 +85,15 @@
             <li class="nav-item"><a class="nav-link" href="#idocs_general">General Client Usage</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_rest">REST API Client</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_socket">Websocket API Client</a></li>
-            <li class="nav-item"><a class="nav-link" href="#idocs_common">Common Clients</a></li>
+          </ul>
+        </li>
+		<li class="nav-item"><a class="nav-link active" href="#idocs_shared">Cross Exchange Development</a>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="#shared_tradingmode">Trading mode</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_symbol">Shared symbol</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_pagination">Pagination</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_interfaces">Available interfaces</a></li>
+            <li class="nav-item"><a class="nav-link" href="#shared_cc">CryptoClients.Net</a></li>
           </ul>
         </li>
         <li class="nav-item"><a class="nav-link" href="#idocs_options">Options & Authorization</a>
@@ -146,7 +154,7 @@
 			<tr><td>CoinEx</td><td><a href="https://github.com/JKorf/CoinEx.Net">JKorf/CoinEx.Net</a></td><td><a href="https://www.nuget.org/packages/CoinEx.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>CoinGecko</td><td><a href="https://github.com/JKorf/CoinGecko.Net">JKorf/CoinGecko.Net</a></td><td><a href="https://www.nuget.org/packages/CoinGecko.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Gate.io</td><td><a href="https://github.com/JKorf/GateIo.Net">JKorf/GateIo.Net</a></td><td><a href="https://www.nuget.org/packages/GateIo.Net" target="_blank"><img src="https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square" /></a></td></tr>
-			<tr><td>Huobi</td><td><a href="https://github.com/JKorf/Huobi.Net">JKorf/Huobi.Net</a></td><td><a href="https://www.nuget.org/packages/Huobi.Net" target="_blank"><img src="https://img.shields.io/nuget/v/Huobi.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>HTX</td><td><a href="https://github.com/JKorf/HTX.Net">JKorf/HTX.Net</a></td><td><a href="https://www.nuget.org/packages/JKorf.HTX.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JKorf.HTX.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Kraken</td><td><a href="https://github.com/JKorf/Kraken.Net">JKorf/Kraken.Net</a></td><td><a href="https://www.nuget.org/packages/KrakenExchange.Net" target="_blank"><img src="https://img.shields.io/nuget/v/KrakenExchange.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Kucoin</td><td><a href="https://github.com/JKorf/Kucoin.Net">JKorf/Kucoin.Net</a></td><td><a href="https://www.nuget.org/packages/Kucoin.Net" target="_blank"><img src="https://img.shields.io/nuget/v/Kucoin.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
@@ -199,7 +207,7 @@
 		============================ -->
         <section id="idocs_start">
         <h1>Getting Started</h1>
-		<p>All packages are available on Nuget. After installing the package the API is available by using one of the library clients, or through the <code>ICrypoRestClient</code>, <code>ICryptoSocketClient</code> or <code>ISpotClient</code> interfaces.</p>
+		<p>All packages are available on Nuget. After installing the package the API is available by using one of the library clients, or through the <code>ICrypoRestClient</code>, <code>ICryptoSocketClient</code> or <code>ISharedClient</code> interfaces.</p>
         </section>
         		
 		<hr class="divider">
@@ -228,6 +236,9 @@
 				<a class="nav-link" id="install-bitget-tab" data-toggle="tab" href="#install-bitget" role="tab" aria-controls="install-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-bitmart-tab" data-toggle="tab" href="#install-bitmart" role="tab" aria-controls="install-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -237,7 +248,10 @@
 				<a class="nav-link" id="install-coinex-tab" data-toggle="tab" href="#install-coinex" role="tab" aria-controls="install-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="install-huobi-tab" data-toggle="tab" href="#install-huobi" role="tab" aria-controls="install-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="install-gateio-tab" data-toggle="tab" href="#install-gateio" role="tab" aria-controls="install-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-htx-tab" data-toggle="tab" href="#install-htx" role="tab" aria-controls="install-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-kraken-tab" data-toggle="tab" href="#install-kraken" role="tab" aria-controls="install-kraken" aria-selected="false">Kraken</a>
@@ -271,6 +285,9 @@
 				<pre><code>dotnet add package JK.Bitget.Net</code></pre>
 				<img src="assets/images/BitgetInstall.png" />
 			  </div>
+			  <div class="tab-pane fade" id="install-bitmart" role="tabpanel" aria-labelledby="install-bitmart-tab">
+				<pre><code>dotnet add package BitMart.Net</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="install-bybit" role="tabpanel" aria-labelledby="install-bybit-tab">
 				<pre><code>dotnet add package Bybit.Net</code></pre>
 				<img src="assets/images/BybitInstall.png" />
@@ -283,9 +300,11 @@
 				<pre><code>dotnet add package CoinEx.Net</code></pre>
 				<img src="assets/images/CoinExInstall.png" />
 			  </div>
-			  <div class="tab-pane fade" id="install-huobi" role="tabpanel" aria-labelledby="install-huobi-tab">
-				<pre><code>dotnet add package Huobi.Net</code></pre>
-				<img src="assets/images/HuobiInstall.png" />
+			  <div class="tab-pane fade" id="install-gateio" role="tabpanel" aria-labelledby="install-gateio-tab">
+				<pre><code>dotnet add package GateIo.Net</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="install-htx" role="tabpanel" aria-labelledby="install-htx-tab">
+				<pre><code>dotnet add package JKorf.HTX.Net</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab">
 				<pre><code>dotnet add package KrakenExchange.Net</code></pre>
@@ -333,6 +352,9 @@
 				<a class="nav-link" id="di-bitget-tab" data-toggle="tab" href="#di-bitget" role="tab" aria-controls="di-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-bitmart-tab" data-toggle="tab" href="#di-bitmart" role="tab" aria-controls="di-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-bybit-tab" data-toggle="tab" href="#di-bybit" role="tab" aria-controls="di-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -342,7 +364,10 @@
 				<a class="nav-link" id="di-coinex-tab" data-toggle="tab" href="#di-coinex" role="tab" aria-controls="di-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="di-huobi-tab" data-toggle="tab" href="#di-huobi" role="tab" aria-controls="di-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="di-gateio-tab" data-toggle="tab" href="#di-gateio" role="tab" aria-controls="di-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-htx-tab" data-toggle="tab" href="#di-htx" role="tab" aria-controls="di-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-kraken-tab" data-toggle="tab" href="#di-kraken" role="tab" aria-controls="di-kraken" aria-selected="false">Kraken</a>
@@ -373,6 +398,9 @@
 			  <div class="tab-pane fade" id="di-bitget" role="tabpanel" aria-labelledby="di-bitget-tab">
 <pre><code>builder.Services.AddBitget();</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="di-bitmart" role="tabpanel" aria-labelledby="di-bitmart-tab">
+<pre><code>builder.Services.AddBitMart();</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="di-bybit" role="tabpanel" aria-labelledby="di-bybit-tab">
 <pre><code>builder.Services.AddBybit();</code></pre>
 			  </div>
@@ -382,8 +410,11 @@
 			  <div class="tab-pane fade" id="di-coinex" role="tabpanel" aria-labelledby="di-coinex-tab">
 <pre><code>builder.Services.AddCoinEx();</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="di-huobi" role="tabpanel" aria-labelledby="di-huobi-tab">
-<pre><code>builder.Services.AddHuobi();</code></pre>
+			  <div class="tab-pane fade" id="di-gateio" role="tabpanel" aria-labelledby="di-gateio-tab">
+<pre><code>builder.Services.AddGateIo();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-htx" role="tabpanel" aria-labelledby="di-htx-tab">
+<pre><code>builder.Services.AddHTX();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-kraken" role="tabpanel" aria-labelledby="di-kraken-tab">
 <pre><code>builder.Services.AddKraken();</code></pre>
@@ -407,7 +438,7 @@
 				<a class="nav-link active" id="interfaces-cc-tab" data-toggle="tab" href="#interfaces-cc" role="tab" aria-controls="interfaces-cc" aria-selected="true">CryptoClients</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="true">Binance</a>
+				<a class="nav-link" id="interfaces-binance-tab" data-toggle="tab" href="#interfaces-binance" role="tab" aria-controls="interfaces-binance" aria-selected="false">Binance</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-bingx-tab" data-toggle="tab" href="#interfaces-bingx" role="tab" aria-controls="interfaces-bingx" aria-selected="false">BingX</a>
@@ -419,6 +450,9 @@
 				<a class="nav-link" id="interfaces-bitget-tab" data-toggle="tab" href="#interfaces-bitget" role="tab" aria-controls="interfaces-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-bitmart-tab" data-toggle="tab" href="#interfaces-bitmart" role="tab" aria-controls="interfaces-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-bybit-tab" data-toggle="tab" href="#interfaces-bybit" role="tab" aria-controls="interfaces-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -428,7 +462,10 @@
 				<a class="nav-link" id="interfaces-coinex-tab" data-toggle="tab" href="#interfaces-coinex" role="tab" aria-controls="interfaces-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="interfaces-huobi-tab" data-toggle="tab" href="#interfaces-huobi" role="tab" aria-controls="interfaces-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="interfaces-gateio-tab" data-toggle="tab" href="#interfaces-gateio" role="tab" aria-controls="interfaces-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-htx-tab" data-toggle="tab" href="#interfaces-htx" role="tab" aria-controls="interfaces-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-kraken-tab" data-toggle="tab" href="#interfaces-kraken" role="tab" aria-controls="interfaces-kraken" aria-selected="false">Kraken</a>
@@ -472,12 +509,11 @@
 						<td>All exchange specific order book factories. The factory can be used for creating SymbolOrderBook (locally synced order books) instances for the exchange</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for each exchange. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
-			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade" id="interfaces-binance" role="tabpanel" aria-labelledby="interfaces-binance-tab">
 				<table class="table table-bordered">
 					<tr><th>Interface</th><th>Description</th></tr>
@@ -502,8 +538,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Binance. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -531,8 +567,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for BingX. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -560,8 +596,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Bitfinex. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -589,8 +625,37 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Bitget. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-bitmart" role="tabpanel" aria-labelledby="interfaces-bitmart-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IBitMartRestClient</code></td>
+						<td>The client for accessing the BitMart REST API</td>
+					</tr>
+					<tr>
+						<td><code>IBitMartSocketClient</code></td>
+						<td>The client for accessing the BitMart Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IBitMartOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Bitget API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -618,8 +683,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Bybit. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -660,25 +725,25 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for CoinEx. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
-			  <div class="tab-pane fade" id="interfaces-huobi" role="tabpanel" aria-labelledby="interfaces-huobi-tab">
+			  <div class="tab-pane fade" id="interfaces-gateio" role="tabpanel" aria-labelledby="interfaces-gateio-tab">
 				<table class="table table-bordered">
 					<tr><th>Interface</th><th>Description</th></tr>
 					<tr>
-						<td><code>IHuobiRestClient</code></td>
-						<td>The client for accessing the Huobi REST API</td>
+						<td><code>IGateIoRestClient</code></td>
+						<td>The client for accessing the GateIo REST API</td>
 					</tr>
 					<tr>
-						<td><code>IHuobiSocketClient</code></td>
-						<td>The client for accessing the Huobi Websocket API</td>
+						<td><code>IGateIoSocketClient</code></td>
+						<td>The client for accessing the GateIo Websocket API</td>
 					</tr>
 					<tr>
-						<td><code>IHuobiOrderBookFactory</code></td>
-						<td>A factory for creating SymbolOrderBook instances for the Huobi API</td>
+						<td><code>IGateIoOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the GateIo API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -689,8 +754,37 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Huobi. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-htx" role="tabpanel" aria-labelledby="interfaces-htx-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IHTXRestClient</code></td>
+						<td>The client for accessing the HTX REST API</td>
+					</tr>
+					<tr>
+						<td><code>IHTXSocketClient</code></td>
+						<td>The client for accessing the HTX Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IHTXOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the HTX API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -718,8 +812,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Kraken. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -747,8 +841,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Kucoin. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -776,8 +870,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for Mexc. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -805,8 +899,8 @@
 						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
 					</tr>
 					<tr>
-						<td><code>ISpotClient</code></td>
-						<td>An implementation of the ISpotClient interface for OKX. The ISpotClient offers basic Spot API functionality in a combined interface</td>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
 					</tr>
 				</table>
 			  </div>
@@ -821,7 +915,8 @@
 		  <p>All clients work with the same principles:</p>
 		  <ul>
 		    <li>Mandatory parameters are non-nullable while optional parameters are nullable and will have a default value of null.</li>
-		    <li>Any operation will return a form of <code>CallResult</code>. This result can and should be check for success. The clients will not throw exceptions.</li>
+		    <li>Any operation will return a form of <code>CallResult</code>. This result can and should be checked for success using the `Success` property. If `Success` is false the `Error` property will have more info.</li>
+			<li>Clients will not throw exceptions.</li>
 		  </ul>
 		</section>
 		
@@ -850,6 +945,9 @@
 				<a class="nav-link" id="rest-bitget-tab" data-toggle="tab" href="#rest-bitget" role="tab" aria-controls="rest-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-bitmart-tab" data-toggle="tab" href="#rest-bitmart" role="tab" aria-controls="rest-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-bybit-tab" data-toggle="tab" href="#rest-bybit" role="tab" aria-controls="rest-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -859,7 +957,10 @@
 				<a class="nav-link" id="rest-coinex-tab" data-toggle="tab" href="#rest-coinex" role="tab" aria-controls="rest-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="rest-huobi-tab" data-toggle="tab" href="#rest-huobi" role="tab" aria-controls="rest-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="rest-gateio-tab" data-toggle="tab" href="#rest-gateio" role="tab" aria-controls="rest-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-htx-tab" data-toggle="tab" href="#rest-htx" role="tab" aria-controls="rest-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-kraken-tab" data-toggle="tab" href="#rest-kraken" role="tab" aria-controls="rest-kraken" aria-selected="false">Kraken</a>
@@ -935,6 +1036,18 @@ else
   // Handle data, tickersResult.Data will contain the actual data
 }</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="rest-bitmart" role="tabpanel" aria-labelledby="rest-bitmart-tab">
+				<pre><code>var client = new BitMartRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="rest-bybit" role="tabpanel" aria-labelledby="rest-bybit-tab">
 				<pre><code>var client = new BybitRestClient();
 var tickersResult = await client.V5Api.ExchangeData.GetSpotTickersAsync();
@@ -971,8 +1084,20 @@ else
   // Handle data, tickersResult.Data will contain the actual data
 }</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="rest-huobi" role="tabpanel" aria-labelledby="rest-huobi-tab">
-				<pre><code>var client = new HuobiRestClient();
+			  <div class="tab-pane fade" id="rest-gateio" role="tabpanel" aria-labelledby="rest-gateio-tab">
+				<pre><code>var client = new GateIoRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-htx" role="tabpanel" aria-labelledby="rest-htx-tab">
+				<pre><code>var client = new HTXRestClient();
 var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
 if (!tickersResult.Success)
 {
@@ -1121,13 +1246,19 @@ else
 				<a class="nav-link" id="socket-bitget-tab" data-toggle="tab" href="#socket-bitget" role="tab" aria-controls="socket-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-bitmart-tab" data-toggle="tab" href="#socket-bitmart" role="tab" aria-controls="socket-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-bybit-tab" data-toggle="tab" href="#socket-bybit" role="tab" aria-controls="socket-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-coinex-tab" data-toggle="tab" href="#socket-coinex" role="tab" aria-controls="socket-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="socket-huobi-tab" data-toggle="tab" href="#socket-huobi" role="tab" aria-controls="socket-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="socket-gateio-tab" data-toggle="tab" href="#socket-gateio" role="tab" aria-controls="socket-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-htx-tab" data-toggle="tab" href="#socket-htx" role="tab" aria-controls="socket-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-kraken-tab" data-toggle="tab" href="#socket-kraken" role="tab" aria-controls="socket-kraken" aria-selected="false">Kraken</a>
@@ -1198,6 +1329,17 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="socket-bitmart" role="tabpanel" aria-labelledby="socket-bitmart-tab">
+				<pre><code>var client = new BitMartSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="socket-bybit" role="tabpanel" aria-labelledby="socket-bybit-tab">
 				<pre><code>var client = new BybitSocketClient();
 var subscribeResult = await client.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
@@ -1220,8 +1362,19 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="socket-huobi" role="tabpanel" aria-labelledby="socket-huobi-tab">
-				<pre><code>var client = new HuobiSocketClient();
+			  <div class="tab-pane fade" id="socket-gateio" role="tabpanel" aria-labelledby="socket-gateio-tab">
+				<pre><code>var client = new GateIoSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-htx" role="tabpanel" aria-labelledby="socket-htx-tab">
+				<pre><code>var client = new HTXSocketClient();
 var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync(update => {
   // Handle the data update, update.Data will contain the actual data
 });
@@ -1388,42 +1541,404 @@ await client.UnsubscribeAllAsync();</code></pre>
 				
 		<!-- Customization
 		============================ -->
-        <section id="idocs_common">
-          <h2>Common Clients</h2>
-		  <p>The CryptoClients.Net library exposes two client classes. These clients aim to make using the different API's easier.</p>
+        <section id="idocs_shared">
+          <h2>Cross Exchange Development</h2>
 		  
-          <p><b>(I)ExchangeRestClient</b><br />
-			The <code>IExchangeRestClient</code> (or <code>ExchangeRestClient</code> when used directly) can be used to easily access REST clients for different API's.
-		  </p>
-		  <p>
-		  For example, using the Binance, Bybit and Kucoin API's can be done like this:
-			<pre><code>var exchangeRestClient = new ExchangeRestClient(); // Either construct it or inject the IExchangeRestClient into your service after having called 'AddCryptoClients()' during service regirations
-var binanceTicker = await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickersAsync();
-var bybitTicker = await exchangeRestClient.Bybit.V5Api.ExchangeData.GetTickers();
-var kucoinTicker = await exchangeRestClient.Kucoin.SpotApi.ExchangeData.GetTickers();</code></pre>
-		  </p>
+		  <p>Unfortunately there is no standard for exchanges when it comes to the API's they offer. Altough most of them offer roughly the same functionality each of them is structured differently and expects+ differently named and formatted parameters.</p>
+		  		  
+		  <p>With this in mind all exhange clients implement various <code>ISharedClient</code> interfaces. These interfaces split the functionality from the exchange specifics allowing for a common implementation for multiple exchanges. Which interfaces are implemented for each exchange depends on what functionality the exchange API offers.</p>
+		  		  
+		  <p>The <code>ISharedClient</code> interfaces allow for functionality to be defined once for every exchange instead of (partially) having to implement it for each exchange</p>
+				  
+		  <pre><code>// Abstract out the exchange request by using the shared ticker interface
+public async Task<SharedSpotTicker?> GetTickerAsync(ISpotTickerRestClient client, SharedSymbol symbol)
+{
+    var result = await client.GetSpotTickerAsync(new GetTickerRequest(symbol));
+    return result.Data;
+}
+
+// Abstract out the exchange response by using the shared response model
+public bool CheckForTrigger(SharedSpotTicker ticker)
+{
+    return ticker.HighPrice - ticker.LastPrice > 10;
+}
+
+
+// Requesting the data from different exchanges
+var sharedSymbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+var lastBybitTicker = await GetTickerAsync(bybitResClient.V5Api.SharedClient, sharedSymbol);
+var lastGateIoTicker = await GetTickerAsync(gateioRestClient.SpotApi.SharedClient, sharedSymbol);
+var lastBinanceTicker = await GetTickerAsync(binanceRestClient.SpotApi.SharedClient, sharedSymbol);
+
+// Checking response with different exchange responses
+var bybitTriggered = CheckForTrigger(lastBybitTicker);
+var gateioTriggered = CheckForTrigger(lastGateIoTicker);
+var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
+
+		  <p>See <a href="https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/SharedClients">CryptoExchange.Net examples</a> for an example of how to use this. </p>
+				  
+		  <p>Shared clients for all exchanges:</p>
+		  <div class="tab-wrap">
+		  <ul class="nav nav-tabs" id="shared" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="shared-binance-tab" data-toggle="tab" href="#shared-binance" role="tab" aria-controls="shared-binance" aria-selected="true">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-bingx-tab" data-toggle="tab" href="#shared-bingx" role="tab" aria-controls="shared-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-bitfinex-tab" data-toggle="tab" href="#shared-bitfinex" role="tab" aria-controls="shared-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-bitget-tab" data-toggle="tab" href="#shared-bitget" role="tab" aria-controls="shared-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-bitmart-tab" data-toggle="tab" href="#shared-bitmart" role="tab" aria-controls="shared-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-bybit-tab" data-toggle="tab" href="#shared-bybit" role="tab" aria-controls="shared-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-coinex-tab" data-toggle="tab" href="#shared-coinex" role="tab" aria-controls="shared-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-gateio-tab" data-toggle="tab" href="#shared-gateio" role="tab" aria-controls="shared-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-htx-tab" data-toggle="tab" href="#shared-htx" role="tab" aria-controls="shared-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-kraken-tab" data-toggle="tab" href="#shared-kraken" role="tab" aria-controls="shared-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-kucoin-tab" data-toggle="tab" href="#shared-kucoin" role="tab" aria-controls="shared-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-mexc-tab" data-toggle="tab" href="#shared-mexc" role="tab" aria-controls="shared-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-okx-tab" data-toggle="tab" href="#shared-okx" role="tab" aria-controls="shared-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">			  
+			   <div class="tab-pane fade show active" id="shared-binance" role="tabpanel" aria-labelledby="shared-binance-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = binanceRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = binanceSocketClient.SpotApi.SharedClient; 
+
+// USD-M Futures API common functionality rest client
+var usdFuturesSharedRestClient = binanceRestClient.UsdFuturesApi.SharedClient;
+
+// USD-M Futures API common functionality socket client
+var usdFuturesSharedSocketClient = binanceSocketClient.UsdFuturesApi.SharedClient;
+
+// Coin-M Futures API common functionality rest client
+var coinFuturesSharedRestClient = binanceRestClient.CoinFuturesApi.SharedClient;
+
+// Coin-M Futures API common functionality socket client
+var coinFuturesSharedSocketClient = binanceSocketClient.CoinFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-bingx" role="tabpanel" aria-labelledby="shared-bingx-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bingXRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bingXSocketClient.SpotApi.SharedClient; 
+
+// Perpetual Futures API common functionality rest client
+var usdFuturesSharedRestClient = bingXRestClient.PerpetualFuturesApi.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bingXSocketClient.PerpetualFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-bitfinex" role="tabpanel" aria-labelledby="shared-bitfinex-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitfinexRestClient.SpotApi.SharedClient; 
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitfinexSocketClient.SpotApi.SharedClient; </code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-bitget" role="tabpanel" aria-labelledby="shared-bitget-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitgetRestClient.SpotApiV2.SharedClient;
+ 
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitgetSocketClient.SpotApiV2.SharedClient; 
+
+// Perpetual Futures API common functionality rest client
+var usdFuturesSharedRestClient = bitgetRestClient.FuturesApiV2.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bitgetSocketClient.FuturesApiV2.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-bitmart" role="tabpanel" aria-labelledby="shared-bitmart-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = bitMartRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = bitMartSocketClient.SpotApi.SharedClient;
+
+// USD Futures API common functionality rest client
+var usdFuturesSharedRestClient = bitMartRestClient.UsdFuturesApi.SharedClient;
+
+// USD Futures API common functionality socket client
+var usdFuturesSharedSocketClient = bitMartSocketClient.UsdFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-bybit" role="tabpanel" aria-labelledby="shared-bybit-tab">
+<pre><code>// Spot and Futures API common functionality rest client
+var spotSharedRestClients = bybitRestClient.V5Api.SharedClient;
+
+// Spot and Futures API common functionality socket client
+var spotSharedSocketClient = bybitSocketClient.V5SpotApi.SharedClient;
+
+// Linear Futures API common functionality socket client
+var linearFuturesSharedSocketClient = bybitSocketClient.V5LinearApi.SharedClient;
+
+// Inverse Futures API common functionality socket client
+var inverseFuturesspotSharedSocketClient = bybitSocketClient.V5InverseApi.SharedClient;
+
+// Private Futures API common functionality socket client
+var privateFuturesSharedSocketClient = bybitSocketClient.V5PrivateApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-coinex" role="tabpanel" aria-labelledby="shared-coinex-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = coinExRestClient.SpotApiV2.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = coinExSocketClient.SpotApiV2.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = coinExRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = coinExSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>			  
+			  <div class="tab-pane fade" id="shared-gateio" role="tabpanel" aria-labelledby="shared-gateio-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = gateioRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = gateioSocketClient.SpotApi.SharedClient;
+
+// Perpetual Futures API common functionality rest client
+var perpFuturesSharedRestClient = gateioRestClient.PerpetualFuturesApi.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var perpFuturesSharedSocketClient = gateioSocketClient.PerpetualFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-htx" role="tabpanel" aria-labelledby="shared-htx-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = htxRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = htxSocketClient.SpotApi.SharedClient;
+
+// USDT Futures API common functionality rest client
+var usdFuturesSharedRestClient = htxRestClient.UsdtFuturesApi.SharedClient;
+
+// USDT Futures API common functionality socket client
+var usdFuturesSharedSocketClient = htxSocketClient.UsdtFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-kraken" role="tabpanel" aria-labelledby="shared-kraken-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = krakenRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = krakenSocketClient.SpotApi.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = krakenRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = krakenSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-kucoin" role="tabpanel" aria-labelledby="shared-kucoin-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = kucoinRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = kucoinSocketClient.SpotApi.SharedClient;
+
+// Futures API common functionality rest client
+var usdFuturesSharedRestClient = kucoinRestClient.FuturesApi.SharedClient;
+
+// Futures API common functionality socket client
+var usdFuturesSharedSocketClient = kucoinSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-mexc" role="tabpanel" aria-labelledby="shared-mexc-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = mexcRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = mexcSocketClient.SpotApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-okx" role="tabpanel" aria-labelledby="shared-okx-tab">
+<pre><code>// Futures and Spot API common functionality rest client
+var spotSharedRestClients = okxRestClient.UnifiedApi.SharedClient;
+
+// Futures and Spot API common functionality socket client
+var spotSharedSocketClient = okxSocketClient.UnifiedApi.SharedClient;</code></pre>
+			  </div>
+			</div>
+						
+		  <h4 id="shared_tradingmode">TradingMode</h4>  
+		  <p>The shared client interfaces and functionality work with the <code>TradingMode</code> enum. This enums determines what part of the API a request targets. Many exchanges support multiple trading modes, which might be split over different sub-clients:</p>
+		  <pre><code>Console.WriteLine(string.Join(", ", binanceClient.UsdFuturesApi.SharedClient.SupportedTradingModes));
+// Output: DeliveryLinear, PerpetualLinear 
+
+Console.WriteLine(string.Join(", ", binanceClient.CoinFuturesApi.SharedClient.SupportedTradingModes));
+// Output: DeliveryInverse, PerpetualInverse
+
+Console.WriteLine(string.Join(", ", binanceClient.SpotApi.SharedClient.SupportedTradingModes));
+// Output: Spot</code></pre>
 		  
-          <p><b>(I)ExchangeSocketClient</b><br />
-		  Similarly as the <code>(I)ExchangeRestClient</code> this client allows you to access the different Websocket clients through a single access point.
-		  </p>
-		  <p>For example accessing the Bitget, Kraken and OKX API's could be done like this:
-		  <pre><code>var exchangeSocketClient = new ExchangeSocketClient(); // Either construct it or inject the IExchangeSocketClient into your service after having called 'AddCryptoClients()' during service regirations
-var bitgetSub = await exchangeSocketClient.Bitget.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {});
-var krakenSub = await exchangeSocketClient.Kraken.SpotApi.SubscribeToTickerUpdatesAsync("ETH/USD", data => {});
-var okxSub = await exchangeSocketClient.OKX.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {});</code></pre>
-		  </p>
+		  <table class="table table-bordered">
+			<tr><th>Mode</th><th>Description</th></tr>
+			<tr><td><code>TradingMode.Spot</code></td><td>Spot trading</td></tr>
+			<tr><td><code>TradingMode.PerpetualLinear</code></td><td>Futures contract trading without delivery date using stablecoin as settlement</td></tr>
+			<tr><td><code>TradingMode.DeliveryLinear</code></td><td>Futures contract trading with specific delivery date using stablecoin as settlement</td></tr>
+			<tr><td><code>TradingMode.PerpetualInverse</code></td><td>Futures contract trading without delivery date using a crypto asset as settlement</td></tr>
+			<tr><td><code>TradingMode.DeliveryInverse</code></td><td>Futures contract trading with specific delivery date using a crypto asset as settlement</td></tr>
+		  </table>
 		  
-          <p><b>ISpotClient</b><br />
-		  The <code>ISpotClient</code> is a REST API client interface implemented by each library which implements a Spot trading API. It provided a common way of doing basic operations on the Spot market, for example getting ticker or trade data, but also placing and retrieving orders. Because this interface is implemented for each exchange with a Spot market the interface is relatively basic, only exposing methods that are supported by all the APIs.
-		  </p>
-		  <p>
-		  The <code>ISpotClient</code> is added to the service collection when using <a href="#idocs_di">dependency injection</a>. Alternatively it can be accessed for a specific client by calling the `CommonSpotClient` property on the Spot sub-API of a client:
-		  <pre><code>var spotClient = restClient.SpotApi.CommonSpotClient;</code></pre>
-		  </p>
+		  <h4 id="shared_symbol">SharedSymbol</h5>  
+		  <p>One of the main challenges of working with different exchanges is the different names and formats used for symbols. For example, the ETH/USDT spot trading pair is called <code>ETHUSDT</code> on Binance, <code>ETH-USDT</code> on Kucoin and <code>ETH_USDT</code> on GateIo. With futures trading it's even worse, ranging from <code>ETH-USD-SWAP</code> to <code>ETHU24</code></p>
+		  
+		  <p>To combat this problem the <code>SharedSymbol</code> class was introduced. This class takes a <code>TradingMode</code>, base asset name and quote asset name which are used to format the symbol according to the exchange it will be used by.</p>
+		  <pre><code>// Create a symbol reference for ETH/USDT spot trading
+var symbol1 = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a symbol reference for BTC/USDC perpetual linear futures trading
+var symbol2 = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDC");
+
+// Create a symbol reference for BTC/USD perpetual inverse futures trading
+var symbol3 = new SharedSymbol(TradingMode.PerpetualInverse, "BTC", "USD");
+
+// Create a symbol reference for BTC/USDT linear futures trading with delivery on 27 Sept 2024
+var symbol4 = new SharedSymbol(TradingMode.DeliveryLinear, "BTC", "USDT", new DateTime(2024, 9, 27));
+
+// Create a symbol reference for ETH/USD inverse futures trading with delivery on 27 Sept 2024
+var symbol5 = new SharedSymbol(TradingMode.DeliveryLinear, "ETH", "USD", new DateTime(2024, 9, 27));
+		  </code></pre>
+		  
+		  <p>With the <code>SharedSymbol</code> functionality available we can reference symbols without having to think about how the exchange expects a symbol.</p>
+		  <pre><code>var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+		  
+var tickerMexcResult = await mexcSharedRestClients.GetSpotTickerAsync(new GetTickerRequest(symbol));
+Console.WriteLine($"{mexcSharedRestClients.Exchange} {tickerMexcResult.Data.Symbol} last price: {tickerMexcResult.Data.LastPrice}");
+// Output: Mexc ETHUSDT last price: 2614,67
+
+var tickerKucoinResult = await kucoinSharedRestClients.GetSpotTickerAsync(new GetTickerRequest(symbol));
+Console.WriteLine($"{kucoinSharedRestClients.Exchange} {tickerKucoinResult.Data.Symbol} last price: {tickerKucoinResult.Data.LastPrice}");
+// Output: Kucoin ETH-USDT last price: 2614,49</code></pre>
+
+		<h4 id="shared_pagination">Pagination</h4>
+		<p>Some Rest history requests support pagination. These requests take a <code>INextPageToken</code> as parameter and results include a <code>NextPageToken</code> property on the result. These tokens can be used to automatically execute multiple paginated requests</p>
+
+<pre><code>var symbol = new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT");
+
+INextPageToken? nextToken = null;
+while (true)
+{
+    // Execute a request specifying the next page token which was returned from by the previous request (or null for the first request)
+    var pageResult = await client.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, limit: 2), nextToken);
+
+    Console.WriteLine($"{pageResult.Data.Count()} items");
+
+    // If NextPagToken is null there is no next page available
+    if (pageResult.NextPageToken == null)
+        break;
+
+    // Store next page token for the next request
+    nextToken = pageResult.NextPageToken;
+}</code></pre>
+
+<p>Or simplify this by using the <code>ExchangeHelpers.ExecutePages</code> helper function to stream each page as a result in the form of a <code>IAsyncEnumerable</code></p>
+
+<pre><code>await foreach (var pageResult in ExchangeHelpers.ExecutePages(client.GetClosedFuturesOrdersAsync, new GetClosedOrdersRequest(symbol, limit: 2)))
+    Console.WriteLine($"{pageResult.Data.Count()} items");</code></pre>
+
+		<h4 id="shared_interfaces">Available Interfaces</h4>
+		
+			<p>Available REST shared interfaces</p>
+		  <table class="table table-bordered">
+			<tr><th>Interface</th><th>Description</th></tr>
+			<tr><td><code>IAssetsRestClient</code></td><td>For requesting withdrawal and deposit info for assets</td></tr>
+			<tr><td><code>IKlineRestClient</code></td><td>For requesting public kline/candlestick data</td></tr>
+			<tr><td><code>IOrderBookRestClient</code></td><td>For requesting public order book data</td></tr>
+			<tr><td><code>IRecentTradeRestClient</code></td><td>For requesting the most recent public trades for a symbol</td></tr>
+			<tr><td><code>ITradeHistoryRestClient</code></td><td>For requesting historic public trade data for a symbol</td></tr>
+			<tr><td><code>ISpotSymbolRestClient</code></td><td>For requesting Spot symbols info</td></tr>
+			<tr><td><code>ISpotTickerRestClient</code></td><td>For requesting Spot ticker information</td></tr>
+			<tr><td><code>IFundingRateRestClient</code></td><td>For requesting funding rate history for a Futures symbol</td></tr>
+			<tr><td><code>IFuturesSymbolRestClient</code></td><td>For requesting Futures symbols info</td></tr>
+			<tr><td><code>IFuturesTickerRestClient</code></td><td>For requesting Futures ticker information</td></tr>
+			<tr><td><code>IIndexPriceKlineRestClient</code></td><td>For requesting index price kline history for a Futures symbol</td></tr>
+			<tr><td><code>IMarkPriceKlineRestClient</code></td><td>For requesting mark price kline history for a Futures symbol</td></tr>
+			<tr><td><code>IOpenInterestRestClient</code></td><td>For requesting the open interest for a Futures symbol</td></tr>
+			<tr><td><code>IBalanceRestClient</code></td><td>For requesting user asset balances</td></tr>
+			<tr><td><code>IDepositRestClient</code></td><td>For requesting user deposit history</td></tr>
+			<tr><td><code>IListenKeyRestClient</code></td><td>For managing the user listen key which can be used for subscribing to user data streams</td></tr>
+			<tr><td><code>IWithdrawalRestClient </code></td><td>For requesting user withdrawal history</td></tr>
+			<tr><td><code>IWithdrawRestClient</code></td><td>For requesting to withdraw funds from the exchange</td></tr>
+			<tr><td><code>ISpotOrderRestClient</code></td><td>For placing and managing Spot orders</td></tr>
+			<tr><td><code>IFuturesOrderRestClient</code></td><td>For placing and managing Futures orders</td></tr>
+			<tr><td><code>ILeverageRestClient</code></td><td>For managing leverage for a Futures symbol</td></tr>
+			<tr><td><code>IPositionHistoryRestClient</code></td><td>For requesting the user position closing history</td></tr>
+			<tr><td><code>IPositionModeRestClient</code></td><td>For managing the position mode for the user</td></tr>
+		  </table>
+		  
+			<p>Available Socket shared interfaces</p>
+		  <table class="table table-bordered">
+			<tr><th>Interface</th><th>Description</th></tr>
+			<tr><td><code>IBookTickerSocketClient</code></td><td>For subscribing to book ticker (best bid/ask) updates for a symbol</td></tr>
+			<tr><td><code>IKlineSocketClient</code></td><td>For subscribing to kline/candlestick updates for a symbol</td></tr>
+			<tr><td><code>IOrderBookSocketClient</code></td><td>For subscribing to order book snapshot updates for a symbol</td></tr>
+			<tr><td><code>ITickerSocketClient</code></td><td>For subscribing to ticker updates for a symbol</td></tr>
+			<tr><td><code>ITickersSocketClient</code></td><td>For subscribing to ticker updates for all symbols</td></tr>
+			<tr><td><code>ITradeSocketClient</code></td><td>For subscribing to public trade updates for a symbol</td></tr>
+			<tr><td><code>IBalanceSocketClient</code></td><td>For subscribing to user balance updates</td></tr>
+			<tr><td><code>IUserTradeSocketClient</code></td><td>For subscribing to user trade updates</td></tr>
+			<tr><td><code>ISpotOrderSocketClient</code></td><td>For subscribing to user Spot order updates</td></tr>
+			<tr><td><code>IFuturesOrderSocketClient</code></td><td>For subscribing to user Futures order updates</td></tr>
+			<tr><td><code>IPositionSocketClient</code></td><td>For subscribing to user position updates</td></tr>
+		  </table>
+		  
+		<h4 id="shared_cc">CryptoClients.Net</h4>
+		  <p>The <code>CryptoClients.Net</code> library has some additional tools for dynamically accessing different exchanges. Both the <code>(I)ExchangeRestClient</code> and <code>(I)ExchangeSocketClient</code> expose methods for executing requests and subscriptions on dynamically selected exchanges.</p>
+		  
+		  <p><b>Rest</b></p>
+		  <pre><code>var restClient = new ExchangeRestClient();
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Get ticker results from Binance and Kucoin
+var tickers = await restClient.GetSpotTickerAsync(new GetTickerRequest(symbol), [Exchange.Binance, Exchange.Kucoin]);
+
+// Get ticker results for all exchanges
+var tickers = await restClient.GetSpotTickerAsync(new GetTickerRequest(symbol));</code></pre>
+		  
+		  <p><b>Socket</b></p>
+		  <pre><code>var socketClient = new ExchangeSocketClient();
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Subscribe to ticker updates on Binance and Kucoin
+var tickers = await socketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
+{
+    Console.WriteLine($"{update.Exchange} update: {update.Data.LastPrice}");
+},
+[Exchange.Binance, Exchange.Kucoin]);
+
+// Subscribe to ticker updates on all exchanges
+var tickers = await socketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
+{
+    Console.WriteLine($"{update.Exchange} update: {update.Data.LastPrice}");
+});</code></pre>
+		  
         </section>
         
-		<hr class="divider">
-		
+				
         <!-- Logo Settings
 		============================ -->
         <section id="idocs_options">
@@ -1494,6 +2009,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-bitget" role="tab" aria-controls="options-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitmart-tab" data-toggle="tab" href="#options-bitmart" role="tab" aria-controls="options-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-bybit" role="tab" aria-controls="options-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1503,7 +2021,10 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-coinex" role="tab" aria-controls="options-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-huobi" role="tab" aria-controls="options-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-gateio" role="tab" aria-controls="options-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-htx" role="tab" aria-controls="options-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-kraken" role="tab" aria-controls="options-kraken" aria-selected="false">Kraken</a>
@@ -1564,6 +2085,15 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
   });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-bitmart" role="tabpanel" aria-labelledby="options-bitmart-tab">
+<pre><code>builder.Services.AddBitMart(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>builder.Services.AddBybit(
   restOptions => {
@@ -1588,8 +2118,17 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
   });</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="options-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
-<pre><code>builder.Services.AddHuobi(
+			  <div class="tab-pane fade" id="options-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
+<pre><code>builder.Services.AddGateIo(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-htx" role="tabpanel" aria-labelledby="options-htx-tab">
+<pre><code>builder.Services.AddHTX(
   restOptions => {
     restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
   },
@@ -1656,6 +2195,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-constr-bitget" role="tab" aria-controls="options-constr-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitmart-tab" data-toggle="tab" href="#options-constr-bitmart" role="tab" aria-controls="options-constr-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-constr-bybit" role="tab" aria-controls="options-constr-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1665,7 +2207,10 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-constr-coinex" role="tab" aria-controls="options-constr-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-constr-huobi" role="tab" aria-controls="options-constr-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-constr-gateio" role="tab" aria-controls="options-constr-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-constr-htx" role="tab" aria-controls="options-constr-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-constr-kraken" role="tab" aria-controls="options-constr-kraken" aria-selected="false">Kraken</a>
@@ -1711,6 +2256,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-constr-bitmart" role="tabpanel" aria-labelledby="options-bitmart-tab">
+<pre><code>var client = new BitMartRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-constr-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>var client = new BybitRestClient(opts =>
 {
@@ -1729,8 +2280,14 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="options-constr-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
-<pre><code>var client = new HuobiRestClient(opts =>
+			  <div class="tab-pane fade" id="options-constr-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
+<pre><code>var client = new GateIoRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-htx" role="tabpanel" aria-labelledby="options-htx-tab">
+<pre><code>var client = new HTXRestClient(opts =>
 {
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
@@ -1779,6 +2336,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bitget-tab" data-toggle="tab" href="#options-default-bitget" role="tab" aria-controls="options-default-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-bitmart-tab" data-toggle="tab" href="#options-default-bitmart" role="tab" aria-controls="options-default-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-default-bybit" role="tab" aria-controls="options-default-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1788,7 +2348,10 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-default-coinex" role="tab" aria-controls="options-default-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="options-huobi-tab" data-toggle="tab" href="#options-default-huobi" role="tab" aria-controls="options-default-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-default-gateio" role="tab" aria-controls="options-default-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-default-htx" role="tab" aria-controls="options-default-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-default-kraken" role="tab" aria-controls="options-default-kraken" aria-selected="false">Kraken</a>
@@ -1832,6 +2395,13 @@ var client = new BitfinexRestClient();</code></pre>
 });
 var client = new BitgetRestClient();</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-default-bitmart" role="tabpanel" aria-labelledby="options-bitmart-tab">
+<pre><code>BitMartRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new BitMartRestClient();</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-default-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>BybitRestClient.SetDefaultOptions(options =>
 {
@@ -1853,12 +2423,19 @@ var client = new CoinGeckoRestClient();</code></pre>
 });
 var client = new CoinExRestClient();</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="options-default-huobi" role="tabpanel" aria-labelledby="options-huobi-tab">
-<pre><code>HuobiRestClient.SetDefaultOptions(options =>
+			  <div class="tab-pane fade" id="options-default-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
+<pre><code>GateIoRestClient.SetDefaultOptions(options =>
 {
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
-var client = new HuobiRestClient();</code></pre>
+var client = new GateIoRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-htx" role="tabpanel" aria-labelledby="options-htx-tab">
+<pre><code>HTXRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new HTXRestClient();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-default-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
 <pre><code>KrakenRestClient.SetDefaultOptions(options =>
@@ -1998,13 +2575,13 @@ var client = new OKXRestClient();</code></pre>
 			  <table class="table table-bordered">
 				<tr><th>Option</th><th>Description</th><th>Default value</th></tr>
 				<tr>
-					<td>AutoReconnect</td>
-					<td>Whether or not the socket should attempt to automatically reconnect when disconnected</td>
-					<td><code>true</code></td>
+					<td>ReconnectPolicy</td>
+					<td>The reconnect policy to execute when the connection is lost</td>
+					<td><code>ReconnectPolicy.FixedDelay</code></td>
 				</tr>
 				<tr>
 					<td>ReconnectInterval</td>
-					<td>The time to wait between connection tries when reconnecting</td>
+					<td>The time to wait between connection tries when reconnecting, only applied when reconnect policy is <code>FixedDelay</code></td>
 					<td><code>TimeSpan.FromSeconds(5)</code></td>
 				</tr>
 				<tr>
@@ -2087,13 +2664,19 @@ var client = new OKXRestClient();</code></pre>
 				<a class="nav-link" id="book-bitget-tab" data-toggle="tab" href="#book-bitget" role="tab" aria-controls="book-bitget" aria-selected="false">Bitget</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-bitmart-tab" data-toggle="tab" href="#book-bitmart" role="tab" aria-controls="book-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-bybit-tab" data-toggle="tab" href="#book-bybit" role="tab" aria-controls="book-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-coinex-tab" data-toggle="tab" href="#book-coinex" role="tab" aria-controls="book-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="book-huobi-tab" data-toggle="tab" href="#book-huobi" role="tab" aria-controls="book-huobi" aria-selected="false">Huobi</a>
+				<a class="nav-link" id="book-gateio-tab" data-toggle="tab" href="#book-gateio" role="tab" aria-controls="book-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-htx-tab" data-toggle="tab" href="#book-htx" role="tab" aria-controls="book-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-kraken-tab" data-toggle="tab" href="#book-kraken" role="tab" aria-controls="book-kraken" aria-selected="false">Kraken</a>
@@ -2175,6 +2758,19 @@ if (!startResult.Success)
 await book.StopAsync();
 </code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="book-bitmart" role="tabpanel" aria-labelledby="book-bitmart-tab">
+<pre><code>var book = new BitMartSymbolOrderBook("ETH_USDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="book-bybit" role="tabpanel" aria-labelledby="book-bybit-tab">
 <pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
 var startResult = await book.StartAsync();
@@ -2201,8 +2797,21 @@ if (!startResult.Success)
 await book.StopAsync();
 </code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="book-huobi" role="tabpanel" aria-labelledby="book-huobi-tab">
-<pre><code>var book = new HuobiSpotSymbolOrderBook("ethusdt");
+			  <div class="tab-pane fade" id="book-gateio" role="tabpanel" aria-labelledby="book-gateio-tab">
+<pre><code>var book = new GateIoSpotSymbolOrderBook("ETH_USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-htx" role="tabpanel" aria-labelledby="book-htx-tab">
+<pre><code>var book = new HTXSpotSymbolOrderBook("ethusdt");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
@@ -2430,13 +3039,34 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 				<a class="nav-link active" id="limit-cc-tab" data-toggle="tab" href="#limit-cc" role="tab" aria-controls="limit-cc" aria-selected="true">CryptoClients</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="true">Binance</a>
+				<a class="nav-link" id="limit-binance-tab" data-toggle="tab" href="#limit-binance" role="tab" aria-controls="limit-binance" aria-selected="false">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-bingx-tab" data-toggle="tab" href="#limit-bingx" role="tab" aria-controls="limit-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-bitget-tab" data-toggle="tab" href="#limit-bitget" role="tab" aria-controls="limit-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-bitmart-tab" data-toggle="tab" href="#limit-bitmart" role="tab" aria-controls="limit-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-gateio-tab" data-toggle="tab" href="#limit-gateio" role="tab" aria-controls="limit-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-htx-tab" data-toggle="tab" href="#limit-htx" role="tab" aria-controls="limit-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-kraken-tab" data-toggle="tab" href="#limit-kraken" role="tab" aria-controls="limit-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-kucoin-tab" data-toggle="tab" href="#limit-kucoin" role="tab" aria-controls="limit-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-mexc-tab" data-toggle="tab" href="#limit-mexc" role="tab" aria-controls="limit-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-okx-tab" data-toggle="tab" href="#limit-okx" role="tab" aria-controls="limit-okx" aria-selected="false">OKX</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2464,6 +3094,76 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 		  <pre><code>BinanceExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
 
 // Output: Limit triggered: RateLimitEvent { ApiLimit = Spot Socket, LimitDescription = Limit of 6000 per 00:01:00, RequestDefinition = GET 1, Host = wss://ws-api.binance.com, Current = 5752, RequestWeight = 250, Limit = 6000, TimePeriod = 00:01:00, DelayTime = 00:00:38.7784145, Behaviour = Wait }
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-bingx" role="tabpanel" aria-labelledby="limit-bingx-tab">
+<pre><code>services.AddBingX(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>BingXExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>BingXExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-bitget" role="tabpanel" aria-labelledby="limit-bitget-tab">
+<pre><code>services.AddBitget(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>BitgetExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>BitgetExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-bitmart" role="tabpanel" aria-labelledby="limit-bitmart-tab">
+<pre><code>services.AddBitMart(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>BitMartExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>BitMartExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-gateio" role="tabpanel" aria-labelledby="limit-gateio-tab">
+<pre><code>services.AddGateIo(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>GateIoExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>GateIoExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-htx" role="tabpanel" aria-labelledby="limit-htx-tab">
+<pre><code>services.AddHTX(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>HTXExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>HTXExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="limit-kraken" role="tabpanel" aria-labelledby="limit-kraken-tab">
@@ -2500,6 +3200,34 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 		  <p>Kucoin applies different rate limits based on the account VIP level. By default the rate limit is set to the most conservative <code>VIP0</code> tier. To change the rate limit tier call the <code>Configure</code> method</p>
 		  <pre><code>KucoinExchange.RateLimiter.Configure(Kucoin.Net.Enums.VipLevel.Vip5);</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="limit-mexc" role="tabpanel" aria-labelledby="limit-mexc-tab">
+<pre><code>services.AddMexc(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>MexcExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>MexcExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-okx" role="tabpanel" aria-labelledby="limit-okx-tab">
+<pre><code>services.AddOKX(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>OKXExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>OKXExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -2515,7 +3243,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 		  <li>Prevent rate limiting, the cache can be queried as many times as you like without having to worry about getting rate limited by the server</li>
 		  </ol>
 		  
-<div class="alert alert-info">Caching is only applied for successful GET requests as GET requests by definition should not change state. Other HTTP method (POST, DELETE, etc) generally do change state, so caching those call would prevent an action being executed.</div>
+<div class="alert alert-info">Caching is only applied for successful GET requests as GET requests by definition should not change state. Other HTTP methods (POST, DELETE, etc) generally do change state, so caching those call would prevent an action being executed.</div>
 		  
 		  </p>
 		  <p>
@@ -2565,13 +3293,19 @@ var responseSource = result.DataSource;</code></pre>
 						<a class="nav-link" id="example-symbols-bitget-tab" data-toggle="tab" href="#example-symbols-bitget" role="tab" aria-controls="example-symbols-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-bitmart-tab" data-toggle="tab" href="#example-symbols-bitmart" role="tab" aria-controls="example-symbols-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-bybit-tab" data-toggle="tab" href="#example-symbols-bybit" role="tab" aria-controls="example-symbols-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-coinex-tab" data-toggle="tab" href="#example-symbols-coinex" role="tab" aria-controls="example-symbols-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-symbols-huobi-tab" data-toggle="tab" href="#example-symbols-huobi" role="tab" aria-controls="example-symbols-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-symbols-gateio-tab" data-toggle="tab" href="#example-symbols-gateio" role="tab" aria-controls="example-symbols-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-htx-tab" data-toggle="tab" href="#example-symbols-htx" role="tab" aria-controls="example-symbols-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-kraken-tab" data-toggle="tab" href="#example-symbols-kraken" role="tab" aria-controls="example-symbols-kraken" aria-selected="false">Kraken</a>
@@ -2603,14 +3337,20 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 					  <div class="tab-pane fade" id="example-symbols-bitget" role="tabpanel" aria-labelledby="example-symbols-bitget-tab">
 		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-symbols-bitmart" role="tabpanel" aria-labelledby="example-symbols-bitmart-tab">
+		<pre><code>await bitMartClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-symbols-bybit" role="tabpanel" aria-labelledby="example-symbols-bybit-tab">
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-coinex" role="tabpanel" aria-labelledby="example-symbols-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-symbols-huobi" role="tabpanel" aria-labelledby="example-symbols-huobi-tab">
-		<pre><code>await huobiClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  <div class="tab-pane fade" id="example-symbols-gateio" role="tabpanel" aria-labelledby="example-symbols-gateio-tab">
+		<pre><code>await gateIoClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-htx" role="tabpanel" aria-labelledby="example-symbols-htx-tab">
+		<pre><code>await htxClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-kraken" role="tabpanel" aria-labelledby="example-symbols-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -2658,13 +3398,19 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 						<a class="nav-link" id="example-ticker-bitget-tab" data-toggle="tab" href="#example-ticker-bitget" role="tab" aria-controls="example-ticker-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-bitmart-tab" data-toggle="tab" href="#example-ticker-bitmart" role="tab" aria-controls="example-ticker-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-bybit-tab" data-toggle="tab" href="#example-ticker-bybit" role="tab" aria-controls="example-ticker-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-coinex-tab" data-toggle="tab" href="#example-ticker-coinex" role="tab" aria-controls="example-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-ticker-huobi-tab" data-toggle="tab" href="#example-ticker-huobi" role="tab" aria-controls="example-ticker-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-ticker-gateio-tab" data-toggle="tab" href="#example-ticker-gateio" role="tab" aria-controls="example-ticker-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-htx-tab" data-toggle="tab" href="#example-ticker-htx" role="tab" aria-controls="example-ticker-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-kraken-tab" data-toggle="tab" href="#example-ticker-kraken" role="tab" aria-controls="example-ticker-kraken" aria-selected="false">Kraken</a>
@@ -2696,14 +3442,20 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.
 					  <div class="tab-pane fade" id="example-ticker-bitget" role="tabpanel" aria-labelledby="example-ticker-bitget-tab">
 		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-ticker-bitmart" role="tabpanel" aria-labelledby="example-ticker-bitmart-tab">
+		<pre><code>await bitMartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-ticker-bybit" role="tabpanel" aria-labelledby="example-ticker-bybit-tab">
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-coinex" role="tabpanel" aria-labelledby="example-ticker-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetTickersAsync(new[] { "BTCUSDT" });</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-ticker-huobi" role="tabpanel" aria-labelledby="example-ticker-huobi-tab">
-		<pre><code>await huobiClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  <div class="tab-pane fade" id="example-ticker-gateio" role="tabpanel" aria-labelledby="example-ticker-gateio-tab">
+		<pre><code>await gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-htx" role="tabpanel" aria-labelledby="example-ticker-htx-tab">
+		<pre><code>await htxClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-kraken" role="tabpanel" aria-labelledby="example-ticker-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
@@ -2751,13 +3503,19 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.
 						<a class="nav-link" id="example-balances-bitget-tab" data-toggle="tab" href="#example-balances-bitget" role="tab" aria-controls="example-balances-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-bitmart-tab" data-toggle="tab" href="#example-balances-bitmart" role="tab" aria-controls="example-balances-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-bybit-tab" data-toggle="tab" href="#example-balances-bybit" role="tab" aria-controls="example-balances-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-coinex-tab" data-toggle="tab" href="#example-balances-coinex" role="tab" aria-controls="example-balances-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-balances-huobi-tab" data-toggle="tab" href="#example-balances-huobi" role="tab" aria-controls="example-balances-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-balances-gateio-tab" data-toggle="tab" href="#example-balances-gateio" role="tab" aria-controls="example-balances-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-htx-tab" data-toggle="tab" href="#example-balances-htx" role="tab" aria-controls="example-balances-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-kraken-tab" data-toggle="tab" href="#example-balances-kraken" role="tab" aria-controls="example-balances-kraken" aria-selected="false">Kraken</a>
@@ -2789,18 +3547,24 @@ await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre
 					  <div class="tab-pane fade" id="example-balances-bitget" role="tabpanel" aria-labelledby="example-balances-bitget-tab">
 		<pre><code>await bitgetClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-balances-bitmart" role="tabpanel" aria-labelledby="example-balances-bitmart-tab">
+		<pre><code>await bitMartClient.SpotApi.Account.GetSpotBalancesAsync();</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-balances-bybit" role="tabpanel" aria-labelledby="example-balances-bybit-tab">
 		<pre><code>await bybitClient.V5Api.Account.GetBalancesAsync(AccountType.Spot);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-coinex" role="tabpanel" aria-labelledby="example-balances-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Account.GetBalancesAsync();</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-balances-huobi" role="tabpanel" aria-labelledby="example-balances-huobi-tab">
+					  <div class="tab-pane fade" id="example-balances-gateio" role="tabpanel" aria-labelledby="example-balances-gateio-tab">
+		<pre><code>await gateioClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-htx" role="tabpanel" aria-labelledby="example-balances-htx-tab">
 		<pre><code>// Need an account id, you probably want to already have done this before placing the order
-var accounts = await huobiClient.SpotApi.Account.GetAccountsAsync();
+var accounts = await htxClient.SpotApi.Account.GetAccountsAsync();
 var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
 
-var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-kraken" role="tabpanel" aria-labelledby="example-balances-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -2848,13 +3612,19 @@ var result = await huobiClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-bitget-tab" data-toggle="tab" href="#example-place-bitget" role="tab" aria-controls="example-place-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-bitmart-tab" data-toggle="tab" href="#example-place-bitmart" role="tab" aria-controls="example-place-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-bybit-tab" data-toggle="tab" href="#example-place-bybit" role="tab" aria-controls="example-place-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-coinex-tab" data-toggle="tab" href="#example-place-coinex" role="tab" aria-controls="example-place-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-place-huobi-tab" data-toggle="tab" href="#example-place-huobi" role="tab" aria-controls="example-place-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-place-gateio-tab" data-toggle="tab" href="#example-place-gateio" role="tab" aria-controls="example-place-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-htx-tab" data-toggle="tab" href="#example-place-htx" role="tab" aria-controls="example-place-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-kraken-tab" data-toggle="tab" href="#example-place-kraken" role="tab" aria-controls="example-place-kraken" aria-selected="false">Kraken</a>
@@ -2886,18 +3656,24 @@ await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Orde
 					  <div class="tab-pane fade" id="example-place-bitget" role="tabpanel" aria-labelledby="example-place-bitget-tab">
 		<pre><code>await bitgetClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT_SPBL", BitgetOrderSide.Buy, BitgetOrderType.Limit, 0.1m, timeInForce: BitgetTimeInForce.GoodTillCanceled, 50000);</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-place-bitmart" role="tabpanel" aria-labelledby="example-place-bitmart-tab">
+		<pre><code>await bitMartClient.SpotApi.Trading.PlaceOrderAsync("BTC_USDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-place-bybit" role="tabpanel" aria-labelledby="example-place-bybit-tab">
 		<pre><code>await bybitClient.V5Api.Trading.PlaceOrderAsync(Category.Spot, "BTCUSDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Trading.PlaceOrderAsync("BTCUSDT", AccountType.Spot, OrderSide.Buy, OrderTypeV2.Limit, 0.1m, 50000);</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-place-huobi" role="tabpanel" aria-labelledby="example-place-huobi-tab">
+					  <div class="tab-pane fade" id="example-place-gateio" role="tabpanel" aria-labelledby="example-place-gateio-tab">
+		<pre><code>await gateIoClient.SpotApi.Trading.PlaceOrderAsync("BTC_USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, 50000, timeInForce: TimeInForce.GoodTillCancel);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-htx" role="tabpanel" aria-labelledby="example-place-htx-tab">
 		<pre><code>// Need an account id, you probably want to already have done this before placing the order
-var accounts = await huobiClient.SpotApi.Account.GetAccountsAsync();
+var accounts = await htxClient.SpotApi.Account.GetAccountsAsync();
 var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
 
-var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
+var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-kraken" role="tabpanel" aria-labelledby="example-place-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT",OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
@@ -2945,13 +3721,19 @@ var result = await huobiClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCU
 						<a class="nav-link" id="example-stream-ticker-bitget-tab" data-toggle="tab" href="#example-stream-ticker-bitget" role="tab" aria-controls="example-stream-ticker-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-bitmart-tab" data-toggle="tab" href="#example-stream-ticker-bitmart" role="tab" aria-controls="example-stream-ticker-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-bybit-tab" data-toggle="tab" href="#example-stream-ticker-bybit" role="tab" aria-controls="example-stream-ticker-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-coinex-tab" data-toggle="tab" href="#example-stream-ticker-coinex" role="tab" aria-controls="example-stream-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-stream-ticker-huobi-tab" data-toggle="tab" href="#example-stream-ticker-huobi" role="tab" aria-controls="example-stream-ticker-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-stream-ticker-gateio-tab" data-toggle="tab" href="#example-stream-ticker-gateio" role="tab" aria-controls="example-stream-ticker-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-htx-tab" data-toggle="tab" href="#example-stream-ticker-htx" role="tab" aria-controls="example-stream-ticker-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-kraken-tab" data-toggle="tab" href="#example-stream-ticker-kraken" role="tab" aria-controls="example-stream-ticker-kraken" aria-selected="false">Kraken</a>
@@ -2993,6 +3775,11 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
     // Handle update
 });</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-bitmart" role="tabpanel" aria-labelledby="example-stream-ticker-bitmart-tab">
+		<pre><code>await bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-bybit" role="tabpanel" aria-labelledby="example-stream-ticker-bybit-tab">
 		<pre><code>await bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
     // Handle update
@@ -3003,8 +3790,13 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
     // Handle update
 });</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-stream-ticker-huobi" role="tabpanel" aria-labelledby="example-stream-ticker-huobi-tab">
-		<pre><code>await huobiSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethusdt", data => {
+					  <div class="tab-pane fade" id="example-stream-ticker-gateio" role="tabpanel" aria-labelledby="example-stream-ticker-gateio-tab">
+		<pre><code>await gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-htx" role="tabpanel" aria-labelledby="example-stream-ticker-htx-tab">
+		<pre><code>await htxSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethusdt", data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -3063,13 +3855,19 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 						<a class="nav-link" id="example-stream-order-bitget-tab" data-toggle="tab" href="#example-stream-order-bitget" role="tab" aria-controls="example-stream-order-bitget" aria-selected="false">Bitget</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-bitmart-tab" data-toggle="tab" href="#example-stream-order-bitmart" role="tab" aria-controls="example-stream-order-bitmart" aria-selected="false">BitMart</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-bybit-tab" data-toggle="tab" href="#example-stream-order-bybit" role="tab" aria-controls="example-stream-order-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-coinex-tab" data-toggle="tab" href="#example-stream-order-coinex" role="tab" aria-controls="example-stream-order-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-stream-order-huobi-tab" data-toggle="tab" href="#example-stream-order-huobi" role="tab" aria-controls="example-stream-order-huobi" aria-selected="false">Huobi</a>
+						<a class="nav-link" id="example-stream-order-gateio-tab" data-toggle="tab" href="#example-stream-order-gateio" role="tab" aria-controls="example-stream-order-gateio" aria-selected="false">GateIo</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-htx-tab" data-toggle="tab" href="#example-stream-order-htx" role="tab" aria-controls="example-stream-order-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-kraken-tab" data-toggle="tab" href="#example-stream-order-kraken" role="tab" aria-controls="example-stream-order-kraken" aria-selected="false">Kraken</a>
@@ -3154,6 +3952,11 @@ _ = Task.Run(async () => {
     // Handle update
 });</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-bitmart" role="tabpanel" aria-labelledby="example-stream-order-bitmart-tab">
+		<pre><code>await bitMartSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-bybit" role="tabpanel" aria-labelledby="example-stream-order-bybit-tab">
 		<pre><code>await bybitSocketClient.V5PrivateApi.SubscribeToOrderUpdatesAsync(data => {
     // Handle update
@@ -3164,8 +3967,13 @@ _ = Task.Run(async () => {
     // Handle update
 });</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-stream-order-huobi" role="tabpanel" aria-labelledby="example-stream-order-huobi-tab">
-		<pre><code>await huobiSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(onOrderMatched: data => {
+					  <div class="tab-pane fade" id="example-stream-order-gateio" role="tabpanel" aria-labelledby="example-stream-order-gateio-tab">
+		<pre><code>await gateioSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-htx" role="tabpanel" aria-labelledby="example-stream-order-htx-tab">
+		<pre><code>await htxSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(onOrderMatched: data => {
     // Handle update
 });</code></pre>
 					  </div>

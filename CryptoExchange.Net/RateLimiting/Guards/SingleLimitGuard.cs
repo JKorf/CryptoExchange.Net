@@ -3,7 +3,6 @@ using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.RateLimiting.Trackers;
 using System;
 using System.Collections.Generic;
-using System.Security;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {

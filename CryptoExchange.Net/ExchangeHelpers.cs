@@ -1,7 +1,11 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -11,6 +15,22 @@ namespace CryptoExchange.Net
     public static class ExchangeHelpers
     {
         private const string _allowedRandomChars = "ABCDEFGHIJKLMONOPQRSTUVWXYZabcdefghijklmonopqrstuvwxyz0123456789";
+
+        private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
+        {
+            { 1, "F" },
+            { 2, "G" },
+            { 3, "H" },
+            { 4, "J" },
+            { 5, "K" },
+            { 6, "M" },
+            { 7, "N" },
+            { 8, "Q" },
+            { 9, "U" },
+            { 10, "V" },
+            { 11, "X" },
+            { 12, "Z" },
+        };
 
         /// <summary>
         /// The last used id, use NextId() to get the next id and up this
@@ -54,6 +74,11 @@ namespace CryptoExchange.Net
             if(roundingType == RoundingType.Down)
             {
                 value -= offset;
+            }
+            else if(roundingType == RoundingType.Up)
+            {
+                if (offset != 0)
+                    value += (step.Value - offset);
             }
             else
             {
@@ -107,15 +132,21 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Rounds a value down to 
+        /// Rounds a value down 
         /// </summary>
-        /// <param name="i"></param>
-        /// <param name="decimalPlaces"></param>
-        /// <returns></returns>
         public static decimal RoundDown(decimal i, double decimalPlaces)
         {
             var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
             return Math.Floor(i * power) / power;
+        }
+
+        /// <summary>
+        /// Rounds a value up
+        /// </summary>
+        public static decimal RoundUp(decimal i, double decimalPlaces)
+        {
+            var power = Convert.ToDecimal(Math.Pow(10, decimalPlaces));
+            return Math.Ceiling(i * power) / power;
         }
 
         /// <summary>
@@ -176,6 +207,71 @@ namespace CryptoExchange.Net
                 return source;
 
             return source + RandomString(totalLength - source.Length);
+        }
+
+        /// <summary>
+        /// Get the month representation for futures symbol based on the delivery month
+        /// </summary>
+        /// <param name="time">Delivery time</param>
+        /// <returns></returns>
+        public static string GetDeliveryMonthSymbol(DateTime time) => _monthSymbols[time.Month];
+
+        /// <summary>
+        /// Execute multiple requests to retrieve multiple pages of the result set
+        /// </summary>
+        /// <typeparam name="T">Type of the client</typeparam>
+        /// <typeparam name="U">Type of the request</typeparam>
+        /// <param name="paginatedFunc">The func to execute with each request</param>
+        /// <param name="request">The request parameters</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
+        {
+            var result = new List<T>();
+            ExchangeWebResult<IEnumerable<T>> batch;
+            INextPageToken? nextPageToken = null;
+            while (true)
+            {
+                batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
+                yield return batch;
+                if (!batch || ct.IsCancellationRequested)
+                    break;
+
+                result.AddRange(batch.Data);
+                nextPageToken = batch.NextPageToken;
+                if (nextPageToken == null)
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Apply the rules (price and quantity step size and decimals precision, min/max quantity) from the symbol to the quantity and price
+        /// </summary>
+        /// <param name="symbol">The symbol as retrieved from the exchange</param>
+        /// <param name="quantity">Quantity to trade</param>
+        /// <param name="price">Price to trade at</param>
+        /// <param name="adjustedQuantity">Quantity adjusted to match all trading rules</param>
+        /// <param name="adjustedPrice">Price adjusted to match all trading rules</param>
+        public static void ApplySymbolRules(SharedSpotSymbol symbol, decimal quantity, decimal? price, out decimal adjustedQuantity, out decimal? adjustedPrice)
+        {
+            adjustedPrice = price;
+            adjustedQuantity = quantity;
+            var minNotionalAdjust = false;
+
+            if (price != null)
+            {
+                adjustedPrice = AdjustValueStep(0, decimal.MaxValue, symbol.PriceStep, RoundingType.Down, price.Value);
+                adjustedPrice = symbol.PriceDecimals.HasValue ? RoundDown(price.Value, symbol.PriceDecimals.Value) : adjustedPrice;
+                if (adjustedPrice != 0 && adjustedPrice * quantity < symbol.MinNotionalValue)
+                {
+                    adjustedQuantity = symbol.MinNotionalValue.Value / adjustedPrice.Value;
+                    minNotionalAdjust = true;
+                }
+            }
+
+            adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, minNotionalAdjust ? RoundingType.Up : RoundingType.Down, adjustedQuantity);
+            adjustedQuantity = symbol.QuantityDecimals.HasValue ? (minNotionalAdjust ? RoundUp(adjustedQuantity, symbol.QuantityDecimals.Value) : RoundDown(adjustedQuantity, symbol.QuantityDecimals.Value)) : adjustedQuantity;
+
         }
     }
 }
