@@ -47,6 +47,25 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.0.0 - 27 Sep 2024
+        * Added new cross exchange interfaces implementation
+        * Supports REST, WebSocket, Spot and Futures API's
+        * Added various client interfaces for specific functionality
+        * Added SharedSymbol type, taking care of symbol formatting for different exchanges
+        * Added dynamic pagination support for shared functionality
+        * Added various shared Enum definitions
+        * Added ExchangeWebResult and ExchangeEvent, exchange specific versions of WebCallResult and DataEvent
+        * See https://jkorf.github.io/CryptoExchange.Net/index.html#idocs_shared for more info
+    * Added tradingMode and deliverData parameters to BaseApiClient FormatSymbol method
+    * Added ExecutePages method to ExchangeHelpers static class
+    * Added ApplySymbolRules method to ExchangeHelpers static class
+    * Added ResubscribingFailed event for websocket connections
+    * Added handling of http result 429 (ratelimited) during websocket connection
+    * Added Websocket dispose before creating new connection when reconnecting
+    * Updated Sourcelink package version
+    * Marked ISpotClient and IFuturesClient references as deprecated
+
+
 * Version 7.11.2 - 28 Aug 2024
     * Fixed issues when ratelimiting is canceled using the provided cancellation token
 
