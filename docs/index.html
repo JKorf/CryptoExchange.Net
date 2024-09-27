@@ -92,7 +92,6 @@
             <li class="nav-item"><a class="nav-link" href="#shared_tradingmode">Trading mode</a></li>
             <li class="nav-item"><a class="nav-link" href="#shared_symbol">Shared symbol</a></li>
             <li class="nav-item"><a class="nav-link" href="#shared_pagination">Pagination</a></li>
-            <li class="nav-item"><a class="nav-link" href="#shared_cross">Interface usage</a></li>
             <li class="nav-item"><a class="nav-link" href="#shared_interfaces">Available interfaces</a></li>
             <li class="nav-item"><a class="nav-link" href="#shared_cc">CryptoClients.Net</a></li>
           </ul>
@@ -1549,6 +1548,36 @@ await client.UnsubscribeAllAsync();</code></pre>
 		  		  
 		  <p>With this in mind all exhange clients implement various <code>ISharedClient</code> interfaces. These interfaces split the functionality from the exchange specifics allowing for a common implementation for multiple exchanges. Which interfaces are implemented for each exchange depends on what functionality the exchange API offers.</p>
 		  		  
+		  <p>The <code>ISharedClient</code> interfaces allow for functionality to be defined once for every exchange instead of (partially) having to implement it for each exchange</p>
+				  
+		  <pre><code>// Abstract out the exchange request by using the shared ticker interface
+public async Task<SharedSpotTicker?> GetTickerAsync(ISpotTickerRestClient client, SharedSymbol symbol)
+{
+    var result = await client.GetSpotTickerAsync(new GetTickerRequest(symbol));
+    return result.Data;
+}
+
+// Abstract out the exchange response by using the shared response model
+public bool CheckForTrigger(SharedSpotTicker ticker)
+{
+    return ticker.HighPrice - ticker.LastPrice > 10;
+}
+
+
+// Requesting the data from different exchanges
+var sharedSymbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+var lastBybitTicker = await GetTickerAsync(bybitResClient.V5Api.SharedClient, sharedSymbol);
+var lastGateIoTicker = await GetTickerAsync(gateioRestClient.SpotApi.SharedClient, sharedSymbol);
+var lastBinanceTicker = await GetTickerAsync(binanceRestClient.SpotApi.SharedClient, sharedSymbol);
+
+// Checking response with different exchange responses
+var bybitTriggered = CheckForTrigger(lastBybitTicker);
+var gateioTriggered = CheckForTrigger(lastGateIoTicker);
+var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
+
+		  <p>See <a href="https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/SharedClients">CryptoExchange.Net examples</a> for an example of how to use this. </p>
+				  
+		  <p>Shared clients for all exchanges:</p>
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="shared" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
@@ -1830,20 +1859,6 @@ while (true)
 
 <pre><code>await foreach (var pageResult in ExchangeHelpers.ExecutePages(client.GetClosedFuturesOrdersAsync, new GetClosedOrdersRequest(symbol, limit: 2)))
     Console.WriteLine($"{pageResult.Data.Count()} items");</code></pre>
-
-		<h4 id="shared_cross">Interface Usage</h4>  
-		<p>When developing functionality supporting multiple exchanges the <code>ISharedClient</code> interfaces allow the functionality to be completely exchange agnostic.</p>
-		<pre><code>// Implementing functionality based on the ISharedClient interfaces
-public async Task<decimal?> GetLastPrice(ISpotTickerRestClient client, string baseAsset, string quoteAsset)
-{
-    var result = await client.GetSpotTickerAsync(new GetTickerRequest(new SharedSymbol(TradingMode.Spot, baseAsset, quoteAsset)));
-    return result.Data?.LastPrice;
-}
-
-// Using the implementation with different exchanges
-var lastBybitPrice = await GetLastPrice(bybitResClient.V5Api.SharedClient, "ETH", "USDT");
-var lastGateIoPrice = await GetLastPrice(gateioRestClient.SpotApi.SharedClient, "ETH", "USDT");
-var lastBinancePrice = await GetLastPrice(binanceRestClient.SpotApi.SharedClient, "ETH", "USDT");</code></pre>
 
 		<h4 id="shared_interfaces">Available Interfaces</h4>
 		
