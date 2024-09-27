@@ -39,11 +39,14 @@ namespace BlazorClient
             services.AddBingX();
             services.AddBitfinex();
             services.AddBitget();
+            services.AddBitMart();
             services.AddBybit();
             services.AddCoinEx();
-            services.AddHuobi();
+            services.AddGateIo();
+            services.AddHTX();
             services.AddKraken();
             services.AddKucoin();
+            services.AddMexc();
             services.AddOKX();
         }
 

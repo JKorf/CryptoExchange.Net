@@ -1,5 +1,6 @@
 ﻿@page "/SpotClient"
-@inject ICryptoRestClient restClient
+@using CryptoExchange.Net.SharedApis
+@inject IEnumerable<ISpotTickerRestClient> restClients
 
 <h3>ETH-BTC prices:</h3>
 @foreach(var price in _prices.OrderBy(p => p.Key))
@@ -12,13 +13,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var clients = restClient.GetSpotClients();
-        var tasks = clients.Select(c => (c.ExchangeName, c.GetTickerAsync(c.GetSymbolName("ETH", "BTC"))));
-        await Task.WhenAll(tasks.Select(t => t.Item2));
-        foreach(var task in tasks)
+        var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "BTC");
+        var tasks = restClients.Select(x => x.GetSpotTickerAsync(new GetTickerRequest(symbol)));
+        await Task.WhenAll(tasks);
+        foreach (var ticker in tasks.Select(x => x.Result))
         {
-            if(task.Item2.Result.Success)
-                _prices.Add(task.Item1, task.Item2.Result.Data.HighPrice);
+            if (ticker.Success)
+                _prices.Add(ticker.Exchange, ticker.Data.LastPrice);
         }
     }
 

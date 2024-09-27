@@ -5,23 +5,29 @@
 @using BingX.Net.Interfaces
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
+@using BitMart.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
-@using Huobi.Net.Interfaces
+@using GateIo.Net.Interfaces
+@using HTX.Net.Interfaces
 @using Kraken.Net.Interfaces
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
+@using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
 @inject IBinanceOrderBookFactory binanceFactory
 @inject IBingXOrderBookFactory bingXFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
 @inject IBitgetOrderBookFactory bitgetFactory
+@inject IBitMartOrderBookFactory bitmartFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinExOrderBookFactory coinExFactory
-@inject IHuobiOrderBookFactory huobiFactory
+@inject IGateIoOrderBookFactory gateioFactory
+@inject IHTXOrderBookFactory htxFactory
 @inject IKrakenOrderBookFactory krakenFactory
 @inject IKucoinOrderBookFactory kucoinFactory
+@inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
 @implements IDisposable
 
@@ -60,11 +66,14 @@
                 { "BingX", bingXFactory.CreateSpot("ETH-BTC") },
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
+                { "BitMart", bitmartFactory.CreateSpot("ETH_BTC", null) },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
-                { "Huobi", huobiFactory.CreateSpot("ethbtc") },
+                { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
+                { "HTX", htxFactory.CreateSpot("ethbtc") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/XBT") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
+                { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
             };
 

@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorClient", "Examples\Bl
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{5734C2A9-F12C-4754-A8B9-640C24DC4E02}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleClient", "Examples\ConsoleClient\ConsoleClient.csproj", "{23480C58-23BF-4EBF-A173-B7F51A043A99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleClient", "Examples\ConsoleClient\ConsoleClient.csproj", "{23480C58-23BF-4EBF-A173-B7F51A043A99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedClients", "Examples\SharedClients\SharedClients.csproj", "{988A87EF-EAEA-4313-A6CF-FA869813D5AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23480C58-23BF-4EBF-A173-B7F51A043A99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,6 +48,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AF4F5C19-162E-48F4-8B0B-BA5A2D7CE06A} = {5734C2A9-F12C-4754-A8B9-640C24DC4E02}
 		{23480C58-23BF-4EBF-A173-B7F51A043A99} = {5734C2A9-F12C-4754-A8B9-640C24DC4E02}
+		{988A87EF-EAEA-4313-A6CF-FA869813D5AB} = {5734C2A9-F12C-4754-A8B9-640C24DC4E02}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0D1B9CE9-E0B7-4B8B-88BF-6EA2CC8CA3D7}

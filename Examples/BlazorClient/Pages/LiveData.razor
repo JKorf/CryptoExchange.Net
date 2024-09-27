@@ -3,11 +3,14 @@
 @inject IBingXSocketClient bingXSocketClient
 @inject IBitfinexSocketClient bitfinexSocketClient
 @inject IBitgetSocketClient bitgetSocketClient
+@inject IBitMartSocketClient bitmartSocketClient
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinExSocketClient coinExSocketClient
-@inject IHuobiSocketClient huobiSocketClient
+@inject IGateIoSocketClient gateioSocketClient
+@inject IHTXSocketClient htxSocketClient
 @inject IKrakenSocketClient krakenSocketClient
 @inject IKucoinSocketClient kucoinSocketClient
+@inject IMexcSocketClient mexcSocketClient
 @inject IOKXSocketClient okxSocketClient
 @using System.Collections.Concurrent
 @using CryptoExchange.Net.Objects
@@ -33,11 +36,14 @@
             bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BingX", data.Data.LastPrice)),
             bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
             bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
+            bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
             coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("CoinEx", data.Data.LastPrice)),
-            huobiSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("Huobi", data.Data.ClosePrice ?? 0)),
+            gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("GateIo", data.Data.LastPrice)),
+            htxSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("HTX", data.Data.ClosePrice ?? 0)),
             krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH/XBT", data => UpdateData("Kraken", data.Data.LastTrade.Price)),
             kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Kucoin", data.Data.LastPrice ?? 0)),
+            mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHBTC", data => UpdateData("Mexc", data.Data.LastPrice)),
             okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("OKX", data.Data.LastPrice ?? 0)),
         };
 

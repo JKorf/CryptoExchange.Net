@@ -4,12 +4,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Binance.Net.Clients;
-using Binance.Net.Objects;
 using Bybit.Net.Clients;
 using ConsoleClient.Exchanges;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets;
 
 namespace ConsoleClient
 {
