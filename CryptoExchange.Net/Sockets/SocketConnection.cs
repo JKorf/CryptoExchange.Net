@@ -506,8 +506,11 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     if (processor is Subscription subscriptionProcessor && !subscriptionProcessor.Confirmed)
+                    {
                         // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
                         subscriptionProcessor.Confirmed = true;
+                        // This doesn't trigger a waiting subscribe query, should probably also somehow set the wait event for that
+                    }
 
                     // 6. Deserialize the message
                     object? deserialized = null;
