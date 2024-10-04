@@ -13,6 +13,28 @@ namespace CryptoExchange.Net.Clients
     public abstract class BaseClient : IDisposable
     {
         /// <summary>
+        /// Version of the CryptoExchange.Net base library
+        /// </summary>
+        public Version CryptoExchangeLibVersion { get; } = typeof(BaseClient).Assembly.GetName().Version;
+
+        /// <summary>
+        /// Version of the client implementation
+        /// </summary>
+        public Version ExchangeLibVersion
+        { 
+            get
+            {
+               lock(_versionLock)
+                {
+                    if (_exchangeVersion == null)
+                        _exchangeVersion = GetType().Assembly.GetName().Version;
+
+                    return _exchangeVersion;
+                }
+            }
+        }
+
+        /// <summary>
         /// The name of the API the client is for
         /// </summary>
         public string Exchange { get; }
@@ -26,6 +48,9 @@ namespace CryptoExchange.Net.Clients
         /// The log object
         /// </summary>
         protected internal ILogger _logger;
+
+        private object _versionLock = new object();
+        private Version _exchangeVersion;
 
         /// <summary>
         /// Provided client options
@@ -57,7 +82,7 @@ namespace CryptoExchange.Net.Clients
                 throw new ArgumentNullException(nameof(options));
 
             ClientOptions = options;
-            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{typeof(BaseClient).Assembly.GetName().Version}, {Exchange}.Net: v{GetType().Assembly.GetName().Version}");
+            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
         }
 
         /// <summary>
