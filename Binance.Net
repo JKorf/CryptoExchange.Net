@@ -1,0 +1,272 @@
+diff --git a/Dev`countair,json b/Dev`countair,json
+new file mode 100644
+index 00000000..af806889
+--- /dev/null
++++ b/Dev`countair,json
+@@ -0,0 +1,2869 @@
++7073c5b333fe5b46125a51ec91f3021cb5151deb Pazartesi 17 Eylül 00:00:00 2001
++Gönderen: Sarsılmazxx02 <Recocankaya@gmail.com>
++Tarih: Cum, 5 Ekim 2024 07:05:55 +0300
++Konu: [PATCH] devcontainer.json'u oluşturun
++MIME-Sürüm: 1.0
++İçerik Türü: text/plain; karakter kümesi=UTF-8
++İçerik Aktarım Kodlaması: 8bit
++
++# ![.Binance.Net](https://raw.githubusercontent.com/JKorf/Binance.Net/master/Binance.Net/Icon/icon.png) Binance.Net
++
++[![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/Binance.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/Binance.Net/actions/workflows/dotnet.yml) ![Lisans](https://img.shields.io/github/license/JKorf/Binance.Net?style=for-the-badge)
++
++Binance.Net, [Binance REST ve Websocket API'sine](https://binance-docs.github.io/apidocs/#change-log) erişmek için güçlü bir şekilde yazılmış istemci kütüphanesidir. ## Özellikler
++* Yanıt verileri tanımlayıcı modellere eşlenir
++* Giriş parametreleri ve yanıt değerleri mümkün olduğunca tanımlayıcı enum değerlerine eşlenir
++* Otomatik web soketi (yeniden) bağlantı yönetimi
++* İstemci tarafında oran sınırlaması
++* İstemci tarafı emir defteri uygulaması
++* Kapsamlı günlük kaydı
++* Farklı ortamlar için destek (binance.com, binance.us, testnet)
++* CryptoExchange.Net temel kütüphanesine dayalı diğer borsa istemcileriyle kolay entegrasyon
++
++## Desteklenen Çerçeveler
++Kütüphane, optimum uyumluluk için hem `.NET Standard 2.0` hem de `.NET Standard 2.1`'i hedefliyor
++
++|.NET uygulaması|Sürüm Desteği|
++|--|--|
++|.NET Core|`2.0` ve üzeri|
++|.NET Framework|`4.6.1` ve üzeri|
++|Mono|`5.4` ve üzeri|
++|Xamarin.iOS|`10.14` ve üzeri|
++|Xamarin.Android|`8.0` ve üzeri|
++|UWP|`10.0.16299` ve üzeri|
++|Unity|`2018.1` ve üzeri|
++
++## Kütüphaneyi yükleyin
++
++### NuGet
++[![NuGet sürümü](https://img.shields.io/nuget/v/binance.net.svg?style=for-the-badge)](https://www.nuget.org/packages/Binance.Net) [![Nuget indirmeleri](https://img.shields.io/nuget/dt/Binance.Net.svg?style=for-the-badge)](https://www.nuget.org/packages/Binance.Net)
++
++	dotnet Binance.Net paketini ekle
++
++### GitHub paketleri
++Binance.Net [GitHub paketlerinde](https://github.com/JKorf/Binance.Net/pkgs/nuget/Binance.Net) mevcuttur. NuGet paket kaynağı olarak `https://nuget.pkg.github.com/JKorf/index.json` eklemeniz gerekecektir.
++
++### Sürümü indirin
++[![GitHub Sürümü](https://img.shields.io/github/v/release/JKorf/Binance.Net?style=for-the-badge&label=GitHub)](https://github.com/JKorf/Binance.Net/releases)
++
++NuGet paket dosyaları, [buradan](https://github.com/JKorf/Binance.Net/releases) bulunabilen en son GitHub sürümüyle birlikte kaynak koduna eklenmiştir.
++
++
++## Nasıl kullanılır
++*REST Uç Noktaları*
++
++```csharp
++// ETH/USDT fiyatını rest isteği yoluyla alın
++var restClient = yeni BinanceRestClient();
++var tickerResult = await restClient.SpotApi.ExchangeData.GetTickerAsync("ETHUSDT");
++var lastPrice = tickerResult.Data.LastPrice;
++```
++
++*Websocket akışları*
++
++```csharp
++// ETH/USDT ticker güncellemelerine websocket API'si aracılığıyla abone olun
++var soketİstemcisi = yeni BinanceSocketİstemcisi();
++var tickerSubscriptionResult = socketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", (güncelleme) =>
++{
++  var sonFiyat = güncelleme.Veri.SonFiyat;
++});
++```
++
++*Başlayın ve 40 saniye içinde bir sembolün son fiyatını isteyin*
++
++<img src="https://github.com/JKorf/Binance.Net/blob/f74f262151f21b123deecd9b39a717458a18f6ff/docs/Binance.gif" width="600" />
++
++İstemciler, bağımlılık enjeksiyonu, yanıt işleme ve daha fazlası hakkında bilgi için [Binance.Net belgelerine](https://jkorf.github.io/Binance.Net), [CryptoExchange.Net belgelerine](https://jkorf.github.io/CryptoExchange.Net) bakın veya [buradaki](https://github.com/JKorf/Binance.Net/tree/master/Examples) veya [buradaki](https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples) örneklere bakın. [Blockpit Örnek Raporu - 2024 (1).pdf](https://github.com/user-attachments/files/17265064/Blockpit.Example.Report.-.2024.1.pdf) [Binance api key.txt.json](https://github.com/user-attachments/files/17265060/Binance.api.key.txt.json) [blank.yml.txt](https://github.com/user-attachments/files/17265059/blank.yml.txt) [Binance-api-doc-768e93f96c002b53bb3d22595cd3a075148d1abc.zip](https://github.com/user-attachments/files/17265058/Binance-api-doc-768e93f96c002b53bb3d22595cd3a075148d1abc.zip)
++
++## Kripto Borsası.Net
++Binance.Net, [CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net) temel kütüphanesine dayanmaktadır. CryptoExchange.Net temel kütüphanesine dayanan diğer borsa API uygulamaları mevcuttur ve aynı mantığı takip eder.
++
++CryptoExchange.Net ayrıca [farklı borsa API'lerine kolay erişim](https://jkorf.github.io/CryptoExchange.Net#idocs_common) sağlar.
++
++|Değişim|Depo|Nuget|
++|--|--|--|
++|BingX|[JKorf/BingX.Net](https://github.com/JKorf/BingX.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/JK.BingX.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.BingX.Net)| |Bitfinex|[JKorf/Bitfinex.Net](https://github.com/JKorf/Bitfinex.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/Bitfinex.net.svg?style=flat-square)](https://www.nuget.org/packages/Bitfinex.Net)| |Bitget|[JKorf/Bitget.Net](https://github.com/JKorf/Bitget.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/JK.Bitget.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.Bitget.Net)| |BitMart|[JKorf/BitMart.Net](https://github.com/JKorf/BitMart.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/BitMart.net.svg?style=flat-square)](https://www.nuget.org/packages/BitMart.Net)| |Bybit|[JKorf/Bybit.Net](https://github.com/JKorf/Bybit.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/Bybit.net.svg?style=flat-square)](https://www.nuget.org/packages/Bybit.Net)| |CoinEx|[JKorf/CoinEx.Net](https://github.com/JKorf/CoinEx.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square)](https://www.nuget.org/packages/CoinEx.Net)| |CoinGecko|[JKorf/CoinGecko.Net](https://github.com/JKorf/CoinGecko.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square)](https://www.nuget.org/packages/CoinGecko.Net)| |Gate.io|[JKorf/GateIo.Net](https://github.com/JKorf/GateIo.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square)](https://www.nuget.org/packages/GateIo.Net)| |Huobi/HTX|[JKorf/Huobi.Net](https://github.com/JKorf/Huobi.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/Huobi.net.svg?style=flat-square)](https://www.nuget.org/packages/Huobi.Net)| |Kraken|[JKorf/Kraken.Net](https://github.com/JKorf/Kraken.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/KrakenExchange.net.svg?style=flat-square)](https://www.nuget.org/packages/KrakenExchange.Net)| |Kucoin|[JKorf/Kucoin.Net](https://github.com/JKorf/Kucoin.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/Kucoin.net.svg?style=flat-square)](https://www.nuget.org/packages/Kucoin.Net)| |Mexc|[JKorf/Mexc.Net](https://github.com/JKorf/Mexc.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.Mexc.Net)| |OKX|[JKorf/OKX.Net](https://github.com/JKorf/OKX.Net)|[![Nuget sürümü](https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square)](https://www.nuget.org/packages/JK.OKX.Net)|
++
++## Uyuşmazlık
++[![Nuget sürümü](https://img.shields.io/discord/847020490588422145?style=for-the-badge)](https://discord.gg/MSpeEtSY8t) Bir Discord sunucusu [burada](https://discord.gg/MSpeEtSY8t) mevcuttur. CryptoExchange.Net ve uygulama kütüphaneleri hakkında tartışma ve/veya sorular için katılmaktan çekinmeyin.
++
++## Desteklenen işlevler
++
++### Spot/Marj/Tasarruf/Madencilik
++|API|Desteklenen|Konum|
++|--|--:|--|
++|Cüzdan uç noktaları|✓|`restClient.SpotApi.Account`|
++|AltHesap uç noktaları|✓|`restClient.GeneralApi.SubAccount`| |Piyasa veri uç noktaları|✓|`restClient.SpotApi.ExchangeData`| |Websocket Piyasa Akışları|✓|`socketClient.SpotApi.ExchangeData`| |Spot Ticaret Uç Noktaları|✓|`restClient.SpotApi.Trading`| |Spot Hesap Uç Noktaları|✓|`restClient.SpotApi.Account`| |Marj Hesabı/Ticaret|Kısmi|`restClient.SpotApi.Account` / `restClient.SpotApi.Trading`| |Kullanıcı Veri Akışları|✓|`socketClient.SpotApi.Account`| |Marj Kullanıcı Veri Akışları|X||
++|Basit Kazanç Uç Noktaları|✓|`restClient.GeneralApi.SimpleEarn`| |Otomatik Yatırım Uç Noktaları|✓|`restClient.GeneralApi.AutoInvest`| |Stake Uç Noktaları|✓|`restClient.GeneralApi.Staking`| |Madencilik Uç Noktaları|✓|`restClient.GeneralApi.Mining`| |Vadeli İşlemler|✓|`restClient.GeneralApi.Futures`|
++|Vadeli İşlem Algoritması Uç Noktaları|✓|`restClient.UsdFuturesApi.Trading`| |Spot Algoritması Uç Noktaları|✓|`restClient.SpotApi.Trading`| |Klasik Portföy Marj Uç Noktaları|Kısmi|`restClient.SpotApi.Hesabı`| |BLVT Uç Noktaları|Kısmi|`restClient.SpotApi.Hesabı` / `restClient.SpotApi.ExchangeData` / `restClient.SpotApi.Trading`| |Fiat Uç Noktaları|✓|`restClient.SpotApi.Hesabı`|
++|C2C Uç Noktaları|✓|`restClient.SpotApi.Trading`|
++|VIP Kredi Son Noktaları|X||
++|Kripto Kredileri Son Noktaları|Kısmi|`restClient.GeneralApi.Loans`| |Ödeme Son Noktaları|✓|`restClient.SpotApi.Trading`|
++|Uç Noktalarını Dönüştür|✓|`restClient.SpotApi.ExchangeData` / `restClient.SpotApi.Trading`| |İndirim Uç Noktaları|✓|`restClient.SpotApi.Account`|
++|NFT Uç Noktaları|X||
++|Binance Hediye Kartı Uç Noktaları|X||
++
++### USD-M Vadeli İşlemleri
++|API|Desteklenen|Konum|
++|--|--:|--|
++|Piyasa Verileri|✓|`restClient.UsdFuturesApi.ExchangeData`| |Ticaret|✓|`restClient.UsdFuturesApi.Hesap` [dışa aktar-https-vscode-dev-github-zxramozx-1722925865.json.gz](https://github.com/user-attachments/files/17265068/dışa aktar-https-vscode-dev-github-zxramozx-1722925865.json.gz) [çekme_isteği_şablonu.md](https://github.com/user-attachments/files/17265067/çekme_isteği_şablonu.md) / `restClient.UsdFuturesApi.Trading`[dışa-aktar-https-vscode-dev-github-zxramozx-1722740575.json](https://github.com/user-attachments/files/17265077/dışa-aktar-https-vscode-dev-github-zxramozx-1722740575.json) |
++|Websocket Piyasa Akışları|✓|`socketClient.UsdFuturesApi`[config.go.txt](https://github.com/user-attachments/files/17265080/config.go.txt) |
++|Kullanıcı Veri Akışları|✓|`socketClient.UsdFuturesApi`| |Hesap|✓|`restClient.UsdFuturesApi.Hesap` / `restClient.UsdFuturesApi.Trading`| |Dönüştür|[export-token-0x9cdc684179d200ddab42628f3500fadd60322121.csv](https://github.com/user-attachments/files/17265083/export-token-0x9cdc684179d200ddab42628f3500fadd60322121.csv) ✓|`restClient.UsdFuturesApi.ExchangeData` / `restClient.UsdFuturesApi.Trading`| |Klasik Portföy Marj Uç Noktaları|X||
++
++### COIN-M Vadeli İşlemleri
++|API|Desteklenen|Konum|
++|--|--:|--|
++|Piyasa Verileri|✓|`restClient.CoinFuturesApi.ExchangeData`| |Websocket Piyasa Akışları|✓|`socketClient.CoinFuturesApi`| |Ticaret|✓|`restClient.CoinFuturesApi.Hesap` / `restClient.CoinFuturesApi.Trading`| |Kullanıcı Veri Akışları|✓|`socketClient.CoinFuturesApi`| |Hesap|✓|`restClient.CoinFuturesApi.Hesap` / `restClient.CoinFuturesApi.Trading`| |Klasik Portföy Marj Uç Noktaları|X||
++
++### Avrupa Seçenekleri
++|API|Desteklenen|Konum|
++|--|--:|--|
++|*|X||
++
++### Websocket API
++|API|Desteklenen|Konum|
++|--|--:|--|
++|Piyasa verisi istekleri|✓|`socketClient.SpotApi.ExchangeData`| |Ticaret istekleri|✓|`socketClient.SpotApi.Trading`| |Hesap istekleri|✓|`socketClient.SpotApi.Account`|
++
++### Portföy Marjı
++|API|Desteklenen|Konum|
++|[dışa aktar-0xFa1dB6794de6e994b60741DecaE0567946992181.csv](https://github.com/user-attachments/files/17265085/dışa aktar-0xFa1dB6794de6e994b60741DecaE0567946992181.csv) --|--:|--|
++|*|X||
++
++## Projeyi destekleyin
++Bu paketi boş zamanlarımda kendim, ücretsiz olarak geliştiriyor ve sürdürüyorum, her türlü destek çok değerlidir.
++
++### Bağış yapmak
++Tercih ettiğiniz bir kripto para biriminde tek seferlik bağış yapın. Burada listelenmeyen bir para birimini bağışlamayı tercih ederseniz lütfen benimle iletişime geçin.
++
++**Btc**: 1DFqa7YG7aASAjRniQeYZstn1364LZbouf
++**Eth**: 0xd41a74d3713ce95c180bc9e91a8bff68ac34b58e**USDT (TRX)** TZEVpQwHxxbNiEXLXFjoswdQknrkKibbuc
++### Sponsor
++Alternatif olarak, [Github Sponsorları](https://github.com/sponsors/JKorf) kullanarak Github'da bana sponsor olabilirsiniz.
++
++## Sürüm notları
++* Sürüm 10.5.0 - 27 Eylül 2024
++    * CryptoExchange.Net 8.0.0 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/8.0.0
++    * Spot, USD-M Vadeli İşlemler, Coin-M Vadeli İşlemler Rest ve Socket istemcileri için Paylaşılan istemci arayüzleri uygulaması eklendi
++    * BinanceWithdrawalPlaced modelinde Id özelliği `string?`'den `string`'e güncellendi
++    * Sourcelink paket sürümü güncellendi
++    * ISpotClient ve IFuturesClient referansları kullanım dışı olarak işaretlendi
++
++* Sürüm 10.4.0 - 11 Eylül 2024
++    * UsdFuturesApi.SubscribeToUserDataUpdatesAsync için onTradeUpdate geri araması eklendi
++    * Vadeli bakiyelerdeki CrossUnrealizedPnl alanı, testnet yanıtını desteklemek için değiştirildi
++    * UsdFuturesApi.Trading.EditMultipleOrdersAsync sipariş kimliği serileştirmesi için düzeltme
++    * GeneralApi.AutoInvest.GetPlansAsync seri durumdan çıkarmayla ilgili düzeltme
++    * CoinFuturesApi.ExchangeData.GetFundingRatesAsync için hatalı API dokümanları referansı düzeltildi
++
++* Sürüm 10.3.0 - 28 Ağustos 2024
++    * CryptoExchange.Net 7.11.2 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/7.11.2
++    * GeneralApi.AutoInvest uç noktaları eklendi
++    * UsdFuturesApi dönüştürme uç noktaları eklendi
++    * Sabit SubAccountId özelliğinin mevduat geçmişinde seri hale getirilmesi
++    * Oran sınırlaması için bazı istek ağırlıkları güncellendi
++
++* Sürüm 10.2.1 - 18 Ağustos 2024
++    * SpotApi.Trading.ConvertQuoteRequestAsync uç noktasında walletType serileştirmesi düzeltildi
++
++* Sürüm 10.2.0 - 13 Ağustos 2024
++    * V3 uç noktasında veri eksik olduğundan UsdFuturesApi.Account.GetAccountInfoV2Async uç noktası yeniden eklendi
++    * UsdFuturesApi.Account.GetAccountInfoAsync'i GetAccountInfoV3Async olarak yeniden adlandırın
++    * SpotApi.ExchangeData.GetProductsAsync serileştirmesi düzeltildi
++	* GeneralApi.SimpleEarn.GetLockedRewardRecordsAsync serileştirmesi düzeltildi
++
++* Sürüm 10.1.1 - 08 Ağu 2024
++    * CoinFuturesApi.Account.GetPositionInformationAsync'de UnrealizedPnl serileştirmesini düzeltin
++
++* Sürüm 10.1.0 - 07 Ağu 2024
++    * CryptoExchange.Net 7.11.0 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/7.11.0
++    * XML kod yorumları güncellendi
++    * BinanceFuturesAccountAsset MaintMargin deserialization düzeltildi
++    * BinancePosition MaintMargin deserializasyonu düzeltildi
++    * Coin-M vadeli işlemleri için BinancePosition UnrealizedProfit deserializasyonu düzeltildi
++
++* Sürüm 10.0.1 - 05 Ağustos 2024
++    * UsdtFuturesApi.Account.GetIncomeHistoryAsync serileştirme sorunu düzeltildi
++
++* Sürüm 10.0.0 - 27 Temmuz 2024
++    * CryptoExchange.Net 7.10.0 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/7.10.0
++    * (De)serileştirme için Newtonsoft.Json uygulamasından System.Text.Json uygulamasına geçin
++    * Eski tip başına enum dönüştürücüsünden EnumConverter kullanımına yeniden düzenlendi
++    * SpotApi.Account.GetCommissionRatesAsync uç noktası eklendi
++    * UsdFuturesApi.Account.GetSymbolConfigurationAsync uç noktası eklendi
++    * UsdFuturesApi.Account.GetAccountConfigurationAsync uç noktası eklendi
++    * UsdFuturesApi.Trading.GetPositionsAsync uç noktası eklendi
++    * SpotApi.ExchangeData.GetExchangeInfoAsync sembol yanıtına PermissionSets özelliği eklendi
++    * UsdFuturesApi.Account.GetBalancesAsync V3'e güncellendi
++    * UsdFuturesApi.Account.GetAccountInfoAsync V3'e güncellendi
++
++* Sürüm 9.12.0 - 16 Temmuz 2024
++    * CryptoExchange.Net 7.9.0 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/7.9.0
++    * Dahili sınıflar dahili erişim değiştiricisine güncellendi
++    * Bağlantının kesilmesini önlemek için WebSocket hız sınırı kuralı güncellendi
++
++* Sürüm 9.11.1 - 02 Temmuz 2024
++    * CryptoExchange.Net V7.8.0'a güncellendi
++    * Uç nokta başına limitler için güncellenmiş hız sınırlaması
++
++* Sürüm 9.11.0 - 23 Haz 2024
++    * CryptoExchange.Net 7.7.0 sürümüne güncellendi, bkz. https://github.com/JKorf/CryptoExchange.Net/releases/tag/7.7.0
++    * Özel bağlantı yapılandırması eklendi; artık ilk isteği yapmadan önce `binanceSocketClient.SpotApi.PrepareConnectionsAsync();` çağrılarak bir websocket bağlantısı kurulabilir
++    * Websocket isteklerine CancellationToken isteğe bağlı parametresi eklendi
++    * Sınıflardan kayıtlara güncellenmiş yanıt modelleri
++
++* Sürüm 9.10.0 - 11 Haz 2024
++    * Yeni SpotApi.Trading.PlaceOtoOrderListAsync ve SpotApi.Trading.PlaceOtocoOrderListAsync uç noktaları eklendi
++    * Otomatik sıkıştırmayı açmaya izin vererek GetProductsAsync uç noktalarını düzeltti
++    * CryptoExchange.Net v7.6.0'a güncellendi, sürüm notları için https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes adresine bakın
++
++* Sürüm 9.9.8 - 02 Haziran 2024
++    * SpotApi.Account.GetAccountVipLevelAndStatusAsync uç noktası eklendi
++    * UsdFuturesApi.Account.GetBnbBurnStatusAsync ve UsdFuturesApi.Account.SetBnbBurnStatusAsync uç noktaları eklendi
++    * Eksik GoodTillDate TimeInForce dönüşümü eklendi
++
++* Sürüm 9.9.7 - 07 Mayıs 2024
++    * CryptoExchange.Net'i v7.5.2'ye güncelledik, sürüm notları için https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes adresine bakın
++
++* Sürüm 9.9.6 - 05 Mayıs 2024
++    * Çeşitli yanıt modelleri güncellendi
++    * CoinFuturesApi.Account.GetBracketsAsync V2 uç noktasına güncellendi
++    * CoinFuturesApi.Trading.PlaceMultipleOrdersAsync sipariş parametresi diziden IEnumerable'a güncellendi
++
++* Sürüm 9.9.5 - 01 Mayıs 2024
++    * Çoklu yanıt modelleri güncellendi
++    * Yeni, daha kapsamlı birim testi uygulamasından sonra birden fazla hata düzeltildi
++    * Yinelenen SpotApi.Trading.ConvertTransferAsync ve GetConvertTransferHistoryAsync uç noktaları kaldırıldı
++    * CryptoExchange.Net v7.5.0'a güncellendi, sürüm notları için https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes adresine bakın
++
++* Sürüm 9.9.4 - 28 Nis 2024
++    * SpotApi.Account.GetWithdrawalAddressesAsync uç noktası eklendi
++    * BinanceExchange statik sınıfına Url ve ApiDocsUrl eklendi
++    * BinanceOrderBookFactory kitap oluşturma yöntemi eklendi
++    * BinanceOrderBookFactory enjeksiyon sorunu düzeltildi
++    * CryptoExchange.Net v7.4.0'a güncellendi, sürüm notları için https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes adresine bakın
++
++* Sürüm 9.9.3 - 23 Nis 2024
++    * Eksik UniversalTransferType enum değerleri eklendi
++    * CoinFuturesApi.Account.GetIncomeHistoryAsync uç nokta URL'si düzeltildi
++    * CryptoExchange.Net 7.3.3'e güncellendi, sürüm notları için https://github.com/JKorf/CryptoExchange.Net?tab=readme-ov-file#release-notes adresine bakın
++
++* Sürüm 9.9.2 - 19 Nis 2024
++    * CoinFuturesApi.Account.GetDownloadIdForTransactionHistoryAsync uç noktası eklendi
++    * CoinFuturesApi.Account.GetDownloadLinkForTransactionHistoryAsync uç noktası eklendi
++    * SpotApi.ExchangeData.GetTradingDayTickerAsync uç noktası eklendi
++    * SpotApi.ExchangeData.GetTradingDayTickersAsync uç noktası eklendi
++    * SpotApi.Trading.PlaceTestOrderAsync'e computeFeeRates parametresi eklendi
++    * SpotApi.Trading.PlaceTestOrderAsync yanıtı güncellendi
++    * Güncellenmiş broker referans ayarı
++    * CryptoExchange.Net, belirli oran limitlerine sahip bazı uç noktaların başarısız olmasına neden olan sorunu düzelterek 7.3.2'ye güncellendi
++
++* Sürüm 9.9.1 - 19 Nis 2024
++    * Başlat/Canlı Tut/Durdur UserStream işlemlerinin hata döndürmesi düzeltildi
++
++* Sürüm 9.9.0 - 18 Nis 2024
++  
