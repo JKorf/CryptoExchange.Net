@@ -1,0 +1,214 @@
+Ana içeriğe geç
+GitHub Belgeleri
+Kod alanları /Bir kod alanında geliştirme /GitHub CLI
+GitHub CLI ile GitHub Codespaces'ı Kullanma
+ghGitHub komut satırı arayüzünü kullanarak GitHub Codespaces ile doğrudan komut satırınızdan çalışabilirsiniz .
+
+Bu makalede
+GitHub CLI Hakkında
+GitHub CLI'yi yükleme
+GitHub CLI'yi kullanma
+GitHub Codespaces için gh komutları
+GitHub CLI Hakkında
+GitHub CLI, bilgisayarınızın komut satırından GitHub'ı kullanmak için açık kaynaklı bir araçtır. Komut satırından çalışırken, zamandan tasarruf etmek ve bağlam değiştirmekten kaçınmak için GitHub CLI'yi kullanabilirsiniz. Daha fazla bilgi için " GitHub CLI Hakkında " bölümüne bakın.
+
+GitHub CLI'da GitHub Codespaces ile çalışarak şunları yapabilirsiniz:
+
+Tüm kod alanlarınızı listeleyin
+Yeni bir kod alanı oluştur
+Bir kod alanının ayrıntılarını görüntüle
+Bir kod alanını durdur
+Bir kod alanını sil
+Bir kod alanının adını değiştirin
+Bir kod alanını yeniden oluşturun
+Bir kod alanına SSH
+Visual Studio Code'da bir kod alanı açın
+JupyterLab'da bir kod alanı açın
+Bir dosyayı bir kod alanına/kod alanından kopyalama
+Bir kod alanındaki portları değiştirin
+Erişim kod alanı günlükleri
+Uzaktan kaynaklara erişim
+Bir kod alanının makine türünü değiştirin
+GitHub CLI'yi yükleme
+GitHub CLI kurulum talimatları için GitHub CLI deposuna bakın .
+
+GitHub CLI'yi kullanma
+Eğer henüz yapmadıysanız gh auth loginGitHub hesabınızla kimlik doğrulaması yapın.
+
+ghGitHub Codespaces ile çalışmak için, . gh codespace SUBCOMMANDveya onun takma adını kullanın gh cs SUBCOMMAND.
+
+GitHub Codespaces ile çalışmak için kullanabileceğiniz bir dizi komuta örnek olarak şunları yapabilirsiniz:
+
+Belirli bir depo için kod alanınız olup olmadığını kontrol etmek amacıyla mevcut kod alanlarınızı listeleyin:
+gh codespace list
+Gerekli depo dalı için yeni bir kod alanı oluşturun:
+gh codespace create -r github/docs -b main
+Yeni kod alanına SSH ile girin:
+gh codespace ssh -c octocat-literate-space-parakeet-7gwrqp9q9jcx4vq
+Bir portu yerel makinenize yönlendirin:
+gh codespace ports forward 8000:8000 -c octocat-literate-space-parakeet-7gwrqp9q9jcx4vq
+ghGitHub Codespaces için komutlar
+Aşağıdaki bölümlerde mevcut işlemlerin her biri için örnek komutlar verilmektedir.
+
+GitHub Codespaces komutlarının tam bir referansı için gh, her komut için tüm kullanılabilir seçeneklerin ayrıntıları da dahil olmak üzere, GitHub CLI çevrimiçi yardımına " gh codespace " bakın. Alternatif olarak, komut satırında, gh codespace --helpgenel yardım veya gh codespace SUBCOMMAND --helpbelirli bir alt komutla ilgili yardım için kullanın.
+
+Not : -c CODESPACE_NAMEBirçok komutla kullanılan bayrak isteğe bağlıdır. Bunu atlarsanız, seçmeniz için bir kod alanları listesi görüntülenir.
+
+Tüm kod alanlarınızı listeleyin
+gh codespace list
+Listede, diğer komutlarda kullanabileceğiniz her kod alanının benzersiz adı yer alır gh codespace.
+
+Bir kod alanına ait dal adının sonundaki yıldız işareti, o kod alanında henüz işlenmemiş veya gönderilmemiş değişiklikler olduğunu gösterir.
+
+Yeni bir kod alanı oluştur
+gh codespace create -r OWNER/REPO_NAME [-b BRANCH]
+Daha fazla bilgi için " Bir depo için kod alanı oluşturma " bölümüne bakın.
+
+Bir kod alanının ayrıntılarını görüntüle
+gh codespace view
+Bu komutu çalıştırdıktan sonra mevcut kod alanlarınızdan birini seçmeniz istenir. Ardından aşağıdaki bilgiler görüntülenir:
+
+Kod alanının adı
+Durum (örneğin, "Kullanılabilir" veya "Kapatıldı")
+Depo
+Git durumu
+Kod alanını oluşturmak için kullanılan dev konteyner yapılandırma dosyasının yolu
+Makine tipi
+Boşta kalma zaman aşımı
+Kod alanının oluşturulduğu tarih ve saat
+Saklama süresi
+Daha fazla bilgi için GitHub CLI referansına bakın .
+
+Bir kod alanını durdur
+gh codespace stop -c CODESPACE-NAME
+Daha fazla bilgi için " GitHub Codespaces'a derinlemesine bakış " bölümüne bakın.
+
+Bir kod alanını sil
+gh codespace delete -c CODESPACE-NAME
+Daha fazla bilgi için " Kod alanını silme " bölümüne bakın.
+
+Bir kod alanının adını değiştirin
+gh codespace edit -c CODESPACE-NAME -d 'DISPLAY-NAME'
+Daha fazla bilgi için " Kod alanının yeniden adlandırılması " bölümüne bakın.
+
+Bir kod alanını yeniden oluşturun
+gh codespace rebuild
+Tam bir yeniden derleme gerçekleştirmek için --fullbu komutun sonuna ekleyin. Daha fazla bilgi için " Kod alanında konteyneri yeniden derleme " bölümüne bakın.
+
+Bu komutu bir kod alanını yeniden oluşturmak için kullandığınızda, devcontainer.jsonkod alanının sisteminde şu anda kayıtlı olan dosyayı kullanır. Bu, dosyanın geçerli durumunun kaynak denetiminde kaydedilip kaydedilmediğine bakılmaksızın gerçekleşir. Daha fazla bilgi için " dev kapsayıcılarına giriş " bölümüne bakın.
+
+Bir kod alanına SSH
+Uzak kod alanı makinesinde komut çalıştırmak için terminalinizden kod alanına SSH ile bağlanabilirsiniz.
+
+gh codespace ssh -c CODESPACE-NAME
+Not : Bağlandığınız kod alanı bir SSH sunucusu çalıştırıyor olmalıdır. Varsayılan dev kapsayıcı görüntüsü, otomatik olarak başlatılan bir SSH sunucusu içerir. Kod alanlarınız varsayılan görüntüden oluşturulmamışsa, featuresdosyanızdaki nesneye aşağıdakileri ekleyerek bir SSH sunucusu yükleyebilir ve başlatabilirsiniz devcontainer.json.
+
+"features": {
+    // ...
+    "ghcr.io/devcontainers/features/sshd:1": {
+        "version": "latest"
+    },
+    // ...
+}
+
+devcontainer.jsonDosya ve varsayılan kapsayıcı görüntüsü hakkında daha fazla bilgi için " Geliştirici kapsayıcılarına giriş " bölümüne bakın.
+
+GitHub Codespaces, sorunsuz bir kimlik doğrulama deneyimi sağlamak için otomatik olarak yerel bir SSH anahtarı oluşturur. SSH ile bağlanma hakkında daha fazla bilgi için bkz gh codespace ssh. .
+
+Visual Studio Code'da bir kod alanı açın
+gh codespace code -c CODESPACE-NAME
+Yerel makinenizde VS Code yüklü olmalıdır. Daha fazla bilgi için " Visual Studio Code'da GitHub Codespaces'ı Kullanma " bölümüne bakın.
+
+JupyterLab'da bir kod alanı açın
+gh codespace jupyter -c CODESPACE-NAME
+JupyterLab uygulaması açtığınız kod alanına yüklenmelidir. Varsayılan dev kapsayıcı görüntüsü JupyterLab'ı içerir, bu nedenle varsayılan görüntüden oluşturulan kod alanlarında her zaman JupyterLab yüklü olur. Varsayılan görüntü hakkında daha fazla bilgi için " Dev kapsayıcılarına giriş " ve depoyadevcontainers/images bakın . Dev kapsayıcı yapılandırmanızda varsayılan görüntüyü kullanmıyorsanız, ghcr.io/devcontainers/features/pythonözelliği dosyanıza ekleyerek JupyterLab'ı yükleyebilirsiniz devcontainer.json. Seçeneğini eklemelisiniz . Daha fazla bilgi için, depoda özellik için README'ye"installJupyterlab": true bakın .pythondevcontainers/features
+
+Bir dosyayı bir kod alanına/kod alanından kopyalama
+gh codespace cp [-r] SOURCE(S) DESTINATION
+remote:Bir dosya veya dizin adında kod alanında olduğunu belirtmek için öneki kullanın . UNIX cpkomutunda olduğu gibi, ilk argüman kaynağı belirtir ve son argüman hedefi belirtir. Hedef bir dizinse, birden fazla kaynak belirtebilirsiniz. -rKaynaklardan herhangi biri dizinse (tekrarlayan) bayrağını kullanın.
+
+Kod alanındaki dosya ve dizinlerin konumu, uzak kullanıcının ana dizinine göredir.
+
+Örnekler
+Yerel makineden bir dosyayı $HOMEkod alanının dizinine kopyalayın:
+
+gh codespace cp myfile.txt remote:
+
+Bir dosyayı, bir kod alanında bir deponun ödünç alındığı dizine kopyalayın:
+
+gh codespace cp myfile.txt remote:/workspaces/REPOSITORY-NAME
+
+Bir dosyayı kod alanından yerel makinedeki geçerli dizine kopyalayın:
+
+gh codespace cp remote:myfile.txt .
+
+$HOME/tempÜç yerel dosyayı bir kod alanının dizinine kopyalayın :
+
+gh codespace cp a1.txt a2.txt a3.txt remote:temp
+
+Üç dosyayı bir kod alanından yerel makinedeki geçerli çalışma dizinine kopyalayın:
+
+gh codespace cp remote:a1.txt remote:a2.txt remote:a3.txt .
+
+$HOMEYerel bir dizini bir kod alanının dizinine kopyalayın :
+
+gh codespace cp -r mydir remote:
+
+Bir dizini kod alanından yerel makineye kopyalayın, dizin adını değiştirin:
+
+gh codespace cp -r remote:mydir mydir-localcopy
+
+Komut hakkında daha fazla bilgi gh codespace cpve kullanabileceğiniz ek işaretler için GitHub CLI kılavuzuna bakın .
+
+Bir kod alanındaki portları değiştirin
+Bir kod alanındaki bir portu yerel bir porta yönlendirebilirsiniz. Port, işlem çalıştığı sürece yönlendirilmiş olarak kalır. Portu yönlendirmeyi durdurmak için Control+ tuşuna basın C.
+
+gh codespace ports forward CODESPACE-PORT_NAME:LOCAL-PORT-NAME -c CODESPACE-NAME
+Yönlendirilen portların ayrıntılarını görmek için gh codespace portsbir kod alanına girin ve ardından seçin.
+
+İletilen bir portun görünürlüğünü ayarlayabilirsiniz. Üç görünürlük ayarı vardır:
+
+private- Sadece sizin tarafınızdan görülebilir. Bu, bir portu yönlendirdiğinizde varsayılan ayardır.
+org- Depoyu elinde bulunduran kuruluşun üyeleri tarafından görülebilir.
+public- URL ve port numarasını bilen herkes tarafından görülebilir.
+gh codespace ports visibility CODESPACE-PORT:private|org|public -c CODESPACE-NAME
+Birden fazla portun görünürlüğünü tek bir komutla ayarlayabilirsiniz. Örneğin:
+
+gh codespace ports visibility 80:private 3000:public 3306:org -c CODESPACE-NAME
+Daha fazla bilgi için " Kod alanınızdaki portları yönlendirme " bölümüne bakın.
+
+Erişim kod alanı günlükleri
+Bir kod alanı için oluşturma günlüğünü görebilirsiniz. Bu komutu girdikten sonra SSH anahtarınız için parolayı girmeniz istenecektir.
+
+gh codespace logs -c CODESPACE-NAME
+Oluşturma günlüğü hakkında daha fazla bilgi için " GitHub Codespaces günlükleri " bölümüne bakın.
+
+Uzaktan kaynaklara erişim
+GitHub CLI uzantısını kullanarak bir kod alanı ile yerel makineniz arasında bir köprü oluşturabilir ve böylece kod alanı makinenizden erişilebilen herhangi bir uzak kaynağa erişebilir. Uzantıyı kullanma hakkında daha fazla bilgi için " Uzak kaynaklara erişmek için GitHub CLI kullanma " konusuna bakın.
+
+Not : GitHub CLI eklentisi şu anda beta aşamasındadır ve değişikliğe tabidir.
+
+Bir kod alanının makine türünü değiştirin
+gh codespace edit -m MACHINE-TYPE-NAME
+Daha fazla bilgi için " Kod alanınız için makine türünü değiştirme " konusunun "GitHub CLI" sekmesine bakın .
+
+Yardım ve destek
+Aradığınızı buldunuz mu?
+
+Gizlilik Politikası
+Bu dokümanları harika hale getirmemize yardımcı olun!
+Tüm GitHub belgeleri açık kaynaklıdır. Yanlış veya belirsiz bir şey mi gördünüz? Bir çekme isteği gönderin.
+
+Nasıl katkıda bulunacağınızı öğrenin
+
+Hala yardıma mı ihtiyacınız var?
+GitHub Geri Bildirimi Sağlayın
+Destek ekibiyle iletişime geçin
+Yasal
+© 2024 GitHub, Inc.
+Şartlar
+Mahremiyet
+Durum
+Fiyatlandırma
+Uzman hizmetler
+Blog
