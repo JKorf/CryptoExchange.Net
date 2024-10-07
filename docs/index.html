@@ -151,6 +151,7 @@
 			<tr><td>Bitget</td><td><a href="https://github.com/JKorf/Bitget.Net">JKorf/Bitget.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Bitget.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.Bitget.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>BitMart</td><td><a href="https://github.com/JKorf/BitMart.Net">JKorf/BitMart.Net</a></td><td><a href="https://www.nuget.org/packages/BitMart.Net" target="_blank"><img src="https://img.shields.io/nuget/v/BitMart.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Bybit</td><td><a href="https://github.com/JKorf/Bybit.Net">JKorf/Bybit.Net</a></td><td><a href="https://www.nuget.org/packages/Bybit.Net" target="_blank"><img src="https://img.shields.io/nuget/v/Bybit.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Coinbase</td><td><a href="https://github.com/JKorf/Coinbase.Net">JKorf/Coinbase.Net</a></td><td><a href="https://www.nuget.org/packages/JKorf.Coinbase.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JKorf.Coinbase.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>CoinEx</td><td><a href="https://github.com/JKorf/CoinEx.Net">JKorf/CoinEx.Net</a></td><td><a href="https://www.nuget.org/packages/CoinEx.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>CoinGecko</td><td><a href="https://github.com/JKorf/CoinGecko.Net">JKorf/CoinGecko.Net</a></td><td><a href="https://www.nuget.org/packages/CoinGecko.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Gate.io</td><td><a href="https://github.com/JKorf/GateIo.Net">JKorf/GateIo.Net</a></td><td><a href="https://www.nuget.org/packages/GateIo.Net" target="_blank"><img src="https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square" /></a></td></tr>
@@ -240,12 +241,15 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
-			  </li>
+			  </li
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="install-coingecko-tab" data-toggle="tab" href="#install-coingecko" role="tab" aria-controls="install-coingecko" aria-selected="false">CoinGecko</a>
+				<a class="nav-link" id="install-coinbase-tab" data-toggle="tab" href="#install-coinbase" role="tab" aria-controls="install-coinbase" aria-selected="false">Coinbase</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-coinex-tab" data-toggle="tab" href="#install-coinex" role="tab" aria-controls="install-coinex" aria-selected="false">Coinex</a>
+			  </li>			  
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-coingecko-tab" data-toggle="tab" href="#install-coingecko" role="tab" aria-controls="install-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-gateio-tab" data-toggle="tab" href="#install-gateio" role="tab" aria-controls="install-gateio" aria-selected="false">GateIo</a>
@@ -295,6 +299,9 @@
 			  <div class="tab-pane fade" id="install-coingecko" role="tabpanel" aria-labelledby="install-coingecko-tab">
 				<pre><code>dotnet add package CoinGecko.Net</code></pre>
 				<img src="assets/images/CoinGeckoInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-coinbase" role="tabpanel" aria-labelledby="install-coinbase-tab">
+				<pre><code>dotnet add package JKorf.Coinbase.Net</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab">
 				<pre><code>dotnet add package CoinEx.Net</code></pre>
@@ -358,6 +365,9 @@
 				<a class="nav-link" id="di-bybit-tab" data-toggle="tab" href="#di-bybit" role="tab" aria-controls="di-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-coinbase-tab" data-toggle="tab" href="#di-coinbase" role="tab" aria-controls="di-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-coingecko-tab" data-toggle="tab" href="#di-coingecko" role="tab" aria-controls="di-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -403,6 +413,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="di-bybit" role="tabpanel" aria-labelledby="di-bybit-tab">
 <pre><code>builder.Services.AddBybit();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-coinbase" role="tabpanel" aria-labelledby="di-coinbase-tab">
+<pre><code>builder.Services.AddCoinbase();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-coingecko" role="tabpanel" aria-labelledby="di-coingecko-tab">
 <pre><code>builder.Services.AddCoinGecko();</code></pre>
@@ -454,6 +467,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-bybit-tab" data-toggle="tab" href="#interfaces-bybit" role="tab" aria-controls="interfaces-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-coinbase-tab" data-toggle="tab" href="#interfaces-coinbase" role="tab" aria-controls="interfaces-coinbase" aria-selected="false">Coinbase</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-coingecko-tab" data-toggle="tab" href="#interfaces-coingecko" role="tab" aria-controls="interfaces-coingecko" aria-selected="false">CoinGecko</a>
@@ -673,6 +689,35 @@
 					<tr>
 						<td><code>IBybitOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the Bybit API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-coinbase" role="tabpanel" aria-labelledby="interfaces-coinbase-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICoinbaseRestClient</code></td>
+						<td>The client for accessing the Coinbase REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinbaseSocketClient</code></td>
+						<td>The client for accessing the Coinbase Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinbaseOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Coinbase API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -949,6 +994,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-bybit-tab" data-toggle="tab" href="#rest-bybit" role="tab" aria-controls="rest-bybit" aria-selected="false">Bybit</a>
+			  </li>			  
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-coinbase-tab" data-toggle="tab" href="#rest-coinbase" role="tab" aria-controls="rest-coinbase" aria-selected="false">Coinbase</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-coingecko-tab" data-toggle="tab" href="#rest-coingecko" role="tab" aria-controls="rest-coingecko" aria-selected="false">CoinGecko</a>
@@ -1051,6 +1099,18 @@ else
 			  <div class="tab-pane fade" id="rest-bybit" role="tabpanel" aria-labelledby="rest-bybit-tab">
 				<pre><code>var client = new BybitRestClient();
 var tickersResult = await client.V5Api.ExchangeData.GetSpotTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-coinbase" role="tabpanel" aria-labelledby="rest-coinbase-tab">
+				<pre><code>var client = new CoinbaseRestClient();
+var tickersResult = await client.AdvancedTradeApi.ExchangeData.GetSymbolsAsync();
 if (!tickersResult.Success)
 {
   // Handle error, tickersResult.Error contains more information
@@ -1252,6 +1312,9 @@ else
 				<a class="nav-link" id="socket-bybit-tab" data-toggle="tab" href="#socket-bybit" role="tab" aria-controls="socket-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-coinbase-tab" data-toggle="tab" href="#socket-coinbase" role="tab" aria-controls="socket-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-coinex-tab" data-toggle="tab" href="#socket-coinex" role="tab" aria-controls="socket-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1348,6 +1411,17 @@ var subscribeResult = await client.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHU
 if (!subscribeResult.Success)
 {
   // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-coinbase" role="tabpanel" aria-labelledby="socket-coinbase-tab">
+				<pre><code>var client = new CoinbaseSocketClient();
+var subscribeResult = await sclient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+    // Handle error, subscribeResult.Error contains more information on why the subscription failed
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
@@ -1599,6 +1673,9 @@ var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
 				<a class="nav-link" id="shared-bybit-tab" data-toggle="tab" href="#shared-bybit" role="tab" aria-controls="shared-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-coinbase-tab" data-toggle="tab" href="#shared-coinbase" role="tab" aria-controls="shared-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="shared-coinex-tab" data-toggle="tab" href="#shared-coinex" role="tab" aria-controls="shared-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1702,6 +1779,13 @@ var inverseFuturesspotSharedSocketClient = bybitSocketClient.V5InverseApi.Shared
 // Private Futures API common functionality socket client
 var privateFuturesSharedSocketClient = bybitSocketClient.V5PrivateApi.SharedClient;</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="shared-coinbase" role="tabpanel" aria-labelledby="shared-coinbase-tab">
+<pre><code>// Advanced Trade API common functionality rest client
+var spotSharedRestClients = coinbaseRestClient.AdvancedTradeApi.SharedClient;
+
+// Advanced Trade API common functionality socket client
+var spotSharedSocketClient = coinbaseRestClient.AdvancedTradeApi.SharedClient;</code></pre>
+			  </div>			  
 			  <div class="tab-pane fade" id="shared-coinex" role="tabpanel" aria-labelledby="shared-coinex-tab">
 <pre><code>// Spot API common functionality rest client
 var spotSharedRestClients = coinExRestClient.SpotApiV2.SharedClient;
@@ -2034,6 +2118,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-bybit" role="tab" aria-controls="options-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinbase-tab" data-toggle="tab" href="#options-coinbase" role="tab" aria-controls="options-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-coingecko" role="tab" aria-controls="options-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2115,6 +2202,15 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </div>
 			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>builder.Services.AddBybit(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-coinbase" role="tabpanel" aria-labelledby="options-coinbase-tab">
+<pre><code>builder.Services.AddCoinbase(
   restOptions => {
     restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
   },
@@ -2220,6 +2316,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-constr-bybit" role="tab" aria-controls="options-constr-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinbase-tab" data-toggle="tab" href="#options-constr-coinbase" role="tab" aria-controls="options-constr-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-constr-coingecko" role="tab" aria-controls="options-constr-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2283,6 +2382,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </div>
 			  <div class="tab-pane fade" id="options-constr-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>var client = new BybitRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-constr-coinbase" role="tabpanel" aria-labelledby="options-coinbase-tab">
+<pre><code>var client = new CoinbaseRestClient(opts =>
 {
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
@@ -2361,6 +2466,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-bybit-tab" data-toggle="tab" href="#options-default-bybit" role="tab" aria-controls="options-default-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-coinbase-tab" data-toggle="tab" href="#options-default-coinbase" role="tab" aria-controls="options-default-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-coingecko-tab" data-toggle="tab" href="#options-default-coingecko" role="tab" aria-controls="options-default-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2427,6 +2535,13 @@ var client = new BitMartRestClient();</code></pre>
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new BybitRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-coinbase" role="tabpanel" aria-labelledby="options-coinbase-tab">
+<pre><code>CoinbaseClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CoinbaseRestClient();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-default-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
 <pre><code>CoinGeckoRestClient.SetDefaultOptions(options =>
@@ -2689,6 +2804,9 @@ var client = new OKXRestClient();</code></pre>
 				<a class="nav-link" id="book-bybit-tab" data-toggle="tab" href="#book-bybit" role="tab" aria-controls="book-bybit" aria-selected="false">Bybit</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-coinbase-tab" data-toggle="tab" href="#book-coinbase" role="tab" aria-controls="book-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-coinex-tab" data-toggle="tab" href="#book-coinex" role="tab" aria-controls="book-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2792,6 +2910,19 @@ await book.StopAsync();
 			  </div>
 			  <div class="tab-pane fade" id="book-bybit" role="tabpanel" aria-labelledby="book-bybit-tab">
 <pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-coinbase" role="tabpanel" aria-labelledby="book-coinbase-tab">
+<pre><code>var book = new CoinbaseSymbolOrderBook("ETH-USDT");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
@@ -3070,6 +3201,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 				<a class="nav-link" id="limit-bitmart-tab" data-toggle="tab" href="#limit-bitmart" role="tab" aria-controls="limit-bitmart" aria-selected="false">BitMart</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-coinbase-tab" data-toggle="tab" href="#limit-coinbase" role="tab" aria-controls="limit-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-gateio-tab" data-toggle="tab" href="#limit-gateio" role="tab" aria-controls="limit-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -3154,6 +3288,20 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 });</code></pre>
 		  <p>To be notified of when a rate limit is hit the static <code>BitMartExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
 		  <pre><code>BitMartExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-coinbase" role="tabpanel" aria-labelledby="limit-coinbase-tab">
+<pre><code>services.AddCoinbase(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>CoinbaseExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>CoinbaseExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
 
 </code></pre>
 			  </div>
@@ -3318,6 +3466,9 @@ var responseSource = result.DataSource;</code></pre>
 						<a class="nav-link" id="example-symbols-bybit-tab" data-toggle="tab" href="#example-symbols-bybit" role="tab" aria-controls="example-symbols-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-coinbase-tab" data-toggle="tab" href="#example-symbols-coinbase" role="tab" aria-controls="example-symbols-coinbase" aria-selected="false">Coinbase</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-coinex-tab" data-toggle="tab" href="#example-symbols-coinex" role="tab" aria-controls="example-symbols-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3361,6 +3512,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-bybit" role="tabpanel" aria-labelledby="example-symbols-bybit-tab">
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-coinbase" role="tabpanel" aria-labelledby="example-symbols-coinbase-tab">
+		<pre><code>await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-coinex" role="tabpanel" aria-labelledby="example-symbols-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -3423,6 +3577,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 						<a class="nav-link" id="example-ticker-bybit-tab" data-toggle="tab" href="#example-ticker-bybit" role="tab" aria-controls="example-ticker-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-coinbase-tab" data-toggle="tab" href="#example-ticker-coinbase" role="tab" aria-controls="example-ticker-coinbase" aria-selected="false">Coinbase</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-coinex-tab" data-toggle="tab" href="#example-ticker-coinex" role="tab" aria-controls="example-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3466,6 +3623,10 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-bybit" role="tabpanel" aria-labelledby="example-ticker-bybit-tab">
 		<pre><code>await bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-coinbase" role="tabpanel" aria-labelledby="example-ticker-coinbase-tab">
+		<pre><code>// Symbol endpoint and ticker endpoints are combined for Coinbase
+await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-coinex" role="tabpanel" aria-labelledby="example-ticker-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetTickersAsync(new[] { "BTCUSDT" });</code></pre>
@@ -3528,6 +3689,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.
 						<a class="nav-link" id="example-balances-bybit-tab" data-toggle="tab" href="#example-balances-bybit" role="tab" aria-controls="example-balances-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-coinbase-tab" data-toggle="tab" href="#example-balances-coinbase" role="tab" aria-controls="example-balances-coinbase" aria-selected="false">Coinbase</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-coinex-tab" data-toggle="tab" href="#example-balances-coinex" role="tab" aria-controls="example-balances-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3571,6 +3735,9 @@ await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-bybit" role="tabpanel" aria-labelledby="example-balances-bybit-tab">
 		<pre><code>await bybitClient.V5Api.Account.GetBalancesAsync(AccountType.Spot);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-coinbase" role="tabpanel" aria-labelledby="example-balances-coinbase-tab">
+		<pre><code>await coinbaseClient.AdvancedTradeApi.Account.GetAccountsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-coinex" role="tabpanel" aria-labelledby="example-balances-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Account.GetBalancesAsync();</code></pre>
@@ -3637,6 +3804,9 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-bybit-tab" data-toggle="tab" href="#example-place-bybit" role="tab" aria-controls="example-place-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-coinbase-tab" data-toggle="tab" href="#example-place-coinbase" role="tab" aria-controls="example-place-coinbase" aria-selected="false">Coinbase</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-coinex-tab" data-toggle="tab" href="#example-place-coinex" role="tab" aria-controls="example-place-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3680,6 +3850,9 @@ await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Orde
 					  </div>
 					  <div class="tab-pane fade" id="example-place-bybit" role="tabpanel" aria-labelledby="example-place-bybit-tab">
 		<pre><code>await bybitClient.V5Api.Trading.PlaceOrderAsync(Category.Spot, "BTCUSDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
+		<pre><code>await coinbaseClient.AdvancedTradeApi.Trading.PlaceOrderAsync("BTC-USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Trading.PlaceOrderAsync("BTCUSDT", AccountType.Spot, OrderSide.Buy, OrderTypeV2.Limit, 0.1m, 50000);</code></pre>
@@ -3746,6 +3919,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 						<a class="nav-link" id="example-stream-ticker-bybit-tab" data-toggle="tab" href="#example-stream-ticker-bybit" role="tab" aria-controls="example-stream-ticker-bybit" aria-selected="false">Bybit</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-coinbase-tab" data-toggle="tab" href="#example-stream-ticker-coinbase" role="tab" aria-controls="example-stream-ticker-coinbase" aria-selected="false">Coinbase</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-coinex-tab" data-toggle="tab" href="#example-stream-ticker-coinex" role="tab" aria-controls="example-stream-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3801,6 +3977,11 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-bybit" role="tabpanel" aria-labelledby="example-stream-ticker-bybit-tab">
 		<pre><code>await bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-coinbase" role="tabpanel" aria-labelledby="example-stream-ticker-coinbase-tab">
+		<pre><code>await coinbaseSocketClient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-USDT", data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -3878,6 +4059,9 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-bybit-tab" data-toggle="tab" href="#example-stream-order-bybit" role="tab" aria-controls="example-stream-order-bybit" aria-selected="false">Bybit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-coinbase-tab" data-toggle="tab" href="#example-stream-order-coinbase" role="tab" aria-controls="example-stream-order-coinbase" aria-selected="false">Coinbase</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-coinex-tab" data-toggle="tab" href="#example-stream-order-coinex" role="tab" aria-controls="example-stream-order-coinex" aria-selected="false">Coinex</a>
@@ -3981,6 +4165,11 @@ _ = Task.Run(async () => {
     // Handle update
 });</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-coinbase" role="tabpanel" aria-labelledby="example-stream-order-coinbase-tab">
+		<pre><code>await coinbaseSocketClient.AdvancedTradeApi.SubscribeToUserUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-coinex" role="tabpanel" aria-labelledby="example-stream-order-coinex-tab">
 		<pre><code>await coinExSocketClient.SpotApiV2.SubscribeToOrderUpdatesAsync(data => {
     // Handle update
@@ -4043,7 +4232,7 @@ _ = Task.Run(async () => {
 		  
 		  
 		  <b id="idocs_example_minimal">Minimal API</b><br />
-		  <p>A minimal API example allowing the caller to retrieve ticker information for a specific exchange and asset pair<br />
+		  <p>A minimal API example allowing the caller to retrieve ticker information for a specific exchange and asset pair. This is using the <code>CryptoClient.Net</code> Nuget package.<br />
 		  <div class="accordion" id="accordionMinimalApi">
 		  <div class="card">
 			<div class="card-header" id="headingMinimalApi">
@@ -4066,8 +4255,8 @@ var app = builder.Build();
 
 app.MapGet("Ticker/{exchange}/{baseAsset}/{quoteAsset}", async ([FromServices] IExchangeRestClient client, Exchange exchange, string baseAsset, string quoteAsset) =>
 {
-    var spotClient = client.GetUnifiedSpotClient(exchange)!;
-    var result = await spotClient.GetTickerAsync(spotClient.GetSymbolName(baseAsset, quoteAsset));
+    var spotClient = client.GetSpotTickerClient(exchange)!;
+    var result = await spotClient.GetSpotTickerAsync(new GetTickerRequest(new SharedSymbol(TradingMode.Spot, baseAsset, quoteAsset)));
     return result.Data;
 });
 

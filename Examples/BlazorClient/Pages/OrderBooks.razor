@@ -8,6 +8,7 @@
 @using BitMart.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
+@using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
 @using GateIo.Net.Interfaces
 @using HTX.Net.Interfaces
@@ -22,6 +23,7 @@
 @inject IBitgetOrderBookFactory bitgetFactory
 @inject IBitMartOrderBookFactory bitmartFactory
 @inject IBybitOrderBookFactory bybitFactory
+@inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
 @inject IGateIoOrderBookFactory gateioFactory
 @inject IHTXOrderBookFactory htxFactory
@@ -68,6 +70,7 @@
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
                 { "BitMart", bitmartFactory.CreateSpot("ETH_BTC", null) },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
+                { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },

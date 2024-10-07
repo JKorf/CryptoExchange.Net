@@ -5,6 +5,7 @@
 @inject IBitgetSocketClient bitgetSocketClient
 @inject IBitMartSocketClient bitmartSocketClient
 @inject IBybitSocketClient bybitSocketClient
+@inject ICoinbaseSocketClient coinbaseSocketClient
 @inject ICoinExSocketClient coinExSocketClient
 @inject IGateIoSocketClient gateioSocketClient
 @inject IHTXSocketClient htxSocketClient
@@ -39,6 +40,7 @@
             bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
             coinExSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("CoinEx", data.Data.LastPrice)),
+            coinbaseSocketClient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Coinbase", data.Data.LastPrice)),
             gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("GateIo", data.Data.LastPrice)),
             htxSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("HTX", data.Data.ClosePrice ?? 0)),
             krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH/XBT", data => UpdateData("Kraken", data.Data.LastTrade.Price)),
