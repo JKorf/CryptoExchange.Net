@@ -47,6 +47,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.0.1 - 07 Oct 2024
+    * Added cached library version properties on base client
+    * Added support for derserializing 0001-01-01 as datetime null value
+    * Added ToRfc3339String extension method for DateTime type
+
 * Version 8.0.0 - 27 Sep 2024
         * Added new cross exchange interfaces implementation
         * Supports REST, WebSocket, Spot and Futures API's
