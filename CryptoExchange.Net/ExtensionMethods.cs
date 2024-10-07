@@ -190,6 +190,16 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Format a string to RFC3339/ISO8601 string
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static string ToRfc3339String(this DateTime dateTime)
+        {
+            return dateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffzzz", DateTimeFormatInfo.InvariantInfo);
+        }
+
+        /// <summary>
         /// Format an exception and inner exception to a readable string
         /// </summary>
         /// <param name="exception"></param>
