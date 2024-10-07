@@ -11,12 +11,12 @@ namespace CryptoExchange.Net.Authentication
     public class ApiCredentials
     {
         /// <summary>
-        /// The api key to authenticate requests
+        /// The api key / label to authenticate requests
         /// </summary>
         public string Key { get; }
 
         /// <summary>
-        /// The api secret to authenticate requests
+        /// The api secret or private key to authenticate requests
         /// </summary>
         public string Secret { get; }
 
@@ -28,8 +28,8 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
-        /// <param name="key">The api key used for identification</param>
-        /// <param name="secret">The api secret used for signing</param>
+        /// <param name="key">The api key / label used for identification</param>
+        /// <param name="secret">The api secret or private key used for signing</param>
         public ApiCredentials(string key, string secret) : this(key, secret, ApiCredentialsType.Hmac)
         {
         }
@@ -37,8 +37,8 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
         /// </summary>
-        /// <param name="key">The api key used for identification</param>
-        /// <param name="secret">The api secret used for signing</param>
+        /// <param name="key">The api key / label used for identification</param>
+        /// <param name="secret">The api secret or private key used for signing</param>
         /// <param name="credentialsType">The type of credentials</param>
         public ApiCredentials(string key, string secret, ApiCredentialsType credentialsType)
         {

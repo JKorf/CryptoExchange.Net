@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Testing.Comparers
         {
             if (propertyValue == default && propValue.Type != JTokenType.Null && !string.IsNullOrEmpty(propValue.ToString()))
             {
-                if (propertyType == typeof(DateTime?) && (propValue.ToString() == "" || propValue.ToString() == "0" || propValue.ToString() == "-1"))
+                if (propertyType == typeof(DateTime?) && (propValue.ToString() == "" || propValue.ToString() == "0" || propValue.ToString() == "-1" || propValue.ToString() == "01/01/0001 00:00:00"))
                     return;
 
                 // Property value not correct
