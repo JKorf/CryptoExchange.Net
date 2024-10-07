@@ -241,7 +241,7 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-bybit-tab" data-toggle="tab" href="#install-bybit" role="tab" aria-controls="install-bybit" aria-selected="false">Bybit</a>
-			  </li
+			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-coinbase-tab" data-toggle="tab" href="#install-coinbase" role="tab" aria-controls="install-coinbase" aria-selected="false">Coinbase</a>
 			  </li>
@@ -1416,7 +1416,7 @@ if (!subscribeResult.Success)
 			  </div>
 			  <div class="tab-pane fade" id="socket-coinbase" role="tabpanel" aria-labelledby="socket-coinbase-tab">
 				<pre><code>var client = new CoinbaseSocketClient();
-var subscribeResult = await sclient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETHUSDT", update => {
+var subscribeResult = await sclient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-USDT", update => {
     // Handle the data update, update.Data will contain the actual data
 });
 if (!subscribeResult.Success)
@@ -1784,7 +1784,7 @@ var privateFuturesSharedSocketClient = bybitSocketClient.V5PrivateApi.SharedClie
 var spotSharedRestClients = coinbaseRestClient.AdvancedTradeApi.SharedClient;
 
 // Advanced Trade API common functionality socket client
-var spotSharedSocketClient = coinbaseRestClient.AdvancedTradeApi.SharedClient;</code></pre>
+var spotSharedSocketClient = coinbaseSocketClient.AdvancedTradeApi.SharedClient;</code></pre>
 			  </div>			  
 			  <div class="tab-pane fade" id="shared-coinex" role="tabpanel" aria-labelledby="shared-coinex-tab">
 <pre><code>// Spot API common functionality rest client
@@ -3851,7 +3851,7 @@ await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Orde
 					  <div class="tab-pane fade" id="example-place-bybit" role="tabpanel" aria-labelledby="example-place-bybit-tab">
 		<pre><code>await bybitClient.V5Api.Trading.PlaceOrderAsync(Category.Spot, "BTCUSDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
+					  <div class="tab-pane fade" id="example-place-coinbase" role="tabpanel" aria-labelledby="example-place-coinbase-tab">
 		<pre><code>await coinbaseClient.AdvancedTradeApi.Trading.PlaceOrderAsync("BTC-USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
