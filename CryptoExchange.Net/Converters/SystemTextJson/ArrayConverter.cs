@@ -94,42 +94,45 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (reader.TokenType == JsonTokenType.EndArray)
                         break;
 
-                    var attribute = attributes.SingleOrDefault(a => a.ArrayProperty.Index == index);
-                    if (attribute == null)
+                    var indexAttributes = attributes.Where(a => a.ArrayProperty.Index == index);
+                    if (!indexAttributes.Any())
                     {
                         index++;
                         continue;
                     }
 
-                    var targetType = attribute.TargetType;
-                    object? value = null;
-                    if (attribute.JsonConverterType != null)
+                    foreach (var attribute in indexAttributes)
                     {
-                        // Has JsonConverter attribute
-                        var options = new JsonSerializerOptions();
-                        options.Converters.Add((JsonConverter)Activator.CreateInstance(attribute.JsonConverterType));
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, options);
-                    }
-                    else if (attribute.DefaultDeserialization)
-                    {
-                        // Use default deserialization
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(targetType);
-                    }
-                    else
-                    {
-                        value = reader.TokenType switch
+                        var targetType = attribute.TargetType;
+                        object? value = null;
+                        if (attribute.JsonConverterType != null)
                         {
-                            JsonTokenType.Null => null,
-                            JsonTokenType.False => false,
-                            JsonTokenType.True => true,
-                            JsonTokenType.String => reader.GetString(),
-                            JsonTokenType.Number => reader.GetDecimal(),
-                            _ => throw new NotImplementedException($"Array deserialization of type {reader.TokenType} not supported"),
-                        };
+                            // Has JsonConverter attribute
+                            var options = new JsonSerializerOptions();
+                            options.Converters.Add((JsonConverter)Activator.CreateInstance(attribute.JsonConverterType));
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, options);
+                        }
+                        else if (attribute.DefaultDeserialization)
+                        {
+                            // Use default deserialization
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType);
+                        }
+                        else
+                        {
+                            value = reader.TokenType switch
+                            {
+                                JsonTokenType.Null => null,
+                                JsonTokenType.False => false,
+                                JsonTokenType.True => true,
+                                JsonTokenType.String => reader.GetString(),
+                                JsonTokenType.Number => reader.GetDecimal(),
+                                _ => throw new NotImplementedException($"Array deserialization of type {reader.TokenType} not supported"),
+                            };
+                        }
+
+                        attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
                     }
 
-                    attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
-                    
                     index++;
                 }
 
