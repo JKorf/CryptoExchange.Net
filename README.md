@@ -48,6 +48,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.0.2 - 09 Oct 2024
+    * Updated dependency versions, including System.Text.Json from 8.0.4 to 8.0.5 containing a vulnerability fix
+
 * Version 8.0.1 - 07 Oct 2024
     * Added cached library version properties on base client
     * Added support for derserializing 0001-01-01 as datetime null value
