@@ -23,7 +23,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return reader.GetDecimal().ToString();
             }
 
-            return reader.GetString();
+            try
+            {
+                return reader.GetString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         /// <inheritdoc />
