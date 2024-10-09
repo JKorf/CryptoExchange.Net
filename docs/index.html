@@ -1964,8 +1964,9 @@ var balances = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new Ge
 // Needs authentication: True
 // Required exchange specific parameters: [Int64] AccountId: Account id of the user | example: 123123123</code></pre>
 		<h4 id="shared_interfaces">Available Interfaces</h4>
+		<p>What interfaces are actually available and implemented on each exchange clients depends on what functionality is available in the specific API.</p>
 		
-			<p>Available REST shared interfaces</p>
+			<p style="font-style: italic;">Available REST shared interfaces</p>
 		  <table class="table table-bordered">
 			<tr><th>Interface</th><th>Description</th></tr>
 			<tr><td><code>IAssetsRestClient</code></td><td>For requesting withdrawal and deposit info for assets</td></tr>
@@ -1993,7 +1994,7 @@ var balances = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new Ge
 			<tr><td><code>IPositionModeRestClient</code></td><td>For managing the position mode for the user</td></tr>
 		  </table>
 		  
-			<p>Available Socket shared interfaces</p>
+			<p style="font-style: italic;">Available Socket shared interfaces</p>
 		  <table class="table table-bordered">
 			<tr><th>Interface</th><th>Description</th></tr>
 			<tr><td><code>IBookTickerSocketClient</code></td><td>For subscribing to book ticker (best bid/ask) updates for a symbol</td></tr>
