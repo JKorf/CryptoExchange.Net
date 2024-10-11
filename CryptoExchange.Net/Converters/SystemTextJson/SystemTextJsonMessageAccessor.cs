@@ -133,7 +133,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
-        public List<T?>? GetValues<T>(MessagePath path) => throw new NotImplementedException();
+        public List<T?>? GetValues<T>(MessagePath path)
+        {
+            if (!IsJson)
+                throw new InvalidOperationException("Can't access json data on non-json message");
+
+            var value = GetPathNode(path);
+            if (value == null)
+                return default;
+
+            if (value.Value.ValueKind != JsonValueKind.Array)
+                return default;
+
+            return value.Value.Deserialize<List<T>>()!;
+        }
 
         private JsonElement? GetPathNode(MessagePath path)
         {
