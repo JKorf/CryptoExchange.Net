@@ -19,6 +19,11 @@ namespace CryptoExchange.Net.SharedApis
         TradingMode[] SupportedTradingModes { get; }
 
         /// <summary>
+        /// Whether or not API credentials have been configured for this client. Does not check the credentials are actually valid.
+        /// </summary>
+        bool Authenticated { get; }
+
+        /// <summary>
         /// Format a base and quote asset to an exchange accepted symbol 
         /// </summary>
         /// <param name="baseAsset">The base asset</param>
