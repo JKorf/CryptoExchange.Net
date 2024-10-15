@@ -42,8 +42,63 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
-                // TODO
-                throw new NotImplementedException();
+                if (value == null)
+                {
+                    writer.WriteNullValue();
+                    return;
+                }
+
+                writer.WriteStartArray();
+
+                var valueType = value.GetType();
+                if (!_typeAttributesCache.TryGetValue(valueType, out var typeAttributes))
+                    typeAttributes = CacheTypeAttributes(valueType);
+
+                var ordered = typeAttributes.Where(x => x.ArrayProperty != null).OrderBy(p => p.ArrayProperty.Index);
+                var last = -1;
+                foreach (var prop in ordered)
+                {
+                    if (prop.ArrayProperty.Index == last)
+                        continue;
+
+                    while (prop.ArrayProperty.Index != last + 1)
+                    {
+                        writer.WriteNullValue();
+                        last += 1;
+                    }
+
+                    last = prop.ArrayProperty.Index;
+
+                    var objValue = prop.PropertyInfo.GetValue(value);
+                    if (objValue == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+
+                    JsonSerializerOptions? typeOptions = null;
+                    if (prop.JsonConverterType != null)
+                    {
+                        var converter = (JsonConverter)Activator.CreateInstance(prop.JsonConverterType);
+                        typeOptions = new JsonSerializerOptions();
+                        typeOptions.Converters.Clear();
+                        typeOptions.Converters.Add(converter);
+                    }
+
+                    if (prop.JsonConverterType == null && IsSimple(prop.PropertyInfo.PropertyType))
+                    {
+                        if (prop.PropertyInfo.PropertyType == typeof(string))
+                            writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
+                        else
+                            writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        JsonSerializer.Serialize(writer, objValue, typeOptions ?? options);
+                    }
+                }
+
+                writer.WriteEndArray();
             }
 
             /// <inheritdoc />
@@ -54,6 +109,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                 var result = Activator.CreateInstance(typeToConvert);
                 return (T)ParseObject(ref reader, result, typeToConvert);
+            }
+
+            private static bool IsSimple(Type type)
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    // nullable type, check if the nested type is simple.
+                    return IsSimple(type.GetGenericArguments()[0]);
+                }
+                return type.IsPrimitive
+                  || type.IsEnum
+                  || type == typeof(string)
+                  || type == typeof(decimal);
             }
 
             private static List<ArrayPropertyInfo> CacheTypeAttributes(Type type)
@@ -71,7 +139,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         ArrayProperty = att,
                         PropertyInfo = property,
                         DefaultDeserialization = property.GetCustomAttribute<JsonConversionAttribute>() != null,
-                        JsonConverterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType,
+                        JsonConverterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? property.PropertyType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType,
                         TargetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType
                     });
                 }
@@ -126,6 +194,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 JsonTokenType.True => true,
                                 JsonTokenType.String => reader.GetString(),
                                 JsonTokenType.Number => reader.GetDecimal(),
+                                JsonTokenType.StartObject => JsonSerializer.Deserialize(ref reader, attribute.TargetType),
                                 _ => throw new NotImplementedException($"Array deserialization of type {reader.TokenType} not supported"),
                             };
                         }
