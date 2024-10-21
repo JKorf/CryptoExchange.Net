@@ -62,7 +62,7 @@ namespace CryptoExchange.Net.Interfaces
         Task UnsubscribeAsync(UpdateSubscription subscription);
 
         /// <summary>
-        /// Prepare connections which can subsequently be used for sending websocket requests.
+        /// Prepare connections which can subsequently be used for sending websocket requests. Note that this is not required. If not prepared it will be initialized at the first websocket request.
         /// </summary>
         /// <returns></returns>
         Task<CallResult> PrepareConnectionsAsync();
