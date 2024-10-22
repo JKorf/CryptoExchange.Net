@@ -131,6 +131,20 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Reset the subscription
+        /// </summary>
+        public void Reset()
+        {
+            Confirmed = false;
+            DoHandleReset();
+        }
+
+        /// <summary>
+        /// Connection has been reset, do any logic for resetting the subscription
+        /// </summary>
+        public virtual void DoHandleReset() { }
+
+        /// <summary>
         /// Handle the update message
         /// </summary>
         /// <param name="connection"></param>
