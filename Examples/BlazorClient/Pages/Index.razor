@@ -7,6 +7,7 @@
 @inject IBybitRestClient bybitClient
 @inject ICoinbaseRestClient coinbaseClient
 @inject ICoinExRestClient coinexClient
+@inject ICryptoComRestClient cryptocomClient
 @inject IGateIoRestClient gateioClient
 @inject IHTXRestClient huobiClient
 @inject IKrakenRestClient krakenClient
@@ -33,6 +34,7 @@
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
         var coinbaseTask = coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");
         var coinexTask = coinexClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var cryptocomTask = cryptocomClient.ExchangeApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var gateioTask = gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var htxTask = huobiClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
@@ -65,6 +67,9 @@
 
         if (coinexTask.Result.Success)
             _prices.Add("CoinEx", coinexTask.Result.Data.Ticker.LastPrice);
+
+        if (cryptocomTask.Result.Success)
+            _prices.Add("CryptoCom", cryptocomTask.Result.Data.First().LastPrice ?? 0);
 
         if (gateioTask.Result.Success)
             _prices.Add("GateIo", gateioTask.Result.Data.First().LastPrice);

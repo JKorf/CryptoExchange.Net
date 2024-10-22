@@ -43,6 +43,7 @@ namespace BlazorClient
             services.AddBybit();
             services.AddCoinbase();
             services.AddCoinEx();
+            services.AddCryptoCom();
             services.AddGateIo();
             services.AddHTX();
             services.AddKraken();

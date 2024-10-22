@@ -27,7 +27,7 @@ namespace ConsoleClient.Exchanges
         {
             using var client = new BybitRestClient();
             var result = await client.V5Api.Account.GetBalancesAsync(Bybit.Net.Enums.AccountType.Spot);
-            return result.Data.List.First().Assets.ToDictionary(d => d.Asset, d => d.WalletBalance);
+            return result.Data.List.First().Assets.ToDictionary(d => d.Asset, d => d.WalletBalance ?? 0);
         }
 
         public async Task<IEnumerable<OpenOrder>> GetOpenOrders()

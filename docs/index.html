@@ -154,6 +154,7 @@
 			<tr><td>Coinbase</td><td><a href="https://github.com/JKorf/Coinbase.Net">JKorf/Coinbase.Net</a></td><td><a href="https://www.nuget.org/packages/JKorf.Coinbase.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JKorf.Coinbase.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>CoinEx</td><td><a href="https://github.com/JKorf/CoinEx.Net">JKorf/CoinEx.Net</a></td><td><a href="https://www.nuget.org/packages/CoinEx.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>CoinGecko</td><td><a href="https://github.com/JKorf/CoinGecko.Net">JKorf/CoinGecko.Net</a></td><td><a href="https://www.nuget.org/packages/CoinGecko.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>Crypto.com</td><td><a href="https://github.com/JKorf/CryptoCom.Net">JKorf/CryptoCom.Net</a></td><td><a href="https://www.nuget.org/packages/CryptoCom.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CryptoCom.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Gate.io</td><td><a href="https://github.com/JKorf/GateIo.Net">JKorf/GateIo.Net</a></td><td><a href="https://www.nuget.org/packages/GateIo.Net" target="_blank"><img src="https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>HTX</td><td><a href="https://github.com/JKorf/HTX.Net">JKorf/HTX.Net</a></td><td><a href="https://www.nuget.org/packages/JKorf.HTX.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JKorf.HTX.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Kraken</td><td><a href="https://github.com/JKorf/Kraken.Net">JKorf/Kraken.Net</a></td><td><a href="https://www.nuget.org/packages/KrakenExchange.Net" target="_blank"><img src="https://img.shields.io/nuget/v/KrakenExchange.net.svg?style=flat-square" /></a></td></tr>
@@ -252,6 +253,9 @@
 				<a class="nav-link" id="install-coingecko-tab" data-toggle="tab" href="#install-coingecko" role="tab" aria-controls="install-coingecko" aria-selected="false">CoinGecko</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-cryptocom-tab" data-toggle="tab" href="#install-cryptocom" role="tab" aria-controls="install-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-gateio-tab" data-toggle="tab" href="#install-gateio" role="tab" aria-controls="install-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -306,6 +310,9 @@
 			  <div class="tab-pane fade" id="install-coinex" role="tabpanel" aria-labelledby="install-coinex-tab">
 				<pre><code>dotnet add package CoinEx.Net</code></pre>
 				<img src="assets/images/CoinExInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-cryptocom" role="tabpanel" aria-labelledby="install-cryptocom-tab">
+				<pre><code>dotnet add package CryptoCom.Net</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="install-gateio" role="tabpanel" aria-labelledby="install-gateio-tab">
 				<pre><code>dotnet add package GateIo.Net</code></pre>
@@ -374,6 +381,9 @@
 				<a class="nav-link" id="di-coinex-tab" data-toggle="tab" href="#di-coinex" role="tab" aria-controls="di-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-cryptocom-tab" data-toggle="tab" href="#di-cryptocom" role="tab" aria-controls="di-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-gateio-tab" data-toggle="tab" href="#di-gateio" role="tab" aria-controls="di-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -422,6 +432,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="di-coinex" role="tabpanel" aria-labelledby="di-coinex-tab">
 <pre><code>builder.Services.AddCoinEx();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-cryptocom" role="tabpanel" aria-labelledby="di-cryptocom-tab">
+<pre><code>builder.Services.AddCryptoCom();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-gateio" role="tabpanel" aria-labelledby="di-gateio-tab">
 <pre><code>builder.Services.AddGateIo();</code></pre>
@@ -476,6 +489,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-coinex-tab" data-toggle="tab" href="#interfaces-coinex" role="tab" aria-controls="interfaces-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-cryptocom-tab" data-toggle="tab" href="#interfaces-cryptocom" role="tab" aria-controls="interfaces-cryptocom" aria-selected="false">Crypto.com</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-gateio-tab" data-toggle="tab" href="#interfaces-gateio" role="tab" aria-controls="interfaces-gateio" aria-selected="false">GateIo</a>
@@ -775,6 +791,35 @@
 					</tr>
 				</table>
 			  </div>
+			  <div class="tab-pane fade" id="interfaces-cryptocom" role="tabpanel" aria-labelledby="interfaces-cryptocom-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>ICryptoComRestClient</code></td>
+						<td>The client for accessing the Crypto.com REST API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoComSocketClient</code></td>
+						<td>The client for accessing the Crypto.com Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoComOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the Crypto.com API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
 			  <div class="tab-pane fade" id="interfaces-gateio" role="tabpanel" aria-labelledby="interfaces-gateio-tab">
 				<table class="table table-bordered">
 					<tr><th>Interface</th><th>Description</th></tr>
@@ -1005,6 +1050,9 @@
 				<a class="nav-link" id="rest-coinex-tab" data-toggle="tab" href="#rest-coinex" role="tab" aria-controls="rest-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-cryptocom-tab" data-toggle="tab" href="#rest-cryptocom" role="tab" aria-controls="rest-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-gateio-tab" data-toggle="tab" href="#rest-gateio" role="tab" aria-controls="rest-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1135,6 +1183,18 @@ else
 			  <div class="tab-pane fade" id="rest-coinex" role="tabpanel" aria-labelledby="rest-coinex-tab">
 				<pre><code>var client = new CoinExRestClient();
 var tickersResult = await client.SpotApiV2.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-cryptocom" role="tabpanel" aria-labelledby="rest-cryptocom-tab">
+				<pre><code>var client = new CryptoComRestClient();
+var tickersResult = await client.ExchangeApi.ExchangeData.GetTickersAsync();
 if (!tickersResult.Success)
 {
   // Handle error, tickersResult.Error contains more information
@@ -1318,6 +1378,9 @@ else
 				<a class="nav-link" id="socket-coinex-tab" data-toggle="tab" href="#socket-coinex" role="tab" aria-controls="socket-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-cryptocom-tab" data-toggle="tab" href="#socket-cryptocom" role="tab" aria-controls="socket-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-gateio-tab" data-toggle="tab" href="#socket-gateio" role="tab" aria-controls="socket-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1433,6 +1496,17 @@ var subscribeResult = await sclient.SpotApiV2.SubscribeToTickerUpdatesAsync(new[
 if (!subscribeResult.Success)
 {
     // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-cryptocom" role="tabpanel" aria-labelledby="socket-cryptocom-tab">
+				<pre><code>var client = new CryptoComSocketClient();
+var subscribeResult = await client.ExchangeApi.SubscribeToTickerUpdatesAsync("ETH_USD", update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
@@ -1682,6 +1756,9 @@ var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
 				<a class="nav-link" id="shared-gateio-tab" data-toggle="tab" href="#shared-gateio" role="tab" aria-controls="shared-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-cryptocom-tab" data-toggle="tab" href="#shared-cryptocom" role="tab" aria-controls="shared-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="shared-htx-tab" data-toggle="tab" href="#shared-htx" role="tab" aria-controls="shared-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1798,7 +1875,14 @@ var usdFuturesSharedRestClient = coinExRestClient.FuturesApi.SharedClient;
 
 // Futures API common functionality socket client
 var usdFuturesSharedSocketClient = coinExSocketClient.FuturesApi.SharedClient;</code></pre>
-			  </div>			  
+			  </div>				  
+			  <div class="tab-pane fade" id="shared-cryptocom" role="tabpanel" aria-labelledby="shared-cryptocom-tab">
+<pre><code>// Spot/Futures API common functionality rest client
+var sharedRestClients = cryptoComRestClient.ExchangeApi.SharedClient;
+
+// Spot/Futures API common functionality socket client
+var sharedSocketClient = cryptoComSocketClient.ExchangeApi.SharedClient;</code></pre>
+			  </div>		  
 			  <div class="tab-pane fade" id="shared-gateio" role="tabpanel" aria-labelledby="shared-gateio-tab">
 <pre><code>// Spot API common functionality rest client
 var spotSharedRestClients = gateioRestClient.SpotApi.SharedClient;
@@ -2128,6 +2212,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-coinex" role="tab" aria-controls="options-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-cryptocom-tab" data-toggle="tab" href="#options-cryptocom" role="tab" aria-controls="options-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-gateio" role="tab" aria-controls="options-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2234,6 +2321,15 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
   });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-cryptocom" role="tabpanel" aria-labelledby="options-cryptocom-tab">
+<pre><code>builder.Services.AddCryptoCom(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
 <pre><code>builder.Services.AddGateIo(
   restOptions => {
@@ -2326,6 +2422,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-constr-coinex" role="tab" aria-controls="options-constr-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-cryptocom-tab" data-toggle="tab" href="#options-constr-cryptocom" role="tab" aria-controls="options-constr-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-constr-gateio" role="tab" aria-controls="options-constr-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2405,6 +2504,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-constr-cryptocom" role="tabpanel" aria-labelledby="options-cryptocom-tab">
+<pre><code>var client = new CryptoComRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-constr-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
 <pre><code>var client = new GateIoRestClient(opts =>
 {
@@ -2474,6 +2579,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-coinex-tab" data-toggle="tab" href="#options-default-coinex" role="tab" aria-controls="options-default-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-cryptocom-tab" data-toggle="tab" href="#options-default-cryptocom" role="tab" aria-controls="options-default-cryptocom" aria-selected="false">Crypto.com</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-gateio-tab" data-toggle="tab" href="#options-default-gateio" role="tab" aria-controls="options-default-gateio" aria-selected="false">GateIo</a>
@@ -2557,6 +2665,13 @@ var client = new CoinGeckoRestClient();</code></pre>
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new CoinExRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-cryptocom" role="tabpanel" aria-labelledby="options-cryptocom-tab">
+<pre><code>CryptoComRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new CryptoComRestClient();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-default-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
 <pre><code>GateIoRestClient.SetDefaultOptions(options =>
@@ -2811,6 +2926,9 @@ var client = new OKXRestClient();</code></pre>
 				<a class="nav-link" id="book-coinex-tab" data-toggle="tab" href="#book-coinex" role="tab" aria-controls="book-coinex" aria-selected="false">Coinex</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-cryptocom-tab" data-toggle="tab" href="#book-cryptocom" role="tab" aria-controls="book-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-gateio-tab" data-toggle="tab" href="#book-gateio" role="tab" aria-controls="book-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2950,6 +3068,19 @@ await book.StopAsync();
 			  </div>
 			  <div class="tab-pane fade" id="book-gateio" role="tabpanel" aria-labelledby="book-gateio-tab">
 <pre><code>var book = new GateIoSpotSymbolOrderBook("ETH_USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-cryptocom" role="tabpanel" aria-labelledby="book-cryptocom-tab">
+<pre><code>var book = new CryptoComSpotSymbolOrderBook("ETH_USDT");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
@@ -3205,6 +3336,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 				<a class="nav-link" id="limit-coinbase-tab" data-toggle="tab" href="#limit-coinbase" role="tab" aria-controls="limit-coinbase" aria-selected="false">Coinbase</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-cryptocom-tab" data-toggle="tab" href="#limit-cryptocom" role="tab" aria-controls="limit-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-gateio-tab" data-toggle="tab" href="#limit-gateio" role="tab" aria-controls="limit-gateio" aria-selected="false">GateIo</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -3303,6 +3437,20 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 });</code></pre>
 		  <p>To be notified of when a rate limit is hit the static <code>CoinbaseExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
 		  <pre><code>CoinbaseExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-cryptocom" role="tabpanel" aria-labelledby="limit-cryptocom-tab">
+<pre><code>services.AddCryptoCom(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>CryptoComExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>CryptoComExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
 
 </code></pre>
 			  </div>
@@ -3473,6 +3621,9 @@ var responseSource = result.DataSource;</code></pre>
 						<a class="nav-link" id="example-symbols-coinex-tab" data-toggle="tab" href="#example-symbols-coinex" role="tab" aria-controls="example-symbols-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-cryptocom-tab" data-toggle="tab" href="#example-symbols-cryptocom" role="tab" aria-controls="example-symbols-cryptocom" aria-selected="false">Crypto.com</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-gateio-tab" data-toggle="tab" href="#example-symbols-gateio" role="tab" aria-controls="example-symbols-gateio" aria-selected="false">GateIo</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3519,6 +3670,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-coinex" role="tabpanel" aria-labelledby="example-symbols-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-cryptocom" role="tabpanel" aria-labelledby="example-symbols-cryptocom-tab">
+		<pre><code>await cryptoComClient.ExchangeApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-gateio" role="tabpanel" aria-labelledby="example-symbols-gateio-tab">
 		<pre><code>await gateIoClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -3584,6 +3738,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 						<a class="nav-link" id="example-ticker-coinex-tab" data-toggle="tab" href="#example-ticker-coinex" role="tab" aria-controls="example-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-cryptocom-tab" data-toggle="tab" href="#example-ticker-cryptocom" role="tab" aria-controls="example-ticker-cryptocom" aria-selected="false">Crypto.com</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-gateio-tab" data-toggle="tab" href="#example-ticker-gateio" role="tab" aria-controls="example-ticker-gateio" aria-selected="false">GateIo</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3631,6 +3788,9 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-coinex" role="tabpanel" aria-labelledby="example-ticker-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.ExchangeData.GetTickersAsync(new[] { "BTCUSDT" });</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-cryptocom" role="tabpanel" aria-labelledby="example-ticker-cryptocom-tab">
+		<pre><code>await cryptoComClient.ExchangeApi.ExchangeData.GetTickersAsync("BTC_USDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-gateio" role="tabpanel" aria-labelledby="example-ticker-gateio-tab">
 		<pre><code>await gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");</code></pre>
@@ -3696,6 +3856,9 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 						<a class="nav-link" id="example-balances-coinex-tab" data-toggle="tab" href="#example-balances-coinex" role="tab" aria-controls="example-balances-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-cryptocom-tab" data-toggle="tab" href="#example-balances-cryptocom" role="tab" aria-controls="example-balances-cryptocom" aria-selected="false">Crypto.com</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-gateio-tab" data-toggle="tab" href="#example-balances-gateio" role="tab" aria-controls="example-balances-gateio" aria-selected="false">GateIo</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3742,6 +3905,9 @@ await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-coinex" role="tabpanel" aria-labelledby="example-balances-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-cryptocom" role="tabpanel" aria-labelledby="example-balances-cryptocom-tab">
+		<pre><code>await cryptoComClient.ExchangeApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-gateio" role="tabpanel" aria-labelledby="example-balances-gateio-tab">
 		<pre><code>await gateioClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -3811,6 +3977,9 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-coinex-tab" data-toggle="tab" href="#example-place-coinex" role="tab" aria-controls="example-place-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-cryptocom-tab" data-toggle="tab" href="#example-place-cryptocom" role="tab" aria-controls="example-place-cryptocom" aria-selected="false">Crypto.com</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-gateio-tab" data-toggle="tab" href="#example-place-gateio" role="tab" aria-controls="example-place-gateio" aria-selected="false">GateIo</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3857,6 +4026,9 @@ await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Orde
 					  </div>
 					  <div class="tab-pane fade" id="example-place-coinex" role="tabpanel" aria-labelledby="example-place-coinex-tab">
 		<pre><code>await coinExClient.SpotApiV2.Trading.PlaceOrderAsync("BTCUSDT", AccountType.Spot, OrderSide.Buy, OrderTypeV2.Limit, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-cryptocom" role="tabpanel" aria-labelledby="example-place-cryptocom-tab">
+		<pre><code>await cryptoComClient.ExchangeApi.Trading.PlaceOrderAsync("BTC_USDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCancel);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-gateio" role="tabpanel" aria-labelledby="example-place-gateio-tab">
 		<pre><code>await gateIoClient.SpotApi.Trading.PlaceOrderAsync("BTC_USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, 50000, timeInForce: TimeInForce.GoodTillCancel);</code></pre>
@@ -3926,6 +4098,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 						<a class="nav-link" id="example-stream-ticker-coinex-tab" data-toggle="tab" href="#example-stream-ticker-coinex" role="tab" aria-controls="example-stream-ticker-coinex" aria-selected="false">Coinex</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-cryptocom-tab" data-toggle="tab" href="#example-stream-ticker-cryptocom" role="tab" aria-controls="example-stream-ticker-cryptocom" aria-selected="false">Crypto.com</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-gateio-tab" data-toggle="tab" href="#example-stream-ticker-gateio" role="tab" aria-controls="example-stream-ticker-gateio" aria-selected="false">GateIo</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -3991,6 +4166,11 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
     // Handle update
 });</code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-cryptocom" role="tabpanel" aria-labelledby="example-stream-ticker-cryptocom-tab">
+		<pre><code>await cryptoComSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-gateio" role="tabpanel" aria-labelledby="example-stream-ticker-gateio-tab">
 		<pre><code>await gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
     // Handle update
@@ -4044,7 +4224,7 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 						<a class="nav-link active" id="example-stream-order-cc-tab" data-toggle="tab" href="#example-stream-order-cc" role="tab" aria-controls="example-stream-order-cc" aria-selected="true">CryptoClients</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="true">Binance</a>
+						<a class="nav-link" id="example-stream-order-binance-tab" data-toggle="tab" href="#example-stream-order-binance" role="tab" aria-controls="example-stream-order-binance" aria-selected="false">Binance</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-bitfinex-tab" data-toggle="tab" href="#example-stream-order-bingx" role="tab" aria-controls="example-stream-order-bingx" aria-selected="false">BingX</a>
@@ -4066,6 +4246,9 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-coinex-tab" data-toggle="tab" href="#example-stream-order-coinex" role="tab" aria-controls="example-stream-order-coinex" aria-selected="false">Coinex</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-cryptocom-tab" data-toggle="tab" href="#example-stream-order-cryptocom" role="tab" aria-controls="example-stream-order-cryptocom" aria-selected="false">Crypto.com</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-gateio-tab" data-toggle="tab" href="#example-stream-order-gateio" role="tab" aria-controls="example-stream-order-gateio" aria-selected="false">GateIo</a>
@@ -4108,7 +4291,7 @@ _ = Task.Run(async () => {
     }
 });</code></pre>
 					  </div>
-					  <div class="tab-pane fade show active" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
+					  <div class="tab-pane fade" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
 		<pre><code>// Retrieve the listen key
 var listenKey = await binanceClient.SpotApi.Account.StartUserStreamAsync();
 
@@ -4173,6 +4356,11 @@ _ = Task.Run(async () => {
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-coinex" role="tabpanel" aria-labelledby="example-stream-order-coinex-tab">
 		<pre><code>await coinExSocketClient.SpotApiV2.SubscribeToOrderUpdatesAsync(data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-cryptocom" role="tabpanel" aria-labelledby="example-stream-order-cryptocom-tab">
+		<pre><code>await cryptoComSocketClient.ExchangeApi.SubscribeToOrderUpdatesAsync(data => {
     // Handle update
 });</code></pre>
 					  </div>

@@ -10,6 +10,7 @@
 @using CoinEx.Net.Interfaces
 @using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
+@using CryptoCom.Net.Interfaces
 @using GateIo.Net.Interfaces
 @using HTX.Net.Interfaces
 @using Kraken.Net.Interfaces
@@ -25,6 +26,7 @@
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
+@inject ICryptoComOrderBookFactory cryptocomFactory
 @inject IGateIoOrderBookFactory gateioFactory
 @inject IHTXOrderBookFactory htxFactory
 @inject IKrakenOrderBookFactory krakenFactory
@@ -72,6 +74,7 @@
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
+                { "CryptoCom", cryptocomFactory.CreateExchange("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/XBT") },
