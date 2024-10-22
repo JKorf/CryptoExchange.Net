@@ -14,15 +14,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Last trade price
         /// </summary>
-        public decimal LastPrice { get; set; }
+        public decimal? LastPrice { get; set; }
         /// <summary>
         /// High price in the last 24h
         /// </summary>
-        public decimal HighPrice { get; set; }
+        public decimal? HighPrice { get; set; }
         /// <summary>
         /// Low price in the last 24h
         /// </summary>
-        public decimal LowPrice { get; set; }
+        public decimal? LowPrice { get; set; }
         /// <summary>
         /// The volume in the last 24h
         /// </summary>
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedFuturesTicker(string symbol, decimal lastPrice, decimal highPrice, decimal lowPrice, decimal volume, decimal? changePercentage)
+        public SharedFuturesTicker(string symbol, decimal? lastPrice, decimal? highPrice, decimal? lowPrice, decimal volume, decimal? changePercentage)
         {
             Symbol = symbol;
             LastPrice = lastPrice;
