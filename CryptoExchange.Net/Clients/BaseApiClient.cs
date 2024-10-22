@@ -88,6 +88,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
+            ApiOptions.ApiCredentials = credentials;
             if (credentials != null)
                 AuthenticationProvider = CreateAuthenticationProvider(credentials.Copy());
         }
