@@ -19,6 +19,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Trade time
         /// </summary>
         public DateTime Timestamp { get; set; }
+        /// <summary>
+        /// Trade side. Buy means that the taker took an ask order of the order book, sell means the taker took a bid order of the order book.
+        /// </summary>
+        public SharedOrderSide? Side { get; set; }
 
         /// <summary>
         /// ctor
