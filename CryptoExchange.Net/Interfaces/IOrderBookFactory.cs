@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.SharedApis;
 using System;
 
 namespace CryptoExchange.Net.Interfaces
@@ -23,5 +24,12 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="options">Options for the order book</param>
         /// <returns></returns>
         public ISymbolOrderBook Create(string baseAsset, string quoteAsset, Action<TOptions>? options = null);
+        /// <summary>
+        /// Create a new order book by base and quote asset names
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <param name="options">Options for the order book</param>
+        /// <returns></returns>
+        public ISymbolOrderBook Create(SharedSymbol symbol, Action<TOptions>? options = null);
     }
 }
