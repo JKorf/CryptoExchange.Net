@@ -177,6 +177,10 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
         {
+            var typedMessage = message.As((TServerResponse)message.Data);
+            if (!ValidateMessage(typedMessage))
+                return new CallResult(null);
+
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
             {
@@ -186,7 +190,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
-                Result = HandleMessage(connection, message.As((TServerResponse)message.Data));
+                Result = HandleMessage(connection, typedMessage);
 
             if (CurrentResponses == RequiredResponses)
             {
@@ -197,6 +201,13 @@ namespace CryptoExchange.Net.Sockets
 
             return Result;
         }
+
+        /// <summary>
+        /// Validate if a message is actually processable by this query
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual bool ValidateMessage(DataEvent<TServerResponse> message) => true;
 
         /// <summary>
         /// Handle the query response
