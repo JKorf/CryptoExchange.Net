@@ -1,28 +1,33 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Logging.Extensions;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Klines
 {
     /// <inheritdoc />
-    public abstract class KlineTracker : IKlineTracker
+    public class KlineTracker : IKlineTracker
     {
+        private readonly IKlineSocketClient _socketClient;
+        private readonly IKlineRestClient _restClient;
+        private readonly string _symbolName;
         private SyncStatus _status;
+        private bool _startWithSnapshot;
 
         /// <summary>
         /// The internal data structure
         /// </summary>
-        protected readonly Dictionary<DateTime, IKlineItem> _data = new Dictionary<DateTime, IKlineItem>();
+        protected readonly Dictionary<DateTime, SharedKline> _data = new Dictionary<DateTime, SharedKline>();
         /// <summary>
         /// The pre-snapshot queue buffering updates received before the snapshot is set and which will be applied after the snapshot was set
         /// </summary>
-        protected readonly List<IKlineItem> _preSnapshotQueue = new List<IKlineItem>();
+        protected readonly List<SharedKline> _preSnapshotQueue = new List<SharedKline>();
         /// <summary>
         /// Lock for accessing _data
         /// </summary>
@@ -46,7 +51,11 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <summary>
         /// The symbol
         /// </summary>
-        protected readonly string _symbol;
+        protected readonly SharedSymbol _symbol;
+        /// <summary>
+        /// The kline interval
+        /// </summary>
+        protected readonly SharedKlineInterval _interval;
         /// <summary>
         /// Whether the snapshot has been set
         /// </summary>
@@ -60,6 +69,11 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// </summary>
         protected UpdateSubscription? _updateSubscription;
 
+        /// <summary>
+        /// The timestamp of the first item
+        /// </summary>
+        protected DateTime? _firstTimestamp;
+
         /// <inheritdoc/>
         public SyncStatus Status
         {
@@ -71,8 +85,24 @@ namespace CryptoExchange.Net.Trackers.Klines
 
                 var old = _status;
                 _status = value;
-                _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} status changed: {old} => {value}", _symbol, old, value);
+                _logger.KlineTrackerStatusChanged(_symbolName, old, value);
                 OnStatusChanged?.Invoke(old, _status);
+            }
+        }
+
+        /// <inheritdoc />
+        public DateTime? SyncedFrom
+        {
+            get
+            {
+                if (_period == null)
+                    return _firstTimestamp;
+
+                var max = DateTime.UtcNow - _period.Value;
+                if (_firstTimestamp > max)
+                    return _firstTimestamp;
+
+                return max;
             }
         }
 
@@ -90,83 +120,134 @@ namespace CryptoExchange.Net.Trackers.Klines
         }
 
         /// <inheritdoc />
-        public decimal LowPrice() => GetData().Select(d => d.LowPrice).DefaultIfEmpty().Min();
+        public SharedKline? Last
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    ApplyWindow(true);
+                    return _data.LastOrDefault().Value;
+                }
+            }
+        }
 
         /// <inheritdoc />
-        public decimal HighPrice() => GetData().Select(d => d.HighPrice).DefaultIfEmpty().Max();
-
+        public event Func<SharedKline, Task>? OnAdded;
         /// <inheritdoc />
-        public decimal Volume() => GetData().Select(d => d.Volume).Sum();
-
+        public event Func<SharedKline, Task>? OnUpdated;
         /// <inheritdoc />
-        public decimal AverageVolume() => GetData().OrderByDescending(d => d.OpenTime).Skip(1).Select(d => d.Volume).DefaultIfEmpty().Average();
-
-        /// <inheritdoc />
-        public event Func<IEnumerable<IKlineItem>, Task>? SnapshotSet;
-        /// <inheritdoc />
-        public event Func<IKlineItem, Task>? Added;
-        /// <inheritdoc />
-        public event Func<IKlineItem, Task>? Updated;
-        /// <inheritdoc />
-        public event Func<IKlineItem, Task>? Removed;
+        public event Func<SharedKline, Task>? OnRemoved;
         /// <inheritdoc />
         public event Func<SyncStatus, SyncStatus, Task>? OnStatusChanged;
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="symbol"></param>
-        /// <param name="limit"></param>
-        /// <param name="period"></param>
-        public KlineTracker(ILogger? logger, string symbol, int? limit = null, TimeSpan? period = null)
+        public KlineTracker(
+            ILogger? logger,
+            IKlineRestClient restClient,
+            IKlineSocketClient socketClient,
+            SharedSymbol symbol,
+            SharedKlineInterval interval,
+            int? limit = null,
+            TimeSpan? period = null)
         {
             _logger = logger ?? new TraceLogger();
             _symbol = symbol;
+            _symbolName = symbol.BaseAsset + "/" + symbol.QuoteAsset;
             _limit = limit;
             _period = period;
+            _interval = interval;
+            _socketClient = socketClient;
+            _restClient = restClient;
         }
 
         /// <inheritdoc />
-        public async Task StartAsync()
+        public async Task<CallResult> StartAsync(bool startWithSnapshot = true)
         {
             if (Status != SyncStatus.Disconnected)
                 throw new InvalidOperationException($"Can't start syncing unless state is {SyncStatus.Disconnected}. Current state: {Status}");
 
+            _startWithSnapshot = startWithSnapshot;
             Status = SyncStatus.Syncing;
-            _logger.LogInformation("Starting kline tracker for {Symbol}", _symbol);
-            var success = await DoStartAsync().ConfigureAwait(false);
-            if (!success)
+            _logger.KlineTrackerStarting(_symbolName);
+
+            var startResult = await DoStartAsync().ConfigureAwait(false);
+            if (!startResult)
             {
-                _logger.LogWarning("Failed to start kline tracker for {Symbol}: {Error}", _symbol, success.Error);
+                _logger.KlineTrackerStartFailed(_symbolName, startResult.Error!.ToString());
                 Status = SyncStatus.Disconnected;
-                return;
+                return new CallResult(startResult.Error!);
             }
 
-            _updateSubscription = success.Data;
+            _updateSubscription = startResult.Data;
             _updateSubscription.ConnectionLost += HandleConnectionLost;
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             Status = SyncStatus.Synced;
-            _logger.LogInformation("Started kline tracker for {Symbol}", _symbol);
+            _logger.KlineTrackerStarted(_symbolName);
+            return new CallResult(null);
         }
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            _logger.LogInformation("Stopping trade tracker for {Symbol}", _symbol);
+            _logger.KlineTrackerStopping(_symbolName);
             Status = SyncStatus.Disconnected;
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
-            _logger.LogInformation("Stopped trade tracker for {Symbol}", _symbol);
+            _logger.KlineTrackerStopped(_symbolName);
         }
 
         /// <summary>
         /// The start procedure needed for kline syncing, generally subscribing to an update stream and requesting the snapshot
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<CallResult<UpdateSubscription>> DoStartAsync();
+        protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
+        {
+            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(_symbol, _interval),
+                 update =>
+                 {
+                     AddOrUpdate(update.Data);
+                 }).ConfigureAwait(false);
+
+            if (!subResult)
+            {
+                Status = SyncStatus.Disconnected;
+                return subResult;
+            }
+
+            if (!_startWithSnapshot)
+                return subResult;
+
+            var startTime = _period == null ? (DateTime?)null : DateTime.UtcNow.Add(-_period.Value);
+            if (_restClient.GetKlinesOptions.MaxAge != null && DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value) > startTime)
+                startTime = DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value);
+
+            var limit = Math.Min(_restClient.GetKlinesOptions.MaxRequestDataPoints ?? _restClient.GetKlinesOptions.MaxTotalDataPoints ?? 100, _limit ?? 100);
+
+            var request = new GetKlinesRequest(_symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
+            var data = new List<SharedKline>();
+            await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
+            {
+                if (!result)
+                {
+                    _ = subResult.Data.CloseAsync();
+                    Status = SyncStatus.Disconnected;
+                    return subResult.AsError<UpdateSubscription>(result.Error!);
+                }
+
+                if (_limit != null && data.Count > _limit)
+                    break;
+
+                data.AddRange(result.Data);
+            }
+
+            SetInitialData(data);
+            return subResult;
+        }
 
         /// <summary>
         /// The stop procedure needed, generally stopping the update stream
@@ -174,20 +255,44 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <returns></returns>
         protected virtual Task DoStopAsync() => _updateSubscription?.CloseAsync() ?? Task.CompletedTask;
 
-        /// <summary>
-        /// Get the data tracked
-        /// </summary>
-        /// <param name="since">Return data after his timestamp</param>
-        /// <returns></returns>
-        public IEnumerable<IKlineItem> GetData(DateTime? since = null)
+        /// <inheritdoc />
+        public KlinesStats GetStats(DateTime? fromTimestamp = null, DateTime? toTimestamp = null)
+        {
+            var compareTime = SyncedFrom?.AddSeconds(-2);
+            var stats = GetStats(GetData(fromTimestamp, toTimestamp));
+            stats.Complete = (fromTimestamp == null || fromTimestamp >= compareTime) && (toTimestamp == null || toTimestamp >= compareTime);
+            return stats;
+        }
+
+        private KlinesStats GetStats(IEnumerable<SharedKline> klines)
+        {
+            if (!klines.Any())
+                return new KlinesStats();
+
+            return new KlinesStats
+            {
+                KlineCount = klines.Count(),
+                FirstOpenTime = klines.First().OpenTime,
+                LastOpenTime = klines.Last().OpenTime,
+                HighPrice = klines.Select(d => d.LowPrice).Max(),
+                LowPrice = klines.Select(d => d.HighPrice).Min(),
+                Volume = klines.Select(d => d.Volume).Sum(),
+                AverageVolume = Math.Round(klines.OrderByDescending(d => d.OpenTime).Skip(1).Select(d => d.Volume).DefaultIfEmpty().Average(), 8)
+            };
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<SharedKline> GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
                 ApplyWindow(true);
 
-                IEnumerable<IKlineItem> result = _data.Values;
+                IEnumerable<SharedKline> result = _data.Values;
                 if (since != null)
                     result = result.Where(d => d.OpenTime >= since);
+                if (until != null)
+                    result = result.Where(d => d.OpenTime <= until);
 
                 return result.ToList();
             }
@@ -197,13 +302,13 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// Set the initial kline data snapshot
         /// </summary>
         /// <param name="data"></param>
-        protected void SetInitialData(IEnumerable<IKlineItem> data)
+        protected void SetInitialData(IEnumerable<SharedKline> data)
         {
             lock (_lock)
             {
                 _data.Clear();
 
-                IEnumerable<IKlineItem> items = data.OrderByDescending(d => d.OpenTime);
+                IEnumerable<SharedKline> items = data.OrderByDescending(d => d.OpenTime);
                 if (_limit != null)
                     items = items.Take(_limit.Value);
                 if (_period != null)
@@ -214,23 +319,17 @@ namespace CryptoExchange.Net.Trackers.Klines
 
                 _snapshotSet = true;
 
-                Debug.WriteLine("Snapshot set, last time: " + _data.Last().Key);
-
-
                 foreach (var item in _preSnapshotQueue)
                 {
                     if (_data.ContainsKey(item.OpenTime))
-                    {
-                        Debug.WriteLine($"Skipping {item.OpenTime}, already in snapshot");
                         continue;
-                    }
 
-                    Debug.WriteLine($"Adding {item.OpenTime} from pre-snapshot");
                     _data.Add(item.OpenTime, item);
                 }
 
+                _firstTimestamp = _data.Min(v => v.Key);
                 ApplyWindow(false);
-                SnapshotSet?.Invoke(GetData());
+                _logger.KlineTrackerInitialDataSet(_symbolName, _data.Last().Key);
             }
         }
 
@@ -238,17 +337,17 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// Add or update a kline
         /// </summary>
         /// <param name="item"></param>
-        protected void AddOrUpdate(IKlineItem item) => AddOrUpdate(new[] { item });
+        protected void AddOrUpdate(SharedKline item) => AddOrUpdate(new[] { item });
 
         /// <summary>
         /// Add or update klines
         /// </summary>
         /// <param name="items"></param>
-        protected void AddOrUpdate(IEnumerable<IKlineItem> items)
+        protected void AddOrUpdate(IEnumerable<SharedKline> items)
         {
             lock (_lock)
             {
-                if (!_snapshotSet)
+                if (_restClient != null && _startWithSnapshot && !_snapshotSet)
                 {
                     _preSnapshotQueue.AddRange(items);
                     return;
@@ -258,72 +357,82 @@ namespace CryptoExchange.Net.Trackers.Klines
                 {
                     if (_data.TryGetValue(item.OpenTime, out var existing))
                     {
-                        Debug.WriteLine($"Replacing {item.OpenTime}");
                         _data.Remove(item.OpenTime);
                         _data.Add(item.OpenTime, item);
-                        Updated?.Invoke(item);
+                        OnUpdated?.Invoke(item);
+                        _logger.KlineTrackerKlineUpdated(_symbolName, _data.Last().Key);
                     }
                     else
                     {
-                        Debug.WriteLine($"Adding {item.OpenTime}");
                         _data.Add(item.OpenTime, item);
-                        Added?.Invoke(item);
+                        OnAdded?.Invoke(item);
+                        _logger.KlineTrackerKlineAdded(_symbolName, _data.Last().Key);
                     }
                 }
 
+                _firstTimestamp = _data.Min(x => x.Key);
                 _changed = true;
 
-                // Check if we need to apply window. To save processing cost the window is only applied every 30 seconds
-                // or when data is requested
-                if (DateTime.UtcNow - _lastWindowApplied > TimeSpan.FromSeconds(5))
-                    ApplyWindow(true);
+                SetSyncStatus();
+                ApplyWindow(true);
             }
         }
 
         private void ApplyWindow(bool broadcastEvents)
         {
-            if (!_changed)
+            if (!_changed && (DateTime.UtcNow - _lastWindowApplied) < TimeSpan.FromSeconds(1))
                 return;
-
-            _logger.LogTrace("Applying window");
 
             if (_period != null)
             {
                 var compareDate = DateTime.UtcNow.Add(-_period.Value);
-                foreach (var item in _data.Where(d => d.Key < compareDate))
+                for (var i = 0; i < _data.Count; i++)
                 {
+                    var item = _data.ElementAt(i);
+                    if (item.Key >= compareDate)
+                        break;
+
                     _data.Remove(item.Key);
                     if (broadcastEvents)
-                        Removed?.Invoke(item.Value);
+                        OnRemoved?.Invoke(item.Value);
+
+                    i--;
                 }
             }
 
             if (_limit != null && _data.Count > _limit.Value)
             {
                 var toRemove = _data.Count - _limit.Value;
-                foreach (var item in _data.OrderBy(d => d.Key).Take(toRemove))
+                for (var i = 0; i < toRemove; i++)
                 {
+                    var item = _data.ElementAt(i);
                     _data.Remove(item.Key);
                     if (broadcastEvents)
-                        Removed?.Invoke(item.Value);
+                        OnRemoved?.Invoke(item.Value);
+
+                    i--;
                 }
             }
+
+            _lastWindowApplied = DateTime.UtcNow;
+            _changed = false;
         }
 
         private void HandleConnectionLost()
         {
-            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} connection lost", _symbol);
+            _logger.KlineTrackerConnectionLost(_symbolName);
             if (Status != SyncStatus.Disconnected)
             {
                 Status = SyncStatus.Syncing;
                 _snapshotSet = false;
+                _firstTimestamp = null;
                 _preSnapshotQueue.Clear();
             }
         }
 
         private void HandleConnectionClosed()
         {
-            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} disconnected", _symbol);
+            _logger.KlineTrackerConnectionClosed(_symbolName);
             Status = SyncStatus.Disconnected;
             _ = StopAsync();
         }
@@ -341,9 +450,33 @@ namespace CryptoExchange.Net.Trackers.Klines
                 success = resyncResult;
             }
 
-            _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} successfully resynchronized", _symbol);
-            Status = SyncStatus.Synced;
+            _logger.KlineTrackerConnectionRestored(_symbolName);
+            SetSyncStatus();
         }
 
+        private void SetSyncStatus()
+        {
+            if (Status == SyncStatus.Synced)
+                return;
+
+            if (_period != null)
+            {
+                if (_firstTimestamp <= DateTime.UtcNow - _period.Value)
+                    Status = SyncStatus.Synced;
+                else
+                    Status = SyncStatus.PartiallySynced;
+            }
+
+            if (_limit != null)
+            {
+                if (_data.Count == _limit.Value)
+                    Status = SyncStatus.Synced;
+                else
+                    Status = SyncStatus.PartiallySynced;
+            }
+
+            if (_period == null && _limit == null)
+                Status = SyncStatus.Synced;
+        }
     }
 }

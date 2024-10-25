@@ -1,5 +1,7 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Logging.Extensions;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,18 +12,25 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Trackers.Trades
 {
     /// <inheritdoc />
-    public abstract class TradeTracker : ITradeTracker
+    public class TradeTracker : ITradeTracker
     {
+        private readonly ITradeSocketClient _socketClient;
+        private readonly IRecentTradeRestClient? _recentRestClient;
+        private readonly ITradeHistoryRestClient? _historyRestClient;
+        private readonly string _symbolName;
         private SyncStatus _status;
+        private long _snapshotId;
+        private bool _startWithSnapshot;
 
         /// <summary>
         /// The internal data structure
         /// </summary>
-        protected readonly Dictionary<string, ITradeItem> _data = new Dictionary<string, ITradeItem>();
+        protected readonly List<SharedTrade> _data = new List<SharedTrade>();
         /// <summary>
         /// The pre-snapshot queue buffering updates received before the snapshot is set and which will be applied after the snapshot was set
         /// </summary>
-        protected readonly List<ITradeItem> _preSnapshotQueue = new List<ITradeItem>();
+        protected readonly List<SharedTrade> _preSnapshotQueue = new List<SharedTrade>();
+
         /// <summary>
         /// The last time the window was applied
         /// </summary>
@@ -45,7 +54,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// <summary>
         /// The symbol
         /// </summary>
-        protected readonly string _symbol;
+        protected readonly SharedSymbol _symbol;
         /// <summary>
         /// Whether the snapshot has been set
         /// </summary>
@@ -62,7 +71,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// <summary>
         /// The timestamp of the first item
         /// </summary>
-        protected DateTime _firstTimestamp;
+        protected DateTime? _firstTimestamp;
 
         /// <inheritdoc/>
         public SyncStatus Status
@@ -75,7 +84,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
                 var old = _status;
                 _status = value;
-                _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} status changed: {old} => {value}", _symbol, old, value);
+                _logger.TradeTrackerStatusChanged(_symbolName, old, value);
                 OnStatusChanged?.Invoke(old, _status);
             }
         }
@@ -94,7 +103,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         }
 
         /// <inheritdoc />
-        public DateTime SyncedFrom
+        public DateTime? SyncedFrom
         {
             get
             {
@@ -110,135 +119,174 @@ namespace CryptoExchange.Net.Trackers.Trades
         }
 
         /// <inheritdoc />
-        public decimal AveragePrice()
+        public SharedTrade? Last
         {
-            return Math.Round(GetData().Select(d => d.Price).DefaultIfEmpty().Average(), 8);
+            get
+            {
+                lock (_lock)
+                {
+                    ApplyWindow(true);
+                    return _data.LastOrDefault();
+                }
+            }
         }
 
         /// <inheritdoc />
-        public decimal AveragePriceForLast(TimeSpan period)
-        {
-            if (period > _period)
-                throw new Exception("Can't calculate average price over period bigger than the tracker period limit");
-
-            var compareTime = DateTime.UtcNow - period;
-            return Math.Round(GetData(compareTime).Select(d => d.Price).DefaultIfEmpty().Average(), 8);
-        }
-
+        public event Func<SharedTrade, Task>? OnAdded;
         /// <inheritdoc />
-        public decimal AveragePriceSince(DateTime timestamp)
-        {
-            return Math.Round(GetData(timestamp).Select(d => d.Price).DefaultIfEmpty().Average(), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal Volume()
-        {
-            return Math.Round(GetData().Sum(d => d.Quantity), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal VolumeForLast(TimeSpan period)
-        {
-            if (period > _period)
-                throw new Exception("Can't calculate volume over period bigger than the tracker period limit");
-
-            var compareTime = DateTime.UtcNow - period;
-            return Math.Round(GetData(compareTime).Sum(d => d.Quantity), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal VolumeSince(DateTime timestamp)
-        {
-            return Math.Round(GetData(timestamp).Sum(d => d.Quantity), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal QuoteVolume()
-        {
-            return Math.Round(GetData().Sum(d => d.Quantity * d.Price), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal QuoteVolumeForLast(TimeSpan period)
-        {
-            if (period > _period)
-                throw new Exception("Can't calculate volume over period bigger than the tracker period limit");
-
-            var compareTime = DateTime.UtcNow - period;
-            return Math.Round(GetData(compareTime).Sum(d => d.Quantity * d.Price), 8);
-        }
-
-        /// <inheritdoc />
-        public decimal QuoteVolumeSince(DateTime timestamp)
-        {
-            return Math.Round(GetData(timestamp).Sum(d => d.Quantity * d.Price), 8);
-        }
-
-        /// <inheritdoc />
-        public event Func<IEnumerable<ITradeItem>, Task>? OnSnapshotSet;
-        /// <inheritdoc />
-        public event Func<ITradeItem, Task>? OnAdded;
-        /// <inheritdoc />
-        public event Func<ITradeItem, Task>? OnRemoved;
+        public event Func<SharedTrade, Task>? OnRemoved;
         /// <inheritdoc />
         public event Func<SyncStatus, SyncStatus, Task>? OnStatusChanged;
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="limit"></param>
-        /// <param name="logger"></param>
-        /// <param name="symbol"></param>
-        /// <param name="period"></param>
-        public TradeTracker(ILogger? logger, string symbol, int? limit = null, TimeSpan? period = null)
+        public TradeTracker(
+            ILogger? logger,
+            IRecentTradeRestClient? recentRestClient,
+            ITradeHistoryRestClient? historyRestClient,
+            ITradeSocketClient socketClient,
+            SharedSymbol symbol,
+            int? limit = null,
+            TimeSpan? period = null)
         {
             _logger = logger ?? new TraceLogger();
+            _recentRestClient = recentRestClient;
+            _historyRestClient = historyRestClient;
+            _socketClient = socketClient;
             _symbol = symbol;
+            _symbolName = symbol.BaseAsset + "/" + symbol.QuoteAsset;
             _limit = limit;
             _period = period;
         }
 
+        private TradesStats GetStats(IEnumerable<SharedTrade> trades)
+        {
+            if (!trades.Any())
+                return new TradesStats();
+
+            return new TradesStats
+            {
+                TradeCount = trades.Count(),
+                FirstTradeTime = trades.First().Timestamp,
+                LastTradeTime = trades.Last().Timestamp,
+                AveragePrice = Math.Round(trades.Select(d => d.Price).DefaultIfEmpty().Average(), 8),
+                VolumeWeightedAveragePrice = trades.Any() ? Math.Round(trades.Select(d => d.Price * d.Quantity).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantity).DefaultIfEmpty().Sum(), 8) : null,
+                Volume = Math.Round(trades.Sum(d => d.Quantity), 8),
+                QuoteVolume = Math.Round(trades.Sum(d => d.Quantity * d.Price), 8),
+                BuySellRatio = Math.Round(trades.Where(x => x.Side == SharedOrderSide.Buy).Sum(x => x.Quantity) / trades.Sum(x => x.Quantity), 8)
+            };
+        }
+
         /// <inheritdoc />
-        public async Task StartAsync()
+        public TradesStats GetStats(DateTime? fromTimestamp = null, DateTime? toTimestamp = null)
+        {
+            var compareTime = SyncedFrom?.AddSeconds(-2);
+            var stats = GetStats(GetData(fromTimestamp, toTimestamp));
+            stats.Complete = (fromTimestamp == null || fromTimestamp >= compareTime) && (toTimestamp == null || toTimestamp >= compareTime);
+            return stats;
+        }
+
+
+        /// <inheritdoc />
+        public async Task<CallResult> StartAsync(bool startWithSnapshot = true)
         {
             if (Status != SyncStatus.Disconnected)
                 throw new InvalidOperationException($"Can't start syncing unless state is {SyncStatus.Disconnected}. Current state: {Status}");
 
+            _startWithSnapshot = startWithSnapshot;
             Status = SyncStatus.Syncing;
-            _logger.LogInformation("Starting trade tracker for {Symbol}", _symbol);
-            var success = await DoStartAsync().ConfigureAwait(false);
-            if (!success)
+            _logger.TradeTrackerStarting(_symbolName);
+            var subResult = await DoStartAsync().ConfigureAwait(false);
+            if (!subResult)
             {
-                _logger.LogWarning("Failed to start trade tracker for {Symbol}: {Error}", _symbol, success.Error);
+                _logger.TradeTrackerStartFailed(_symbolName, subResult.Error!.ToString());
                 Status = SyncStatus.Disconnected;
-                return;
+                return subResult;
             }
 
-            _updateSubscription = success.Data;
+            _updateSubscription = subResult.Data;
             _updateSubscription.ConnectionLost += HandleConnectionLost;
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
-            Status = SyncStatus.Synced;
-            _logger.LogInformation("Started trade tracker for {Symbol}", _symbol);
+            SetSyncStatus();
+            _logger.TradeTrackerStarted(_symbolName);
+            return new CallResult(null);
         }
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            _logger.LogInformation("Stopping trade tracker for {Symbol}", _symbol);
+            _logger.TradeTrackerStopping(_symbolName);
             Status = SyncStatus.Disconnected;
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
-            _logger.LogInformation("Stopped trade tracker for {Symbol}", _symbol);
+            _logger.TradeTrackerStopped(_symbolName);
         }
 
         /// <summary>
         /// The start procedure needed for trade syncing, generally subscribing to an update stream and requesting the snapshot
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<CallResult<UpdateSubscription>> DoStartAsync();
+        protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
+        {
+            var subResult = await _socketClient.SubscribeToTradeUpdatesAsync(new SubscribeTradeRequest(_symbol),
+                 update =>
+                 {
+                     AddData(update.Data);
+                 }).ConfigureAwait(false);
+
+            if (!subResult)
+            {
+                Status = SyncStatus.Disconnected;
+                return subResult;
+            }
+
+            if (!_startWithSnapshot)
+                return subResult;
+
+            if (_historyRestClient != null)
+            {
+                var startTime = _period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-_period.Value);
+                var request = new GetTradeHistoryRequest(_symbol, startTime, DateTime.UtcNow);
+                var data = new List<SharedTrade>();
+                await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
+                {
+                    if (!result)
+                    {
+                        _ = subResult.Data.CloseAsync();
+                        Status = SyncStatus.Disconnected;
+                        return subResult.AsError<UpdateSubscription>(result.Error!);
+                    }
+
+                    if (_limit != null && data.Count > _limit)
+                        break;
+
+                    data.AddRange(result.Data);
+                }
+
+                SetInitialData(data);
+            }
+            else if (_recentRestClient != null)
+            {
+                int? limit = null;
+                if (_limit.HasValue)
+                    limit = Math.Min(_recentRestClient.GetRecentTradesOptions.MaxLimit, _limit.Value);
+
+                var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(_symbol, limit)).ConfigureAwait(false);
+                if (!snapshot)
+                {
+                    _ = subResult.Data.CloseAsync();
+                    Status = SyncStatus.Disconnected;
+                    return subResult.AsError<UpdateSubscription>(snapshot.Error!);
+                }
+
+                SetInitialData(snapshot.Data);
+            }
+
+            return subResult;
+        }
 
         /// <summary>
         /// The stop procedure needed, generally stopping the update stream
@@ -247,15 +295,17 @@ namespace CryptoExchange.Net.Trackers.Trades
         protected virtual Task DoStopAsync() => _updateSubscription?.CloseAsync() ?? Task.CompletedTask;
 
         /// <inheritdoc />
-        public IEnumerable<ITradeItem> GetData(DateTime? since = null)
+        public IEnumerable<SharedTrade> GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
                 ApplyWindow(true);
 
-                IEnumerable<ITradeItem> result = _data.Values;
+                IEnumerable<SharedTrade> result = _data;
                 if (since != null)
                     result = result.Where(d => d.Timestamp >= since);
+                if (until != null)
+                    result = result.Where(d => d.Timestamp <= until);
 
                 return result.ToList();
             }
@@ -265,43 +315,42 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// Set the initial trade data snapshot
         /// </summary>
         /// <param name="data"></param>
-        protected void SetInitialData(IEnumerable<ITradeItem> data)
+        protected void SetInitialData(IEnumerable<SharedTrade> data)
         {
             lock (_lock)
             {
                 _data.Clear();
 
-                IEnumerable<ITradeItem> items = data.OrderByDescending(d => d.Timestamp);
+                IEnumerable<SharedTrade> items = data.OrderByDescending(d => d.Timestamp);
                 if (_limit != null)
                     items = items.Take(_limit.Value);
                 if (_period != null)
                     items = items.Where(e => e.Timestamp >= DateTime.UtcNow.Add(-_period.Value));
 
+                _snapshotId = data.Max(d => d.Timestamp.Ticks);
                 foreach (var item in items.OrderBy(d => d.Timestamp))
-                    _data.Add(item.Id, item);
+                    _data.Add(item);
 
                 _snapshotSet = true;
                 _changed = true;
 
-                _logger.LogTrace("Snapshot set, last id: {LastId}", _data.Last().Key);
+                _logger.TradeTrackerInitialDataSet(_symbolName, _data.Count, _snapshotId);
 
                 foreach (var item in _preSnapshotQueue)
                 {
-                    if (_data.ContainsKey(item.Id))
+                    if (_snapshotId >= item.Timestamp.Ticks)
                     {
-                        Debug.WriteLine($"Skipping {item.Id}, already in snapshot");
-                        _logger.LogTrace("Skipping {Id}, already in snapshot", item.Id);
+                        _logger.TradeTrackerPreSnapshotSkip(_symbolName, item.Timestamp.Ticks);
                         continue;
                     }
 
-                    _logger.LogTrace("Adding {item.Id} from pre-snapshot", item.Id);
-                    _data.Add(item.Id, item);
+                    _logger.TradeTrackerPreSnapshotApplied(_symbolName, item.Timestamp.Ticks);
+                    _data.Add(item);
                 }
 
-                _firstTimestamp = _data.Values.Min(v => v.Timestamp);
+                _firstTimestamp = _data.Min(v => v.Timestamp);
 
                 ApplyWindow(false);
-                OnSnapshotSet?.Invoke(GetData());
             }
         }
 
@@ -309,17 +358,17 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// Add a trade
         /// </summary>
         /// <param name="item"></param>
-        protected void AddData(ITradeItem item) => AddData(new[] { item });
+        protected void AddData(SharedTrade item) => AddData(new[] { item });
 
         /// <summary>
         /// Add a list of trades
         /// </summary>
         /// <param name="items"></param>
-        protected void AddData(IEnumerable<ITradeItem> items)
+        protected void AddData(IEnumerable<SharedTrade> items)
         {
             lock (_lock)
             {
-                if (!_snapshotSet)
+                if ((_recentRestClient != null || _historyRestClient != null) && _startWithSnapshot && !_snapshotSet)
                 {
                     _preSnapshotQueue.AddRange(items);
                     return;
@@ -327,50 +376,52 @@ namespace CryptoExchange.Net.Trackers.Trades
 
                 foreach (var item in items)
                 {
-                    _logger.LogTrace("Adding {item.Id}", item.Id);
-                    _data.Add(item.Id, item);
+                    _logger.TradeTrackerTradeAdded(_symbolName, item.Timestamp.Ticks);
+                    _data.Add(item);
                     OnAdded?.Invoke(item);
                 }
 
+                _firstTimestamp = _data.Min(x => x.Timestamp);
                 _changed = true;
-
-                // Check if we need to apply window. To save processing cost the window is only applied every 30 seconds
-                // or when data is requested
-                if (DateTime.UtcNow - _lastWindowApplied > TimeSpan.FromSeconds(5))
-                    ApplyWindow(true);
+                SetSyncStatus();
+                ApplyWindow(true);
             }
         }
 
         private void ApplyWindow(bool broadcastEvents)
         {
-            if (!_changed)
+            if (!_changed && (DateTime.UtcNow - _lastWindowApplied) < TimeSpan.FromSeconds(1))
                 return;
-
-            _logger.LogTrace("Applying window");
 
             if (_period != null)
             {
                 var compareDate = DateTime.UtcNow.Add(-_period.Value);
-                foreach (var item in _data.Where(d => d.Value.Timestamp < compareDate))
+                for(var i = 0; i < _data.Count; i++)
                 {
-                    _data.Remove(item.Key);
+                    var item = _data[i];
+                    if (item.Timestamp >= compareDate)
+                        break;
+
+                    _data.Remove(item);
                     if (broadcastEvents)
-                        OnRemoved?.Invoke(item.Value);
+                        OnRemoved?.Invoke(item);
+
+                    i--;
                 }
             }
 
             if (_limit != null && _data.Count > _limit.Value)
             {
                 var toRemove = _data.Count - _limit.Value;
-                foreach (var item in _data.OrderBy(d => d.Value.Timestamp).Take(toRemove))
+                for (var i = 0; i < toRemove; i++)
                 {
-                    _data.Remove(item.Key);
+                    var item = _data[i];
+                    _data.Remove(item);
                     if (broadcastEvents)
-                        OnRemoved?.Invoke(item.Value);
-                }
+                        OnRemoved?.Invoke(item);
 
-                if (_period == null)
-                    _firstTimestamp = _data.Min(d => d.Value.Timestamp);
+                    i--;
+                }
             }
 
             _lastWindowApplied = DateTime.UtcNow;
@@ -380,18 +431,19 @@ namespace CryptoExchange.Net.Trackers.Trades
 
         private void HandleConnectionLost()
         {
-            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} connection lost", _symbol);
+            _logger.TradeTrackerConnectionLost(_symbolName);
             if (Status != SyncStatus.Disconnected)
             {
                 Status = SyncStatus.Syncing;
                 _snapshotSet = false;
+                _firstTimestamp = null;
                 _preSnapshotQueue.Clear();
             }
         }
 
         private void HandleConnectionClosed()
         {
-            _logger.Log(LogLevel.Warning, "Trade tracker for {Symbol} disconnected", _symbol);
+            _logger.TradeTrackerConnectionClosed(_symbolName);
             Status = SyncStatus.Disconnected;
             _ = StopAsync();
         }
@@ -409,9 +461,33 @@ namespace CryptoExchange.Net.Trackers.Trades
                 success = resyncResult;
             }
 
-            _logger.Log(LogLevel.Information, "Trade tracker for {Symbol} successfully resynchronized", _symbol);
-            Status = SyncStatus.Synced;
+            _logger.TradeTrackerConnectionRestored(_symbolName);
+            SetSyncStatus();
         }
 
+        private void SetSyncStatus()
+        {
+            if (Status == SyncStatus.Synced)
+                return;
+
+            if (_period != null)
+            {
+                if (_firstTimestamp <= DateTime.UtcNow - _period.Value)
+                    Status = SyncStatus.Synced;
+                else
+                    Status = SyncStatus.PartiallySynced;
+            }
+
+            if (_limit != null)
+            {
+                if (_data.Count == _limit.Value)
+                    Status = SyncStatus.Synced;
+                else
+                    Status = SyncStatus.PartiallySynced;
+            }
+
+            if (_period == null && _limit == null)
+                Status = SyncStatus.Synced;
+        }
     }
 }

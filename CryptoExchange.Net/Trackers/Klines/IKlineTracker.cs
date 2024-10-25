@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,6 +15,12 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// The total number of klines
         /// </summary>
         int Count { get; }
+
+        /// <summary>
+        /// From which timestamp the trades are registered
+        /// </summary>
+        DateTime? SyncedFrom { get; }
+
         /// <summary>
         /// Sync status
         /// </summary>
@@ -21,54 +28,30 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <summary>
         /// Event for when a new kline is added
         /// </summary>
-        event Func<IKlineItem, Task>? Added;
+        event Func<SharedKline, Task>? OnAdded;
         /// <summary>
         /// Event for when a kline is removed because it's no longer within the period/limit window
         /// </summary>
-        event Func<IKlineItem, Task>? Removed;
-        /// <summary>
-        /// Event for when the initial snapshot is set
-        /// </summary>
-        event Func<IEnumerable<IKlineItem>, Task>? SnapshotSet;
+        event Func<SharedKline, Task>? OnRemoved;
         /// <summary>
         /// Event for when a kline is updated
         /// </summary>
-        event Func<IKlineItem, Task> Updated;
+        event Func<SharedKline, Task> OnUpdated;
         /// <summary>
         /// Event for when the sync status changes
         /// </summary>
         event Func<SyncStatus, SyncStatus, Task>? OnStatusChanged;
 
         /// <summary>
-        /// The average volume per kline, excluding the last (uncompleted) one
+        /// Get the last kline
         /// </summary>
-        /// <returns></returns>
-        decimal AverageVolume();
-
-        /// <summary>
-        /// Get the data tracked
-        /// </summary>
-        /// <param name="since">Return data after his timestamp</param>
-        /// <returns></returns>
-        IEnumerable<IKlineItem> GetData(DateTime? since = null);
-
-        /// <summary>
-        /// The highest price across all klines
-        /// </summary>
-        /// <returns></returns>
-        decimal HighPrice();
-
-        /// <summary>
-        /// The lowest price across all klines
-        /// </summary>
-        /// <returns></returns>
-        decimal LowPrice();
+        SharedKline? Last { get; }
 
         /// <summary>
         /// Start synchronization
         /// </summary>
         /// <returns></returns>
-        Task StartAsync();
+        Task<CallResult> StartAsync(bool startWithSnapshot = true);
 
         /// <summary>
         /// Stop synchronization
@@ -77,9 +60,20 @@ namespace CryptoExchange.Net.Trackers.Klines
         Task StopAsync();
 
         /// <summary>
-        /// The total volume
+        /// Get the data tracked
         /// </summary>
+        /// <param name="fromTimestamp">Start timestamp to get the data from, defaults to tracked data start time</param>
+        /// <param name="toTimestamp">End timestamp to get the data until, defaults to current time</param>
         /// <returns></returns>
-        decimal Volume();
+        IEnumerable<SharedKline> GetData(DateTime? fromTimestamp = null, DateTime? toTimestamp = null);
+
+        /// <summary>
+        /// Get statitistics on the klines
+        /// </summary>
+        /// <param name="fromTimestamp">Start timestamp to get the data from, defaults to tracked data start time</param>
+        /// <param name="toTimestamp">End timestamp to get the data until, defaults to current time</param>
+        /// <returns></returns>
+        KlinesStats GetStats(DateTime? fromTimestamp = null, DateTime? toTimestamp = null);
+
     }
 }

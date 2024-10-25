@@ -68,11 +68,30 @@
         Json
     }
 
+    /// <summary>
+    /// Tracker sync status
+    /// </summary>
     public enum SyncStatus
     {
+        /// <summary>
+        /// Not connected
+        /// </summary>
         Disconnected,
+        /// <summary>
+        /// Syncing, data connection is being made
+        /// </summary>
         Syncing,
+        /// <summary>
+        /// The connection is active, but the full data backlog is not yet reached. For example, a tracker set to retain 10 minutes of data only has 8 minutes of data at this moment.
+        /// </summary>
+        PartiallySynced,
+        /// <summary>
+        /// Synced
+        /// </summary>
         Synced,
+        /// <summary>
+        /// Disposed
+        /// </summary>
         Diposed
     }
 
