@@ -209,7 +209,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var definition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
+                    var definition = new RequestDefinition(Uri.AbsolutePath, HttpMethod.Get) { ConnectionId = Id };
                     var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(new ClientRateLimitError("Connection limit reached"));
@@ -475,7 +475,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task SendLoopAsync()
         {
-            var requestDefinition = new RequestDefinition(Id.ToString(), HttpMethod.Get);
+            var requestDefinition = new RequestDefinition(Uri.AbsolutePath, HttpMethod.Get) { ConnectionId = Id };
             try
             {
                 while (true)

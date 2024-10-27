@@ -58,11 +58,15 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public IRateLimitGuard? LimitGuard { get; set; }
 
-
         /// <summary>
         /// Whether this request should never be cached
         /// </summary>
         public bool PreventCaching { get; set; }
+
+        /// <summary>
+        /// Connection id
+        /// </summary>
+        public int? ConnectionId { get; set; }
 
         /// <summary>
         /// ctor
