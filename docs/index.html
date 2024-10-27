@@ -106,6 +106,7 @@
         <li class="nav-item"><a class="nav-link" href="#idocs_features">Additional Features</a>
 		  <ul class="nav flex-column">
             <li class="nav-item"><a class="nav-link" href="#idocs_orderbooks">Orderbooks</a></li>
+            <li class="nav-item"><a class="nav-link" href="#idocs_trackers">Trackers</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_logging">Logging</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_ratelimiting">Ratelimiting</a></li>
             <li class="nav-item"><a class="nav-link" href="#idocs_caching">Caching</a></li>
@@ -3145,6 +3146,382 @@ await book.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="book-okx" role="tabpanel" aria-labelledby="book-okx-tab">
+<pre><code>var book = new OKXSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			</div>
+			</div>
+			
+			<p>
+			  <b>The order book object</b><br />
+			  The order book implementations for each client use a common base class and interface, which means you can use books from different exchanges in a common function.
+			  <pre><code>// Create order books for different exchanges
+var books = new List&lt;ISymbolOrderBook&gt;();
+books.Add(new BinanceSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new BitgetSpotSymbolOrderBook("ETHUSDT"));
+books.Add(new KrakenSpotSymbolOrderBook("ETH/USD"));
+books.Add(new KucoinSpotSymbolOrderBook("ETH-USDT"));
+books.Add(new OKXSymbolOrderBook("ETH-USDT"));
+
+// Start the books
+var results = await Task.WhenAll(books.Select(b => b.StartAsync()));
+
+// Output the current best ask/bid for each exchange
+foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
+{
+	Console.WriteLine(book.Id);
+	Console.WriteLine($"{book.BestAsk} - {book.BestBid}");
+}
+</code></pre>
+			</p>
+			<p>		
+			The following properties and events are exposed by the order books:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>Status</td>
+					<td>The current status of the order book. Note that the book is only acurate and up to date when the status is <code>Synced</code></td>
+				</tr>
+				<tr>
+					<td>Id</td>
+					<td>Identifier for the book, referencing the exchange it's for</td>
+				</tr>
+				<tr>
+					<td>Symbol</td>
+					<td>The symbol the book is for</td>
+				</tr>
+				<tr>
+					<td>LastSequenceNumber</td>
+					<td>The last sequence number that was processed. Order book update messages typically have sequence numbers to correctly sync the book</td>
+				</tr>
+				<tr>
+					<td>UpdateTime</td>
+					<td>Timestamp of the last update that was processed</td>
+				</tr>
+				<tr>
+					<td>AskCount</td>
+					<td>The current number of asks in the book</td>
+				</tr>
+				<tr>
+					<td>BidCount</td>
+					<td>The current number of bids in the book</td>
+				</tr>
+				<tr>
+					<td>Asks</td>
+					<td>Returns a snapshot of the current list of asks. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Bids</td>
+					<td>Returns a snapshot of the current list of bids. This creates a copy of the list values at that moment</td>
+				</tr>
+				<tr>
+					<td>Book</td>
+					<td>Returns a snapshot of the both the asks and bids. This makes sure the snapshot of the bids and asks are of the same exact time</td>
+				</tr>
+				<tr>
+					<td>BestAsk</td>
+					<td>The best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>BestBid</td>
+					<td>The best bid at that moment</td>
+				</tr>
+				<tr>
+					<td>BestOffers</td>
+					<td>The best bid and best ask at that moment</td>
+				</tr>
+				<tr>
+					<td>OnStatusChange</td>
+					<td>Event called when the status of the order book changes</td>
+				</tr>
+				<tr>
+					<td>OnOrderBookUpdate</td>
+					<td>Event called whenever the book changes. Note that this event can trigger a lot on large/high liquidity markets</td>
+				</tr>
+				<tr>
+					<td>OnBestOffersChanged</td>
+					<td>Event called whenever the best ask or bid changes in the order book</td>
+				</tr>
+			</table>
+			
+		</p>
+        </section>
+		
+		<section id="idocs_trackers">
+          <h2>Trackers</h2>
+          <p>
+			Trackers
+			</p>
+			<p>			
+			<b>Creation and starting</b><br />
+			
+			</p>
+			<div class="tab-wrap">
+			<ul class="nav nav-tabs" id="tracker" role="tablist" style="margin-bottom: -16px;">
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link active" id="tracker-cryptoclients-tab" data-toggle="tab" href="#tracker-cryptoclients" role="tab" aria-controls="tracker-cryptoclients" aria-selected="true">CryptoClients</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-binance-tab" data-toggle="tab" href="#tracker-binance" role="tab" aria-controls="tracker-binance" aria-selected="false">Binance</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-bingx-tab" data-toggle="tab" href="#tracker-bingx" role="tab" aria-controls="tracker-bingx" aria-selected="false">BingX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-bitfinex-tab" data-toggle="tab" href="#tracker-bitfinex" role="tab" aria-controls="tracker-bitfinex" aria-selected="false">Bitfinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-bitget-tab" data-toggle="tab" href="#tracker-bitget" role="tab" aria-controls="tracker-bitget" aria-selected="false">Bitget</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-bitmart-tab" data-toggle="tab" href="#tracker-bitmart" role="tab" aria-controls="tracker-bitmart" aria-selected="false">BitMart</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-bybit-tab" data-toggle="tab" href="#tracker-bybit" role="tab" aria-controls="tracker-bybit" aria-selected="false">Bybit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-coinbase-tab" data-toggle="tab" href="#tracker-coinbase" role="tab" aria-controls="tracker-coinbase" aria-selected="false">Coinbase</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-coinex-tab" data-toggle="tab" href="#tracker-coinex" role="tab" aria-controls="tracker-coinex" aria-selected="false">Coinex</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-cryptocom-tab" data-toggle="tab" href="#tracker-cryptocom" role="tab" aria-controls="tracker-cryptocom" aria-selected="false">Crypto.com</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-gateio-tab" data-toggle="tab" href="#tracker-gateio" role="tab" aria-controls="tracker-gateio" aria-selected="false">GateIo</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-htx-tab" data-toggle="tab" href="#tracker-htx" role="tab" aria-controls="tracker-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-kraken-tab" data-toggle="tab" href="#tracker-kraken" role="tab" aria-controls="tracker-kraken" aria-selected="false">Kraken</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-kucoin-tab" data-toggle="tab" href="#tracker-kucoin" role="tab" aria-controls="tracker-kucoin" aria-selected="false">Kucoin</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-mexc-tab" data-toggle="tab" href="#tracker-mexc" role="tab" aria-controls="tracker-mexc" aria-selected="false">Mexc</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-okx-tab" data-toggle="tab" href="#tracker-okx" role="tab" aria-controls="tracker-okx" aria-selected="false">OKX</a>
+			  </li>
+			</ul>
+			<div class="tab-content my-3" id="myTabContent">
+			<div class="tab-pane fade show active" id="tracker-cryptoclients" role="tabpanel" aria-labelledby="tracker-cryptoclients-tab">
+<pre><code>// Assuming IExchangeTrackerFactory is injected as trackerFactory
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create tracker dynamically by exchange name
+var tracker = trackerFactory.CreateTradeTracker("Binance", symbol);
+// OR by directly referencing the specific exchange
+tracker = trackerFactory.Binance.CreateTradeTracker(symbol);
+
+var startResult = await tracker.StartAsync();
+if (!startResult.Success)
+{
+    // Handle error, error info available in startResult.Error
+}
+// tracker has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await tracker.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-binance" role="tabpanel" aria-labelledby="tracker-binance-tab">
+<pre><code>var factory = new BinanceTrackerFactory();
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+var tracker = factory.CreateTradeTracker(symbol);
+var startResult = await tracker.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Tracker has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await tracker.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-bingx" role="tabpanel" aria-labelledby="tracker-bingx-tab">
+<pre><code>var book = new BingXSpotSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-bitfinex" role="tabpanel" aria-labelledby="tracker-bitfinex-tab">
+<pre><code>var book = new BitfinexSymbolOrderBook("tETHUSD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-bitget" role="tabpanel" aria-labelledby="tracker-bitget-tab">
+<pre><code>var book = new BitgetSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-bitmart" role="tabpanel" aria-labelledby="tracker-bitmart-tab">
+<pre><code>var book = new BitMartSymbolOrderBook("ETH_USDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-bybit" role="tabpanel" aria-labelledby="tracker-bybit-tab">
+<pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-coinbase" role="tabpanel" aria-labelledby="tracker-coinbase-tab">
+<pre><code>var book = new CoinbaseSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-coinex" role="tabpanel" aria-labelledby="tracker-coinex-tab">
+<pre><code>var book = new CoinExSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-gateio" role="tabpanel" aria-labelledby="tracker-gateio-tab">
+<pre><code>var book = new GateIoSpotSymbolOrderBook("ETH_USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-cryptocom" role="tabpanel" aria-labelledby="tracker-cryptocom-tab">
+<pre><code>var book = new CryptoComSpotSymbolOrderBook("ETH_USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-htx" role="tabpanel" aria-labelledby="tracker-htx-tab">
+<pre><code>var book = new HTXSpotSymbolOrderBook("ethusdt");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-kraken" role="tabpanel" aria-labelledby="tracker-kraken-tab">
+<pre><code>var book = new KrakenSpotSymbolOrderBook("ETH/USD");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-kucoin" role="tabpanel" aria-labelledby="tracker-kucoin-tab">
+<pre><code>var book = new KucoinSpotSymbolOrderBook("ETH-USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-mexc" role="tabpanel" aria-labelledby="tracker-mexc-tab">
+<pre><code>var book = new MexcSpotSymbolOrderBook("ETHUSDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-okx" role="tabpanel" aria-labelledby="tracker-okx-tab">
 <pre><code>var book = new OKXSymbolOrderBook("ETH-USDT");
 var startResult = await book.StartAsync();
 if (!startResult.Success)

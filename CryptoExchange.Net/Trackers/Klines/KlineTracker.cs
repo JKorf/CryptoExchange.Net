@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +17,6 @@ namespace CryptoExchange.Net.Trackers.Klines
     {
         private readonly IKlineSocketClient _socketClient;
         private readonly IKlineRestClient _restClient;
-        private readonly string _symbolName;
         private SyncStatus _status;
         private bool _startWithSnapshot;
 
@@ -48,10 +48,6 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// Whether or not the data has changed since last window was applied
         /// </summary>
         protected bool _changed = false;
-        /// <summary>
-        /// The symbol
-        /// </summary>
-        protected readonly SharedSymbol _symbol;
         /// <summary>
         /// The kline interval
         /// </summary>
@@ -85,10 +81,19 @@ namespace CryptoExchange.Net.Trackers.Klines
 
                 var old = _status;
                 _status = value;
-                _logger.KlineTrackerStatusChanged(_symbolName, old, value);
+                _logger.KlineTrackerStatusChanged(SymbolName, old, value);
                 OnStatusChanged?.Invoke(old, _status);
             }
         }
+
+        /// <inheritdoc />
+        public string Exchange { get; }
+
+        /// <inheritdoc />
+        public string SymbolName { get; }
+
+        /// <inheritdoc />
+        public SharedSymbol Symbol { get; }
 
         /// <inheritdoc />
         public DateTime? SyncedFrom
@@ -153,9 +158,10 @@ namespace CryptoExchange.Net.Trackers.Klines
             int? limit = null,
             TimeSpan? period = null)
         {
-            _logger = logger ?? new TraceLogger();
-            _symbol = symbol;
-            _symbolName = symbol.BaseAsset + "/" + symbol.QuoteAsset;
+            _logger = logger ?? new NullLogger<KlineTracker>();
+            Symbol = symbol;
+            SymbolName = socketClient.FormatSymbol(symbol.BaseAsset, symbol.QuoteAsset, symbol.TradingMode, symbol.DeliverTime);
+            Exchange = restClient.Exchange;
             _limit = limit;
             _period = period;
             _interval = interval;
@@ -171,12 +177,12 @@ namespace CryptoExchange.Net.Trackers.Klines
 
             _startWithSnapshot = startWithSnapshot;
             Status = SyncStatus.Syncing;
-            _logger.KlineTrackerStarting(_symbolName);
+            _logger.KlineTrackerStarting(SymbolName);
 
             var startResult = await DoStartAsync().ConfigureAwait(false);
             if (!startResult)
             {
-                _logger.KlineTrackerStartFailed(_symbolName, startResult.Error!.ToString());
+                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.ToString());
                 Status = SyncStatus.Disconnected;
                 return new CallResult(startResult.Error!);
             }
@@ -186,19 +192,19 @@ namespace CryptoExchange.Net.Trackers.Klines
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             Status = SyncStatus.Synced;
-            _logger.KlineTrackerStarted(_symbolName);
+            _logger.KlineTrackerStarted(SymbolName);
             return new CallResult(null);
         }
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            _logger.KlineTrackerStopping(_symbolName);
+            _logger.KlineTrackerStopping(SymbolName);
             Status = SyncStatus.Disconnected;
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
-            _logger.KlineTrackerStopped(_symbolName);
+            _logger.KlineTrackerStopped(SymbolName);
         }
 
         /// <summary>
@@ -207,7 +213,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <returns></returns>
         protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
         {
-            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(_symbol, _interval),
+            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(Symbol, _interval),
                  update =>
                  {
                      AddOrUpdate(update.Data);
@@ -228,7 +234,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
             var limit = Math.Min(_restClient.GetKlinesOptions.MaxRequestDataPoints ?? _restClient.GetKlinesOptions.MaxTotalDataPoints ?? 100, _limit ?? 100);
 
-            var request = new GetKlinesRequest(_symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
+            var request = new GetKlinesRequest(Symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
             var data = new List<SharedKline>();
             await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
             {
@@ -329,7 +335,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
                 _firstTimestamp = _data.Min(v => v.Key);
                 ApplyWindow(false);
-                _logger.KlineTrackerInitialDataSet(_symbolName, _data.Last().Key);
+                _logger.KlineTrackerInitialDataSet(SymbolName, _data.Last().Key);
             }
         }
 
@@ -360,13 +366,13 @@ namespace CryptoExchange.Net.Trackers.Klines
                         _data.Remove(item.OpenTime);
                         _data.Add(item.OpenTime, item);
                         OnUpdated?.Invoke(item);
-                        _logger.KlineTrackerKlineUpdated(_symbolName, _data.Last().Key);
+                        _logger.KlineTrackerKlineUpdated(SymbolName, _data.Last().Key);
                     }
                     else
                     {
                         _data.Add(item.OpenTime, item);
                         OnAdded?.Invoke(item);
-                        _logger.KlineTrackerKlineAdded(_symbolName, _data.Last().Key);
+                        _logger.KlineTrackerKlineAdded(SymbolName, _data.Last().Key);
                     }
                 }
 
@@ -388,29 +394,25 @@ namespace CryptoExchange.Net.Trackers.Klines
                 var compareDate = DateTime.UtcNow.Add(-_period.Value);
                 for (var i = 0; i < _data.Count; i++)
                 {
-                    var item = _data.ElementAt(i);
+                    var item = _data.ElementAt(0);
                     if (item.Key >= compareDate)
                         break;
 
                     _data.Remove(item.Key);
                     if (broadcastEvents)
                         OnRemoved?.Invoke(item.Value);
-
-                    i--;
                 }
             }
 
             if (_limit != null && _data.Count > _limit.Value)
             {
-                var toRemove = _data.Count - _limit.Value;
+                var toRemove = Math.Max(0, _data.Count - _limit.Value);
                 for (var i = 0; i < toRemove; i++)
                 {
-                    var item = _data.ElementAt(i);
+                    var item = _data.ElementAt(0);
                     _data.Remove(item.Key);
                     if (broadcastEvents)
                         OnRemoved?.Invoke(item.Value);
-
-                    i--;
                 }
             }
 
@@ -420,7 +422,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
         private void HandleConnectionLost()
         {
-            _logger.KlineTrackerConnectionLost(_symbolName);
+            _logger.KlineTrackerConnectionLost(SymbolName);
             if (Status != SyncStatus.Disconnected)
             {
                 Status = SyncStatus.Syncing;
@@ -432,7 +434,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
         private void HandleConnectionClosed()
         {
-            _logger.KlineTrackerConnectionClosed(_symbolName);
+            _logger.KlineTrackerConnectionClosed(SymbolName);
             Status = SyncStatus.Disconnected;
             _ = StopAsync();
         }
@@ -450,7 +452,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                 success = resyncResult;
             }
 
-            _logger.KlineTrackerConnectionRestored(_symbolName);
+            _logger.KlineTrackerConnectionRestored(SymbolName);
             SetSyncStatus();
         }
 

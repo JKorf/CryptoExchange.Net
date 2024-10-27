@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +18,6 @@ namespace CryptoExchange.Net.Trackers.Trades
         private readonly ITradeSocketClient _socketClient;
         private readonly IRecentTradeRestClient? _recentRestClient;
         private readonly ITradeHistoryRestClient? _historyRestClient;
-        private readonly string _symbolName;
         private SyncStatus _status;
         private long _snapshotId;
         private bool _startWithSnapshot;
@@ -52,10 +52,6 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// </summary>
         protected readonly TimeSpan? _period;
         /// <summary>
-        /// The symbol
-        /// </summary>
-        protected readonly SharedSymbol _symbol;
-        /// <summary>
         /// Whether the snapshot has been set
         /// </summary>
         protected bool _snapshotSet;
@@ -73,6 +69,15 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// </summary>
         protected DateTime? _firstTimestamp;
 
+        /// <inheritdoc />
+        public string Exchange { get; }
+
+        /// <inheritdoc />
+        public string SymbolName { get; }
+
+        /// <inheritdoc />
+        public SharedSymbol Symbol { get; }
+
         /// <inheritdoc/>
         public SyncStatus Status
         {
@@ -84,7 +89,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
                 var old = _status;
                 _status = value;
-                _logger.TradeTrackerStatusChanged(_symbolName, old, value);
+                _logger.TradeTrackerStatusChanged(SymbolName, old, value);
                 OnStatusChanged?.Invoke(old, _status);
             }
         }
@@ -150,12 +155,13 @@ namespace CryptoExchange.Net.Trackers.Trades
             int? limit = null,
             TimeSpan? period = null)
         {
-            _logger = logger ?? new TraceLogger();
+            _logger = logger ?? new NullLogger<TradeTracker>();
             _recentRestClient = recentRestClient;
             _historyRestClient = historyRestClient;
             _socketClient = socketClient;
-            _symbol = symbol;
-            _symbolName = symbol.BaseAsset + "/" + symbol.QuoteAsset;
+            Exchange = socketClient.Exchange;
+            Symbol = symbol;
+            SymbolName = socketClient.FormatSymbol(symbol.BaseAsset, symbol.QuoteAsset, symbol.TradingMode, symbol.DeliverTime);
             _limit = limit;
             _period = period;
         }
@@ -187,7 +193,6 @@ namespace CryptoExchange.Net.Trackers.Trades
             return stats;
         }
 
-
         /// <inheritdoc />
         public async Task<CallResult> StartAsync(bool startWithSnapshot = true)
         {
@@ -196,11 +201,11 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             _startWithSnapshot = startWithSnapshot;
             Status = SyncStatus.Syncing;
-            _logger.TradeTrackerStarting(_symbolName);
+            _logger.TradeTrackerStarting(SymbolName);
             var subResult = await DoStartAsync().ConfigureAwait(false);
             if (!subResult)
             {
-                _logger.TradeTrackerStartFailed(_symbolName, subResult.Error!.ToString());
+                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.ToString());
                 Status = SyncStatus.Disconnected;
                 return subResult;
             }
@@ -210,19 +215,19 @@ namespace CryptoExchange.Net.Trackers.Trades
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             SetSyncStatus();
-            _logger.TradeTrackerStarted(_symbolName);
+            _logger.TradeTrackerStarted(SymbolName);
             return new CallResult(null);
         }
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            _logger.TradeTrackerStopping(_symbolName);
+            _logger.TradeTrackerStopping(SymbolName);
             Status = SyncStatus.Disconnected;
             await DoStopAsync().ConfigureAwait(false);
             _data.Clear();
             _preSnapshotQueue.Clear();
-            _logger.TradeTrackerStopped(_symbolName);
+            _logger.TradeTrackerStopped(SymbolName);
         }
 
         /// <summary>
@@ -231,7 +236,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// <returns></returns>
         protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
         {
-            var subResult = await _socketClient.SubscribeToTradeUpdatesAsync(new SubscribeTradeRequest(_symbol),
+            var subResult = await _socketClient.SubscribeToTradeUpdatesAsync(new SubscribeTradeRequest(Symbol),
                  update =>
                  {
                      AddData(update.Data);
@@ -249,7 +254,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (_historyRestClient != null)
             {
                 var startTime = _period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-_period.Value);
-                var request = new GetTradeHistoryRequest(_symbol, startTime, DateTime.UtcNow);
+                var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow);
                 var data = new List<SharedTrade>();
                 await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
                 {
@@ -274,7 +279,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                 if (_limit.HasValue)
                     limit = Math.Min(_recentRestClient.GetRecentTradesOptions.MaxLimit, _limit.Value);
 
-                var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(_symbol, limit)).ConfigureAwait(false);
+                var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(Symbol, limit)).ConfigureAwait(false);
                 if (!snapshot)
                 {
                     _ = subResult.Data.CloseAsync();
@@ -334,17 +339,17 @@ namespace CryptoExchange.Net.Trackers.Trades
                 _snapshotSet = true;
                 _changed = true;
 
-                _logger.TradeTrackerInitialDataSet(_symbolName, _data.Count, _snapshotId);
+                _logger.TradeTrackerInitialDataSet(SymbolName, _data.Count, _snapshotId);
 
                 foreach (var item in _preSnapshotQueue)
                 {
                     if (_snapshotId >= item.Timestamp.Ticks)
                     {
-                        _logger.TradeTrackerPreSnapshotSkip(_symbolName, item.Timestamp.Ticks);
+                        _logger.TradeTrackerPreSnapshotSkip(SymbolName, item.Timestamp.Ticks);
                         continue;
                     }
 
-                    _logger.TradeTrackerPreSnapshotApplied(_symbolName, item.Timestamp.Ticks);
+                    _logger.TradeTrackerPreSnapshotApplied(SymbolName, item.Timestamp.Ticks);
                     _data.Add(item);
                 }
 
@@ -376,7 +381,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
                 foreach (var item in items)
                 {
-                    _logger.TradeTrackerTradeAdded(_symbolName, item.Timestamp.Ticks);
+                    _logger.TradeTrackerTradeAdded(SymbolName, item.Timestamp.Ticks);
                     _data.Add(item);
                     OnAdded?.Invoke(item);
                 }
@@ -398,15 +403,13 @@ namespace CryptoExchange.Net.Trackers.Trades
                 var compareDate = DateTime.UtcNow.Add(-_period.Value);
                 for(var i = 0; i < _data.Count; i++)
                 {
-                    var item = _data[i];
+                    var item = _data[0];
                     if (item.Timestamp >= compareDate)
                         break;
 
                     _data.Remove(item);
                     if (broadcastEvents)
                         OnRemoved?.Invoke(item);
-
-                    i--;
                 }
             }
 
@@ -415,12 +418,10 @@ namespace CryptoExchange.Net.Trackers.Trades
                 var toRemove = _data.Count - _limit.Value;
                 for (var i = 0; i < toRemove; i++)
                 {
-                    var item = _data[i];
+                    var item = _data[0];
                     _data.Remove(item);
                     if (broadcastEvents)
                         OnRemoved?.Invoke(item);
-
-                    i--;
                 }
             }
 
@@ -431,7 +432,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
         private void HandleConnectionLost()
         {
-            _logger.TradeTrackerConnectionLost(_symbolName);
+            _logger.TradeTrackerConnectionLost(SymbolName);
             if (Status != SyncStatus.Disconnected)
             {
                 Status = SyncStatus.Syncing;
@@ -443,7 +444,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
         private void HandleConnectionClosed()
         {
-            _logger.TradeTrackerConnectionClosed(_symbolName);
+            _logger.TradeTrackerConnectionClosed(SymbolName);
             Status = SyncStatus.Disconnected;
             _ = StopAsync();
         }
@@ -461,7 +462,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                 success = resyncResult;
             }
 
-            _logger.TradeTrackerConnectionRestored(_symbolName);
+            _logger.TradeTrackerConnectionRestored(SymbolName);
             SetSyncStatus();
         }
 

@@ -17,6 +17,21 @@ namespace CryptoExchange.Net.Trackers.Klines
         int Count { get; }
 
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        string Exchange { get; }
+
+        /// <summary>
+        /// Symbol name
+        /// </summary>
+        string SymbolName { get; }
+
+        /// <summary>
+        /// Symbol
+        /// </summary>
+        SharedSymbol Symbol { get; }
+
+        /// <summary>
         /// From which timestamp the trades are registered
         /// </summary>
         DateTime? SyncedFrom { get; }
