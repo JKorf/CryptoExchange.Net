@@ -49,6 +49,17 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.1.0 - 28 Oct 2024
+    * Added KlineTracker and TradeTracker implementation
+    * Added Side to SharedTrade model
+    * Added overload for Create method in OrderBookFactory using SharedSymbol
+    * Added ValidateMessage method to websocket Query object to filter messages even though it is matched to the query based on the  ListenIdentifier
+    * Added DoHandleReset method for websocket subscriptions
+    * Added ConnectionId to RequestDefinition to correctly handle connection and path rate limiting configuration
+    * Added System.Text.Json ArrayConverter Write implementation
+    * Updated SharedFuturesTicker LastPrice, HighPrice and LowPrice properties to be nullable
+    * Updated SetApiCredentials method to also updated the credentials on the client specific options to prevent unknown client credentials in some situations
+
 * Version 8.0.3 - 14 Oct 2024
     * Added support for duplicate array indexes in System.Text.Json ArrayConverter
     * Added fallback for unparsable value in System.Text.Json NumberStringConverter
