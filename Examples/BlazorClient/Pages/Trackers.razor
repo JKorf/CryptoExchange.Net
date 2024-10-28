@@ -1,0 +1,111 @@
+﻿@page "/Trackers"
+@using System.Collections.Concurrent
+@using System.Timers
+@using Binance.Net.Interfaces
+@using BingX.Net.Interfaces
+@using Bitfinex.Net.Interfaces
+@using Bitget.Net.Interfaces;
+@using BitMart.Net.Interfaces;
+@using Bybit.Net.Interfaces
+@using CoinEx.Net.Interfaces
+@using Coinbase.Net.Interfaces
+@using CryptoExchange.Net.Interfaces
+@using CryptoCom.Net.Interfaces
+@using CryptoExchange.Net.SharedApis
+@using CryptoExchange.Net.Trackers.Trades
+@using GateIo.Net.Interfaces
+@using HTX.Net.Interfaces
+@using Kraken.Net.Interfaces
+@using Kucoin.Net.Clients
+@using Kucoin.Net.Interfaces
+@using Mexc.Net.Interfaces
+@using OKX.Net.Interfaces;
+@inject IBinanceTrackerFactory binanceFactory
+@inject IBingXTrackerFactory bingXFactory
+@inject IBitfinexTrackerFactory bitfinexFactory
+@inject IBitgetTrackerFactory bitgetFactory
+@inject IBitMartTrackerFactory bitmartFactory
+@inject IBybitTrackerFactory bybitFactory
+@inject ICoinbaseTrackerFactory coinbaseFactory
+@inject ICoinExTrackerFactory coinExFactory
+@inject ICryptoComTrackerFactory cryptocomFactory
+@inject IGateIoTrackerFactory gateioFactory
+@inject IHTXTrackerFactory htxFactory
+@inject IKrakenTrackerFactory krakenFactory
+@inject IKucoinTrackerFactory kucoinFactory
+@inject IMexcTrackerFactory mexcFactory
+@inject IOKXTrackerFactory okxFactory
+@implements IDisposable
+
+<h3>ETH-BTC trade Trackers, live updates:</h3>
+<div style="display:flex; flex-wrap: wrap;">
+    @foreach (var tracker in _trackers.OrderBy(p => p.Exchange))
+    {
+        <div style="margin-bottom: 20px; flex: 1; min-width: 700px;">
+            <h4>@tracker.Exchange</h4>
+            @foreach(var line in GetInfo(tracker))
+            {
+                <div>@line</div>
+            }
+        </div>
+    }
+</div>
+
+@code{
+    private List<ITradeTracker> _trackers = new List<ITradeTracker>();
+    private Timer _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
+
+        _trackers = new List<ITradeTracker>
+            {
+                { binanceFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bingXFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitfinexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitgetFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitmartFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bybitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { coinbaseFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { coinExFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { cryptocomFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { gateioFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { htxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { krakenFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { kucoinFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { mexcFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { okxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+            };
+
+        await Task.WhenAll(_trackers.Select(b => b.StartAsync()));
+
+        // Use a manual update timer so the page isn't refreshed too often
+        _timer = new Timer(500);
+        _timer.Start();
+        _timer.Elapsed += (o, e) => InvokeAsync(StateHasChanged);
+    }
+
+    private string[] GetInfo(ITradeTracker tracker)
+    {
+        var secondLastMinute = tracker.GetStats(DateTime.UtcNow.AddMinutes(-2), DateTime.UtcNow.AddMinutes(-1));
+        var lastMinute = tracker.GetStats(DateTime.UtcNow.AddMinutes(-1));
+        var compare = lastMinute.CompareTo(secondLastMinute);
+
+        return [
+            $"{tracker.SymbolName} | {tracker.Status} - Synced from {tracker.SyncedFrom}",
+            $"Total trades: {tracker.Count}",
+            $"Trades last minute: {lastMinute.TradeCount}, minute before: {secondLastMinute.TradeCount}",
+            $"Average weighted price: {lastMinute.VolumeWeightedAveragePrice}, minute before: {secondLastMinute.VolumeWeightedAveragePrice}, dif: {compare.VolumeWeightedAveragePriceDif.PercentageDifference}%"
+        ];
+    }
+
+    public void Dispose()
+    {
+        _timer.Stop();
+        _timer.Dispose();
+        foreach (var tracker in _trackers.Where(b => b.Status != CryptoExchange.Net.Objects.SyncStatus.Disconnected))
+            // It's not necessary to wait for this
+            _ = tracker.StopAsync();
+    }
+}

@@ -5,22 +5,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="10.7.0" />
-    <PackageReference Include="Bitfinex.Net" Version="7.8.2" />
-    <PackageReference Include="BitMart.Net" Version="1.4.0" />
-    <PackageReference Include="Bybit.Net" Version="3.14.3" />
-    <PackageReference Include="CoinEx.Net" Version="7.7.2" />
-    <PackageReference Include="CryptoCom.Net" Version="1.0.1" />
-    <PackageReference Include="GateIo.Net" Version="1.9.0" />
-    <PackageReference Include="JK.BingX.Net" Version="1.11.2" />
-    <PackageReference Include="JK.Bitget.Net" Version="1.10.4" />
-    <PackageReference Include="JK.Mexc.Net" Version="1.9.0" />
-    <PackageReference Include="JK.OKX.Net" Version="2.6.0" />
-    <PackageReference Include="JKorf.Coinbase.Net" Version="1.1.2" />
-    <PackageReference Include="JKorf.HTX.Net" Version="6.2.0" />
-    <PackageReference Include="KrakenExchange.Net" Version="5.0.2" />
-    <PackageReference Include="Kucoin.Net" Version="5.16.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+    <PackageReference Include="Binance.Net" Version="10.8.0" />
+    <PackageReference Include="Bitfinex.Net" Version="7.9.0" />
+    <PackageReference Include="BitMart.Net" Version="1.5.0" />
+    <PackageReference Include="Bybit.Net" Version="3.15.0" />
+    <PackageReference Include="CoinEx.Net" Version="7.8.0" />
+    <PackageReference Include="CryptoCom.Net" Version="1.1.0" />
+    <PackageReference Include="GateIo.Net" Version="1.10.0" />
+    <PackageReference Include="JK.BingX.Net" Version="1.12.0" />
+    <PackageReference Include="JK.Bitget.Net" Version="1.11.0" />
+    <PackageReference Include="JK.Mexc.Net" Version="1.10.0" />
+    <PackageReference Include="JK.OKX.Net" Version="2.7.0" />
+    <PackageReference Include="JKorf.Coinbase.Net" Version="1.2.0" />
+    <PackageReference Include="JKorf.HTX.Net" Version="6.3.0" />
+    <PackageReference Include="KrakenExchange.Net" Version="5.1.0" />
+    <PackageReference Include="Kucoin.Net" Version="5.17.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
   </ItemGroup>
 
 </Project>
