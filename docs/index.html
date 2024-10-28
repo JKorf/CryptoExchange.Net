@@ -3265,6 +3265,9 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
           <h2>Trackers</h2>
           <p>
 			Trackers offer a way to keep track of live data. This data can than be aggregated into statistics and different time slices can be compared to get realtime insights.
+          </p>
+          <p>			
+			The basic workings of the trackers are simple, an initial request is made for a snapshot of the history (or a partial snapshot depending on what the API supports). At the same time a websocket subscription is set up to provide the tracker with new data.
 		  </p>
 		  <p>
 			Currently there are 2 different trackers available, the <code>TradeTracker</code> and the <code>KlineTracker</code>.
