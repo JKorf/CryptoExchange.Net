@@ -33,14 +33,6 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// </summary>
         protected readonly object _lock = new object();
         /// <summary>
-        /// Max numer of items tracked
-        /// </summary>
-        protected readonly int? _limit;
-        /// <summary>
-        /// Max age of the data
-        /// </summary>
-        protected readonly TimeSpan? _period;
-        /// <summary>
         /// The last time the window was applied
         /// </summary>
         protected DateTime _lastWindowApplied = DateTime.MinValue;
@@ -95,15 +87,20 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <inheritdoc />
         public SharedSymbol Symbol { get; }
 
+        /// <inheritdoc/>
+        public int? Limit { get; }
+        /// <inheritdoc/>
+        public TimeSpan? Period { get; }
+
         /// <inheritdoc />
         public DateTime? SyncedFrom
         {
             get
             {
-                if (_period == null)
+                if (Period == null)
                     return _firstTimestamp;
 
-                var max = DateTime.UtcNow - _period.Value;
+                var max = DateTime.UtcNow - Period.Value;
                 if (_firstTimestamp > max)
                     return _firstTimestamp;
 
@@ -162,8 +159,8 @@ namespace CryptoExchange.Net.Trackers.Klines
             Symbol = symbol;
             SymbolName = socketClient.FormatSymbol(symbol.BaseAsset, symbol.QuoteAsset, symbol.TradingMode, symbol.DeliverTime);
             Exchange = restClient.Exchange;
-            _limit = limit;
-            _period = period;
+            Limit = limit;
+            Period = period;
             _interval = interval;
             _socketClient = socketClient;
             _restClient = restClient;
@@ -228,11 +225,11 @@ namespace CryptoExchange.Net.Trackers.Klines
             if (!_startWithSnapshot)
                 return subResult;
 
-            var startTime = _period == null ? (DateTime?)null : DateTime.UtcNow.Add(-_period.Value);
+            var startTime = Period == null ? (DateTime?)null : DateTime.UtcNow.Add(-Period.Value);
             if (_restClient.GetKlinesOptions.MaxAge != null && DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value) > startTime)
                 startTime = DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value);
 
-            var limit = Math.Min(_restClient.GetKlinesOptions.MaxRequestDataPoints ?? _restClient.GetKlinesOptions.MaxTotalDataPoints ?? 100, _limit ?? 100);
+            var limit = Math.Min(_restClient.GetKlinesOptions.MaxRequestDataPoints ?? _restClient.GetKlinesOptions.MaxTotalDataPoints ?? 100, Limit ?? 100);
 
             var request = new GetKlinesRequest(Symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
             var data = new List<SharedKline>();
@@ -245,7 +242,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                     return subResult.AsError<UpdateSubscription>(result.Error!);
                 }
 
-                if (_limit != null && data.Count > _limit)
+                if (Limit != null && data.Count > Limit)
                     break;
 
                 data.AddRange(result.Data);
@@ -315,10 +312,10 @@ namespace CryptoExchange.Net.Trackers.Klines
                 _data.Clear();
 
                 IEnumerable<SharedKline> items = data.OrderByDescending(d => d.OpenTime);
-                if (_limit != null)
-                    items = items.Take(_limit.Value);
-                if (_period != null)
-                    items = items.Where(e => e.OpenTime >= DateTime.UtcNow.Add(-_period.Value));
+                if (Limit != null)
+                    items = items.Take(Limit.Value);
+                if (Period != null)
+                    items = items.Where(e => e.OpenTime >= DateTime.UtcNow.Add(-Period.Value));
 
                 foreach (var item in items.OrderBy(d => d.OpenTime))
                     _data.Add(item.OpenTime, item);
@@ -389,9 +386,9 @@ namespace CryptoExchange.Net.Trackers.Klines
             if (!_changed && (DateTime.UtcNow - _lastWindowApplied) < TimeSpan.FromSeconds(1))
                 return;
 
-            if (_period != null)
+            if (Period != null)
             {
-                var compareDate = DateTime.UtcNow.Add(-_period.Value);
+                var compareDate = DateTime.UtcNow.Add(-Period.Value);
                 for (var i = 0; i < _data.Count; i++)
                 {
                     var item = _data.ElementAt(0);
@@ -404,9 +401,9 @@ namespace CryptoExchange.Net.Trackers.Klines
                 }
             }
 
-            if (_limit != null && _data.Count > _limit.Value)
+            if (Limit != null && _data.Count > Limit.Value)
             {
-                var toRemove = Math.Max(0, _data.Count - _limit.Value);
+                var toRemove = Math.Max(0, _data.Count - Limit.Value);
                 for (var i = 0; i < toRemove; i++)
                 {
                     var item = _data.ElementAt(0);
@@ -461,23 +458,23 @@ namespace CryptoExchange.Net.Trackers.Klines
             if (Status == SyncStatus.Synced)
                 return;
 
-            if (_period != null)
+            if (Period != null)
             {
-                if (_firstTimestamp <= DateTime.UtcNow - _period.Value)
+                if (_firstTimestamp <= DateTime.UtcNow - Period.Value)
                     Status = SyncStatus.Synced;
                 else
                     Status = SyncStatus.PartiallySynced;
             }
 
-            if (_limit != null)
+            if (Limit != null)
             {
-                if (_data.Count == _limit.Value)
+                if (_data.Count == Limit.Value)
                     Status = SyncStatus.Synced;
                 else
                     Status = SyncStatus.PartiallySynced;
             }
 
-            if (_period == null && _limit == null)
+            if (Period == null && Limit == null)
                 Status = SyncStatus.Synced;
         }
     }

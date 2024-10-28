@@ -32,6 +32,16 @@ namespace CryptoExchange.Net.Trackers.Trades
         SharedSymbol Symbol { get; }
 
         /// <summary>
+        /// The max number of trades tracked
+        /// </summary>
+        int? Limit { get; }
+
+        /// <summary>
+        /// The max age of the data tracked
+        /// </summary>
+        TimeSpan? Period { get; }
+
+        /// <summary>
         /// From which timestamp the trades are registered
         /// </summary>
         DateTime? SyncedFrom { get; }
@@ -40,6 +50,11 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// The current synchronization status
         /// </summary>
         SyncStatus Status { get; }
+
+        /// <summary>
+        /// Get the last trade
+        /// </summary>
+        SharedTrade? Last { get; }
 
         /// <summary>
         /// Event for when a new trade is added
@@ -65,11 +80,6 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// </summary>
         /// <returns></returns>
         Task StopAsync();
-
-        /// <summary>
-        /// Get the last trade
-        /// </summary>
-        SharedTrade? Last { get; }
 
         /// <summary>
         /// Get the data tracked

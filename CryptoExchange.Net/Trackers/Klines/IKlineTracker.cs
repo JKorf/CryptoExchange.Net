@@ -32,6 +32,16 @@ namespace CryptoExchange.Net.Trackers.Klines
         SharedSymbol Symbol { get; }
 
         /// <summary>
+        /// The max number of klines tracked
+        /// </summary>
+        int? Limit { get; }
+
+        /// <summary>
+        /// The max age of the data tracked
+        /// </summary>
+        TimeSpan? Period { get; }
+
+        /// <summary>
         /// From which timestamp the trades are registered
         /// </summary>
         DateTime? SyncedFrom { get; }
@@ -40,6 +50,12 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// Sync status
         /// </summary>
         SyncStatus Status { get; }
+
+        /// <summary>
+        /// Get the last kline
+        /// </summary>
+        SharedKline? Last { get; }
+
         /// <summary>
         /// Event for when a new kline is added
         /// </summary>
@@ -56,11 +72,6 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// Event for when the sync status changes
         /// </summary>
         event Func<SyncStatus, SyncStatus, Task>? OnStatusChanged;
-
-        /// <summary>
-        /// Get the last kline
-        /// </summary>
-        SharedKline? Last { get; }
 
         /// <summary>
         /// Start synchronization

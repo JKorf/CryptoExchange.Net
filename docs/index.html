@@ -165,6 +165,9 @@
 		</table>
 		<p>Note that there are 3rd party implementations going around, but only the listed ones here are created and supported by me.</p>
 		<p>When using multiple of these API's the <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> package can be used which combines these packages and allows easy access to all exchange API's.</p>
+		<table class="table table-bordered">
+			<tr><td>CryptoClients</td><td><a href="https://github.com/JKorf/CryptoClients.Net">JKorf/CryptoClients.Net</a></td><td><a href="https://www.nuget.org/packages/CryptoClients.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CryptoClients.net.svg?style=flat-square" /></a></a></td></tr>
+		</table>
 		
 		<h4>Supported Frameworks</h4>
 		<p>
@@ -3256,14 +3259,20 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
 		</p>
         </section>
 		
+		<hr class="divider">
+		
 		<section id="idocs_trackers">
           <h2>Trackers</h2>
           <p>
-			Trackers
-			</p>
-			<p>			
-			<b>Creation and starting</b><br />
+			Trackers offer a way to keep track of live data. This data can than be aggregated into statistics and different time slices can be compared to get realtime insights.
+		  </p>
+		  <p>
+			Currently there are 2 different trackers available, the <code>TradeTracker</code> and the <code>KlineTracker</code>.
 			
+		  </p>
+		  <p>			
+			<b>Creation and starting</b><br />
+			The example uses the <code>TradeTracker</code>, but the same logic can be applied to the <code>KlineTracker</code>.
 			</p>
 			<div class="tab-wrap">
 			<ul class="nav nav-tabs" id="tracker" role="tablist" style="margin-bottom: -16px;">
@@ -3318,9 +3327,9 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			<div class="tab-pane fade show active" id="tracker-cryptoclients" role="tabpanel" aria-labelledby="tracker-cryptoclients-tab">
-<pre><code>// Assuming IExchangeTrackerFactory is injected as trackerFactory
-var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+<pre><code>var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
 
+// Assuming IExchangeTrackerFactory is injected as trackerFactory
 // Create tracker dynamically by exchange name
 var tracker = trackerFactory.CreateTradeTracker("Binance", symbol);
 // OR by directly referencing the specific exchange
@@ -3331,305 +3340,556 @@ if (!startResult.Success)
 {
     // Handle error, error info available in startResult.Error
 }
-// tracker has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
 await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-binance" role="tabpanel" aria-labelledby="tracker-binance-tab">
-<pre><code>var factory = new BinanceTrackerFactory();
+<pre><code>// Either create a new factory or inject the IBinanceTrackerFactory interface
+var factory = new BinanceTrackerFactory();
+
 var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
-var tracker = factory.CreateTradeTracker(symbol);
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
 var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Tracker has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
 await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-bingx" role="tabpanel" aria-labelledby="tracker-bingx-tab">
-<pre><code>var book = new BingXSpotSymbolOrderBook("ETH-USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IBingXTrackerFactory interface
+var factory = new BingXTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-bitfinex" role="tabpanel" aria-labelledby="tracker-bitfinex-tab">
-<pre><code>var book = new BitfinexSymbolOrderBook("tETHUSD");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IBitfinexTrackerFactory interface
+var factory = new BitfinexTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-bitget" role="tabpanel" aria-labelledby="tracker-bitget-tab">
-<pre><code>var book = new BitgetSpotSymbolOrderBook("ETHUSDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IBitgetTrackerFactory interface
+var factory = new BitgetTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-bitmart" role="tabpanel" aria-labelledby="tracker-bitmart-tab">
-<pre><code>var book = new BitMartSymbolOrderBook("ETH_USDT", Category.Spot);
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IBitMartTrackerFactory interface
+var factory = new BitMartTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-bybit" role="tabpanel" aria-labelledby="tracker-bybit-tab">
-<pre><code>var book = new BybitSymbolOrderBook("ETHUSDT", Category.Spot);
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IBybitTrackerFactory interface
+var factory = new BybitTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-coinbase" role="tabpanel" aria-labelledby="tracker-coinbase-tab">
-<pre><code>var book = new CoinbaseSymbolOrderBook("ETH-USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the ICoinbaseTrackerFactory interface
+var factory = new CoinbaseTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-coinex" role="tabpanel" aria-labelledby="tracker-coinex-tab">
-<pre><code>var book = new CoinExSpotSymbolOrderBook("ETHUSDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the ICoinExTrackerFactory interface
+var factory = new CoinExTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-gateio" role="tabpanel" aria-labelledby="tracker-gateio-tab">
-<pre><code>var book = new GateIoSpotSymbolOrderBook("ETH_USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IGateIoTrackerFactory interface
+var factory = new GateIoTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-cryptocom" role="tabpanel" aria-labelledby="tracker-cryptocom-tab">
-<pre><code>var book = new CryptoComSpotSymbolOrderBook("ETH_USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the ICryptoComTrackerFactory interface
+var factory = new CryptoComTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-htx" role="tabpanel" aria-labelledby="tracker-htx-tab">
-<pre><code>var book = new HTXSpotSymbolOrderBook("ethusdt");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IHTXTrackerFactory interface
+var factory = new HTXTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-kraken" role="tabpanel" aria-labelledby="tracker-kraken-tab">
-<pre><code>var book = new KrakenSpotSymbolOrderBook("ETH/USD");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IKrakenTrackerFactory interface
+var factory = new KrakenTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USD");
+
+// Create a tracker for ETH/USD keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-kucoin" role="tabpanel" aria-labelledby="tracker-kucoin-tab">
-<pre><code>var book = new KucoinSpotSymbolOrderBook("ETH-USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IKucoinTrackerFactory interface
+var factory = new KucoinTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-mexc" role="tabpanel" aria-labelledby="tracker-mexc-tab">
-<pre><code>var book = new MexcSpotSymbolOrderBook("ETHUSDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IMexcTrackerFactory interface
+var factory = new MexcTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="tracker-okx" role="tabpanel" aria-labelledby="tracker-okx-tab">
-<pre><code>var book = new OKXSymbolOrderBook("ETH-USDT");
-var startResult = await book.StartAsync();
+<pre><code>// Either create a new factory or inject the IOKXTrackerFactory interface
+var factory = new OKXTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
 if (!startResult.Success)
 {
   // Handle error, error info available in startResult.Error
 }
-// Book has successfully started and synchronized
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
 
 // Once no longer needed you can stop the live sync functionality by calling StopAsync()
-await book.StopAsync();
+await tracker.StopAsync();
 </code></pre>
 			  </div>
 			</div>
 			</div>
 			
 			<p>
-			  <b>The order book object</b><br />
-			  The order book implementations for each client use a common base class and interface, which means you can use books from different exchanges in a common function.
-			  <pre><code>// Create order books for different exchanges
-var books = new List&lt;ISymbolOrderBook&gt;();
-books.Add(new BinanceSpotSymbolOrderBook("ETHUSDT"));
-books.Add(new BitgetSpotSymbolOrderBook("ETHUSDT"));
-books.Add(new KrakenSpotSymbolOrderBook("ETH/USD"));
-books.Add(new KucoinSpotSymbolOrderBook("ETH-USDT"));
-books.Add(new OKXSymbolOrderBook("ETH-USDT"));
+			  <b>Stats and comparing data</b><br />
+			  
+			  Using the <code>tracker.GetData(fromTime, toTime)</code> method the trackers expose the data, or a subset of the data, can be retrieved:
+			  <pre><code>// Get all the data currently tracked:
+var data = tracker.GetData();
 
-// Start the books
-var results = await Task.WhenAll(books.Select(b => b.StartAsync()));
+// Get the data for the last minute:
+var data = tracker.GetData(DateTime.UtcNow.AddMinutes(-1));
 
-// Output the current best ask/bid for each exchange
-foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
-{
-	Console.WriteLine(book.Id);
-	Console.WriteLine($"{book.BestAsk} - {book.BestBid}");
-}
-</code></pre>
+// Get the data for the second last minute:
+var data = tracker.GetData(DateTime.UtcNow.AddMinutes(-2), DateTime.UtcNow.AddMinutes(-1));</code></pre>
+		  </p>
+		  <p>
+			  In a similar way statistics about the full data, or a subset of it, can be retrieved using the <code>tracker.GetStats(fromTime, toTime)</code> method:
+			  <pre><code>// Get statistics on all the data:
+var stats = tracker.GetStats();
+
+// Get statistics for the last minute:
+var stats = tracker.GetStats(DateTime.UtcNow.AddMinutes(-1));
+
+// Get statistics for the second last minute:
+var stats = tracker.GetStats(DateTime.UtcNow.AddMinutes(-2), DateTime.UtcNow.AddMinutes(-1));</code></pre>
+			  
+			  See below for an overview of what these stats include.
+			  
+			</p>
+			
+			<p>
+		      Stats can also be compared to eachother to see how much values have changed using the <code>stats.CompareTo(otherStats)</code> method:
+			  
+			  <pre><code>var statsSecondLastMinute = tracker.GetStats(compareTime.AddMinutes(-2), compareTime.AddMinutes(-1));
+var statsLastMinute = tracker.GetStats(compareTime.AddMinutes(-1), compareTime);
+var comparison = statsLastMinute.CompareTo(statsSecondLastMinute);
+
+Console.WriteLine($"The volume of last minute compared to the minute before that: {comparison.VolumeDif?.Difference} ({comparison.VolumeDif?.PercentageDifference}%)");
+// Output: The volume of last minute compared to the minute before that: -1261,57350000 (-85,2572%)</code></pre>
+			</p>
+			
+			<p>
+			  <b>The <code>TradeTracker</code> object</b><br />
+			  
 			</p>
 			<p>		
-			The following properties and events are exposed by the order books:
+			The following properties and events are exposed by the <code>TradeTracker</code> object:
 			<table class="table table-bordered">
 				<tr><th>Field</th><th>Description</th></tr>
 				<tr>
-					<td>Status</td>
-					<td>The current status of the order book. Note that the book is only acurate and up to date when the status is <code>Synced</code></td>
+					<td>Count</td>
+					<td>The total number of trades currently tracked</td>
 				</tr>
 				<tr>
-					<td>Id</td>
-					<td>Identifier for the book, referencing the exchange it's for</td>
+					<td>Exchange</td>
+					<td>The name of the exchange</td>
+				</tr>
+				<tr>
+					<td>SymbolName</td>
+					<td>The name of the symbol being tracked</td>
 				</tr>
 				<tr>
 					<td>Symbol</td>
-					<td>The symbol the book is for</td>
+					<td>The symbol as passed in the constructor</td>
 				</tr>
 				<tr>
-					<td>LastSequenceNumber</td>
-					<td>The last sequence number that was processed. Order book update messages typically have sequence numbers to correctly sync the book</td>
+					<td>Limit</td>
+					<td>The max number of results tracked</td>
 				</tr>
 				<tr>
-					<td>UpdateTime</td>
-					<td>Timestamp of the last update that was processed</td>
+					<td>Period</td>
+					<td>The max age of results tracked</td>
 				</tr>
 				<tr>
-					<td>AskCount</td>
-					<td>The current number of asks in the book</td>
+					<td>SyncedFrom</td>
+					<td>The timestamp from which on the trades are registered</td>
 				</tr>
 				<tr>
-					<td>BidCount</td>
-					<td>The current number of bids in the book</td>
+					<td>Status</td>
+					<td>The current synchronization status. Note the <code>PartiallySynced</code> means that the connection is active, but the data set is not yet complete. For example if the tracker is set to track 5 minutes of trades, it could be that currently only 3 minutes of data is tracked and it will take 2 more minutes to be fully synced.</td>
 				</tr>
 				<tr>
-					<td>Asks</td>
-					<td>Returns a snapshot of the current list of asks. This creates a copy of the list values at that moment</td>
+					<td>Last</td>
+					<td>The current last trade</td>
 				</tr>
 				<tr>
-					<td>Bids</td>
-					<td>Returns a snapshot of the current list of bids. This creates a copy of the list values at that moment</td>
+					<td>OnAdded</td>
+					<td>Event for when a new trade is added</td>
 				</tr>
 				<tr>
-					<td>Book</td>
-					<td>Returns a snapshot of the both the asks and bids. This makes sure the snapshot of the bids and asks are of the same exact time</td>
+					<td>OnRemoved</td>
+					<td>Event for when a trade is removed from the tracker due to not being within the set tracking period/limit anymore</td>
 				</tr>
 				<tr>
-					<td>BestAsk</td>
-					<td>The best ask at that moment</td>
+					<td>OnStatusChanged</td>
+					<td>Event for when the status of the tracker changes</td>
+				</tr>
+				
+			</table>
+			</p>
+			<p>		
+			
+			The following properties are available in the <code>TradesStats</code> object:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>TradeCount</td>
+					<td>The number trades in this data set</td>
 				</tr>
 				<tr>
-					<td>BestBid</td>
-					<td>The best bid at that moment</td>
+					<td>FirstTradeTime</td>
+					<td>The timestamp of the first trade in this data set</td>
 				</tr>
 				<tr>
-					<td>BestOffers</td>
-					<td>The best bid and best ask at that moment</td>
+					<td>LastTradeTime</td>
+					<td>The timestamp of the last trade in this data set</td>
 				</tr>
 				<tr>
-					<td>OnStatusChange</td>
-					<td>Event called when the status of the order book changes</td>
+					<td>AveragePrice</td>
+					<td>The average price of the trades in this dataset</td>
 				</tr>
 				<tr>
-					<td>OnOrderBookUpdate</td>
-					<td>Event called whenever the book changes. Note that this event can trigger a lot on large/high liquidity markets</td>
+					<td>VolumeWeightedAveragePrice</td>
+					<td>The volume weighted average price for trades in this dataset</td>
 				</tr>
 				<tr>
-					<td>OnBestOffersChanged</td>
-					<td>Event called whenever the best ask or bid changes in the order book</td>
+					<td>Volume</td>
+					<td>The total volume of all trades in this set</td>
+				</tr>
+				<tr>
+					<td>QuoteVolume</td>
+					<td>The total volume of all trades in this set denoted in the quote asset</td>
+				</tr>
+				<tr>
+					<td>BuySellRatio</td>
+					<td>The buy sell ratio of all trades in this data set. The factor of how much of the trades were a buy.</td>
+				</tr>
+				<tr>
+					<td>Complete</td>
+					<td>Whether the data set is complete. A set is not complete when not all data is available. For example, when only 1 hour of data is available in the tracker but stats are requested for the last 2 hours.</td>
 				</tr>
 			</table>
 			
-		</p>
+			<p>
+			  <b>The <code>KlineTracker</code> object</b><br />
+			  
+			</p>
+			<p>		
+			The following properties and events are exposed by the <code>KlineTracker</code> object:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>Count</td>
+					<td>The total number of klines currently tracked</td>
+				</tr>
+				<tr>
+					<td>Exchange</td>
+					<td>The name of the exchange</td>
+				</tr>
+				<tr>
+					<td>SymbolName</td>
+					<td>The name of the symbol being tracked</td>
+				</tr>
+				<tr>
+					<td>Symbol</td>
+					<td>The symbol as passed in the constructor</td>
+				</tr>
+				<tr>
+					<td>Limit</td>
+					<td>The max number of results tracked</td>
+				</tr>
+				<tr>
+					<td>Period</td>
+					<td>The max age of results tracked</td>
+				</tr>
+				<tr>
+					<td>SyncedFrom</td>
+					<td>The timestamp from which on the klines are registered</td>
+				</tr>
+				<tr>
+					<td>Status</td>
+					<td>The current synchronization status. Note the <code>PartiallySynced</code> means that the connection is active, but the data set is not yet complete. For example if the tracker is set to track 10 hours of klines, it could be that currently only 9 hours of data is tracked and it will take another hour to be fully synced.</td>
+				</tr>
+				<tr>
+					<td>Last</td>
+					<td>The current last kline</td>
+				</tr>
+				<tr>
+					<td>OnAdded</td>
+					<td>Event for when a new kline is added</td>
+				</tr>
+				<tr>
+					<td>OnRemoved</td>
+					<td>Event for when a kline is removed from the tracker due to not being within the set tracking period/limit anymore</td>
+				</tr>
+				<tr>
+					<td>OnStatusChanged</td>
+					<td>Event for when the status of the tracker changes</td>
+				</tr>
+				
+			</table>
+			</p>
+			<p>		
+			
+			The following properties are available on the <code>KlinesStats</code> object:
+			<table class="table table-bordered">
+				<tr><th>Field</th><th>Description</th></tr>
+				<tr>
+					<td>KlineCount</td>
+					<td>The number klines in this data set</td>
+				</tr>
+				<tr>
+					<td>FirstOpenTime</td>
+					<td>The open time of the first kline in this data set</td>
+				</tr>
+				<tr>
+					<td>LastOpenTime</td>
+					<td>The open time of the last kline in this data set</td>
+				</tr>
+				<tr>
+					<td>LowPrice</td>
+					<td>The lowest price for all klines in this set</td>
+				</tr>
+				<tr>
+					<td>HighPrice</td>
+					<td>The highest price for all kline in this set</td>
+				</tr>
+				<tr>
+					<td>Volume</td>
+					<td>The total volume of all klines in this set</td>
+				</tr>
+				<tr>
+					<td>AverageVolume</td>
+					<td>The average volume per kline for all klines in this set</td>
+				</tr>
+				<tr>
+					<td>Complete</td>
+					<td>Whether the data set is complete. A set is not complete when not all data is available. For example, when only 1 hour of data is available in the tracker but stats are requested for the last 2 hours.</td>
+				</tr>
+								
+			</table>
+			</p>
         </section>
 		
 		<hr class="divider">

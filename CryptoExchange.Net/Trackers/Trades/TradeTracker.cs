@@ -44,14 +44,6 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// </summary>
         protected readonly object _lock = new object();
         /// <summary>
-        /// Max numer of items tracked
-        /// </summary>
-        protected readonly int? _limit;
-        /// <summary>
-        /// Max age of the data
-        /// </summary>
-        protected readonly TimeSpan? _period;
-        /// <summary>
         /// Whether the snapshot has been set
         /// </summary>
         protected bool _snapshotSet;
@@ -77,6 +69,11 @@ namespace CryptoExchange.Net.Trackers.Trades
 
         /// <inheritdoc />
         public SharedSymbol Symbol { get; }
+
+        /// <inheritdoc/>
+        public int? Limit { get; }
+        /// <inheritdoc/>
+        public TimeSpan? Period { get; }
 
         /// <inheritdoc/>
         public SyncStatus Status
@@ -112,10 +109,10 @@ namespace CryptoExchange.Net.Trackers.Trades
         {
             get
             {
-                if (_period == null)
+                if (Period == null)
                     return _firstTimestamp;
 
-                var max = DateTime.UtcNow - _period.Value;
+                var max = DateTime.UtcNow - Period.Value;
                 if (_firstTimestamp > max)
                     return _firstTimestamp;
 
@@ -162,8 +159,8 @@ namespace CryptoExchange.Net.Trackers.Trades
             Exchange = socketClient.Exchange;
             Symbol = symbol;
             SymbolName = socketClient.FormatSymbol(symbol.BaseAsset, symbol.QuoteAsset, symbol.TradingMode, symbol.DeliverTime);
-            _limit = limit;
-            _period = period;
+            Limit = limit;
+            Period = period;
         }
 
         private TradesStats GetStats(IEnumerable<SharedTrade> trades)
@@ -253,7 +250,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             if (_historyRestClient != null)
             {
-                var startTime = _period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-_period.Value);
+                var startTime = Period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-Period.Value);
                 var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow);
                 var data = new List<SharedTrade>();
                 await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
@@ -265,7 +262,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                         return subResult.AsError<UpdateSubscription>(result.Error!);
                     }
 
-                    if (_limit != null && data.Count > _limit)
+                    if (Limit != null && data.Count > Limit)
                         break;
 
                     data.AddRange(result.Data);
@@ -276,8 +273,8 @@ namespace CryptoExchange.Net.Trackers.Trades
             else if (_recentRestClient != null)
             {
                 int? limit = null;
-                if (_limit.HasValue)
-                    limit = Math.Min(_recentRestClient.GetRecentTradesOptions.MaxLimit, _limit.Value);
+                if (Limit.HasValue)
+                    limit = Math.Min(_recentRestClient.GetRecentTradesOptions.MaxLimit, Limit.Value);
 
                 var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(Symbol, limit)).ConfigureAwait(false);
                 if (!snapshot)
@@ -327,10 +324,10 @@ namespace CryptoExchange.Net.Trackers.Trades
                 _data.Clear();
 
                 IEnumerable<SharedTrade> items = data.OrderByDescending(d => d.Timestamp);
-                if (_limit != null)
-                    items = items.Take(_limit.Value);
-                if (_period != null)
-                    items = items.Where(e => e.Timestamp >= DateTime.UtcNow.Add(-_period.Value));
+                if (Limit != null)
+                    items = items.Take(Limit.Value);
+                if (Period != null)
+                    items = items.Where(e => e.Timestamp >= DateTime.UtcNow.Add(-Period.Value));
 
                 _snapshotId = data.Max(d => d.Timestamp.Ticks);
                 foreach (var item in items.OrderBy(d => d.Timestamp))
@@ -398,9 +395,9 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (!_changed && (DateTime.UtcNow - _lastWindowApplied) < TimeSpan.FromSeconds(1))
                 return;
 
-            if (_period != null)
+            if (Period != null)
             {
-                var compareDate = DateTime.UtcNow.Add(-_period.Value);
+                var compareDate = DateTime.UtcNow.Add(-Period.Value);
                 for(var i = 0; i < _data.Count; i++)
                 {
                     var item = _data[0];
@@ -413,9 +410,9 @@ namespace CryptoExchange.Net.Trackers.Trades
                 }
             }
 
-            if (_limit != null && _data.Count > _limit.Value)
+            if (Limit != null && _data.Count > Limit.Value)
             {
-                var toRemove = _data.Count - _limit.Value;
+                var toRemove = _data.Count - Limit.Value;
                 for (var i = 0; i < toRemove; i++)
                 {
                     var item = _data[0];
@@ -427,6 +424,10 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             _lastWindowApplied = DateTime.UtcNow;
             _changed = false;
+
+            if (Status == SyncStatus.PartiallySynced)
+                // Need to check if sync status should be changed even if there may not be any new data
+                SetSyncStatus();
         }
 
 
@@ -471,23 +472,23 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (Status == SyncStatus.Synced)
                 return;
 
-            if (_period != null)
+            if (Period != null)
             {
-                if (_firstTimestamp <= DateTime.UtcNow - _period.Value)
+                if (_firstTimestamp <= DateTime.UtcNow - Period.Value)
                     Status = SyncStatus.Synced;
                 else
                     Status = SyncStatus.PartiallySynced;
             }
 
-            if (_limit != null)
+            if (Limit != null)
             {
-                if (_data.Count == _limit.Value)
+                if (_data.Count == Limit.Value)
                     Status = SyncStatus.Synced;
                 else
                     Status = SyncStatus.PartiallySynced;
             }
 
-            if (_period == null && _limit == null)
+            if (Period == null && Limit == null)
                 Status = SyncStatus.Synced;
         }
     }
