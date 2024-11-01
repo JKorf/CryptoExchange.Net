@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private class ArrayConverterInner<T> : JsonConverter<T>
         {
             private static readonly ConcurrentDictionary<Type, List<ArrayPropertyInfo>> _typeAttributesCache = new ConcurrentDictionary<Type, List<ArrayPropertyInfo>>();
-
+            private static readonly ConcurrentDictionary<Type, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<Type, JsonSerializerOptions>();
 
             public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return default;
 
                 var result = Activator.CreateInstance(typeToConvert);
-                return (T)ParseObject(ref reader, result, typeToConvert);
+                return (T)ParseObject(ref reader, result, typeToConvert, options);
             }
 
             private static bool IsSimple(Type type)
@@ -148,7 +148,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return attributes;
             }
 
-            private static object ParseObject(ref Utf8JsonReader reader, object result, Type objectType)
+            private static object ParseObject(ref Utf8JsonReader reader, object result, Type objectType, JsonSerializerOptions options)
             {
                 if (reader.TokenType != JsonTokenType.StartArray)
                     throw new Exception("Not an array");
@@ -175,15 +175,24 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         object? value = null;
                         if (attribute.JsonConverterType != null)
                         {
-                            // Has JsonConverter attribute
-                            var options = new JsonSerializerOptions();
-                            options.Converters.Add((JsonConverter)Activator.CreateInstance(attribute.JsonConverterType));
-                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, options);
+                            if (!_converterOptionsCache.TryGetValue(attribute.JsonConverterType, out var newOptions))
+                            {
+                                var converter = (JsonConverter)Activator.CreateInstance(attribute.JsonConverterType);
+                                newOptions = new JsonSerializerOptions
+                                {
+                                    NumberHandling = SerializerOptions.WithConverters.NumberHandling,
+                                    PropertyNameCaseInsensitive = SerializerOptions.WithConverters.PropertyNameCaseInsensitive,
+                                    Converters = { converter },
+                                };
+                                _converterOptionsCache.TryAdd(attribute.JsonConverterType, newOptions);
+                            }
+
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, newOptions);
                         }
                         else if (attribute.DefaultDeserialization)
                         {
                             // Use default deserialization
-                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType);
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, options);
                         }
                         else
                         {
@@ -194,12 +203,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 JsonTokenType.True => true,
                                 JsonTokenType.String => reader.GetString(),
                                 JsonTokenType.Number => reader.GetDecimal(),
-                                JsonTokenType.StartObject => JsonSerializer.Deserialize(ref reader, attribute.TargetType),
+                                JsonTokenType.StartObject => JsonSerializer.Deserialize(ref reader, attribute.TargetType, options),
                                 _ => throw new NotImplementedException($"Array deserialization of type {reader.TokenType} not supported"),
                             };
                         }
 
-                        attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
+                        if (targetType.IsAssignableFrom(value?.GetType()))
+                            attribute.PropertyInfo.SetValue(result, value == null ? null : value);
+                        else
+                            attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
                     }
 
                     index++;
