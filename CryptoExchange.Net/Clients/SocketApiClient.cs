@@ -490,11 +490,14 @@ namespace CryptoExchange.Net.Clients
             SocketConnection connection;
             if (!dedicatedRequestConnection)
             {
-                connection = socketQuery.Where(s => !s.Value.DedicatedRequestConnection).OrderBy(s => s.Value.UserSubscriptionCount).FirstOrDefault().Value;
+                connection = socketQuery.Where(s => !s.Value.DedicatedRequestConnection.IsDedicatedRequestConnection).OrderBy(s => s.Value.UserSubscriptionCount).FirstOrDefault().Value;
             }
             else
             {
-                connection = socketQuery.Where(s => s.Value.DedicatedRequestConnection).FirstOrDefault().Value;
+                connection = socketQuery.Where(s => s.Value.DedicatedRequestConnection.IsDedicatedRequestConnection).FirstOrDefault().Value;
+                if (connection != null && !connection.DedicatedRequestConnection.Authenticated)
+                    // Mark dedicated request connection as authenticated if the request is authenticated
+                    connection.DedicatedRequestConnection.Authenticated = authenticated;
             }
 
             if (connection != null)
@@ -519,7 +522,14 @@ namespace CryptoExchange.Net.Clients
             var socketConnection = new SocketConnection(_logger, this, socket, address);
             socketConnection.UnhandledMessage += HandleUnhandledMessage;
             socketConnection.ConnectRateLimitedAsync += HandleConnectRateLimitedAsync;
-            socketConnection.DedicatedRequestConnection = dedicatedRequestConnection;
+            if (dedicatedRequestConnection)
+            {
+                socketConnection.DedicatedRequestConnection = new DedicatedConnectionState
+                {
+                    IsDedicatedRequestConnection = dedicatedRequestConnection,
+                    Authenticated = authenticated
+                };
+            }
 
             foreach (var ptg in PeriodicTaskRegistrations)
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.QueryDelegate, ptg.Callback);
@@ -652,7 +662,7 @@ namespace CryptoExchange.Net.Clients
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
-                foreach (var connection in socketList.Where(s => !s.DedicatedRequestConnection))
+                foreach (var connection in socketList.Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection))
                     tasks.Add(connection.CloseAsync());
             }
 

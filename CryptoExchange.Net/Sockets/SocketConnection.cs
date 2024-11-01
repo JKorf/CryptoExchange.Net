@@ -186,9 +186,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Whether this connection should be kept alive even when there is no subscription
+        /// Info on whether this connection is a dedicated request connection
         /// </summary>
-        public bool DedicatedRequestConnection { get; internal set; }
+        public DedicatedConnectionState DedicatedRequestConnection { get; internal set; } = new DedicatedConnectionState();
 
         private bool _pausedActivity;
         private readonly object _listenersLock;
@@ -618,7 +618,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool shouldCloseConnection;
             lock (_listenersLock)
-                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection;
+                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
             
             if (!anyDuplicateSubscription)
             {
@@ -841,7 +841,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult(new WebError("Socket not connected"));
 
-            if (!DedicatedRequestConnection)
+            if (!DedicatedRequestConnection.IsDedicatedRequestConnection)
             {
                 bool anySubscriptions;
                 lock (_listenersLock)
@@ -859,7 +859,7 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenersLock)
             {
                 anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated)
-                    || (DedicatedRequestConnection && ApiClient.AuthenticationProvider != null);
+                    || (DedicatedRequestConnection.IsDedicatedRequestConnection && DedicatedRequestConnection.Authenticated);
             }
 
             if (anyAuthenticated)
