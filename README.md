@@ -49,6 +49,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.1.1 - 01 Nov 2024
+    * Fixed socket connections trying to authenticated connection when it's marked as dedicated request connection even when no authentication is needed
+    * Fixed System.Text.Json ArrayConverter not passing serializer options to nested deserialization
+    * Fixed System.Text.Json ArrayConverter creating new serializer options each time a JsonConverter attribute is encountered
+
 * Version 8.1.0 - 28 Oct 2024
     * Added KlineTracker and TradeTracker implementation
     * Added Side to SharedTrade model
