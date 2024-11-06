@@ -126,7 +126,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return default;
 
             if (value.Value.ValueKind == JsonValueKind.Object || value.Value.ValueKind == JsonValueKind.Array)
+            {
+                try
+                {
+                    return value.Value.Deserialize<T>(_serializerOptions);
+                }
+                catch { }
                 return default;
+            }
 
             if (typeof(T) == typeof(string))
             {
