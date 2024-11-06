@@ -77,6 +77,11 @@ namespace CryptoExchange.Net.Sockets
         public abstract Type? GetMessageType(IMessageAccessor message);
 
         /// <summary>
+        /// Subscription topic
+        /// </summary>
+        public string? Topic { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="logger"></param>

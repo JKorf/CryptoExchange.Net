@@ -72,6 +72,11 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected List<DedicatedConnectionConfig> DedicatedConnectionConfigs { get; set; } = new List<DedicatedConnectionConfig>();
 
+        /// <summary>
+        /// Whether to allow multiple subscriptions with the same topic on the same connection
+        /// </summary>
+        protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
+
         /// <inheritdoc />
         public double IncomingKbps
         {
@@ -211,7 +216,7 @@ namespace CryptoExchange.Net.Clients
                 while (true)
                 {
                     // Get a new or existing socket connection
-                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false).ConfigureAwait(false);
+                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, subscription.Topic).ConfigureAwait(false);
                     if (!socketResult)
                         return socketResult.As<UpdateSubscription>(null);
 
@@ -478,13 +483,15 @@ namespace CryptoExchange.Net.Clients
         /// <param name="address">The address the socket is for</param>
         /// <param name="authenticated">Whether the socket should be authenticated</param>
         /// <param name="dedicatedRequestConnection">Whether a dedicated request connection should be returned</param>
+        /// <param name="topic">The subscription topic, can be provided when multiple of the same topics are not allowed on a connection</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated, bool dedicatedRequestConnection)
+        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated, bool dedicatedRequestConnection, string? topic = null)
         {
             var socketQuery = socketConnections.Where(s => (s.Value.Status == SocketConnection.SocketStatus.None || s.Value.Status == SocketConnection.SocketStatus.Connected)
                                                       && s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
                                                       && s.Value.ApiClient.GetType() == GetType()
                                                       && (s.Value.Authenticated == authenticated || !authenticated)
+                                                      && (AllowTopicsOnTheSameConnection || !s.Value.Topics.Contains(topic))
                                                       && s.Value.Connected);
 
             SocketConnection connection;

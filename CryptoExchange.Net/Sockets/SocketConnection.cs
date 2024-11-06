@@ -190,6 +190,18 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public DedicatedConnectionState DedicatedRequestConnection { get; internal set; } = new DedicatedConnectionState();
 
+        /// <summary>
+        /// Current subscription topics on this connection
+        /// </summary>
+        public IEnumerable<string> Topics
+        {
+            get
+            {
+                lock (_listenersLock)
+                    return _listeners.OfType<Subscription>().Select(x => x.Topic).Where(t => t != null).ToList()!;
+            }
+        }
+
         private bool _pausedActivity;
         private readonly object _listenersLock;
         private readonly List<IMessageProcessor> _listeners;
