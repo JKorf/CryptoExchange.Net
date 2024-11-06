@@ -49,6 +49,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.2.0 - 06 Nov 2024
+    * Added support for not allowing duplicate subscription topics on the same websocket connection
+    * Added PerAccount SharedLeverageSettingMode enum value, changed Side on SharedUserTrade to nullable
+    * Added support for object deserialization in SystemTextJsonMessageAccessor.GetValue<T>
+    * Changed SocketApiClient GetAuthenticationRequest to GetAuthenticationRequestAsync to allow for requesting token
+
 * Version 8.1.1 - 01 Nov 2024
     * Fixed socket connections trying to authenticated connection when it's marked as dedicated request connection even when no authentication is needed
     * Fixed System.Text.Json ArrayConverter not passing serializer options to nested deserialization
