@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Side of the trade
         /// </summary>
-        public SharedOrderSide Side { get; set; }
+        public SharedOrderSide? Side { get; set; }
         /// <summary>
         /// Fee paid for the trade
         /// </summary>
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedUserTrade(string symbol, string orderId, string id, SharedOrderSide side, decimal quantity, decimal price, DateTime timestamp)
+        public SharedUserTrade(string symbol, string orderId, string id, SharedOrderSide? side, decimal quantity, decimal price, DateTime timestamp)
         {
             Symbol = symbol;
             OrderId = orderId;

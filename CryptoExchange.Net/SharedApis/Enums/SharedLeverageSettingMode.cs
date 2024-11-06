@@ -12,6 +12,10 @@
         /// <summary>
         /// Leverage is configured for the symbol
         /// </summary>
-        PerSymbol
+        PerSymbol,
+        /// <summary>
+        /// Leverage is configured for the entire account
+        /// </summary>
+        PerAccount
     }
 }
