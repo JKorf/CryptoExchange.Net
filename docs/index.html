@@ -162,6 +162,7 @@
 			<tr><td>Kucoin</td><td><a href="https://github.com/JKorf/Kucoin.Net">JKorf/Kucoin.Net</a></td><td><a href="https://www.nuget.org/packages/Kucoin.Net" target="_blank"><img src="https://img.shields.io/nuget/v/Kucoin.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>WhiteBit</td><td><a href="https://github.com/JKorf/WhiteBit.Net">JKorf/WhiteBit.Net</a></td><td><a href="https://www.nuget.org/packages/WhiteBit.Net" target="_blank"><img src="https://img.shields.io/nuget/v/WhiteBit.net.svg?style=flat-square" /></a></td></tr>
 		</table>
 		<p>Note that there are 3rd party implementations going around, but only the listed ones here are created and supported by me.</p>
 		<p>When using multiple of these API's the <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> package can be used which combines these packages and allows easy access to all exchange API's.</p>
@@ -277,6 +278,9 @@
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-okx-tab" data-toggle="tab" href="#install-okx" role="tab" aria-controls="install-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-whitebit-tab" data-toggle="tab" href="#install-whitebit" role="tab" aria-controls="install-whitebit" aria-selected="false">OKX</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="install-cc" role="tabpanel" aria-labelledby="install-cc-tab">
@@ -339,6 +343,9 @@
 			  <div class="tab-pane fade" id="install-okx" role="tabpanel" aria-labelledby="install-okx-tab">
 				<pre><code>dotnet add package JK.OKX.Net</code></pre>
 				<img src="assets/images/OKXInstall.png" />
+			  </div>
+			  <div class="tab-pane fade" id="install-whitebit" role="tabpanel" aria-labelledby="install-whitebit-tab">
+				<pre><code>dotnet add package WhiteBit.Net</code></pre>
 			  </div>
 			</div>
 		</div>
@@ -405,6 +412,9 @@
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-okx-tab" data-toggle="tab" href="#di-okx" role="tab" aria-controls="di-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-whitebit-tab" data-toggle="tab" href="#di-whitebit" role="tab" aria-controls="di-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="di-cc" role="tabpanel" aria-labelledby="di-cc-tab">
@@ -457,6 +467,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="di-okx" role="tabpanel" aria-labelledby="di-okx-tab">
 <pre><code>builder.Services.AddOKX();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-whitebit" role="tabpanel" aria-labelledby="di-whitebit-tab">
+<pre><code>builder.Services.AddWhiteBit();</code></pre>
 			  </div>
 			</div>
 			</div>
@@ -515,6 +528,9 @@
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-okx-tab" data-toggle="tab" href="#interfaces-okx" role="tab" aria-controls="interfaces-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-whitebit-tab" data-toggle="tab" href="#interfaces-whitebit" role="tab" aria-controls="interfaces-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="interfaces-cc" role="tabpanel" aria-labelledby="interfaces-cc-tab">
@@ -530,7 +546,11 @@
 					</tr>
 					<tr>
 						<td><code>IExchangeOrderBookFactory</code></td>
-						<td>A factory class for accessing all exchanges SymbolOrderBook (locally synced order books) factory methods</td>
+						<td>A factory class for accessing all exchanges SymbolOrderBook (locally synced order books) factory methods, (see <a href="#idocs_orderbooks">orderbooks</a>)</td>
+					</tr>
+					<tr>
+						<td><code>IExchangeTrackerFactory</code></td>
+						<td>A factory class for creating Kline and Trade trackers (see <a href="#idocs_trackers">trackers</a>)</td>
 					</tr>
 					<tr>
 						<td><code>I[Library]RestClient</code></td>
@@ -566,6 +586,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Binance API</td>
 					</tr>
 					<tr>
+						<td><code>IBinanceTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Binance API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -593,6 +617,10 @@
 					<tr>
 						<td><code>IBingXOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the BingX API</td>
+					</tr>
+					<tr>
+						<td><code>IBingXTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the BingX API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -624,6 +652,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Bitfinex API</td>
 					</tr>
 					<tr>
+						<td><code>IBitfinexTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Bitfinex API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -651,6 +683,10 @@
 					<tr>
 						<td><code>IBitgetOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the Bitget API</td>
+					</tr>					
+					<tr>
+						<td><code>IBitgetTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Bitget API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -682,6 +718,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Bitget API</td>
 					</tr>
 					<tr>
+						<td><code>IBitMartTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the BitMart API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -711,6 +751,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Bybit API</td>
 					</tr>
 					<tr>
+						<td><code>IBybitTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Bybit API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -738,6 +782,10 @@
 					<tr>
 						<td><code>ICoinbaseOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the Coinbase API</td>
+					</tr>
+					<tr>
+						<td><code>ICoinbaseTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Coinbase API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -782,6 +830,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the CoinEx API</td>
 					</tr>
 					<tr>
+						<td><code>ICoinExTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the CoinEx API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -809,6 +861,10 @@
 					<tr>
 						<td><code>ICryptoComOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the Crypto.com API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoComTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Crypto.com API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -840,6 +896,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the GateIo API</td>
 					</tr>
 					<tr>
+						<td><code>IGateIoTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the GateIo API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -867,6 +927,10 @@
 					<tr>
 						<td><code>IHTXOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the HTX API</td>
+					</tr>
+					<tr>
+						<td><code>IHTXTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the HTX API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -898,6 +962,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Kraken API</td>
 					</tr>
 					<tr>
+						<td><code>IKrakenTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Kraken API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -925,6 +993,10 @@
 					<tr>
 						<td><code>IKucoinOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the Kucoin API</td>
+					</tr>
+					<tr>
+						<td><code>IKucoinTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Kucoin API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -956,6 +1028,10 @@
 						<td>A factory for creating SymbolOrderBook instances for the Mexc API</td>
 					</tr>
 					<tr>
+						<td><code>IMexcTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the Mexc API</td>
+					</tr>
+					<tr>
 						<td><code>ICryptoRestClient</code></td>
 						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
 					</tr>
@@ -983,6 +1059,43 @@
 					<tr>
 						<td><code>IOKXOrderBookFactory</code></td>
 						<td>A factory for creating SymbolOrderBook instances for the OKX API</td>
+					</tr>
+					<tr>
+						<td><code>IOKXTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the OKX API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
+			  <div class="tab-pane fade" id="interfaces-whitebit" role="tabpanel" aria-labelledby="interfaces-whitebit-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IWhiteBitRestClient</code></td>
+						<td>The client for accessing the WhiteBit REST API</td>
+					</tr>
+					<tr>
+						<td><code>IWhiteBitSocketClient</code></td>
+						<td>The client for accessing the WhiteBit Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IWhiteBitOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the WhiteBit API</td>
+					</tr>
+					<tr>
+						<td><code>IWhiteBitTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the WhiteBit API</td>
 					</tr>
 					<tr>
 						<td><code>ICryptoRestClient</code></td>
@@ -1073,6 +1186,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-okx-tab" data-toggle="tab" href="#rest-okx" role="tab" aria-controls="rest-okx" aria-selected="false">OKX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-whitebit-tab" data-toggle="tab" href="#rest-whitebit" role="tab" aria-controls="rest-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -1280,6 +1396,18 @@ else
   // Handle data, tickersResult.Data will contain the actual data
 }</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="rest-whitebit" role="tabpanel" aria-labelledby="rest-whitebit-tab">
+				<pre><code>var client = new WhiteBitRestClient();
+var tickersResult = await client.V4Api.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
 			</div>
 			</div>
 			
@@ -1401,6 +1529,9 @@ else
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-okx-tab" data-toggle="tab" href="#socket-okx" role="tab" aria-controls="socket-okx" aria-selected="false">OKX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-whitebit-tab" data-toggle="tab" href="#socket-whitebit" role="tab" aria-controls="socket-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -1572,6 +1703,17 @@ if (!subscribeResult.Success)
 			  <div class="tab-pane fade" id="socket-okx" role="tabpanel" aria-labelledby="socket-okx-tab">
 				<pre><code>var client = new OKXSocketClient();
 var subscribeResult = await client.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-USDT", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="socket-okx" role="tabpanel" aria-labelledby="socket-okx-tab">
+				<pre><code>var client = new WhiteBitSocketClient();
+var subscribeResult = await client.V4Api.ExchangeData.SubscribeToTickerUpdatesAsync("ETH_USDT", update => {
     // Handle the data update, update.Data will contain the actual data
 });
 if (!subscribeResult.Success)
@@ -1777,6 +1919,9 @@ var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="shared-okx-tab" data-toggle="tab" href="#shared-okx" role="tab" aria-controls="shared-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-whitebit-tab" data-toggle="tab" href="#shared-whitebit" role="tab" aria-controls="shared-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">			  
 			   <div class="tab-pane fade show active" id="shared-binance" role="tabpanel" aria-labelledby="shared-binance-tab">
@@ -1952,6 +2097,13 @@ var spotSharedRestClients = okxRestClient.UnifiedApi.SharedClient;
 
 // Futures and Spot API common functionality socket client
 var spotSharedSocketClient = okxSocketClient.UnifiedApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-whitebit" role="tabpanel" aria-labelledby="shared-whitebit-tab">
+<pre><code>// Futures and Spot API common functionality rest client
+var spotSharedRestClients = whitebitRestClient.V4Api.SharedClient;
+
+// Futures and Spot API common functionality socket client
+var spotSharedSocketClient = whitebitSocketClient.V4Api.SharedClient;</code></pre>
 			  </div>
 			</div>
 						
@@ -2236,6 +2388,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-okx" role="tab" aria-controls="options-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-whitebit" role="tab" aria-controls="options-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="options-cc" role="tabpanel" aria-labelledby="options-cc-tab">
@@ -2388,6 +2543,15 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
   });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-whitebit" role="tabpanel" aria-labelledby="options-whitebit-tab">
+<pre><code>builder.Services.AddWhiteBit(
+  restOptions => {
+    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
+  },
+  socketOptions => {
+    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
+  });</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -2445,6 +2609,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-constr-okx" role="tab" aria-controls="options-constr-okx" aria-selected="false">OKX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-constr-whitebit" role="tab" aria-controls="options-constr-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2550,6 +2717,12 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-constr-whitebit" role="tabpanel" aria-labelledby="options-whitebit-tab">
+<pre><code>var client = new WhiteBitRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -2604,6 +2777,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-okx-tab" data-toggle="tab" href="#options-default-okx" role="tab" aria-controls="options-default-okx" aria-selected="false">OKX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-default-whitebit" role="tab" aria-controls="options-default-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2718,6 +2894,13 @@ var client = new MexcRestClient();</code></pre>
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new OKXRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-whitebit" role="tabpanel" aria-labelledby="options-whitebit-tab">
+<pre><code>WhiteBitRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new WhiteBitRestClient();</code></pre>
 			  </div>
 			</div>
 			</div>
@@ -2950,6 +3133,9 @@ var client = new OKXRestClient();</code></pre>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-okx-tab" data-toggle="tab" href="#book-okx" role="tab" aria-controls="book-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-whitebit-tab" data-toggle="tab" href="#book-whitebit" role="tab" aria-controls="book-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			<div class="tab-pane fade show active" id="book-cryptoclients" role="tabpanel" aria-labelledby="book-cryptoclients-tab">
@@ -3161,6 +3347,19 @@ if (!startResult.Success)
 await book.StopAsync();
 </code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="book-whitebit" role="tabpanel" aria-labelledby="book-whitebit-tab">
+<pre><code>var book = new WhiteBitSymbolOrderBook("ETH_USDT");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
 			</div>
 			</div>
 			
@@ -3326,6 +3525,9 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="tracker-okx-tab" data-toggle="tab" href="#tracker-okx" role="tab" aria-controls="tracker-okx" aria-selected="false">OKX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-whitebit-tab" data-toggle="tab" href="#tracker-whitebit" role="tab" aria-controls="tracker-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -3633,6 +3835,26 @@ await tracker.StopAsync();
 			  <div class="tab-pane fade" id="tracker-okx" role="tabpanel" aria-labelledby="tracker-okx-tab">
 <pre><code>// Either create a new factory or inject the IOKXTrackerFactory interface
 var factory = new OKXTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await tracker.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-whitebit" role="tabpanel" aria-labelledby="tracker-whitebit-tab">
+<pre><code>// Either create a new factory or inject the IWhiteBitTrackerFactory interface
+var factory = new WhiteBitTrackerFactory();
 
 var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
 
@@ -3996,6 +4218,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-okx-tab" data-toggle="tab" href="#limit-okx" role="tab" aria-controls="limit-okx" aria-selected="false">OKX</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-whitebit-tab" data-toggle="tab" href="#limit-whitebit" role="tab" aria-controls="limit-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			 <div class="tab-pane fade show active" id="limit-cc" role="tabpanel" aria-labelledby="limit-cc-tab">
@@ -4184,6 +4409,20 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 
 </code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="limit-whitebit" role="tabpanel" aria-labelledby="limit-whitebit-tab">
+<pre><code>services.AddWhiteBit(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>WhiteBitExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>WhiteBitExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -4281,11 +4520,21 @@ var responseSource = result.DataSource;</code></pre>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-okx-tab" data-toggle="tab" href="#example-symbols-okx" role="tab" aria-controls="example-symbols-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-whitebit-tab" data-toggle="tab" href="#example-symbols-whitebit" role="tab" aria-controls="example-symbols-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-symbols-general" role="tabpanel" aria-labelledby="example-symbols-general-tab">
-		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
-await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
+		<pre><code>// This example uses Binance, but can be any supported exchange. For example Bybit, Kraken, Kucoin etc
+
+// Directly reference the Exchange API:
+await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();
+
+// Or make it fully dynamic, either request on a single exchange:
+await exchangeRestClient.GetSpotSymbolClient("Binance")!.GetSpotSymbolsAsync(new GetSymbolsRequest());
+// Or request multiple exchanges at the same time:
+await exchangeRestClient.GetSpotSymbolsAsync(new GetSymbolsRequest(), ["Binance", "Kraken", "OKX"]);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-binance" role="tabpanel" aria-labelledby="example-symbols-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
@@ -4297,7 +4546,7 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-bitget" role="tabpanel" aria-labelledby="example-symbols-bitget-tab">
-		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+		<pre><code>await bitgetClient.SpotApiV2.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-bitmart" role="tabpanel" aria-labelledby="example-symbols-bitmart-tab">
 		<pre><code>await bitMartClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -4331,6 +4580,9 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-okx" role="tabpanel" aria-labelledby="example-symbols-okx-tab">
 		<pre><code>await okxClient.UnifiedApi.ExchangeData.GetSymbolsAsync(OKXInstrumentType.Spot);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-whitebit" role="tabpanel" aria-labelledby="example-symbols-whitebit-tab">
+		<pre><code>await whitebitClient.V4Api.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4398,11 +4650,22 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetExchangeInfoAsync();</c
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-okx-tab" data-toggle="tab" href="#example-ticker-okx" role="tab" aria-controls="example-ticker-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-whitebit-tab" data-toggle="tab" href="#example-ticker-whitebit" role="tab" aria-controls="example-ticker-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-ticker-general" role="tabpanel" aria-labelledby="example-ticker-general-tab">
-		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
-await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.GetSymbolName("BTC", "USDT"));</code></pre>
+		<pre><code>// This example uses Binance, but can be any supported exchange. For example Bybit, Kraken, Kucoin etc
+
+// Directly reference the Exchange API:
+await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync("ETHUSDT");
+
+// Or make it fully dynamic, either request on a single exchange:
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+await exchangeRestClient.GetSpotTickerClient("Binance")!.GetSpotTickerAsync(new GetTickerRequest(symbol));
+// Or request multiple exchanges at the same time:
+await exchangeRestClient.GetSpotTickerAsync(new GetTickerRequest(symbol), ["Binance", "Kraken", "OKX"]);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-binance" role="tabpanel" aria-labelledby="example-ticker-binance-tab">
 		<pre><code>await binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
@@ -4414,7 +4677,7 @@ await exchangeRestClient.Binance.SpotApi.ExchangeData.GetTickerAsync(spotClient.
 		<pre><code>await bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUST");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-bitget" role="tabpanel" aria-labelledby="example-ticker-bitget-tab">
-		<pre><code>await bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");</code></pre>
+		<pre><code>await bitgetClient.SpotApiV2.ExchangeData.GetTickersAsync("BTCUSDT");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-bitmart" role="tabpanel" aria-labelledby="example-ticker-bitmart-tab">
 		<pre><code>await bitMartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");</code></pre>
@@ -4449,6 +4712,11 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-okx" role="tabpanel" aria-labelledby="example-ticker-okx-tab">
 		<pre><code>await okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-whitebit" role="tabpanel" aria-labelledby="example-ticker-whitebit-tab">
+		<pre><code>// WhiteBit API doesn't offer a symbol filter, so we have to filter client side
+var tickersResult = await whitebitClient.V4Api.ExchangeData.GetTickersAsync();
+var ticker = tickersResult.Data.Single(x => x.Symbol == "BTC_USDT");</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4516,11 +4784,21 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-okx-tab" data-toggle="tab" href="#example-balances-okx" role="tab" aria-controls="example-balances-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-whitebit-tab" data-toggle="tab" href="#example-balances-whitebit" role="tab" aria-controls="example-balances-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-balances-general" role="tabpanel" aria-labelledby="example-balances-general-tab">
-		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
-await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre>
+		<pre><code>// This example uses Binance, but can be any supported exchange. For example Bybit, Kraken, Kucoin etc
+
+// Directly reference the Exchange API:
+await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();
+
+// Or make it fully dynamic, either request on a single exchange:
+await exchangeRestClient.GetBalancesClient(TradingMode.Spot, "Binance")!.GetBalancesAsync(new GetBalancesRequest());
+// Or request multiple exchanges at the same time:
+await exchangeRestClient.GetBalancesAsync(new GetBalancesRequest(TradingMode.Spot), ["Binance", "Kraken", "OKX"]);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-binance" role="tabpanel" aria-labelledby="example-balances-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -4532,7 +4810,7 @@ await exchangeRestClient.Binance.SpotApi.Account.GetBalancesAsync();</code></pre
 		<pre><code>await bitfinexClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-bitget" role="tabpanel" aria-labelledby="example-balances-bitget-tab">
-		<pre><code>await bitgetClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+		<pre><code>await bitgetClient.SpotApiV2.Account.GetSpotBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-bitmart" role="tabpanel" aria-labelledby="example-balances-bitmart-tab">
 		<pre><code>await bitMartClient.SpotApi.Account.GetSpotBalancesAsync();</code></pre>
@@ -4570,6 +4848,9 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-okx" role="tabpanel" aria-labelledby="example-balances-okx-tab">
 		<pre><code>await okxClient.UnifiedApi.Account.GetAccountBalanceAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-whitebit" role="tabpanel" aria-labelledby="example-balances-whitebit-tab">
+		<pre><code>await whitebitClient.V4Api.Account.GetSpotBalancesAsync();</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4637,11 +4918,19 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-okx-tab" data-toggle="tab" href="#example-place-okx" role="tab" aria-controls="example-place-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-okx-tab" data-toggle="tab" href="#example-place-okx" role="tab" aria-controls="example-place-okx" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-place-general" role="tabpanel" aria-labelledby="example-place-general-tab">
-		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
-await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
+		<pre><code>// This example uses Binance, but can be any supported exchange. For example Bybit, Kraken, Kucoin etc
+
+// Directly reference the Exchange API:
+await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Binance.Net.Enums.OrderSide.Buy, Binance.Net.Enums.SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: Binance.Net.Enums.TimeInForce.GoodTillCanceled);
+
+// Or make it fully dynamic:
+await exchangeRestClient.GetSpotOrderClient("Binance")!.PlaceSpotOrderAsync(new PlaceSpotOrderRequest(new SharedSymbol(TradingMode.Spot, "ETH", "USDT"), SharedOrderSide.Buy, SharedOrderType.Limit, 0.1m, price: 50000));</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-binance" role="tabpanel" aria-labelledby="example-place-binance-tab">
 		<pre><code>await binanceClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", OrderSide.Buy, SpotOrderType.Limit, 0.1m, price: 50000, timeInForce: TimeInForce.GoodTillCanceled);</code></pre>
@@ -4653,7 +4942,7 @@ await exchangeRestClient.Binance.SpotApi.Trading.PlaceOrderAsync("BTCUSDT", Orde
 		<pre><code>await bitfinexClient.SpotApi.Trading.PlaceOrderAsync("tBTCUST", OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-bitget" role="tabpanel" aria-labelledby="example-place-bitget-tab">
-		<pre><code>await bitgetClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT_SPBL", BitgetOrderSide.Buy, BitgetOrderType.Limit, 0.1m, timeInForce: BitgetTimeInForce.GoodTillCanceled, 50000);</code></pre>
+		<pre><code>await bitgetRestClient.SpotApiV2.Trading.PlaceOrderAsync("BTCUSDT_SPBL", OrderSide.Buy, OrderType.Limit, 0.1m, timeInForce: TimeInForce.GoodTillCanceled, price: 50000);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-bitmart" role="tabpanel" aria-labelledby="example-place-bitmart-tab">
 		<pre><code>await bitMartClient.SpotApi.Trading.PlaceOrderAsync("BTC_USDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
@@ -4691,6 +4980,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 					  </div>
 					  <div class="tab-pane fade" id="example-place-okx" role="tabpanel" aria-labelledby="example-place-okx-tab">
 		<pre><code>await okxClient.UnifiedApi.Trading.PlaceOrderAsync("BTC-USDT", OKXOrderSide.Buy, OKXOrderType.LimitOrder, 0.1m, 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-whitebit" role="tabpanel" aria-labelledby="example-place-whitebit-tab">
+		<pre><code>await whitebitClient.V4Api.Trading.PlaceSpotOrderAsync("BTC_USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4758,13 +5050,28 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-okx-tab" data-toggle="tab" href="#example-stream-ticker-okx" role="tab" aria-controls="example-stream-ticker-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-whitebit-tab" data-toggle="tab" href="#example-stream-ticker-whitebit" role="tab" aria-controls="example-stream-ticker-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-stream-ticker-cc" role="tabpanel" aria-labelledby="example-stream-ticker-cc-tab">
-		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+		<pre><code>// This example uses Binance, but can be any supported exchange. For example Bybit, Kraken, Kucoin etc
+
+// Directly reference the Exchange API:
 await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
     // Handle update
-});</code></pre>
+});
+
+// Or make it fully dynamic, either subscribe on a single exchange:
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+await exchangeSocketClient.GetTickerClient(TradingMode.Spot, "Binance")!.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), data => {
+    // Handle update
+});
+// Or subscribe on multiple exchanges at the same time:
+await exchangeSocketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), data => {
+    // Handle update
+}, ["Binance", "Kraken", "OKX"]);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-binance" role="tabpanel" aria-labelledby="example-stream-ticker-binance-tab">
 		<pre><code>await binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
@@ -4782,7 +5089,7 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-bitget" role="tabpanel" aria-labelledby="example-stream-ticker-bitget-tab">
-		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+		<pre><code>await bitgetSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -4838,6 +5145,12 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-okx" role="tabpanel" aria-labelledby="example-stream-ticker-okx-tab">
 		<pre><code>await okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHUSDT", data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-whitebit" role="tabpanel" aria-labelledby="example-stream-ticker-whitebit-tab">
+		<pre><code>await whitebitSocketClient.V4Api.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
     // Handle update
 });
 </code></pre>
@@ -4908,27 +5221,35 @@ await exchangeSocketClient.Binance.SpotApi.ExchangeData.SubscribeToTickerUpdates
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-okx-tab" data-toggle="tab" href="#example-stream-order-okx" role="tab" aria-controls="example-stream-order-okx" aria-selected="false">OKX</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-whitebit-tab" data-toggle="tab" href="#example-stream-order-whitebit" role="tab" aria-controls="example-stream-order-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-stream-order-cc" role="tabpanel" aria-labelledby="example-stream-order-cc-tab">
 		<pre><code>// This example uses Binance, but can be any exchange support. For example Bybit, Kraken, Kucoin etc
+// Binance requires a listenkey to start the user stream
 
-// Retrieve the listen key
+//Directly reference the Exchange API:
 var listenKey = await exchangeRestClient.Binance.SpotApi.Account.StartUserStreamAsync();
-
-// Subscribe using the key
-await exchangeSocketClient.Binance.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listenKey.Data, data => {
+await exchangeSocketClient.Binance.SpotApi.Account.SubscribeToUserDataUpdatesAsync(listenKey.Data, data =>
+{
     // Handle update
 }, null, null, null);
 
-// The listen key will stay valid for 60 minutes, after this no updates will be send anymore
-// To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method every 30 minutes
-_ = Task.Run(async () => {
-    while (true)
-    {
-        await Task.Delay(Timespan.FromMinutes(30));
-        await exchangeRestClient.Binance.SpotApi.Account.KeepAliveUserStreamAsync(listenKey.Data);
-    }
+
+// Or make it fully dynamic:
+string? listenKey = null;
+var listenkeyClient = exchangeRestClient.GetListenKeyClient(TradingMode.Spot, "Binance");
+if (listenkeyClient != null)
+{
+    // Exchange needs a listenkey; so request that
+    var listenKeyResult = await listenkeyClient.StartListenKeyAsync(new StartListenKeyRequest());
+    listenKey = listenKeyResult.Data;
+}
+await exchangeSocketClient.GetSpotOrderClient("Binance")!.SubscribeToSpotOrderUpdatesAsync(new SubscribeSpotOrderRequest(listenKey: listenKey), data =>
+{
+    // Handle update
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-binance" role="tabpanel" aria-labelledby="example-stream-order-binance-tab">
@@ -4975,7 +5296,7 @@ _ = Task.Run(async () => {
 });</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-bitget" role="tabpanel" aria-labelledby="example-stream-order-bitget-tab">
-		<pre><code>await bitgetSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(data => {
+		<pre><code>await bitgetSocketClient.SpotApiV2.SubscribeToOrderUpdatesAsync(data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -5049,6 +5370,13 @@ _ = Task.Run(async () => {
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-okx" role="tabpanel" aria-labelledby="example-stream-order-okx-tab">
 		<pre><code>await okxSocketClient.UnifiedApi.Trading.SubscribeToOrderUpdatesAsync(OKXInstrumentType.Spot, null, null, data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-whitebit" role="tabpanel" aria-labelledby="example-stream-order-whitebit-tab">
+		<pre><code>// It's required for the WhiteBit API to specify which symbols to subscribe to
+await whitebitSocketClient.V4Api.SubscribeToOpenOrderUpdatesAsync(["ETH_USDT", "BTC_USDT"], data => {
     // Handle update
 });
 </code></pre>

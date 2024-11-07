@@ -18,6 +18,7 @@
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using WhiteBit.Net.Interfaces
 @inject IBinanceOrderBookFactory binanceFactory
 @inject IBingXOrderBookFactory bingXFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
@@ -33,6 +34,7 @@
 @inject IKucoinOrderBookFactory kucoinFactory
 @inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
+@inject IWhiteBitOrderBookFactory whitebitFactory
 @implements IDisposable
 
 <h3>ETH-BTC books, live updates:</h3>
@@ -77,10 +79,11 @@
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
-                { "Kraken", krakenFactory.CreateSpot("ETH/XBT") },
+                { "Kraken", krakenFactory.CreateSpot("ETH/BTC") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
+                { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
             };
 
         await Task.WhenAll(_books.Select(b => b.Value.StartAsync()));

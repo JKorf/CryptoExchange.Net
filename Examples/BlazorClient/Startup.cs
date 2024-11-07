@@ -50,6 +50,7 @@ namespace BlazorClient
             services.AddKucoin();
             services.AddMexc();
             services.AddOKX();
+            services.AddWhiteBit();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

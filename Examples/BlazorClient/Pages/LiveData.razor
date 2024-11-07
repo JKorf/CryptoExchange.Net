@@ -14,6 +14,7 @@
 @inject IKucoinSocketClient kucoinSocketClient
 @inject IMexcSocketClient mexcSocketClient
 @inject IOKXSocketClient okxSocketClient
+@inject IWhiteBitSocketClient whitebitSocketClient
 @using System.Collections.Concurrent
 @using CryptoExchange.Net.Objects
 @using CryptoExchange.Net.Objects.Sockets;
@@ -49,6 +50,7 @@
             kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Kucoin", data.Data.LastPrice ?? 0)),
             mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHBTC", data => UpdateData("Mexc", data.Data.LastPrice)),
             okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("OKX", data.Data.LastPrice ?? 0)),
+            whitebitSocketClient.V4Api.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("WhiteBit", data.Data.Ticker.LastPrice)),
         };
 
         await Task.WhenAll(tasks);
