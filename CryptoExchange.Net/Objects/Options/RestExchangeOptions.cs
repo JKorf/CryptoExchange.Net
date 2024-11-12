@@ -31,23 +31,27 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Create a copy of this options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public T Copy<T>() where T : RestExchangeOptions, new()
         {
-            return new T
-            {
-                OutputOriginalData = OutputOriginalData,
-                AutoTimestamp = AutoTimestamp,
-                TimestampRecalculationInterval = TimestampRecalculationInterval,
-                ApiCredentials = ApiCredentials?.Copy(),
-                Proxy = Proxy,
-                RequestTimeout = RequestTimeout,
-                RateLimiterEnabled = RateLimiterEnabled,
-                RateLimitingBehaviour = RateLimitingBehaviour,
-                CachingEnabled = CachingEnabled,
-                CachingMaxAge = CachingMaxAge,
-            };
+            return Set(new T());
+        }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public T Set<T>(T item) where T : RestExchangeOptions, new()
+        {
+            item.OutputOriginalData = OutputOriginalData;
+            item.AutoTimestamp = AutoTimestamp;
+            item.TimestampRecalculationInterval = TimestampRecalculationInterval;
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.Proxy = Proxy;
+            item.RequestTimeout = RequestTimeout;
+            item.RateLimiterEnabled = RateLimiterEnabled;
+            item.RateLimitingBehaviour = RateLimitingBehaviour;
+            item.CachingEnabled = CachingEnabled;
+            item.CachingMaxAge = CachingMaxAge;
+            return item;
         }
     }
 
@@ -68,13 +72,18 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Create a copy of this options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public new T Copy<T>() where T : RestExchangeOptions<TEnvironment>, new()
+        public new T Copy<T>() where T : RestExchangeOptions<TEnvironment>, new ()
         {
-            var result = base.Copy<T>();
-            result.Environment = Environment;
-            return result;
+            return Set<T>(base.Copy<T>());
+        }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public T Set<T>(RestExchangeOptions<TEnvironment> target) where T : RestExchangeOptions<TEnvironment>, new()
+        {
+            target.Environment = Environment;
+            return (T)target;
         }
     }
 

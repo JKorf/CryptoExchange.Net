@@ -8,21 +8,28 @@
         /// <summary>
         /// The host address of the proxy
         /// </summary>
-        public string Host { get; }
+        public string Host { get; set; }
         /// <summary>
         /// The port of the proxy
         /// </summary>
-        public int Port { get; }
+        public int Port { get; set; }
 
         /// <summary>
         /// The login of the proxy
         /// </summary>
-        public string? Login { get; }
+        public string? Login { get; set; }
 
         /// <summary>
         /// The password of the proxy
         /// </summary>
-        public string? Password { get; }
+        public string? Password { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public ApiProxy() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         /// <summary>
         /// Create new settings for a proxy

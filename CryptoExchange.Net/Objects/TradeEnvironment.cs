@@ -24,14 +24,14 @@
         /// <summary>
         /// Name of the environment
         /// </summary>
-        public string EnvironmentName { get; init; }
+        public string Name { get; set; }
 
         /// <summary>
         /// </summary>
         /// <param name="name"></param>
         protected TradeEnvironment(string name)
         {
-            EnvironmentName = name;
+            Name = name;
         }
     }
 }

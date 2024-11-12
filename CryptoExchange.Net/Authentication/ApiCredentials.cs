@@ -13,17 +13,24 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// The api key / label to authenticate requests
         /// </summary>
-        public string Key { get; }
+        public string? Key { get; set; }
 
         /// <summary>
         /// The api secret or private key to authenticate requests
         /// </summary>
-        public string Secret { get; }
+        public string? Secret { get; set; }
 
         /// <summary>
         /// Type of the credentials
         /// </summary>
-        public ApiCredentialsType CredentialType { get; }
+        public ApiCredentialsType CredentialType { get; set; }
+
+        /// <summary>
+        /// ctor for DI
+        /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+        public ApiCredentials() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         /// <summary>
         /// Create Api credentials providing an api key and secret for authentication
@@ -56,7 +63,12 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         public virtual ApiCredentials Copy()
         {
-            return new ApiCredentials(Key, Secret, CredentialType);
+            return new ApiCredentials()
+            {
+                Key = Key,
+                Secret = Secret, 
+                CredentialType = CredentialType
+            };
         }
 
         /// <summary>
