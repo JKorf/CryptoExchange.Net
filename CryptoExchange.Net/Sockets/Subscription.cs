@@ -45,6 +45,11 @@ namespace CryptoExchange.Net.Sockets
         public bool Closed { get; set; }
 
         /// <summary>
+        /// Is the subscription currently resubscribing
+        /// </summary>
+        public bool IsResubscribing { get; set; }
+
+        /// <summary>
         /// Logger
         /// </summary>
         protected readonly ILogger _logger;

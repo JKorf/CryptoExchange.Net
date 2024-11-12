@@ -615,6 +615,10 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task CloseAsync(Subscription subscription)
         {
+            // If we are resubscribing this subscription at this moment we'll want to wait for a bit until it is finished to avoid concurrency issues
+            while (subscription.IsResubscribing)
+                await Task.Delay(50).ConfigureAwait(false);
+
             subscription.Closed = true;
 
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
@@ -898,7 +902,7 @@ namespace CryptoExchange.Net.Sockets
 
                 List<Subscription> subList;
                 lock (_listenersLock)
-                    subList = _listeners.OfType<Subscription>().Skip(batch * batchSize).Take(batchSize).ToList();
+                    subList = _listeners.OfType<Subscription>().Where(x => !x.Closed).Skip(batch * batchSize).Take(batchSize).ToList();
 
                 if (subList.Count == 0)
                     break;
@@ -907,20 +911,30 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var subscription in subList)
                 {
                     subscription.ConnectionInvocations = 0;
+                    if (subscription.Closed)
+                        // Can be closed during resubscribing
+                        continue;
+
+                    subscription.IsResubscribing = true;
                     var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
                     if (!result)
                     {
                         _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
+                        subscription.IsResubscribing = false;
                         return result;
                     }
 
                     var subQuery = subscription.GetSubQuery(this);
                     if (subQuery == null)
+                    {
+                        subscription.IsResubscribing = false;
                         continue;
+                    }
 
                     var waitEvent = new AsyncResetEvent(false);
                     taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
                     { 
+                        subscription.IsResubscribing = false;
                         subscription.HandleSubQueryResponse(subQuery.Response!);
                         waitEvent.Set();
                         if (r.Result.Success)
