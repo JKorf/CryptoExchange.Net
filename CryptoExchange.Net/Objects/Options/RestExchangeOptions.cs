@@ -80,10 +80,11 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public T Set<T>(RestExchangeOptions<TEnvironment> target) where T : RestExchangeOptions<TEnvironment>, new()
+        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
         {
+            base.Set(target);
             target.Environment = Environment;
-            return (T)target;
+            return target;
         }
     }
 

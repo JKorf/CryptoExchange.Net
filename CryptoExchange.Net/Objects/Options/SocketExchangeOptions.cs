@@ -55,26 +55,32 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Create a copy of this options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public T Copy<T>() where T : SocketExchangeOptions, new()
         {
-            return new T
-            {
-                ApiCredentials = ApiCredentials?.Copy(),
-                OutputOriginalData = OutputOriginalData,
-                ReconnectPolicy = ReconnectPolicy,
-                DelayAfterConnect = DelayAfterConnect,
-                MaxConcurrentResubscriptionsPerSocket = MaxConcurrentResubscriptionsPerSocket,
-                ReconnectInterval = ReconnectInterval,
-                SocketNoDataTimeout = SocketNoDataTimeout,
-                SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget,
-                MaxSocketConnections = MaxSocketConnections,
-                Proxy = Proxy,
-                RequestTimeout = RequestTimeout,
-                RateLimitingBehaviour = RateLimitingBehaviour,
-                RateLimiterEnabled = RateLimiterEnabled,
-            };
+            return Set(new T());
+        }
+
+        /// <summary>
+        /// Create a copy of this options
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T Set<T>(T item) where T : SocketExchangeOptions, new()
+        {
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.OutputOriginalData = OutputOriginalData;
+            item.ReconnectPolicy = ReconnectPolicy;
+            item.DelayAfterConnect = DelayAfterConnect;
+            item.MaxConcurrentResubscriptionsPerSocket = MaxConcurrentResubscriptionsPerSocket;
+            item.ReconnectInterval = ReconnectInterval;
+            item.SocketNoDataTimeout = SocketNoDataTimeout;
+            item.SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget;
+            item.MaxSocketConnections = MaxSocketConnections;
+            item.Proxy = Proxy;
+            item.RequestTimeout = RequestTimeout;
+            item.RateLimitingBehaviour = RateLimitingBehaviour;
+            item.RateLimiterEnabled = RateLimiterEnabled;
+            return item;
         }
     }
 
