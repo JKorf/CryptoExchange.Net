@@ -19,8 +19,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.String)
             {
                 var value = reader.GetString();
-                if (string.IsNullOrEmpty(value) || string.Equals("null", value))
+                if (string.IsNullOrEmpty(value) || string.Equals("null", value, StringComparison.OrdinalIgnoreCase))
                     return null;
+
+                if (string.Equals("Infinity", value, StringComparison.Ordinal))
+                    // Infinity returned by the server, default to max value
+                    return decimal.MaxValue;
 
                 try
                 {
