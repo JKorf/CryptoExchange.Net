@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.RateLimiting
         /// <summary>
         /// No wait needed
         /// </summary>
-        public static LimitCheck NotNeeded { get; } = new LimitCheck(true, default, default, default, default);
+        public static LimitCheck NotNeeded(int limit, TimeSpan period, int current) => new(true, default, limit, period, current);
 
         /// <summary>
         /// Wait needed

@@ -110,7 +110,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
             var delay = tracker.GetWaitTime(requestWeight);
             if (delay == default)
-                return LimitCheck.NotNeeded;
+                return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
 
             return LimitCheck.Needed(delay, Limit, TimeSpan, tracker.Current);
         }

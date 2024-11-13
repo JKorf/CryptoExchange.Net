@@ -23,6 +23,8 @@ namespace CryptoExchange.Net.RateLimiting
 
         /// <inheritdoc />
         public event Action<RateLimitEvent>? RateLimitTriggered;
+        /// <inheritdoc />
+        public event Action<RateLimitUpdateEvent>? RateLimitUpdated;
 
         /// <summary>
         /// ctor
@@ -105,7 +107,7 @@ namespace CryptoExchange.Net.RateLimiting
                     else
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
                     
-                    RateLimitTriggered?.Invoke(new RateLimitEvent(_name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }
 
@@ -120,7 +122,7 @@ namespace CryptoExchange.Net.RateLimiting
                     else
                         logger.RateLimitDelayingRequest(itemId, definition.Path, result.Delay, guard.Name, description);
 
-                    RateLimitTriggered?.Invoke(new RateLimitEvent(_name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
                     return await CheckGuardsAsync(guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
@@ -133,6 +135,8 @@ namespace CryptoExchange.Net.RateLimiting
                 var result = guard.ApplyWeight(type, definition, host, apiKey, requestWeight);
                 if (result.IsApplied)
                 {
+                    RateLimitUpdated?.Invoke(new RateLimitUpdateEvent(itemId, _name, guard.Description, result.Current, result.Limit, result.Period));
+
                     if (type == RateLimitItemType.Connection)
                         logger.RateLimitAppliedConnection(itemId, guard.Name, guard.Description, result.Current);
                     else

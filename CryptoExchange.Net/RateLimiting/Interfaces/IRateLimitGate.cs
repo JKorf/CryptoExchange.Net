@@ -17,6 +17,11 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         event Action<RateLimitEvent> RateLimitTriggered;
 
         /// <summary>
+        /// Event when the rate limit is updated. Note that it's only updated when a request is send, so there are no specific updates when the current usage is decaying.
+        /// </summary>
+        event Action<RateLimitUpdateEvent>? RateLimitUpdated;
+
+        /// <summary>
         /// Add a rate limit guard
         /// </summary>
         /// <param name="guard">Guard to add</param>
