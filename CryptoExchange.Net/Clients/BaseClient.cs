@@ -110,6 +110,19 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="del"></param>
+        /// <returns></returns>
+        protected static T ApplyOptionsDelegate<T>(Action<T>? del) where T: new()
+        {
+            var opts = new T();
+            del?.Invoke(opts);
+            return opts;
+        }
+
+        /// <summary>
         /// Dispose
         /// </summary>
         public virtual void Dispose()

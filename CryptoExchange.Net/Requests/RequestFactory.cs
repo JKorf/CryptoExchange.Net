@@ -11,12 +11,12 @@ namespace CryptoExchange.Net.Requests
     /// </summary>
     public class RequestFactory : IRequestFactory
     {
-        private HttpClient? _httpClient;        
+        private static HttpClient? _httpClient;
 
         /// <inheritdoc />
         public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? client = null)
         {
-            if (client == null)
+            if (client == null && _httpClient == null)
             {
                 var handler = new HttpClientHandler();
                 try
@@ -40,7 +40,8 @@ namespace CryptoExchange.Net.Requests
                 };
             }
 
-            _httpClient = client;
+            if (_httpClient == null)
+                _httpClient = client;
         }
 
         /// <inheritdoc />

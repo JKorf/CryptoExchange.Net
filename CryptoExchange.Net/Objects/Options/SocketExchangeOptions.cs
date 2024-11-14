@@ -101,13 +101,19 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Create a copy of this options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public new T Copy<T>() where T : SocketExchangeOptions<TEnvironment>, new()
         {
-            var result = base.Copy<T>();
-            result.Environment = Environment;
-            return result;
+            return Set<T>(base.Copy<T>());
+        }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment>, new()
+        {
+            base.Set(target);
+            target.Environment = Environment;
+            return target;
         }
     }
 
