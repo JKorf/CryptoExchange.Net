@@ -110,11 +110,8 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// 
+        /// Apply the options delegate to a new options instance
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="del"></param>
-        /// <returns></returns>
         protected static T ApplyOptionsDelegate<T>(Action<T>? del) where T: new()
         {
             var opts = new T();

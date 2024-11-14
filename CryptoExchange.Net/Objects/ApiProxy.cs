@@ -25,29 +25,13 @@
         public string? Password { get; set; }
 
         /// <summary>
-        /// ctor
-        /// </summary>
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-        public ApiProxy() { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-
-        /// <summary>
-        /// Create new settings for a proxy
-        /// </summary>
-        /// <param name="host">The proxy hostname/ip</param>
-        /// <param name="port">The proxy port</param>
-        public ApiProxy(string host, int port): this(host, port, null, null)
-        {
-        }
-
-        /// <summary>
         /// Create new settings for a proxy
         /// </summary>
         /// <param name="host">The proxy hostname/ip</param>
         /// <param name="port">The proxy port</param>
         /// <param name="login">The proxy login</param>
         /// <param name="password">The proxy password</param>
-        public ApiProxy(string host, int port, string? login, string? password)
+        public ApiProxy(string host, int port, string? login = null, string? password = null)
         {
             Host = host;
             Port = port;
