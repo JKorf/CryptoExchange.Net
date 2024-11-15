@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.UnitTests
 
         public TestBaseClient(): base(null, "Test")
         {
-            var options = TestClientOptions.Default.Copy();
+            var options = new TestClientOptions();
             Initialize(options);
             SubClient = AddApiClient(new TestSubClient(options, new RestApiOptions()));
         }

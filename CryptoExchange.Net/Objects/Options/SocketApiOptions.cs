@@ -20,19 +20,15 @@ namespace CryptoExchange.Net.Objects.Options
         public int? MaxSocketConnections { get; set; }
 
         /// <summary>
-        /// Create a copy of this options
+        /// Set the values of this options on the target options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T Copy<T>() where T : SocketApiOptions, new()
+        public T Set<T>(T item) where T : SocketApiOptions, new()
         {
-            return new T
-            {
-                ApiCredentials = ApiCredentials?.Copy(),
-                OutputOriginalData = OutputOriginalData,
-                SocketNoDataTimeout = SocketNoDataTimeout,
-                MaxSocketConnections = MaxSocketConnections,
-            };
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.OutputOriginalData = OutputOriginalData;
+            item.SocketNoDataTimeout = SocketNoDataTimeout;
+            item.MaxSocketConnections = MaxSocketConnections;
+            return item;
         }
     }
 

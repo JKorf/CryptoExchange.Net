@@ -19,19 +19,15 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan? TimestampRecalculationInterval { get; set; }
 
         /// <summary>
-        /// Create a copy of this options
+        /// Set the values of this options on the target options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public virtual T Copy<T>() where T : RestApiOptions, new()
+        public T Set<T>(T item) where T : RestApiOptions, new()
         {
-            return new T
-            {
-                ApiCredentials = ApiCredentials?.Copy(),
-                OutputOriginalData = OutputOriginalData,
-                AutoTimestamp = AutoTimestamp,
-                TimestampRecalculationInterval = TimestampRecalculationInterval
-            };
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.OutputOriginalData = OutputOriginalData;
+            item.AutoTimestamp = AutoTimestamp;
+            item.TimestampRecalculationInterval = TimestampRecalculationInterval;
+            return item;
         }
     }
 

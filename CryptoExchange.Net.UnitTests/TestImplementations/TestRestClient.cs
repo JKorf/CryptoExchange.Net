@@ -16,6 +16,7 @@ using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.SharedApis;
+using Microsoft.Extensions.Options;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -24,22 +25,17 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestRestApi1Client Api1 { get; }
         public TestRestApi2Client Api2 { get; }
 
-        public TestRestClient(Action<TestClientOptions> optionsFunc) : this(optionsFunc, null)
+        public TestRestClient(Action<TestClientOptions>? optionsDelegate = null)
+            : this(null, null, Options.Create(ApplyOptionsDelegate(optionsDelegate)))
         {
         }
 
-        public TestRestClient(ILoggerFactory loggerFactory = null, HttpClient httpClient = null) : this((x) => { }, httpClient, loggerFactory)
+        public TestRestClient(HttpClient? httpClient, ILoggerFactory? loggerFactory, IOptions<TestClientOptions> options) : base(loggerFactory, "Test")
         {
-        }
+            Initialize(options.Value);
 
-        public TestRestClient(Action<TestClientOptions> optionsFunc, HttpClient httpClient = null, ILoggerFactory loggerFactory = null) : base(loggerFactory, "Test")
-        {
-            var options = TestClientOptions.Default.Copy();
-            optionsFunc(options);
-            Initialize(options);
-
-            Api1 = new TestRestApi1Client(options);
-            Api2 = new TestRestApi2Client(options);
+            Api1 = new TestRestApi1Client(options.Value);
+            Api2 = new TestRestApi2Client(options.Value);
         }
 
         public void SetResponse(string responseData, out IRequest requestObj)

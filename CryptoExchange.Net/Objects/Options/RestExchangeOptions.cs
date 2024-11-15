@@ -29,14 +29,6 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan CachingMaxAge { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Create a copy of this options
-        /// </summary>
-        public T Copy<T>() where T : RestExchangeOptions, new()
-        {
-            return Set(new T());
-        }
-
-        /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
         public T Set<T>(T item) where T : RestExchangeOptions, new()
@@ -68,14 +60,6 @@ namespace CryptoExchange.Net.Objects.Options
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public TEnvironment Environment { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-        /// <summary>
-        /// Create a copy of this options
-        /// </summary>
-        public new T Copy<T>() where T : RestExchangeOptions<TEnvironment>, new ()
-        {
-            return Set<T>(base.Copy<T>());
-        }
 
         /// <summary>
         /// Set the values of this options on the target options

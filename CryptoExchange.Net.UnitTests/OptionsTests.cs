@@ -100,6 +100,10 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(authProvider1.GetSecret() == "222");
             Assert.That(authProvider2.GetKey() == "123");
             Assert.That(authProvider2.GetSecret() == "456");
+
+            // Cleanup static values
+            TestClientOptions.Default.ApiCredentials = null;
+            TestClientOptions.Default.Api1Options.ApiCredentials = null;
         }
 
         [Test]
@@ -121,6 +125,10 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(authProvider2.GetKey() == "123");
             Assert.That(authProvider2.GetSecret() == "456");
             Assert.That(client.Api2.BaseAddress == "https://localhost:123");
+
+            // Cleanup static values
+            TestClientOptions.Default.ApiCredentials = null;
+            TestClientOptions.Default.Api1Options.ApiCredentials = null;
         }
     }
 
@@ -135,6 +143,14 @@ namespace CryptoExchange.Net.UnitTests
         };
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        public TestClientOptions()
+        {
+            Default?.Set(this);
+        }
+
+        /// <summary>
         /// The default receive window for requests
         /// </summary>
         public TimeSpan ReceiveWindow { get; set; } = TimeSpan.FromSeconds(5);
@@ -143,12 +159,12 @@ namespace CryptoExchange.Net.UnitTests
 
         public RestApiOptions Api2Options { get; set; } = new RestApiOptions();
 
-        internal TestClientOptions Copy()
+        internal TestClientOptions Set(TestClientOptions targetOptions)
         {
-            var options = Copy<TestClientOptions>();
-            options.Api1Options = Api1Options.Copy<RestApiOptions>();
-            options.Api2Options = Api2Options.Copy<RestApiOptions>();
-            return options;
+            targetOptions = base.Set<TestClientOptions>(targetOptions);
+            targetOptions.Api1Options = Api1Options.Set(targetOptions.Api1Options);
+            targetOptions.Api2Options = Api2Options.Set(targetOptions.Api2Options);
+            return targetOptions;
         }
     }
 }

@@ -55,20 +55,11 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Create a copy of this options
         /// </summary>
-        public T Copy<T>() where T : SocketExchangeOptions, new()
-        {
-            return Set(new T());
-        }
-
-        /// <summary>
-        /// Create a copy of this options
-        /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Set<T>(T item) where T : SocketExchangeOptions, new()
         {
-            if (ApiCredentials != null)
-                item.ApiCredentials = ApiCredentials?.Copy();
+            item.ApiCredentials = ApiCredentials?.Copy();
             item.OutputOriginalData = OutputOriginalData;
             item.ReconnectPolicy = ReconnectPolicy;
             item.DelayAfterConnect = DelayAfterConnect;
@@ -100,21 +91,12 @@ namespace CryptoExchange.Net.Objects.Options
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
-        /// Create a copy of this options
-        /// </summary>
-        public new T Copy<T>() where T : SocketExchangeOptions<TEnvironment>, new()
-        {
-            return Set<T>(base.Copy<T>());
-        }
-
-        /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
         public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment>, new()
         {
             base.Set(target);
-            if (Environment != null)
-                target.Environment = Environment;
+            target.Environment = Environment;
             return target;
         }
     }
