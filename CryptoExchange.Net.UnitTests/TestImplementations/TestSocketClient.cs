@@ -57,11 +57,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             TestAddress = url;
         }
-
-        public override T GetEnvironmentByName<T>(string? name)
-        {
-            return (T)(TradeEnvironment)new TestEnvironment(name, "https://test.test")!;
-        }
     }
 
     public class TestSocketOptions: SocketExchangeOptions<TestEnvironment>

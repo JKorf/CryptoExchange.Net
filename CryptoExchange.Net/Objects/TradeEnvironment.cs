@@ -19,7 +19,7 @@
     /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
     /// the echange's environment list or create a custom environment using either `[Exchange]Environment.CreateCustom()` or `[Exchange]Environment.[Environment]`, for example `KucoinEnvironment.TestNet` or `BinanceEnvironment.Live`
     /// </summary>
-    public abstract class TradeEnvironment
+    public class TradeEnvironment
     {
         /// <summary>
         /// Name of the environment
@@ -33,10 +33,5 @@
         {
             Name = name;
         }
-
-        /// <summary>
-        /// Get a trade environment by name
-        /// </summary>
-        public abstract T? GetEnvironmentByName<T>(string? name) where T : TradeEnvironment;
     }
 }
