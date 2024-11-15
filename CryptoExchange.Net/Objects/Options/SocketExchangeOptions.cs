@@ -67,7 +67,8 @@ namespace CryptoExchange.Net.Objects.Options
         /// <returns></returns>
         public T Set<T>(T item) where T : SocketExchangeOptions, new()
         {
-            item.ApiCredentials = ApiCredentials?.Copy();
+            if (ApiCredentials != null)
+                item.ApiCredentials = ApiCredentials?.Copy();
             item.OutputOriginalData = OutputOriginalData;
             item.ReconnectPolicy = ReconnectPolicy;
             item.DelayAfterConnect = DelayAfterConnect;
@@ -112,7 +113,8 @@ namespace CryptoExchange.Net.Objects.Options
         public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment>, new()
         {
             base.Set(target);
-            target.Environment = Environment;
+            if (Environment != null)
+                target.Environment = Environment;
             return target;
         }
     }
