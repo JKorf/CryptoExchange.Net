@@ -50,6 +50,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.3.0 - 19 Nov 2024
+    * Added support for IOptions injection, allowing options to be read from IConfiguration
+    * Added handling of Infinity values in decimal converter
+    * Added rate limit update event
+    * Small refactor on client options internals
+    * Fixed concurrency issue when unsubscribing websocket subscription during reconnection
+
 * Version 8.2.0 - 06 Nov 2024
     * Added support for not allowing duplicate subscription topics on the same websocket connection
     * Added PerAccount SharedLeverageSettingMode enum value, changed Side on SharedUserTrade to nullable
