@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using CryptoExchange.Net.Testing.Implementations;
 using CryptoExchange.Net.SharedApis;
+using Microsoft.Extensions.Options;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -22,25 +23,20 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
     {
         public TestSubSocketClient SubClient { get; }
 
-        public TestSocketClient(ILoggerFactory loggerFactory = null) : this((x) => { }, loggerFactory)
-        {
-        }
-
         /// <summary>
         /// Create a new instance of KucoinSocketClient
         /// </summary>
         /// <param name="optionsFunc">Configure the options to use for this client</param>
-        public TestSocketClient(Action<TestSocketOptions> optionsFunc) : this(optionsFunc, null)
+        public TestSocketClient(Action<TestSocketOptions>? optionsDelegate = null)
+            : this(Options.Create(ApplyOptionsDelegate(optionsDelegate)), null)
         {
         }
 
-        public TestSocketClient(Action<TestSocketOptions> optionsFunc, ILoggerFactory loggerFactory = null) : base(loggerFactory, "Test")
+        public TestSocketClient(IOptions<TestSocketOptions> options, ILoggerFactory? loggerFactory = null) : base(loggerFactory, "Test")
         {
-            var options = TestSocketOptions.Default.Copy<TestSocketOptions>();
-            optionsFunc(options);
-            Initialize(options);
+            Initialize(options.Value);
 
-            SubClient = AddApiClient(new TestSubSocketClient(options, options.SubOptions));
+            SubClient = AddApiClient(new TestSubSocketClient(options.Value, options.Value.SubOptions));
             SubClient.SocketFactory = new Mock<IWebsocketFactory>().Object;
             Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket("https://test.com"));
         }
@@ -70,7 +66,22 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             Environment = new TestEnvironment("Live", "https://test.test")
         };
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public TestSocketOptions()
+        {
+            Default?.Set(this);
+        }
+
         public SocketApiOptions SubOptions { get; set; } = new SocketApiOptions();
+
+        internal TestSocketOptions Set(TestSocketOptions targetOptions)
+        {
+            targetOptions = base.Set<TestSocketOptions>(targetOptions);
+            targetOptions.SubOptions = SubOptions.Set(targetOptions.SubOptions);
+            return targetOptions;
+        }
     }
 
     public class TestSubSocketClient : SocketApiClient

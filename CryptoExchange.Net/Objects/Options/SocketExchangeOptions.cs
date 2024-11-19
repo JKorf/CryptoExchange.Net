@@ -57,24 +57,22 @@ namespace CryptoExchange.Net.Objects.Options
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Copy<T>() where T : SocketExchangeOptions, new()
+        public T Set<T>(T item) where T : SocketExchangeOptions, new()
         {
-            return new T
-            {
-                ApiCredentials = ApiCredentials?.Copy(),
-                OutputOriginalData = OutputOriginalData,
-                ReconnectPolicy = ReconnectPolicy,
-                DelayAfterConnect = DelayAfterConnect,
-                MaxConcurrentResubscriptionsPerSocket = MaxConcurrentResubscriptionsPerSocket,
-                ReconnectInterval = ReconnectInterval,
-                SocketNoDataTimeout = SocketNoDataTimeout,
-                SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget,
-                MaxSocketConnections = MaxSocketConnections,
-                Proxy = Proxy,
-                RequestTimeout = RequestTimeout,
-                RateLimitingBehaviour = RateLimitingBehaviour,
-                RateLimiterEnabled = RateLimiterEnabled,
-            };
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.OutputOriginalData = OutputOriginalData;
+            item.ReconnectPolicy = ReconnectPolicy;
+            item.DelayAfterConnect = DelayAfterConnect;
+            item.MaxConcurrentResubscriptionsPerSocket = MaxConcurrentResubscriptionsPerSocket;
+            item.ReconnectInterval = ReconnectInterval;
+            item.SocketNoDataTimeout = SocketNoDataTimeout;
+            item.SocketSubscriptionsCombineTarget = SocketSubscriptionsCombineTarget;
+            item.MaxSocketConnections = MaxSocketConnections;
+            item.Proxy = Proxy;
+            item.RequestTimeout = RequestTimeout;
+            item.RateLimitingBehaviour = RateLimitingBehaviour;
+            item.RateLimiterEnabled = RateLimiterEnabled;
+            return item;
         }
     }
 
@@ -93,15 +91,13 @@ namespace CryptoExchange.Net.Objects.Options
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
-        /// Create a copy of this options
+        /// Set the values of this options on the target options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public new T Copy<T>() where T : SocketExchangeOptions<TEnvironment>, new()
+        public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment>, new()
         {
-            var result = base.Copy<T>();
-            result.Environment = Environment;
-            return result;
+            base.Set(target);
+            target.Environment = Environment;
+            return target;
         }
     }
 

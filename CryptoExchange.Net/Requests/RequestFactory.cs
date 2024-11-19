@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Requests
     /// </summary>
     public class RequestFactory : IRequestFactory
     {
-        private HttpClient? _httpClient;        
+        private HttpClient? _httpClient;
 
         /// <inheritdoc />
         public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? client = null)

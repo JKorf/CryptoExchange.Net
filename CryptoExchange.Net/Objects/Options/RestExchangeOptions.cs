@@ -29,25 +29,21 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan CachingMaxAge { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
-        /// Create a copy of this options
+        /// Set the values of this options on the target options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T Copy<T>() where T : RestExchangeOptions, new()
+        public T Set<T>(T item) where T : RestExchangeOptions, new()
         {
-            return new T
-            {
-                OutputOriginalData = OutputOriginalData,
-                AutoTimestamp = AutoTimestamp,
-                TimestampRecalculationInterval = TimestampRecalculationInterval,
-                ApiCredentials = ApiCredentials?.Copy(),
-                Proxy = Proxy,
-                RequestTimeout = RequestTimeout,
-                RateLimiterEnabled = RateLimiterEnabled,
-                RateLimitingBehaviour = RateLimitingBehaviour,
-                CachingEnabled = CachingEnabled,
-                CachingMaxAge = CachingMaxAge,
-            };
+            item.OutputOriginalData = OutputOriginalData;
+            item.AutoTimestamp = AutoTimestamp;
+            item.TimestampRecalculationInterval = TimestampRecalculationInterval;
+            item.ApiCredentials = ApiCredentials?.Copy();
+            item.Proxy = Proxy;
+            item.RequestTimeout = RequestTimeout;
+            item.RateLimiterEnabled = RateLimiterEnabled;
+            item.RateLimitingBehaviour = RateLimitingBehaviour;
+            item.CachingEnabled = CachingEnabled;
+            item.CachingMaxAge = CachingMaxAge;
+            return item;
         }
     }
 
@@ -66,15 +62,13 @@ namespace CryptoExchange.Net.Objects.Options
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         /// <summary>
-        /// Create a copy of this options
+        /// Set the values of this options on the target options
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public new T Copy<T>() where T : RestExchangeOptions<TEnvironment>, new()
+        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
         {
-            var result = base.Copy<T>();
-            result.Environment = Environment;
-            return result;
+            base.Set(target);
+            target.Environment = Environment;
+            return target;
         }
     }
 

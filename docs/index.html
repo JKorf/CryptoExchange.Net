@@ -356,7 +356,7 @@
         <section id="idocs_di">
           <h2>Dependency Injection</h2>
           <p>
-			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services per exchange by calling the <code>Add[Library]();</code> extension method on the service collection, or use <code>AddCryptoClients()</code> to add all exchange services in a single class. <a href="#idocs_options_set">Options</a> for the clients can be passed as parameters.
+			All client libraries support and encourage usage via the Dotnet dependency injection system. Add all necesary services per exchange by calling the <code>Add[Library]();</code> extension method on the service collection, or use <code>AddCryptoClients()</code> to add all exchange services in a single class. Options for the clients can be passed as parameters or read from the configuration. See <a href="#idocs_options_set">Options</a>.
 		  </p>
 		  <div class="alert alert-info">Using the dependecy injection mechanism also makes sure the HttpClient is used correctly</div>
 		  <div class="tab-wrap">
@@ -2334,7 +2334,7 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
           <h2>Setting options</h2>
           
 		  <b>Dependency injection</b>
-		  <p>When adding a library to the service collection (see <a href="#idocs_di">Dependency Injection</a>) the options for the clients can be provided as argument to the calls. Options are split between the REST and the websocket client.</p>
+		  <p>When adding a library to the service collection (see <a href="#idocs_di">Dependency Injection</a>) the options for the clients can be provided as argument to the calls or read from configuration.</p>
 		  <div class="tab-wrap">
 		  <ul class="nav nav-tabs" id="options" role="tablist" style="margin-bottom: -16px;">
 			  <li class="nav-item" role="presentation">
@@ -2404,153 +2404,206 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </div>
 			   <div class="tab-pane fade" id="options-binance" role="tabpanel" aria-labelledby="options-binance-tab">
 <pre><code>builder.Services.AddBinance(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBinance(builder.Configuration.GetSection("Binance"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-bingx" role="tabpanel" aria-labelledby="options-bingx-tab">
 <pre><code>builder.Services.AddBingX(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBingX(builder.Configuration.GetSection("BingX"));</code></pre></code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-bitfinex" role="tabpanel" aria-labelledby="options-bitfinex-tab">
 <pre><code>builder.Services.AddBitfinex(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBitfinex(builder.Configuration.GetSection("Bitfinex"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-bitget" role="tabpanel" aria-labelledby="options-bitget-tab">
 <pre><code>builder.Services.AddBitget(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBitget(builder.Configuration.GetSection("Bitget"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-bitmart" role="tabpanel" aria-labelledby="options-bitmart-tab">
 <pre><code>builder.Services.AddBitMart(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBitMart(builder.Configuration.GetSection("BitMart"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-bybit" role="tabpanel" aria-labelledby="options-bybit-tab">
 <pre><code>builder.Services.AddBybit(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddBybit(builder.Configuration.GetSection("Bybit"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-coinbase" role="tabpanel" aria-labelledby="options-coinbase-tab">
 <pre><code>builder.Services.AddCoinbase(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddCoinbase(builder.Configuration.GetSection("Coinbase"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-coingecko" role="tabpanel" aria-labelledby="options-coingecko-tab">
 <pre><code>builder.Services.AddCoinGecko(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  });</code></pre>
+  options => {
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddCoinGecko(builder.Configuration.GetSection("CoinGecko"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-coinex" role="tabpanel" aria-labelledby="options-coinex-tab">
 <pre><code>builder.Services.AddCoinEx(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddCoinEx(builder.Configuration.GetSection("CoinEx"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-cryptocom" role="tabpanel" aria-labelledby="options-cryptocom-tab">
 <pre><code>builder.Services.AddCryptoCom(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddCryptoCom(builder.Configuration.GetSection("CryptoCom"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-gateio" role="tabpanel" aria-labelledby="options-gateio-tab">
 <pre><code>builder.Services.AddGateIo(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddGateIo(builder.Configuration.GetSection("GateIo"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-htx" role="tabpanel" aria-labelledby="options-htx-tab">
 <pre><code>builder.Services.AddHTX(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddHTX(builder.Configuration.GetSection("HTX"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
 <pre><code>builder.Services.AddKraken(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddKraken(builder.Configuration.GetSection("Kraken"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-kucoin" role="tabpanel" aria-labelledby="options-kucoin-tab">
 <pre><code>builder.Services.AddKucoin(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddKucoin(builder.Configuration.GetSection("Kucoin"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-mexc" role="tabpanel" aria-labelledby="options-mexc-tab">
 <pre><code>builder.Services.AddMexc(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddMexc(builder.Configuration.GetSection("Mexc"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-okx" role="tabpanel" aria-labelledby="options-okx-tab">
 <pre><code>builder.Services.AddOKX(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddOKX(builder.Configuration.GetSection("OKX"));</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-whitebit" role="tabpanel" aria-labelledby="options-whitebit-tab">
 <pre><code>builder.Services.AddWhiteBit(
-  restOptions => {
-    restOptions.RequestTimeout = TimeSpan.FromSeconds(30);
-  },
-  socketOptions => {
-    socketOptions.RequestTimeout = TimeSpan.FromSeconds(10);
-  });</code></pre>
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddWhiteBit(builder.Configuration.GetSection("WhiteBit"));</code></pre>
 			  </div>
 			</div>
 			</div>

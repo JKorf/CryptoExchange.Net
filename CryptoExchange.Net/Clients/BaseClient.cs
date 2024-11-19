@@ -110,6 +110,16 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
+        /// Apply the options delegate to a new options instance
+        /// </summary>
+        protected static T ApplyOptionsDelegate<T>(Action<T>? del) where T: new()
+        {
+            var opts = new T();
+            del?.Invoke(opts);
+            return opts;
+        }
+
+        /// <summary>
         /// Dispose
         /// </summary>
         public virtual void Dispose()

@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Get the API key of the current credentials
         /// </summary>
-        public string ApiKey => _credentials.Key;
+        public string ApiKey => _credentials.Key!;
 
         /// <summary>
         /// ctor
@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="credentials"></param>
         protected AuthenticationProvider(ApiCredentials credentials)
         {
-            if (credentials.Secret == null)
+            if (credentials.Key == null || credentials.Secret == null)
                 throw new ArgumentException("ApiKey/Secret needed");
 
             _credentials = credentials;

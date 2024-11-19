@@ -1,0 +1,26 @@
+{
+	"ExchangeApiOptions": {
+		"ApiCredentials": {
+			"Key": "APIKEY",
+			"Secret": "SECRET"
+		},
+		"Environment": {
+			"name": "live"
+		},
+		"Rest":{
+			"RequestTimeout": "00:00:20",
+			"CachingEnabled": true,
+			"OutputOriginalData": true,
+			"Proxy": {
+				"Host": "https://127.0.0.1",
+				"Port": 8080,
+				"Login": "User",
+				"Password": "Pass"
+			}
+		},
+		"Socket":{
+			"RequestTimeout": "00:00:05",
+			"SocketSubscriptionsCombineTarget": 15
+		}
+	}
+}
