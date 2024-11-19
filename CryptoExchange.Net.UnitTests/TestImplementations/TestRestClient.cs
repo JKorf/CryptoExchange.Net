@@ -25,12 +25,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public TestRestApi1Client Api1 { get; }
         public TestRestApi2Client Api2 { get; }
 
-        public TestRestClient(Action<TestClientOptions>? optionsDelegate = null)
+        public TestRestClient(Action<TestClientOptions> optionsDelegate = null)
             : this(null, null, Options.Create(ApplyOptionsDelegate(optionsDelegate)))
         {
         }
 
-        public TestRestClient(HttpClient? httpClient, ILoggerFactory? loggerFactory, IOptions<TestClientOptions> options) : base(loggerFactory, "Test")
+        public TestRestClient(HttpClient httpClient, ILoggerFactory loggerFactory, IOptions<TestClientOptions> options) : base(loggerFactory, "Test")
         {
             Initialize(options.Value);
 

@@ -27,12 +27,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         /// Create a new instance of KucoinSocketClient
         /// </summary>
         /// <param name="optionsFunc">Configure the options to use for this client</param>
-        public TestSocketClient(Action<TestSocketOptions>? optionsDelegate = null)
+        public TestSocketClient(Action<TestSocketOptions> optionsDelegate = null)
             : this(Options.Create(ApplyOptionsDelegate(optionsDelegate)), null)
         {
         }
 
-        public TestSocketClient(IOptions<TestSocketOptions> options, ILoggerFactory? loggerFactory = null) : base(loggerFactory, "Test")
+        public TestSocketClient(IOptions<TestSocketOptions> options, ILoggerFactory loggerFactory = null) : base(loggerFactory, "Test")
         {
             Initialize(options.Value);
 
