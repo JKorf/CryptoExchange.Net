@@ -224,6 +224,9 @@ namespace CryptoExchange.Net.Testing.Comparers
             else if (propertyValue.GetType().GetInterfaces().Contains(typeof(IEnumerable))
                 && propertyValue.GetType() != typeof(string))
             {
+                if (propValue.Type != JTokenType.Array)
+                    return;
+
                 var jObjs = (JArray)propValue;
                 var list = (IEnumerable)propertyValue;
                 var enumerator = list.GetEnumerator();
