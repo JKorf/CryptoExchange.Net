@@ -173,17 +173,20 @@ namespace CryptoExchange.Net.Testing
 
             foreach (var clientInterface in clientInterfaces)
             {
-                var implementation = assembly.GetTypes().Single(t => clientInterface.IsAssignableFrom(t) && t != clientInterface);
-                int methods = 0;
-                foreach (var method in implementation.GetMethods().Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
+                var implementations = assembly.GetTypes().Where(t => clientInterface.IsAssignableFrom(t) && t != clientInterface);
+                foreach (var implementation in implementations)
                 {
-                    var interfaceMethod = clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray());
-                    if (interfaceMethod == null)
-                        throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
-                    methods++;
-                }
+                    int methods = 0;
+                    foreach (var method in implementation.GetMethods().Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
+                    {
+                        var interfaceMethod = clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray());
+                        if (interfaceMethod == null)
+                            throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
+                        methods++;
+                    }
 
-                Debug.WriteLine($"{clientInterface.Name} {methods} methods validated");
+                    Debug.WriteLine($"{clientInterface.Name} {methods} methods validated");
+                }
             }
         }
     }

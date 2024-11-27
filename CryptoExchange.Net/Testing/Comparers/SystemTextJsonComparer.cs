@@ -375,7 +375,8 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (objectValue is DateTime time)
                 {
-                    if (time != DateTimeConverter.ParseFromString(jsonValue.Value<string>()!))
+                    var jsonStr = jsonValue.Value<string>()!;
+                    if (!string.IsNullOrEmpty(jsonStr) && time != DateTimeConverter.ParseFromString(jsonStr))
                         throw new Exception($"{method}: {property} not equal: {jsonValue.Value<string>()} vs {time}");
                 }
                 else if (objectValue is bool bl)
