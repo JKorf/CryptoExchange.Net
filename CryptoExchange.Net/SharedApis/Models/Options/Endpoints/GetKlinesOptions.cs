@@ -38,7 +38,6 @@ namespace CryptoExchange.Net.SharedApis
                 SharedKlineInterval.FiveMinutes,
                 SharedKlineInterval.FifteenMinutes,
                 SharedKlineInterval.OneHour,
-                SharedKlineInterval.FifteenMinutes,
                 SharedKlineInterval.OneDay,
                 SharedKlineInterval.OneWeek,
                 SharedKlineInterval.OneMonth
