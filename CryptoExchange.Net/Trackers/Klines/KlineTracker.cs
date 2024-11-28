@@ -229,7 +229,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             if (_restClient.GetKlinesOptions.MaxAge != null && DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value) > startTime)
                 startTime = DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value);
 
-            var limit = Math.Min(_restClient.GetKlinesOptions.MaxRequestDataPoints ?? _restClient.GetKlinesOptions.MaxTotalDataPoints ?? 100, Limit ?? 100);
+            var limit = Math.Min(_restClient.GetKlinesOptions.MaxLimit, Limit ?? 100);
 
             var request = new GetKlinesRequest(Symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
             var data = new List<SharedKline>();

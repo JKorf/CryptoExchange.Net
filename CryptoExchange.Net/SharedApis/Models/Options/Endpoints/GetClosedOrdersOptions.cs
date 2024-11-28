@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetClosedOrdersOptions(SharedPaginationSupport paginationType, bool timeFilterSupported) : base(paginationType, true)
+        public GetClosedOrdersOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit) : base(paginationType, timeFilterSupported, maxLimit, true)
         {
             TimeFilterSupported = timeFilterSupported;
         }

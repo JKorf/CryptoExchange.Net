@@ -8,7 +8,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFundingRateHistoryOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
+        public GetFundingRateHistoryOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(paginationType, timeFilterSupported, maxLimit, needsAuthentication)
         {
         }
     }

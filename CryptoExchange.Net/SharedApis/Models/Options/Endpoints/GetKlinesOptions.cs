@@ -20,10 +20,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public int? MaxTotalDataPoints { get; set; }
         /// <summary>
-        /// Max number of data points which can be requested in a single request
-        /// </summary>
-        public int? MaxRequestDataPoints { get; set; }
-        /// <summary>
         /// The max age of the data that can be requested
         /// </summary>
         public TimeSpan? MaxAge { get; set; }
@@ -31,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(paginationType, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(paginationType, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -47,7 +43,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = intervals;
         }
@@ -68,8 +64,8 @@ namespace CryptoExchange.Net.SharedApis
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return new ArgumentError($"Only the most recent {MaxAge} klines are available");
 
-            if (MaxRequestDataPoints.HasValue && request.Limit > MaxRequestDataPoints.Value)
-                return new ArgumentError($"Only {MaxRequestDataPoints} klines can be retrieved per request");
+            if (request.Limit > MaxLimit)
+                return new ArgumentError($"Only {MaxLimit} klines can be retrieved per request");
 
             if (MaxTotalDataPoints.HasValue)
             {
@@ -95,8 +91,6 @@ namespace CryptoExchange.Net.SharedApis
                 sb.AppendLine($"Max age of data: {MaxAge}");
             if (MaxTotalDataPoints != null)
                 sb.AppendLine($"Max total data points available: {MaxTotalDataPoints}");
-            if (MaxRequestDataPoints != null)
-                sb.AppendLine($"Max data points per request: {MaxRequestDataPoints}");
             return sb.ToString();
         }
     }

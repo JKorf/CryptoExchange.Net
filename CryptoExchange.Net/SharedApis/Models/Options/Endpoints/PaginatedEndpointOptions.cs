@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using CryptoExchange.Net.Objects;
+using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -14,11 +15,23 @@ namespace CryptoExchange.Net.SharedApis
         public SharedPaginationSupport PaginationSupport { get; }
 
         /// <summary>
+        /// Whether filtering based on start/end time is supported
+        /// </summary>
+        public bool TimePeriodFilterSupport { get; }
+
+        /// <summary>
+        /// Max amount of results that can be requested
+        /// </summary>
+        public int MaxLimit { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public PaginatedEndpointOptions(SharedPaginationSupport paginationType, bool needsAuthentication) : base(needsAuthentication)
+        public PaginatedEndpointOptions(SharedPaginationSupport paginationType, bool timePeriodSupport, int maxLimit, bool needsAuthentication) : base(needsAuthentication)
         {
             PaginationSupport = paginationType;
+            TimePeriodFilterSupport = timePeriodSupport;
+            MaxLimit = maxLimit;
         }
 
         /// <inheritdoc />
@@ -26,6 +39,8 @@ namespace CryptoExchange.Net.SharedApis
         {
             var sb = new StringBuilder(base.ToString(exchange));
             sb.AppendLine($"Pagination type: {PaginationSupport}");
+            sb.AppendLine($"Time period filter support: {TimePeriodFilterSupport}");
+            sb.AppendLine($"Max limit: {MaxLimit}");
             return sb.ToString();
         }
     }

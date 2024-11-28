@@ -8,7 +8,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionHistoryOptions(SharedPaginationSupport paginationType) : base(paginationType, true)
+        public GetPositionHistoryOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit) : base(paginationType, timeFilterSupported, maxLimit, true)
         {
         }
     }
