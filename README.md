@@ -50,6 +50,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.4.0 - 28 Nov 2024
+    * Added GetFeesAsync Shared REST client support
+    * Added LibraryOptions base class
+    * Added CommaSplitEnumConverter System.Text.Json converter
+    * Added TimePeriodFilterSupport and MaxLimit properties to PaginatedEndpointOptions
+    * Updated package dependency versions
+
 * Version 8.3.0 - 19 Nov 2024
     * Added support for IOptions injection, allowing options to be read from IConfiguration
     * Added handling of Infinity values in decimal converter
