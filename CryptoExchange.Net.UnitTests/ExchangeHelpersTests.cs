@@ -73,11 +73,11 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [Test]
-        [TestCase("123", "BKR", 32, true, "BKR|JK|123")]
+        [TestCase("123", "BKR", 32, true, "BKRJK123")]
         [TestCase("123", "BKR", 32, false, "123")]
         [TestCase("123123123123123123123123123123", "BKR", 32, true, "123123123123123123123123123123")] // 30
-        [TestCase("123123123123123123123123123", "BKR", 32, true, "123123123123123123123123123")] // 27
-        [TestCase("1231231231231231231231231", "BKR", 32, true, "BKR|JK|1231231231231231231231231")] // 25
+        [TestCase("12312312312312312312312312312", "BKR", 32, true, "12312312312312312312312312312")] // 27
+        [TestCase("123123123123123123123123123", "BKR", 32, true, "BKRJK123123123123123123123123123")] // 25
         [TestCase(null, "BKR", 32, true, null)]
         public void ApplyBrokerIdTests(string clientOrderId, string brokerId, int maxLength, bool allowValueAdjustement, string expected)
         {

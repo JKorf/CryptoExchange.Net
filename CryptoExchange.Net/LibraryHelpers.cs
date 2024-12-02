@@ -12,7 +12,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Client order id seperator
         /// </summary>
-        public const string ClientOrderIdSeperator = "|JK|";
+        public const string ClientOrderIdSeperator = "JK";
 
         /// <summary>
         /// Apply broker id to a client order id
