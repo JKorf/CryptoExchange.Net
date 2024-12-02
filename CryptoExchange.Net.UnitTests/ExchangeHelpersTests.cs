@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace CryptoExchange.Net.UnitTests
@@ -69,6 +70,21 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = ExchangeHelpers.Normalize(input);
             Assert.That(expected == result.ToString(CultureInfo.InvariantCulture));
+        }
+
+        [Test]
+        [TestCase("123", "BKR", 32, true, "BKR|JK|123")]
+        [TestCase("123", "BKR", 32, false, "123")]
+        [TestCase("123123123123123123123123123123", "BKR", 32, true, "123123123123123123123123123123")] // 30
+        [TestCase("123123123123123123123123123", "BKR", 32, true, "123123123123123123123123123")] // 27
+        [TestCase("1231231231231231231231231", "BKR", 32, true, "BKR|JK|1231231231231231231231231")] // 25
+        [TestCase(null, "BKR", 32, true, null)]
+        public void ApplyBrokerIdTests(string clientOrderId, string brokerId, int maxLength, bool allowValueAdjustement, string expected)
+        {
+            var result = LibraryHelpers.ApplyBrokerId(clientOrderId, brokerId, maxLength, allowValueAdjustement);
+            
+            if (expected != null)
+                Assert.That(result, Is.EqualTo(expected));
         }
     }
 }
