@@ -50,6 +50,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.4.2 - 02 Dec 2024
+    * Removed special characters in ClientOrderIdSeperator to adhere to field content rules
+
 * Version 8.4.1 - 02 Dec 2024
     * Added JsonConverterCtorAttribute to allow specifying a custom JsonConverter with constructor parameters on properties
     * Added ReplaceConverter System.Text.Json converter
