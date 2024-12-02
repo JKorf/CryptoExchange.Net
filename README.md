@@ -50,6 +50,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.4.1 - 02 Dec 2024
+    * Added JsonConverterCtorAttribute to allow specifying a custom JsonConverter with constructor parameters on properties
+    * Added ReplaceConverter System.Text.Json converter
+    * Added LibraryHelpers class for internal helper methods
+
 * Version 8.4.0 - 28 Nov 2024
     * Added GetFeesAsync Shared REST client support
     * Added LibraryOptions base class
