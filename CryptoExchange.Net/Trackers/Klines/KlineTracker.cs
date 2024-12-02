@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <summary>
         /// The internal data structure
         /// </summary>
-        protected readonly Dictionary<DateTime, SharedKline> _data = new Dictionary<DateTime, SharedKline>();
+        protected readonly SortedDictionary<DateTime, SharedKline> _data = new SortedDictionary<DateTime, SharedKline>();
         /// <summary>
         /// The pre-snapshot queue buffering updates received before the snapshot is set and which will be applied after the snapshot was set
         /// </summary>
