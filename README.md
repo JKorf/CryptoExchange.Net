@@ -50,6 +50,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.4.3 - 03 Dec 2024
+    * Fixed KlineTracker update handling
+
 * Version 8.4.2 - 02 Dec 2024
     * Removed special characters in ClientOrderIdSeperator to adhere to field content rules
 
