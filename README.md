@@ -40,6 +40,21 @@ A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free t
 ## Support the project
 Any support is greatly appreciated.
 
+## Referral
+When creating an account on new exchanges please consider using a referral link from below to support development
+
+|Exchange|Link|
+|--|--|
+|Bybit|[https://partner.bybit.com/b/jkorf](https://partner.bybit.com/b/jkorf)|
+|Coinbase|[https://advanced.coinbase.com/join/T6H54H8](https://advanced.coinbase.com/join/T6H54H8)|
+|CoinEx|[https://www.coinex.com/register?refer_code=hd6gn](https://www.coinex.com/register?refer_code=hd6gn)|
+|Crypto.com|[https://crypto.com/exch/26ge92xbkn](https://crypto.com/exch/26ge92xbkn)|
+|HTX|[https://www.htx.com/invite/en-us/1f?invite_code=fxp9](https://www.htx.com/invite/en-us/1f?invite_code=fxp9)|
+|Kucoin|[https://www.kucoin.com/r/rf/QBS4FPED](https://www.kucoin.com/r/rf/QBS4FPED)|
+|OKX|[https://okx.com/join/48046699](https://okx.com/join/48046699)|
+|WhiteBit|[https://whitebit.com/referral/a8e59b59-186c-4662-824c-3095248e0edf](https://whitebit.com/referral/a8e59b59-186c-4662-824c-3095248e0edf)|
+|XT|[https://www.xt.com/en/accounts/register?ref=1HRM5J](https://www.xt.com/en/accounts/register?ref=1HRM5J)|
+
 ### Donate
 Make a one time donation in a crypto currency of your choice. If you prefer to donate a currency not listed here please contact me.
 
