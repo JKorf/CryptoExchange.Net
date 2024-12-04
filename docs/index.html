@@ -163,6 +163,7 @@
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>OKX</td><td><a href="https://github.com/JKorf/OKX.Net">JKorf/OKX.Net</a></td><td><a href="https://www.nuget.org/packages/JK.OKX.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.OKX.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>WhiteBit</td><td><a href="https://github.com/JKorf/WhiteBit.Net">JKorf/WhiteBit.Net</a></td><td><a href="https://www.nuget.org/packages/WhiteBit.Net" target="_blank"><img src="https://img.shields.io/nuget/v/WhiteBit.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>XT</td><td><a href="https://github.com/JKorf/XT.Net">JKorf/XT.Net</a></td><td><a href="https://www.nuget.org/packages/XT.Net" target="_blank"><img src="https://img.shields.io/nuget/v/XT.net.svg?style=flat-square" /></a></td></tr>
 		</table>
 		<p>Note that there are 3rd party implementations going around, but only the listed ones here are created and supported by me.</p>
 		<p>When using multiple of these API's the <a href="https://github.com/jkorf/CryptoClients.Net">CryptoClients.Net</a> package can be used which combines these packages and allows easy access to all exchange API's.</p>
@@ -279,7 +280,10 @@
 				<a class="nav-link" id="install-okx-tab" data-toggle="tab" href="#install-okx" role="tab" aria-controls="install-okx" aria-selected="false">OKX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
-				<a class="nav-link" id="install-whitebit-tab" data-toggle="tab" href="#install-whitebit" role="tab" aria-controls="install-whitebit" aria-selected="false">OKX</a>
+				<a class="nav-link" id="install-whitebit-tab" data-toggle="tab" href="#install-whitebit" role="tab" aria-controls="install-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-xt-tab" data-toggle="tab" href="#install-xt" role="tab" aria-controls="install-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -346,6 +350,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="install-whitebit" role="tabpanel" aria-labelledby="install-whitebit-tab">
 				<pre><code>dotnet add package WhiteBit.Net</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="install-xt" role="tabpanel" aria-labelledby="install-xt-tab">
+				<pre><code>dotnet add package XT.Net</code></pre>
 			  </div>
 			</div>
 		</div>
@@ -415,6 +422,9 @@
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-whitebit-tab" data-toggle="tab" href="#di-whitebit" role="tab" aria-controls="di-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-xt-tab" data-toggle="tab" href="#di-xt" role="tab" aria-controls="di-xt" aria-selected="false">XT</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			  <div class="tab-pane fade show active" id="di-cc" role="tabpanel" aria-labelledby="di-cc-tab">
@@ -470,6 +480,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="di-whitebit" role="tabpanel" aria-labelledby="di-whitebit-tab">
 <pre><code>builder.Services.AddWhiteBit();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-xt" role="tabpanel" aria-labelledby="di-xt-tab">
+<pre><code>builder.Services.AddXT();</code></pre>
 			  </div>
 			</div>
 			</div>
@@ -530,6 +543,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-whitebit-tab" data-toggle="tab" href="#interfaces-whitebit" role="tab" aria-controls="interfaces-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-xt-tab" data-toggle="tab" href="#interfaces-xt" role="tab" aria-controls="interfaces-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -1111,6 +1127,39 @@
 					</tr>
 				</table>
 			  </div>
+			  <div class="tab-pane fade" id="interfaces-xt" role="tabpanel" aria-labelledby="interfaces-xt-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IXTRestClient</code></td>
+						<td>The client for accessing the XT REST API</td>
+					</tr>
+					<tr>
+						<td><code>IXTSocketClient</code></td>
+						<td>The client for accessing the XT Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IXTOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the XT API</td>
+					</tr>
+					<tr>
+						<td><code>IXTTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the XT API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
 			</div>
 			</div>
         </section>
@@ -1189,6 +1238,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-whitebit-tab" data-toggle="tab" href="#rest-whitebit" role="tab" aria-controls="rest-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-xt-tab" data-toggle="tab" href="#rest-xt" role="tab" aria-controls="rest-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -1408,6 +1460,18 @@ else
   // Handle data, tickersResult.Data will contain the actual data
 }</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="rest-xt" role="tabpanel" aria-labelledby="rest-xt-tab">
+				<pre><code>var client = new XTRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
 			</div>
 			</div>
 			
@@ -1532,6 +1596,9 @@ else
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-whitebit-tab" data-toggle="tab" href="#socket-whitebit" role="tab" aria-controls="socket-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-xt-tab" data-toggle="tab" href="#socket-xt" role="tab" aria-controls="socket-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -1711,7 +1778,7 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="socket-okx" role="tabpanel" aria-labelledby="socket-okx-tab">
+			  <div class="tab-pane fade" id="socket-whitebit" role="tabpanel" aria-labelledby="socket-whitebit-tab">
 				<pre><code>var client = new WhiteBitSocketClient();
 var subscribeResult = await client.V4Api.ExchangeData.SubscribeToTickerUpdatesAsync("ETH_USDT", update => {
     // Handle the data update, update.Data will contain the actual data
@@ -1722,6 +1789,18 @@ if (!subscribeResult.Success)
 }
 // Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="socket-xt" role="tabpanel" aria-labelledby="socket-xt-tab">
+				<pre><code>var client = new XTSocketClient();
+var subscribeResult = await client.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("eth_usdt", update => {
+    // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>
+			  
 			</div>
 			</div>
 			
@@ -1922,6 +2001,9 @@ var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="shared-whitebit-tab" data-toggle="tab" href="#shared-whitebit" role="tab" aria-controls="shared-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-xt-tab" data-toggle="tab" href="#shared-xt" role="tab" aria-controls="shared-xt" aria-selected="false">XT</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">			  
 			   <div class="tab-pane fade show active" id="shared-binance" role="tabpanel" aria-labelledby="shared-binance-tab">
@@ -2105,6 +2187,19 @@ var spotSharedRestClients = whitebitRestClient.V4Api.SharedClient;
 // Futures and Spot API common functionality socket client
 var spotSharedSocketClient = whitebitSocketClient.V4Api.SharedClient;</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="shared-xt" role="tabpanel" aria-labelledby="shared-xt-tab">
+<pre><code>Spot API common functionality rest client
+var spotSharedRestClients = xtRestClient.SpotApi.SharedClient;
+
+Futures API common functionality rest client
+var futuresSharedRestClients = xtRestClient.UsdtFuturesApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = xtSocketClient.SpotApi.SharedClient;
+
+// Futures API common functionality socket client
+var futuresSharedSocketClient = xtSocketClient.FuturesApi.SharedClient;</code></pre>
+			  </div>
 			</div>
 						
 		  <h4 id="shared_tradingmode">TradingMode</h4>  
@@ -2232,6 +2327,7 @@ var balances = await restClient.HTX.SpotApi.SharedClient.GetBalancesAsync(new Ge
 			<tr><td><code>ILeverageRestClient</code></td><td>For managing leverage for a Futures symbol</td></tr>
 			<tr><td><code>IPositionHistoryRestClient</code></td><td>For requesting the user position closing history</td></tr>
 			<tr><td><code>IPositionModeRestClient</code></td><td>For managing the position mode for the user</td></tr>
+			<tr><td><code>IFeeRestClient</code></td><td>For requesting maker and taker trading fee percentages for the user</td></tr>
 		  </table>
 		  
 			<p style="font-style: italic;">Available Socket shared interfaces</p>
@@ -2390,6 +2486,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-whitebit" role="tab" aria-controls="options-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-xt-tab" data-toggle="tab" href="#options-xt" role="tab" aria-controls="options-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2605,6 +2704,18 @@ builder.Services.AddOKX(builder.Configuration.GetSection("OKX"));</code></pre>
 // see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
 builder.Services.AddWhiteBit(builder.Configuration.GetSection("WhiteBit"));</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-xt" role="tabpanel" aria-labelledby="options-xt-tab">
+<pre><code>builder.Services.AddXT(
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddXT(builder.Configuration.GetSection("XT"));</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -2665,6 +2776,9 @@ builder.Services.AddWhiteBit(builder.Configuration.GetSection("WhiteBit"));</cod
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-constr-whitebit" role="tab" aria-controls="options-constr-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-xt-tab" data-toggle="tab" href="#options-constr-xt" role="tab" aria-controls="options-constr-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2776,6 +2890,12 @@ builder.Services.AddWhiteBit(builder.Configuration.GetSection("WhiteBit"));</cod
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-constr-xt" role="tabpanel" aria-labelledby="options-xt-tab">
+<pre><code>var client = new XTRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -2833,6 +2953,9 @@ builder.Services.AddWhiteBit(builder.Configuration.GetSection("WhiteBit"));</cod
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-whitebit-tab" data-toggle="tab" href="#options-default-whitebit" role="tab" aria-controls="options-default-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-xt-tab" data-toggle="tab" href="#options-default-xt" role="tab" aria-controls="options-default-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -2954,6 +3077,13 @@ var client = new OKXRestClient();</code></pre>
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new WhiteBitRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-xt" role="tabpanel" aria-labelledby="options-xt-tab">
+<pre><code>XTRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new XTRestClient();</code></pre>
 			  </div>
 			</div>
 			</div>
@@ -3189,6 +3319,9 @@ var client = new WhiteBitRestClient();</code></pre>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-whitebit-tab" data-toggle="tab" href="#book-whitebit" role="tab" aria-controls="book-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-xt-tab" data-toggle="tab" href="#book-xt" role="tab" aria-controls="book-xt" aria-selected="false">XT</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			<div class="tab-pane fade show active" id="book-cryptoclients" role="tabpanel" aria-labelledby="book-cryptoclients-tab">
@@ -3413,6 +3546,19 @@ if (!startResult.Success)
 await book.StopAsync();
 </code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="book-xt" role="tabpanel" aria-labelledby="book-xt-tab">
+<pre><code>var book = new XTSymbolOrderBook("eth_usdt");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
 			</div>
 			</div>
 			
@@ -3581,6 +3727,9 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="tracker-whitebit-tab" data-toggle="tab" href="#tracker-whitebit" role="tab" aria-controls="tracker-whitebit" aria-selected="false">WhiteBit</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-xt-tab" data-toggle="tab" href="#tracker-xt" role="tab" aria-controls="tracker-xt" aria-selected="false">XT</a>
 			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
@@ -3908,6 +4057,26 @@ await tracker.StopAsync();
 			  <div class="tab-pane fade" id="tracker-whitebit" role="tabpanel" aria-labelledby="tracker-whitebit-tab">
 <pre><code>// Either create a new factory or inject the IWhiteBitTrackerFactory interface
 var factory = new WhiteBitTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
+
+// Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await tracker.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-xt" role="tabpanel" aria-labelledby="tracker-xt-tab">
+<pre><code>// Either create a new factory or inject the IXTTrackerFactory interface
+var factory = new XTTrackerFactory();
 
 var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
 
@@ -4274,6 +4443,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-whitebit-tab" data-toggle="tab" href="#limit-whitebit" role="tab" aria-controls="limit-whitebit" aria-selected="false">WhiteBit</a>
 			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-xt-tab" data-toggle="tab" href="#limit-xt" role="tab" aria-controls="limit-xt" aria-selected="false">XT</a>
+			  </li>
 			</ul>
 			<div class="tab-content my-3" id="myTabContent">
 			 <div class="tab-pane fade show active" id="limit-cc" role="tabpanel" aria-labelledby="limit-cc-tab">
@@ -4476,6 +4648,20 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 
 </code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="limit-whitebit" role="tabpanel" aria-labelledby="limit-whitebit-tab">
+<pre><code>services.AddXT(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>XTExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>XTExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
 			</div>
 			</div>
 		  
@@ -4576,6 +4762,9 @@ var responseSource = result.DataSource;</code></pre>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-whitebit-tab" data-toggle="tab" href="#example-symbols-whitebit" role="tab" aria-controls="example-symbols-whitebit" aria-selected="false">WhiteBit</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-xt-tab" data-toggle="tab" href="#example-symbols-xt" role="tab" aria-controls="example-symbols-xt" aria-selected="false">XT</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-symbols-general" role="tabpanel" aria-labelledby="example-symbols-general-tab">
@@ -4636,6 +4825,9 @@ await exchangeRestClient.GetSpotSymbolsAsync(new GetSymbolsRequest(), ["Binance"
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-whitebit" role="tabpanel" aria-labelledby="example-symbols-whitebit-tab">
 		<pre><code>await whitebitClient.V4Api.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-xt" role="tabpanel" aria-labelledby="example-symbols-xt-tab">
+		<pre><code>await xtClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4706,6 +4898,9 @@ await exchangeRestClient.GetSpotSymbolsAsync(new GetSymbolsRequest(), ["Binance"
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-whitebit-tab" data-toggle="tab" href="#example-ticker-whitebit" role="tab" aria-controls="example-ticker-whitebit" aria-selected="false">WhiteBit</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-xt-tab" data-toggle="tab" href="#example-ticker-xt" role="tab" aria-controls="example-ticker-xt" aria-selected="false">XT</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-ticker-general" role="tabpanel" aria-labelledby="example-ticker-general-tab">
@@ -4770,6 +4965,9 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 		<pre><code>// WhiteBit API doesn't offer a symbol filter, so we have to filter client side
 var tickersResult = await whitebitClient.V4Api.ExchangeData.GetTickersAsync();
 var ticker = tickersResult.Data.Single(x => x.Symbol == "BTC_USDT");</code></pre>
+					  </div>					  
+					  <div class="tab-pane fade" id="example-ticker-xt" role="tabpanel" aria-labelledby="example-ticker-xt-tab">
+		<pre><code>await xtClient.SpotApi.ExchangeData.GetTickersAsync("btc-usdt");</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4840,6 +5038,9 @@ var ticker = tickersResult.Data.Single(x => x.Symbol == "BTC_USDT");</code></pre
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-whitebit-tab" data-toggle="tab" href="#example-balances-whitebit" role="tab" aria-controls="example-balances-whitebit" aria-selected="false">WhiteBit</a>
 					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-xt-tab" data-toggle="tab" href="#example-balances-xt" role="tab" aria-controls="example-balances-xt" aria-selected="false">XT</a>
+					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
 					  <div class="tab-pane fade show active" id="example-balances-general" role="tabpanel" aria-labelledby="example-balances-general-tab">
@@ -4904,6 +5105,9 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-whitebit" role="tabpanel" aria-labelledby="example-balances-whitebit-tab">
 		<pre><code>await whitebitClient.V4Api.Account.GetSpotBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-whitebit" role="tabpanel" aria-labelledby="example-balances-whitebit-tab">
+		<pre><code>await xtClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -4972,7 +5176,10 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-okx-tab" data-toggle="tab" href="#example-place-okx" role="tab" aria-controls="example-place-okx" aria-selected="false">OKX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
-						<a class="nav-link" id="example-place-okx-tab" data-toggle="tab" href="#example-place-okx" role="tab" aria-controls="example-place-okx" aria-selected="false">WhiteBit</a>
+						<a class="nav-link" id="example-place-whitebit-tab" data-toggle="tab" href="#example-place-whitebit" role="tab" aria-controls="example-place-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-xt-tab" data-toggle="tab" href="#example-place-xt" role="tab" aria-controls="example-place-xt" aria-selected="false">XT</a>
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
@@ -5036,6 +5243,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 					  </div>
 					  <div class="tab-pane fade" id="example-place-whitebit" role="tabpanel" aria-labelledby="example-place-whitebit-tab">
 		<pre><code>await whitebitClient.V4Api.Trading.PlaceSpotOrderAsync("BTC_USDT", OrderSide.Buy, NewOrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-xt" role="tabpanel" aria-labelledby="example-place-xt-tab">
+		<pre><code>await xtClient.SpotApi.Trading.PlaceOrderAsync("eth_usdt", OrderSide.Buy, OrderType.Limit, TimeInForce.GoodTillCanceled, BusinessType.Spot, 0.1m, price: 50000);</code></pre>
 					  </div>
 					</div>
 			  </div>
@@ -5105,6 +5315,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-whitebit-tab" data-toggle="tab" href="#example-stream-ticker-whitebit" role="tab" aria-controls="example-stream-ticker-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-xt-tab" data-toggle="tab" href="#example-stream-ticker-xt" role="tab" aria-controls="example-stream-ticker-xt" aria-selected="false">XT</a>
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
@@ -5208,6 +5421,12 @@ await exchangeSocketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequ
 });
 </code></pre>
 					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-xt" role="tabpanel" aria-labelledby="example-stream-ticker-xt-tab">
+		<pre><code>await xtSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("eth_usdt", data => {
+    // Handle update
+});
+</code></pre>
+					  </div>
 					</div>
 			  </div>
 			  </div>
@@ -5276,6 +5495,9 @@ await exchangeSocketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequ
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-whitebit-tab" data-toggle="tab" href="#example-stream-order-whitebit" role="tab" aria-controls="example-stream-order-whitebit" aria-selected="false">WhiteBit</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-xt-tab" data-toggle="tab" href="#example-stream-order-xt" role="tab" aria-controls="example-stream-order-xt" aria-selected="false">XT</a>
 					  </li>
 					</ul>
 					<div class="tab-content my-3" id="myTabContent">
@@ -5431,6 +5653,26 @@ _ = Task.Run(async () => {
 		<pre><code>// It's required for the WhiteBit API to specify which symbols to subscribe to
 await whitebitSocketClient.V4Api.SubscribeToOpenOrderUpdatesAsync(["ETH_USDT", "BTC_USDT"], data => {
     // Handle update
+});
+</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-xt" role="tabpanel" aria-labelledby="example-stream-order-xt-tab">
+		<pre><code>// Retrieve the token
+var listenKey = await xtRestClient.SpotApi.Account.GetWebsocketTokenAsync();
+
+// Subscribe using the key
+await xtSocketClient.SpotApi.SubscribeToBalanceUpdatesAsync(listenKey.Data, data => {
+    // Handle update
+});
+
+// The listen key will stay valid for 48 hours, after this no updates will be send anymore
+// To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method at a set interval
+_ = Task.Run(async () => {
+    while (true)
+    {
+        await Task.Delay(Timespan.FromHours(4));
+        await xtRestClient.SpotApi.Account.GetWebsocketTokenAsync();
+    }
 });
 </code></pre>
 					  </div>
