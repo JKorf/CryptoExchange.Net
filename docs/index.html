@@ -1184,7 +1184,7 @@
 		  <p>All clients work with the same principles:</p>
 		  <ul>
 		    <li>Mandatory parameters are non-nullable while optional parameters are nullable and will have a default value of null.</li>
-		    <li>Any operation will return a form of <code>CallResult</code>. This result can and should be checked for success using the `Success` property. If `Success` is false the `Error` property will have more info.</li>
+		    <li>Any operation will return a form of <code>CallResult</code>. This result can and should be checked for success using the <code>Success</code> property. If <code>Success</code> is false the <code>Error</code> property will have more info.</li>
 			<li>Clients will not throw exceptions.</li>
 		  </ul>
 		</section>
@@ -2201,10 +2201,10 @@ var spotSharedRestClients = whitebitRestClient.V4Api.SharedClient;
 var spotSharedSocketClient = whitebitSocketClient.V4Api.SharedClient;</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="shared-xt" role="tabpanel" aria-labelledby="shared-xt-tab">
-<pre><code>Spot API common functionality rest client
+<pre><code>// Spot API common functionality rest client
 var spotSharedRestClients = xtRestClient.SpotApi.SharedClient;
 
-Futures API common functionality rest client
+// Futures API common functionality rest client
 var futuresSharedRestClients = xtRestClient.UsdtFuturesApi.SharedClient;
 
 // Spot API common functionality socket client
@@ -4661,7 +4661,7 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 
 </code></pre>
 			  </div>
-			  <div class="tab-pane fade" id="limit-whitebit" role="tabpanel" aria-labelledby="limit-whitebit-tab">
+			  <div class="tab-pane fade" id="limit-xt" role="tabpanel" aria-labelledby="limit-xt-tab">
 <pre><code>services.AddXT(x =>
     x.RatelimiterEnabled = true;
     x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
@@ -5119,7 +5119,7 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  <div class="tab-pane fade" id="example-balances-whitebit" role="tabpanel" aria-labelledby="example-balances-whitebit-tab">
 		<pre><code>await whitebitClient.V4Api.Account.GetSpotBalancesAsync();</code></pre>
 					  </div>
-					  <div class="tab-pane fade" id="example-balances-whitebit" role="tabpanel" aria-labelledby="example-balances-whitebit-tab">
+					  <div class="tab-pane fade" id="example-balances-xt" role="tabpanel" aria-labelledby="example-balances-xt-tab">
 		<pre><code>await xtClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					</div>
@@ -5679,7 +5679,7 @@ await xtSocketClient.SpotApi.SubscribeToBalanceUpdatesAsync(listenKey.Data, data
 });
 
 // The listen key will stay valid for 48 hours, after this no updates will be send anymore
-// To extend the life time of the listen key it is recommended to call the KeepAliveUserStreamAsync method at a set interval
+// To extend the life time of the token it is recommended to call the GetWebsocketTokenAsync method at a set interval which will extend the lifetime
 _ = Task.Run(async () => {
     while (true)
     {
