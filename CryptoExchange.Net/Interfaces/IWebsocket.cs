@@ -93,5 +93,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <returns></returns>
         Task CloseAsync();
+
+        /// <summary>
+        /// Update proxy setting
+        /// </summary>
+        void UpdateProxy(ApiProxy? proxy);
     }
 }

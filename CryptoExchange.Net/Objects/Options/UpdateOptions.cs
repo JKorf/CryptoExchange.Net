@@ -1,0 +1,29 @@
+﻿using CryptoExchange.Net.Authentication;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace CryptoExchange.Net.Objects.Options
+{
+    /// <summary>
+    /// Options to update
+    /// </summary>
+    public class UpdateOptions<T> where T : ApiCredentials
+    {
+        /// <summary>
+        /// Proxy setting
+        /// </summary>
+        public ApiProxy? Proxy { get; set; }
+        /// <summary>
+        /// Api credentials
+        /// </summary>
+        public T? ApiCredentials { get; set; }
+        /// <summary>
+        /// Request timeout
+        /// </summary>
+        public TimeSpan? RequestTimeout { get; set; }
+    }
+
+    /// <inheritdoc />
+    public class UpdateOptions : UpdateOptions<ApiCredentials> { }
+}

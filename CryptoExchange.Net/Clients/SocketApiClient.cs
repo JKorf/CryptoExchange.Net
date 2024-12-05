@@ -710,6 +710,25 @@ namespace CryptoExchange.Net.Clients
             return new CallResult(null);
         }
 
+        /// <inheritdoc />
+        public override void SetOptions<T>(UpdateOptions<T> options)
+        {
+            var previousProxyIsSet = ClientOptions.Proxy == null;
+            base.SetOptions(options);
+
+            if ((!previousProxyIsSet && options.Proxy == null)
+                || !socketConnections.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation("Reconnecting websockets to apply proxy");
+
+            // Update proxy, also triggers reconnect
+            foreach (var connection in socketConnections)
+                _ = connection.Value.UpdateProxy(options.Proxy);
+        }
+
         /// <summary>
         /// Log the current state of connections and subscriptions
         /// </summary>

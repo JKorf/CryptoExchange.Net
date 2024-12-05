@@ -92,5 +92,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public Task ReconnectAsync() => throw new NotImplementedException();
         public void Dispose() { }
+
+        public void UpdateProxy(ApiProxy? proxy) => throw new NotImplementedException();
     }
 }

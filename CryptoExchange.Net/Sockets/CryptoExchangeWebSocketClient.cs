@@ -156,6 +156,12 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
+        public void UpdateProxy(ApiProxy? proxy)
+        {
+            Parameters.Proxy = proxy;
+        }
+
+        /// <inheritdoc />
         public virtual async Task<CallResult> ConnectAsync()
         {
             var connectResult = await ConnectInternalAsync().ConfigureAwait(false);

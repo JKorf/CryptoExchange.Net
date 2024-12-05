@@ -93,6 +93,17 @@ namespace CryptoExchange.Net.Clients
                 AuthenticationProvider = CreateAuthenticationProvider(credentials.Copy());
         }
 
+        /// <inheritdoc />
+        public virtual void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials
+        {
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout!.Value;
+
+            ApiOptions.ApiCredentials = options.ApiCredentials;
+            if (options.ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(options.ApiCredentials.Copy());
+        }
+
         /// <summary>
         /// Dispose
         /// </summary>

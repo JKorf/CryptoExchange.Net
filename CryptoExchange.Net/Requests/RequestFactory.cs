@@ -17,28 +17,7 @@ namespace CryptoExchange.Net.Requests
         public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? client = null)
         {
             if (client == null)
-            {
-                var handler = new HttpClientHandler();
-                try
-                {
-                    handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                }
-                catch (PlatformNotSupportedException) { }
-
-                if (proxy != null)
-                {
-                    handler.Proxy = new WebProxy
-                    {
-                        Address = new Uri($"{proxy.Host}:{proxy.Port}"),
-                        Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
-                    };
-                }
-
-                client = new HttpClient(handler)
-                {
-                    Timeout = requestTimeout
-                };
-            }
+                client = CreateClient(proxy, requestTimeout);
 
             _httpClient = client;
         }
@@ -50,6 +29,37 @@ namespace CryptoExchange.Net.Requests
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
             return new Request(new HttpRequestMessage(method, uri), _httpClient, requestId);
+        }
+
+        /// <inheritdoc />
+        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout)
+        {
+            _httpClient = CreateClient(proxy, requestTimeout);
+        }
+
+        private HttpClient CreateClient(ApiProxy? proxy, TimeSpan requestTimeout)
+        {
+            var handler = new HttpClientHandler();
+            try
+            {
+                handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            }
+            catch (PlatformNotSupportedException) { }
+
+            if (proxy != null)
+            {
+                handler.Proxy = new WebProxy
+                {
+                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                };
+            }
+
+            var client = new HttpClient(handler)
+            {
+                Timeout = requestTimeout
+            };
+            return client;
         }
     }
 }

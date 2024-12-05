@@ -11,6 +11,8 @@ using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
+using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.Authentication;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -582,6 +584,16 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <returns></returns>
         public async Task TriggerReconnectAsync() => await _socket.ReconnectAsync().ConfigureAwait(false);
+
+        /// <summary>
+        /// Update the proxy setting and reconnect
+        /// </summary>
+        /// <param name="proxy">New proxy setting</param>
+        public async Task UpdateProxy(ApiProxy? proxy)
+        {
+            _socket.UpdateProxy(proxy);
+            await TriggerReconnectAsync().ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Close the connection

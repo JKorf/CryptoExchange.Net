@@ -961,6 +961,14 @@ namespace CryptoExchange.Net.Clients
         /// <returns>Server time</returns>
         protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
+        /// <inheritdoc />
+        public override void SetOptions<T>(UpdateOptions<T> options)
+        {
+            base.SetOptions(options);
+
+            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout);
+        }
+
         internal async Task<WebCallResult<bool>> SyncTimeAsync()
         {
             var timeSyncParams = GetTimeSyncInfo();
