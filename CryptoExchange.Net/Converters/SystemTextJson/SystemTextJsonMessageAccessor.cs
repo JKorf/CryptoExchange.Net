@@ -21,6 +21,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         protected JsonDocument? _document;
 
         private static JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
+        private JsonSerializerOptions? _customSerializerOptions;
 
         /// <inheritdoc />
         public bool IsJson { get; set; }
@@ -30,6 +31,21 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         /// <inheritdoc />
         public object? Underlying => throw new NotImplementedException();
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonMessageAccessor()
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonMessageAccessor(JsonSerializerOptions options)
+        {
+            _customSerializerOptions = options;
+        }
 
         /// <inheritdoc />
         public CallResult<object> Deserialize(Type type, MessagePath? path = null)
@@ -42,7 +58,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
-                var result = _document.Deserialize(type, _serializerOptions);
+                var result = _document.Deserialize(type, _customSerializerOptions ?? _serializerOptions);
                 return new CallResult<object>(result!);
             }
             catch (JsonException ex)
@@ -65,7 +81,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
-                var result = _document.Deserialize<T>(_serializerOptions);
+                var result = _document.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
                 return new CallResult<T>(result!);
             }
             catch (JsonException ex)
@@ -129,7 +145,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 try
                 {
-                    return value.Value.Deserialize<T>(_serializerOptions);
+                    return value.Value.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
                 }
                 catch { }
                 return default;
@@ -223,6 +239,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override bool OriginalDataAvailable => _stream?.CanSeek == true;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonStreamMessageAccessor(): base()
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonStreamMessageAccessor(JsonSerializerOptions options): base(options)
+        {
+        }
+
         /// <inheritdoc />
         public async Task<CallResult> Read(Stream stream, bool bufferStream)
         {
@@ -285,6 +315,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     public class SystemTextJsonByteMessageAccessor : SystemTextJsonMessageAccessor, IByteMessageAccessor
     {
         private ReadOnlyMemory<byte> _bytes;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonByteMessageAccessor() : base()
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SystemTextJsonByteMessageAccessor(JsonSerializerOptions options) : base(options)
+        {
+        }
 
         /// <inheritdoc />
         public CallResult Read(ReadOnlyMemory<byte> data)
