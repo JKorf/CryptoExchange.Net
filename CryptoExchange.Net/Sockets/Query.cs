@@ -24,6 +24,11 @@ namespace CryptoExchange.Net.Sockets
         public bool Completed { get; set; }
 
         /// <summary>
+        /// Timeout for the request
+        /// </summary>
+        public TimeSpan? RequestTimeout { get; set; }
+
+        /// <summary>
         /// The number of required responses. Can be more than 1 when for example subscribing multiple symbols streams in a single request,
         /// and each symbol receives it's own confirmation response
         /// </summary>

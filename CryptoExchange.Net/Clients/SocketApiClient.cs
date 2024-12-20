@@ -158,7 +158,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="interval"></param>
         /// <param name="queryDelegate"></param>
         /// <param name="callback"></param>
-        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
         {
             PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
             {
@@ -422,9 +422,10 @@ namespace CryptoExchange.Net.Clients
                     result.Error!.Message = "Authentication failed: " + result.Error.Message;
                     return new CallResult(result.Error)!;
                 }
+
+                _logger.Authenticated(socket.SocketId);
             }
 
-            _logger.Authenticated(socket.SocketId);
             socket.Authenticated = true;
             return new CallResult(null);
         }

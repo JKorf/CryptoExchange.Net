@@ -439,7 +439,7 @@ namespace CryptoExchange.Net.Sockets
                 return Task.CompletedTask;
             }
 
-            query.IsSend(ApiClient.ClientOptions.RequestTimeout);
+            query.IsSend(query.RequestTimeout ?? ApiClient.ClientOptions.RequestTimeout);
             return Task.CompletedTask;
         }
 
@@ -1000,7 +1000,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
         /// <param name="callback">The callback for processing the response</param>
-        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));
@@ -1032,7 +1032,7 @@ namespace CryptoExchange.Net.Sockets
                     try
                     {
                         var result = await SendAndWaitQueryAsync(query).ConfigureAwait(false);
-                        callback?.Invoke(result);
+                        callback?.Invoke(this, result);
                     }
                     catch (Exception ex)
                     {
