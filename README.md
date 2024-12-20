@@ -66,6 +66,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.4.5 - 20 Dec 2024
+    * Added EmptyArrayObjectConverter System.Text.Json JsonConverter
+    * Added JsonSerializerOptions parameter to SystemTextJsonMessageAccessor constructor
+
 * Version 8.4.4 - 08 Dec 2024
     * Changed JsonConverterCtorAttribute to use constructor type parameter instead of generic type parameter to support .net framework
 
