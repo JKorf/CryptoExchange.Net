@@ -169,7 +169,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "[Sckt {SocketId}] starting task checking for no data received for {Timeout}");
 
             _noDataReceiveTimoutReconnect = LoggerMessage.Define<int, TimeSpan?>(
-                LogLevel.Debug,
+                LogLevel.Warning,
                 new EventId(1027, "NoDataReceiveTimeoutReconnect"),
                 "[Sckt {SocketId}] no data received for {Timeout}, reconnecting socket");
 
