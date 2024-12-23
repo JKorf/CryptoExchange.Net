@@ -67,7 +67,7 @@ namespace CryptoExchange.Net
             {
                 if (serializationType == ArrayParametersSerialization.Array)
                 {
-                    uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? Uri.EscapeDataString(arrayEntry.Value.ToString()) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={string.Format(CultureInfo.InvariantCulture, "{0}", v)}"))}&";
+                    uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? Uri.EscapeDataString(arrayEntry.Value.ToString()!) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={string.Format(CultureInfo.InvariantCulture, "{0}", v)}"))}&";
                 }
                 else if (serializationType == ArrayParametersSerialization.MultipleValues)
                 {
@@ -111,7 +111,7 @@ namespace CryptoExchange.Net
                     formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", kvp.Value));
                 }
             }
-            return formData.ToString();
+            return formData.ToString()!;
         }
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace CryptoExchange.Net
         {
             using var decompressedStream = new MemoryStream();
             using var dataStream = MemoryMarshal.TryGetArray(data, out var arraySegment)
-                ? new MemoryStream(arraySegment.Array, arraySegment.Offset, arraySegment.Count)
+                ? new MemoryStream(arraySegment.Array!, arraySegment.Offset, arraySegment.Count)
                 : new MemoryStream(data.ToArray());
             using var deflateStream = new GZipStream(new MemoryStream(data.ToArray()), CompressionMode.Decompress);
             deflateStream.CopyTo(decompressedStream);

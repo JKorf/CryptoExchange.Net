@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             Type converterType = typeof(ArrayConverterInner<>).MakeGenericType(typeToConvert);
-            return (JsonConverter)Activator.CreateInstance(converterType);
+            return (JsonConverter)Activator.CreateInstance(converterType)!;
         }
 
         private class ArrayPropertyInfo
@@ -79,7 +79,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     JsonSerializerOptions? typeOptions = null;
                     if (prop.JsonConverterType != null)
                     {
-                        var converter = (JsonConverter)Activator.CreateInstance(prop.JsonConverterType);
+                        var converter = (JsonConverter)Activator.CreateInstance(prop.JsonConverterType)!;
                         typeOptions = new JsonSerializerOptions();
                         typeOptions.Converters.Clear();
                         typeOptions.Converters.Add(converter);
@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         if (prop.PropertyInfo.PropertyType == typeof(string))
                             writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
                         else
-                            writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
+                            writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture)!);
                     }
                     else
                     {
@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (reader.TokenType == JsonTokenType.Null)
                     return default;
 
-                var result = Activator.CreateInstance(typeToConvert);
+                var result = Activator.CreateInstance(typeToConvert)!;
                 return (T)ParseObject(ref reader, result, typeToConvert, options);
             }
 
@@ -177,7 +177,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         {
                             if (!_converterOptionsCache.TryGetValue(attribute.JsonConverterType, out var newOptions))
                             {
-                                var converter = (JsonConverter)Activator.CreateInstance(attribute.JsonConverterType);
+                                var converter = (JsonConverter)Activator.CreateInstance(attribute.JsonConverterType)!;
                                 newOptions = new JsonSerializerOptions
                                 {
                                     NumberHandling = SerializerOptions.WithConverters.NumberHandling,
@@ -209,7 +209,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         }
 
                         if (targetType.IsAssignableFrom(value?.GetType()))
-                            attribute.PropertyInfo.SetValue(result, value == null ? null : value);
+                            attribute.PropertyInfo.SetValue(result, value);
                         else
                             attribute.PropertyInfo.SetValue(result, value == null ? null : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture));
                     }

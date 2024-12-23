@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Version of the CryptoExchange.Net base library
         /// </summary>
-        public Version CryptoExchangeLibVersion { get; } = typeof(BaseClient).Assembly.GetName().Version;
+        public Version CryptoExchangeLibVersion { get; } = typeof(BaseClient).Assembly.GetName().Version!;
 
         /// <summary>
         /// Version of the client implementation
@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Clients
                lock(_versionLock)
                 {
                     if (_exchangeVersion == null)
-                        _exchangeVersion = GetType().Assembly.GetName().Version;
+                        _exchangeVersion = GetType().Assembly.GetName().Version!;
 
                     return _exchangeVersion;
                 }

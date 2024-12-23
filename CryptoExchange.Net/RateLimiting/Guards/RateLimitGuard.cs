@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <summary>
         /// Apply guard per connection
         /// </summary>
-        public static Func<RequestDefinition, string, string?, string> PerConnection { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.ConnectionId.ToString());
+        public static Func<RequestDefinition, string, string?, string> PerConnection { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.ConnectionId.ToString()!);
         /// <summary>
         /// Apply guard per API key
         /// </summary>

@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             if (Name != null)
                 return $"[{ValueType.Name}] {Name}: {Description} | example: {ExampleValue}";
-            return $"[{ValueType.Name}] {string.Join(" / ", Names)}: {Description} | example: {ExampleValue}";
+            return $"[{ValueType.Name}] {string.Join(" / ", Names!)}: {Description} | example: {ExampleValue}";
         }
     }
 }

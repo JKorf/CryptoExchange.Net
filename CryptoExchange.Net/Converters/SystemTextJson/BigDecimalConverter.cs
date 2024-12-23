@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 try
                 {
-                    return decimal.Parse(reader.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return decimal.Parse(reader.GetString()!, NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
                 catch(OverflowException)
                 {

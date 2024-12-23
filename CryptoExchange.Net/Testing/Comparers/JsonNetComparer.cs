@@ -378,7 +378,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 if (objectValue is bool boolVal && jsonValue.Value<bool>() != boolVal)
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<bool>()} vs {(bool)objectValue}");
 
-                if (jsonValue.Value<bool>() != bool.Parse(objectValue.ToString()))
+                if (jsonValue.Value<bool>() != bool.Parse(objectValue.ToString()!))
                     throw new Exception($"{method}: {property} not equal: {jsonValue.Value<bool>()} vs {(bool)objectValue}");
             }
         }

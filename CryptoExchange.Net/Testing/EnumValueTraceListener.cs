@@ -5,8 +5,11 @@ namespace CryptoExchange.Net.Testing
 {
     internal class EnumValueTraceListener : TraceListener
     {
-        public override void Write(string message)
+        public override void Write(string? message)
         {
+            if (message == null)
+                return;
+
             if (message.Contains("Cannot map"))
                 throw new Exception("Enum value error: " + message);
 
@@ -14,8 +17,11 @@ namespace CryptoExchange.Net.Testing
                 throw new Exception("Enum null error: " + message);
         }
 
-        public override void WriteLine(string message)
+        public override void WriteLine(string? message)
         {
+            if (message == null)
+                return;
+
             if (message.Contains("Cannot map"))
                 throw new Exception("Enum value error: " + message);
 

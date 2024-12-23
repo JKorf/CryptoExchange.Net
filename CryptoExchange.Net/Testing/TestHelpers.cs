@@ -169,7 +169,7 @@ namespace CryptoExchange.Net.Testing
         {
             var assembly = Assembly.GetAssembly(clientType);
             var interfaceType = clientType.GetInterface("I" + clientType.Name);
-            var clientInterfaces = assembly.GetTypes().Where(t => t.Name.StartsWith("I" + clientType.Name) && !t.Name.EndsWith("Shared"));
+            var clientInterfaces = assembly!.GetTypes().Where(t => t.Name.StartsWith("I" + clientType.Name) && !t.Name.EndsWith("Shared"));
 
             foreach (var clientInterface in clientInterfaces)
             {
@@ -179,9 +179,7 @@ namespace CryptoExchange.Net.Testing
                     int methods = 0;
                     foreach (var method in implementation.GetMethods().Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
                     {
-                        var interfaceMethod = clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray());
-                        if (interfaceMethod == null)
-                            throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
+                        var interfaceMethod = clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray()) ?? throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
                         methods++;
                     }
 

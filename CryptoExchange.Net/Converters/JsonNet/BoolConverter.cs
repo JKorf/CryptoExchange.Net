@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
         /// </returns>
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            var value = reader.Value?.ToString().ToLower().Trim();
+            var value = reader.Value?.ToString()!.ToLower().Trim();
             if (value == null || value == "")
             {
                 if (Nullable.GetUnderlyingType(objectType) != null)

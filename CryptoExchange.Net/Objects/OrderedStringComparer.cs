@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        public int Compare(string x, string y)
+        public int Compare(string? x, string? y)
         {
             // Shortcuts: If both are null, they are the same.
             if (x == null && y == null) return 0;

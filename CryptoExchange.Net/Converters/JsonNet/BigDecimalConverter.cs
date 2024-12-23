@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
             {
                 try
                 {
-                    return decimal.Parse(reader.Value!.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+                    return decimal.Parse(reader.Value!.ToString()!, NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
                 catch (OverflowException) 
                 {
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
             {
                 try
                 {
-                    var value = reader.Value!.ToString();
+                    var value = reader.Value!.ToString()!;
                     return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
                 }
                 catch (OverflowException)

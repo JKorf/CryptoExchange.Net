@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.Caching
         /// <returns>Cached value if it was in cache</returns>
         public object? Get(string key, TimeSpan maxAge)
         {
-            _cache.TryGetValue(key, out CacheItem value);
+            _cache.TryGetValue(key, out CacheItem? value);
             if (value == null)
                 return null;
 

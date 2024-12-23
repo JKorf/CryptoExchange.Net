@@ -60,8 +60,8 @@ namespace CryptoExchange.Net.SharedApis
                 }
                 else
                 {
-                    if (param.Names.All(x => ExchangeParameters.HasValue(exchangeParameters, exchange, x, param.ValueType) != true))
-                        return new ArgumentError($"One of exchange parameters `{string.Join(", ", param.Names)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
+                    if (param.Names!.All(x => ExchangeParameters.HasValue(exchangeParameters, exchange, x, param.ValueType) != true))
+                        return new ArgumentError($"One of exchange parameters `{string.Join(", ", param.Names!)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
                 }
             }
 
@@ -113,13 +113,13 @@ namespace CryptoExchange.Net.SharedApis
             {
                 if (!string.IsNullOrEmpty(param.Name))
                 {
-                    if (typeof(T).GetProperty(param.Name).GetValue(request, null) == null)
+                    if (typeof(T).GetProperty(param.Name)!.GetValue(request, null) == null)
                         return new ArgumentError($"Required optional parameter `{param.Name}` for exchange `{exchange}` is missing. Example: {param.ExampleValue}");
                 }
                 else
                 {
-                    if (param.Names.All(x => typeof(T).GetProperty(param.Name).GetValue(request, null) == null))
-                        return new ArgumentError($"One of optional parameters `{string.Join(", ", param.Names)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
+                    if (param.Names!.All(x => typeof(T).GetProperty(param.Name!)!.GetValue(request, null) == null))
+                        return new ArgumentError($"One of optional parameters `{string.Join(", ", param.Names!)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
                 }
 
             }

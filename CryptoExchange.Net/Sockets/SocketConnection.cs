@@ -398,7 +398,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected virtual Task HandleRequestRateLimitedAsync(int requestId)
         {
-            Query query;
+            Query? query;
             lock (_listenersLock)
             {
                 query = _listeners.OfType<Query>().FirstOrDefault(x => x.Id == requestId);
@@ -427,7 +427,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">Id of the request sent</param>
         protected virtual Task HandleRequestSentAsync(int requestId)
         {
-            Query query;
+            Query? query;
             lock (_listenersLock)
             {
                 query = _listeners.OfType<Query>().FirstOrDefault(x => x.Id == requestId);

@@ -807,7 +807,7 @@ namespace CryptoExchange.Net.Clients
             if (parameterPosition == HttpMethodParameterPosition.InUri)
             {
                 foreach (var parameter in parameters)
-                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString());
+                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString()!);
             }
 
             var headers = new Dictionary<string, string>();

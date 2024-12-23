@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override JsonConverter CreateConverter(Type typeToConvert)
         {
-            return (JsonConverter)Activator.CreateInstance(_type, _parameters);
+            return (JsonConverter)Activator.CreateInstance(_type, _parameters)!;
         }
     }
 

@@ -156,7 +156,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddSecondsString(string key, DateTime value)
         {
-            Add(key, DateTimeConverter.ConvertToSeconds(value).ToString());
+            Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalSecondsString(string key, DateTime? value)
         {
             if (value != null)
-                Add(key, DateTimeConverter.ConvertToSeconds(value).ToString());
+                Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddEnumAsInt<T>(string key, T value)
         {
-            var stringVal = EnumConverter.GetString(value);
+            var stringVal = EnumConverter.GetString(value)!;
             Add(key, int.Parse(stringVal)!);
         }
 

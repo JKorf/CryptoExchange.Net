@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Supported limit values: [{(SupportedLimits == null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
+            sb.AppendLine($"Supported limit values: [{(SupportedLimits != null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
             return sb.ToString();
         }
     }

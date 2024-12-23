@@ -211,7 +211,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                     if (dictProp.Value.Type == JTokenType.Object)
                     {
-                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name].GetType(), null, null, ignoreProperties);
+                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name]!.GetType(), null, null, ignoreProperties);
                     }
                     else
                     {

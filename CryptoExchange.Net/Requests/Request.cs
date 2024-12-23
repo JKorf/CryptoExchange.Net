@@ -48,7 +48,7 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public Uri Uri => _request.RequestUri;
+        public Uri Uri => _request.RequestUri!;
 
         /// <inheritdoc />
         public int RequestId { get; }

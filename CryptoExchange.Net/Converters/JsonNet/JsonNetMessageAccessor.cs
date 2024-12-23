@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
 
             // Try getting the underlying byte[] instead of the ToArray to prevent creating a copy
             using var stream = MemoryMarshal.TryGetArray(data, out var arraySegment)
-                ? new MemoryStream(arraySegment.Array, arraySegment.Offset, arraySegment.Count)
+                ? new MemoryStream(arraySegment.Array!, arraySegment.Offset, arraySegment.Count)
                 : new MemoryStream(data.ToArray());
             using var reader = new StreamReader(stream, Encoding.UTF8, false, Math.Max(2, data.Length), true);
             using var jsonTextReader = new JsonTextReader(reader);

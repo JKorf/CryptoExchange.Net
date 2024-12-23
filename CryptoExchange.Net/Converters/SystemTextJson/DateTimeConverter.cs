@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             Type converterType = typeof(DateTimeConverterInner<>).MakeGenericType(typeToConvert);
-            return (JsonConverter)Activator.CreateInstance(converterType);
+            return (JsonConverter)Activator.CreateInstance(converterType)!;
         }
 
         private class DateTimeConverterInner<T> : JsonConverter<T>
@@ -74,7 +74,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
             {
                 if (value == null)
+                {
                     writer.WriteNullValue();
+                }
                 else
                 {
                     var dtValue = (DateTime)(object)value;

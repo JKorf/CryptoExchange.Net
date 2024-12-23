@@ -195,9 +195,12 @@ namespace CryptoExchange.Net.Sockets
                     socket.Options.SetBuffer(_receiveBufferSize, _sendBufferSize);
                 if (Parameters.Proxy != null)
                     SetProxy(socket, Parameters.Proxy);
-                #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 socket.Options.CollectHttpResponseDetails = true;
-                #endif
+#endif
+#if NET9_0_OR_GREATER
+                socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(10);
+#endif
             }
             catch (PlatformNotSupportedException)
             {
@@ -235,13 +238,13 @@ namespace CryptoExchange.Net.Sockets
 
                 if (e is WebSocketException we)
                 {
-                    #if (NET6_0_OR_GREATER)
+#if (NET6_0_OR_GREATER)
                     if (_socket.HttpStatusCode == HttpStatusCode.TooManyRequests)
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                         return new CallResult(new ServerRateLimitError(we.Message));
                     }
-                    #else
+#else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
                     // Try to read 429 from the message instead
                     if (we.Message.Contains("429"))
@@ -249,7 +252,7 @@ namespace CryptoExchange.Net.Sockets
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                         return new CallResult(new ServerRateLimitError(we.Message));
                     }
-                    #endif
+#endif
                 }
 
                 return new CallResult(new CantConnectError());
@@ -604,14 +607,14 @@ namespace CryptoExchange.Net.Sockets
                             if (_socket.State == WebSocketState.CloseReceived)
                             {
                                 // Close received means it server initiated, we should send a confirmation and close the socket
-                                _logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString(), receiveResult.CloseStatusDescription);
+                                _logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
                                 if (_closeTask?.IsCompleted != false)
                                     _closeTask = CloseInternalAsync();
                             }
                             else
                             {
                                 // Means the socket is now closed and we were the one initiating it
-                                _logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString(), receiveResult.CloseStatusDescription);
+                                _logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
                             }
 
                             break;
@@ -626,7 +629,7 @@ namespace CryptoExchange.Net.Sockets
                             // Write the data to a memory stream to be reassembled later
                             if (multipartStream == null)
                                 multipartStream = new MemoryStream();
-                            multipartStream.Write(buffer.Array, buffer.Offset, receiveResult.Count);
+                            multipartStream.Write(buffer.Array!, buffer.Offset, receiveResult.Count);
                         }
                         else
                         {
@@ -640,7 +643,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received the end of a multipart message, write to memory stream for reassembling
                                 _logger.SocketReceivedPartialMessage(Id, receiveResult.Count);
-                                multipartStream!.Write(buffer.Array, buffer.Offset, receiveResult.Count);
+                                multipartStream!.Write(buffer.Array!, buffer.Offset, receiveResult.Count);
                             }
 
                             break;

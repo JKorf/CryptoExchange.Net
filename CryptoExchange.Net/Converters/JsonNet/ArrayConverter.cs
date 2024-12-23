@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
 
             var result = Activator.CreateInstance(objectType);
             var arr = JArray.Load(reader);
-            return ParseObject(arr, result, objectType);
+            return ParseObject(arr, result!, objectType);
         }
 
         private static object ParseObject(JArray arr, object result, Type objectType)
@@ -58,25 +58,25 @@ namespace CryptoExchange.Net.Converters.JsonNet
                     var count = 0;
                     if (innerArray.Count == 0)
                     {
-                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { 0 });
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { 0 })!;
                         property.SetValue(result, arrayResult);
                     }
                     else if (innerArray[0].Type == JTokenType.Array)
                     {
-                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { innerArray.Count });
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { innerArray.Count })!;
                         foreach (var obj in innerArray)
                         {
                             var innerObj = Activator.CreateInstance(objType!);
-                            arrayResult[count] = ParseObject((JArray)obj, innerObj, objType!);
+                            arrayResult[count] = ParseObject((JArray)obj, innerObj!, objType!);
                             count++;
                         }
                         property.SetValue(result, arrayResult);
                     }
                     else
                     {
-                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { 1 });
+                        var arrayResult = (IList)Activator.CreateInstance(property.PropertyType, new [] { 1 })!;
                         var innerObj = Activator.CreateInstance(objType!);
-                        arrayResult[0] = ParseObject(innerArray, innerObj, objType!);
+                        arrayResult[0] = ParseObject(innerArray, innerObj!, objType!);
                         property.SetValue(result, arrayResult);
                     }
                     continue;
@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 object? value;
                 if (converterAttribute != null)
                 {
-                    value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer {Converters = {(JsonConverter) Activator.CreateInstance(converterAttribute.ConverterType)}});
+                    value = arr[attribute.Index].ToObject(property.PropertyType, new JsonSerializer {Converters = {(JsonConverter) Activator.CreateInstance(converterAttribute.ConverterType)!}});
                 }
                 else if (conversionAttribute != null)
                 {
@@ -120,7 +120,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                     }
                     else if ((property.PropertyType == typeof(decimal)
                      || property.PropertyType == typeof(decimal?))
-                     && (value != null && value.ToString().IndexOf("e", StringComparison.OrdinalIgnoreCase) >= 0))
+                     && (value != null && value.ToString()!.IndexOf("e", StringComparison.OrdinalIgnoreCase) >= 0))
                     {
                         var v = value.ToString();
                         if (decimal.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out var dec))
@@ -164,7 +164,7 @@ namespace CryptoExchange.Net.Converters.JsonNet
                 last = arrayProp.Index;
                 var converterAttribute = GetCustomAttribute<JsonConverterAttribute>(prop);
                 if (converterAttribute != null)
-                    writer.WriteRawValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)));
+                    writer.WriteRawValue(JsonConvert.SerializeObject(prop.GetValue(value), (JsonConverter)Activator.CreateInstance(converterAttribute.ConverterType)!));
                 else if (!IsSimple(prop.PropertyType))
                     serializer.Serialize(writer, prop.GetValue(value));
                 else
@@ -187,9 +187,9 @@ namespace CryptoExchange.Net.Converters.JsonNet
         }
 
         private static T? GetCustomAttribute<T>(MemberInfo memberInfo) where T : Attribute =>
-            (T?)_attributeByMemberInfoAndTypeCache.GetOrAdd((memberInfo, typeof(T)), tuple => memberInfo.GetCustomAttribute(typeof(T)));
+            (T?)_attributeByMemberInfoAndTypeCache.GetOrAdd((memberInfo, typeof(T)), tuple => memberInfo.GetCustomAttribute(typeof(T))!);
 
         private static T? GetCustomAttribute<T>(Type type) where T : Attribute =>
-            (T?)_attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T)));
+            (T?)_attributeByTypeAndTypeCache.GetOrAdd((type, typeof(T)), tuple => type.GetCustomAttribute(typeof(T))!);
     }
 }
