@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using System;
 
@@ -31,5 +32,12 @@ namespace CryptoExchange.Net.Interfaces
         /// <typeparam name="T"></typeparam>
         /// <param name="credentials"></param>
         void SetApiCredentials<T>(T credentials) where T : ApiCredentials;
+
+        /// <summary>
+        /// Set new options. Note that when using a proxy this should be provided in the options even when already set before or it will be reset.
+        /// </summary>
+        /// <typeparam name="T">Api crentials type</typeparam>
+        /// <param name="options">Options to set</param>
+        void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials;
     }
 }

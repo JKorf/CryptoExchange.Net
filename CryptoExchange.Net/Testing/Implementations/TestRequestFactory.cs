@@ -25,5 +25,7 @@ namespace CryptoExchange.Net.Testing.Implementations
             _request.RequestId = requestId;
             return _request;
         }
+
+        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout) {}
     }
 }

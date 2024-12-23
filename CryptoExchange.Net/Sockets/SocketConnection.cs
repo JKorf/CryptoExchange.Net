@@ -11,6 +11,8 @@ using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
+using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.Authentication;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -437,7 +439,7 @@ namespace CryptoExchange.Net.Sockets
                 return Task.CompletedTask;
             }
 
-            query.IsSend(ApiClient.ClientOptions.RequestTimeout);
+            query.IsSend(query.RequestTimeout ?? ApiClient.ClientOptions.RequestTimeout);
             return Task.CompletedTask;
         }
 
@@ -582,6 +584,16 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <returns></returns>
         public async Task TriggerReconnectAsync() => await _socket.ReconnectAsync().ConfigureAwait(false);
+
+        /// <summary>
+        /// Update the proxy setting and reconnect
+        /// </summary>
+        /// <param name="proxy">New proxy setting</param>
+        public async Task UpdateProxy(ApiProxy? proxy)
+        {
+            _socket.UpdateProxy(proxy);
+            await TriggerReconnectAsync().ConfigureAwait(false);
+        }
 
         /// <summary>
         /// Close the connection
@@ -988,7 +1000,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
         /// <param name="callback">The callback for processing the response</param>
-        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));
@@ -1020,7 +1032,7 @@ namespace CryptoExchange.Net.Sockets
                     try
                     {
                         var result = await SendAndWaitQueryAsync(query).ConfigureAwait(false);
-                        callback?.Invoke(result);
+                        callback?.Invoke(this, result);
                     }
                     catch (Exception ex)
                     {

@@ -23,6 +23,6 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Callback after query
         /// </summary>
-        public Action<CallResult>? Callback { get; set; }
+        public Action<SocketConnection, CallResult>? Callback { get; set; }
     }
 }

@@ -158,7 +158,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="interval"></param>
         /// <param name="queryDelegate"></param>
         /// <param name="callback"></param>
-        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<CallResult>? callback)
+        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
         {
             PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
             {
@@ -422,9 +422,10 @@ namespace CryptoExchange.Net.Clients
                     result.Error!.Message = "Authentication failed: " + result.Error.Message;
                     return new CallResult(result.Error)!;
                 }
+
+                _logger.Authenticated(socket.SocketId);
             }
 
-            _logger.Authenticated(socket.SocketId);
             socket.Authenticated = true;
             return new CallResult(null);
         }
@@ -708,6 +709,25 @@ namespace CryptoExchange.Net.Clients
             }
 
             return new CallResult(null);
+        }
+
+        /// <inheritdoc />
+        public override void SetOptions<T>(UpdateOptions<T> options)
+        {
+            var previousProxyIsSet = ClientOptions.Proxy != null;
+            base.SetOptions(options);
+
+            if ((!previousProxyIsSet && options.Proxy == null)
+                || !socketConnections.Any())
+            {
+                return;
+            }
+
+            _logger.LogInformation("Reconnecting websockets to apply proxy");
+
+            // Update proxy, also triggers reconnect
+            foreach (var connection in socketConnections)
+                _ = connection.Value.UpdateProxy(options.Proxy);
         }
 
         /// <summary>

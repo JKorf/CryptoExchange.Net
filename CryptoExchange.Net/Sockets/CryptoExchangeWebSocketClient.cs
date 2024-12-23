@@ -156,6 +156,12 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
+        public void UpdateProxy(ApiProxy? proxy)
+        {
+            Parameters.Proxy = proxy;
+        }
+
+        /// <inheritdoc />
         public virtual async Task<CallResult> ConnectAsync()
         {
             var connectResult = await ConnectInternalAsync().ConfigureAwait(false);
@@ -435,8 +441,8 @@ namespace CryptoExchange.Net.Sockets
                     {
                         // Wait until we receive close confirmation
                         await Task.Delay(10).ConfigureAwait(false);
-                        if (DateTime.UtcNow - startWait > TimeSpan.FromSeconds(5))
-                            break; // Wait for max 5 seconds, then just abort the connection
+                        if (DateTime.UtcNow - startWait > TimeSpan.FromSeconds(1))
+                            break; // Wait for max 1 second, then just abort the connection
                     }
                 }
             }

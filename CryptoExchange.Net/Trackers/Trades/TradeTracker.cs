@@ -350,7 +350,8 @@ namespace CryptoExchange.Net.Trackers.Trades
                     _data.Add(item);
                 }
 
-                _firstTimestamp = _data.Min(v => v.Timestamp);
+                if (_data.Any())
+                    _firstTimestamp = _data.Min(v => v.Timestamp);
 
                 ApplyWindow(false);
             }
