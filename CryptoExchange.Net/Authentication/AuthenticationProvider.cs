@@ -369,7 +369,7 @@ namespace CryptoExchange.Net.Authentication
             var rsa = RSA.Create();
             if (_credentials.CredentialType == ApiCredentialsType.RsaPem)
             {
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET9_0_OR_GREATER
                 // Read from pem private key
                 var key = _credentials.Secret!
                         .Replace("\n", "")

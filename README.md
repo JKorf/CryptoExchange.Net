@@ -66,6 +66,16 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.5.0 - 23 Dec 2024
+    * Added SetOptions method to update client settings
+    * Added SocketConnection parameter to PeriodicQuery callback
+    * Added setting of DefaultProxyCredentials on HttpClient instance when client is not provided by DI
+    * Added support for overriding request timeout per request
+    * Added build target for net9.0
+    * Added setting of KeepAliveTimeout on websocket connections to improve dropped connection detection
+    * Changed max wait time for close handshake response from 5 seconds to 1 second
+    * Fixed exception in trade tracker when there is no data in the initial snapshot
+
 * Version 8.4.5 - 20 Dec 2024
     * Added EmptyArrayObjectConverter System.Text.Json JsonConverter
     * Added JsonSerializerOptions parameter to SystemTextJsonMessageAccessor constructor
