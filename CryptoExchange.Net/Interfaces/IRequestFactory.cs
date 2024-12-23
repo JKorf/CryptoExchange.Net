@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Update settings
         /// </summary>
-        /// <param name="proxy">Optional proxy to use when no http client is provided</param>
+        /// <param name="proxy">Proxy to use</param>
         /// <param name="requestTimeout">Request timeout to use</param>
         void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout);
     }

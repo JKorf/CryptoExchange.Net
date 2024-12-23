@@ -43,6 +43,7 @@ namespace CryptoExchange.Net.Requests
             try
             {
                 handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
             }
             catch (PlatformNotSupportedException) { }
 

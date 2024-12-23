@@ -714,7 +714,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public override void SetOptions<T>(UpdateOptions<T> options)
         {
-            var previousProxyIsSet = ClientOptions.Proxy == null;
+            var previousProxyIsSet = ClientOptions.Proxy != null;
             base.SetOptions(options);
 
             if ((!previousProxyIsSet && options.Proxy == null)

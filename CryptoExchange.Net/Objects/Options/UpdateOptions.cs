@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Objects.Options
     public class UpdateOptions<T> where T : ApiCredentials
     {
         /// <summary>
-        /// Proxy setting
+        /// Proxy setting. Note that if this is not provided any previously set proxy will be reset
         /// </summary>
         public ApiProxy? Proxy { get; set; }
         /// <summary>

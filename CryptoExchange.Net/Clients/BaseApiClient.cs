@@ -97,9 +97,9 @@ namespace CryptoExchange.Net.Clients
         public virtual void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials
         {
             ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout!.Value;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
 
-            ApiOptions.ApiCredentials = options.ApiCredentials;
+            ApiOptions.ApiCredentials = options.ApiCredentials ?? ClientOptions.ApiCredentials;
             if (options.ApiCredentials != null)
                 AuthenticationProvider = CreateAuthenticationProvider(options.ApiCredentials.Copy());
         }
