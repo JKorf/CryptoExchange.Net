@@ -403,10 +403,14 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected static string BytesToHexString(byte[] buff)
         {
+#if NET9_0_OR_GREATER
+            return Convert.ToHexString(buff);
+#else
             var result = string.Empty;
             foreach (var t in buff)
                 result += t.ToString("X2");
             return result;
+#endif
         }
 
         /// <summary>
