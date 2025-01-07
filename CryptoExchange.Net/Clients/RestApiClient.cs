@@ -154,6 +154,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
+        /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <returns></returns>
         protected virtual Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
@@ -161,7 +162,8 @@ namespace CryptoExchange.Net.Clients
             ParameterCollection? parameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
-            int? weight = null) where T : class
+            int? weight = null,
+            int? weightSingleLimiter = null) where T : class
         {
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             return SendAsync<T>(
@@ -171,7 +173,8 @@ namespace CryptoExchange.Net.Clients
                 parameterPosition == HttpMethodParameterPosition.InBody ? parameters : null,
                 cancellationToken,
                 additionalHeaders,
-                weight);
+                weight,
+                weightSingleLimiter);
         }
 
         /// <summary>
@@ -185,6 +188,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
+        /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
@@ -193,7 +197,8 @@ namespace CryptoExchange.Net.Clients
             ParameterCollection? bodyParameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
-            int? weight = null) where T : class
+            int? weight = null,
+            int? weightSingleLimiter = null) where T : class
         {
             string? cacheKey = null;
             if (ShouldCache(definition))
@@ -217,7 +222,7 @@ namespace CryptoExchange.Net.Clients
                 currentTry++;
                 var requestId = ExchangeHelpers.NextId();
 
-                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
+                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight, weightSingleLimiter).ConfigureAwait(false);
                 if (!prepareResult)
                     return new WebCallResult<T>(prepareResult.Error!);
 
@@ -258,6 +263,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request</param>
+        /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         protected virtual async Task<CallResult> PrepareAsync(
@@ -266,10 +272,9 @@ namespace CryptoExchange.Net.Clients
             RequestDefinition definition,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
-            int? weight = null)
+            int? weight = null,
+            int? weightSingleLimiter = null)
         {
-            var requestWeight = weight ?? definition.Weight;
-
             // Time sync
             if (definition.Authenticated)
             {
@@ -295,6 +300,7 @@ namespace CryptoExchange.Net.Clients
             }            
 
             // Rate limiting
+            var requestWeight = weight ?? definition.Weight;
             if (requestWeight != 0)
             {
                 if (definition.RateLimitGate == null)
@@ -316,7 +322,8 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var singleRequestWeight = weightSingleLimiter ?? 1;
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }

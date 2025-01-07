@@ -68,8 +68,9 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="baseAddress">The host address</param>
         /// <param name="apiKey">The API key</param>
         /// <param name="behaviour">Behaviour when rate limit is hit</param>
+        /// <param name="requestWeight">The weight to apply to the limit guard</param>
         /// <param name="ct">Cancelation token</param>
         /// <returns>Error if RateLimitingBehaviour is Fail and rate limit is hit</returns>
-        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, IRateLimitGuard guard, RateLimitItemType type, RequestDefinition definition, string baseAddress, string? apiKey, RateLimitingBehaviour behaviour, CancellationToken ct);
+        Task<CallResult> ProcessSingleAsync(ILogger logger, int itemId, IRateLimitGuard guard, RateLimitItemType type, RequestDefinition definition, string baseAddress, string? apiKey, int requestWeight, RateLimitingBehaviour behaviour, CancellationToken ct);
     }
 }

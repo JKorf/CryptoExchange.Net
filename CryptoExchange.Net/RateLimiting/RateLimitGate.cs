@@ -69,6 +69,7 @@ namespace CryptoExchange.Net.RateLimiting
             RequestDefinition definition, 
             string host,
             string? apiKey,
+             int requestWeight,
             RateLimitingBehaviour rateLimitingBehaviour,
             CancellationToken ct)
         {
@@ -77,7 +78,7 @@ namespace CryptoExchange.Net.RateLimiting
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, 1, rateLimitingBehaviour, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, ct).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {

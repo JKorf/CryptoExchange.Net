@@ -58,9 +58,38 @@ namespace CryptoExchange.Net.Objects
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
             bool? preventCaching = null)
+            => GetOrCreate(method + path, method, path, rateLimitGate, weight, authenticated, limitGuard, requestBodyFormat, parameterPosition, arraySerialization, preventCaching);
+
+        /// <summary>
+        /// Get a definition if it is already in the cache or create a new definition and add it to the cache
+        /// </summary>
+        /// <param name="identifier">Request identifier</param>
+        /// <param name="method">The HttpMethod</param>
+        /// <param name="path">Endpoint path</param>
+        /// <param name="rateLimitGate">The rate limit gate</param>
+        /// <param name="limitGuard">The rate limit guard for this specific endpoint</param>
+        /// <param name="weight">Request weight</param>
+        /// <param name="authenticated">Endpoint is authenticated</param>
+        /// <param name="requestBodyFormat">Request body format</param>
+        /// <param name="parameterPosition">Parameter position</param>
+        /// <param name="arraySerialization">Array serialization type</param>
+        /// <param name="preventCaching">Prevent request caching</param>
+        /// <returns></returns>
+        public RequestDefinition GetOrCreate(
+            string identifier,
+            HttpMethod method,
+            string path,
+            IRateLimitGate? rateLimitGate,
+            int weight,
+            bool authenticated,
+            IRateLimitGuard? limitGuard = null,
+            RequestBodyFormat? requestBodyFormat = null,
+            HttpMethodParameterPosition? parameterPosition = null,
+            ArrayParametersSerialization? arraySerialization = null,
+            bool? preventCaching = null)
         {
 
-            if (!_definitions.TryGetValue(method + path, out var def))
+            if (!_definitions.TryGetValue(identifier, out var def))
             {
                 def = new RequestDefinition(path, method)
                 {
@@ -73,7 +102,7 @@ namespace CryptoExchange.Net.Objects
                     ParameterPosition = parameterPosition,
                     PreventCaching = preventCaching ?? false
                 };
-                _definitions.TryAdd(method + path, def);
+                _definitions.TryAdd(identifier, def);
             }
 
             return def;
