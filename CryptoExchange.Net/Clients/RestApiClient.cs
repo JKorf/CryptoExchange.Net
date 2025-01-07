@@ -700,10 +700,21 @@ namespace CryptoExchange.Net.Clients
                 }
 
                 // Json response received
-                var parsedError = TryParseError(accessor);
+                var parsedError = TryParseError(response.ResponseHeaders, accessor);
                 if (parsedError != null)
+                {
+                    if (parsedError is ServerRateLimitError rateError)
+                    {
+                        if (rateError.RetryAfter != null && gate != null && ClientOptions.RateLimiterEnabled)
+                        {
+                            _logger.RestApiRateLimitPauseUntil(request.RequestId, rateError.RetryAfter.Value);
+                            await gate.SetRetryAfterGuardAsync(rateError.RetryAfter.Value).ConfigureAwait(false);
+                        }
+                    }
+
                     // Success status code, but TryParseError determined it was an error response
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
+                }
 
                 var deserializeResult = accessor.Deserialize<T>();
                 return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult.Data, deserializeResult.Error);
@@ -737,12 +748,13 @@ namespace CryptoExchange.Net.Clients
 
         /// <summary>
         /// Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
-        /// When setting manualParseError to true this method will be called for each response to be able to check if the response is an error or not.
+        /// This method will be called for each response to be able to check if the response is an error or not.
         /// If the response is an error this method should return the parsed error, else it should return null
         /// </summary>
         /// <param name="accessor">Data accessor</param>
+        /// <param name="responseHeaders">The response headers</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual ServerError? TryParseError(IMessageAccessor accessor) => null;
+        protected virtual Error? TryParseError(IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
@@ -759,7 +771,7 @@ namespace CryptoExchange.Net.Clients
                 // Only retry once
                 return false;
 
-            if ((int?)callResult.ResponseStatusCode == 429 
+            if (callResult.Error is ServerRateLimitError
                 && ClientOptions.RateLimiterEnabled
                 && ClientOptions.RateLimitingBehaviour != RateLimitingBehaviour.Fail
                 && gate != null)
