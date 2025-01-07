@@ -435,6 +435,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IWithdrawalRestClient)client(x)!);
             if (typeof(IWithdrawRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IWithdrawRestClient)client(x)!);
+            if (typeof(IFeeRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFeeRestClient)client(x)!);
 
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
