@@ -235,4 +235,18 @@
         Cache
     }
 
+    /// <summary>
+    /// Type of exchange
+    /// </summary>
+    public enum ExchangeType
+    {
+        /// <summary>
+        /// Centralized
+        /// </summary>
+        CEX,
+        /// <summary>
+        /// Decentralized
+        /// </summary>
+        DEX
+    }
 }

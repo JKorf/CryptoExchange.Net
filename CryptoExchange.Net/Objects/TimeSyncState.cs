@@ -82,12 +82,12 @@ namespace CryptoExchange.Net.Objects
             TimeSyncState.LastSyncTime = DateTime.UtcNow;
             if (offset.TotalMilliseconds > 0 && offset.TotalMilliseconds < 500)
             {
-                Logger.Log(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset within limits, set offset to 0ms");
+                Logger.Log(LogLevel.Information, "{TimeSyncState.ApiName} Time offset within limits, set offset to 0ms", TimeSyncState.ApiName);
                 TimeSyncState.TimeOffset = TimeSpan.Zero;
             }
             else
             {
-                Logger.Log(LogLevel.Information, $"{TimeSyncState.ApiName} Time offset set to {Math.Round(offset.TotalMilliseconds)}ms");
+                Logger.Log(LogLevel.Information, "{TimeSyncState.ApiName} Time offset set to {Offset}ms", TimeSyncState.ApiName, Math.Round(offset.TotalMilliseconds));
                 TimeSyncState.TimeOffset = offset;
             }
         }

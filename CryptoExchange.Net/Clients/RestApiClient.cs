@@ -624,7 +624,7 @@ namespace CryptoExchange.Net.Clients
                 paramString = $" with request body '{request.Content}'";
 
             var headers = request.GetHeaders();
-            if (headers.Any())
+            if (headers.Count != 0)
                 paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
 
             TotalRequestsMade++;
@@ -908,8 +908,8 @@ namespace CryptoExchange.Net.Clients
             {
                 // Write the parameters as json in the body
                 string stringData;
-                if (parameters.Count == 1 && parameters.ContainsKey(Constants.BodyPlaceHolderKey))
-                    stringData = CreateSerializer().Serialize(parameters[Constants.BodyPlaceHolderKey]);
+                if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
+                    stringData = CreateSerializer().Serialize(value);
                 else
                     stringData = CreateSerializer().Serialize(parameters);
                 request.SetContent(stringData, contentType);

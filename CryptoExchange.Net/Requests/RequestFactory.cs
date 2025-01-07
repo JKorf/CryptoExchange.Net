@@ -37,7 +37,7 @@ namespace CryptoExchange.Net.Requests
             _httpClient = CreateClient(proxy, requestTimeout);
         }
 
-        private HttpClient CreateClient(ApiProxy? proxy, TimeSpan requestTimeout)
+        private static HttpClient CreateClient(ApiProxy? proxy, TimeSpan requestTimeout)
         {
             var handler = new HttpClientHandler();
             try
