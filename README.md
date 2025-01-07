@@ -66,6 +66,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.6.0 - 07 Jan 2025
+    * Added support for passing weight to apply to an individual ratelimit guard
+    * Added IFeeRestClient to service registration
+    * Added response headers parameter to RestApiClient.TryParseError method
+    * Added check for ServerRateLimitError on RestApiClient.TryParseError response
+    * Added ExchangeType Enum
+    * Some small improvements
+
 * Version 8.5.0 - 23 Dec 2024
     * Added SetOptions method to update client settings
     * Added SocketConnection parameter to PeriodicQuery callback
