@@ -35,6 +35,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, TimeSpan?, Exception?> _startingTaskForNoDataReceivedCheck;
         private static readonly Action<ILogger, int, TimeSpan?, Exception?> _noDataReceiveTimoutReconnect;
         private static readonly Action<ILogger, int, string, string, Exception?> _socketProcessingStateChanged;
+        private static readonly Action<ILogger, int, Exception?> _socketPingTimeout;
 
         static CryptoExchangeWebSocketClientLoggingExtension()
         {
@@ -180,8 +181,13 @@ namespace CryptoExchange.Net.Logging.Extensions
 
             _socketProcessingStateChanged = LoggerMessage.Define<int, string, string>(
                 LogLevel.Trace,
-                new EventId(1028, "SocketProcessingStateChanged"),
+                new EventId(1029, "SocketProcessingStateChanged"),
                 "[Sckt {Id}] processing state change: {PreviousState} -> {NewState}");
+
+            _socketPingTimeout = LoggerMessage.Define<int>(
+                LogLevel.Warning,
+                new EventId(1030, "SocketPingTimeout"),
+                "[Sckt {Id}] ping frame timeout; reconnecting socket");
 
         }
 
@@ -357,6 +363,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             this ILogger logger, int socketId, string prevState, string newState)
         {
             _socketProcessingStateChanged(logger, socketId, prevState, newState, null);
+        }
+
+        public static void SocketPingTimeout(
+            this ILogger logger, int socketId)
+        {
+            _socketPingTimeout(logger, socketId, null);
         }
     }
 }

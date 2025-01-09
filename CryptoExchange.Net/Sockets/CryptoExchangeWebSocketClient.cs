@@ -587,8 +587,18 @@ namespace CryptoExchange.Net.Sockets
                             lock (_receivedMessagesLock)
                                 _receivedMessages.Add(new ReceiveItem(DateTime.UtcNow, receiveResult.Count));
                         }
-                        catch (OperationCanceledException)
+                        catch (OperationCanceledException ex)
                         {
+                            if (ex.InnerException?.InnerException?.Message.Equals("The WebSocket didn't recieve a Pong frame in response to a Ping frame within the configured KeepAliveTimeout.") == true)
+                            {
+                                // Spefic case that the websocket connection got closed because of a ping frame timeout
+                                // Unfortunately doesn't seem to be a nicer way to catch
+                                _logger.SocketPingTimeout(Id);
+                            }
+
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+
                             // canceled
                             break;
                         }

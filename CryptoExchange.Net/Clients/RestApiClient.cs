@@ -163,7 +163,7 @@ namespace CryptoExchange.Net.Clients
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
-            int? weightSingleLimiter = null) where T : class
+            int? weightSingleLimiter = null)
         {
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             return SendAsync<T>(
@@ -198,7 +198,7 @@ namespace CryptoExchange.Net.Clients
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
-            int? weightSingleLimiter = null) where T : class
+            int? weightSingleLimiter = null)
         {
             string? cacheKey = null;
             if (ShouldCache(definition))
