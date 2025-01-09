@@ -66,6 +66,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.6.1 - 09 Jan 2025
+    * Fixed websocket connection getting stuck after a ping frame timeout
+    * Removed websocket Error callback when exception is expected
+    * Removed unnecessary type restraints on RestApiClient.SendAsync methods
+
 * Version 8.6.0 - 07 Jan 2025
     * Added support for passing weight to apply to an individual ratelimit guard
     * Added IFeeRestClient to service registration
