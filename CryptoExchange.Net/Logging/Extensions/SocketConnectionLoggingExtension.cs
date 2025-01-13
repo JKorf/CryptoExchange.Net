@@ -183,7 +183,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _sendingData = LoggerMessage.Define<int, int, string>(
                 LogLevel.Trace,
                 new EventId(2028, "SendingData"),
-                "[Sckt {SocketId}] [Req {RequestId}] sending messsage: {Data}");
+                "[Sckt {SocketId}] [Req {RequestId}] sending message: {Data}");
 
             _receivedMessageNotMatchedToAnyListener = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,
