@@ -444,6 +444,16 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
+        /// Get millisecond timestamp as a long including the time sync offset from the api client
+        /// </summary>
+        /// <param name="apiClient"></param>
+        /// <returns></returns>
+        protected long GetMillisecondTimestampLong(RestApiClient apiClient)
+        {
+            return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value;
+        }
+
+        /// <summary>
         /// Return the serialized request body
         /// </summary>
         /// <param name="serializer"></param>
