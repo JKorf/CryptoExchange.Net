@@ -261,6 +261,7 @@ namespace CryptoExchange.Net
             if (price != null)
             {
                 adjustedPrice = AdjustValueStep(0, decimal.MaxValue, symbol.PriceStep, RoundingType.Down, price.Value);
+                adjustedPrice = symbol.PriceSignificantFigures.HasValue ? RoundToSignificantDigits(adjustedPrice.Value, symbol.PriceSignificantFigures.Value, RoundingType.Closest) : adjustedPrice;
                 adjustedPrice = symbol.PriceDecimals.HasValue ? RoundDown(price.Value, symbol.PriceDecimals.Value) : adjustedPrice;
                 if (adjustedPrice != 0 && adjustedPrice * quantity < symbol.MinNotionalValue)
                 {

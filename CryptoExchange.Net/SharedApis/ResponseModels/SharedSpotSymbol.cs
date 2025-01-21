@@ -46,6 +46,10 @@
         /// </summary>
         public int? PriceDecimals { get; set; }
         /// <summary>
+        /// The max amount of significant figures to use for price. For example with value of 5 these values are valid: 0.00001, 0.12300, 123.53, 12345, but this is not: 12345.1
+        /// </summary>
+        public int? PriceSignificantFigures { get; set; }
+        /// <summary>
         /// Whether the symbol is currently available for trading
         /// </summary>
         public bool Trading { get; set; }
