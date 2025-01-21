@@ -158,6 +158,7 @@
 			<tr><td>Crypto.com</td><td><a href="https://github.com/JKorf/CryptoCom.Net">JKorf/CryptoCom.Net</a></td><td><a href="https://www.nuget.org/packages/CryptoCom.Net" target="_blank"><img src="https://img.shields.io/nuget/v/CryptoCom.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Gate.io</td><td><a href="https://github.com/JKorf/GateIo.Net">JKorf/GateIo.Net</a></td><td><a href="https://www.nuget.org/packages/GateIo.Net" target="_blank"><img src="https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>HTX</td><td><a href="https://github.com/JKorf/HTX.Net">JKorf/HTX.Net</a></td><td><a href="https://www.nuget.org/packages/JKorf.HTX.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JKorf.HTX.net.svg?style=flat-square" /></a></td></tr>
+			<tr><td>HyperLiquid</td><td><a href="https://github.com/JKorf/HyperLiquid.Net">JKorf/HyperLiquid.Net</a></td><td><a href="https://www.nuget.org/packages/HyperLiquid.Net" target="_blank"><img src="https://img.shields.io/nuget/v/HyperLiquid.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Kraken</td><td><a href="https://github.com/JKorf/Kraken.Net">JKorf/Kraken.Net</a></td><td><a href="https://www.nuget.org/packages/KrakenExchange.Net" target="_blank"><img src="https://img.shields.io/nuget/v/KrakenExchange.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Kucoin</td><td><a href="https://github.com/JKorf/Kucoin.Net">JKorf/Kucoin.Net</a></td><td><a href="https://www.nuget.org/packages/Kucoin.Net" target="_blank"><img src="https://img.shields.io/nuget/v/Kucoin.net.svg?style=flat-square" /></a></td></tr>
 			<tr><td>Mexc</td><td><a href="https://github.com/JKorf/Mexc.Net">JKorf/Mexc.Net</a></td><td><a href="https://www.nuget.org/packages/JK.Mexc.Net" target="_blank"><img src="https://img.shields.io/nuget/v/JK.Mexc.net.svg?style=flat-square" /></a></td></tr>
@@ -197,13 +198,14 @@
 		
 		<b>Referral</b>
 		<p>When creating an account on new exchanges please consider using a referral link from below to support development</p>
-		<table>
-		  <tr><td>Exchange</td><td>Link</td></tr>
+		<table class="table table-bordered">
+		  <tr><th>Exchange</th><th>Link</th></tr>
 		  <tr><td>Bybit</td><td>https://partner.bybit.com/b/jkorf</td></tr>
 		  <tr><td>Coinbase</td><td>https://advanced.coinbase.com/join/T6H54H8</td></tr>
 		  <tr><td>CoinEx</td><td>https://www.coinex.com/register?refer_code=hd6gn</td></tr>
 		  <tr><td>Crypto.com</td><td>https://crypto.com/exch/26ge92xbkn</td></tr>
 		  <tr><td>HTX</td><td>https://www.htx.com/invite/en-us/1f?invite_code=fxp9</td></tr>
+		  <tr><td>HyperLiquid</td><td>https://app.hyperliquid.xyz/join/JKORF</td></tr>
 		  <tr><td>Kucoin</td><td>https://www.kucoin.com/r/rf/QBS4FPED</td></tr>
 		  <tr><td>OKX</td><td>https://okx.com/join/48046699</td></tr>
 		  <tr><td>WhiteBit</td><td>https://whitebit.com/referral/a8e59b59-186c-4662-824c-3095248e0edf</td></tr>
@@ -281,6 +283,9 @@
 				<a class="nav-link" id="install-htx-tab" data-toggle="tab" href="#install-htx" role="tab" aria-controls="install-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="install-hyperliquid-tab" data-toggle="tab" href="#install-hyperliquid" role="tab" aria-controls="install-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="install-kraken-tab" data-toggle="tab" href="#install-kraken" role="tab" aria-controls="install-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -344,6 +349,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="install-htx" role="tabpanel" aria-labelledby="install-htx-tab">
 				<pre><code>dotnet add package JKorf.HTX.Net</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="install-hyperliquid" role="tabpanel" aria-labelledby="install-hyperliquid-tab">
+				<pre><code>dotnet add package HyperLiquid.Net</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="install-kraken" role="tabpanel" aria-labelledby="install-kraken-tab">
 				<pre><code>dotnet add package KrakenExchange.Net</code></pre>
@@ -421,6 +429,9 @@
 				<a class="nav-link" id="di-htx-tab" data-toggle="tab" href="#di-htx" role="tab" aria-controls="di-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="di-hyperliquid-tab" data-toggle="tab" href="#di-hyperliquid" role="tab" aria-controls="di-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="di-kraken-tab" data-toggle="tab" href="#di-kraken" role="tab" aria-controls="di-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -478,6 +489,9 @@
 			  </div>
 			  <div class="tab-pane fade" id="di-htx" role="tabpanel" aria-labelledby="di-htx-tab">
 <pre><code>builder.Services.AddHTX();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="di-hyperliquid" role="tabpanel" aria-labelledby="di-hyperliquid-tab">
+<pre><code>builder.Services.AddHyperLiquid();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="di-kraken" role="tabpanel" aria-labelledby="di-kraken-tab">
 <pre><code>builder.Services.AddKraken();</code></pre>
@@ -541,6 +555,9 @@
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-htx-tab" data-toggle="tab" href="#interfaces-htx" role="tab" aria-controls="interfaces-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="interfaces-hyperliquid-tab" data-toggle="tab" href="#interfaces-hyperliquid" role="tab" aria-controls="interfaces-hyperliquid" aria-selected="false">HyperLiquid</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="interfaces-kraken-tab" data-toggle="tab" href="#interfaces-kraken" role="tab" aria-controls="interfaces-kraken" aria-selected="false">Kraken</a>
@@ -975,6 +992,39 @@
 					</tr>
 				</table>
 			  </div>
+			  <div class="tab-pane fade" id="interfaces-hyperliquid" role="tabpanel" aria-labelledby="interfaces-hyperliquid-tab">
+				<table class="table table-bordered">
+					<tr><th>Interface</th><th>Description</th></tr>
+					<tr>
+						<td><code>IHyperLiquidRestClient</code></td>
+						<td>The client for accessing the HyperLiquid REST API</td>
+					</tr>
+					<tr>
+						<td><code>IHyperLiquidSocketClient</code></td>
+						<td>The client for accessing the HyperLiquid Websocket API</td>
+					</tr>
+					<tr>
+						<td><code>IHyperLiquidOrderBookFactory</code></td>
+						<td>A factory for creating SymbolOrderBook instances for the HyperLiquid API</td>
+					</tr>
+					<tr>
+						<td><code>IHyperLiquidTrackerFactory</code></td>
+						<td>A factory for creating kline and trade Tracker instances for the HyperLiquid API</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoRestClient</code></td>
+						<td>An aggregating client from which multiple different library REST clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ICryptoSocketClient</code></td>
+						<td>An aggregating client from which multiple different library Websocket clients can be accessed</td>
+					</tr>
+					<tr>
+						<td><code>ISharedClient</code></td>
+						<td>Various interfaces deriving from ISharedClient which can be used for common functionality</td>
+					</tr>
+				</table>
+			  </div>
 			  <div class="tab-pane fade" id="interfaces-kraken" role="tabpanel" aria-labelledby="interfaces-kraken-tab">
 				<table class="table table-bordered">
 					<tr><th>Interface</th><th>Description</th></tr>
@@ -1238,6 +1288,9 @@
 				<a class="nav-link" id="rest-htx-tab" data-toggle="tab" href="#rest-htx" role="tab" aria-controls="rest-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="rest-hyperliquid-tab" data-toggle="tab" href="#rest-hyperliquid" role="tab" aria-controls="rest-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="rest-kraken-tab" data-toggle="tab" href="#rest-kraken" role="tab" aria-controls="rest-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1404,6 +1457,18 @@ else
 			  <div class="tab-pane fade" id="rest-htx" role="tabpanel" aria-labelledby="rest-htx-tab">
 				<pre><code>var client = new HTXRestClient();
 var tickersResult = await client.SpotApi.ExchangeData.GetTickersAsync();
+if (!tickersResult.Success)
+{
+  // Handle error, tickersResult.Error contains more information
+}
+else
+{
+  // Handle data, tickersResult.Data will contain the actual data
+}</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="rest-hyperliquid" role="tabpanel" aria-labelledby="rest-hyperliquid-tab">
+				<pre><code>var client = new HyperLiquidRestClient();
+var tickersResult = await client.SpotApi.ExchangeData.GetExchangeInfoAndTickersAsync();
 if (!tickersResult.Success)
 {
   // Handle error, tickersResult.Error contains more information
@@ -1596,6 +1661,9 @@ else
 				<a class="nav-link" id="socket-htx-tab" data-toggle="tab" href="#socket-htx" role="tab" aria-controls="socket-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="socket-hyperliquid-tab" data-toggle="tab" href="#socket-hyperliquid" role="tab" aria-controls="socket-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="socket-kraken-tab" data-toggle="tab" href="#socket-kraken" role="tab" aria-controls="socket-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -1739,6 +1807,17 @@ if (!subscribeResult.Success)
 			  <div class="tab-pane fade" id="socket-htx" role="tabpanel" aria-labelledby="socket-htx-tab">
 				<pre><code>var client = new HTXSocketClient();
 var subscribeResult = await client.SpotApi.SubscribeToTickerUpdatesAsync(update => {
+  // Handle the data update, update.Data will contain the actual data
+});
+if (!subscribeResult.Success)
+{
+  // Handle error, subscribeResult.Error contains more information on why the subscription failed
+}
+// Subscribing was successfull, the data will now be streamed into the data handler</code></pre>
+			  </div>			  
+			  <div class="tab-pane fade" id="socket-hyperliquid" role="tabpanel" aria-labelledby="socket-hyperliquid-tab">
+				<pre><code>var client = new HyperLiquidSocketClient();
+var subscribeResult = await client.SpotApi.SubscribeToSymbolUpdatesAsync("HYPE/USDC", update => {
   // Handle the data update, update.Data will contain the actual data
 });
 if (!subscribeResult.Success)
@@ -2000,6 +2079,9 @@ var binanceTriggered = CheckForTrigger(lastBinanceTicker);</code></pre>
 				<a class="nav-link" id="shared-htx-tab" data-toggle="tab" href="#shared-htx" role="tab" aria-controls="shared-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="shared-hyperliquid-tab" data-toggle="tab" href="#shared-hyperliquid" role="tab" aria-controls="shared-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="shared-kraken-tab" data-toggle="tab" href="#shared-kraken" role="tab" aria-controls="shared-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2152,6 +2234,19 @@ var usdFuturesSharedRestClient = htxRestClient.UsdtFuturesApi.SharedClient;
 
 // USDT Futures API common functionality socket client
 var usdFuturesSharedSocketClient = htxSocketClient.UsdtFuturesApi.SharedClient;</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="shared-hyperliquid" role="tabpanel" aria-labelledby="shared-hyperliquid-tab">
+<pre><code>// Spot API common functionality rest client
+var spotSharedRestClients = hyperliquidRestClient.SpotApi.SharedClient;
+
+// Spot API common functionality socket client
+var spotSharedSocketClient = hyperliquidSocketClient.SpotApi.SharedClient;
+
+// Perpetual Futures API common functionality rest client
+var futuresSharedRestClient = hyperliquidRestClient.FuturesApi.SharedClient;
+
+// Perpetual Futures API common functionality socket client
+var futuresSharedSocketClient = hyperliquidSocketClient.FuturesApi.SharedClient;</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="shared-kraken" role="tabpanel" aria-labelledby="shared-kraken-tab">
 <pre><code>// Spot API common functionality rest client
@@ -2486,6 +2581,9 @@ options.ApiCredentials = new ApiCredentials("YOUR PUBLIC KEY", "YOUR PRIVATE KEY
 				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-htx" role="tab" aria-controls="options-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-hyperliquid-tab" data-toggle="tab" href="#options-hyperliquid" role="tab" aria-controls="options-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-kraken" role="tab" aria-controls="options-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2657,6 +2755,18 @@ builder.Services.AddGateIo(builder.Configuration.GetSection("GateIo"));</code></
 // see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
 builder.Services.AddHTX(builder.Configuration.GetSection("HTX"));</code></pre>
 			  </div>
+			  <div class="tab-pane fade" id="options-hyperliquid" role="tabpanel" aria-labelledby="options-hyperliquid-tab">
+<pre><code>builder.Services.AddHyperLiquid(
+  options => {
+    options.Rest.RequestTimeout = TimeSpan.FromSeconds(30);
+    options.Socket.RequestTimeout = TimeSpan.FromSeconds(5);
+  });
+  
+// OR
+  
+// see https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/example-config.json for an example configuration
+builder.Services.AddHyperLiquid(builder.Configuration.GetSection("HyperLiquid"));</code></pre>
+			  </div>
 			  <div class="tab-pane fade" id="options-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
 <pre><code>builder.Services.AddKraken(
   options => {
@@ -2776,6 +2886,9 @@ builder.Services.AddXT(builder.Configuration.GetSection("XT"));</code></pre>
 				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-constr-htx" role="tab" aria-controls="options-constr-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-hyperliquid-tab" data-toggle="tab" href="#options-constr-hyperliquid" role="tab" aria-controls="options-constr-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-constr-kraken" role="tab" aria-controls="options-constr-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -2872,6 +2985,12 @@ builder.Services.AddXT(builder.Configuration.GetSection("XT"));</code></pre>
 {
     opts.RequestTimeout = TimeSpan.FromSeconds(30);
 });</code></pre>
+			  </div>			  
+			  <div class="tab-pane fade" id="options-constr-hyperliquid" role="tabpanel" aria-labelledby="options-hyperliquid-tab">
+<pre><code>var client = new HyperLiquidRestClient(opts =>
+{
+    opts.RequestTimeout = TimeSpan.FromSeconds(30);
+});</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-constr-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
 <pre><code>var client = new KrakenRestClient(opts =>
@@ -2951,6 +3070,9 @@ builder.Services.AddXT(builder.Configuration.GetSection("XT"));</code></pre>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-htx-tab" data-toggle="tab" href="#options-default-htx" role="tab" aria-controls="options-default-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="options-hyperliquid-tab" data-toggle="tab" href="#options-default-hyperliquid" role="tab" aria-controls="options-default-hyperliquid" aria-selected="false">HyperLiquid</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="options-kraken-tab" data-toggle="tab" href="#options-default-kraken" role="tab" aria-controls="options-default-kraken" aria-selected="false">Kraken</a>
@@ -3055,6 +3177,13 @@ var client = new GateIoRestClient();</code></pre>
     options.RequestTimeout = TimeSpan.FromSeconds(30);
 });
 var client = new HTXRestClient();</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="options-default-hyperliquid" role="tabpanel" aria-labelledby="options-hyperliquid-tab">
+<pre><code>HyperLiquidRestClient.SetDefaultOptions(options =>
+{
+    options.RequestTimeout = TimeSpan.FromSeconds(30);
+});
+var client = new HyperLiquidRestClient();</code></pre>
 			  </div>
 			  <div class="tab-pane fade" id="options-default-kraken" role="tabpanel" aria-labelledby="options-kraken-tab">
 <pre><code>KrakenRestClient.SetDefaultOptions(options =>
@@ -3318,6 +3447,9 @@ var client = new XTRestClient();</code></pre>
 				<a class="nav-link" id="book-htx-tab" data-toggle="tab" href="#book-htx" role="tab" aria-controls="book-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="book-hyperliquid-tab" data-toggle="tab" href="#book-hyperliquid" role="tab" aria-controls="book-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="book-kraken-tab" data-toggle="tab" href="#book-kraken" role="tab" aria-controls="book-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -3483,6 +3615,19 @@ await book.StopAsync();
 			  </div>
 			  <div class="tab-pane fade" id="book-htx" role="tabpanel" aria-labelledby="book-htx-tab">
 <pre><code>var book = new HTXSpotSymbolOrderBook("ethusdt");
+var startResult = await book.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Book has successfully started and synchronized
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await book.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="book-hyperliquid" role="tabpanel" aria-labelledby="book-hyperliquid-tab">
+<pre><code>var book = new HyperLiquidSymbolOrderBook("HYPE/USDC");
 var startResult = await book.StartAsync();
 if (!startResult.Success)
 {
@@ -3725,6 +3870,9 @@ foreach (var book in books.Where(b => b.Status == OrderBookStatus.Synced))
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="tracker-htx-tab" data-toggle="tab" href="#tracker-htx" role="tab" aria-controls="tracker-htx" aria-selected="false">HTX</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="tracker-hyperliquid-tab" data-toggle="tab" href="#tracker-hyperliquid" role="tab" aria-controls="tracker-hyperliquid" aria-selected="false">HyperLiquid</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="tracker-kraken-tab" data-toggle="tab" href="#tracker-kraken" role="tab" aria-controls="tracker-kraken" aria-selected="false">Kraken</a>
@@ -3974,6 +4122,26 @@ var factory = new HTXTrackerFactory();
 var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "USDT");
 
 // Create a tracker for ETH/USDT keeping track of trades in the last 5 minutes
+var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
+var startResult = await tracker.StartAsync();
+if (!startResult.Success)
+{
+  // Handle error, error info available in startResult.Error
+}
+// Tracker has successfully started
+// Note that it might not be fully synced yet, check tracker.Status for this.
+
+// Once no longer needed you can stop the live sync functionality by calling StopAsync()
+await tracker.StopAsync();
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="tracker-hyperliquid" role="tabpanel" aria-labelledby="tracker-hyperliquid-tab">
+<pre><code>// Either create a new factory or inject the IHyperLiquidTrackerFactory interface
+var factory = new HyperLiquidTrackerFactory();
+
+var symbol = new SharedSymbol(TradingMode.Spot, "HYPE", "USDC");
+
+// Create a tracker for HYPE/USDC keeping track of trades in the last 5 minutes
 var tracker = factory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5));
 var startResult = await tracker.StartAsync();
 if (!startResult.Success)
@@ -4442,6 +4610,9 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 				<a class="nav-link" id="limit-htx-tab" data-toggle="tab" href="#limit-htx" role="tab" aria-controls="limit-htx" aria-selected="false">HTX</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
+				<a class="nav-link" id="limit-hyperliquid-tab" data-toggle="tab" href="#limit-hyperliquid" role="tab" aria-controls="limit-hyperliquid" aria-selected="false">HyperLiquid</a>
+			  </li>
+			  <li class="nav-item" role="presentation">
 				<a class="nav-link" id="limit-kraken-tab" data-toggle="tab" href="#limit-kraken" role="tab" aria-controls="limit-kraken" aria-selected="false">Kraken</a>
 			  </li>
 			  <li class="nav-item" role="presentation">
@@ -4582,6 +4753,20 @@ var binanceClient = new BinanceRestClient(new HttpClient(), logFactory, options 
 });</code></pre>
 		  <p>To be notified of when a rate limit is hit the static <code>HTXExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
 		  <pre><code>HTXExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
+
+</code></pre>
+			  </div>
+			  <div class="tab-pane fade" id="limit-hyperliquid" role="tabpanel" aria-labelledby="limit-hyperliquid-tab">
+<pre><code>services.AddHyperLiquid(x =>
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+}, x =>
+{
+    x.RatelimiterEnabled = true;
+    x.RateLimitingBehaviour = RateLimitingBehaviour.Wait;
+});</code></pre>
+		  <p>To be notified of when a rate limit is hit the static <code>HyperLiquidExchange.RateLimiter</code> exposes an event which triggers when a rate limit is reached</p>
+		  <pre><code>HyperLiquidExchange.RateLimiter.RateLimitTriggered += (rateLimitEvent) => Console.WriteLine("Limit triggered: " + rateLimitEvent);
 
 </code></pre>
 			  </div>
@@ -4761,6 +4946,9 @@ var responseSource = result.DataSource;</code></pre>
 						<a class="nav-link" id="example-symbols-htx-tab" data-toggle="tab" href="#example-symbols-htx" role="tab" aria-controls="example-symbols-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-symbols-hyperliquid-tab" data-toggle="tab" href="#example-symbols-hyperliquid" role="tab" aria-controls="example-symbols-hyperliquid" aria-selected="false">HyperLiquid</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-symbols-kraken-tab" data-toggle="tab" href="#example-symbols-kraken" role="tab" aria-controls="example-symbols-kraken" aria-selected="false">Kraken</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -4823,6 +5011,9 @@ await exchangeRestClient.GetSpotSymbolsAsync(new GetSymbolsRequest(), ["Binance"
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-htx" role="tabpanel" aria-labelledby="example-symbols-htx-tab">
 		<pre><code>await htxClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-symbols-hyperliquid" role="tabpanel" aria-labelledby="example-symbols-hyperliquid-tab">
+		<pre><code>await hyperLiquidClient.SpotApi.ExchangeData.GetExchangeInfoAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-symbols-kraken" role="tabpanel" aria-labelledby="example-symbols-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.ExchangeData.GetSymbolsAsync();</code></pre>
@@ -4897,6 +5088,9 @@ await exchangeRestClient.GetSpotSymbolsAsync(new GetSymbolsRequest(), ["Binance"
 						<a class="nav-link" id="example-ticker-htx-tab" data-toggle="tab" href="#example-ticker-htx" role="tab" aria-controls="example-ticker-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-ticker-hyperliquid-tab" data-toggle="tab" href="#example-ticker-hyperliquid" role="tab" aria-controls="example-ticker-hyperliquid" aria-selected="false">HyperLiquid</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-ticker-kraken-tab" data-toggle="tab" href="#example-ticker-kraken" role="tab" aria-controls="example-ticker-kraken" aria-selected="false">Kraken</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -4961,6 +5155,11 @@ await coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");</
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-htx" role="tabpanel" aria-labelledby="example-ticker-htx-tab">
 		<pre><code>await htxClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-ticker-hyperliquid" role="tabpanel" aria-labelledby="example-ticker-hyperliquid-tab">
+		<pre><code>// HyperLiquid API doesn't offer a symbol filter, so we have to filter client side
+var tickersResult = await hyperLiquidClient.SpotApi.ExchangeData.GetExchangeInfoAndTickersAsync();
+var ticker = tickersResult.Data.Tickers.Single(x => x.Symbol == "HYPE/USDC");</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-ticker-kraken" role="tabpanel" aria-labelledby="example-ticker-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");</code></pre>
@@ -5037,6 +5236,9 @@ var ticker = tickersResult.Data.Single(x => x.Symbol == "BTC_USDT");</code></pre
 						<a class="nav-link" id="example-balances-htx-tab" data-toggle="tab" href="#example-balances-htx" role="tab" aria-controls="example-balances-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-balances-hyperliquid-tab" data-toggle="tab" href="#example-balances-hyperliquid" role="tab" aria-controls="example-balances-hyperliquid" aria-selected="false">HyperLiquid</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-balances-kraken-tab" data-toggle="tab" href="#example-balances-kraken" role="tab" aria-controls="example-balances-kraken" aria-selected="false">Kraken</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -5103,6 +5305,9 @@ var accounts = await htxClient.SpotApi.Account.GetAccountsAsync();
 var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
 
 var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-balances-hyperliquid" role="tabpanel" aria-labelledby="example-balances-hyperliquid-tab">
+		<pre><code>await hyperLiquidClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-balances-kraken" role="tabpanel" aria-labelledby="example-balances-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.Account.GetBalancesAsync();</code></pre>
@@ -5177,6 +5382,9 @@ var result = await htxClient.SpotApi.Account.GetBalancesAsync();</code></pre>
 						<a class="nav-link" id="example-place-htx-tab" data-toggle="tab" href="#example-place-htx" role="tab" aria-controls="example-place-htx" aria-selected="false">HTX</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-place-hyperliquid-tab" data-toggle="tab" href="#example-place-hyperliquid" role="tab" aria-controls="example-place-hyperliquid" aria-selected="false">HyperLiquid</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-place-kraken-tab" data-toggle="tab" href="#example-place-kraken" role="tab" aria-controls="example-place-kraken" aria-selected="false">Kraken</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
@@ -5241,6 +5449,10 @@ var accounts = await htxClient.SpotApi.Account.GetAccountsAsync();
 var account = accounts.Data.Single(a => a.Type == AccountType.Spot);
 
 var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSDT", OrderSide.Buy, OrderType.Limit, 0.1m, price: 50000);</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-place-hyperliquid" role="tabpanel" aria-labelledby="example-place-hyperliquid-tab">
+		<pre><code>// BTC not support on HyperLiquid Spot trading, example uses HYPE/USDC Pair
+await hyperLiquidClient.SpotApi.Trading.PlaceOrderAsync("HYPE/USDC",OrderSide.Buy, OrderType.Limit, 1m, 20);</code></pre>
 					  </div>
 					  <div class="tab-pane fade" id="example-place-kraken" role="tabpanel" aria-labelledby="example-place-kraken-tab">
 		<pre><code>await krakenClient.SpotApi.Trading.PlaceOrderAsync("BTCUSDT",OrderSide.Buy, OrderType.Limit, 0.1m, 50000);</code></pre>
@@ -5313,6 +5525,9 @@ var result = await htxClient.SpotApi.Trading.PlaceOrderAsync(account.Id, "BTCUSD
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-htx-tab" data-toggle="tab" href="#example-stream-ticker-htx" role="tab" aria-controls="example-stream-ticker-htx" aria-selected="false">HTX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-ticker-hyperliquid-tab" data-toggle="tab" href="#example-stream-ticker-hyperliquid" role="tab" aria-controls="example-stream-ticker-hyperliquid" aria-selected="false">HyperLiquid</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-ticker-kraken-tab" data-toggle="tab" href="#example-stream-ticker-kraken" role="tab" aria-controls="example-stream-ticker-kraken" aria-selected="false">Kraken</a>
@@ -5399,6 +5614,11 @@ await exchangeSocketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequ
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-ticker-gateio" role="tabpanel" aria-labelledby="example-stream-ticker-gateio-tab">
 		<pre><code>await gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_USDT", data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-ticker-hyperliquid" role="tabpanel" aria-labelledby="example-stream-ticker-hyperliquid-tab">
+		<pre><code>await hyperLiquidSocketClient.SpotApi.SubscribeToSymbolUpdatesAsync("HYPE/USDC", data => {
     // Handle update
 });</code></pre>
 					  </div>
@@ -5493,6 +5713,9 @@ await exchangeSocketClient.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequ
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-htx-tab" data-toggle="tab" href="#example-stream-order-htx" role="tab" aria-controls="example-stream-order-htx" aria-selected="false">HTX</a>
+					  </li>
+					  <li class="nav-item" role="presentation">
+						<a class="nav-link" id="example-stream-order-hyperliquid-tab" data-toggle="tab" href="#example-stream-order-hyperliquid" role="tab" aria-controls="example-stream-order-hyperliquid" aria-selected="false">HyperLiquid</a>
 					  </li>
 					  <li class="nav-item" role="presentation">
 						<a class="nav-link" id="example-stream-order-kraken-tab" data-toggle="tab" href="#example-stream-order-kraken" role="tab" aria-controls="example-stream-order-kraken" aria-selected="false">Kraken</a>
@@ -5620,6 +5843,11 @@ _ = Task.Run(async () => {
 					  </div>
 					  <div class="tab-pane fade" id="example-stream-order-htx" role="tabpanel" aria-labelledby="example-stream-order-htx-tab">
 		<pre><code>await htxSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(onOrderMatched: data => {
+    // Handle update
+});</code></pre>
+					  </div>
+					  <div class="tab-pane fade" id="example-stream-order-hyperliquid" role="tabpanel" aria-labelledby="example-stream-order-hyperliquid-tab">
+		<pre><code>await hyperLiquidSocketClient.SpotApi.SubscribeToOrderUpdatesAsync(null, data => {
     // Handle update
 });</code></pre>
 					  </div>

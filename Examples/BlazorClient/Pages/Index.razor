@@ -9,7 +9,8 @@
 @inject ICoinExRestClient coinexClient
 @inject ICryptoComRestClient cryptocomClient
 @inject IGateIoRestClient gateioClient
-@inject IHTXRestClient huobiClient
+@inject IHTXRestClient htxClient
+@inject IHyperLiquidRestClient hyperLiquidClient
 @inject IKrakenRestClient krakenClient
 @inject IKucoinRestClient kucoinClient
 @inject IMexcRestClient mexcClient
@@ -37,7 +38,8 @@
         var coinexTask = coinexClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var cryptocomTask = cryptocomClient.ExchangeApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var gateioTask = gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");
-        var htxTask = huobiClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
+        var htxTask = htxClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
+        var hyperLiquidTask = hyperLiquidClient.FuturesApi.ExchangeData.GetExchangeInfoAndTickersAsync(); // HyperLiquid does not have BTC spot trading
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
@@ -78,6 +80,13 @@
 
         if (htxTask.Result.Success)
             _prices.Add("HTX", htxTask.Result.Data.ClosePrice ?? 0);
+
+        if (hyperLiquidTask.Result.Success)
+        {
+            // HyperLiquid API doesn't offer an endpoint to filter for a specific ticker, so we have to filter client side
+            var tickers = hyperLiquidTask.Result.Data.Tickers;
+            _prices.Add("HyperLiquid", tickers.Single(x => x.Symbol == "BTC").MidPrice ?? 9);
+        }
 
         if (krakenTask.Result.Success)
             _prices.Add("Kraken", krakenTask.Result.Data.First().Value.LastTrade.Price);

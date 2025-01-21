@@ -13,6 +13,7 @@
 @using CryptoCom.Net.Interfaces
 @using GateIo.Net.Interfaces
 @using HTX.Net.Interfaces
+@using HyperLiquid.Net.Interfaces
 @using Kraken.Net.Interfaces
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
@@ -30,6 +31,7 @@
 @inject ICryptoComOrderBookFactory cryptocomFactory
 @inject IGateIoOrderBookFactory gateioFactory
 @inject IHTXOrderBookFactory htxFactory
+@inject IHyperLiquidOrderBookFactory hyperLiquidFactory
 @inject IKrakenOrderBookFactory krakenFactory
 @inject IKucoinOrderBookFactory kucoinFactory
 @inject IMexcOrderBookFactory mexcFactory
@@ -79,6 +81,8 @@
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
+                // HyperLiquid does not support the ETH/BTC pair
+                //{ "HyperLiquid", hyperLiquidFactory.Create("ETH/BTC") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/BTC") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
