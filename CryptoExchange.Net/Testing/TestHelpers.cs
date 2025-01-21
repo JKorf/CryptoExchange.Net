@@ -150,9 +150,9 @@ namespace CryptoExchange.Net.Testing
         /// </summary>
         /// <typeparam name="TClient"></typeparam>
         /// <exception cref="Exception"></exception>
-        public static void CheckForMissingRestInterfaces<TClient>()
+        public static void CheckForMissingRestInterfaces<TClient>(string[]? excludeInterfaces = null)
         {
-            CheckForMissingInterfaces(typeof(TClient), typeof(Task));
+            CheckForMissingInterfaces(typeof(TClient), typeof(Task), excludeInterfaces);
         }
 
         /// <summary>
@@ -160,26 +160,32 @@ namespace CryptoExchange.Net.Testing
         /// </summary>
         /// <typeparam name="TClient"></typeparam>
         /// <exception cref="Exception"></exception>
-        public static void CheckForMissingSocketInterfaces<TClient>()
+        public static void CheckForMissingSocketInterfaces<TClient>(string[]? excludeInterfaces = null)
         {
-            CheckForMissingInterfaces(typeof(TClient), typeof(Task<CallResult<UpdateSubscription>>));
+            CheckForMissingInterfaces(typeof(TClient), typeof(Task<CallResult<UpdateSubscription>>), excludeInterfaces);
         }
 
-        private static void CheckForMissingInterfaces(Type clientType, Type implementationTypes)
+        private static void CheckForMissingInterfaces(Type clientType, Type implementationTypes, string[]? excludeInterfaces = null)
         {
             var assembly = Assembly.GetAssembly(clientType);
             var interfaceType = clientType.GetInterface("I" + clientType.Name);
-            var clientInterfaces = assembly!.GetTypes().Where(t => t.Name.StartsWith("I" + clientType.Name) && !t.Name.EndsWith("Shared"));
+            var clientInterfaces = assembly!.GetTypes()
+                .Where(t => t.Name.StartsWith("I" + clientType.Name)
+                        && !t.Name.EndsWith("Shared")
+                        && (excludeInterfaces?.Contains(t.Name) != true));
 
             foreach (var clientInterface in clientInterfaces)
             {
-                var implementations = assembly.GetTypes().Where(t => clientInterface.IsAssignableFrom(t) && t != clientInterface);
+                var implementations = assembly.GetTypes().Where(t => clientInterface.IsAssignableFrom(t) && !t.IsInterface && t != clientInterface);
                 foreach (var implementation in implementations)
                 {
                     int methods = 0;
                     foreach (var method in implementation.GetMethods().Where(m => implementationTypes.IsAssignableFrom(m.ReturnType)))
                     {
-                        var interfaceMethod = clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray()) ?? throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
+                        var interfaceMethod = 
+                            clientInterface.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray())
+                            ?? clientInterface.GetInterfaces().Select(x => x.GetMethod(method.Name, method.GetParameters().Select(p => p.ParameterType).ToArray())).FirstOrDefault()
+                            ?? throw new Exception($"Missing interface for method {method.Name} in {implementation.Name} implementing interface {clientInterface.Name}");
                         methods++;
                     }
 
