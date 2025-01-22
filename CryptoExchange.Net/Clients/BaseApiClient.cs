@@ -38,9 +38,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public bool OutputOriginalData { get; }
 
-        /// <summary>
-        /// Whether or not API credentials have been configured for this client. Does not check the credentials are actually valid.
-        /// </summary>
+        /// <inheritdoc />
         public bool Authenticated => ApiOptions.ApiCredentials != null || ClientOptions.ApiCredentials != null;
 
         /// <summary>

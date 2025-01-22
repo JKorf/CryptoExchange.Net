@@ -17,6 +17,11 @@ namespace CryptoExchange.Net.Interfaces
         string BaseAddress { get; }
 
         /// <summary>
+        /// Whether or not API credentials have been configured for this client. Does not check the credentials are actually valid.
+        /// </summary>
+        bool Authenticated { get; }
+
+        /// <summary>
         /// Format a base and quote asset to an exchange accepted symbol 
         /// </summary>
         /// <param name="baseAsset">The base asset</param>
@@ -36,7 +41,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Set new options. Note that when using a proxy this should be provided in the options even when already set before or it will be reset.
         /// </summary>
-        /// <typeparam name="T">Api crentials type</typeparam>
+        /// <typeparam name="T">Api credentials type</typeparam>
         /// <param name="options">Options to set</param>
         void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials;
     }
