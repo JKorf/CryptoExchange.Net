@@ -68,6 +68,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.7.1 - 24 Jan 2025
+    * Added Authenticated property to IBaseApiClient interface to check if a client was provided API credentials
+
 * Version 8.7.0 - 21 Jan 2025
     * Added GetMillisecondTimestampLong helper method to AuthenticationProvider
     * Added PriceSignificationFigures to SharedSpotSymbol model
