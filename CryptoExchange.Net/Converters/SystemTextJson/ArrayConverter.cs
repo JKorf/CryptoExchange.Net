@@ -89,6 +89,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     {
                         if (prop.PropertyInfo.PropertyType == typeof(string))
                             writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
+                        else if(prop.PropertyInfo.PropertyType.IsEnum)
+                            writer.WriteStringValue(EnumConverter.GetString(objValue));
+                        else if (prop.PropertyInfo.PropertyType == typeof(bool))
+                            writer.WriteBooleanValue((bool)objValue);
                         else
                             writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture)!);
                     }
@@ -187,12 +191,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 _converterOptionsCache.TryAdd(attribute.JsonConverterType, newOptions);
                             }
 
-                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, newOptions);
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, newOptions);
                         }
                         else if (attribute.DefaultDeserialization)
                         {
                             // Use default deserialization
-                            value = JsonDocument.ParseValue(ref reader).Deserialize(targetType, options);
+                            value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters);
                         }
                         else
                         {

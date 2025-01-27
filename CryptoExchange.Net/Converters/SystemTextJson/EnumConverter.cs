@@ -172,6 +172,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return true;
                 }
 
+                if (objectType.IsDefined(typeof(FlagsAttribute)))
+                {
+                    var intValue = int.Parse(value);
+                    result = Enum.ToObject(objectType, intValue);
+                    return true;
+                }
+
                 try
                 {
                     // If no explicit mapping is found try to parse string

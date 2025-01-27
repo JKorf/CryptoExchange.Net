@@ -105,7 +105,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             int i = 0;
                             foreach (var item in jObj.Children())
                             {
-                                var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
+                                var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                                 if (arrayProp != null)
                                     CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                                 i++;
@@ -264,9 +264,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                         int i = 0;
                         foreach (var item in jtoken.Children())
                         {
-                            var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
+                            var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), propertyType, arrayProp.Name, "Array index " + i, ignoreProperties);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties);
 
                             i++;
                         }
@@ -350,7 +350,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                         int i = 0;
                         foreach (var item in jObjs.Children())
                         {
-                            var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
+                            var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
                                 CheckPropertyValue(method, item, arrayProp.GetValue(propertyValue), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                             i++;
