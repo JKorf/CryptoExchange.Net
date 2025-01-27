@@ -6,9 +6,9 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</Description>
-    <PackageVersion>8.7.1</PackageVersion>
-    <AssemblyVersion>8.7.1</AssemblyVersion>
-    <FileVersion>8.7.1</FileVersion>
+    <PackageVersion>8.7.2</PackageVersion>
+    <AssemblyVersion>8.7.2</AssemblyVersion>
+    <FileVersion>8.7.2</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>OKX;OKX.Net;Mexc;Mexc.Net;Kucoin;Kucoin.Net;Kraken;Kraken.Net;Huobi;Huobi.Net;CoinEx;CoinEx.Net;Bybit;Bybit.Net;Bitget;Bitget.Net;Bitfinex;Bitfinex.Net;Binance;Binance.Net;CryptoCurrency;CryptoCurrency Exchange</PackageTags>
     <RepositoryType>git</RepositoryType>

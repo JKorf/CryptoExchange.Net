@@ -68,6 +68,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.7.2 - 27 Jan 2025
+    * Some small fixes in the System.Text.Json ArrayConverter
+    * Added support for Flags enum deserialization in System.Text.Json EnumConverter
+
 * Version 8.7.1 - 24 Jan 2025
     * Added Authenticated property to IBaseApiClient interface to check if a client was provided API credentials
 
