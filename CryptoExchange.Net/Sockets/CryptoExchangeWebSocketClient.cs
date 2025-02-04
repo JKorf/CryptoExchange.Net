@@ -604,7 +604,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (Exception wse)
                         {
-                            if (!_ctsSource.Token.IsCancellationRequested)
+                            if (!_ctsSource.Token.IsCancellationRequested && !_stopRequested)
                                 // Connection closed unexpectedly
                                 await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
 
