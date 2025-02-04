@@ -1,12 +1,13 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A symbol representation based on a base and quote asset
     /// </summary>
-    public class SharedSymbol
+    public record SharedSymbol
     {
         /// <summary>
         /// The base asset of the symbol
