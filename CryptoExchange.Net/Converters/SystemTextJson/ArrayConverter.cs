@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using CryptoExchange.Net.Attributes;
-using System.Collections.Generic;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -87,11 +87,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                     if (prop.JsonConverterType == null && IsSimple(prop.PropertyInfo.PropertyType))
                     {
-                        if (prop.PropertyInfo.PropertyType == typeof(string))
+                        var realType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
+                        if (realType == typeof(string))
                             writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
-                        else if(prop.PropertyInfo.PropertyType.IsEnum)
+                        else if (realType.IsEnum)
                             writer.WriteStringValue(EnumConverter.GetString(objValue));
-                        else if (prop.PropertyInfo.PropertyType == typeof(bool))
+                        else if (realType == typeof(bool))
                             writer.WriteBooleanValue((bool)objValue);
                         else
                             writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture)!);
