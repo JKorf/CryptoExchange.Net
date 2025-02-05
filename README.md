@@ -68,6 +68,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.7.3 - 05 Feb 2025
+    * Added handling of negative number DateTime deserialization to default
+    * Updated SharedSymbol from class to record
+    * Fixed issue with serialization of nullable types in System.Text.Json ArrayConverter
+    * Fix for unnecessary error message in logging when closing websocket connection
+
 * Version 8.7.2 - 27 Jan 2025
     * Some small fixes in the System.Text.Json ArrayConverter
     * Added support for Flags enum deserialization in System.Text.Json EnumConverter
