@@ -87,11 +87,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                     if (prop.JsonConverterType == null && IsSimple(prop.PropertyInfo.PropertyType))
                     {
-                        if (prop.PropertyInfo.PropertyType == typeof(string))
+                        if (prop.TargetType == typeof(string))
                             writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
-                        else if(prop.PropertyInfo.PropertyType.IsEnum)
+                        else if(prop.TargetType.IsEnum)
                             writer.WriteStringValue(EnumConverter.GetString(objValue));
-                        else if (prop.PropertyInfo.PropertyType == typeof(bool))
+                        else if (prop.TargetType == typeof(bool))
                             writer.WriteBooleanValue((bool)objValue);
                         else
                             writer.WriteRawValue(Convert.ToString(objValue, CultureInfo.InvariantCulture)!);
