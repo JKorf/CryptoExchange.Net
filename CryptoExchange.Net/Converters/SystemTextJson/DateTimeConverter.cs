@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (reader.TokenType is JsonTokenType.Number)
                 {
                     var longValue = reader.GetDouble();
-                    if (longValue == 0 || longValue == -1)
+                    if (longValue == 0 || longValue < 0)
                         return default;
 
                     return ParseFromDouble(longValue);
