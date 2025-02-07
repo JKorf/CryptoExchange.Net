@@ -6,6 +6,7 @@
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
 @using BitMart.Net.Interfaces;
+@using BitMEX.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
 @using Coinbase.Net.Interfaces
@@ -25,6 +26,7 @@
 @inject IBitfinexOrderBookFactory bitfinexFactory
 @inject IBitgetOrderBookFactory bitgetFactory
 @inject IBitMartOrderBookFactory bitmartFactory
+@inject IBitMEXOrderBookFactory bitmexFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
@@ -75,6 +77,7 @@
                 { "Bitfinex", bitfinexFactory.Create("tETHBTC") },
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
                 { "BitMart", bitmartFactory.CreateSpot("ETH_BTC", null) },
+                { "BitMEX", bitmexFactory.Create("ETH_XBT") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },

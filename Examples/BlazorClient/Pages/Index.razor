@@ -2,8 +2,9 @@
 @inject IBinanceRestClient binanceClient
 @inject IBingXRestClient bingXClient
 @inject IBitfinexRestClient bitfinexClient
-@inject IBitMartRestClient bitmartClient
 @inject IBitgetRestClient bitgetClient
+@inject IBitMartRestClient bitmartClient
+@inject IBitMEXRestClient bitmexClient
 @inject IBybitRestClient bybitClient
 @inject ICoinbaseRestClient coinbaseClient
 @inject ICoinExRestClient coinexClient
@@ -33,6 +34,7 @@
         var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
         var bitgetTask = bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");
         var bitmartTask = bitmartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");
+        var bitmexTask = bitmexClient.ExchangeApi.ExchangeData.GetSymbolsAsync("XBT_USDT");
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
         var coinbaseTask = coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");
         var coinexTask = coinexClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
@@ -62,6 +64,9 @@
 
         if (bitmartTask.Result.Success)
             _prices.Add("BitMart", bitgetTask.Result.Data.ClosePrice);
+
+        if (bitmexTask.Result.Success)
+            _prices.Add("BitMEX", bitmexTask.Result.Data.First().LastPrice);
 
         if (bybitTask.Result.Success)
             _prices.Add("Bybit", bybitTask.Result.Data.List.First().LastPrice);

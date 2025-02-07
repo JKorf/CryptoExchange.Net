@@ -5,6 +5,7 @@
 @using BingX.Net.Interfaces
 @using Bitfinex.Net.Interfaces
 @using Bitget.Net.Interfaces;
+@using BitMEX.Net.Interfaces;
 @using BitMart.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
@@ -27,6 +28,7 @@
 @inject IBitfinexTrackerFactory bitfinexFactory
 @inject IBitgetTrackerFactory bitgetFactory
 @inject IBitMartTrackerFactory bitmartFactory
+@inject IBitMEXTrackerFactory bitmexFactory
 @inject IBybitTrackerFactory bybitFactory
 @inject ICoinbaseTrackerFactory coinbaseFactory
 @inject ICoinExTrackerFactory coinExFactory
@@ -70,6 +72,7 @@
                 { bitfinexFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { bitgetFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { bitmartFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
+                { bitmexFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { bybitFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { coinbaseFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { coinExFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },

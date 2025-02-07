@@ -40,6 +40,7 @@ namespace BlazorClient
             services.AddBitfinex();
             services.AddBitget();
             services.AddBitMart();
+            services.AddBitMEX();
             services.AddBybit();
             services.AddCoinbase();
             services.AddCoinEx();
