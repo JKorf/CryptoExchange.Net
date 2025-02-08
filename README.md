@@ -69,6 +69,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.7.4 - 08 Feb 2025
+    * Fixed exception when creating rest client for mono runtime
+
 * Version 8.7.3 - 05 Feb 2025
     * Added handling of negative number DateTime deserialization to default
     * Updated SharedSymbol from class to record
