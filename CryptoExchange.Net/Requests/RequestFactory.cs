@@ -46,6 +46,7 @@ namespace CryptoExchange.Net.Requests
                 handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
             }
             catch (PlatformNotSupportedException) { }
+            catch (NotImplementedException) { } // Mono runtime throws NotImplementedException
 
             if (proxy != null)
             {
