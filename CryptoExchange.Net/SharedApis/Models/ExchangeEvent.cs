@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
                 evnt.StreamId,
                 evnt.Symbol,
                 evnt.OriginalData,
-                evnt.Timestamp,
+                evnt.ReceiveTime,
                 evnt.UpdateType)
         {
             Exchange = exchange;

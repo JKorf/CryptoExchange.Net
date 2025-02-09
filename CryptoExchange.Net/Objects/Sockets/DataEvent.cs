@@ -12,7 +12,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The timestamp the data was received
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTime ReceiveTime { get; set; }
+
+        /// <summary>
+        /// The timestamp of the data as specified by the server
+        /// </summary>
+        public DateTime? DataTime { get; set; }
 
         /// <summary>
         /// The stream producing the update
@@ -42,29 +47,29 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime timestamp, SocketUpdateType? updateType)
+        public DataEvent(T data, string? streamId, string? symbol, string? originalData, DateTime receiveTimestamp, SocketUpdateType? updateType)
         {
             Data = data;
             StreamId = streamId;
             Symbol = symbol;
             OriginalData = originalData;
-            Timestamp = timestamp;
+            ReceiveTime = receiveTimestamp;
             UpdateType = updateType;
         }
 
         /// <summary>
-        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. Topic, OriginalData and Timestamp will be copied over
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. Topic, OriginalData and ReceivedTimestamp will be copied over
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
         /// <returns></returns>
         public DataEvent<K> As<K>(K data)
         {
-            return new DataEvent<K>(data, StreamId, Symbol, OriginalData, Timestamp, UpdateType);
+            return new DataEvent<K>(data, StreamId, Symbol, OriginalData, ReceiveTime, UpdateType);
         }
 
         /// <summary>
-        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and ReceivedTimestamp will be copied over
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
@@ -72,11 +77,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, string? symbol)
         {
-            return new DataEvent<K>(data, StreamId, symbol, OriginalData, Timestamp, UpdateType);
+            return new DataEvent<K>(data, StreamId, symbol, OriginalData, ReceiveTime, UpdateType);
         }
 
         /// <summary>
-        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and Timestamp will be copied over
+        /// Create a new DataEvent with data in the from of type K based on the current DataEvent. OriginalData and ReceivedTimestamp will be copied over
         /// </summary>
         /// <typeparam name="K">The type of the new data</typeparam>
         /// <param name="data">The new data</param>
@@ -86,7 +91,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, string streamId, string? symbol, SocketUpdateType updateType)
         {
-            return new DataEvent<K>(data, streamId, symbol, OriginalData, Timestamp, updateType);
+            return new DataEvent<K>(data, streamId, symbol, OriginalData, ReceiveTime, updateType);
         }
 
         /// <summary>
@@ -100,7 +105,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         {
             return new ExchangeEvent<K>(exchange, this.As<K>(data));
         }
-
 
         /// <summary>
         /// Specify the symbol
@@ -132,6 +136,15 @@ namespace CryptoExchange.Net.Objects.Sockets
         public DataEvent<T> WithStreamId(string streamId)
         {
             StreamId = streamId;
+            return this;
+        }
+
+        /// <summary>
+        /// Specify the data timestamp
+        /// </summary>
+        public DataEvent<T> WithDataTimestamp(DateTime timestamp)
+        {
+            DataTime = timestamp;
             return this;
         }
 
