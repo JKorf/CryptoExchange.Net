@@ -31,9 +31,17 @@ namespace CryptoExchange.Net.SharedApis
         {
             SupportIntervals = new[]
             {
+                SharedKlineInterval.OneMinute,
+                SharedKlineInterval.ThreeMinutes,
                 SharedKlineInterval.FiveMinutes,
                 SharedKlineInterval.FifteenMinutes,
+                SharedKlineInterval.ThirtyMinutes,
                 SharedKlineInterval.OneHour,
+                SharedKlineInterval.TwoHours,
+                SharedKlineInterval.FourHours,
+                SharedKlineInterval.SixHours,
+                SharedKlineInterval.EightHours,
+                SharedKlineInterval.TwelveHours,
                 SharedKlineInterval.OneDay,
                 SharedKlineInterval.OneWeek,
                 SharedKlineInterval.OneMonth
