@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Memory cache
         /// </summary>
-        private static MemoryCache _cache = new MemoryCache();
+        private readonly static MemoryCache _cache = new MemoryCache();
 
         /// <summary>
         /// ctor
@@ -826,7 +826,7 @@ namespace CryptoExchange.Net.Clients
             if (parameterPosition == HttpMethodParameterPosition.InUri)
             {
                 foreach (var parameter in parameters)
-                    uri = uri.AddQueryParmeter(parameter.Key, parameter.Value.ToString()!);
+                    uri = uri.AddQueryParameter(parameter.Key, parameter.Value.ToString()!);
             }
 
             var headers = new Dictionary<string, string>();

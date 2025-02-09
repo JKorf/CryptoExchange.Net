@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         /// <summary>
         /// Event when the connection is restored. Timespan parameter indicates the time the socket has been offline for before reconnecting. 
-        /// Note that when the executing code is suspended and resumed at a later period (for example, a laptop going to sleep) the disconnect time will be incorrect as the diconnect
+        /// Note that when the executing code is suspended and resumed at a later period (for example, a laptop going to sleep) the disconnect time will be incorrect as the disconnect
         /// will only be detected after resuming the code, so the initial disconnect time is lost. Use the timespan only for informational purposes.
         /// </summary>
         public event Action<TimeSpan> ConnectionRestored

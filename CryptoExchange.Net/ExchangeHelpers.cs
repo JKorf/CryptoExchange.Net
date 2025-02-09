@@ -160,7 +160,7 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Generate a new unique id. The id is staticly stored so it is guarenteed to be unique
+        /// Generate a new unique id. The id is statically stored so it is guaranteed to be unique
         /// </summary>
         /// <returns></returns>
         public static int NextId() => Interlocked.Increment(ref _lastId);

@@ -93,6 +93,7 @@ namespace CryptoExchange.Net.Clients
             {
                 tasks.Add(client.ReconnectAsync());
             }
+
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
         }
 
@@ -106,6 +107,7 @@ namespace CryptoExchange.Net.Clients
             {
                 result.AppendLine(client.GetSubscriptionsState());
             }
+
             return result.ToString();
         }
 
@@ -120,6 +122,7 @@ namespace CryptoExchange.Net.Clients
             {
                 result.Add(client.GetState());
             }
+
             return result;
         }
     }

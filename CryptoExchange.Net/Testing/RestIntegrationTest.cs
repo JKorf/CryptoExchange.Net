@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Testing
     /// Base class for executing REST API integration tests
     /// </summary>
     /// <typeparam name="TClient">Client type</typeparam>
-    public abstract class RestIntergrationTest<TClient>
+    public abstract class RestIntegrationTest<TClient>
     {
         /// <summary>
         /// Get a client instance

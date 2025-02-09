@@ -3,7 +3,7 @@
     /// <summary>
     /// Node accessor
     /// </summary>
-    public struct NodeAccessor
+    public readonly struct NodeAccessor
     {
         /// <summary>
         /// Index

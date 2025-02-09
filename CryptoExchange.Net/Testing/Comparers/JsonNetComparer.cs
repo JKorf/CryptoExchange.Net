@@ -172,7 +172,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}");
             }
 
-            if (propertyValue == default && (propValue.Type == JTokenType.Null || string.IsNullOrEmpty(propValue.ToString())) || propValue.ToString() == "0")
+            if ((propertyValue == default && (propValue.Type == JTokenType.Null || string.IsNullOrEmpty(propValue.ToString()))) || propValue.ToString() == "0")
                 return;
 
             if (propertyValue!.GetType().GetInterfaces().Contains(typeof(IDictionary)))

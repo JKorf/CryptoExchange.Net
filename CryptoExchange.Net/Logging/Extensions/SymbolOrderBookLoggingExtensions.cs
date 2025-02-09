@@ -62,7 +62,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(5005, "OrderBookStopping"),
                 "{Api} order book {Symbol} stopping");
 
-
             _orderBookStopped = LoggerMessage.Define<string, string>(
                 LogLevel.Trace,
                 new EventId(5006, "OrderBookStopped"),

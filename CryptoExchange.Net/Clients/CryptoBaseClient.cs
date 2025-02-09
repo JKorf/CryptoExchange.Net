@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.Clients
     /// </summary>
     public class CryptoBaseClient : IDisposable
     {
-        private Dictionary<Type, object> _serviceCache = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> _serviceCache = new Dictionary<Type, object>();
 
         /// <summary>
         /// Service provider

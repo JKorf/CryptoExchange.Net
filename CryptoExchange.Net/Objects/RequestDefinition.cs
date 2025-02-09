@@ -25,8 +25,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public bool Authenticated { get; set; }
 
-
-        // Formating
+        // Formatting
 
         /// <summary>
         /// The body format for this request

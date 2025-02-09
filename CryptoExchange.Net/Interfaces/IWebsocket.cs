@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         event Func<Task> OnReconnected;
         /// <summary>
-        /// Get reconntion url
+        /// Get reconnection url
         /// </summary>
         Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 

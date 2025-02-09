@@ -111,6 +111,7 @@ namespace CryptoExchange.Net
                     formData.Add(kvp.Key, string.Format(CultureInfo.InvariantCulture, "{0}", kvp.Value));
                 }
             }
+
             return formData.ToString()!;
         }
 
@@ -286,6 +287,7 @@ namespace CryptoExchange.Net
                     httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
                 }
             }
+
             uriBuilder.Query = httpValueCollection.ToString();
             return uriBuilder.Uri;
         }
@@ -333,6 +335,7 @@ namespace CryptoExchange.Net
                     httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
                 }
             }
+
             uriBuilder.Query = httpValueCollection.ToString();
             return uriBuilder.Uri;
         }
@@ -344,7 +347,7 @@ namespace CryptoExchange.Net
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static Uri AddQueryParmeter(this Uri uri, string name, string value)
+        public static Uri AddQueryParameter(this Uri uri, string name, string value)
         {
             var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
 

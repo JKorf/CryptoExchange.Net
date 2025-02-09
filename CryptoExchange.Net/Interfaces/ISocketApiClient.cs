@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         int CurrentSubscriptions { get; }
         /// <summary>
-        /// Incoming data kpbs
+        /// Incoming data Kbps
         /// </summary>
         double IncomingKbps { get; }
         /// <summary>

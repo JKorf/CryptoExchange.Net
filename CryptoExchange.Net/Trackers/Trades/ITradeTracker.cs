@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         IEnumerable<SharedTrade> GetData(DateTime? fromTimestamp = null, DateTime? toTimestamp = null);
 
         /// <summary>
-        /// Get statitistics on the trades
+        /// Get statistics on the trades
         /// </summary>
         /// <param name="fromTimestamp">Start timestamp to get the data from, defaults to tracked data start time</param>
         /// <param name="toTimestamp">End timestamp to get the data until, defaults to current time</param>

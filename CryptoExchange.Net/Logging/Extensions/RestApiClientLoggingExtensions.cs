@@ -22,7 +22,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, Exception?> _restApiCacheHit;
         private static readonly Action<ILogger, string, Exception?> _restApiCacheNotHit;
 
-
         static RestApiClientLoggingExtensions()
         {
             _restApiErrorReceived = LoggerMessage.Define<int?, int?, long, string?>(
@@ -37,7 +36,7 @@ namespace CryptoExchange.Net.Logging.Extensions
 
             _restApiFailedToSyncTime = LoggerMessage.Define<int, string>(
                 LogLevel.Debug,
-                new EventId(4002, "RestApifailedToSyncTime"),
+                new EventId(4002, "RestApiFailedToSyncTime"),
                 "[Req {RequestId}] Failed to sync time, aborting request: {ErrorMessage}");
 
             _restApiNoApiCredentials = LoggerMessage.Define<int, string>(

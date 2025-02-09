@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         public bool Complete { get; set; }
 
         /// <summary>
-        /// Compare 2 stat snapshots to eachother
+        /// Compare 2 stat snapshots to each other
         /// </summary>
         public TradesCompare CompareTo(TradesStats otherStats)
         {

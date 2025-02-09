@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, bool, Exception?> _activityPaused;
         private static readonly Action<ILogger, int, Sockets.SocketConnection.SocketStatus, Sockets.SocketConnection.SocketStatus, Exception?> _socketStatusChanged;
         private static readonly Action<ILogger, int, string?, Exception?> _failedReconnectProcessing;
-        private static readonly Action<ILogger, int, Exception?> _unkownExceptionWhileProcessingReconnection;
+        private static readonly Action<ILogger, int, Exception?> _unknownExceptionWhileProcessingReconnection;
         private static readonly Action<ILogger, int, WebSocketError, string?, Exception?> _webSocketErrorCodeAndDetails;
         private static readonly Action<ILogger, int, string?, Exception?> _webSocketError;
         private static readonly Action<ILogger, int, int, Exception?> _messageSentNotPending;
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _closingNoMoreSubscriptions;
         private static readonly Action<ILogger, int, int, int, Exception?> _addingNewSubscription;
         private static readonly Action<ILogger, int, Exception?> _nothingToResubscribeCloseConnection;
-        private static readonly Action<ILogger, int, Exception?> _failedAuthenticationDisconnectAndRecoonect;
+        private static readonly Action<ILogger, int, Exception?> _failedAuthenticationDisconnectAndReconnect;
         private static readonly Action<ILogger, int, Exception?> _authenticationSucceeded;
         private static readonly Action<ILogger, int, string?, Exception?> _failedRequestRevitalization;
         private static readonly Action<ILogger, int, Exception?> _allSubscriptionResubscribed;
@@ -55,15 +55,15 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(2002, "FailedReconnectProcessing"),
                 "[Sckt {SocketId}] failed reconnect processing: {ErrorMessage}, reconnecting again");
 
-            _unkownExceptionWhileProcessingReconnection = LoggerMessage.Define<int>(
+            _unknownExceptionWhileProcessingReconnection = LoggerMessage.Define<int>(
                 LogLevel.Warning,
-                new EventId(2003, "UnkownExceptionWhileProcessingReconnection"),
+                new EventId(2003, "UnknownExceptionWhileProcessingReconnection"),
                 "[Sckt {SocketId}] Unknown exception while processing reconnection, reconnecting again");
 
             _webSocketErrorCodeAndDetails = LoggerMessage.Define<int, WebSocketError, string?>(
                 LogLevel.Warning,
                 new EventId(2004, "WebSocketErrorCode"),
-                "[Sckt {SocketId}] error: Websocket error code {WebSocketErrorCdoe}, details: {Details}");
+                "[Sckt {SocketId}] error: Websocket error code {WebSocketErrorCode}, details: {Details}");
 
             _webSocketError = LoggerMessage.Define<int, string?>(
                 LogLevel.Warning,
@@ -145,7 +145,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(2020, "NothingToResubscribe"),
                 "[Sckt {SocketId}] nothing to resubscribe, closing connection");
 
-            _failedAuthenticationDisconnectAndRecoonect = LoggerMessage.Define<int>(
+            _failedAuthenticationDisconnectAndReconnect = LoggerMessage.Define<int>(
                 LogLevel.Warning,
                 new EventId(2021, "FailedAuthentication"),
                 "[Sckt {SocketId}] authentication failed on reconnected socket. Disconnecting and reconnecting");
@@ -206,9 +206,9 @@ namespace CryptoExchange.Net.Logging.Extensions
             _failedReconnectProcessing(logger, socketId, error, null);
         }
 
-        public static void UnkownExceptionWhileProcessingReconnection(this ILogger logger, int socketId, Exception e)
+        public static void UnknownExceptionWhileProcessingReconnection(this ILogger logger, int socketId, Exception e)
         {
-            _unkownExceptionWhileProcessingReconnection(logger, socketId, e);
+            _unknownExceptionWhileProcessingReconnection(logger, socketId, e);
         }
 
         public static void WebSocketErrorCodeAndDetails(this ILogger logger, int socketId, WebSocketError error, string? details, Exception e)
@@ -285,7 +285,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         }
         public static void FailedAuthenticationDisconnectAndRecoonect(this ILogger logger, int socketId)
         {
-            _failedAuthenticationDisconnectAndRecoonect(logger, socketId, null);
+            _failedAuthenticationDisconnectAndReconnect(logger, socketId, null);
         }
         public static void AuthenticationSucceeded(this ILogger logger, int socketId)
         {

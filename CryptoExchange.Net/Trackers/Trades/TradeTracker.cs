@@ -163,7 +163,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             Period = period;
         }
 
-        private TradesStats GetStats(IEnumerable<SharedTrade> trades)
+        private static TradesStats GetStats(IEnumerable<SharedTrade> trades)
         {
             if (!trades.Any())
                 return new TradesStats();
@@ -350,7 +350,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                     _data.Add(item);
                 }
 
-                if (_data.Any())
+                if (_data.Count != 0)
                     _firstTimestamp = _data.Min(v => v.Timestamp);
 
                 ApplyWindow(false);
@@ -430,7 +430,6 @@ namespace CryptoExchange.Net.Trackers.Trades
                 // Need to check if sync status should be changed even if there may not be any new data
                 SetSyncStatus();
         }
-
 
         private void HandleConnectionLost()
         {

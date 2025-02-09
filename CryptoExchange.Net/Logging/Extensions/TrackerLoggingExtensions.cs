@@ -97,7 +97,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(6012, "KlineTrackerConnectionRestored"),
                 "Kline tracker for {Symbol} successfully resynchronized");
 
-
             _tradeTrackerStatusChanged = LoggerMessage.Define<string, SyncStatus, SyncStatus>(
                 LogLevel.Debug,
                 new EventId(6013, "KlineTrackerStatusChanged"),

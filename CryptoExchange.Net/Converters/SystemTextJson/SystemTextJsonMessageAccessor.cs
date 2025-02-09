@@ -20,8 +20,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         protected JsonDocument? _document;
 
-        private static JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
-        private JsonSerializerOptions? _customSerializerOptions;
+        private static readonly JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
+        private readonly JsonSerializerOptions? _customSerializerOptions;
 
         /// <inheritdoc />
         public bool IsJson { get; set; }
@@ -148,6 +148,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return value.Value.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
                 }
                 catch { }
+
                 return default;
             }
 
@@ -359,7 +360,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         /// <inheritdoc />
         public override string GetOriginalString() =>
-            // Netstandard 2.0 doesn't support GetString from a ReadonlySpan<byte>, so use ToArray there instead
+            // NetStandard 2.0 doesn't support GetString from a ReadonlySpan<byte>, so use ToArray there instead
 #if NETSTANDARD2_0
             Encoding.UTF8.GetString(_bytes.ToArray());
 #else

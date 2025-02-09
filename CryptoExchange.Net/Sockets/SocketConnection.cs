@@ -143,7 +143,7 @@ namespace CryptoExchange.Net.Sockets
         public DateTime? DisconnectTime { get; set; }
 
         /// <summary>
-        /// Tag for identificaion
+        /// Tag for identification
         /// </summary>
         public string Tag { get; set; }
         
@@ -214,7 +214,7 @@ namespace CryptoExchange.Net.Sockets
         private readonly IByteMessageAccessor _accessor;
 
         /// <summary>
-        /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similair. Not necesarry.
+        /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
         /// </summary>
         protected Task? periodicTask;
 
@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.Sockets
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail(new WebError("Connection interupted"));
+                    query.Fail(new WebError("Connection interrupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -311,7 +311,7 @@ namespace CryptoExchange.Net.Sockets
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail(new WebError("Connection interupted"));
+                    query.Fail(new WebError("Connection interrupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -340,7 +340,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {
-                    query.Fail(new WebError("Connection interupted"));
+                    query.Fail(new WebError("Connection interrupted"));
                     _listeners.Remove(query);
                 }
             }
@@ -369,7 +369,7 @@ namespace CryptoExchange.Net.Sockets
                 }
                 catch(Exception ex)
                 {
-                    _logger.UnkownExceptionWhileProcessingReconnection(SocketId, ex);
+                    _logger.UnknownExceptionWhileProcessingReconnection(SocketId, ex);
                     _ = _socket.ReconnectAsync().ConfigureAwait(false);
                 }
             });
@@ -392,7 +392,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Handler for whenever a request is rate limited and rate limit behaviour is set to fail
+        /// Handler for whenever a request is rate limited and rate limit behavior is set to fail
         /// </summary>
         /// <param name="requestId"></param>
         /// <returns></returns>

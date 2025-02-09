@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.Objects
+﻿using CryptoExchange.Net.Attributes;
+
+namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// What to do when a request would exceed the rate limit
@@ -92,7 +94,7 @@
         /// <summary>
         /// Disposed
         /// </summary>
-        Diposed
+        Disposed
     }
 
     /// <summary>
@@ -215,7 +217,7 @@
         /// </summary>
         FixedDelay,
         /// <summary>
-        /// Backof policy of 2^`reconnectAttempt`, where `reconnectAttempt` has a max value of 5
+        /// Backoff policy of 2^`reconnectAttempt`, where `reconnectAttempt` has a max value of 5
         /// </summary>
         ExponentialBackoff
     }

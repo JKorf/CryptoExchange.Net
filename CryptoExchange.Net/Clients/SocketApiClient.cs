@@ -82,7 +82,7 @@ namespace CryptoExchange.Net.Clients
         {
             get
             {
-                if (!socketConnections.Any())
+                if (socketConnections.IsEmpty)
                     return 0;
 
                 return socketConnections.Sum(s => s.Value.IncomingKbps);
@@ -97,7 +97,7 @@ namespace CryptoExchange.Net.Clients
         {
             get
             {
-                if (!socketConnections.Any())
+                if (socketConnections.IsEmpty)
                     return 0;
 
                 return socketConnections.Sum(s => s.Value.UserSubscriptionCount);
@@ -510,7 +510,7 @@ namespace CryptoExchange.Net.Clients
 
             if (connection != null)
             {
-                if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget))
+                if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget || (socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     return new CallResult<SocketConnection>(connection);
             }
@@ -598,7 +598,7 @@ namespace CryptoExchange.Net.Clients
                 KeepAliveInterval = KeepAliveInterval,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
                 RateLimiter = ClientOptions.RateLimiterEnabled ? RateLimiter : null,
-                RateLimitingBehaviour = ClientOptions.RateLimitingBehaviour,
+                RateLimitingBehavior = ClientOptions.RateLimitingBehaviour,
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
             };
@@ -718,7 +718,7 @@ namespace CryptoExchange.Net.Clients
             base.SetOptions(options);
 
             if ((!previousProxyIsSet && options.Proxy == null)
-                || !socketConnections.Any())
+                || socketConnections.IsEmpty)
             {
                 return;
             }

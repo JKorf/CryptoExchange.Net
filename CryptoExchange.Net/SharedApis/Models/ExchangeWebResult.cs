@@ -132,7 +132,6 @@ namespace CryptoExchange.Net.SharedApis
             NextPageToken = nextPageToken;
         }
 
-
         /// <summary>
         /// Copy the ExchangeWebResult to a new data type
         /// </summary>

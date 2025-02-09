@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 if (Current == 0)
                 {
                     throw new Exception("Request limit reached without any prior request. " +
-                        $"This request can never execute with the current rate limiter. Request weight: {weight}, Ratelimit: {Limit}");
+                        $"This request can never execute with the current rate limiter. Request weight: {weight}, RateLimit: {Limit}");
                 }
 
                 // Determine the time to wait before this weight can be applied without going over the rate limit

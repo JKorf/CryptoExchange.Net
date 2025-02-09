@@ -459,10 +459,10 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="serializer"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        protected string GetSerializedBody(IMessageSerializer serializer, IDictionary<string, object> parameters)
+        protected static string GetSerializedBody(IMessageSerializer serializer, IDictionary<string, object> parameters)
         {
-            if (parameters.Count == 1 && parameters.ContainsKey(Constants.BodyPlaceHolderKey))
-                return serializer.Serialize(parameters[Constants.BodyPlaceHolderKey]);
+            if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
+                return serializer.Serialize(value);
             else
                 return serializer.Serialize(parameters);
         }

@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected internal ILogger _logger;
 
-        private object _versionLock = new object();
+        private readonly object _versionLock = new object();
         private Version _exchangeVersion;
 
         /// <summary>

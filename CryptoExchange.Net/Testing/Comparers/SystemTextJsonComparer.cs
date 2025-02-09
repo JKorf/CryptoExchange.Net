@@ -69,11 +69,11 @@ namespace CryptoExchange.Net.Testing.Comparers
             }
             else if (jsonObject!.Type == JTokenType.Array)
             {
-                var jObjs = (JArray)jsonObject;
+                var jArray = (JArray)jsonObject;
                 if (resultData is IEnumerable list)
                 {
                     var enumerator = list.GetEnumerator();
-                    foreach (var jObj in jObjs)
+                    foreach (var jObj in jArray)
                     {
                         if (!enumerator.MoveNext())
                         {
@@ -123,7 +123,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 {
                     var resultProps = resultData.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                     int i = 0;
-                    foreach (var item in jObjs.Children())
+                    foreach (var item in jArray.Children())
                     {
                         var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
                         if (arrayProp != null)
@@ -196,7 +196,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}");
             }
 
-            if (propertyValue == default && (propValue.Type == JTokenType.Null || string.IsNullOrEmpty(propValue.ToString())) || propValue.ToString() == "0")
+            if ((propertyValue == default && (propValue.Type == JTokenType.Null || string.IsNullOrEmpty(propValue.ToString()))) || propValue.ToString() == "0")
                 return;
 
             if (propertyValue!.GetType().GetInterfaces().Contains(typeof(IDictionary)))
@@ -227,10 +227,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 if (propValue.Type != JTokenType.Array)
                     return;
 
-                var jObjs = (JArray)propValue;
+                var jArray = (JArray)propValue;
                 var list = (IEnumerable)propertyValue;
                 var enumerator = list.GetEnumerator();
-                foreach (JToken jtoken in jObjs)
+                foreach (JToken jToken in jArray)
                 {
                     var moved = enumerator.MoveNext();
                     if (!moved)
@@ -241,9 +241,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                         // Custom converter for the type, skip
                         continue;
 
-                    if (jtoken.Type == JTokenType.Object)
+                    if (jToken.Type == JTokenType.Object)
                     {
-                        foreach (var subProp in ((JObject)jtoken).Properties())
+                        foreach (var subProp in ((JObject)jToken).Properties())
                         {
                             if (ignoreProperties?.Contains(subProp.Name) == true)
                                 continue;
@@ -251,7 +251,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             CheckObject(method, subProp, enumerator.Current, ignoreProperties);
                         }
                     }
-                    else if (jtoken.Type == JTokenType.Array)
+                    else if (jToken.Type == JTokenType.Array)
                     {
                         var resultObj = enumerator.Current;
                         var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
@@ -262,7 +262,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             continue;
 
                         int i = 0;
-                        foreach (var item in jtoken.Children())
+                        foreach (var item in jToken.Children())
                         {
                             var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
@@ -274,10 +274,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                     else
                     {
                         var value = enumerator.Current;
-                        if (value == default && ((JValue)jtoken).Type != JTokenType.Null)
-                            throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jtoken}");
+                        if (value == default && ((JValue)jToken).Type != JTokenType.Null)
+                            throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jToken}");
 
-                        CheckValues(method, propertyName!, propertyType, (JValue)jtoken, value!);
+                        CheckValues(method, propertyName!, propertyType, (JValue)jToken, value!);
                     }
                 }
             }
@@ -298,11 +298,11 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (propValue.Type == JTokenType.Array)
                 {
-                    var jObjs = (JArray)propValue;
+                    var jArray = (JArray)propValue;
                     if (propertyValue is IEnumerable list)
                     {
                         var enumerator = list.GetEnumerator();
-                        foreach (var jObj in jObjs)
+                        foreach (var jObj in jArray)
                         {
                             if (!enumerator.MoveNext())
                             {
@@ -348,7 +348,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     {
                         var resultProps = propertyValue.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                         int i = 0;
-                        foreach (var item in jObjs.Children())
+                        foreach (var item in jArray.Children())
                         {
                             var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)

@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="outputOriginalData">Should data from this client include the orginal data in the call result</param>
+        /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>

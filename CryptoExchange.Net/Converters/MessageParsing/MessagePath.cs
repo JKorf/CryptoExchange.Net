@@ -6,9 +6,9 @@ namespace CryptoExchange.Net.Converters.MessageParsing
     /// <summary>
     /// Message access definition
     /// </summary>
-    public struct MessagePath : IEnumerable<NodeAccessor>
+    public readonly struct MessagePath : IEnumerable<NodeAccessor>
     {
-        private List<NodeAccessor> _path;
+        private readonly List<NodeAccessor> _path;
 
         internal void Add(NodeAccessor node)
         {

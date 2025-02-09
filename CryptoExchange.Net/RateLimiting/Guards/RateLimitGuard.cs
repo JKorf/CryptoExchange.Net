@@ -32,9 +32,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
 
         private readonly IEnumerable<IGuardFilter> _filters;
         private readonly Dictionary<string, IWindowTracker> _trackers;
-        private RateLimitWindowType _windowType;
-        private double? _decayRate;
-        private int? _connectionWeight;
+        private readonly RateLimitWindowType _windowType;
+        private readonly double? _decayRate;
+        private readonly int? _connectionWeight;
         private readonly Func<RequestDefinition, string, string?, string> _keySelector;
 
         /// <inheritdoc />

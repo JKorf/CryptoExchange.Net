@@ -105,7 +105,7 @@ namespace CryptoExchange.Net.Interfaces
         Task StopAsync();
 
         /// <summary>
-        /// Get the average price that a market order would fill at at the current order book state. This is no guarentee that an order of that quantity would actually be filled
+        /// Get the average price that a market order would fill at at the current order book state. This is no guarantee that an order of that quantity would actually be filled
         /// at that price since between this calculation and the order placement the book might have changed.
         /// </summary>
         /// <param name="quantity">The quantity in base asset to fill</param>
@@ -115,7 +115,7 @@ namespace CryptoExchange.Net.Interfaces
 
         /// <summary>
         /// Get the amount of base asset which can be traded with the quote quantity when placing a market order at at the current order book state. 
-        /// This is no guarentee that an order of that quantity would actually be fill the quantity returned by this since between this calculation and the order placement the book might have changed.
+        /// This is no guarantee that an order of that quantity would actually be fill the quantity returned by this since between this calculation and the order placement the book might have changed.
         /// </summary>
         /// <param name="quoteQuantity">The quantity in quote asset looking to trade</param>
         /// <param name="type">The type</param>

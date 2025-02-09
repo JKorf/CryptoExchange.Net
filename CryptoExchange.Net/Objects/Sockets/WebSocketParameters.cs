@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// The maximum time of no data received before considering the connection lost and closting/reconnecting the socket
+        /// The maximum time of no data received before considering the connection lost and closing/reconnecting the socket
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// What to do when rate limit is reached
         /// </summary>
-        public RateLimitingBehaviour RateLimitingBehaviour { get; set; }
+        public RateLimitingBehaviour RateLimitingBehavior { get; set; }
 
         /// <summary>
         /// Encoding for sending/receiving data

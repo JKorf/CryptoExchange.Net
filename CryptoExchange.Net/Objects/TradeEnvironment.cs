@@ -17,7 +17,7 @@
 
     /// <summary>
     /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
-    /// the echange's environment list or create a custom environment using either `[Exchange]Environment.CreateCustom()` or `[Exchange]Environment.[Environment]`, for example `KucoinEnvironment.TestNet` or `BinanceEnvironment.Live`
+    /// the exchange's environment list or create a custom environment using either `[Exchange]Environment.CreateCustom()` or `[Exchange]Environment.[Environment]`, for example `KucoinEnvironment.TestNet` or `BinanceEnvironment.Live`
     /// </summary>
     public class TradeEnvironment
     {

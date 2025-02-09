@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _receiveLoopStoppedWithException;
         private static readonly Action<ILogger, int, Exception?> _receiveLoopFinished;
         private static readonly Action<ILogger, int, TimeSpan?, Exception?> _startingTaskForNoDataReceivedCheck;
-        private static readonly Action<ILogger, int, TimeSpan?, Exception?> _noDataReceiveTimoutReconnect;
+        private static readonly Action<ILogger, int, TimeSpan?, Exception?> _noDataReceiveTimeoutReconnect;
         private static readonly Action<ILogger, int, string, string, Exception?> _socketProcessingStateChanged;
         private static readonly Action<ILogger, int, Exception?> _socketPingTimeout;
 
@@ -169,7 +169,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(1026, "StartingTaskForNoDataReceivedCheck"),
                 "[Sckt {SocketId}] starting task checking for no data received for {Timeout}");
 
-            _noDataReceiveTimoutReconnect = LoggerMessage.Define<int, TimeSpan?>(
+            _noDataReceiveTimeoutReconnect = LoggerMessage.Define<int, TimeSpan?>(
                 LogLevel.Warning,
                 new EventId(1027, "NoDataReceiveTimeoutReconnect"),
                 "[Sckt {SocketId}] no data received for {Timeout}, reconnecting socket");
@@ -356,7 +356,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void SocketNoDataReceiveTimoutReconnect(
             this ILogger logger, int socketId, TimeSpan? timeSpan)
         {
-            _noDataReceiveTimoutReconnect(logger, socketId, timeSpan, null);
+            _noDataReceiveTimeoutReconnect(logger, socketId, timeSpan, null);
         }
 
         public static void SocketProcessingStateChanged(

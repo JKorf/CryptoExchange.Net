@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Create a new error result
         /// </summary>
-        /// <param name="error">The erro rto return</param>
+        /// <param name="error">The error to return</param>
         public CallResult(Error error) : this(default, null, error) { }
 
         /// <summary>

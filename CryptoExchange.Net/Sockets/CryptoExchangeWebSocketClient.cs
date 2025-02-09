@@ -46,14 +46,14 @@ namespace CryptoExchange.Net.Sockets
         private bool _disposed;
         private ProcessState _processState;
         private DateTime _lastReconnectTime;
-        private string _baseAddress;
+        private readonly string _baseAddress;
         private int _reconnectAttempt;
 
         private const int _receiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
 
         /// <summary>
-        /// Received messages, the size and the timstamp
+        /// Received messages, the size and the timestamp
         /// </summary>
         protected readonly List<ReceiveItem> _receivedMessages;
 
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     UpdateReceivedMessages();
 
-                    if (!_receivedMessages.Any())
+                    if (_receivedMessages.Count == 0)
                         return 0;
 
                     return Math.Round(_receivedMessages.Sum(v => v.Bytes) / 1000d / 3d);
@@ -219,7 +219,7 @@ namespace CryptoExchange.Net.Sockets
                 if (Parameters.RateLimiter != null)
                 {
                     var definition = new RequestDefinition(Uri.AbsolutePath, HttpMethod.Get) { ConnectionId = Id };
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, definition, _baseAddress, null, 1, Parameters.RateLimitingBehavior, _ctsSource.Token).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(new ClientRateLimitError("Connection limit reached"));
                 }
@@ -296,7 +296,7 @@ namespace CryptoExchange.Net.Sockets
                     await (OnReconnecting?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);                    
                 }
 
-                // Delay here to prevent very repid looping when a connection to the server is accepted and immediately disconnected
+                // Delay here to prevent very rapid looping when a connection to the server is accepted and immediately disconnected
                 var initialDelay = GetReconnectDelay();
                 await Task.Delay(initialDelay).ConfigureAwait(false);
 
@@ -491,7 +491,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     try
                     {
-                        if (!_sendBuffer.Any())
+                        if (_sendBuffer.IsEmpty)
                             await _sendEvent.WaitAsync(ct: _ctsSource.Token).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
@@ -508,7 +508,7 @@ namespace CryptoExchange.Net.Sockets
                         {
                             try
                             {
-                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehaviour, _ctsSource.Token).ConfigureAwait(false);
+                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehavior, _ctsSource.Token).ConfigureAwait(false);
                                 if (!limitResult)
                                 {
                                     await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
@@ -589,9 +589,9 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException ex)
                         {
-                            if (ex.InnerException?.InnerException?.Message.Equals("The WebSocket didn't recieve a Pong frame in response to a Ping frame within the configured KeepAliveTimeout.") == true)
+                            if (ex.InnerException?.InnerException?.Message.Equals("The WebSocket didn't receive a Pong frame in response to a Ping frame within the configured KeepAliveTimeout.") == true)
                             {
-                                // Spefic case that the websocket connection got closed because of a ping frame timeout
+                                // Specific case that the websocket connection got closed because of a ping frame timeout
                                 // Unfortunately doesn't seem to be a nicer way to catch
                                 _logger.SocketPingTimeout(Id);
                             }
@@ -679,11 +679,11 @@ namespace CryptoExchange.Net.Sockets
 
                     if (multiPartMessage)
                     {
-                        // When the connection gets interupted we might not have received a full message
+                        // When the connection gets interrupted we might not have received a full message
                         if (receiveResult?.EndOfMessage == true)
                         {
                             _logger.SocketReassembledMessage(Id, multipartStream!.Length);
-                            // Get the underlying buffer of the memorystream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
+                            // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
                             await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
                         }
                         else
@@ -710,7 +710,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Proccess a stream message
+        /// Process a stream message
         /// </summary>
         /// <param name="type"></param>
         /// <param name="data"></param>
@@ -742,6 +742,7 @@ namespace CryptoExchange.Net.Sockets
                         _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }
+
                     try
                     {
                         await Task.Delay(500, _ctsSource.Token).ConfigureAwait(false);

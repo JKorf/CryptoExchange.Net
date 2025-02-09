@@ -74,8 +74,7 @@ namespace CryptoExchange.Net.OrderBook
         
         /// <summary>
         /// Whether levels should be strictly enforced. For example, when an order book has 25 levels and a new update comes in which pushes
-        /// the current level 25 ask out of the top 25, should the curent the level 26 entry be removed from the book or does the 
-        /// server handle this
+        /// the current level 25 ask out of the top 25, should the level 26 entry be removed from the book or does the server handle this
         /// </summary>
         protected bool _strictLevels;
 
@@ -250,6 +249,7 @@ namespace CryptoExchange.Net.OrderBook
 
             // Clear any previous messages
             while (_processQueue.TryDequeue(out _)) { }
+
             _processBuffer.Clear();
             _bookSet = false;
 
@@ -407,7 +407,7 @@ namespace CryptoExchange.Net.OrderBook
                 
         /// <summary>
         /// Set the initial data for the order book. Typically the snapshot which was requested from the Rest API, or the first snapshot
-        /// received from a socket subcription
+        /// received from a socket subscription
         /// </summary>
         /// <param name="orderBookSequenceNumber">The last update sequence number until which the snapshot is in sync</param>
         /// <param name="askList">List of asks</param>
@@ -618,6 +618,7 @@ namespace CryptoExchange.Net.OrderBook
                 var bid = book.bids.Count() > i ? book.bids.ElementAt(i): null;
                 stringBuilder.AppendLine($"[{ask?.Quantity.ToString(CultureInfo.InvariantCulture),14}] {ask?.Price.ToString(CultureInfo.InvariantCulture),14} | {bid?.Price.ToString(CultureInfo.InvariantCulture),-14} [{bid?.Quantity.ToString(CultureInfo.InvariantCulture),-14}]");
             }
+
             return stringBuilder.ToString();
         }
 
@@ -636,6 +637,7 @@ namespace CryptoExchange.Net.OrderBook
             _queueEvent.Set();
             // Clear queue
             while (_processQueue.TryDequeue(out _)) { }
+
             _processBuffer.Clear();
             _bookSet = false;
             DoReset();
@@ -732,7 +734,7 @@ namespace CryptoExchange.Net.OrderBook
                     var (prevBestBid, prevBestAsk) = BestOffers;
                     ProcessRangeUpdates(item.StartUpdateId, item.EndUpdateId, item.Bids, item.Asks);
 
-                    if (!_asks.Any() || !_bids.Any())
+                    if (_asks.Count == 0 || _bids.Count == 0)
                         return;
 
                     if (_asks.First().Key < _bids.First().Key)

@@ -113,7 +113,6 @@ namespace CryptoExchange.Net.Testing
                     if (lastMessage == null)
                         throw new Exception($"{name} expected to {line} to be send to server but did not receive anything");
 
-
                     var lastMessageJson = JToken.Parse(lastMessage);
                     var expectedJson = JToken.Parse(line.Substring(2));
                     foreach(var item in expectedJson)
@@ -133,7 +132,9 @@ namespace CryptoExchange.Net.Testing
                                 overrideValue = lastMessageJson[prop.Name]?.Value<decimal>().ToString();
                             }
                             else if (lastMessageJson[prop.Name]?.Value<string>() != val.ToString() && ignoreProperties?.Contains(prop.Name) != true)
+                            {
                                 throw new Exception($"{name} Expected {prop.Name} to be {val}, but was {lastMessageJson[prop.Name]?.Value<string>()}");
+                            }
                         }
 
                         // TODO check objects and arrays

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     public class ExchangeParameters
     {
         private readonly List<ExchangeParameter> _parameters;
-        private static List<ExchangeParameter> _staticParameters = new List<ExchangeParameter>();
+        private readonly static List<ExchangeParameter> _staticParameters = new List<ExchangeParameter>();
 
         /// <summary>
         /// ctor
