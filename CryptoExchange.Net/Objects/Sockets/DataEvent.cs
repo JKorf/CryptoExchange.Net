@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         public DateTime ReceiveTime { get; set; }
 
         /// <summary>
-        /// The timestamp of the data as specified by the server
+        /// The timestamp of the data as specified by the server. Note that the server time and client time might not be 100% in sync so this value might not be fully comparable to local time.
         /// </summary>
         public DateTime? DataTime { get; set; }
 
@@ -65,7 +65,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data)
         {
-            return new DataEvent<K>(data, StreamId, Symbol, OriginalData, ReceiveTime, UpdateType);
+            return new DataEvent<K>(data, StreamId, Symbol, OriginalData, ReceiveTime, UpdateType)
+            {
+                DataTime = DataTime
+            };
         }
 
         /// <summary>
@@ -77,7 +80,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, string? symbol)
         {
-            return new DataEvent<K>(data, StreamId, symbol, OriginalData, ReceiveTime, UpdateType);
+            return new DataEvent<K>(data, StreamId, symbol, OriginalData, ReceiveTime, UpdateType)
+            {
+                DataTime = DataTime
+            };
         }
 
         /// <summary>
@@ -91,7 +97,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public DataEvent<K> As<K>(K data, string streamId, string? symbol, SocketUpdateType updateType)
         {
-            return new DataEvent<K>(data, streamId, symbol, OriginalData, ReceiveTime, updateType);
+            return new DataEvent<K>(data, streamId, symbol, OriginalData, ReceiveTime, updateType)
+            {
+                DataTime = DataTime
+            };
         }
 
         /// <summary>
@@ -103,7 +112,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, K data)
         {
-            return new ExchangeEvent<K>(exchange, this.As<K>(data));
+            return new ExchangeEvent<K>(exchange, this.As<K>(data))
+            {
+                DataTime = DataTime
+            };
         }
 
         /// <summary>
@@ -142,7 +154,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// Specify the data timestamp
         /// </summary>
-        public DataEvent<T> WithDataTimestamp(DateTime timestamp)
+        public DataEvent<T> WithDataTimestamp(DateTime? timestamp)
         {
             DataTime = timestamp;
             return this;

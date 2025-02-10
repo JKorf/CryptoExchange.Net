@@ -24,6 +24,7 @@ namespace CryptoExchange.Net.SharedApis
                 evnt.ReceiveTime,
                 evnt.UpdateType)
         {
+            DataTime = evnt.DataTime;
             Exchange = exchange;
         }
 
