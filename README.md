@@ -69,6 +69,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 8.8.0 - 10 Feb 2025
+    * Split DataEvent.Timestamp in DataEvent.ReceivedTime and DataEvent.DataTime
+    * Added SharedKlineInterval enum values
+    * Fixed some typos
+
 * Version 8.7.4 - 08 Feb 2025
     * Fixed exception when creating rest client for mono runtime
 
