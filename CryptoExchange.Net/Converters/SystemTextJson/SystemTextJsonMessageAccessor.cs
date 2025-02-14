@@ -158,7 +158,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return (T)(object)value.Value.GetInt64().ToString();
             }
 
-            return value.Value.Deserialize<T>();
+            return value.Value.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
         }
 
         /// <inheritdoc />
