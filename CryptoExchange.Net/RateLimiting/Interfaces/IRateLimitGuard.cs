@@ -25,8 +25,9 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="host">The host address</param>
         /// <param name="apiKey">The API key</param>
         /// <param name="requestWeight">The request weight</param>
+        /// <param name="keySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
-        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight);
+        LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix);
 
         /// <summary>
         /// Apply the request to this guard with the specified weight
@@ -36,7 +37,8 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="host">The host address</param>
         /// <param name="apiKey">The API key</param>
         /// <param name="requestWeight">The request weight</param>
+        /// <param name="keySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
-        RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight);
+        RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix);
     }
 }

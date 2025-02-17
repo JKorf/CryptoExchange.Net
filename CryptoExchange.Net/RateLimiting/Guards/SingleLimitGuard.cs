@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <summary>
         /// Endpoint limit per API key
         /// </summary>
-        public static Func<RequestDefinition, string, string?, string> PerApiKey { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.Path + def.Method);
+        public static Func<RequestDefinition, string, string?, string> PerApiKey { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.Path + def.Method + key);
 
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private readonly RateLimitWindowType _windowType;
@@ -53,9 +53,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
-            var key = _keySelector(definition, host, apiKey);
+            var key = _keySelector(definition, host, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
             {
                 tracker = CreateTracker();
@@ -70,9 +70,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
-            var key = _keySelector(definition, host, apiKey);
+            var key = _keySelector(definition, host, apiKey) + keySuffix;
             var tracker = _trackers[key];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(_limit, _period, tracker.Current);

@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
             foreach(var filter in _filters)
             {
@@ -101,7 +101,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type == RateLimitItemType.Connection)
                 requestWeight = _connectionWeight ?? requestWeight;
 
-            var key = _keySelector(definition, host, apiKey);
+            var key = _keySelector(definition, host, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
             {
                 tracker = CreateTracker();
@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
             foreach (var filter in _filters)
             {
@@ -127,7 +127,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type == RateLimitItemType.Connection)
                 requestWeight = _connectionWeight ?? requestWeight;
 
-            var key = _keySelector(definition, host, apiKey);
+            var key = _keySelector(definition, host, apiKey) + keySuffix;
             var tracker = _trackers[key];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(Limit, TimeSpan, tracker.Current);

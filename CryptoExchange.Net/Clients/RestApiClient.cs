@@ -155,6 +155,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
+        /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
         protected virtual Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
@@ -163,7 +164,8 @@ namespace CryptoExchange.Net.Clients
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
-            int? weightSingleLimiter = null)
+            int? weightSingleLimiter = null,
+            string? rateLimitKeySuffix = null)
         {
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             return SendAsync<T>(
@@ -174,7 +176,8 @@ namespace CryptoExchange.Net.Clients
                 cancellationToken,
                 additionalHeaders,
                 weight,
-                weightSingleLimiter);
+                weightSingleLimiter,
+                rateLimitKeySuffix);
         }
 
         /// <summary>
@@ -189,6 +192,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
+        /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
@@ -198,7 +202,8 @@ namespace CryptoExchange.Net.Clients
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
-            int? weightSingleLimiter = null)
+            int? weightSingleLimiter = null,
+            string? rateLimitKeySuffix = null)
         {
             string? cacheKey = null;
             if (ShouldCache(definition))
@@ -222,7 +227,7 @@ namespace CryptoExchange.Net.Clients
                 currentTry++;
                 var requestId = ExchangeHelpers.NextId();
 
-                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight, weightSingleLimiter).ConfigureAwait(false);
+                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight, weightSingleLimiter, rateLimitKeySuffix).ConfigureAwait(false);
                 if (!prepareResult)
                     return new WebCallResult<T>(prepareResult.Error!);
 
@@ -264,6 +269,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="additionalHeaders">Additional headers for this request</param>
         /// <param name="weight">Override the request weight for this request</param>
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
+        /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         protected virtual async Task<CallResult> PrepareAsync(
@@ -273,7 +279,8 @@ namespace CryptoExchange.Net.Clients
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
-            int? weightSingleLimiter = null)
+            int? weightSingleLimiter = null,
+            string? rateLimitKeySuffix = null)
         {
             // Time sync
             if (definition.Authenticated)
@@ -308,7 +315,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -323,7 +330,7 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RateLimiterEnabled)
                 {
                     var singleRequestWeight = weightSingleLimiter ?? 1;
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult(limitResult.Error!);
                 }
@@ -609,7 +616,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await gate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await gate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, null, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return new CallResult<IRequest>(limitResult.Error!);
                 }

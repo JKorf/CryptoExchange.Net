@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
             if (type != Type)
                 return LimitCheck.NotApplicable;
@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
             return RateLimitState.NotApplied;
         }
