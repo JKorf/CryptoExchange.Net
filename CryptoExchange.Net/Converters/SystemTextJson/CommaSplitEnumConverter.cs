@@ -15,13 +15,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override IEnumerable<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return (reader.GetString()?.Split(',').Select(x => EnumConverter.ParseString<T>(x)).ToArray() ?? new T[0])!;
+            return (reader.GetString()?.Split(',').Select(x => EnumConverter<T>.ParseString(x)).ToArray() ?? new T[0])!;
         }
 
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, IEnumerable<T> value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(string.Join(",", value.Select(x => EnumConverter.GetString(x))));
+            writer.WriteStringValue(string.Join(",", value.Select(x => EnumConverter<T>.GetString(x))));
         }
     }
 }

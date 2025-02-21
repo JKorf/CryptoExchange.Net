@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 
@@ -173,11 +174,13 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
+#if NET5_0_OR_GREATER
+        public void AddEnum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, T value)
+#else
         public void AddEnum<T>(string key, T value)
+#endif
         {
-            Add(key, EnumConverter.GetString(value)!);
+            Add(key, EnumConverter<T>.GetString(value)!);
         }
 
         /// <summary>
@@ -185,9 +188,13 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
+#if NET5_0_OR_GREATER
+        public void AddEnumAsInt<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, T value)
+#else
         public void AddEnumAsInt<T>(string key, T value)
+#endif
         {
-            var stringVal = EnumConverter.GetString(value)!;
+            var stringVal = EnumConverter<T>.GetString(value)!;
             Add(key, int.Parse(stringVal)!);
         }
 
@@ -196,22 +203,28 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
+#if NET5_0_OR_GREATER
+        public void AddOptionalEnum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, T? value)
+#else
         public void AddOptionalEnum<T>(string key, T? value)
+#endif
         {
             if (value != null)
-                Add(key, EnumConverter.GetString(value));
+                Add(key, EnumConverter<T>.GetString(value));
         }
 
         /// <summary>
         /// Add an enum value as the string value as mapped using the <see cref="MapAttribute" />. Not added if value is null
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
+#if NET5_0_OR_GREATER
+        public void AddOptionalEnumAsInt<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, T? value)
+#else
         public void AddOptionalEnumAsInt<T>(string key, T? value)
+#endif
         {
             if (value != null)
             {
-                var stringVal = EnumConverter.GetString(value);
+                var stringVal = EnumConverter<T>.GetString(value);
                 Add(key, int.Parse(stringVal));
             }
         }

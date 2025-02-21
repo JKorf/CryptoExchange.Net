@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        string Serialize(object message);
+        string Serialize<T>(T message);
     }
 }
