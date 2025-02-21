@@ -49,26 +49,5 @@ namespace CryptoExchange.Net.Authentication
         {
             return new ApiCredentials(Key, Secret, CredentialType);
         }
-
-        /// <summary>
-        /// Create Api credentials providing a stream containing json data. The json data should include two values: apiKey and apiSecret
-        /// </summary>
-        /// <param name="inputStream">The stream containing the json data</param>
-        /// <param name="identifierKey">A key to identify the credentials for the API. For example, when set to `binanceKey` the json data should contain a value for the property `binanceKey`. Defaults to 'apiKey'.</param>
-        /// <param name="identifierSecret">A key to identify the credentials for the API. For example, when set to `binanceSecret` the json data should contain a value for the property `binanceSecret`. Defaults to 'apiSecret'.</param>
-        public static ApiCredentials FromStream(Stream inputStream, string? identifierKey = null, string? identifierSecret = null)
-        {
-            var accessor = new SystemTextJsonStreamMessageAccessor();
-            if (!accessor.Read(inputStream, false).Result)
-                throw new ArgumentException("Input stream not valid json data");
-
-            var key = accessor.GetValue<string>(MessagePath.Get().Property(identifierKey ?? "apiKey"));
-            var secret = accessor.GetValue<string>(MessagePath.Get().Property(identifierSecret ?? "apiSecret"));
-            if (key == null || secret == null)
-                throw new ArgumentException("apiKey or apiSecret value not found in Json credential file");
-            
-            inputStream.Seek(0, SeekOrigin.Begin);
-            return new ApiCredentials(key, secret);
-        }
     }
 }

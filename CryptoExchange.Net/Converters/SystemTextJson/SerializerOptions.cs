@@ -1,5 +1,9 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -8,22 +12,33 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// </summary>
     public static class SerializerOptions
     {
+        private static readonly ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions> _cache = new ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions>();
+
         /// <summary>
-        /// Json serializer settings which includes the EnumConverter, DateTimeConverter, BoolConverter and DecimalConverter
+        /// Get Json serializer settings which includes standard converters for DateTime, bool and number types
         /// </summary>
-        public static JsonSerializerOptions WithConverters { get; } = new JsonSerializerOptions
+        public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver)
         {
-            NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
-            PropertyNameCaseInsensitive = false,
-            Converters =
+            if (!_cache.TryGetValue(typeResolver, out var options))
+            {
+                options = new JsonSerializerOptions
+                {
+                    NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                    PropertyNameCaseInsensitive = false,
+                    Converters =
                     {
                         new DateTimeConverter(),
-                        new EnumConverter(),
                         new BoolConverter(),
                         new DecimalConverter(),
                         new IntConverter(),
                         new LongConverter()
-                    }
-        };
+                    },
+                    TypeInfoResolver = typeResolver,
+                };
+                _cache.TryAdd(typeResolver, options);
+            }
+
+            return options;
+        }
     }
 }

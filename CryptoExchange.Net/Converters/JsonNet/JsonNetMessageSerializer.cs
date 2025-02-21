@@ -7,6 +7,6 @@ namespace CryptoExchange.Net.Converters.JsonNet
     public class JsonNetMessageSerializer : IMessageSerializer
     {
         /// <inheritdoc />
-        public string Serialize(object message) => JsonConvert.SerializeObject(message, Formatting.None);
+        public string Serialize<T>(T message) => JsonConvert.SerializeObject(message, Formatting.None);
     }
 }
