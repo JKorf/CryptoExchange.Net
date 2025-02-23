@@ -32,44 +32,51 @@ namespace CryptoExchange.Net.Objects
         /// Wait for the AutoResetEvent to be set
         /// </summary>
         /// <returns></returns>
-        public Task<bool> WaitAsync(TimeSpan? timeout = null, CancellationToken ct = default)
+        public async Task<bool> WaitAsync(TimeSpan? timeout = null, CancellationToken ct = default)
         {
-            lock (_waits)
+            CancellationTokenRegistration registration = default;
+            try
             {
-                if (_signaled)
+                Task<bool> waiter = _completed;
+                lock (_waits)
                 {
-                    if(_reset)
-                        _signaled = false;
-                    return _completed;
-                }
-                else
-                {
-                    if (ct.IsCancellationRequested)
-                        return _completed;
-
-                    var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    if (timeout.HasValue)
+                    if (_signaled)
                     {
-                        var timeoutSource = new CancellationTokenSource(timeout.Value);
-                        var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, ct);
-                        ct = cancellationSource.Token;
+                        if (_reset)
+                            _signaled = false;
                     }
-
-                    var registration = ct.Register(() =>
+                    else if (!ct.IsCancellationRequested)
                     {
-                        lock (_waits)
+                        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                        if (timeout.HasValue)
                         {
-                            tcs.TrySetResult(false);
-
-                            // Not the cleanest but it works
-                            _waits = new Queue<TaskCompletionSource<bool>>(_waits.Where(i => i != tcs));
+                            var timeoutSource = new CancellationTokenSource(timeout.Value);
+                            var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, ct);
+                            ct = cancellationSource.Token;
                         }
-                    }, useSynchronizationContext: false);
-                    
 
-                    _waits.Enqueue(tcs);
-                    return tcs.Task;
+                        registration = ct.Register(() =>
+                        {
+                            lock (_waits)
+                            {
+                                tcs.TrySetResult(false);
+
+                                // Not the cleanest but it works
+                                _waits = new Queue<TaskCompletionSource<bool>>(_waits.Where(i => i != tcs));
+                            }
+                        }, useSynchronizationContext: false);
+
+
+                        _waits.Enqueue(tcs);
+                        waiter = tcs.Task;
+                    }
                 }
+
+                return await waiter.ConfigureAwait(false);
+            }
+            finally
+            {
+                registration.Dispose();
             }
         }
 
