@@ -65,6 +65,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         /// <summary>
+        /// The buffer size to use for receiving data
+        /// </summary>
+        public int? ReceiveBufferSize { get; set; } = null;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="uri">Uri</param>

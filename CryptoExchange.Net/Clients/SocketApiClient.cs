@@ -600,7 +600,8 @@ namespace CryptoExchange.Net.Clients
                 RateLimiter = ClientOptions.RateLimiterEnabled ? RateLimiter : null,
                 RateLimitingBehavior = ClientOptions.RateLimitingBehaviour,
                 Proxy = ClientOptions.Proxy,
-                Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout
+                Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
+                ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
             };
 
         /// <summary>

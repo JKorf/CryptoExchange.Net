@@ -53,6 +53,15 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan? ConnectDelayAfterRateLimited { get; set; }
 
         /// <summary>
+        /// The buffer size to use for receiving data. Leave unset to use the default buffer size.
+        /// </summary>
+        /// <remarks>
+        /// Only specify this if you are creating a significant amount of connections and understand the typical message length we receive from the exchange.
+        /// Setting this too low can increase memory consumption and allocations.
+        /// </remarks>
+        public int? ReceiveBufferSize { get; set; }
+
+        /// <summary>
         /// Create a copy of this options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -72,6 +81,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.RequestTimeout = RequestTimeout;
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.RateLimiterEnabled = RateLimiterEnabled;
+            item.ReceiveBufferSize = ReceiveBufferSize;
             return item;
         }
     }
