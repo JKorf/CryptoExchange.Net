@@ -5,6 +5,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +33,7 @@ namespace CryptoExchange.Net.Sockets
 
         internal static int _lastStreamId;
         private static readonly object _streamIdLock = new();
+        private static readonly ArrayPool<byte> _receiveBufferPool = ArrayPool<byte>.Shared;
 
         private readonly AsyncResetEvent _sendEvent;
         private readonly ConcurrentQueue<SendItem> _sendBuffer;
@@ -48,8 +50,9 @@ namespace CryptoExchange.Net.Sockets
         private DateTime _lastReconnectTime;
         private readonly string _baseAddress;
         private int _reconnectAttempt;
+        private readonly int _receiveBufferSize;
 
-        private const int _receiveBufferSize = 1048576;
+        private const int _defaultReceiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
 
         /// <summary>
@@ -149,6 +152,7 @@ namespace CryptoExchange.Net.Sockets
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
             _receivedMessagesLock = new object();
+            _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
@@ -566,8 +570,8 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         private async Task ReceiveLoopAsync()
         {
-            var buffer = new ArraySegment<byte>(new byte[_receiveBufferSize]);
-            var received = 0;
+            byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
+            var buffer = new ArraySegment<byte>(rentedBuffer);
             try
             {
                 while (true)
@@ -583,7 +587,6 @@ namespace CryptoExchange.Net.Sockets
                         try
                         {
                             receiveResult = await _socket.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
-                            received += receiveResult.Count;
                             lock (_receivedMessagesLock)
                                 _receivedMessages.Add(new ReceiveItem(DateTime.UtcNow, receiveResult.Count));
                         }
@@ -649,7 +652,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
-                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                             }
                             else
                             {
@@ -705,6 +708,7 @@ namespace CryptoExchange.Net.Sockets
             }
             finally
             {
+                _receiveBufferPool.Return(rentedBuffer, true);
                 _logger.SocketReceiveLoopFinished(Id);
             }
         }
