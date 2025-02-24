@@ -10,6 +10,9 @@ using CryptoExchange.Net.Objects;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using CryptoExchange.Net.SharedApis;
+using System.Text.Json.Serialization.Metadata;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net
 {

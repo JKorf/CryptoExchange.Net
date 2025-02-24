@@ -158,7 +158,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             var mapping = new List<KeyValuePair<object, string>>();
             var enumMembers = typeof(T).GetFields();
-#warning Check GetFields
             foreach (var member in enumMembers)
             {
                 var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
