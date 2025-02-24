@@ -157,17 +157,18 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static List<KeyValuePair<object, string>> AddMapping()
         {
             var mapping = new List<KeyValuePair<object, string>>();
-            var enumMembers = typeof(T).GetFields();
+            var enumType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+            var enumMembers = enumType.GetFields();
             foreach (var member in enumMembers)
             {
                 var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
                 foreach (MapAttribute attribute in maps)
                 {
                     foreach (var value in attribute.Values)
-                        mapping.Add(new KeyValuePair<object, string>(Enum.Parse(typeof(T), member.Name), value));
+                        mapping.Add(new KeyValuePair<object, string>(Enum.Parse(enumType, member.Name), value));
                 }
             }
-            _mapping.TryAdd(typeof(T), mapping);
+            _mapping.TryAdd(enumType, mapping);
             return mapping;
         }
 
@@ -195,7 +196,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <returns></returns>
         public static T? ParseString(string value)
         {
-            var type = typeof(T);
+            var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
             if (!_mapping.TryGetValue(type, out var enumMapping))
                 enumMapping = AddMapping();
 
