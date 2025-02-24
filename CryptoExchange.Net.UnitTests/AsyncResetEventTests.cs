@@ -106,6 +106,7 @@ namespace CryptoExchange.Net.UnitTests
             for(var i = 1; i <= 10; i++)
             {
                 evnt.Set();
+                await Task.Delay(1); // Wait for the continuation.
                 Assert.That(10 - i == waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
             }
 
