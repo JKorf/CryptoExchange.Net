@@ -210,7 +210,7 @@ namespace CryptoExchange.Net.Objects
 #endif
         {
             if (value != null)
-                Add(key, EnumConverter<T>.GetString(value));
+                Add(key, EnumConverter<T?>.GetString(value));
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace CryptoExchange.Net.Objects
         {
             if (value != null)
             {
-                var stringVal = EnumConverter<T>.GetString(value);
+                var stringVal = EnumConverter<T?>.GetString(value);
                 Add(key, int.Parse(stringVal));
             }
         }
