@@ -22,9 +22,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
     {
         private static readonly ConcurrentDictionary<Type, List<ArrayPropertyInfo>> _typeAttributesCache = new ConcurrentDictionary<Type, List<ArrayPropertyInfo>>();
-        private static readonly ConcurrentDictionary<Type, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<Type, JsonSerializerOptions>();
+        private static readonly ConcurrentDictionary<JsonConverter, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<JsonConverter, JsonSerializerOptions>();
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             if (value == null)
@@ -35,7 +39,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             writer.WriteStartArray();
 
-            var valueType = value.GetType();
+            var valueType = typeof(T);
             if (!_typeAttributesCache.TryGetValue(valueType, out var typeAttributes))
                 typeAttributes = CacheTypeAttributes(valueType);
 
@@ -62,15 +66,18 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 }
 
                 JsonSerializerOptions? typeOptions = null;
-                if (prop.JsonConverterType != null)
+                if (prop.JsonConverter != null)
                 {
-                    var converter = (JsonConverter)Activator.CreateInstance(prop.JsonConverterType)!;
-                    typeOptions = new JsonSerializerOptions();
-                    typeOptions.Converters.Clear();
-                    typeOptions.Converters.Add(converter);
+                    typeOptions = new JsonSerializerOptions
+                    {
+                        NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                        PropertyNameCaseInsensitive = false,
+                        TypeInfoResolver = (TContext)Activator.CreateInstance(typeof(TContext))!,
+                    };
+                    typeOptions.Converters.Add(prop.JsonConverter);
                 }
 
-                if (prop.JsonConverterType == null && IsSimple(prop.PropertyInfo.PropertyType))
+                if (prop.JsonConverter == null && IsSimple(prop.PropertyInfo.PropertyType))
                 {
                     if (prop.TargetType == typeof(string))
                         writer.WriteStringValue(Convert.ToString(objValue, CultureInfo.InvariantCulture));
@@ -94,8 +101,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.Null)
                 return default;
 
-            var result = Activator.CreateInstance(typeToConvert)!;
-            return (T)ParseObject(ref reader, result, typeToConvert, options);
+            var result = Activator.CreateInstance(typeof(T))!;
+            return (T)ParseObject(ref reader, result, typeof(T), options);
         }
 
         private static bool IsSimple(Type type)
@@ -111,7 +118,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
               || type == typeof(decimal);
         }
 
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        private static List<ArrayPropertyInfo> CacheTypeAttributes([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
+#else
         private static List<ArrayPropertyInfo> CacheTypeAttributes(Type type)
+#endif
         {
             var attributes = new List<ArrayPropertyInfo>();
             var properties = type.GetProperties();
@@ -121,12 +134,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (att == null)
                     continue;
 
+                var converterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? property.PropertyType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType;
                 attributes.Add(new ArrayPropertyInfo
                 {
                     ArrayProperty = att,
                     PropertyInfo = property,
                     DefaultDeserialization = property.GetCustomAttribute<CryptoExchange.Net.Attributes.JsonConversionAttribute>() != null,
-                    JsonConverterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? property.PropertyType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType,
+                    JsonConverter = converterType == null ? null : (JsonConverter)Activator.CreateInstance(converterType)!,
                     TargetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType
                 });
             }
@@ -135,7 +149,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return attributes;
         }
 
+
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        private static object ParseObject(ref Utf8JsonReader reader, object result, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type objectType, JsonSerializerOptions options)
+#else
         private static object ParseObject(ref Utf8JsonReader reader, object result, Type objectType, JsonSerializerOptions options)
+#endif
         {
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new Exception("Not an array");
@@ -160,20 +181,18 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     var targetType = attribute.TargetType;
                     object? value = null;
-                    if (attribute.JsonConverterType != null)
+                    if (attribute.JsonConverter != null)
                     {
-                        if (!_converterOptionsCache.TryGetValue(attribute.JsonConverterType, out var newOptions))
-                        {
-                            var contextOptions = SerializerOptions.WithConverters((TContext)Activator.CreateInstance(typeof(TContext))!);
-                            var converter = (JsonConverter)Activator.CreateInstance(attribute.JsonConverterType)!;
+                        if (!_converterOptionsCache.TryGetValue(attribute.JsonConverter, out var newOptions))
+                        {                            
                             newOptions = new JsonSerializerOptions
                             {
-                                NumberHandling = contextOptions.NumberHandling,
-                                PropertyNameCaseInsensitive = contextOptions.PropertyNameCaseInsensitive,
-                                Converters = { converter },
-                                TypeInfoResolver = contextOptions.TypeInfoResolver,
+                                NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                                PropertyNameCaseInsensitive = false,
+                                Converters = { attribute.JsonConverter },
+                                TypeInfoResolver = options.TypeInfoResolver,
                             };
-                            _converterOptionsCache.TryAdd(attribute.JsonConverterType, newOptions);
+                            _converterOptionsCache.TryAdd(attribute.JsonConverter, newOptions);
                         }
 
                         value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, newOptions);
@@ -213,7 +232,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             public PropertyInfo PropertyInfo { get; set; } = null!;
             public ArrayPropertyAttribute ArrayProperty { get; set; } = null!;
-            public Type? JsonConverterType { get; set; }
+            public JsonConverter? JsonConverter { get; set; }
             public bool DefaultDeserialization { get; set; }
             public Type TargetType { get; set; } = null!;
         }
