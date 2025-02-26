@@ -592,7 +592,7 @@ namespace CryptoExchange.Net.Sockets
                         }
                         catch (OperationCanceledException ex)
                         {
-                            if (ex.InnerException?.InnerException?.Message.Equals("The WebSocket didn't receive a Pong frame in response to a Ping frame within the configured KeepAliveTimeout.") == true)
+                            if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
                             {
                                 // Specific case that the websocket connection got closed because of a ping frame timeout
                                 // Unfortunately doesn't seem to be a nicer way to catch
