@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #else
     public class EnumConverter<T>
 #endif
-         : JsonConverter<T>, INullableConverter where T : struct, Enum
+         : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
         private static List<KeyValuePair<T, string>>? _mapping = null;
         private bool _warnOnMissingEntry = true;
@@ -45,14 +45,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         internal class NullableEnumConverter : JsonConverter<T?>
         {
-            private readonly EnumConverter<T> enumConverter;
+            private readonly EnumConverter<T> _enumConverter;
+
             public NullableEnumConverter(EnumConverter<T> enumConverter)
             {
-                this.enumConverter = enumConverter;
+                _enumConverter = enumConverter;
             }
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                return enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
+                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
             }
 
             public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
@@ -63,7 +64,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 }
                 else
                 {
-                    enumConverter.Write(writer, value.Value, options);
+                    _enumConverter.Write(writer, value.Value, options);
                 }
             }
         }
@@ -144,14 +145,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 writer.WriteNumberValue((int)Convert.ChangeType(value, typeof(int)));
             }
         }
-
-        //private static T? GetDefaultValue()
-        //{
-        //    if (Nullable.GetUnderlyingType(typeof(T)) != null)
-        //        return null;
-
-        //    return Activator.CreateInstance(typeof(T)); // return default value
-        //}
 
         private static bool GetValue(Type objectType, string value, out T? result)
         {
@@ -252,6 +245,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
         }
 
+        /// <inheritdoc />
         public JsonConverter CreateNullableConverter()
         {
             nullableEnumConverter ??= new NullableEnumConverter(this);

@@ -7,22 +7,27 @@ using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
-    class NullableEnumConverterFactory : JsonConverterFactory
+    internal class NullableEnumConverterFactory : JsonConverterFactory
     {
-        private readonly IJsonTypeInfoResolver jsonTypeInfoResolver;
+        private readonly IJsonTypeInfoResolver _jsonTypeInfoResolver;
+        private static readonly JsonSerializerOptions _options = new JsonSerializerOptions();
+
         public NullableEnumConverterFactory(IJsonTypeInfoResolver jsonTypeInfoResolver)
         {
-            this.jsonTypeInfoResolver = jsonTypeInfoResolver;
+            _jsonTypeInfoResolver = jsonTypeInfoResolver;
         }
+
         public override bool CanConvert(Type typeToConvert)
         {
             var b = Nullable.GetUnderlyingType(typeToConvert);
             if (b == null)
                 return false;
-            var typeInfo = jsonTypeInfoResolver.GetTypeInfo(b, new JsonSerializerOptions());
+
+            var typeInfo = _jsonTypeInfoResolver.GetTypeInfo(b, _options);
             if (typeInfo == null)
                 return false;
-            return typeInfo.Converter is INullableConverter;
+
+            return typeInfo.Converter is INullableConverterFactory;
         }
 
         public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
@@ -30,15 +35,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             var b = Nullable.GetUnderlyingType(typeToConvert);
             if (b == null)
                 throw new ArgumentNullException($"Not nullable {typeToConvert.Name}");
-            var typeInfo = jsonTypeInfoResolver.GetTypeInfo(b, new JsonSerializerOptions());
+
+            var typeInfo = _jsonTypeInfoResolver.GetTypeInfo(b, _options);
             if (typeInfo == null)
                 throw new ArgumentNullException($"Can find type {typeToConvert.Name}");
-            var t = typeInfo.Converter as INullableConverter;
-            if (t == null)
-            {
+
+            if (typeInfo.Converter is not INullableConverterFactory nullConverterFactory)
                 throw new ArgumentNullException($"Can find type converter for {typeToConvert.Name}");
-            }
-            return t.CreateNullableConverter();
+            
+            return nullConverterFactory.CreateNullableConverter();
         }
     }
 }
