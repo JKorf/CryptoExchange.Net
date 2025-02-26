@@ -10,18 +10,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// <summary>
     /// Converter for comma separated enum values
     /// </summary>
-    public class CommaSplitEnumConverter<T> : JsonConverter<IEnumerable<T>>
-    {
-        /// <inheritdoc />
-        public override IEnumerable<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            return (reader.GetString()?.Split(',').Select(x => EnumConverter<T>.ParseString(x)).ToArray() ?? new T[0])!;
-        }
+    //TODO : Adjust 
+    //public class CommaSplitEnumConverter<T> : JsonConverter<IEnumerable<T>> 
+    //{
+    //    /// <inheritdoc />
+    //    public override IEnumerable<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    //    {
+    //        return (reader.GetString()?.Split(',').Select(x => EnumConverter<T>.ParseString(x)).ToArray() ?? new T[0])!;
+    //    }
 
-        /// <inheritdoc />
-        public override void Write(Utf8JsonWriter writer, IEnumerable<T> value, JsonSerializerOptions options)
-        {
-            writer.WriteStringValue(string.Join(",", value.Select(x => EnumConverter<T>.GetString(x))));
-        }
-    }
+    //    /// <inheritdoc />
+    //    public override void Write(Utf8JsonWriter writer, IEnumerable<T> value, JsonSerializerOptions options)
+    //    {
+    //        writer.WriteStringValue(string.Join(",", value.Select(x => EnumConverter<T>.GetString(x))));
+    //    }
+    //}
 }

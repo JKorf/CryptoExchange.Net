@@ -31,7 +31,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         new BoolConverter(),
                         new DecimalConverter(),
                         new IntConverter(),
-                        new LongConverter()
+                        new LongConverter(),
+                        new NullableEnumConverterFactory(typeResolver)
                     },
                     TypeInfoResolver = typeResolver,
                 };

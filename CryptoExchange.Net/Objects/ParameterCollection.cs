@@ -179,6 +179,7 @@ namespace CryptoExchange.Net.Objects
 #else
         public void AddEnum<T>(string key, T value)
 #endif
+            where T : struct, Enum
         {
             Add(key, EnumConverter<T>.GetString(value)!);
         }
@@ -193,6 +194,7 @@ namespace CryptoExchange.Net.Objects
 #else
         public void AddEnumAsInt<T>(string key, T value)
 #endif
+            where T : struct, Enum
         {
             var stringVal = EnumConverter<T>.GetString(value)!;
             Add(key, int.Parse(stringVal)!);
@@ -208,9 +210,10 @@ namespace CryptoExchange.Net.Objects
 #else
         public void AddOptionalEnum<T>(string key, T? value)
 #endif
+            where T : struct, Enum
         {
             if (value != null)
-                Add(key, EnumConverter<T?>.GetString(value));
+                Add(key, EnumConverter<T>.GetString(value));
         }
 
         /// <summary>
@@ -221,10 +224,11 @@ namespace CryptoExchange.Net.Objects
 #else
         public void AddOptionalEnumAsInt<T>(string key, T? value)
 #endif
+            where T : struct, Enum
         {
             if (value != null)
             {
-                var stringVal = EnumConverter<T?>.GetString(value);
+                var stringVal = EnumConverter<T>.GetString(value);
                 Add(key, int.Parse(stringVal));
             }
         }
