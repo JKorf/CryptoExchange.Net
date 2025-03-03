@@ -7,9 +7,9 @@ using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
-    /// <summary>
-    /// Converter for comma separated enum values
-    /// </summary>
+    ///// <summary>
+    ///// Converter for comma separated enum values
+    ///// </summary>
     //TODO : Adjust 
     //public class CommaSplitEnumConverter<T> : JsonConverter<IEnumerable<T>> 
     //{
