@@ -14,6 +14,7 @@
 @using CryptoCom.Net.Interfaces
 @using CryptoExchange.Net.SharedApis
 @using CryptoExchange.Net.Trackers.Trades
+@using DeepCoin.Net.Interfaces
 @using GateIo.Net.Interfaces
 @using HTX.Net.Interfaces
 @using HyperLiquid.Net.Interfaces
@@ -33,6 +34,7 @@
 @inject ICoinbaseTrackerFactory coinbaseFactory
 @inject ICoinExTrackerFactory coinExFactory
 @inject ICryptoComTrackerFactory cryptocomFactory
+@inject IDeepCoinTrackerFactory deepCoinFactory
 @inject IGateIoTrackerFactory gateioFactory
 @inject IHTXTrackerFactory htxFactory
 @inject IHyperLiquidTrackerFactory hyperLiquidFactory
@@ -77,6 +79,7 @@
                 { coinbaseFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { coinExFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { cryptocomFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
+                { deepCoinFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { gateioFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { htxFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 // HyperLiquid doesn't support spot pair, but does have a futures BTC/USDC pair

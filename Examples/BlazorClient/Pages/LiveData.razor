@@ -9,6 +9,7 @@
 @inject ICoinbaseSocketClient coinbaseSocketClient
 @inject ICoinExSocketClient coinExSocketClient
 @inject ICryptoComSocketClient cryptocomSocketClient
+@inject IDeepCoinSocketClient deepCoinSocketClient
 @inject IGateIoSocketClient gateioSocketClient
 @inject IHTXSocketClient htxSocketClient
 @inject IHyperLiquidSocketClient hyperLiquidSocketClient
@@ -47,6 +48,7 @@
             coinExSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync(["ETHBTC"], data => UpdateData("CoinEx", data.Data.First().LastPrice)),
             coinbaseSocketClient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Coinbase", data.Data.LastPrice ?? 0)),
             cryptocomSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CryptoCom", data.Data.LastPrice ?? 0)),
+            deepCoinSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH-BTC", data => UpdateData("DeepCoin", data.Data.LastPrice ?? 0)),
             gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("GateIo", data.Data.LastPrice)),
             htxSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("HTX", data.Data.ClosePrice ?? 0)),
             // HyperLiquid doesn't support the ETH/BTC pair

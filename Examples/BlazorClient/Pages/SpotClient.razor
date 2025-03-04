@@ -1,5 +1,6 @@
 ﻿@page "/SpotClient"
 @using CryptoExchange.Net.SharedApis
+@using System.Diagnostics
 @inject IEnumerable<ISpotTickerRestClient> restClients
 
 <h3>ETH-BTC prices:</h3>
@@ -20,6 +21,8 @@
         {
             if (ticker.Success)
                 _prices.Add(ticker.Exchange, ticker.Data.LastPrice);
+            else
+                Debug.WriteLine($"{ticker.Exchange} failed: {ticker.Error}");
         }
     }
 

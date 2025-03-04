@@ -23,6 +23,7 @@ The following API's are directly supported. Note that there are 3rd party implem
 |CoinEx|[JKorf/CoinEx.Net](https://github.com/JKorf/CoinEx.Net)|[![Nuget version](https://img.shields.io/nuget/v/CoinEx.net.svg?style=flat-square)](https://www.nuget.org/packages/CoinEx.Net)|
 |CoinGecko|[JKorf/CoinGecko.Net](https://github.com/JKorf/CoinGecko.Net)|[![Nuget version](https://img.shields.io/nuget/v/CoinGecko.net.svg?style=flat-square)](https://www.nuget.org/packages/CoinGecko.Net)|
 |Crypto.com|[JKorf/CryptoCom.Net](https://github.com/JKorf/CryptoCom.Net)|[![Nuget version](https://img.shields.io/nuget/v/CryptoCom.net.svg?style=flat-square)](https://www.nuget.org/packages/CryptoCom.Net)|
+|DeepCoin|[JKorf/DeepCoin.Net](https://github.com/JKorf/DeepCoin.Net)|[![Nuget version](https://img.shields.io/nuget/v/DeepCoin.net.svg?style=flat-square)](https://www.nuget.org/packages/DeepCoin.Net)|
 |Gate.io|[JKorf/GateIo.Net](https://github.com/JKorf/GateIo.Net)|[![Nuget version](https://img.shields.io/nuget/v/GateIo.net.svg?style=flat-square)](https://www.nuget.org/packages/GateIo.Net)|
 |HTX|[JKorf/HTX.Net](https://github.com/JKorf/HTX.Net)|[![Nuget version](https://img.shields.io/nuget/v/JKorf.HTX.net.svg?style=flat-square)](https://www.nuget.org/packages/JKorf.HTX.Net)|
 |HyperLiquid|[JKorf/HyperLiquid.Net](https://github.com/JKorf/HyperLiquid.Net)|[![Nuget version](https://img.shields.io/nuget/v/HyperLiquid.Net.svg?style=flat-square)](https://www.nuget.org/packages/HyperLiquid.Net)|
@@ -51,6 +52,7 @@ When creating an account on new exchanges please consider using a referral link 
 |Coinbase|[https://advanced.coinbase.com/join/T6H54H8](https://advanced.coinbase.com/join/T6H54H8)|
 |CoinEx|[https://www.coinex.com/register?refer_code=hd6gn](https://www.coinex.com/register?refer_code=hd6gn)|
 |Crypto.com|[https://crypto.com/exch/26ge92xbkn](https://crypto.com/exch/26ge92xbkn)|
+|DeepCoin|[https://s.deepcoin.com/jddhfca)|
 |HTX|[https://www.htx.com/invite/en-us/1f?invite_code=fxp9](https://www.htx.com/invite/en-us/1f?invite_code=fxp9)|
 |HyperLiquid|[https://app.hyperliquid.xyz/join/JKORF](https://app.hyperliquid.xyz/join/JKORF)|
 |Kucoin|[https://www.kucoin.com/r/rf/QBS4FPED](https://www.kucoin.com/r/rf/QBS4FPED)|

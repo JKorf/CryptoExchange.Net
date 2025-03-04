@@ -12,6 +12,7 @@
 @using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
 @using CryptoCom.Net.Interfaces
+@using DeepCoin.Net.Interfaces
 @using GateIo.Net.Interfaces
 @using HTX.Net.Interfaces
 @using HyperLiquid.Net.Interfaces
@@ -31,6 +32,7 @@
 @inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
 @inject ICryptoComOrderBookFactory cryptocomFactory
+@inject IDeepCoinOrderBookFactory deepCoinFactory
 @inject IGateIoOrderBookFactory gateioFactory
 @inject IHTXOrderBookFactory htxFactory
 @inject IHyperLiquidOrderBookFactory hyperLiquidFactory
@@ -83,6 +85,7 @@
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
+                { "DeepCoin", deepCoinFactory.Create("ETH-BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
                 // HyperLiquid does not support the ETH/BTC pair
                 //{ "HyperLiquid", hyperLiquidFactory.Create("ETH/BTC") },
