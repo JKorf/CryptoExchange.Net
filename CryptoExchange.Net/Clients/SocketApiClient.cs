@@ -671,8 +671,11 @@ namespace CryptoExchange.Net.Clients
             var tasks = new List<Task>();
             {
                 var socketList = socketConnections.Values;
-                foreach (var connection in socketList.Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection))
-                    tasks.Add(connection.CloseAsync());
+                foreach (var connection in socketList)
+                {
+                    foreach(var subscription in connection.Subscriptions.Where(x => x.UserSubscription))
+                        tasks.Add(connection.CloseAsync(subscription));
+                }
             }
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
