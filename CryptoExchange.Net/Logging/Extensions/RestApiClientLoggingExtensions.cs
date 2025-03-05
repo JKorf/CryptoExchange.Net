@@ -21,6 +21,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, Exception?> _restApiCheckingCache;
         private static readonly Action<ILogger, string, Exception?> _restApiCacheHit;
         private static readonly Action<ILogger, string, Exception?> _restApiCacheNotHit;
+        private static readonly Action<ILogger, int?, Exception?> _restApiCancellationRequested;
 
         static RestApiClientLoggingExtensions()
         {
@@ -83,6 +84,12 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Trace,
                 new EventId(4011, "RestApiCacheNotHit"),
                 "Cache not hit for key {Key}");
+
+            _restApiCancellationRequested = LoggerMessage.Define<int?>(
+                LogLevel.Debug,
+                new EventId(4012, "RestApiCancellationRequested"),
+                "[Req {RequestId}] Request cancelled by user");
+
         }
 
         public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error)
@@ -143,6 +150,10 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void CacheNotHit(this ILogger logger, string key)
         {
             _restApiCacheNotHit(logger, key, null);
+        }
+        public static void RestApiCancellationRequested(this ILogger logger, int? requestId)
+        {
+            _restApiCancellationRequested(logger, requestId, null);
         }
     }
 }
