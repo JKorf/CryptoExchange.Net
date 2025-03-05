@@ -17,6 +17,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
         /// <summary>
+        /// Optional exchange-specific parameters
+        /// </summary>
+        public List<ParameterDescription> OptionalExchangeParameters { get; set; } = new List<ParameterDescription>();
+        /// <summary>
         /// Endpoint name
         /// </summary>
         public string EndpointName { get; set; }
@@ -28,6 +32,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Whether the call requires authentication
         /// </summary>
         public bool NeedsAuthentication { get; set; }
+        /// <summary>
+        /// Whether the call is supported by the exchange
+        /// </summary>
+        public bool Supported { get; set; } = true;
 
         /// <summary>
         /// ctor
@@ -71,12 +79,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public virtual string ToString(string exchange)
         {
+            if (!Supported)
+                return $"{exchange} {EndpointName} NOT SUPPORTED";
+
             var sb = new StringBuilder();
             sb.AppendLine($"{exchange} {EndpointName}");
             if (!string.IsNullOrEmpty(RequestNotes))
                 sb.AppendLine(RequestNotes);
             sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
             sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            sb.AppendLine($"Optional exchange specific parameters: {string.Join(", ", OptionalExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
         }
     }
@@ -91,6 +103,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Required optional parameters in the request
         /// </summary>
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
+        /// <summary>
+        /// Unsupported optional parameters in the request
+        /// </summary>
+        public List<ParameterDescription> UnsupportedOptionalParameters { get; set; } = new List<ParameterDescription>();
 
         /// <summary>
         /// ctor
@@ -130,6 +146,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString(string exchange)
         {
+            if (!Supported)
+                return $"{exchange} {EndpointName} NOT SUPPORTED";
+
             var sb = new StringBuilder();
             sb.AppendLine($"{exchange} {typeof(T).Name}");
             sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
@@ -137,8 +156,12 @@ namespace CryptoExchange.Net.SharedApis
                 sb.AppendLine(RequestNotes);
             if (RequiredOptionalParameters.Any())
                 sb.AppendLine($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
+            if (UnsupportedOptionalParameters.Any())
+                sb.AppendLine($"Unsupported optional specific parameters: {string.Join(", ", UnsupportedOptionalParameters.Select(x => x.ToString()))}");
             if (RequiredExchangeParameters.Any())
                 sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            if (OptionalExchangeParameters.Any())
+                sb.AppendLine($"Optional exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             return sb.ToString();
         }
     }
