@@ -341,7 +341,7 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <summary>

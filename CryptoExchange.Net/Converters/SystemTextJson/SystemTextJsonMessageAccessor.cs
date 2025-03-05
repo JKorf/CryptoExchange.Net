@@ -276,7 +276,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 _document = await JsonDocument.ParseAsync(_stream ?? stream).ConfigureAwait(false);
                 IsJson = true;
-                return new CallResult(null);
+                return CallResult.SuccessResult;
             }
             catch (Exception ex)
             {
@@ -339,7 +339,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                 _document = JsonDocument.Parse(data);
                 IsJson = true;
-                return new CallResult(null);
+                return CallResult.SuccessResult;
             }
             catch (Exception ex)
             {

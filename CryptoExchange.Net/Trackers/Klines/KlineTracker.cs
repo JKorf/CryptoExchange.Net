@@ -190,7 +190,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             Status = SyncStatus.Synced;
             _logger.KlineTrackerStarted(SymbolName);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.RateLimiting
                 }
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

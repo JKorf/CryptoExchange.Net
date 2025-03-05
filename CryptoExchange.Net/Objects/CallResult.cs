@@ -14,6 +14,11 @@ namespace CryptoExchange.Net.Objects
     public class CallResult
     {
         /// <summary>
+        /// Static success result
+        /// </summary>
+        public static CallResult SuccessResult { get; } = new CallResult(null);
+
+        /// <summary>
         /// An error if the call didn't succeed, will always be filled if Success = false
         /// </summary>
         public Error? Error { get; internal set; }
@@ -149,7 +154,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public CallResult AsDataless()
         {
-            return new CallResult(null);
+            return SuccessResult;
         }
 
         /// <summary>

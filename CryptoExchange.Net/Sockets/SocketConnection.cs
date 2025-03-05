@@ -856,7 +856,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!_socket.Send(requestId, data, weight))
                     return new CallResult(new WebError("Failed to send message, connection not open"));
 
-                return new CallResult(null);
+                return CallResult.SuccessResult;
             }
             catch(Exception ex)
             {
@@ -879,7 +879,7 @@ namespace CryptoExchange.Net.Sockets
                     // No need to resubscribe anything
                     _logger.NothingToResubscribeCloseConnection(SocketId);
                     _ = _socket.CloseAsync();
-                    return new CallResult(null);
+                    return CallResult.SuccessResult;
                 }
             }
 
@@ -966,7 +966,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult(new WebError("Socket not connected"));
 
             _logger.AllSubscriptionResubscribed(SocketId);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         internal async Task UnsubscribeAsync(Subscription subscription)
@@ -986,7 +986,7 @@ namespace CryptoExchange.Net.Sockets
 
             var subQuery = subscription.GetSubQuery(this);
             if (subQuery == null)
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             subscription.HandleSubQueryResponse(subQuery.Response!);

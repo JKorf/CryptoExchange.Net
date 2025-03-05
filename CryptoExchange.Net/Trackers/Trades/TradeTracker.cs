@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             SetSyncStatus();
             _logger.TradeTrackerStarted(SymbolName);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

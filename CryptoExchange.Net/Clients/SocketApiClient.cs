@@ -377,7 +377,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual async Task<CallResult> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
         {
             if (socket.Connected)
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             var connectResult = await ConnectSocketAsync(socket).ConfigureAwait(false);
             if (!connectResult)
@@ -387,7 +387,7 @@ namespace CryptoExchange.Net.Clients
                 await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
 
             if (!authenticated || socket.Authenticated)
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
@@ -426,7 +426,7 @@ namespace CryptoExchange.Net.Clients
             }
 
             socket.Authenticated = true;
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected internal virtual Task<CallResult> RevitalizeRequestAsync(Subscription subscription)
         {
-            return Task.FromResult(new CallResult(null));
+            return Task.FromResult(CallResult.SuccessResult);
         }
 
         /// <summary>
@@ -711,7 +711,7 @@ namespace CryptoExchange.Net.Clients
                     return new CallResult(connectResult.Error!);
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

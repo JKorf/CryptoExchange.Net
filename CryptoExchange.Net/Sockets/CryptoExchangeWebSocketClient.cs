@@ -263,7 +263,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             _logger.SocketConnected(Id, Uri);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

@@ -184,7 +184,7 @@ namespace CryptoExchange.Net.Sockets
         {
             var typedMessage = message.As((TServerResponse)message.Data);
             if (!ValidateMessage(typedMessage))
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
