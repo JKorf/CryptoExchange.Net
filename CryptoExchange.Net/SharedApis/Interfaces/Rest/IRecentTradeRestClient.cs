@@ -20,6 +20,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<IEnumerable<SharedTrade>>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
     }
 }

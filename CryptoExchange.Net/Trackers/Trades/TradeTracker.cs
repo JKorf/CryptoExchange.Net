@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         protected virtual Task DoStopAsync() => _updateSubscription?.CloseAsync() ?? Task.CompletedTask;
 
         /// <inheritdoc />
-        public IEnumerable<SharedTrade> GetData(DateTime? since = null, DateTime? until = null)
+        public SharedTrade[] GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
@@ -309,7 +309,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                 if (until != null)
                     result = result.Where(d => d.Timestamp <= until);
 
-                return result.ToList();
+                return result.ToArray();
             }
         }
 

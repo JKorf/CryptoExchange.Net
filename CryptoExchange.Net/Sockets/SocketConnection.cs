@@ -195,12 +195,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Current subscription topics on this connection
         /// </summary>
-        public IEnumerable<string> Topics
+        public string[] Topics
         {
             get
             {
                 lock (_listenersLock)
-                    return _listeners.OfType<Subscription>().Select(x => x.Topic).Where(t => t != null).ToList()!;
+                    return _listeners.OfType<Subscription>().Select(x => x.Topic).Where(t => t != null).ToArray()!;
             }
         }
 

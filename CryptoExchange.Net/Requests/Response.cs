@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace CryptoExchange.Net.Requests
         public long? ContentLength => _response.Content.Headers.ContentLength;
 
         /// <inheritdoc />
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders => _response.Headers;
+        public KeyValuePair<string, string[]>[] ResponseHeaders => _response.Headers.Select(x => new KeyValuePair<string, string[]>(x.Key, x.Value.ToArray())).ToArray();
 
         /// <summary>
         /// Create response for a http response message

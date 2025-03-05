@@ -192,7 +192,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The headers sent with the request
         /// </summary>
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
+        public KeyValuePair<string, string[]>[]? RequestHeaders { get; set; }
 
         /// <summary>
         /// The request id
@@ -217,7 +217,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The response headers
         /// </summary>
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
+        public KeyValuePair<string, string[]>[]? ResponseHeaders { get; set; }
 
         /// <summary>
         /// The time between sending the request and receiving the response
@@ -238,13 +238,13 @@ namespace CryptoExchange.Net.Objects
         /// <param name="error"></param>
         public WebCallResult(
             HttpStatusCode? code,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
+            KeyValuePair<string, string[]>[]? responseHeaders,
             TimeSpan? responseTime,
             int? requestId,
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? requestHeaders,
+            KeyValuePair<string, string[]>[]? requestHeaders,
             Error? error) : base(error)
         {
             ResponseStatusCode = code;
@@ -343,7 +343,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The headers sent with the request
         /// </summary>
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
+        public KeyValuePair<string, string[]>[]? RequestHeaders { get; set; }
 
         /// <summary>
         /// The request id
@@ -373,7 +373,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The response headers
         /// </summary>
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
+        public KeyValuePair<string, string[]>[]? ResponseHeaders { get; set; }
 
         /// <summary>
         /// The time between sending the request and receiving the response
@@ -403,7 +403,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="error"></param>
         public WebCallResult(
             HttpStatusCode? code,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? responseHeaders,
+            KeyValuePair<string, string[]>[]? responseHeaders,
             TimeSpan? responseTime,
             long? responseLength,
             string? originalData,
@@ -411,7 +411,7 @@ namespace CryptoExchange.Net.Objects
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
-            IEnumerable<KeyValuePair<string, IEnumerable<string>>>? requestHeaders,
+            KeyValuePair<string, string[]>[]? requestHeaders,
             ResultDataSource dataSource,
             [AllowNull] T data,
             Error? error) : base(data, originalData, error)

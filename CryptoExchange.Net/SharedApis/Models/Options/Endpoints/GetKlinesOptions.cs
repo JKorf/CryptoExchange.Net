@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// The supported kline intervals
         /// </summary>
-        public IEnumerable<SharedKlineInterval> SupportIntervals { get; }
+        public SharedKlineInterval[] SupportIntervals { get; }
         /// <summary>
         /// Max number of data points which can be requested
         /// </summary>

@@ -28,6 +28,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedSpotTicker>>> GetSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotTicker[]>> GetSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

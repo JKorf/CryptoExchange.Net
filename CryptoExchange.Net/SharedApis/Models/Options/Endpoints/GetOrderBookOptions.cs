@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Supported order book depths
         /// </summary>
-        public IEnumerable<int>? SupportedLimits { get; set; }
+        public int[]? SupportedLimits { get; set; }
 
         /// <summary>
         /// The min order book depth
@@ -37,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOrderBookOptions(IEnumerable<int> supportedLimits, bool authenticated) : base(authenticated)
+        public GetOrderBookOptions(int[] supportedLimits, bool authenticated) : base(authenticated)
         {
             SupportedLimits = supportedLimits;
         }

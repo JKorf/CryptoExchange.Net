@@ -225,10 +225,10 @@ namespace CryptoExchange.Net
         /// <param name="request">The request parameters</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
+        public static async IAsyncEnumerable<ExchangeWebResult<T[]>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
         {
             var result = new List<T>();
-            ExchangeWebResult<IEnumerable<T>> batch;
+            ExchangeWebResult<T[]> batch;
             INextPageToken? nextPageToken = null;
             while (true)
             {

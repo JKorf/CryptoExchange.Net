@@ -67,9 +67,9 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public Dictionary<string, IEnumerable<string>> GetHeaders()
+        public Dictionary<string, string[]> GetHeaders()
         {
-            return _request.Headers.ToDictionary(h => h.Key, h => h.Value);
+            return _request.Headers.ToDictionary(h => h.Key, h => h.Value.ToArray());
         }
 
         /// <inheritdoc />

@@ -25,10 +25,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         EndpointOptions<GetTickersRequest> GetFuturesTickersOptions { get; }
         /// <summary>
-        /// Get ticker info for aall futures symbols
+        /// Get ticker info for all futures symbols
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesTicker>>> GetFuturesTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedFuturesTicker[]>> GetFuturesTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

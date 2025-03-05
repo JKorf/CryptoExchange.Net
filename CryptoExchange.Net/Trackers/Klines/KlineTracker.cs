@@ -285,7 +285,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         }
 
         /// <inheritdoc />
-        public IEnumerable<SharedKline> GetData(DateTime? since = null, DateTime? until = null)
+        public SharedKline[] GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                 if (until != null)
                     result = result.Where(d => d.OpenTime <= until);
 
-                return result.ToList();
+                return result.ToArray();
             }
         }
 

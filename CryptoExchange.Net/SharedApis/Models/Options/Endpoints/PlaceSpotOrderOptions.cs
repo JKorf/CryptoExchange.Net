@@ -26,8 +26,8 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotOrderRequest request,
             TradingMode? tradingMode,
             TradingMode[] supportedApiTypes,
-            IEnumerable<SharedOrderType> supportedOrderTypes,
-            IEnumerable<SharedTimeInForce> supportedTimeInForce,
+            SharedOrderType[] supportedOrderTypes,
+            SharedTimeInForce[] supportedTimeInForce,
             SharedQuantitySupport quantitySupport)
         {
             if (request.OrderType == SharedOrderType.Other)

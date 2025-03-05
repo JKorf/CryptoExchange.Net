@@ -91,7 +91,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <param name="fromTimestamp">Start timestamp to get the data from, defaults to tracked data start time</param>
         /// <param name="toTimestamp">End timestamp to get the data until, defaults to current time</param>
         /// <returns></returns>
-        IEnumerable<SharedKline> GetData(DateTime? fromTimestamp = null, DateTime? toTimestamp = null);
+        SharedKline[] GetData(DateTime? fromTimestamp = null, DateTime? toTimestamp = null);
 
         /// <summary>
         /// Get statistics on the klines
