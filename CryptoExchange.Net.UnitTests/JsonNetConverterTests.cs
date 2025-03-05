@@ -235,6 +235,7 @@ namespace CryptoExchange.Net.UnitTests
     }
 
     [JsonConverter(typeof(EnumConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(CryptoExchange.Net.Converters.SystemTextJson.EnumConverter<TestEnum>))]
     public enum TestEnum
     {
         [Map("1")]

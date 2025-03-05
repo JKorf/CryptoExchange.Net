@@ -64,7 +64,4 @@
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Users\janko\source\repos\CryptoTest\TestAnalyzer\TestAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="All" />
-  </ItemGroup>
 </Project>

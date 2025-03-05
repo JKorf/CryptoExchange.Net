@@ -12,6 +12,37 @@ using System.Text.Json.Serialization;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
+    /// Static EnumConverter methods
+    /// </summary>
+    public static class EnumConverter
+    {
+        /// <summary>
+        /// Get the enum value from a string
+        /// </summary>
+        /// <param name="value">String value</param>
+        /// <returns></returns>
+        public static T? ParseString<T>(string value) where T : struct, Enum
+            => EnumConverter<T>.ParseString(value);
+
+        /// <summary>
+        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+        /// </summary>
+        /// <param name="enumValue"></param>
+        /// <returns></returns>
+        public static string? GetString<T>(T enumValue) where T : struct, Enum
+            => EnumConverter<T>.GetString(enumValue);
+
+        /// <summary>
+        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+        /// </summary>
+        /// <param name="enumValue"></param>
+        /// <returns></returns>
+        [return: NotNullIfNotNull("enumValue")]
+        public static string? GetString<T>(T? enumValue) where T : struct, Enum
+            => EnumConverter<T>.GetString(enumValue);
+    }
+
+    /// <summary>
     /// Converter for enum values. Enums entries should be noted with a MapAttribute to map the enum value to a string value
     /// </summary>
 #if NET5_0_OR_GREATER
@@ -24,7 +55,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static List<KeyValuePair<T, string>>? _mapping = null;
         private bool _warnOnMissingEntry = true;
         private bool _writeAsInt;
-        private NullableEnumConverter? nullableEnumConverter = null;
+        private NullableEnumConverter? _nullableEnumConverter = null;
 
         /// <summary>
         /// ctor
@@ -91,6 +122,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return t.Value;
             }
         }
+
         private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)
         {
             isEmptyString = false;
@@ -109,9 +141,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             };
 
             if (string.IsNullOrEmpty(stringValue))
-            {
                 return null;
-            }
 
             if (!GetValue(enumType, stringValue!, out var result))
             {
@@ -152,10 +182,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Check for exact match first, then if not found fallback to a case insensitive match 
                 var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-                if (mapping.Equals(default(KeyValuePair<object, string>)))
+                if (mapping.Equals(default(KeyValuePair<T, string>)))
                     mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
 
-                if (!mapping.Equals(default(KeyValuePair<object, string>)))
+                if (!mapping.Equals(default(KeyValuePair<T, string>)))
                 {
                     result = mapping.Key;
                     return true;
@@ -196,6 +226,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         mapping.Add(new KeyValuePair<T, string>((T)Enum.Parse(enumType, member.Name), value));
                 }
             }
+
             _mapping = mapping;
             return mapping;
         }
@@ -226,13 +257,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _mapping = AddMapping();
 
             var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-            if (mapping.Equals(default(KeyValuePair<object, string>)))
+            if (mapping.Equals(default(KeyValuePair<T, string>)))
                 mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
 
-            if (!mapping.Equals(default(KeyValuePair<object, string>)))
-            {
-                return (T)mapping.Key;
-            }
+            if (!mapping.Equals(default(KeyValuePair<T, string>)))
+                return mapping.Key;
 
             try
             {
@@ -248,8 +277,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public JsonConverter CreateNullableConverter()
         {
-            nullableEnumConverter ??= new NullableEnumConverter(this);
-            return nullableEnumConverter;
+            _nullableEnumConverter ??= new NullableEnumConverter(this);
+            return _nullableEnumConverter;
         }
     }
 }

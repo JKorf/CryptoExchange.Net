@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestEnumConverterNullableDeserializeTests(string value, TestEnum? expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
-            var output = JsonSerializer.Deserialize<STJEnumObject>($"{{ \"Value\": {val} }}");
+            var output = JsonSerializer.Deserialize<STJEnumObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new SerializationContext()));
             Assert.That(output.Value == expected);
         }
 
@@ -171,8 +171,8 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("three", TestEnum.Three)]
         [TestCase("Four", TestEnum.Four)]
         [TestCase("four", TestEnum.Four)]
-        [TestCase("Four1", TestEnum.One)]
-        [TestCase(null, TestEnum.One)]
+        [TestCase("Four1", null)]
+        [TestCase(null, null)]
         public void TestEnumConverterParseStringTests(string value, TestEnum? expected)
         {
             var result = EnumConverter.ParseString<TestEnum>(value);
@@ -300,13 +300,13 @@ namespace CryptoExchange.Net.UnitTests
 
     public class STJEnumObject
     {
-        [JsonConverter(typeof(EnumConverter))]
+        //[JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum? Value { get; set; }
     }
 
     public class NotNullableSTJEnumObject
     {
-        [JsonConverter(typeof(EnumConverter))]
+        //[JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum Value { get; set; }
     }
 
@@ -322,7 +322,7 @@ namespace CryptoExchange.Net.UnitTests
         public bool Value { get; set; }
     }
 
-    [JsonConverter(typeof(ArrayConverter))]
+    [JsonConverter(typeof(ArrayConverter<Test, SerializationContext>))]
     record Test
     {
         [ArrayProperty(0)]
@@ -339,11 +339,11 @@ namespace CryptoExchange.Net.UnitTests
         public Test2 Prop5 { get; set; }
         [ArrayProperty(5)]
         public Test3 Prop6 { get; set; }
-        [ArrayProperty(6), JsonConverter(typeof(EnumConverter))]
+        [ArrayProperty(6), JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum? Prop7 { get; set; }
     }
 
-    [JsonConverter(typeof(ArrayConverter))]
+    [JsonConverter(typeof(ArrayConverter<Test2, SerializationContext>))]
     record Test2
     {
         [ArrayProperty(0)]
@@ -358,5 +358,18 @@ namespace CryptoExchange.Net.UnitTests
         public int Prop31 { get; set; }
         [JsonPropertyName("prop32")]
         public string Prop32 { get; set; }
+    }
+
+    [JsonSerializable(typeof(Test))]
+    [JsonSerializable(typeof(Test2))]
+    [JsonSerializable(typeof(Test3))]
+    [JsonSerializable(typeof(NotNullableSTJBoolObject))]
+    [JsonSerializable(typeof(STJBoolObject))]
+    [JsonSerializable(typeof(NotNullableSTJEnumObject))]
+    [JsonSerializable(typeof(STJEnumObject))]
+    [JsonSerializable(typeof(STJDecimalObject))]
+    [JsonSerializable(typeof(STJTimeObject))]
+    internal partial class SerializationContext : JsonSerializerContext
+    {
     }
 }
