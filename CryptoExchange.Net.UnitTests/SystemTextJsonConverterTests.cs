@@ -265,7 +265,11 @@ namespace CryptoExchange.Net.UnitTests
                     Prop31 = 4,
                     Prop32 = "789"
                 },
-                Prop7 = TestEnum.Two
+                Prop7 = TestEnum.Two,
+                TestInternal = new Test
+                {
+                    Prop1 = 10
+                }
             };
 
             var serialized = JsonSerializer.Serialize(data);
@@ -281,6 +285,7 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(deserialized.Prop6.Prop31, Is.EqualTo(4));
             Assert.That(deserialized.Prop6.Prop32, Is.EqualTo("789"));
             Assert.That(deserialized.Prop7, Is.EqualTo(TestEnum.Two));
+            Assert.That(deserialized.TestInternal.Prop1, Is.EqualTo(10));
         }
     }
 
@@ -337,6 +342,8 @@ namespace CryptoExchange.Net.UnitTests
         public Test3 Prop6 { get; set; }
         [ArrayProperty(6), JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum? Prop7 { get; set; }
+        [ArrayProperty(7)]
+        public Test TestInternal { get; set; }
     }
 
     [JsonConverter(typeof(ArrayConverter<Test2, SerializationContext>))]

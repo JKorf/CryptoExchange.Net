@@ -98,9 +98,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                             var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                             var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
                             var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
-                            //if (jsonConverter != typeof(ArrayConverter))
-                            //    // Not array converter?
-                            //    continue;
+                            if (jsonConverter != typeof(ArrayConverter<,>))
+                                // Not array converter?
+                                continue;
 
                             int i = 0;
                             foreach (var item in jObj.Children())
@@ -237,7 +237,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                         throw new Exception("Enumeration not moved; incorrect amount of results?");
 
                     var typeConverter = enumerator.Current.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true);
-                    if (typeConverter.Length != 0 /*&& ((JsonConverterAttribute)typeConverter.First()).ConverterType != typeof(ArrayConverter)*/)
+                    if (typeConverter.Length != 0 && ((JsonConverterAttribute)typeConverter.First()).ConverterType != typeof(ArrayConverter<,>))
                         // Custom converter for the type, skip
                         continue;
 
@@ -257,9 +257,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                         var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                         var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
                         var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
-                        //if (jsonConverter != typeof(ArrayConverter))
-                        //    // Not array converter?
-                        //    continue;
+                        if (jsonConverter != typeof(ArrayConverter<,>))
+                            // Not array converter?
+                            continue;
 
                         int i = 0;
                         foreach (var item in jToken.Children())
@@ -323,9 +323,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                                 var resultProps = resultObj.GetType().GetProperties().Select(p => (p, p.GetCustomAttributes(typeof(ArrayPropertyAttribute), true).Cast<ArrayPropertyAttribute>().SingleOrDefault()));
                                 var arrayConverterProperty = resultObj.GetType().GetCustomAttributes(typeof(JsonConverterAttribute), true).FirstOrDefault();
                                 var jsonConverter = ((JsonConverterAttribute)arrayConverterProperty!).ConverterType;
-                                //if (jsonConverter != typeof(ArrayConverter))
-                                //    // Not array converter?
-                                //    continue;
+                                if (jsonConverter != typeof(ArrayConverter<,>))
+                                    // Not array converter?
+                                    continue;
 
                                 int i = 0;
                                 foreach (var item in jObj.Values())
