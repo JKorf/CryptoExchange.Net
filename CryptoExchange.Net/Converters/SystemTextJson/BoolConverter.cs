@@ -21,8 +21,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             return typeToConvert == typeof(bool) ? new BoolConverterInner<bool>() : new BoolConverterInner<bool?>();
-            //Type converterType = typeof(BoolConverterInner<>).MakeGenericType(typeToConvert);
-            //return (JsonConverter)Activator.CreateInstance(converterType)!;
         }
 
         private class BoolConverterInner<T> : JsonConverter<T>

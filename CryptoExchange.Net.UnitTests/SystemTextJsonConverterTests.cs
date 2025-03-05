@@ -194,7 +194,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestBoolConverter(string value, bool? expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
-            var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}");
+            var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new SerializationContext()));
             Assert.That(output.Value == expected);
         }
 
@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestBoolConverterNotNullable(string value, bool expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
-            var output = JsonSerializer.Deserialize<NotNullableSTJBoolObject>($"{{ \"Value\": {val} }}");
+            var output = JsonSerializer.Deserialize<NotNullableSTJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new SerializationContext()));
             Assert.That(output.Value == expected);
         }
 
@@ -300,25 +300,21 @@ namespace CryptoExchange.Net.UnitTests
 
     public class STJEnumObject
     {
-        //[JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum? Value { get; set; }
     }
 
     public class NotNullableSTJEnumObject
     {
-        //[JsonConverter(typeof(EnumConverter<TestEnum>))]
         public TestEnum Value { get; set; }
     }
 
     public class STJBoolObject
     {
-        [JsonConverter(typeof(BoolConverter))]
         public bool? Value { get; set; }
     }
 
     public class NotNullableSTJBoolObject
     {
-        [JsonConverter(typeof(BoolConverter))]
         public bool Value { get; set; }
     }
 

@@ -5,10 +5,10 @@ using System.Text;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// 
+    /// Attribute to mark a model as json serializable. Used for AOT compilation.
     /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Enum)]
-    public class SerializationModelAttribute : System.Attribute
+    [AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Enum)]
+    public class SerializationModelAttribute : Attribute
     {
     }
 }

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -15,7 +12,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static readonly ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions> _cache = new ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions>();
 
         /// <summary>
-        /// Get Json serializer settings which includes standard converters for DateTime, bool and number types
+        /// Get Json serializer settings which includes standard converters for DateTime, bool, enum and number types
         /// </summary>
         public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver)
         {

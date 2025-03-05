@@ -32,14 +32,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            var b = Nullable.GetUnderlyingType(typeToConvert);
-            if (b == null)
-                throw new ArgumentNullException($"Not nullable {typeToConvert.Name}");
-
-            var typeInfo = _jsonTypeInfoResolver.GetTypeInfo(b, _options);
-            if (typeInfo == null)
-                throw new ArgumentNullException($"Can find type {typeToConvert.Name}");
-
+            var b = Nullable.GetUnderlyingType(typeToConvert) ?? throw new ArgumentNullException($"Not nullable {typeToConvert.Name}");
+            var typeInfo = _jsonTypeInfoResolver.GetTypeInfo(b, _options) ?? throw new ArgumentNullException($"Can find type {typeToConvert.Name}");
             if (typeInfo.Converter is not INullableConverterFactory nullConverterFactory)
                 throw new ArgumentNullException($"Can find type converter for {typeToConvert.Name}");
             

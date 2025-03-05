@@ -5,9 +5,8 @@ using System.Text.Json;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// 
+    /// Converter for values which contain a nested json value
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public class ObjectStringConverter<T> : JsonConverter<T>
     {
         /// <inheritdoc />
