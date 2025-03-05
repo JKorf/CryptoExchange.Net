@@ -1,4 +1,3 @@
-using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
@@ -133,13 +132,13 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IByteMessageAccessor CreateAccessor() => new JsonNetByteMessageAccessor();
+        protected internal abstract IByteMessageAccessor CreateAccessor();
 
         /// <summary>
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
+        protected internal abstract IMessageSerializer CreateSerializer();
 
         /// <summary>
         /// Keep an open connection to this url

@@ -16,6 +16,7 @@ using Moq;
 using CryptoExchange.Net.Testing.Implementations;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
+using CryptoExchange.Net.Converters.SystemTextJson;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -96,6 +97,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
 
         }
+
+        protected internal override IByteMessageAccessor CreateAccessor() => new SystemTextJsonByteMessageAccessor(new System.Text.Json.JsonSerializerOptions());
+        protected internal override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new TestSerializerContext());
 
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";

@@ -1,32 +1,31 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 {
     internal class SubResponse
     {
 
-        [JsonProperty("action")]
+        [JsonPropertyName("action")]
         public string Action { get; set; } = null!;
 
-        [JsonProperty("channel")]
+        [JsonPropertyName("channel")]
         public string Channel { get; set; } = null!;
 
-        [JsonProperty("status")]
+        [JsonPropertyName("status")]
         public string Status { get; set; } = null!;
     }
 
     internal class UnsubResponse
     {
-        [JsonProperty("action")]
+        [JsonPropertyName("action")]
         public string Action { get; set; } = null!;
 
-        [JsonProperty("status")]
+        [JsonPropertyName("status")]
         public string Status { get; set; } = null!;
     }
 

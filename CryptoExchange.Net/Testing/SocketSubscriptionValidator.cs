@@ -2,12 +2,12 @@
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Testing.Comparers;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +23,6 @@ namespace CryptoExchange.Net.Testing
         private readonly string _folder;
         private readonly string _baseAddress;
         private readonly string? _nestedPropertyForCompare;
-        private readonly bool _stjCompare;
 
         /// <summary>
         /// ctor
@@ -32,14 +31,12 @@ namespace CryptoExchange.Net.Testing
         /// <param name="folder">Folder for json test values</param>
         /// <param name="baseAddress">The base address that is expected</param>
         /// <param name="nestedPropertyForCompare">Property to use for compare</param>
-        /// <param name="stjCompare">Use System.Text.Json for comparing</param>
-        public SocketSubscriptionValidator(TClient client, string folder, string baseAddress, string? nestedPropertyForCompare = null, bool stjCompare = true)
+        public SocketSubscriptionValidator(TClient client, string folder, string baseAddress, string? nestedPropertyForCompare = null)
         {
             _client = client;
             _folder = folder;
             _baseAddress = baseAddress;
             _nestedPropertyForCompare = nestedPropertyForCompare;
-            _stjCompare = stjCompare;
         }
 
         /// <summary>
@@ -113,31 +110,31 @@ namespace CryptoExchange.Net.Testing
                     if (lastMessage == null)
                         throw new Exception($"{name} expected to {line} to be send to server but did not receive anything");
 
-                    var lastMessageJson = JToken.Parse(lastMessage);
-                    var expectedJson = JToken.Parse(line.Substring(2));
-                    foreach(var item in expectedJson)
+                    var lastMessageJson = JsonDocument.Parse(lastMessage).RootElement;
+                    var expectedJson = JsonDocument.Parse(line.Substring(2)).RootElement;
+                    if (expectedJson.ValueKind == JsonValueKind.Object)
                     {
-                        if (item is JProperty prop && prop.Value is JValue val)
+                        foreach (var item in expectedJson.EnumerateObject())
                         {
-                            if (val.ToString().StartsWith("|") && val.ToString().EndsWith("|"))
+                            if (item.Value.ToString().StartsWith("|") && item.Value.ToString().EndsWith("|"))
                             {
                                 // |x| values are used to replace parts or response messages
-                                overrideKey = val.ToString();
-                                overrideValue = lastMessageJson[prop.Name]?.Value<string>();
+                                overrideKey = item.Value.ToString();
+                                overrideValue = lastMessageJson.GetProperty(item.Name).GetString();
                             }
-                            else if (val.ToString() == "-999")
+                            else if (item.Value.ToString() == "-999")
                             {
                                 // -999 value is used to replace parts or response messages
-                                overrideKey = val.ToString();
-                                overrideValue = lastMessageJson[prop.Name]?.Value<decimal>().ToString();
+                                overrideKey = item.Value.ToString();
+                                overrideValue = lastMessageJson.GetProperty(item.Name).GetDecimal().ToString();
                             }
-                            else if (lastMessageJson[prop.Name]?.Value<string>() != val.ToString() && ignoreProperties?.Contains(prop.Name) != true)
+                            else if (lastMessageJson.GetProperty(item.Name).GetString() != item.Value.ToString() && ignoreProperties?.Contains(item.Name) != true)
                             {
-                                throw new Exception($"{name} Expected {prop.Name} to be {val}, but was {lastMessageJson[prop.Name]?.Value<string>()}");
+                                throw new Exception($"{name} Expected {item.Name} to be {item.Value}, but was {lastMessageJson.GetProperty(item.Name).GetString()}");
                             }
                         }
+                        // TODO check arrays and sub-objects
 
-                        // TODO check objects and arrays
                     }
                 }
                 else if (line.StartsWith("< "))
@@ -161,10 +158,7 @@ namespace CryptoExchange.Net.Testing
                     if (update == null)
                         throw new Exception($"{name} Update send to client did not trigger in update handler");
 
-                    if (_stjCompare == true)
-                        SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
-                    else
-                        JsonNetComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
+                    SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
                 }
             }
 

@@ -1,14 +1,9 @@
-﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.UnitTests.TestImplementations;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using CryptoExchange.Net.Interfaces;
-using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
@@ -18,6 +13,7 @@ using System.Net;
 using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Interfaces;
+using System.Text.Json;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -30,7 +26,7 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var client = new TestRestClient();
             var expected = new TestObject() { DecimalData = 1.23M, IntData = 10, StringData = "Some data" };
-            client.SetResponse(JsonConvert.SerializeObject(expected), out _);
+            client.SetResponse(JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() }), out _);
 
             // act
             var result = client.Api1.Request<TestObject>().Result;
@@ -140,7 +136,7 @@ namespace CryptoExchange.Net.UnitTests
 
             client.SetResponse("{}", out var request);
 
-            await client.Api1.RequestWithParams<TestObject>(new HttpMethod(method), new Dictionary<string, object>
+            await client.Api1.RequestWithParams<TestObject>(new HttpMethod(method), new ParameterCollection
             {
                 { "TestParam1", "Value1" },
                 { "TestParam2", 2 },

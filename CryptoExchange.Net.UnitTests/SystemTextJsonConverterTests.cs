@@ -363,6 +363,18 @@ namespace CryptoExchange.Net.UnitTests
         public string Prop32 { get; set; }
     }
 
+    [JsonConverter(typeof(EnumConverter<TestEnum>))]
+    public enum TestEnum
+    {
+        [Map("1")]
+        One,
+        [Map("2")]
+        Two,
+        [Map("three", "3")]
+        Three,
+        Four
+    }
+
     [JsonSerializable(typeof(Test))]
     [JsonSerializable(typeof(Test2))]
     [JsonSerializable(typeof(Test3))]

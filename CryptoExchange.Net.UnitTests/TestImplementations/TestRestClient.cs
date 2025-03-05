@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using Moq;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -12,12 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
-using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
 using System.Linq;
+using CryptoExchange.Net.Converters.SystemTextJson;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -138,14 +138,17 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
+        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions() { TypeInfoResolver = new TestSerializerContext() });
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new TestSerializerContext());
+
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct, requestWeight: 0);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
-        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
+        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, ParameterCollection parameters, Dictionary<string, string> headers) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), method, default, parameters, requestWeight: 0, additionalHeaders: headers);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", method) { Weight = 0 }, parameters, default, additionalHeaders: headers);
         }
 
         public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
@@ -179,12 +182,15 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
+        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions());
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new TestSerializerContext());
+
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct, requestWeight: 0);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
         protected override Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
@@ -215,7 +221,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestError
     {
+        [JsonPropertyName("errorCode")]
         public int ErrorCode { get; set; }
+        [JsonPropertyName("errorMessage")]
         public string ErrorMessage { get; set; }
     }
 

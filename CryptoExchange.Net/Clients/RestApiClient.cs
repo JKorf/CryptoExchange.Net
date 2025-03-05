@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,7 +8,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Caching;
-using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
@@ -114,13 +112,13 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IStreamMessageAccessor CreateAccessor() => new JsonNetStreamMessageAccessor();
+        protected abstract IStreamMessageAccessor CreateAccessor();
 
         /// <summary>
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
+        protected abstract IMessageSerializer CreateSerializer();
 
         /// <summary>
         /// Send a request to the base address based on the request definition
