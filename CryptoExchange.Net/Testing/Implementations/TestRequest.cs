@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 {
     internal class TestRequest : IRequest
     {
-        private readonly Dictionary<string, string[]> _headers = new Dictionary<string, string[]>();
+        private readonly List<KeyValuePair<string, string[]>> _headers = new();
         private readonly TestResponse _response;
 
         public string Accept { set { } }
@@ -32,10 +32,10 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void AddHeader(string key, string value)
         {
-            _headers.Add(key, new[] { value });
+            _headers.Add(new KeyValuePair<string, string[]>(key, new[] { value }));
         }
 
-        public Dictionary<string, string[]> GetHeaders() => _headers;
+        public KeyValuePair<string, string[]>[] GetHeaders() => _headers.ToArray();
 
         public Task<IResponse> GetResponseAsync(CancellationToken cancellationToken) => Task.FromResult<IResponse>(_response);
 

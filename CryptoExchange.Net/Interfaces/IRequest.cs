@@ -54,7 +54,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Get all headers
         /// </summary>
         /// <returns></returns>
-        Dictionary<string, string[]> GetHeaders();
+        KeyValuePair<string, string[]>[] GetHeaders();
 
         /// <summary>
         /// Get the response

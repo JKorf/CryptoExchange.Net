@@ -21,11 +21,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Supported order types
         /// </summary>
-        IEnumerable<SharedOrderType> FuturesSupportedOrderTypes { get; }
+        SharedOrderType[] FuturesSupportedOrderTypes { get; }
         /// <summary>
         /// Supported time in force
         /// </summary>
-        IEnumerable<SharedTimeInForce> FuturesSupportedTimeInForce { get; }
+        SharedTimeInForce[] FuturesSupportedTimeInForce { get; }
         /// <summary>
         /// Quantity types support
         /// </summary>

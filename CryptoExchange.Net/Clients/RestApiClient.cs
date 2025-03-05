@@ -638,7 +638,7 @@ namespace CryptoExchange.Net.Clients
                 paramString = $" with request body '{request.Content}'";
 
             var headers = request.GetHeaders();
-            if (headers.Count != 0)
+            if (headers.Length != 0)
                 paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
 
             TotalRequestsMade++;
@@ -768,7 +768,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="accessor">Data accessor</param>
         /// <param name="responseHeaders">The response headers</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Error? TryParseError(IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor) => null;
+        protected virtual Error? TryParseError(KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
@@ -943,7 +943,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
         {
             var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
             return new ServerError(message);
@@ -956,7 +956,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
         {
             var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
 

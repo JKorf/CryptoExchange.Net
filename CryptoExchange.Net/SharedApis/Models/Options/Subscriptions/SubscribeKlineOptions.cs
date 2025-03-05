@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Kline intervals supported for updates
         /// </summary>
-        public IEnumerable<SharedKlineInterval> SupportIntervals { get; }
+        public SharedKlineInterval[] SupportIntervals { get; }
 
         /// <summary>
         /// ctor
