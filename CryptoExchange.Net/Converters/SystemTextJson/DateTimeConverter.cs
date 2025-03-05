@@ -26,8 +26,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            Type converterType = typeof(DateTimeConverterInner<>).MakeGenericType(typeToConvert);
-            return (JsonConverter)Activator.CreateInstance(converterType)!;
+            return typeToConvert == typeof(DateTime) ? new DateTimeConverterInner<DateTime>() : new DateTimeConverterInner<DateTime?>();
         }
 
         private class DateTimeConverterInner<T> : JsonConverter<T>
