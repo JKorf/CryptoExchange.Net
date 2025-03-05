@@ -8,14 +8,14 @@ using System.Text.Json.Serialization;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// Converter for comma seperated enum values
+    /// Converter for comma separated enum values
     /// </summary>
-    public class CommaSplitEnumConverter<T> : JsonConverter<IEnumerable<T>> where T : Enum
+    public class CommaSplitEnumConverter<T> : JsonConverter<IEnumerable<T>> where T: struct, Enum
     {
         /// <inheritdoc />
         public override IEnumerable<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return (reader.GetString()?.Split(',').Select(x => EnumConverter.ParseString<T>(x)).ToArray() ?? new T[0])!;
+            return (reader.GetString()?.Split(',').Select(x => (T)EnumConverter.ParseString<T>(x)!).ToArray() ?? []);
         }
 
         /// <inheritdoc />

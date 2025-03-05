@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.CommonObjects
+﻿using CryptoExchange.Net.Converters.SystemTextJson;
+
+namespace CryptoExchange.Net.CommonObjects
 {
     /// <summary>
     /// Balance data
