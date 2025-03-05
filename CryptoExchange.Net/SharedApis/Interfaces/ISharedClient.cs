@@ -34,6 +34,19 @@ namespace CryptoExchange.Net.SharedApis
         string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
 
         /// <summary>
+        /// Parse a string to a shared symbol
+        /// </summary>
+        /// <param name="symbol">Symbol as returned by the server</param>
+        /// <returns>Shared symbol</returns>
+        SharedSymbol ParseSymbol(string symbol);
+
+        /// <summary>
+        /// Generate a new random client order id
+        /// </summary>
+        /// <returns></returns>
+        string GenerateClientOrderId();
+
+        /// <summary>
         /// Set a default exchange parameter. This can be used instead of passing in an ExchangeParameters object which each request.
         /// </summary>
         /// <param name="name">Parameter name</param>
