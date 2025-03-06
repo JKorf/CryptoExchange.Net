@@ -6,6 +6,10 @@
     public record SharedSpotSymbol
     {
         /// <summary>
+        /// The trading mode of the symbol
+        /// </summary>
+        public TradingMode TradingMode { get; set; }
+        /// <summary>
         /// Base asset of the symbol
         /// </summary>
         public string BaseAsset { get; set; }
@@ -57,8 +61,9 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedSpotSymbol(string baseAsset, string quoteAsset, string symbol, bool trading)
+        public SharedSpotSymbol(string baseAsset, string quoteAsset, string symbol, bool trading, TradingMode? tradingMode = null)
         {
+            TradingMode = tradingMode ?? TradingMode.Spot;
             BaseAsset = baseAsset;
             QuoteAsset = quoteAsset;
             Name = symbol;

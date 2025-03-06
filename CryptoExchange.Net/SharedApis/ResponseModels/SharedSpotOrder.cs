@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Spot order info
     /// </summary>
-    public record SharedSpotOrder
+    public record SharedSpotOrder : SharedSymbolModel
     {
-        /// <summary>
-        /// The symbol the order is on
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// The id of the order
         /// </summary>
@@ -84,14 +80,15 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SharedSpotOrder(
+            SharedSymbol? sharedSymbol,
             string symbol,
             string orderId,
             SharedOrderType orderType,
             SharedOrderSide orderSide,
             SharedOrderStatus orderStatus,
             DateTime? createTime)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             OrderId = orderId;
             OrderType = orderType;
             Side = orderSide;

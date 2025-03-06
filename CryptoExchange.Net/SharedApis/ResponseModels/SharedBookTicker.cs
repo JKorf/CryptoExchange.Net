@@ -3,7 +3,7 @@
     /// <summary>
     /// Book ticker
     /// </summary>
-    public record SharedBookTicker
+    public record SharedBookTicker : SharedSymbolModel
     {
         /// <summary>
         /// Price of the best ask
@@ -25,7 +25,8 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedBookTicker(decimal bestAskPrice, decimal bestAskQuantity, decimal bestBidPrice, decimal bestBidQuantity)
+        public SharedBookTicker(SharedSymbol? sharedSymbol, string symbol, decimal bestAskPrice, decimal bestAskQuantity, decimal bestBidPrice, decimal bestBidQuantity)
+            : base(sharedSymbol, symbol)
         {
             BestAskPrice = bestAskPrice;
             BestAskQuantity = bestAskQuantity;

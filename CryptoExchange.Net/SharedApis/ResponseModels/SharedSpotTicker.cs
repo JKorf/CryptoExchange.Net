@@ -3,12 +3,8 @@
     /// <summary>
     /// Ticker info
     /// </summary>
-    public record SharedSpotTicker
+    public record SharedSpotTicker: SharedSymbolModel
     {
-        /// <summary>
-        /// Symbol name 
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// Last trade price
         /// </summary>
@@ -33,9 +29,9 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedSpotTicker(string symbol, decimal? lastPrice, decimal? highPrice, decimal? lowPrice, decimal volume, decimal? changePercentage)
+        public SharedSpotTicker(SharedSymbol? sharedSymbol, string symbol, decimal? lastPrice, decimal? highPrice, decimal? lowPrice, decimal volume, decimal? changePercentage)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             LastPrice = lastPrice;
             HighPrice = highPrice;
             LowPrice = lowPrice;

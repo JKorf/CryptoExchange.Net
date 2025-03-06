@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Position info
     /// </summary>
-    public record SharedPosition
+    public record SharedPosition : SharedSymbolModel
     {
-        /// <summary>
-        /// Symbol
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// Current size of the position
         /// </summary>
@@ -43,9 +39,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedPosition(string symbol, decimal positionSize, DateTime? updateTime)
+        public SharedPosition(SharedSymbol? sharedSymbol, string symbol, decimal positionSize, DateTime? updateTime)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             PositionSize = positionSize;
             UpdateTime = updateTime;
         }
