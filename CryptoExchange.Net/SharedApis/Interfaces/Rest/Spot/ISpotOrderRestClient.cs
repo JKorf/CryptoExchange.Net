@@ -32,6 +32,12 @@ namespace CryptoExchange.Net.SharedApis
         SharedQuantitySupport SpotSupportedOrderQuantity { get; }
 
         /// <summary>
+        /// Generate a new random client order id
+        /// </summary>
+        /// <returns></returns>
+        string GenerateClientOrderId();
+
+        /// <summary>
         /// Spot place order request options
         /// </summary>
         PlaceSpotOrderOptions PlaceSpotOrderOptions { get; }

@@ -32,9 +32,16 @@ namespace CryptoExchange.Net.SharedApis
         SharedQuantitySupport FuturesSupportedOrderQuantity { get; }
 
         /// <summary>
+        /// Generate a new random client order id
+        /// </summary>
+        /// <returns></returns>
+        string GenerateClientOrderId();
+
+        /// <summary>
         /// Futures place order request options
         /// </summary>
         PlaceFuturesOrderOptions PlaceFuturesOrderOptions { get; }
+
         /// <summary>
         /// Place a new futures order
         /// </summary>
