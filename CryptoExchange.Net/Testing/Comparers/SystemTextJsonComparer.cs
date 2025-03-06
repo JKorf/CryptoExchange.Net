@@ -131,7 +131,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     }
                 }
             }
-            else
+            else if (jsonObject.ValueKind == JsonValueKind.Object)
             {
                 foreach (var item in jsonObject.EnumerateObject())
                 {
@@ -143,6 +143,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                         CheckObject(method, item, resultData, ignoreProperties);
                     //}
                 }
+            }
+            else
+            {
+                //?
             }
 
             Debug.WriteLine($"Successfully validated {method}");
@@ -366,8 +370,8 @@ namespace CryptoExchange.Net.Testing.Comparers
                 var stringValue = jsonValue.GetString();
                 if (objectValue is decimal dec)
                 {
-                    if (decimal.Parse(stringValue!) != dec)
-                        throw new Exception($"{method}: {property} not equal: {jsonValue.GetDecimal()} vs {dec}");
+                    if (decimal.Parse(stringValue!, CultureInfo.InvariantCulture) != dec)
+                        throw new Exception($"{method}: {property} not equal: {stringValue} vs {dec}");
                 }
                 else if (objectValue is DateTime time)
                 {
@@ -402,7 +406,12 @@ namespace CryptoExchange.Net.Testing.Comparers
                 {
                     // TODO enum comparing
                 }
-                else if (value != Convert.ToInt64(objectValue))
+                else if(objectValue is decimal dec)
+                {
+                    if (dec != value)
+                        throw new Exception($"{method}: {property} not equal: {dec} vs {value}");
+                }
+                else if (value != Convert.ToInt64(objectValue, CultureInfo.InvariantCulture))
                 {
                     throw new Exception($"{method}: {property} not equal: {value} vs {Convert.ToInt64(objectValue)}");
                 }

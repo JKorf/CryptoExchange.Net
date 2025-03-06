@@ -120,7 +120,8 @@ namespace CryptoExchange.Net.Testing
                             {
                                 // |x| values are used to replace parts or response messages
                                 overrideKey = item.Value.ToString();
-                                overrideValue = lastMessageJson.GetProperty(item.Name).GetString();
+                                var prop = lastMessageJson.GetProperty(item.Name);
+                                overrideValue = prop.ValueKind == JsonValueKind.String ? prop.GetString() : prop.GetInt64().ToString();
                             }
                             else if (item.Value.ToString() == "-999")
                             {
@@ -128,9 +129,14 @@ namespace CryptoExchange.Net.Testing
                                 overrideKey = item.Value.ToString();
                                 overrideValue = lastMessageJson.GetProperty(item.Name).GetDecimal().ToString();
                             }
-                            else if (lastMessageJson.GetProperty(item.Name).GetString() != item.Value.ToString() && ignoreProperties?.Contains(item.Name) != true)
+                            else if (lastMessageJson.GetProperty(item.Name).ValueKind == JsonValueKind.String && lastMessageJson.GetProperty(item.Name).GetString() != item.Value.ToString() && ignoreProperties?.Contains(item.Name) != true)
                             {
                                 throw new Exception($"{name} Expected {item.Name} to be {item.Value}, but was {lastMessageJson.GetProperty(item.Name).GetString()}");
+                            }
+                            else
+                            {
+                                // TODO check arrays and sub-objects
+
                             }
                         }
                         // TODO check arrays and sub-objects

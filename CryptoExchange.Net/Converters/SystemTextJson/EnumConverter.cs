@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         /// <param name="enumValue"></param>
         /// <returns></returns>
-        public static string? GetString<T>(T enumValue) where T : struct, Enum
+        public static string GetString<T>(T enumValue) where T : struct, Enum
             => EnumConverter<T>.GetString(enumValue);
 
         /// <summary>
