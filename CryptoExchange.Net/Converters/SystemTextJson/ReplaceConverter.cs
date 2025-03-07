@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// <summary>
     /// Replace a value on a string property
     /// </summary>
-    public class ReplaceConverter : JsonConverter<string>
+    public abstract class ReplaceConverter : JsonConverter<string>
     {
         private readonly (string ValueToReplace, string ValueToReplaceWith)[] _replacementSets;
 
