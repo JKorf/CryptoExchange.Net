@@ -16,9 +16,13 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public DateTime? DeliveryTime { get; set; }
         /// <summary>
-        /// Max leverage setting
+        /// Max short leverage setting
         /// </summary>
-        public decimal? MaxLeverage { get; set; }
+        public decimal? MaxShortLeverage { get; set; }
+        /// <summary>
+        /// Max long leverage setting
+        /// </summary>
+        public decimal? MaxLongLeverage { get; set; }
 
         /// <summary>
         /// ctor

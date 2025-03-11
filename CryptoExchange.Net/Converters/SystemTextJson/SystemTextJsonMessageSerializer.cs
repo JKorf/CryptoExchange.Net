@@ -9,12 +9,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// <inheritdoc />
     public class SystemTextJsonMessageSerializer : IMessageSerializer
     {
-        private readonly JsonSerializerContext _options;
+        private readonly JsonSerializerOptions _options;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SystemTextJsonMessageSerializer(JsonSerializerContext options)
+        public SystemTextJsonMessageSerializer(JsonSerializerOptions options)
         {
             _options = options;
         }
@@ -24,6 +24,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "Everything referenced in the loaded assembly is manually preserved, so it's safe")]
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "Everything referenced in the loaded assembly is manually preserved, so it's safe")]
 #endif
-        public string Serialize<T>(T message) => JsonSerializer.Serialize(message, SerializerOptions.WithConverters(_options));
+        public string Serialize<T>(T message) => JsonSerializer.Serialize(message, _options);
     }
 }

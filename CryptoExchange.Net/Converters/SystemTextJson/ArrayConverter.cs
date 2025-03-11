@@ -134,14 +134,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (att == null)
                     continue;
 
-                var converterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? property.PropertyType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType;
+                var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                var converterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? targetType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType;
                 attributes.Add(new ArrayPropertyInfo
                 {
                     ArrayProperty = att,
                     PropertyInfo = property,
                     DefaultDeserialization = property.GetCustomAttribute<CryptoExchange.Net.Attributes.JsonConversionAttribute>() != null,
                     JsonConverter = converterType == null ? null : (JsonConverter)Activator.CreateInstance(converterType)!,
-                    TargetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType
+                    TargetType = targetType
                 });
             }
 
@@ -195,7 +196,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             _converterOptionsCache.TryAdd(attribute.JsonConverter, newOptions);
                         }
 
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, newOptions);
+                        var doc = JsonDocument.ParseValue(ref reader);
+                        value = doc.Deserialize(attribute.PropertyInfo.PropertyType, newOptions);
                     }
                     else if (attribute.DefaultDeserialization)
                     {

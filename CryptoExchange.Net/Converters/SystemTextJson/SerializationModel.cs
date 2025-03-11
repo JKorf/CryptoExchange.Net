@@ -10,5 +10,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     [AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Enum | System.AttributeTargets.Interface)]
     public class SerializationModelAttribute : Attribute
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SerializationModelAttribute() { }
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="type"></param>
+        public SerializationModelAttribute(Type type) { }
     }
 }

@@ -103,10 +103,6 @@ namespace CryptoExchange.Net.SharedApis
         /// Required optional parameters in the request
         /// </summary>
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
-        /// <summary>
-        /// Unsupported optional parameters in the request
-        /// </summary>
-        public List<ParameterDescription> UnsupportedOptionalParameters { get; set; } = new List<ParameterDescription>();
 
         /// <summary>
         /// ctor
@@ -156,8 +152,6 @@ namespace CryptoExchange.Net.SharedApis
                 sb.AppendLine(RequestNotes);
             if (RequiredOptionalParameters.Any())
                 sb.AppendLine($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
-            if (UnsupportedOptionalParameters.Any())
-                sb.AppendLine($"Unsupported optional specific parameters: {string.Join(", ", UnsupportedOptionalParameters.Select(x => x.ToString()))}");
             if (RequiredExchangeParameters.Any())
                 sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
             if (OptionalExchangeParameters.Any())

@@ -29,7 +29,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         /// <param name="enumValue"></param>
         /// <returns></returns>
+#if NET5_0_OR_GREATER
+        public static string GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T enumValue) where T : struct, Enum
+#else
         public static string GetString<T>(T enumValue) where T : struct, Enum
+#endif
             => EnumConverter<T>.GetString(enumValue);
 
         /// <summary>
@@ -38,7 +42,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <param name="enumValue"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull("enumValue")]
+#if NET5_0_OR_GREATER
+        public static string? GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T? enumValue) where T : struct, Enum
+#else
         public static string? GetString<T>(T? enumValue) where T : struct, Enum
+#endif
             => EnumConverter<T>.GetString(enumValue);
     }
 

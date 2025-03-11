@@ -193,6 +193,26 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Generate a long value
+        /// </summary>
+        /// <param name="maxLength">Max character length</param>
+        /// <returns></returns>
+        public static long RandomLong(int maxLength)
+        {
+#if NETSTANDARD2_1_OR_GREATER || NET9_0_OR_GREATER
+            var value = RandomNumberGenerator.GetInt32(0, int.MaxValue);
+#else
+            var random = new Random();
+            var value = random.Next(0, int.MaxValue);
+#endif
+            var val = value.ToString();
+            if (val.Length > maxLength)
+                return int.Parse(val.Substring(0, maxLength));
+            else
+                return value;
+        }
+
+        /// <summary>
         /// Generate a random string of specified length
         /// </summary>
         /// <param name="source">The initial string</param>
