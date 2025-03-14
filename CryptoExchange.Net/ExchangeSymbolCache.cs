@@ -38,8 +38,11 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
         /// <param name="symbolName">Symbol name</param>
-        public static SharedSymbol? ParseSymbol(string topicId, string symbolName)
+        public static SharedSymbol? ParseSymbol(string topicId, string? symbolName)
         {
+            if (symbolName == null)
+                return null;
+
             if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
                 return null;
 

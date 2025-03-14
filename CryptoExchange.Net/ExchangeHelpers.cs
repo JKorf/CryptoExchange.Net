@@ -15,6 +15,7 @@ namespace CryptoExchange.Net
     public static class ExchangeHelpers
     {
         private const string _allowedRandomChars = "ABCDEFGHIJKLMONOPQRSTUVWXYZabcdefghijklmonopqrstuvwxyz0123456789";
+        private const string _allowedRandomHexChars = "0123456789ABCDEF";
 
         private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
         {
@@ -190,6 +191,24 @@ namespace CryptoExchange.Net
 #endif
 
             return new string(randomChars);
+        }
+
+        /// <summary>
+        /// Generate a random string of specified length
+        /// </summary>
+        /// <param name="length">Length of the random string</param>
+        /// <returns></returns>
+        public static string RandomHexString(int length)
+        {
+#if NET9_0_OR_GREATER
+            return "0x" + RandomNumberGenerator.GetHexString(length * 2);
+#else
+            var randomChars = new char[length * 2];
+            var random = new Random();
+            for (int i = 0; i < length * 2; i++)
+                randomChars[i] = _allowedRandomHexChars[random.Next(0, _allowedRandomHexChars.Length)];
+            return "0x" + new string(randomChars);
+#endif
         }
 
         /// <summary>
