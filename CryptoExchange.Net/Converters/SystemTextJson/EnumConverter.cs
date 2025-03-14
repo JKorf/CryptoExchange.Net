@@ -65,22 +65,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private bool _writeAsInt;
         private NullableEnumConverter? _nullableEnumConverter = null;
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public EnumConverter() : this(false, true)
-        { }
+        ///// <summary>
+        ///// ctor
+        ///// </summary>
+        //public EnumConverter() : this(false, true)
+        //{ }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="writeAsInt"></param>
-        /// <param name="warnOnMissingEntry"></param>
-        public EnumConverter(bool writeAsInt, bool warnOnMissingEntry)
-        {
-            _warnOnMissingEntry = warnOnMissingEntry;
-            _writeAsInt = writeAsInt;
-        }
+        ///// <summary>
+        ///// ctor
+        ///// </summary>
+        ///// <param name="writeAsInt"></param>
+        ///// <param name="warnOnMissingEntry"></param>
+        //public EnumConverter(bool writeAsInt, bool warnOnMissingEntry)
+        //{
+        //    _warnOnMissingEntry = warnOnMissingEntry;
+        //    _writeAsInt = writeAsInt;
+        //}
 
         internal class NullableEnumConverter : JsonConverter<T?>
         {

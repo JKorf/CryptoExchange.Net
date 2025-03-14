@@ -99,7 +99,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
 
         protected internal override IByteMessageAccessor CreateAccessor() => new SystemTextJsonByteMessageAccessor(new System.Text.Json.JsonSerializerOptions());
-        protected internal override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new TestSerializerContext());
+        protected internal override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
 
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";

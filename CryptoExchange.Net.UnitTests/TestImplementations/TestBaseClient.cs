@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.UnitTests
         public override TimeSpan? GetTimeOffset() => null;
         public override TimeSyncInfo GetTimeSyncInfo() => null;
         protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions());
-        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new TestSerializerContext());
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
     }

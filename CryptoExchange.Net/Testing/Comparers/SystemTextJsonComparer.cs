@@ -411,6 +411,11 @@ namespace CryptoExchange.Net.Testing.Comparers
                     if (dec != value)
                         throw new Exception($"{method}: {property} not equal: {dec} vs {value}");
                 }
+                else if(objectValue is string objStr)
+                {
+                    if (objStr != value.ToString())
+                        throw new Exception($"{method}: {property} not equal: {value} vs {objStr}");
+                }
                 else if (value != Convert.ToInt64(objectValue, CultureInfo.InvariantCulture))
                 {
                     throw new Exception($"{method}: {property} not equal: {value} vs {Convert.ToInt64(objectValue)}");
