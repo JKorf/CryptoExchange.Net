@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +11,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// <summary>
     /// Converter for comma separated enum values
     /// </summary>
-    public class CommaSplitEnumConverter<T> : JsonConverter<T[]> where T: struct, Enum
+#if NET5_0_OR_GREATER
+    public class CommaSplitEnumConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T> : JsonConverter<T[]> where T : struct, Enum
+#else
+    public class CommaSplitEnumConverter<T> : JsonConverter<T[]> where T : struct, Enum
+#endif
+
     {
         /// <inheritdoc />
         public override T[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

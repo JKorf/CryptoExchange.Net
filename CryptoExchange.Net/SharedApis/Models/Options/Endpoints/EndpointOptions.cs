@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -97,7 +98,11 @@ namespace CryptoExchange.Net.SharedApis
     /// Options for an exchange endpoint
     /// </summary>
     /// <typeparam name="T">Type of data</typeparam>
+#if NET5_0_OR_GREATER
+    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : EndpointOptions where T : SharedRequest
+#else
     public class EndpointOptions<T> : EndpointOptions where T : SharedRequest
+#endif
     {
         /// <summary>
         /// Required optional parameters in the request

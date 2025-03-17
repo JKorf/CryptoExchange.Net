@@ -167,6 +167,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public List<T?>? GetValues<T>(MessagePath path)
         {
             if (!IsJson)
@@ -179,7 +183,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (value.Value.ValueKind != JsonValueKind.Array)
                 return default;
 
-            return value.Value.Deserialize<List<T>>()!;
+            return value.Value.Deserialize<List<T>>(_customSerializerOptions)!;
         }
 
         private JsonElement? GetPathNode(MessagePath path)

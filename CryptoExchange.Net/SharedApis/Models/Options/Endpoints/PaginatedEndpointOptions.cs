@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
@@ -7,7 +8,11 @@ namespace CryptoExchange.Net.SharedApis
     /// Options for paginated endpoints
     /// </summary>
     /// <typeparam name="T"></typeparam>
+#if NET5_0_OR_GREATER
+    public class PaginatedEndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>  : EndpointOptions<T> where T : SharedRequest
+#else
     public class PaginatedEndpointOptions<T> : EndpointOptions<T> where T : SharedRequest
+#endif
     {
         /// <summary>
         /// Type of pagination supported

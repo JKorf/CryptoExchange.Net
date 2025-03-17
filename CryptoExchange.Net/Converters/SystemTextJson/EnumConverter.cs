@@ -21,7 +21,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         /// <param name="value">String value</param>
         /// <returns></returns>
+#if NET5_0_OR_GREATER
+        public static T? ParseString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string value) where T : struct, Enum
+#else
         public static T? ParseString<T>(string value) where T : struct, Enum
+#endif
             => EnumConverter<T>.ParseString(value);
 
         /// <summary>
@@ -61,26 +65,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
          : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
         private static List<KeyValuePair<T, string>>? _mapping = null;
-        private bool _warnOnMissingEntry = true;
-        private bool _writeAsInt;
         private NullableEnumConverter? _nullableEnumConverter = null;
-
-        ///// <summary>
-        ///// ctor
-        ///// </summary>
-        //public EnumConverter() : this(false, true)
-        //{ }
-
-        ///// <summary>
-        ///// ctor
-        ///// </summary>
-        ///// <param name="writeAsInt"></param>
-        ///// <param name="warnOnMissingEntry"></param>
-        //public EnumConverter(bool writeAsInt, bool warnOnMissingEntry)
-        //{
-        //    _warnOnMissingEntry = warnOnMissingEntry;
-        //    _writeAsInt = writeAsInt;
-        //}
 
         internal class NullableEnumConverter : JsonConverter<T?>
         {
@@ -160,8 +145,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 else
                 {
                     // We received an enum value but weren't able to parse it.
-                    if (_warnOnMissingEntry)
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
                 }
 
                 return null;
@@ -173,15 +157,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
-            if (!_writeAsInt)
-            {
-                var stringValue = GetString(value);
-                writer.WriteStringValue(stringValue);
-            }
-            else
-            {
-                writer.WriteNumberValue((int)Convert.ChangeType(value, typeof(int)));
-            }
+            var stringValue = GetString(value);
+            writer.WriteStringValue(stringValue);
         }
 
         private static bool GetValue(Type objectType, string value, out T? result)
