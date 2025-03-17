@@ -18,13 +18,9 @@
         /// </summary>
         public SharedTimeInForce? TimeInForce { get; set; }
         /// <summary>
-        /// Quantity of the order in base asset or contracts, depending on the exchange.
+        /// Quantity of the order
         /// </summary>
-        public decimal? Quantity { get; set; }
-        /// <summary>
-        /// Quantity of the order in quote asset.
-        /// </summary>
-        public decimal? QuoteQuantity { get; set; }
+        public SharedQuantity? Quantity { get; set; }
         /// <summary>
         /// Price of the order
         /// </summary>
@@ -41,7 +37,6 @@
         /// <param name="side">Side of the order</param>
         /// <param name="orderType">Type of the order</param>
         /// <param name="quantity">Quantity of the order</param>
-        /// <param name="quoteQuantity">Quantity of the order in quote asset</param>
         /// <param name="price">Price of the order</param>
         /// <param name="timeInForce">Time in force</param>
         /// <param name="clientOrderId">Client order id</param>
@@ -50,8 +45,7 @@
             SharedSymbol symbol,
             SharedOrderSide side,
             SharedOrderType orderType,
-            decimal? quantity = null,
-            decimal? quoteQuantity = null,
+            SharedQuantity? quantity = null,
             decimal? price = null,
             SharedTimeInForce? timeInForce = null,
             string? clientOrderId = null,
@@ -60,7 +54,6 @@
             OrderType = orderType;
             Side = side;
             Quantity = quantity;
-            QuoteQuantity = quoteQuantity;
             Price = price;
             TimeInForce = timeInForce;
             ClientOrderId = clientOrderId;
