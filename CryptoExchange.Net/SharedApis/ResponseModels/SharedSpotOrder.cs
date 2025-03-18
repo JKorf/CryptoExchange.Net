@@ -27,26 +27,14 @@ namespace CryptoExchange.Net.SharedApis
         /// Time in force for the order
         /// </summary>
         public SharedTimeInForce? TimeInForce { get; set; }
-
+        /// <summary>
+        /// Order quantity
+        /// </summary>
         public SharedOrderQuantity? OrderQuantity { get; set; }
+        /// <summary>
+        /// Filled quantity
+        /// </summary>
         public SharedOrderQuantity? QuantityFilled { get; set; }
-
-        ///// <summary>
-        ///// Order quantity in base asset
-        ///// </summary>
-        //public decimal? Quantity { get; set; }
-        ///// <summary>
-        ///// Quantity filled in base asset, note that this quantity has not yet included trading fees paid
-        ///// </summary>
-        //public decimal? QuantityFilled { get; set; }
-        ///// <summary>
-        ///// Order quantity in quote asset
-        ///// </summary>
-        //public decimal? QuoteQuantity { get; set; }
-        ///// <summary>
-        ///// Quantity filled in the quote asset, note that this quantity has not yet included trading fees paid
-        ///// </summary>
-        //public decimal? QuoteQuantityFilled { get; set; }
         /// <summary>
         /// Order price
         /// </summary>

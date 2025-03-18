@@ -36,21 +36,13 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public bool? ReduceOnly { get; set; }
         /// <summary>
-        /// Order quantity in the base asset or number of contracts
+        /// Order quantity
         /// </summary>
-        public decimal? Quantity { get; set; }
+        public SharedOrderQuantity? OrderQuantity { get; set; }
         /// <summary>
-        /// Quantity filled in the base asset or number of contracts
+        /// Filled quantity
         /// </summary>
-        public decimal? QuantityFilled { get; set; }
-        /// <summary>
-        /// Quantity of the order in quote asset
-        /// </summary>
-        public decimal? QuoteQuantity { get; set; }
-        /// <summary>
-        /// Quantity filled in the quote asset
-        /// </summary>
-        public decimal? QuoteQuantityFilled { get; set; }
+        public SharedOrderQuantity? QuantityFilled { get; set; }
         /// <summary>
         /// Order price
         /// </summary>
