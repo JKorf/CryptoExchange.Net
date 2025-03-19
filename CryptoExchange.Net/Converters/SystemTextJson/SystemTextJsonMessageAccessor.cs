@@ -171,7 +171,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
 #endif
-        public List<T?>? GetValues<T>(MessagePath path)
+        public T?[]? GetValues<T>(MessagePath path)
         {
             if (!IsJson)
                 throw new InvalidOperationException("Can't access json data on non-json message");
@@ -183,7 +183,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (value.Value.ValueKind != JsonValueKind.Array)
                 return default;
 
-            return value.Value.Deserialize<List<T>>(_customSerializerOptions)!;
+            return value.Value.Deserialize<T[]>(_customSerializerOptions)!;
         }
 
         private JsonElement? GetPathNode(MessagePath path)

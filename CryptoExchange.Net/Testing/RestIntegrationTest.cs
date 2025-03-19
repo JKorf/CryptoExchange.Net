@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -95,6 +96,36 @@ namespace CryptoExchange.Net.Testing
                 throw new Exception($"Method {expressionBody.Method.Name} returned error: " + result.Error);
 
             Debug.WriteLine($"{expressionBody.Method.Name} {result}");
+        }
+
+        /// <summary>
+        /// Start an order book implementation and expect it to sync and produce an update
+        /// </summary>
+        public async Task TestOrderBook(ISymbolOrderBook book)
+        {
+            if (!ShouldRun())
+                return;
+
+            var bookHasChanged = false;
+            book.OnStatusChange += (_, news) =>
+            {
+                if (news == OrderBookStatus.Reconnecting)
+                    throw new Exception($"Book reconnecting");
+            };
+            book.OnOrderBookUpdate += (change) =>
+            {
+                bookHasChanged = true;
+            };
+
+            var result = await book.StartAsync().ConfigureAwait(false);
+            if (!result)
+                throw new Exception($"Book failed to start: " + result.Error);
+
+            await Task.Delay(5000).ConfigureAwait(false);
+            await book.StopAsync().ConfigureAwait(false);
+
+            if (!bookHasChanged)
+                throw new Exception($"Expected book to have changed at least once");
         }
     }
 }
