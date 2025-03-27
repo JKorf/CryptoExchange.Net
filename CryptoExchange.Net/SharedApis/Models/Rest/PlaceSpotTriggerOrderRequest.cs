@@ -6,9 +6,13 @@
     public record PlaceSpotTriggerOrderRequest : SharedSymbolRequest
     {
         /// <summary>
+        /// Client order id
+        /// </summary>
+        public string? ClientOrderId { get; set; }
+        /// <summary>
         /// Direction of the trigger order
         /// </summary>
-        public SharedTriggerOrderDirection OrderDirection { get; set; }
+        public SharedOrderSide OrderSide { get; set; }
         /// <summary>
         /// Price trigger direction
         /// </summary>
@@ -34,7 +38,7 @@
         /// ctor
         /// </summary>
         /// <param name="symbol">Symbol the order is on</param>
-        /// <param name="orderDirection">Direction of the order when triggered</param>
+        /// <param name="orderSide">Order side</param>
         /// <param name="priceDirection">Price direction</param>
         /// <param name="quantity">Quantity of the order</param>
         /// <param name="triggerPrice">Price at which the order should activate</param>
@@ -43,7 +47,7 @@
         public PlaceSpotTriggerOrderRequest(SharedSymbol symbol,
             SharedTriggerPriceDirection priceDirection,
             decimal triggerPrice,
-            SharedTriggerOrderDirection orderDirection,
+            SharedOrderSide orderSide,
             SharedQuantity quantity,
             decimal? orderPrice = null,
             ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
@@ -52,7 +56,7 @@
             Quantity = quantity;
             OrderPrice = orderPrice;
             TriggerPrice = triggerPrice;
-            OrderDirection = orderDirection;
+            OrderSide = orderSide;
         }
     }
 }

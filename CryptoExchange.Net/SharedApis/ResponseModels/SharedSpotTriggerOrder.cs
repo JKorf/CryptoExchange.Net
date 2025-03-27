@@ -10,18 +10,21 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedSpotTriggerOrder : SharedSymbolModel
     {
         /// <summary>
-        /// The id of the order
+        /// The id of the trigger order
         /// </summary>
-        public string OrderId { get; set; }
+        public string TriggerOrderId { get; set; }
+        /// <summary>
+        /// The id of the order that was placed when this order was activated
+        /// </summary>
+        public string? PlacedOrderId { get; set; }
         /// <summary>
         /// The type of the order
         /// </summary>
         public SharedOrderType OrderType { get; set; }
         /// <summary>
-        /// Status of the order
+        /// Status of the trigger order
         /// </summary>
-        #warning different statuses? For example whether or not triggered
-        public SharedOrderStatus Status { get; set; }
+        public SharedTriggerOrderStatus Status { get; set; }
         /// <summary>
         /// Time in force for the order
         /// </summary>
@@ -66,10 +69,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Last update timestamp
         /// </summary>
         public DateTime? UpdateTime { get; set; }
-
-#warning Split status into `Triggered` and `OrderStatus`
-#warning Split id field in TriggerOrderId and ExecuteOrderId (nullable)
-#warning Is Buy/Sell easier to map than enter/exit?
+        /// <summary>
+        /// Client order id
+        /// </summary>
+        public string? ClientOrderId { get; set; }
 
         /// <summary>
         /// ctor
@@ -77,18 +80,18 @@ namespace CryptoExchange.Net.SharedApis
         public SharedSpotTriggerOrder(
             SharedSymbol? sharedSymbol,
             string symbol,
-            string orderId,
+            string triggerOrderId,
             SharedOrderType orderType,
             SharedTriggerOrderDirection orderDirection,
-            SharedOrderStatus orderStatus,
+            SharedTriggerOrderStatus triggerStatus,
             decimal triggerPrice,
             DateTime? createTime)
             : base(sharedSymbol, symbol)
         {
-            OrderId = orderId;
+            TriggerOrderId = triggerOrderId;
             OrderType = orderType;
             OrderDirection = orderDirection;
-            Status = orderStatus;
+            Status = triggerStatus;
             CreateTime = createTime;
             TriggerPrice = triggerPrice;
         }

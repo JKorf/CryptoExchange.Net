@@ -5,21 +5,21 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Price direction for trigger order
+    /// Trigger order status
     /// </summary>
-    public enum SharedTriggerPriceType
+    public enum SharedTriggerOrderStatus
     {
         /// <summary>
-        /// Last traded price
+        /// Order is active
         /// </summary>
-        LastPrice,
+        Active,
         /// <summary>
-        /// Mark price
+        /// Order has been filled
         /// </summary>
-        MarkPrice,
+        Filled,
         /// <summary>
-        /// Index price
+        /// Trigger canceled, can be user cancelation or system cancelation due to an error
         /// </summary>
-        IndexPrice
+        CanceledOrRejected
     }
 }

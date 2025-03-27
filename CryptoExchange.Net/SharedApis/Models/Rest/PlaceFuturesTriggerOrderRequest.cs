@@ -6,6 +6,10 @@
     public record PlaceFuturesTriggerOrderRequest : SharedSymbolRequest
     {
         /// <summary>
+        /// Client order id
+        /// </summary>
+        public string? ClientOrderId { get; set; }
+        /// <summary>
         /// Direction of the trigger order
         /// </summary>
         public SharedTriggerOrderDirection OrderDirection { get; set; }

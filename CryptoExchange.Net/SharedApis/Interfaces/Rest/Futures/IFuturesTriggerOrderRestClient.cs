@@ -11,10 +11,10 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public interface IFuturesTriggerOrderRestClient : ISharedClient
     {
-        ///// <summary>
-        ///// Trade history request options
-        ///// </summary>
-        //GetTradeHistoryOptions GetTradeHistoryOptions { get; }
+        /// <summary>
+        /// Place spot trigger order options
+        /// </summary>
+        PlaceFuturesTriggerOrderOptions PlaceFuturesTriggerOrderOptions { get; }
 
         /// <summary>
         /// Place a new trigger order

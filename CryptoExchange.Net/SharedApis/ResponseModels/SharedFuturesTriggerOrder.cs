@@ -10,18 +10,21 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedFuturesTriggerOrder : SharedSymbolModel
     {
         /// <summary>
-        /// The id of the order
+        /// The id of the trigger order
         /// </summary>
-        public string OrderId { get; set; }
+        public string TriggerOrderId { get; set; }
+        /// <summary>
+        /// The id of the order that was placed when this order was activated
+        /// </summary>
+        public string? PlacedOrderId { get; set; }
         /// <summary>
         /// The type of the order
         /// </summary>
         public SharedOrderType OrderType { get; set; }
         /// <summary>
-        /// Status of the order
+        /// Status of the trigger order
         /// </summary>
-        #warning different statuses? For example whether or not triggered
-        public SharedOrderStatus Status { get; set; }
+        public SharedTriggerOrderStatus Status { get; set; }
         /// <summary>
         /// Time in force for the order
         /// </summary>
@@ -70,6 +73,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Position side for futures order
         /// </summary>
         public SharedPositionSide? PositionSide { get; set; }
+        /// <summary>
+        /// Client order id
+        /// </summary>
+        public string? ClientOrderId { get; set; }
 
         /// <summary>
         /// ctor
@@ -77,19 +84,19 @@ namespace CryptoExchange.Net.SharedApis
         public SharedFuturesTriggerOrder(
             SharedSymbol? sharedSymbol,
             string symbol,
-            string orderId,
+            string triggerOrderId,
             SharedOrderType orderType,
             SharedTriggerOrderDirection? orderDirection,
-            SharedOrderStatus orderStatus,
+            SharedTriggerOrderStatus triggerStatus,
             decimal triggerPrice,
             SharedPositionSide? positionSide,
             DateTime? createTime)
             : base(sharedSymbol, symbol)
         {
-            OrderId = orderId;
+            TriggerOrderId = triggerOrderId;
             OrderType = orderType;
             OrderDirection = orderDirection;
-            Status = orderStatus;
+            Status = triggerStatus;
             CreateTime = createTime;
             TriggerPrice = triggerPrice;
             PositionSide = positionSide;
