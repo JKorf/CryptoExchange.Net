@@ -23,13 +23,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Cancel a take profit and/or stop loss options
         /// </summary>
-        EndpointOptions<SetTpSlRequest> CancelTpSlOptions { get; }
+        EndpointOptions<CancelTpSlRequest> CancelTpSlOptions { get; }
         /// <summary>
         /// Cancel an active take profit and/or stop loss for an open position
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedId>> CancelTpSlAsync(CancelOrderRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<bool>> CancelTpSlAsync(CancelTpSlRequest request, CancellationToken ct = default);
     }
 }

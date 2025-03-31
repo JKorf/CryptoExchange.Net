@@ -47,6 +47,15 @@
         public decimal? Leverage { get; set; }
 
         /// <summary>
+        /// Take profit price
+        /// </summary>
+        public decimal? TakeProfitPrice { get; set; }
+        /// <summary>
+        /// Stop loss price
+        /// </summary>
+        public decimal? StopLossPrice { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="symbol">Symbol to place the order on</param>

@@ -82,6 +82,16 @@ namespace CryptoExchange.Net.SharedApis
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>
+        /// Take profit price
+        /// </summary>
+        public decimal? TakeProfitPrice { get; set; }
+
+        /// <summary>
+        /// Stop loss price
+        /// </summary>
+        public decimal? StopLossPrice { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedFuturesOrder(

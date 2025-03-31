@@ -11,9 +11,14 @@ namespace CryptoExchange.Net.SharedApis
     public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest>
     {
         /// <summary>
+        /// Whether or not the API supports setting take profit / stop loss with the order
+        /// </summary>
+        public bool SupportsTpSl { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderOptions() : base(true)
+        public PlaceFuturesOrderOptions(bool supportsTpSl) : base(true)
         {
         }
 
@@ -29,6 +34,9 @@ namespace CryptoExchange.Net.SharedApis
             SharedTimeInForce[] supportedTimeInForce,
             SharedQuantitySupport quantitySupport)
         {
+            if (!SupportsTpSl && (request.StopLossPrice != null || request.TakeProfitPrice != null))
+                return new ArgumentError("Tp/Sl parameters not supported");
+
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
