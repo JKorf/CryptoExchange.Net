@@ -11,19 +11,19 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Supported quantity notations for buy limit orders
         /// </summary>
-        public SharedQuantityType BuyLimit { get; }
+        public SharedQuantityType BuyLimit { get; set; }
         /// <summary>
         /// Supported quantity notations for sell limit orders
         /// </summary>
-        public SharedQuantityType SellLimit { get; }
+        public SharedQuantityType SellLimit { get; set; }
         /// <summary>
         /// Supported quantity notations for buy market orders
         /// </summary>
-        public SharedQuantityType BuyMarket { get; }
+        public SharedQuantityType BuyMarket { get; set; }
         /// <summary>
         /// Supported quantity notations for sell market orders
         /// </summary>
-        public SharedQuantityType SellMarket { get; }
+        public SharedQuantityType SellMarket { get; set; }
 
         /// <summary>
         /// ctor

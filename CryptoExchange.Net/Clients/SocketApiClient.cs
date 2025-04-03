@@ -42,6 +42,11 @@ namespace CryptoExchange.Net.Clients
         protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
+        /// Keep alive timeout for websocket connection
+        /// </summary>
+        protected TimeSpan KeepAliveTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+        /// <summary>
         /// Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
         /// </summary>
         protected List<SystemSubscription> systemSubscriptions = new();
@@ -595,6 +600,7 @@ namespace CryptoExchange.Net.Clients
             => new(new Uri(address), ClientOptions.ReconnectPolicy)
             {
                 KeepAliveInterval = KeepAliveInterval,
+                KeepAliveTimeout = KeepAliveTimeout,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
                 RateLimiter = ClientOptions.RateLimiterEnabled ? RateLimiter : null,
                 RateLimitingBehavior = ClientOptions.RateLimitingBehaviour,

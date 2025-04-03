@@ -203,7 +203,7 @@ namespace CryptoExchange.Net.Sockets
                 socket.Options.CollectHttpResponseDetails = true;
 #endif
 #if NET9_0_OR_GREATER
-                socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(10);
+                socket.Options.KeepAliveTimeout = Parameters.KeepAliveTimeout ?? TimeSpan.FromSeconds(10);
 #endif
             }
             catch (PlatformNotSupportedException)

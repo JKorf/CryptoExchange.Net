@@ -69,6 +69,15 @@ namespace CryptoExchange.Net.SharedApis
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>
+        /// Trigger price for a trigger order
+        /// </summary>
+        public decimal? TriggerPrice { get; set; }
+        /// <summary>
+        /// Whether or not the is order is a trigger order
+        /// </summary>
+        public bool IsTriggerOrder { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedSpotOrder(

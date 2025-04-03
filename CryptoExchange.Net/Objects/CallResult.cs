@@ -215,6 +215,11 @@ namespace CryptoExchange.Net.Objects
         public string? RequestBody { get; set; }
 
         /// <summary>
+        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
+        /// </summary>
+        public string? OriginalData { get; internal set; }
+
+        /// <summary>
         /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
         /// </summary>
         public HttpStatusCode? ResponseStatusCode { get; set; }
@@ -232,19 +237,11 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="responseHeaders"></param>
-        /// <param name="responseTime"></param>
-        /// <param name="requestId"></param>
-        /// <param name="requestUrl"></param>
-        /// <param name="requestBody"></param>
-        /// <param name="requestMethod"></param>
-        /// <param name="requestHeaders"></param>
-        /// <param name="error"></param>
         public WebCallResult(
             HttpStatusCode? code,
             KeyValuePair<string, string[]>[]? responseHeaders,
             TimeSpan? responseTime,
+            string? originalData,
             int? requestId,
             string? requestUrl,
             string? requestBody,
@@ -256,6 +253,7 @@ namespace CryptoExchange.Net.Objects
             ResponseHeaders = responseHeaders;
             ResponseTime = responseTime;
             RequestId = requestId;
+            OriginalData = originalData;
 
             RequestUrl = requestUrl;
             RequestBody = requestBody;
@@ -276,7 +274,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public WebCallResult AsError(Error error)
         {
-            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
 
         /// <summary>
@@ -440,7 +438,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult AsDataless()
         {
-            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, Error);
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, Error);
         }
         /// <summary>
         /// Copy as a dataless result
@@ -448,7 +446,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult AsDatalessError(Error error)
         {
-            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
+            return new WebCallResult(ResponseStatusCode, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
 
         /// <summary>
@@ -477,6 +475,18 @@ namespace CryptoExchange.Net.Objects
         public new WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, default, error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="data">The data</param>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public new WebCallResult<K> AsErrorWithData<K>(Error error, K data)
+        {
+            return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, error);
         }
 
         /// <summary>
