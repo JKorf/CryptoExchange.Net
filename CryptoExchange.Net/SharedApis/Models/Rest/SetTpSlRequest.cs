@@ -37,12 +37,13 @@
         /// <param name="positionSide">Position side</param>
         /// <param name="tpSlSide">Take Profit / Stop Loss side</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SetTpSlRequest(SharedSymbol symbol, SharedPositionSide positionSide, SharedTpSlSide tpSlSide, ExchangeParameters? exchangeParameters = null)
+        public SetTpSlRequest(SharedSymbol symbol, SharedPositionSide positionSide, SharedTpSlSide tpSlSide, decimal triggerPrice, ExchangeParameters? exchangeParameters = null)
             : base(symbol, exchangeParameters)
         {
             PositionSide = positionSide;
             TpSlSide = tpSlSide;
             Symbol = symbol;
+            TriggerPrice = triggerPrice;
         }
     }
 }

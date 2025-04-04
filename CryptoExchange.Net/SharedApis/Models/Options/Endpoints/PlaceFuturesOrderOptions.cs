@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public PlaceFuturesOrderOptions(bool supportsTpSl) : base(true)
         {
+            SupportsTpSl = supportsTpSl;
         }
 
         /// <summary>

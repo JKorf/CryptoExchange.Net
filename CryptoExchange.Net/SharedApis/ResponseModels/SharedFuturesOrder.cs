@@ -101,6 +101,11 @@ namespace CryptoExchange.Net.SharedApis
         public decimal? StopLossPrice { get; set; }
 
         /// <summary>
+        /// Whether this order is to close an existing position. If this is the case quantities might not be specified
+        /// </summary>
+        public bool IsCloseOrder { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedFuturesOrder(
