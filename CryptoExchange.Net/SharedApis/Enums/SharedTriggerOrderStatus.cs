@@ -20,6 +20,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Trigger canceled, can be user cancelation or system cancelation due to an error
         /// </summary>
-        CanceledOrRejected
+        CanceledOrRejected,
+        /// <summary>
+        /// Trigger order has been triggered. Resulting order might be filled or not.
+        /// </summary>
+        Triggered
     }
 }

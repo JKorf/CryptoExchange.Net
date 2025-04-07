@@ -6,6 +6,9 @@ using System.Threading;
 
 namespace CryptoExchange.Net.SharedApis
 {
+    /// <summary>
+    /// Take profit / Stop loss client
+    /// </summary>
     public interface IFuturesTpSlRestClient : ISharedClient
     {
         /// <summary>

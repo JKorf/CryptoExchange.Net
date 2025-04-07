@@ -21,7 +21,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override T[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return (reader.GetString()?.Split(',').Select(x => (T)EnumConverter.ParseString<T>(x)!).ToArray() ?? []);
+            var str = reader.GetString();
+            if (string.IsNullOrEmpty(str))
+                return [];
+
+            return str!.Split(',').Select(x => (T)EnumConverter.ParseString<T>(x)!).ToArray() ?? [];
         }
 
         /// <inheritdoc />

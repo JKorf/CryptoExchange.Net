@@ -411,6 +411,11 @@ namespace CryptoExchange.Net.Testing.Comparers
                     if (dec != value)
                         throw new Exception($"{method}: {property} not equal: {dec} vs {value}");
                 }
+                else if (objectValue is double dbl)
+                {
+                    if ((decimal)dbl != value)
+                        throw new Exception($"{method}: {property} not equal: {dbl} vs {value}");
+                }
                 else if(objectValue is string objStr)
                 {
                     if (objStr != value.ToString())

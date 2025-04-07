@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Whether or not the is order is a trigger order
         /// </summary>
-        public bool IsTriggerOrder { get; set; }
+        public bool? IsTriggerOrder { get; set; }
 
         /// <summary>
         /// Take profit price
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Whether this order is to close an existing position. If this is the case quantities might not be specified
         /// </summary>
-        public bool IsCloseOrder { get; set; }
+        public bool? IsCloseOrder { get; set; }
 
         /// <summary>
         /// ctor
