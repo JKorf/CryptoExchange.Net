@@ -113,6 +113,34 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Apply the provided rules to the value
+        /// </summary>
+        /// <param name="value">Value to be adjusted</param>
+        /// <param name="decimals">Max decimal places</param>
+        /// <param name="valueStep">The value step for increase/decrease value</param>
+        /// <returns></returns>
+        public static decimal ApplyRules(
+            decimal value,
+            int? decimals = null,
+            decimal? valueStep = null)
+        {
+            if (valueStep.HasValue)
+            {
+                var offset = value % valueStep.Value;
+                if (offset != 0)
+                {
+                    if (offset < valueStep.Value / 2)
+                        value -= offset;
+                    else value += (valueStep.Value - offset);
+                }
+            }
+            if (decimals.HasValue)
+                value = Math.Round(value, decimals.Value);
+
+            return value;
+        }
+
+        /// <summary>
         /// Round a value to have the provided total number of digits. For example, value 253.12332 with 5 digits would be 253.12 
         /// </summary>
         /// <param name="value">The value to round</param>

@@ -61,28 +61,38 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="quoteQuantity">Quantity in quote asset to convert</param>
         /// <param name="price">Price to use for conversion</param>
-        public static SharedQuantity BaseFromQuote(decimal quoteQuantity, decimal price) => new SharedQuantity(Math.Round(quoteQuantity / price, 8), null, null);
+        /// <param name="decimalPlaces">The max number of decimal places for the result</param>
+        /// <param name="lotSize">The lot size (step per quantity) for the base asset</param>
+        public static SharedQuantity BaseFromQuote(decimal quoteQuantity, decimal price, int decimalPlaces = 8, decimal lotSize = 0.00000001m) 
+            => new SharedQuantity(ExchangeHelpers.ApplyRules(quoteQuantity / price, decimalPlaces, lotSize), null, null);
         /// <summary>
         /// Get the quote asset quantity from a base quantity using a price
         /// </summary>
         /// <param name="baseQuantity">Quantity in base asset to convert</param>
         /// <param name="price">Price to use for conversion</param>
-        public static SharedQuantity QuoteFromBase(decimal baseQuantity, decimal price) => new SharedQuantity(Math.Round(baseQuantity * price, 8), null, null);
+        /// <param name="decimalPlaces">The max number of decimal places for the result</param>
+        /// <param name="lotSize">The lot size (step per quantity) for the quote asset</param>
+        public static SharedQuantity QuoteFromBase(decimal baseQuantity, decimal price, int decimalPlaces = 8, decimal lotSize = 0.00000001m) 
+            => new SharedQuantity(ExchangeHelpers.ApplyRules(baseQuantity * price, decimalPlaces, lotSize), null, null);
         /// <summary>
         /// Get a quantity in number of contracts from a base asset
         /// </summary>
         /// <param name="baseQuantity">Quantity in base asset to convert</param>
         /// <param name="contractSize">The contract size of a single contract</param>
-        /// <returns></returns>
-        public static SharedQuantity ContractsFromBase(decimal baseQuantity, decimal contractSize) => new SharedQuantity(Math.Round(baseQuantity / contractSize, 8), null, null);
+        /// <param name="decimalPlaces">The max number of decimal places for the result</param>
+        /// <param name="lotSize">The lot size (step per quantity) for the contract</param>
+        public static SharedQuantity ContractsFromBase(decimal baseQuantity, decimal contractSize, int decimalPlaces = 8, decimal lotSize = 0.00000001m)
+            => new SharedQuantity(ExchangeHelpers.ApplyRules(baseQuantity / contractSize, decimalPlaces, lotSize), null, null);
         /// <summary>
         /// Get a quantity in number of contracts from a quote asset
         /// </summary>
         /// <param name="quoteQuantity">Quantity in quote asset to convert</param>
         /// <param name="contractSize">The contract size of a single contract</param>
         /// <param name="price">The price to use for conversion</param>
-        /// <returns></returns>
-        public static SharedQuantity ContractsFromQuote(decimal quoteQuantity, decimal contractSize, decimal price) => new SharedQuantity(Math.Round(quoteQuantity / price / contractSize, 8), null, null);
+        /// <param name="decimalPlaces">The max number of decimal places for the result</param>
+        /// <param name="lotSize">The lot size (step per quantity) for the contract</param>
+        public static SharedQuantity ContractsFromQuote(decimal quoteQuantity, decimal contractSize, decimal price, int decimalPlaces = 8, decimal lotSize = 0.00000001m) 
+            => new SharedQuantity(ExchangeHelpers.ApplyRules(quoteQuantity / price / contractSize, decimalPlaces, lotSize), null, null);
     }
 
     /// <summary>

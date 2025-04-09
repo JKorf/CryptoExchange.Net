@@ -36,7 +36,13 @@ namespace CryptoExchange.Net.SharedApis
             SellMarket = sellMarket;
         }
 
-        private SharedQuantityType GetSupportedQuantityType(SharedOrderSide side, SharedOrderType orderType)
+        /// <summary>
+        /// Get the supported quantity type for a specific order configuration
+        /// </summary>
+        /// <param name="side">Side of the order</param>
+        /// <param name="orderType">Type of the order</param>
+        /// <returns>The supported quantity type</returns>
+        public SharedQuantityType GetSupportedQuantityType(SharedOrderSide side, SharedOrderType orderType)
         {
             if (side == SharedOrderSide.Buy && (orderType == SharedOrderType.Limit || orderType == SharedOrderType.LimitMaker)) return BuyLimit;
             if (side == SharedOrderSide.Buy && orderType == SharedOrderType.Market) return BuyMarket;
@@ -44,6 +50,25 @@ namespace CryptoExchange.Net.SharedApis
             if (side == SharedOrderSide.Sell && orderType == SharedOrderType.Market) return SellMarket;
 
             throw new ArgumentException("Unknown side/type combination");
+        }
+
+        /// <summary>
+        /// Get whether the API supports a specific quantity type for an order configuration
+        /// </summary>
+        /// <param name="side">Side of the order</param>
+        /// <param name="orderType">Type of the order</param>
+        /// <param name="quantityType">Type of quantity</param>
+        /// <returns>True if supported, false if not</returns>
+        public bool IsSupported(SharedOrderSide side, SharedOrderType orderType, SharedQuantityType quantityType)
+        {
+            var supportedType = GetSupportedQuantityType(side, orderType);
+            if (supportedType == quantityType)
+                return true;
+
+            if (supportedType == SharedQuantityType.BaseAndQuoteAsset && (quantityType == SharedQuantityType.BaseAsset || quantityType == SharedQuantityType.QuoteAsset))
+                return true;
+
+            return false;
         }
 
         /// <summary>
