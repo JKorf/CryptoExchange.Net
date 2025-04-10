@@ -167,6 +167,18 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Copy the CallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="data">The data</param>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public CallResult<K> AsErrorWithData<K>(Error error, K data)
+        {
+            return new CallResult<K>(data, OriginalData, error);
+        }
+
+        /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
