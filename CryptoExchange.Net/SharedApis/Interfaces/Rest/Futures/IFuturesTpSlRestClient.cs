@@ -14,25 +14,25 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Set take profit and/or stop loss options
         /// </summary>
-        EndpointOptions<SetTpSlRequest> SetTpSlOptions { get; }
+        EndpointOptions<SetTpSlRequest> SetFuturesTpSlOptions { get; }
         /// <summary>
         /// Set a take profit and/or stop loss for an open position
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedId>> SetTpSlAsync(SetTpSlRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedId>> SetFuturesTpSlAsync(SetTpSlRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel a take profit and/or stop loss options
         /// </summary>
-        EndpointOptions<CancelTpSlRequest> CancelTpSlOptions { get; }
+        EndpointOptions<CancelTpSlRequest> CancelFuturesTpSlOptions { get; }
         /// <summary>
         /// Cancel an active take profit and/or stop loss for an open position
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<bool>> CancelTpSlAsync(CancelTpSlRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<bool>> CancelFuturesTpSlAsync(CancelTpSlRequest request, CancellationToken ct = default);
     }
 }

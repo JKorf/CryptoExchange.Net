@@ -24,7 +24,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         Task<ExchangeWebResult<SharedId>> PlaceSpotTriggerOrderAsync(PlaceSpotTriggerOrderRequest request, CancellationToken ct = default);
 
-
         /// <summary>
         /// Get trigger order request options
         /// </summary>
