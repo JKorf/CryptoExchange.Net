@@ -16,13 +16,12 @@ namespace CryptoExchange.Net.Testing.Comparers
     {
         internal static void CompareData(
             string method,
-            object resultData,
+            object? resultData,
             string json,
             string? nestedJsonProperty,
             List<string>? ignoreProperties = null,
             bool userSingleArrayItem = false)
         {
-            var resultProperties = resultData.GetType().GetProperties().Select(p => (p, (JsonPropertyNameAttribute?)p.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true).SingleOrDefault()));
             var jsonObject = JsonDocument.Parse(json).RootElement;
             if (nestedJsonProperty != null)
             {
@@ -38,6 +37,16 @@ namespace CryptoExchange.Net.Testing.Comparers
 
             if (userSingleArrayItem)
                 jsonObject = jsonObject[0];
+
+
+            if (resultData == null)
+            {
+                if (jsonObject.ValueKind == JsonValueKind.Null)
+                    return;
+
+                if (jsonObject.ValueKind == JsonValueKind.Object && jsonObject.GetPropertyCount() == 0)
+                    return;
+            }
 
             if (resultData.GetType().GetInterfaces().Contains(typeof(IDictionary)))
             {
@@ -124,7 +133,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     int i = 0;
                     foreach (var item in jsonObject.EnumerateArray())
                     {
-                        var arrayProp = resultProps.Where(p => p.Item2 != null).SingleOrDefault(p => p.Item2!.Index == i).p;
+                        var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                         if (arrayProp != null)
                             CheckPropertyValue(method, item, arrayProp.GetValue(resultData), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
                         i++;

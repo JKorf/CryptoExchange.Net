@@ -58,7 +58,7 @@ namespace CryptoExchange.Net.Testing
            string? nestedJsonProperty = null,
            List<string>? ignoreProperties = null,
            bool useSingleArrayItem = false,
-            bool skipResponseValidation = false)
+           bool skipResponseValidation = false)
             => ValidateAsync<TResponse, TResponse>(methodInvoke, name, nestedJsonProperty, ignoreProperties, useSingleArrayItem, skipResponseValidation);
 
         /// <summary>
