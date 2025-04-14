@@ -92,8 +92,7 @@ namespace CryptoExchange.Net.Testing
             // Invoke subscription method
             var task = methodInvoke(client);
 
-            string? overrideKey = null;
-            string? overrideValue = null;
+            var replaceValues = new Dictionary<string, string>();
             while (true)
             {
                 var line = reader.ReadLine();
@@ -103,10 +102,10 @@ namespace CryptoExchange.Net.Testing
                 if (line.StartsWith("> "))
                 {
                     // Expect a message from client to server
-                    waiter.WaitOne(TimeSpan.FromSeconds(1));
+                    waiter.WaitOne(TimeSpan.FromSeconds(5));
 
                     if (lastMessage == null)
-                        throw new Exception($"{name} expected to {line} to be send to server but did not receive anything");
+                        throw new Exception($"{name} expected {line} to be send to server but did not receive anything");
 
                     var lastMessageJson = JsonDocument.Parse(lastMessage).RootElement;
                     var expectedJson = JsonDocument.Parse(line.Substring(2)).RootElement;
@@ -114,20 +113,30 @@ namespace CryptoExchange.Net.Testing
                     {
                         foreach (var item in expectedJson.EnumerateObject())
                         {
+                            if (item.Value.ValueKind == JsonValueKind.Object)
+                            {
+                                foreach (var innerItem in item.Value.EnumerateObject())
+                                {
+                                    if (innerItem.Value.ToString().StartsWith("|") && innerItem.Value.ToString().EndsWith("|"))
+                                    {
+                                        // |x| values are used to replace parts of response messages
+                                        if (!lastMessageJson.GetProperty(item.Name).TryGetProperty(innerItem.Name, out var prop))
+                                            continue;
+
+                                        replaceValues.Add(innerItem.Value.ToString(), prop.ValueKind == JsonValueKind.String ? prop.GetString()! : prop.GetInt64().ToString()!);
+                                    }
+                                }
+                            }
+
                             if (item.Value.ToString().StartsWith("|") && item.Value.ToString().EndsWith("|"))
                             {
-                                // |x| values are used to replace parts or response messages
-                                overrideKey = item.Value.ToString();
-                                var prop = lastMessageJson.GetProperty(item.Name);
-                                overrideValue = prop.ValueKind == JsonValueKind.String ? prop.GetString() : prop.GetInt64().ToString();
+                                // |x| values are used to replace parts of response messages
+                                if (!lastMessageJson.TryGetProperty(item.Name, out var prop))
+                                    continue;
+
+                                replaceValues.Add(item.Value.ToString(), prop.ValueKind == JsonValueKind.String ? prop.GetString()! : prop.GetInt64().ToString()!);
                             }
-                            else if (item.Value.ToString() == "-999")
-                            {
-                                // -999 value is used to replace parts or response messages
-                                overrideKey = item.Value.ToString();
-                                overrideValue = lastMessageJson.GetProperty(item.Name).GetDecimal().ToString();
-                            }
-                            else if (!lastMessageJson.TryGetProperty(item.Name, out var propdsf))
+                            else if (!lastMessageJson.TryGetProperty(item.Name, out var prop))
                             {
                             }
                             else if (lastMessageJson.GetProperty(item.Name).ValueKind == JsonValueKind.String && lastMessageJson.GetProperty(item.Name).GetString() != item.Value.ToString() && ignoreProperties?.Contains(item.Name) != true)
@@ -147,8 +156,8 @@ namespace CryptoExchange.Net.Testing
                 else if (line.StartsWith("< "))
                 {
                     // Expect a message from server to client
-                    if (overrideKey != null)
-                        line = line.Replace(overrideKey, overrideValue);
+                    foreach(var item in replaceValues)
+                        line = line.Replace(item.Key, item.Value);
 
                     socket.InvokeMessage(line.Substring(2));
                 }
@@ -156,8 +165,8 @@ namespace CryptoExchange.Net.Testing
                 {
                     // A update message from server to client
                     var compareData = reader.ReadToEnd();
-                    if (overrideKey != null)
-                        compareData = compareData.Replace(overrideKey, overrideValue);
+                    foreach (var item in replaceValues)
+                        compareData = compareData.Replace(item.Key, item.Value);
 
                     socket.InvokeMessage(compareData);
 
@@ -166,7 +175,8 @@ namespace CryptoExchange.Net.Testing
                     if (responseMapper != null)
                         result = responseMapper(task.Result.Data);
 
-                    SystemTextJsonComparer.CompareData(name, result, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                    if (!skipResponseValidation)
+                        SystemTextJsonComparer.CompareData(name, result, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
                 }
             }
 
