@@ -49,6 +49,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="ignoreProperties">Ignore certain properties</param>
         /// <param name="useFirstUpdateItem">Use the first item of an array update</param>
         /// <param name="addressPath">Path</param>
+        /// <param name="skipUpdateValidation">Whether to skip comparing the json model with the update model</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TUpdate>(
@@ -57,7 +58,8 @@ namespace CryptoExchange.Net.Testing
             string? nestedJsonProperty = null,
             List<string>? ignoreProperties = null,
             string? addressPath = null,
-            bool? useFirstUpdateItem = null)
+            bool? useFirstUpdateItem = null,
+            bool? skipUpdateValidation = null)
         {
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
@@ -94,8 +96,7 @@ namespace CryptoExchange.Net.Testing
             // Invoke subscription method
             var task = methodInvoke(_client, x => { update = x.Data; });
 
-            string? overrideKey = null;
-            string? overrideValue = null;
+            var replaceValues = new Dictionary<string, string>();
             while (true)
             {
                 var line = reader.ReadLine();
@@ -116,18 +117,36 @@ namespace CryptoExchange.Net.Testing
                     {
                         foreach (var item in expectedJson.EnumerateObject())
                         {
+                            if (item.Value.ValueKind == JsonValueKind.Object)
+                            {
+                                foreach (var innerItem in item.Value.EnumerateObject())
+                                {
+                                    if (innerItem.Value.ToString().StartsWith("|") && innerItem.Value.ToString().EndsWith("|"))
+                                    {
+                                        // |x| values are used to replace parts of response messages
+                                        if (!lastMessageJson.GetProperty(item.Name).TryGetProperty(innerItem.Name, out var prop))
+                                            continue;
+
+                                        replaceValues.Add(innerItem.Value.ToString(), prop.ValueKind == JsonValueKind.String ? prop.GetString()! : prop.GetInt64().ToString()!);
+                                    }
+                                }
+                            }
+
                             if (item.Value.ToString().StartsWith("|") && item.Value.ToString().EndsWith("|"))
                             {
-                                // |x| values are used to replace parts or response messages
-                                overrideKey = item.Value.ToString();
-                                var prop = lastMessageJson.GetProperty(item.Name);
-                                overrideValue = prop.ValueKind == JsonValueKind.String ? prop.GetString() : prop.GetInt64().ToString();
+                                // |x| values are used to replace parts of response messages
+                                if (!lastMessageJson.TryGetProperty(item.Name, out var prop))
+                                    continue;
+
+                                replaceValues.Add(item.Value.ToString(), prop.ValueKind == JsonValueKind.String ? prop.GetString()! : prop.GetInt64().ToString()!);
                             }
                             else if (item.Value.ToString() == "-999")
                             {
-                                // -999 value is used to replace parts or response messages
-                                overrideKey = item.Value.ToString();
-                                overrideValue = lastMessageJson.GetProperty(item.Name).GetDecimal().ToString();
+                                // |x| values are used to replace parts of response messages
+                                if (!lastMessageJson.TryGetProperty(item.Name, out var prop))
+                                    continue;
+
+                                replaceValues.Add(item.Value.ToString(), prop.GetDecimal().ToString()!);
                             }
                             else if (lastMessageJson.GetProperty(item.Name).ValueKind == JsonValueKind.String && lastMessageJson.GetProperty(item.Name).GetString() != item.Value.ToString() && ignoreProperties?.Contains(item.Name) != true)
                             {
@@ -146,12 +165,8 @@ namespace CryptoExchange.Net.Testing
                 else if (line.StartsWith("< "))
                 {
                     // Expect a message from server to client
-                    if (overrideKey != null)
-                    {
-                        line = line.Replace(overrideKey, overrideValue);
-                        overrideKey = null;
-                        overrideValue = null;
-                    }
+                    foreach (var item in replaceValues)
+                        line = line.Replace(item.Key, item.Value);
 
                     socket.InvokeMessage(line.Substring(2));
                 }
@@ -159,12 +174,16 @@ namespace CryptoExchange.Net.Testing
                 {
                     // A update message from server to client
                     var compareData = reader.ReadToEnd();
+                    foreach (var item in replaceValues)
+                        compareData = compareData.Replace(item.Key, item.Value);
+
                     socket.InvokeMessage(compareData);
 
                     if (update == null)
                         throw new Exception($"{name} Update send to client did not trigger in update handler");
 
-                    SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
+                    if (skipUpdateValidation != true)
+                        SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
                 }
             }
 
