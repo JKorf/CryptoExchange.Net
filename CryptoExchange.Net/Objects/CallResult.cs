@@ -496,7 +496,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="data">The data</param>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public WebCallResult<K> AsErrorWithData<K>(Error error, K data)
+        public new WebCallResult<K> AsErrorWithData<K>(Error error, K data)
         {
             return new WebCallResult<K>(ResponseStatusCode, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, error);
         }

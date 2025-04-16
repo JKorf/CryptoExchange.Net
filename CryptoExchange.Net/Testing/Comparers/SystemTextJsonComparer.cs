@@ -46,6 +46,8 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                 if (jsonObject.ValueKind == JsonValueKind.Object && jsonObject.GetPropertyCount() == 0)
                     return;
+
+                throw new Exception("ResultData null");
             }
 
             if (resultData.GetType().GetInterfaces().Contains(typeof(IDictionary)))
