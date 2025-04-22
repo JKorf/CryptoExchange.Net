@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Client for managing futures orders using a client order id
     /// </summary>
-    public interface IFuturesOrderClientIdClient : ISharedClient
+    public interface IFuturesOrderClientIdRestClient : ISharedClient
     {
         /// <summary>
         /// Futures get order by client order id request options

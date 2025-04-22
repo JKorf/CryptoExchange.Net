@@ -454,8 +454,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (ISpotTickerRestClient)client(x)!);
             if (typeof(ISpotTriggerOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotTriggerOrderRestClient)client(x)!);
-            if (typeof(ISpotOrderClientIdClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (ISpotOrderClientIdClient)client(x)!);
+            if (typeof(ISpotOrderClientIdRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotOrderClientIdRestClient)client(x)!);
 
             if (typeof(IFundingRateRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFundingRateRestClient)client(x)!);
@@ -481,8 +481,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IFuturesTpSlRestClient)client(x)!);
             if (typeof(IFuturesTriggerOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFuturesTriggerOrderRestClient)client(x)!);
-            if (typeof(IFuturesOrderClientIdClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IFuturesOrderClientIdClient)client(x)!);
+            if (typeof(IFuturesOrderClientIdRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFuturesOrderClientIdRestClient)client(x)!);
 
             return services;
         }

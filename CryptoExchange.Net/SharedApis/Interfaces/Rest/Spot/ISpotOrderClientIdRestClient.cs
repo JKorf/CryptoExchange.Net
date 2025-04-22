@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Client for managing spot orders using a client order id
     /// </summary>
-    public interface ISpotOrderClientIdClient : ISharedClient
+    public interface ISpotOrderClientIdRestClient : ISharedClient
     {
         /// <summary>
         /// Spot get order by client order id request options
