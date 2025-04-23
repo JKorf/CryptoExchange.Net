@@ -30,7 +30,7 @@ namespace CryptoExchange.Net
             if (DateTime.UtcNow - exchangeInfo.UpdateTime < TimeSpan.FromMinutes(60))
                 return;
 
-            _symbolInfos[topicId] = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => new SharedSymbol(x.TradingMode, x.BaseAsset, x.QuoteAsset, (x as SharedFuturesSymbol)?.DeliveryTime) { SymbolName = x.Name }));
+            _symbolInfos[topicId] = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => new SharedSymbol(x.TradingMode, x.BaseAsset.ToUpperInvariant(), x.QuoteAsset.ToUpperInvariant(), (x as SharedFuturesSymbol)?.DeliveryTime) { SymbolName = x.Name }));
         }
 
         /// <summary>
