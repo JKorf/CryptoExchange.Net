@@ -22,6 +22,10 @@
         /// </summary>
         public decimal Volume { get; set; }
         /// <summary>
+        /// Trade volume in quote asset in the last 24h
+        /// </summary>
+        public decimal? QuoteVolume { get; set; }
+        /// <summary>
         /// Change percentage in the last 24h
         /// </summary>
         public decimal? ChangePercentage { get; set; }
