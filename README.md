@@ -71,6 +71,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0-beta2 - 23 Apr 2025
+    * Added QuoteVolume property to SharedSpotTicker model
+    * Map asset names as uppercase in ExchangeSymbolCache
+    * Renamed ISpotOrderClientIdClient to ISpotOrderClientIdRestClient and IFuturesOrderClientIdClient to IFuturesOrderClientIdRestClient
+
 * Version 9.0.0-beta1 - 16 Apr 2025
     * Added support for Native AOT compilation
     * Updated all IEnumerable response types to array response types
