@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace CryptoExchange.Net.Caching
 {
     internal class MemoryCache
     {
         private readonly ConcurrentDictionary<string, CacheItem> _cache = new ConcurrentDictionary<string, CacheItem>();
+        private readonly object _lock = new object();
 
         /// <summary>
         /// Add a new cache entry. Will override an existing entry if it already exists
@@ -26,15 +28,12 @@ namespace CryptoExchange.Net.Caching
         /// <returns>Cached value if it was in cache</returns>
         public object? Get(string key, TimeSpan maxAge)
         {
+            foreach (var item in _cache.Where(x => DateTime.UtcNow - x.Value.CacheTime > maxAge).ToList())
+                _cache.TryRemove(item.Key, out _);
+            
             _cache.TryGetValue(key, out CacheItem? value);
             if (value == null)
                 return null;
-
-            if (DateTime.UtcNow - value.CacheTime > maxAge)
-            {
-                _cache.TryRemove(key, out _);
-                return null;
-            }
 
             return value.Value;
         }
