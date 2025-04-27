@@ -71,6 +71,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0-beta3 - 27 Apr 2025
+    * Fixed memory leak in cache
+    * Fixed memory leak in array converter
+    * Fixed incorrect log verbosity for log message when stopping order book
+
 * Version 9.0.0-beta2 - 23 Apr 2025
     * Added QuoteVolume property to SharedSpotTicker model
     * Map asset names as uppercase in ExchangeSymbolCache
