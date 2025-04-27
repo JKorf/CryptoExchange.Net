@@ -21,6 +21,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     public class ArrayConverter<T, TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext
 #endif
     {
+        private static readonly ConcurrentDictionary<Type, TContext> _contextCache = new ConcurrentDictionary<Type, TContext>();
         private static readonly ConcurrentDictionary<Type, List<ArrayPropertyInfo>> _typeAttributesCache = new ConcurrentDictionary<Type, List<ArrayPropertyInfo>>();
         private static readonly ConcurrentDictionary<JsonConverter, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<JsonConverter, JsonSerializerOptions>();
 
@@ -68,11 +69,18 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 JsonSerializerOptions? typeOptions = null;
                 if (prop.JsonConverter != null)
                 {
+                    if (!_contextCache.TryGetValue(typeof(TContext), out var resolver))
+                    {
+                        var contextType = typeof(TContext);
+                        resolver = (TContext)Activator.CreateInstance(contextType)!;
+                        _contextCache.TryAdd(contextType, resolver);
+                    }
+
                     typeOptions = new JsonSerializerOptions
                     {
                         NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
                         PropertyNameCaseInsensitive = false,
-                        TypeInfoResolver = (TContext)Activator.CreateInstance(typeof(TContext))!,
+                        TypeInfoResolver = resolver,
                     };
                     typeOptions.Converters.Add(prop.JsonConverter);
                 }
