@@ -71,6 +71,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0-beta4 - 28 Apr 2025
+    * Support reading of int32 (up from int16) as enum values in EnumConverter
+
 * Version 9.0.0-beta3 - 27 Apr 2025
     * Fixed memory leak in cache
     * Fixed memory leak in array converter
