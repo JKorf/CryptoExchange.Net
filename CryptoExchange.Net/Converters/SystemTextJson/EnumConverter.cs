@@ -126,7 +126,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             var stringValue = reader.TokenType switch
             {
                 JsonTokenType.String => reader.GetString(),
-                JsonTokenType.Number => reader.GetInt16().ToString(),
+                JsonTokenType.Number => reader.GetInt32().ToString(),
                 JsonTokenType.True => reader.GetBoolean().ToString(),
                 JsonTokenType.False => reader.GetBoolean().ToString(),
                 JsonTokenType.Null => null,
