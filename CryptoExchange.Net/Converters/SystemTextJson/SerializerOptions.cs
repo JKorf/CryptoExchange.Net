@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Get Json serializer settings which includes standard converters for DateTime, bool, enum and number types
         /// </summary>
-        public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver)
+        public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver, params JsonConverter[] additionalConverters)
         {
             if (!_cache.TryGetValue(typeResolver, out var options))
             {
@@ -33,6 +33,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     },
                     TypeInfoResolver = typeResolver,
                 };
+
+                foreach (var converter in additionalConverters)
+                    options.Converters.Add(converter);
+
+                options.TypeInfoResolver = typeResolver;
                 _cache.TryAdd(typeResolver, options);
             }
 
