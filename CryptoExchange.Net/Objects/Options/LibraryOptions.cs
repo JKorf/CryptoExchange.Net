@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// </summary>
         public T Set<T>(T targetOptions) where T: LibraryOptions<TRestOptions, TSocketOptions, TApiCredentials, TEnvironment>
         {
-            targetOptions.ApiCredentials = ApiCredentials;
+            targetOptions.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
             targetOptions.Environment = Environment;
             targetOptions.SocketClientLifeTime = SocketClientLifeTime;
             targetOptions.Rest = Rest.Set(targetOptions.Rest);

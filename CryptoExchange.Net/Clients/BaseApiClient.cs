@@ -39,7 +39,10 @@ namespace CryptoExchange.Net.Clients
         public bool OutputOriginalData { get; }
 
         /// <inheritdoc />
-        public bool Authenticated => ApiOptions.ApiCredentials != null || ClientOptions.ApiCredentials != null;
+        public bool Authenticated => ApiCredentials != null;
+
+        /// <inheritdoc />
+        public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
         /// Api options
@@ -68,9 +71,10 @@ namespace CryptoExchange.Net.Clients
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;
             BaseAddress = baseAddress;
+            ApiCredentials = apiCredentials?.Copy();
 
-            if (apiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(apiCredentials.Copy());
+            if (ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <summary>
@@ -86,9 +90,9 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
         {
-            ApiOptions.ApiCredentials = credentials;
-            if (credentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(credentials.Copy());
+            ApiCredentials = credentials?.Copy();
+            if (ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <inheritdoc />
@@ -97,9 +101,9 @@ namespace CryptoExchange.Net.Clients
             ClientOptions.Proxy = options.Proxy;
             ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
 
-            ApiOptions.ApiCredentials = options.ApiCredentials ?? ClientOptions.ApiCredentials;
-            if (options.ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(options.ApiCredentials.Copy());
+            ApiCredentials = options.ApiCredentials?.Copy() ?? ApiCredentials;
+            if (ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <summary>
