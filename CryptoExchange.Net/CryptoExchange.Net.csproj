@@ -6,7 +6,7 @@
     <PackageId>CryptoExchange.Net</PackageId>
     <Authors>JKorf</Authors>
     <Description>CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations.</Description>
-    <PackageVersion>9.0.0-beta4</PackageVersion>
+    <PackageVersion>9.0.0-beta5</PackageVersion>
     <AssemblyVersion>9.0.0</AssemblyVersion>
     <FileVersion>9.0.0</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
