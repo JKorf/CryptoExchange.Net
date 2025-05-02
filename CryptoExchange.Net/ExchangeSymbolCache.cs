@@ -23,7 +23,7 @@ namespace CryptoExchange.Net
         {
             if(!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
             {
-                exchangeInfo = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => new SharedSymbol(x.TradingMode, x.BaseAsset, x.QuoteAsset, (x as SharedFuturesSymbol)?.DeliveryTime) { SymbolName = x.Name }));                
+                exchangeInfo = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => new SharedSymbol(x.TradingMode, x.BaseAsset.ToUpperInvariant(), x.QuoteAsset.ToUpperInvariant(), (x as SharedFuturesSymbol)?.DeliveryTime) { SymbolName = x.Name }));                
                 _symbolInfos.TryAdd(topicId, exchangeInfo);
             }
 
