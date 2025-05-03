@@ -71,6 +71,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0-beta6 - 03 May 2025
+    * Fixed initial asset info in ExchangeSymbolCache not getting cached in uppercase
+    * Fixed ArrayConverter creating new JsonSerializerContext for each default json deserialization
+
 * Version 9.0.0-beta5 - 30 Apr 2025
     * Add support for specifying additional custom converters when creating JsonSerializerOptions
     * Fix issue overriding default options when using SetApiCredentials on client
