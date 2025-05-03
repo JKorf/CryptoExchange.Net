@@ -210,7 +210,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     else if (attribute.DefaultDeserialization)
                     {
                         // Use default deserialization
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters((TContext)Activator.CreateInstance(typeof(TContext))!));
+                        if (!_contextCache.TryGetValue(typeof(TContext), out var resolver))
+                        {
+                            var contextType = typeof(TContext);
+                            resolver = (TContext)Activator.CreateInstance(contextType)!;
+                            _contextCache.TryAdd(contextType, resolver);
+                        }
+
+                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters(resolver));
                     }
                     else
                     {
