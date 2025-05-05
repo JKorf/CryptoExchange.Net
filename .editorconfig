@@ -1,0 +1,39 @@
+﻿root = true
+
+[*]
+
+# Indentation and spacing
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+charset = utf-8
+max_line_length = 140
+insert_final_newline = true
+
+# ReSharper properties
+resharper_csharp_keep_existing_embedded_arrangement = false
+resharper_csharp_place_accessorholder_attribute_on_same_line = false
+resharper_csharp_wrap_after_declaration_lpar = true
+resharper_csharp_wrap_parameters_style = chop_if_long
+resharper_csharp_blank_lines_around_single_line_auto_property = 1
+resharper_csharp_keep_blank_lines_in_declarations = 1
+
+[*.cs]
+
+indent_size = 4
+
+# Code style conventions
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_object_initializer = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_methods = true:suggestion
+csharp_prefer_braces = when_multiline:warning
+
+# Analyzer preferences
+dotnet_diagnostic.CA2007.severity = warning # Call ConfigureAwait on the awaited Task.
+dotnet_code_quality.CA2007.exclude_async_void_methods = true
+dotnet_code_quality.CA2007.output_kind = DynamicallyLinkedLibrary
+
+[*.xml]
+ij_xml_space_inside_empty_tag = true
