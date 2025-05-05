@@ -10,13 +10,14 @@ charset = utf-8
 max_line_length = 140
 insert_final_newline = true
 
-# ReSharper properties
+# ReSharper code style properties
 resharper_csharp_keep_existing_embedded_arrangement = false
 resharper_csharp_place_accessorholder_attribute_on_same_line = false
 resharper_csharp_wrap_after_declaration_lpar = true
 resharper_csharp_wrap_parameters_style = chop_if_long
 resharper_csharp_blank_lines_around_single_line_auto_property = 1
 resharper_csharp_keep_blank_lines_in_declarations = 1
+resharper_trailing_comma_in_multiline_lists = true
 
 [*.cs]
 
@@ -28,12 +29,21 @@ dotnet_style_collection_initializer = true:suggestion
 dotnet_style_object_initializer = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_expression_bodied_methods = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 csharp_prefer_braces = when_multiline:warning
 
 # Analyzer preferences
 dotnet_diagnostic.CA2007.severity = warning # Call ConfigureAwait on the awaited Task.
 dotnet_code_quality.CA2007.exclude_async_void_methods = true
 dotnet_code_quality.CA2007.output_kind = DynamicallyLinkedLibrary
+
+dotnet_diagnostic.CA1720.severity = none # Identifiers should not contain type names
+dotnet_diagnostic.CA2201.severity = none # Do not raise reserved exception types
+
+dotnet_diagnostic.IDE0055.severity = warning # Using directive is unnecessary
 
 [*.xml]
 ij_xml_space_inside_empty_tag = true
