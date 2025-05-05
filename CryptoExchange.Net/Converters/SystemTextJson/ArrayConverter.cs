@@ -8,6 +8,8 @@ using System.Text.Json;
 using CryptoExchange.Net.Attributes;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
@@ -16,12 +18,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// with [ArrayProperty(x)] where x is the index of the property in the array
     /// </summary>
 #if NET5_0_OR_GREATER
-    public class ArrayConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext
-# else
-    public class ArrayConverter<T, TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext
+    public class ArrayConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext, new()
+#else
+    public class ArrayConverter<T, TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext, new()
 #endif
     {
-        private static readonly ConcurrentDictionary<Type, TContext> _contextCache = new ConcurrentDictionary<Type, TContext>();
         private static readonly ConcurrentDictionary<Type, List<ArrayPropertyInfo>> _typeAttributesCache = new ConcurrentDictionary<Type, List<ArrayPropertyInfo>>();
         private static readonly ConcurrentDictionary<JsonConverter, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<JsonConverter, JsonSerializerOptions>();
 
@@ -69,18 +70,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 JsonSerializerOptions? typeOptions = null;
                 if (prop.JsonConverter != null)
                 {
-                    if (!_contextCache.TryGetValue(typeof(TContext), out var resolver))
-                    {
-                        var contextType = typeof(TContext);
-                        resolver = (TContext)Activator.CreateInstance(contextType)!;
-                        _contextCache.TryAdd(contextType, resolver);
-                    }
-
+                    var context = JsonSerializerContextCache.GetOrCreate<TContext>();
                     typeOptions = new JsonSerializerOptions
                     {
                         NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
                         PropertyNameCaseInsensitive = false,
-                        TypeInfoResolver = resolver,
+                        TypeInfoResolver = context,
                     };
                     typeOptions.Converters.Add(prop.JsonConverter);
                 }
@@ -209,15 +204,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     }
                     else if (attribute.DefaultDeserialization)
                     {
-                        // Use default deserialization
-                        if (!_contextCache.TryGetValue(typeof(TContext), out var resolver))
-                        {
-                            var contextType = typeof(TContext);
-                            resolver = (TContext)Activator.CreateInstance(contextType)!;
-                            _contextCache.TryAdd(contextType, resolver);
-                        }
-
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters(resolver));
+                        var context = JsonSerializerContextCache.GetOrCreate<TContext>();
+                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters(context));
                     }
                     else
                     {
