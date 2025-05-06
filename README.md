@@ -71,6 +71,15 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0-beta7 - 06 May 2025
+    * Added AssetAlias configuration classes
+    * Added Exception property on Error objects
+    * Updated logging to no longer log full stacktraces but instead pass exceptions to struct
+    * Removed the Data property from Error objects (is already available on CallResult)ured logging
+    * Updated ArrayConverter _typeAttributesCache from ConcurrentDictionary to lazy list since each type has it's own ArrayConverter instance now
+    * Updated SocketApiClient to create RateLimiter instance if none is provided
+    * Fixed issue with ArrayConverter creating seperate JsonSerializerContext instance for each type by adding JsonSerializerContextCache
+
 * Version 9.0.0-beta6 - 03 May 2025
     * Fixed initial asset info in ExchangeSymbolCache not getting cached in uppercase
     * Fixed ArrayConverter creating new JsonSerializerContext for each default json deserialization
