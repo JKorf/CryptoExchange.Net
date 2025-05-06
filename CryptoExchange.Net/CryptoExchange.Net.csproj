@@ -42,6 +42,7 @@
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>Recommended</AnalysisMode>
     <AnalysisModeGlobalization>None</AnalysisModeGlobalization>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
