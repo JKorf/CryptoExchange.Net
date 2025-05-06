@@ -23,7 +23,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     public class ArrayConverter<T, TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext, new()
 #endif
     {
-        private static readonly ConcurrentDictionary<Type, List<ArrayPropertyInfo>> _typeAttributesCache = new ConcurrentDictionary<Type, List<ArrayPropertyInfo>>();
+        private static readonly Lazy<List<ArrayPropertyInfo>> _typePropertyInfo = new Lazy<List<ArrayPropertyInfo>>(CacheTypeAttributes, LazyThreadSafetyMode.PublicationOnly);
+        
         private static readonly ConcurrentDictionary<JsonConverter, JsonSerializerOptions> _converterOptionsCache = new ConcurrentDictionary<JsonConverter, JsonSerializerOptions>();
 
         /// <inheritdoc />
@@ -41,11 +42,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             writer.WriteStartArray();
 
-            var valueType = typeof(T);
-            if (!_typeAttributesCache.TryGetValue(valueType, out var typeAttributes))
-                typeAttributes = CacheTypeAttributes(valueType);
-
-            var ordered = typeAttributes.Where(x => x.ArrayProperty != null).OrderBy(p => p.ArrayProperty.Index);
+            var ordered = _typePropertyInfo.Value.Where(x => x.ArrayProperty != null).OrderBy(p => p.ArrayProperty.Index);
             var last = -1;
             foreach (var prop in ordered)
             {
@@ -108,51 +105,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return (T)ParseObject(ref reader, result, typeof(T), options);
         }
 
-        private static bool IsSimple(Type type)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                // nullable type, check if the nested type is simple.
-                return IsSimple(type.GetGenericArguments()[0]);
-            }
-            return type.IsPrimitive
-              || type.IsEnum
-              || type == typeof(string)
-              || type == typeof(decimal);
-        }
-
-#if NET5_0_OR_GREATER
-        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
-        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
-        private static List<ArrayPropertyInfo> CacheTypeAttributes([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type type)
-#else
-        private static List<ArrayPropertyInfo> CacheTypeAttributes(Type type)
-#endif
-        {
-            var attributes = new List<ArrayPropertyInfo>();
-            var properties = type.GetProperties();
-            foreach (var property in properties)
-            {
-                var att = property.GetCustomAttribute<ArrayPropertyAttribute>();
-                if (att == null)
-                    continue;
-
-                var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
-                var converterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? targetType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType;
-                attributes.Add(new ArrayPropertyInfo
-                {
-                    ArrayProperty = att,
-                    PropertyInfo = property,
-                    DefaultDeserialization = property.GetCustomAttribute<CryptoExchange.Net.Attributes.JsonConversionAttribute>() != null,
-                    JsonConverter = converterType == null ? null : (JsonConverter)Activator.CreateInstance(converterType)!,
-                    TargetType = targetType
-                });
-            }
-
-            _typeAttributesCache.TryAdd(type, attributes);
-            return attributes;
-        }
-
 
 #if NET5_0_OR_GREATER
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
@@ -165,16 +117,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new Exception("Not an array");
 
-            if (!_typeAttributesCache.TryGetValue(objectType, out var attributes))
-                attributes = CacheTypeAttributes(objectType);
-
             int index = 0;
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndArray)
                     break;
 
-                var indexAttributes = attributes.Where(a => a.ArrayProperty.Index == index);
+                var indexAttributes = _typePropertyInfo.Value.Where(a => a.ArrayProperty.Index == index);
                 if (!indexAttributes.Any())
                 {
                     index++;
@@ -231,6 +180,50 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
 
             return result;
+        }
+
+        private static bool IsSimple(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                // nullable type, check if the nested type is simple.
+                return IsSimple(type.GetGenericArguments()[0]);
+            }
+            return type.IsPrimitive
+              || type.IsEnum
+              || type == typeof(string)
+              || type == typeof(decimal);
+        }
+
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        private static List<ArrayPropertyInfo> CacheTypeAttributes()
+#else
+        private static List<ArrayPropertyInfo> CacheTypeAttributes()
+#endif
+        {
+            var attributes = new List<ArrayPropertyInfo>();
+            var properties = typeof(T).GetProperties();
+            foreach (var property in properties)
+            {
+                var att = property.GetCustomAttribute<ArrayPropertyAttribute>();
+                if (att == null)
+                    continue;
+
+                var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                var converterType = property.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType ?? targetType.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType;
+                attributes.Add(new ArrayPropertyInfo
+                {
+                    ArrayProperty = att,
+                    PropertyInfo = property,
+                    DefaultDeserialization = property.GetCustomAttribute<CryptoExchange.Net.Attributes.JsonConversionAttribute>() != null,
+                    JsonConverter = converterType == null ? null : (JsonConverter)Activator.CreateInstance(converterType)!,
+                    TargetType = targetType
+                });
+            }
+
+            return attributes;
         }
 
         private class ArrayPropertyInfo
