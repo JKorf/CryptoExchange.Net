@@ -179,7 +179,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             var startResult = await DoStartAsync().ConfigureAwait(false);
             if (!startResult)
             {
-                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.ToString());
+                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.Message, startResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return new CallResult(startResult.Error!);
             }

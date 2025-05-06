@@ -535,7 +535,7 @@ namespace CryptoExchange.Net.Sockets
                         var desResult = processor.Deserialize(_accessor, messageType);
                         if (!desResult)
                         {
-                            _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString());
+                            _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
                             continue;
                         }
                         deserialized = desResult.Data;
@@ -553,7 +553,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (Exception ex)
                     {
-                        _logger.UserMessageProcessingFailed(SocketId, ex.ToLogString(), ex);
+                        _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
                         if (processor is Subscription subscription)
                             subscription.InvokeExceptionHandler(ex);
                     }
@@ -860,7 +860,7 @@ namespace CryptoExchange.Net.Sockets
             }
             catch(Exception ex)
             {
-                return new CallResult(new WebError("Failed to send message: " + ex.Message));
+                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
         }
 
@@ -982,7 +982,7 @@ namespace CryptoExchange.Net.Sockets
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)
         {
             if (!_socket.IsOpen)
-                return new CallResult(new UnknownError("Socket is not connected"));
+                return new CallResult(new WebError("Socket is not connected"));
 
             var subQuery = subscription.GetSubQuery(this);
             if (subQuery == null)
@@ -1036,7 +1036,7 @@ namespace CryptoExchange.Net.Sockets
                     }
                     catch (Exception ex)
                     {
-                        _logger.PeriodicSendFailed(SocketId, identifier, ex.ToLogString(), ex);
+                        _logger.PeriodicSendFailed(SocketId, identifier, ex.Message, ex);
                     }
                 }
             });

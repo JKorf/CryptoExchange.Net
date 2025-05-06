@@ -202,7 +202,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             var subResult = await DoStartAsync().ConfigureAwait(false);
             if (!subResult)
             {
-                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.ToString());
+                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return subResult;
             }

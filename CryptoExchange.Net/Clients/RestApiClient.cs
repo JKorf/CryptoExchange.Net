@@ -242,7 +242,7 @@ namespace CryptoExchange.Net.Clients
                 if (result.Error is not CancellationRequestedError)
                 {
                     if (!result)
-                        _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
+                        _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), result.Error?.Exception);
                     else
                         _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
                 }
@@ -465,7 +465,7 @@ namespace CryptoExchange.Net.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
-                    await accessor.Read(responseStream, true).ConfigureAwait(false);
+                    var readResult = await accessor.Read(responseStream, true).ConfigureAwait(false);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
@@ -481,7 +481,7 @@ namespace CryptoExchange.Net.Clients
                     }
                     else
                     {
-                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor, readResult.Error?.Exception);
                     }
 
                     if (error.Code == null || error.Code == 0)
@@ -498,7 +498,7 @@ namespace CryptoExchange.Net.Clients
                 if (!valid)
                 {
                     // Invalid json
-                    var error = new ServerError("Failed to parse response: " + valid.Error!.Message, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    var error = new DeserializeError("Failed to parse response: " + valid.Error!.Message, valid.Error.Exception);
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
 
@@ -525,20 +525,19 @@ namespace CryptoExchange.Net.Clients
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
-                var exceptionInfo = requestException.ToLogString();
-                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError(exceptionInfo));
+                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError(requestException.Message, exception: requestException));
             }
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError());
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError(canceledException));
                 }
                 else
                 {
                     // Request timed out
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out"));
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out", exception: canceledException));
                 }
             }
             finally
@@ -625,11 +624,11 @@ namespace CryptoExchange.Net.Clients
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
+        /// <param name="exception">Exception</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
+        protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception? exception)
         {
-            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
-            return new ServerError(message);
+            return new ServerError(null, "Unknown request error", exception);
         }
 
         /// <summary>
@@ -641,21 +640,19 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
         {
-            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
-
             // Handle retry after header
             var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
             if (retryAfterHeader.Value?.Any() != true)
-                return new ServerRateLimitError(message);
+                return new ServerRateLimitError();
 
             var value = retryAfterHeader.Value.First();
             if (int.TryParse(value, out var seconds))
-                return new ServerRateLimitError(message) { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
+                return new ServerRateLimitError() { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
 
             if (DateTime.TryParse(value, out var datetime))
-                return new ServerRateLimitError(message) { RetryAfter = datetime };
+                return new ServerRateLimitError() { RetryAfter = datetime };
 
-            return new ServerRateLimitError(message);
+            return new ServerRateLimitError();
         }
 
         /// <summary>

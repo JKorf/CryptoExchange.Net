@@ -61,12 +61,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<object>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
                 var info = $"Deserialize unknown Exception: {ex.Message}";
-                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<object>(new DeserializeError(info, ex));
             }
         }
 
@@ -88,12 +88,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<T>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
                 var info = $"Unknown exception: {ex.Message}";
-                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<T>(new DeserializeError(info, ex));
             }
         }
 
@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Not a json message
                 IsJson = false;
-                return new CallResult(new ServerError("JsonError: " + ex.Message));
+                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
             }
         }
 
@@ -349,7 +349,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Not a json message
                 IsJson = false;
-                return new CallResult(new ServerError("JsonError: " + ex.Message));
+                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
             }
         }
 

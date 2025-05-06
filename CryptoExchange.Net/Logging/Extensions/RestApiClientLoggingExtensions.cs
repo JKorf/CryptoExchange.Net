@@ -92,9 +92,9 @@ namespace CryptoExchange.Net.Logging.Extensions
 
         }
 
-        public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error)
+        public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error, Exception? exception)
         {
-            _restApiErrorReceived(logger, requestId, (int?)responseStatusCode, responseTime, error, null);
+            _restApiErrorReceived(logger, requestId, (int?)responseStatusCode, responseTime, error, exception);
         }
 
         public static void RestApiResponseReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? originalData)

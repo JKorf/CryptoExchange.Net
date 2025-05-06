@@ -210,9 +210,9 @@ namespace CryptoExchange.Net.Clients
             {
                 await semaphoreSlim.WaitAsync(ct).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException tce)
             {
-                return new CallResult<UpdateSubscription>(new CancellationRequestedError());
+                return new CallResult<UpdateSubscription>(new CancellationRequestedError(tce));
             }
 
             try

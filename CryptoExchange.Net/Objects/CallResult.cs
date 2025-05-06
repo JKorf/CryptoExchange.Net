@@ -580,7 +580,7 @@ namespace CryptoExchange.Net.Objects
             if (ResponseLength != null)
                 sb.Append($", {ResponseLength} bytes");
             if (ResponseTime != null)
-                sb.Append($" received in {Math.Round(ResponseTime?.TotalMilliseconds ?? 0)}ms");
+                sb.Append($", received in {Math.Round(ResponseTime?.TotalMilliseconds ?? 0)}ms");
 
             return sb.ToString();
         }

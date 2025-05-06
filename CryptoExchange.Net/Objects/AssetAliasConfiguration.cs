@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Defined aliases
         /// </summary>
-        public AssetAlias[] Aliases { get; internal set; } = [];
+        public AssetAlias[] Aliases { get; set; } = [];
 
         /// <summary>
         /// Map the common name to an exchange name for an asset. If there is no alias the input name is returned

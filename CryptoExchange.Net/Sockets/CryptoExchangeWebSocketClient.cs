@@ -246,7 +246,7 @@ namespace CryptoExchange.Net.Sockets
                     if (_socket.HttpStatusCode == HttpStatusCode.TooManyRequests)
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
-                        return new CallResult(new ServerRateLimitError(we.Message));
+                        return new CallResult(new ServerRateLimitError(we.Message, we));
                     }
 #else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
@@ -254,12 +254,12 @@ namespace CryptoExchange.Net.Sockets
                     if (we.Message.Contains("429"))
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
-                        return new CallResult(new ServerRateLimitError(we.Message));
+                        return new CallResult(new ServerRateLimitError(we.Message, we));
                     }
 #endif
                 }
 
-                return new CallResult(new CantConnectError());
+                return new CallResult(new CantConnectError(e));
             }
 
             _logger.SocketConnected(Id, Uri);

@@ -18,21 +18,18 @@ namespace CryptoExchange.Net.Objects
         public string Message { get; set; }
 
         /// <summary>
-        /// The data which caused the error
+        /// Underlying exception
         /// </summary>
-        public object? Data { get; set; }
+        public Exception? Exception { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected Error(int? code, string message, object? data)
+        protected Error (int? code, string message, Exception? exception)
         {
             Code = code;
             Message = message;
-            Data = data;
+            Exception = exception;
         }
 
         /// <summary>
@@ -41,7 +38,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public override string ToString()
         {
-            return Code != null ? $"[{GetType().Name}] {Code}: {Message} {Data}" : $"[{GetType().Name}] {Message} {Data}";
+            return Code != null ? $"[{GetType().Name}] {Code}: {Message}" : $"[{GetType().Name}] {Message}";
         }
     }
 
@@ -58,10 +55,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected CantConnectError(int? code, string message, object? data) : base(code, message, data) { }
+        public CantConnectError(Exception? exception) : base(null, "Can't connect to the server", exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected CantConnectError(int? code, string message, Exception? exception) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -77,10 +76,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected NoApiCredentialsError(int? code, string message, object? data) : base(code, message, data) { }
+        protected NoApiCredentialsError(int? code, string message, Exception? exception) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -91,25 +87,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        public ServerError(string message, object? data = null) : base(null, message, data) { }
+        public ServerError(string message) : base(null, message, null) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        public ServerError(int code, string message, object? data = null) : base(code, message, data) { }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected ServerError(int? code, string message, object? data) : base(code, message, data) { }
+        public ServerError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -120,25 +103,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        public WebError(string message, object? data = null) : base(null, message, data) { }
+        public WebError(string message, Exception? exception = null) : base(null, message, exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        public WebError(int code, string message, object? data = null) : base(code, message, data) { }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected WebError(int? code, string message, object? data): base(code, message, data) { }
+        public WebError(int code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -149,17 +119,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message">The error message</param>
-        /// <param name="data">The data which caused the error</param>
-        public DeserializeError(string message, object? data) : base(null, message, data) { }
+        public DeserializeError(string message, Exception? exception = null) : base(null, message, exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected DeserializeError(int? code, string message, object? data): base(code, message, data) { }
+        protected DeserializeError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -170,17 +135,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message">Error message</param>
-        /// <param name="data">Error data</param>
-        public UnknownError(string message, object? data = null) : base(null, message, data) { }
+        public UnknownError(string message, Exception? exception = null) : base(null, message, exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected UnknownError(int? code, string message, object? data): base(code, message, data) { }
+        protected UnknownError(int? code, string message, Exception? exception = null): base(code, message, exception) { }
     }
 
     /// <summary>
@@ -191,16 +151,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
         public ArgumentError(string message) : base(null, "Invalid parameter: " + message, null) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected ArgumentError(int? code, string message, object? data): base(code, message, data) { }
+        protected ArgumentError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -216,10 +172,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected BaseRateLimitError(int? code, string message, object? data) : base(code, message, data) { }
+        protected BaseRateLimitError(int? code, string message, Exception? exception) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -236,10 +189,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected ClientRateLimitError(int? code, string message, object? data): base(code, message, data) { }
+        protected ClientRateLimitError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -250,16 +200,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        public ServerRateLimitError(string message) : base(null, "Server rate limit exceeded: " + message, null) { }
+        public ServerRateLimitError(string? message = null, Exception? exception = null) : base(null, "Server rate limit exceeded" + (message?.Length > 0 ? " : " + message : null), exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected ServerRateLimitError(int? code, string message, object? data) : base(code, message, data) { }
+        protected ServerRateLimitError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -270,15 +216,12 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public CancellationRequestedError() : base(null, "Cancellation requested", null) { }
+        public CancellationRequestedError(Exception? exception = null) : base(null, "Cancellation requested", exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        public CancellationRequestedError(int? code, string message, object? data): base(code, message, data) { }
+        public CancellationRequestedError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 
     /// <summary>
@@ -289,15 +232,11 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="message"></param>
-        public InvalidOperationError(string message) : base(null, message, null) { }
+        public InvalidOperationError(string message, Exception? exception = null) : base(null, message, exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
-        protected InvalidOperationError(int? code, string message, object? data): base(code, message, data) { }
+        protected InvalidOperationError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
     }
 }
