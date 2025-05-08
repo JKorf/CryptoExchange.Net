@@ -67,6 +67,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static List<KeyValuePair<T, string>>? _mapping = null;
         private NullableEnumConverter? _nullableEnumConverter = null;
 
+        private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
+
         internal class NullableEnumConverter : JsonConverter<T?>
         {
             private readonly EnumConverter<T> _enumConverter;
@@ -77,7 +79,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
+                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
             }
 
             public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
@@ -96,18 +98,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
+            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
             if (t == null)
             {
-                if (isEmptyString)
+                if (warn)
                 {
-                    // We received an empty string and have no mapping for it, and the property isn't nullable
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
+                    if (isEmptyString)
+                    {
+                        // We received an empty string and have no mapping for it, and the property isn't nullable
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
+                    }
                 }
-                else
-                {
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
-                }
+
                 return new T(); // return default value
             }
             else
@@ -116,9 +122,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
         }
 
-        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)
+        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString, out bool warn)
         {
             isEmptyString = false;
+            warn = false;
             var enumType = typeof(T);
             if (_mapping == null)
                 _mapping = AddMapping();
@@ -145,7 +152,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 else
                 {
                     // We received an enum value but weren't able to parse it.
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                    if (!_unknownValuesWarned.Contains(stringValue))
+                    {
+                        warn = true;
+                        _unknownValuesWarned.Add(stringValue!);
+                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                    }
                 }
 
                 return null;
@@ -182,6 +194,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var intValue = int.Parse(value);
                 result = (T)Enum.ToObject(objectType, intValue);
                 return true;
+            }
+
+            if (_unknownValuesWarned.Contains(value))
+            {
+                // Check if it is an known unknown value
+                // Done here to prevent lookup overhead for normal conversions, but prevent expensive exception throwing
+                result = default;
+                return false;
             }
 
             try
