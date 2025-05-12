@@ -1,6 +1,7 @@
 using System.Linq;
 using CryptoExchange.Net.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -19,6 +20,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="name">The name of the API this client is for</param>
         protected BaseRestClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
         {
+            _logger = loggerFactory?.CreateLogger(name + ".RestClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
         }
     }
 }
