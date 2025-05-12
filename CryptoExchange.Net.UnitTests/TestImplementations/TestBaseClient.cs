@@ -14,6 +14,7 @@ using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -24,12 +25,14 @@ namespace CryptoExchange.Net.UnitTests
         public TestBaseClient(): base(null, "Test")
         {
             var options = new TestClientOptions();
+            _logger = NullLogger.Instance;
             Initialize(options);
             SubClient = AddApiClient(new TestSubClient(options, new RestApiOptions()));
         }
 
         public TestBaseClient(TestClientOptions exchangeOptions) : base(null, "Test")
         {
+            _logger = NullLogger.Instance;
             Initialize(exchangeOptions);
             SubClient = AddApiClient(new TestSubClient(exchangeOptions, new RestApiOptions()));
         }
