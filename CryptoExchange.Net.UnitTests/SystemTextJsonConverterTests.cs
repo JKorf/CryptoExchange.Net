@@ -269,9 +269,18 @@ namespace CryptoExchange.Net.UnitTests
                 TestInternal = new Test
                 {
                     Prop1 = 10
-                }
+                },
+                Prop8 = new Test3
+                {
+                    Prop31 = 5,
+                    Prop32 = "101"
+                },
             };
 
+            var options = new JsonSerializerOptions()
+            {
+                TypeInfoResolver = new SerializationContext()
+            };
             var serialized = JsonSerializer.Serialize(data);
             var deserialized = JsonSerializer.Deserialize<Test>(serialized);
 
@@ -286,6 +295,8 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(deserialized.Prop6.Prop32, Is.EqualTo("789"));
             Assert.That(deserialized.Prop7, Is.EqualTo(TestEnum.Two));
             Assert.That(deserialized.TestInternal.Prop1, Is.EqualTo(10));
+            Assert.That(deserialized.Prop8.Prop31, Is.EqualTo(5));
+            Assert.That(deserialized.Prop8.Prop32, Is.EqualTo("101"));
         }
     }
 
@@ -323,7 +334,7 @@ namespace CryptoExchange.Net.UnitTests
         public bool Value { get; set; }
     }
 
-    [JsonConverter(typeof(ArrayConverter<Test, SerializationContext>))]
+    [JsonConverter(typeof(ArrayConverter<Test>))]
     record Test
     {
         [ArrayProperty(0)]
@@ -344,9 +355,11 @@ namespace CryptoExchange.Net.UnitTests
         public TestEnum? Prop7 { get; set; }
         [ArrayProperty(7)]
         public Test TestInternal { get; set; }
+        [ArrayProperty(8), JsonConversion]
+        public Test3 Prop8 { get; set; }
     }
 
-    [JsonConverter(typeof(ArrayConverter<Test2, SerializationContext>))]
+    [JsonConverter(typeof(ArrayConverter<Test2>))]
     record Test2
     {
         [ArrayProperty(0)]

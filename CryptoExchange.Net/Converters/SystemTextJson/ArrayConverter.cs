@@ -18,9 +18,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     /// with [ArrayProperty(x)] where x is the index of the property in the array
     /// </summary>
 #if NET5_0_OR_GREATER
-    public class ArrayConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext, new()
+    public class ArrayConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : JsonConverter<T> where T : new()
 #else
-    public class ArrayConverter<T, TContext> : JsonConverter<T> where T : new() where TContext: JsonSerializerContext, new()
+    public class ArrayConverter<T> : JsonConverter<T> where T : new()
 #endif
     {
         private static readonly Lazy<List<ArrayPropertyInfo>> _typePropertyInfo = new Lazy<List<ArrayPropertyInfo>>(CacheTypeAttributes, LazyThreadSafetyMode.PublicationOnly);
@@ -67,12 +67,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 JsonSerializerOptions? typeOptions = null;
                 if (prop.JsonConverter != null)
                 {
-                    var context = JsonSerializerContextCache.GetOrCreate<TContext>();
                     typeOptions = new JsonSerializerOptions
                     {
                         NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
                         PropertyNameCaseInsensitive = false,
-                        TypeInfoResolver = context,
+                        TypeInfoResolver = options.TypeInfoResolver,
                     };
                     typeOptions.Converters.Add(prop.JsonConverter);
                 }
@@ -153,8 +152,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     }
                     else if (attribute.DefaultDeserialization)
                     {
-                        var context = JsonSerializerContextCache.GetOrCreate<TContext>();
-                        value = JsonDocument.ParseValue(ref reader).Deserialize(attribute.PropertyInfo.PropertyType, SerializerOptions.WithConverters(context));
+                        value = JsonDocument.ParseValue(ref reader).Deserialize(options.GetTypeInfo(attribute.PropertyInfo.PropertyType));
                     }
                     else
                     {
