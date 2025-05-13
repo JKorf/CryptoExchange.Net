@@ -71,6 +71,51 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.0 - 13 May 2025
+    * Added support for Native AOT compilation
+    * Updated all IEnumerable response types to array response types
+    * Added Pass support for ApiCredentials, removing the need for most implementations to add their own ApiCredentials type
+    * Added KeepAliveTimeout setting setting ping frame timeouts for SocketApiClient
+    * Added IBookTickerRestClient Shared interface for requesting book tickers
+    * Added ISpotTriggerOrderRestClient Shared interface for managing spot trigger orders
+    * Added ISpotOrderClientIdClient Shared interface for managing spot orders by client order id
+    * Added IFuturesTriggerOrderRestClient Shared interface for managing futures trigger orders
+    * Added IFuturesOrderClientIdClient Shared interface for managing futures orders by client order id
+    * Added IFuturesTpSlRestClient Shared interface for setting TP/SL on open futures positions
+    * Added GenerateClientOrderId to ISpotOrderRestClient and IFuturesOrderRestClient interface
+    * Added OptionalExchangeParameters and Supported properties to EndpointOptions
+    * Refactor Shared interfaces quantity parameters and properties to use SharedQuantity
+    * Added SharedSymbol property to Shared interface models returning a symbol
+    * Added TriggerPrice, IsTriggerOrder, TakeProfitPrice, StopLossPrice and IsCloseOrder to SharedFuturesOrder response model
+    * Added MaxShortLeverage and MaxLongLeverage to SharedFuturesSymbol response model
+    * Added StopLossPrice and TakeProfitPrice to SharedPosition response model
+    * Added TriggerPrice and IsTriggerOrder to SharedSpotOrder response model
+    * Added QuoteVolume property to SharedSpotTicker response model
+    * Added AssetAlias configuration models
+    * Added static ExchangeSymbolCache for tracking symbol information from exchanges
+    * Added static CallResult.SuccessResult to be used instead of constructing success CallResult instance
+    * Added static ApplyRules, RandomHexString and RandomLong helper methods to ExchangeHelpers class
+    * Added AsErrorWithData To CallResult
+    * Added OriginalData property to CallResult
+    * Added support for adjusting the rate limit key per call, allowing for ratelimiting depending on request parameters
+    * Added implementation for integration testing ISymbolOrderBook instances
+    * Added implementation for integration testing socket subscriptions
+    * Added implementation for testing socket queries
+    * Updated request cancellation logging to Debug level
+    * Updated logging SourceContext to include the client type
+    * Updated some logging logic, errors no longer contain any data, exception are not logged as string but instead forwarded to structured logging
+    * Fixed warning for Enum parsing throwing exception and output warnings for each object in a response to only once to prevent slowing down execution
+    * Fixed memory leak in AsyncAutoRestEvent
+    * Fixed logging for ping frame timeout
+    * Fixed warning getting logged when user stops SymbolOrderBook instance
+    * Fixed socket client `UnsubscribeAll` not unsubscribing dedicated connections
+    * Fixed memory leak in Rest client cache
+    * Fixed integers bigger than int16 not getting correctly parsed to enums
+    * Fixed issue where the default options were overridden when using SetApiCredentials
+    * Removed Newtonsoft.Json dependency
+    * Removed legacy Rest client code
+    * Removed legacy ISpotClient and IFuturesClient support
+
 * Version 9.0.0-beta7 - 06 May 2025
     * Added AssetAlias configuration classes
     * Added Exception property on Error objects
