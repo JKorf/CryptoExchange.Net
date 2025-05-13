@@ -15,6 +15,11 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Testing.Implementations;
 
+#pragma warning disable IL2026
+#pragma warning disable IL2070
+#pragma warning disable IL2075
+#pragma warning disable IL3050
+
 namespace CryptoExchange.Net.Testing
 {
     /// <summary>
