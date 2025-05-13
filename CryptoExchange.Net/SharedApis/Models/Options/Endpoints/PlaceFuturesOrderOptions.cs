@@ -11,10 +11,16 @@ namespace CryptoExchange.Net.SharedApis
     public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest>
     {
         /// <summary>
+        /// Whether or not the API supports setting take profit / stop loss with the order
+        /// </summary>
+        public bool SupportsTpSl { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderOptions() : base(true)
+        public PlaceFuturesOrderOptions(bool supportsTpSl) : base(true)
         {
+            SupportsTpSl = supportsTpSl;
         }
 
         /// <summary>
@@ -25,10 +31,13 @@ namespace CryptoExchange.Net.SharedApis
             PlaceFuturesOrderRequest request,
             TradingMode? tradingMode,
             TradingMode[] supportedApiTypes,
-            IEnumerable<SharedOrderType> supportedOrderTypes,
-            IEnumerable<SharedTimeInForce> supportedTimeInForce,
+            SharedOrderType[] supportedOrderTypes,
+            SharedTimeInForce[] supportedTimeInForce,
             SharedQuantitySupport quantitySupport)
         {
+            if (!SupportsTpSl && (request.StopLossPrice != null || request.TakeProfitPrice != null))
+                return new ArgumentError("Tp/Sl parameters not supported");
+
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
@@ -38,7 +47,7 @@ namespace CryptoExchange.Net.SharedApis
             if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
                 return new ArgumentError("Order time in force not supported");
 
-            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity, request.QuoteQuantity);
+            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity);
             if (quantityError != null)
                 return quantityError;
 

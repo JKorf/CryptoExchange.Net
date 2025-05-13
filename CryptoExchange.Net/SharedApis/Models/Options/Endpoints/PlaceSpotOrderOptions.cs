@@ -26,8 +26,8 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotOrderRequest request,
             TradingMode? tradingMode,
             TradingMode[] supportedApiTypes,
-            IEnumerable<SharedOrderType> supportedOrderTypes,
-            IEnumerable<SharedTimeInForce> supportedTimeInForce,
+            SharedOrderType[] supportedOrderTypes,
+            SharedTimeInForce[] supportedTimeInForce,
             SharedQuantitySupport quantitySupport)
         {
             if (request.OrderType == SharedOrderType.Other)
@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.SharedApis
             if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
                 return new ArgumentError("Order time in force not supported");
 
-            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity, request.QuoteQuantity);
+            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity);
             if (quantityError != null)
                 return quantityError;
 

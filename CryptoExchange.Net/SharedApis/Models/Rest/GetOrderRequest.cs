@@ -1,7 +1,7 @@
 ﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request to retrieve info on a specifc order
+    /// Request to retrieve info on a specific order
     /// </summary>
     public record GetOrderRequest : SharedSymbolRequest
     {

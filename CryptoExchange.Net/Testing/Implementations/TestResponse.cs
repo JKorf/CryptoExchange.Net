@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public long? ContentLength { get; }
 
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; } = new Dictionary<string, IEnumerable<string>>();
+        public KeyValuePair<string, string[]>[] ResponseHeaders { get; } = new KeyValuePair<string, string[]>[0];
 
         public TestResponse(HttpStatusCode code, Stream response)
         {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,7 +8,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Caching;
-using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
@@ -114,13 +112,13 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IStreamMessageAccessor CreateAccessor() => new JsonNetStreamMessageAccessor();
+        protected abstract IStreamMessageAccessor CreateAccessor();
 
         /// <summary>
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>
-        protected virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
+        protected abstract IMessageSerializer CreateSerializer();
 
         /// <summary>
         /// Send a request to the base address based on the request definition
@@ -243,10 +241,11 @@ namespace CryptoExchange.Net.Clients
                 var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (result.Error is not CancellationRequestedError)
                 {
+                    var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
                     if (!result)
-                        _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
+                        _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), originalData, result.Error?.Exception);
                     else
-                        _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
+                        _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
                 }
                 else
                 {
@@ -343,7 +342,7 @@ namespace CryptoExchange.Net.Clients
                 }
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <summary>
@@ -438,215 +437,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Execute a request to the uri and returns if it was successful
-        /// </summary>
-        /// <param name="uri">The uri to send the request to</param>
-        /// <param name="method">The method of the request</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="parameters">The parameters of the request</param>
-        /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="requestBodyFormat">The format of the body content</param>
-        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
-        /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
-        /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="gate">The ratelimit gate to use</param>
-        /// <returns></returns>
-        [return: NotNull]
-        protected virtual async Task<WebCallResult> SendRequestAsync(
-            Uri uri,
-            HttpMethod method,
-            CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null,
-            bool signed = false,
-            RequestBodyFormat? requestBodyFormat = null,
-            HttpMethodParameterPosition? parameterPosition = null,
-            ArrayParametersSerialization? arraySerialization = null,
-            int requestWeight = 1,
-            Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null)
-        {
-            int currentTry = 0;
-            while (true)
-            {
-                currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
-                if (!request)
-                    return new WebCallResult(request.Error!);
-
-                var result = await GetResponseAsync<object>(request.Data, gate, cancellationToken).ConfigureAwait(false);
-                if (!result)
-                    _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
-                else
-                    _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
-
-                if (await ShouldRetryRequestAsync(gate, result, currentTry).ConfigureAwait(false))
-                    continue;
-
-                return result.AsDataless();
-            }
-        }
-
-        /// <summary>
-        /// Execute a request to the uri and deserialize the response into the provided type parameter
-        /// </summary>
-        /// <typeparam name="T">The type to deserialize into</typeparam>
-        /// <param name="uri">The uri to send the request to</param>
-        /// <param name="method">The method of the request</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="parameters">The parameters of the request</param>
-        /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="requestBodyFormat">The format of the body content</param>
-        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
-        /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
-        /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="gate">The ratelimit gate to use</param>
-        /// <param name="preventCaching">Whether caching should be prevented for this request</param>
-        /// <returns></returns>
-        [return: NotNull]
-        protected virtual async Task<WebCallResult<T>> SendRequestAsync<T>(
-            Uri uri,
-            HttpMethod method,
-            CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null,
-            bool signed = false,
-            RequestBodyFormat? requestBodyFormat = null,
-            HttpMethodParameterPosition? parameterPosition = null,
-            ArrayParametersSerialization? arraySerialization = null,
-            int requestWeight = 1,
-            Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null,
-            bool preventCaching = false
-            ) where T : class
-        {
-            var key = uri.ToString() + method + signed + parameters?.ToFormData();
-            if (ShouldCache(method) && !preventCaching)
-            {
-                _logger.CheckingCache(key);
-                var cachedValue = _cache.Get(key, ClientOptions.CachingMaxAge);
-                if (cachedValue != null)
-                {
-                    _logger.CacheHit(key);
-                    var original = (WebCallResult<T>)cachedValue;
-                    return original.Cached();
-                }
-
-                _logger.CacheNotHit(key);
-            }
-
-            int currentTry = 0;
-            while (true)
-            {
-                currentTry++;
-                var request = await PrepareRequestAsync(uri, method, cancellationToken, parameters, signed, requestBodyFormat, parameterPosition, arraySerialization, requestWeight, additionalHeaders, gate).ConfigureAwait(false);
-                if (!request)
-                    return new WebCallResult<T>(request.Error!);
-
-                var result = await GetResponseAsync<T>(request.Data, gate, cancellationToken).ConfigureAwait(false);
-                if (!result)
-                    _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString());
-                else
-                    _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]");
-
-                if (await ShouldRetryRequestAsync(gate, result, currentTry).ConfigureAwait(false))
-                    continue;
-
-                if (result.Success &&
-                    ShouldCache(method) && 
-                    !preventCaching)
-                {
-                    _cache.Add(key, result);
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Prepares a request to be sent to the server
-        /// </summary>
-        /// <param name="uri">The uri to send the request to</param>
-        /// <param name="method">The method of the request</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="parameters">The parameters of the request</param>
-        /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="requestBodyFormat">The format of the body content</param>
-        /// <param name="parameterPosition">Where the parameters should be placed, overwrites the value set in the client</param>
-        /// <param name="arraySerialization">How array parameters should be serialized, overwrites the value set in the client</param>
-        /// <param name="requestWeight">Credits used for the request</param>
-        /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <param name="gate">The rate limit gate to use</param>
-        /// <returns></returns>
-        protected virtual async Task<CallResult<IRequest>> PrepareRequestAsync(
-            Uri uri,
-            HttpMethod method,
-            CancellationToken cancellationToken,
-            Dictionary<string, object>? parameters = null,
-            bool signed = false,
-            RequestBodyFormat? requestBodyFormat = null,
-            HttpMethodParameterPosition? parameterPosition = null,
-            ArrayParametersSerialization? arraySerialization = null,
-            int requestWeight = 1,
-            Dictionary<string, string>? additionalHeaders = null,
-            IRateLimitGate? gate = null)
-        {
-            var requestId = ExchangeHelpers.NextId();
-
-            if (signed)
-            {
-                if (AuthenticationProvider == null)
-                {
-                    _logger.RestApiNoApiCredentials(requestId, uri.AbsolutePath);
-                    return new CallResult<IRequest>(new NoApiCredentialsError());
-                }
-
-                var syncTask = SyncTimeAsync();
-                var timeSyncInfo = GetTimeSyncInfo();
-
-                if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
-                {
-                    // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
-                    var syncTimeResult = await syncTask.ConfigureAwait(false);
-                    if (!syncTimeResult)
-                    {
-                        _logger.RestApiFailedToSyncTime(requestId, syncTimeResult.Error!.ToString());
-                        return syncTimeResult.As<IRequest>(default);
-                    }
-                }
-            }
-            
-            if (requestWeight != 0)
-            {
-                if (gate == null)
-                    throw new Exception("Ratelimit gate not set when request weight is not 0");
-
-                if (ClientOptions.RateLimiterEnabled)
-                {
-                    var limitResult = await gate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, new RequestDefinition(uri.AbsolutePath.TrimStart('/'), method) { Authenticated = signed }, uri.Host, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, null, cancellationToken).ConfigureAwait(false);
-                    if (!limitResult)
-                        return new CallResult<IRequest>(limitResult.Error!);
-                }
-            }
-
-            _logger.RestApiCreatingRequest(requestId, uri);
-            var paramsPosition = parameterPosition ?? ParameterPositions[method];
-            var request = ConstructRequest(uri, method, parameters?.OrderBy(p => p.Key).ToDictionary(p => p.Key, p => p.Value), signed, paramsPosition, arraySerialization ?? ArraySerialization, requestBodyFormat ?? RequestBodyFormat, requestId, additionalHeaders);
-
-            string? paramString = "";
-            if (paramsPosition == HttpMethodParameterPosition.InBody)
-                paramString = $" with request body '{request.Content}'";
-
-            var headers = request.GetHeaders();
-            if (headers.Count != 0)
-                paramString += " with headers " + string.Join(", ", headers.Select(h => h.Key + $"=[{string.Join(",", h.Value)}]"));
-
-            TotalRequestsMade++;
-            _logger.RestApiSendingRequest(requestId, method, signed ? "signed": "", request.Uri, paramString);
-            return new CallResult<IRequest>(request);
-        }
-
-        /// <summary>
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
         /// <param name="request">The request object to execute</param>
@@ -676,7 +466,7 @@ namespace CryptoExchange.Net.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     // Error response
-                    await accessor.Read(responseStream, true).ConfigureAwait(false);
+                    var readResult = await accessor.Read(responseStream, true).ConfigureAwait(false);
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
@@ -692,7 +482,7 @@ namespace CryptoExchange.Net.Clients
                     }
                     else
                     {
-                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor, readResult.Error?.Exception);
                     }
 
                     if (error.Code == null || error.Code == 0)
@@ -701,15 +491,15 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
                 }
 
+                var valid = await accessor.Read(responseStream, outputOriginalData).ConfigureAwait(false);
                 if (typeof(T) == typeof(object))
                     // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
+                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]", request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
 
-                var valid = await accessor.Read(responseStream, outputOriginalData).ConfigureAwait(false);
                 if (!valid)
                 {
                     // Invalid json
-                    var error = new ServerError("Failed to parse response: " + valid.Error!.Message, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]");
+                    var error = new DeserializeError("Failed to parse response: " + valid.Error!.Message, valid.Error.Exception);
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
 
@@ -736,20 +526,19 @@ namespace CryptoExchange.Net.Clients
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
-                var exceptionInfo = requestException.ToLogString();
-                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError(exceptionInfo));
+                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError(requestException.Message, exception: requestException));
             }
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError());
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError(canceledException));
                 }
                 else
                 {
                     // Request timed out
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out"));
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out", exception: canceledException));
                 }
             }
             finally
@@ -768,7 +557,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="accessor">Data accessor</param>
         /// <param name="responseHeaders">The response headers</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Error? TryParseError(IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor) => null;
+        protected virtual Error? TryParseError(KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
@@ -805,112 +594,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Creates a request object
-        /// </summary>
-        /// <param name="uri">The uri to send the request to</param>
-        /// <param name="method">The method of the request</param>
-        /// <param name="parameters">The parameters of the request</param>
-        /// <param name="signed">Whether or not the request should be authenticated</param>
-        /// <param name="parameterPosition">Where the parameters should be placed</param>
-        /// <param name="arraySerialization">How array parameters should be serialized</param>
-        /// <param name="bodyFormat">Format of the body content</param>
-        /// <param name="requestId">Unique id of a request</param>
-        /// <param name="additionalHeaders">Additional headers to send with the request</param>
-        /// <returns></returns>
-        protected virtual IRequest ConstructRequest(
-            Uri uri,
-            HttpMethod method,
-            Dictionary<string, object>? parameters,
-            bool signed,
-            HttpMethodParameterPosition parameterPosition,
-            ArrayParametersSerialization arraySerialization,
-            RequestBodyFormat bodyFormat,
-            int requestId,
-            Dictionary<string, string>? additionalHeaders)
-        {
-            parameters ??= new Dictionary<string, object>();
-
-            for (var i = 0; i < parameters.Count; i++)
-            {
-                var kvp = parameters.ElementAt(i);
-                if (kvp.Value is Func<object> delegateValue)
-                    parameters[kvp.Key] = delegateValue();
-            }
-
-            if (parameterPosition == HttpMethodParameterPosition.InUri)
-            {
-                foreach (var parameter in parameters)
-                    uri = uri.AddQueryParameter(parameter.Key, parameter.Value.ToString()!);
-            }
-
-            var headers = new Dictionary<string, string>();
-            var uriParameters = parameterPosition == HttpMethodParameterPosition.InUri ? CreateParameterDictionary(parameters) : null;
-            var bodyParameters = parameterPosition == HttpMethodParameterPosition.InBody ? CreateParameterDictionary(parameters) : null;
-            if (AuthenticationProvider != null)
-            {
-                try
-                {
-                    AuthenticationProvider.AuthenticateRequest(
-                        this,
-                        uri,
-                        method,
-                        ref uriParameters,
-                        ref bodyParameters,
-                        ref headers,
-                        signed,
-                        arraySerialization,
-                        parameterPosition,
-                        bodyFormat
-                        );
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
-                }
-            }
-
-            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters            
-            if (uriParameters != null)
-                uri = uri.SetParameters(uriParameters, arraySerialization);
-
-            var request = RequestFactory.Create(method, uri, requestId);
-            request.Accept = Constants.JsonContentHeader;
-
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                    request.AddHeader(header.Key, header.Value);
-            }
-
-            if (additionalHeaders != null)
-            {
-                foreach (var header in additionalHeaders)
-                    request.AddHeader(header.Key, header.Value);
-            }
-
-            if (StandardRequestHeaders != null)
-            {
-                foreach (var header in StandardRequestHeaders)
-                {
-                    // Only add it if it isn't overwritten
-                    if (additionalHeaders?.ContainsKey(header.Key) != true)
-                        request.AddHeader(header.Key, header.Value);
-                }
-            }
-
-            if (parameterPosition == HttpMethodParameterPosition.InBody)
-            {
-                var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (bodyParameters?.Any() == true)
-                    WriteParamBody(request, bodyParameters, contentType);
-                else
-                    request.SetContent(RequestBodyEmptyContent, contentType);
-            }
-
-            return request;
-        }
-
-        /// <summary>
         /// Writes the parameters of the request to the request object body
         /// </summary>
         /// <param name="request">The request to set the parameters on</param>
@@ -942,11 +625,11 @@ namespace CryptoExchange.Net.Clients
         /// <param name="httpStatusCode">The response status code</param>
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
+        /// <param name="exception">Exception</param>
         /// <returns></returns>
-        protected virtual Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception? exception)
         {
-            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
-            return new ServerError(message);
+            return new ServerError(null, "Unknown request error", exception);
         }
 
         /// <summary>
@@ -956,23 +639,21 @@ namespace CryptoExchange.Net.Clients
         /// <param name="responseHeaders">The response headers</param>
         /// <param name="accessor">Data accessor</param>
         /// <returns></returns>
-        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
         {
-            var message = accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Error response content only available when OutputOriginal = true in client options]";
-
             // Handle retry after header
             var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
             if (retryAfterHeader.Value?.Any() != true)
-                return new ServerRateLimitError(message);
+                return new ServerRateLimitError();
 
             var value = retryAfterHeader.Value.First();
             if (int.TryParse(value, out var seconds))
-                return new ServerRateLimitError(message) { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
+                return new ServerRateLimitError() { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
 
             if (DateTime.TryParse(value, out var datetime))
-                return new ServerRateLimitError(message) { RetryAfter = datetime };
+                return new ServerRateLimitError() { RetryAfter = datetime };
 
-            return new ServerRateLimitError(message);
+            return new ServerRateLimitError();
         }
 
         /// <summary>
@@ -1049,9 +730,5 @@ namespace CryptoExchange.Net.Clients
             => ClientOptions.CachingEnabled
             && definition.Method == HttpMethod.Get
             && !definition.PreventCaching;
-
-        private bool ShouldCache(HttpMethod method)
-            => ClientOptions.CachingEnabled
-            && method == HttpMethod.Get;
     }
 }

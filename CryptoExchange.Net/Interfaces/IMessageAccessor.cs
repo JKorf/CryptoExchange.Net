@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <typeparam name="T"></typeparam>
         /// <param name="path"></param>
         /// <returns></returns>
-        List<T?>? GetValues<T>(MessagePath path);
+        T?[]? GetValues<T>(MessagePath path);
         /// <summary>
         /// Deserialize the message into this type
         /// </summary>

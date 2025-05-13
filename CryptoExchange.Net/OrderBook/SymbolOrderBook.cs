@@ -123,7 +123,7 @@ namespace CryptoExchange.Net.OrderBook
         public event Action<(ISymbolOrderBookEntry BestBid, ISymbolOrderBookEntry BestAsk)>? OnBestOffersChanged;
 
         /// <inheritdoc/>
-        public event Action<(IEnumerable<ISymbolOrderBookEntry> Bids, IEnumerable<ISymbolOrderBookEntry> Asks)>? OnOrderBookUpdate;
+        public event Action<(ISymbolOrderBookEntry[] Bids, ISymbolOrderBookEntry[] Asks)>? OnOrderBookUpdate;
 
         /// <inheritdoc/>
         public DateTime UpdateTime { get; private set; }
@@ -135,27 +135,27 @@ namespace CryptoExchange.Net.OrderBook
         public int BidCount { get; private set; }
 
         /// <inheritdoc/>
-        public IEnumerable<ISymbolOrderBookEntry> Asks
+        public ISymbolOrderBookEntry[] Asks
         {
             get
             {
                 lock (_bookLock)
-                    return _asks.Select(a => a.Value).ToList();
+                    return _asks.Select(a => a.Value).ToArray();
             }
         }
 
         /// <inheritdoc/>
-        public IEnumerable<ISymbolOrderBookEntry> Bids 
+        public ISymbolOrderBookEntry[] Bids 
         {
             get
             {
                 lock (_bookLock)
-                    return _bids.Select(a => a.Value).ToList();
+                    return _bids.Select(a => a.Value).ToArray();
             }
         }
 
         /// <inheritdoc/>
-        public (IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks) Book
+        public (ISymbolOrderBookEntry[] bids, ISymbolOrderBookEntry[] asks) Book
         {
             get
             {
@@ -412,7 +412,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="orderBookSequenceNumber">The last update sequence number until which the snapshot is in sync</param>
         /// <param name="askList">List of asks</param>
         /// <param name="bidList">List of bids</param>
-        protected void SetInitialOrderBook(long orderBookSequenceNumber, IEnumerable<ISymbolOrderBookEntry> bidList, IEnumerable<ISymbolOrderBookEntry> askList)
+        protected void SetInitialOrderBook(long orderBookSequenceNumber, ISymbolOrderBookEntry[] bidList, ISymbolOrderBookEntry[] askList)
         {
             _processQueue.Enqueue(new InitialOrderBookItem { StartUpdateId = orderBookSequenceNumber, EndUpdateId = orderBookSequenceNumber, Asks = askList, Bids = bidList });
             _queueEvent.Set();
@@ -424,7 +424,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="updateId">The sequence number</param>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(long updateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        protected void UpdateOrderBook(long updateId, ISymbolOrderBookEntry[] bids, ISymbolOrderBookEntry[] asks)
         {
             _processQueue.Enqueue(new ProcessQueueItem { StartUpdateId = updateId, EndUpdateId = updateId, Asks = asks, Bids = bids });
             _queueEvent.Set();
@@ -437,7 +437,7 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="lastUpdateId">The sequence number of the last update</param>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(long firstUpdateId, long lastUpdateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        protected void UpdateOrderBook(long firstUpdateId, long lastUpdateId, ISymbolOrderBookEntry[] bids, ISymbolOrderBookEntry[] asks)
         {
             _processQueue.Enqueue(new ProcessQueueItem { StartUpdateId = firstUpdateId, EndUpdateId = lastUpdateId, Asks = asks, Bids = bids });
             _queueEvent.Set();
@@ -448,7 +448,7 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(IEnumerable<ISymbolOrderSequencedBookEntry> bids, IEnumerable<ISymbolOrderSequencedBookEntry> asks)
+        protected void UpdateOrderBook(ISymbolOrderSequencedBookEntry[] bids, ISymbolOrderSequencedBookEntry[] asks)
         {
             var highest = Math.Max(bids.Any() ? bids.Max(b => b.Sequence) : 0, asks.Any() ? asks.Max(a => a.Sequence) : 0);
             var lowest = Math.Min(bids.Any() ? bids.Min(b => b.Sequence) : long.MaxValue, asks.Any() ? asks.Min(a => a.Sequence) : long.MaxValue);
@@ -707,7 +707,7 @@ namespace CryptoExchange.Net.OrderBook
                 UpdateTime = DateTime.UtcNow;
                 _logger.OrderBookDataSet(Api, Symbol, BidCount, AskCount, item.EndUpdateId);
                 CheckProcessBuffer();
-                OnOrderBookUpdate?.Invoke((item.Bids, item.Asks));
+                OnOrderBookUpdate?.Invoke((item.Bids.ToArray(), item.Asks.ToArray()));
                 OnBestOffersChanged?.Invoke((BestBid, BestAsk));
             }
         }
@@ -745,7 +745,7 @@ namespace CryptoExchange.Net.OrderBook
                         return;
                     }
 
-                    OnOrderBookUpdate?.Invoke((item.Bids, item.Asks));
+                    OnOrderBookUpdate?.Invoke((item.Bids.ToArray(), item.Asks.ToArray()));
                     CheckBestOffersChanged(prevBestBid, prevBestAsk);
                 }
             }

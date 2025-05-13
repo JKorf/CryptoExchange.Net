@@ -15,6 +15,7 @@ namespace CryptoExchange.Net
     public static class ExchangeHelpers
     {
         private const string _allowedRandomChars = "ABCDEFGHIJKLMONOPQRSTUVWXYZabcdefghijklmonopqrstuvwxyz0123456789";
+        private const string _allowedRandomHexChars = "0123456789ABCDEF";
 
         private static readonly Dictionary<int, string> _monthSymbols = new Dictionary<int, string>()
         {
@@ -112,6 +113,34 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Apply the provided rules to the value
+        /// </summary>
+        /// <param name="value">Value to be adjusted</param>
+        /// <param name="decimals">Max decimal places</param>
+        /// <param name="valueStep">The value step for increase/decrease value</param>
+        /// <returns></returns>
+        public static decimal ApplyRules(
+            decimal value,
+            int? decimals = null,
+            decimal? valueStep = null)
+        {
+            if (valueStep.HasValue)
+            {
+                var offset = value % valueStep.Value;
+                if (offset != 0)
+                {
+                    if (offset < valueStep.Value / 2)
+                        value -= offset;
+                    else value += (valueStep.Value - offset);
+                }
+            }
+            if (decimals.HasValue)
+                value = Math.Round(value, decimals.Value);
+
+            return value;
+        }
+
+        /// <summary>
         /// Round a value to have the provided total number of digits. For example, value 253.12332 with 5 digits would be 253.12 
         /// </summary>
         /// <param name="value">The value to round</param>
@@ -195,6 +224,44 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Generate a random string of specified length
         /// </summary>
+        /// <param name="length">Length of the random string</param>
+        /// <returns></returns>
+        public static string RandomHexString(int length)
+        {
+#if NET9_0_OR_GREATER
+            return "0x" + RandomNumberGenerator.GetHexString(length * 2);
+#else
+            var randomChars = new char[length * 2];
+            var random = new Random();
+            for (int i = 0; i < length * 2; i++)
+                randomChars[i] = _allowedRandomHexChars[random.Next(0, _allowedRandomHexChars.Length)];
+            return "0x" + new string(randomChars);
+#endif
+        }
+
+        /// <summary>
+        /// Generate a long value
+        /// </summary>
+        /// <param name="maxLength">Max character length</param>
+        /// <returns></returns>
+        public static long RandomLong(int maxLength)
+        {
+#if NETSTANDARD2_1_OR_GREATER || NET9_0_OR_GREATER
+            var value = RandomNumberGenerator.GetInt32(0, int.MaxValue);
+#else
+            var random = new Random();
+            var value = random.Next(0, int.MaxValue);
+#endif
+            var val = value.ToString();
+            if (val.Length > maxLength)
+                return int.Parse(val.Substring(0, maxLength));
+            else
+                return value;
+        }
+
+        /// <summary>
+        /// Generate a random string of specified length
+        /// </summary>
         /// <param name="source">The initial string</param>
         /// <param name="totalLength">Total length of the resulting string</param>
         /// <returns></returns>
@@ -225,10 +292,10 @@ namespace CryptoExchange.Net
         /// <param name="request">The request parameters</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async IAsyncEnumerable<ExchangeWebResult<IEnumerable<T>>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<IEnumerable<T>>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
+        public static async IAsyncEnumerable<ExchangeWebResult<T[]>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
         {
             var result = new List<T>();
-            ExchangeWebResult<IEnumerable<T>> batch;
+            ExchangeWebResult<T[]> batch;
             INextPageToken? nextPageToken = null;
             while (true)
             {

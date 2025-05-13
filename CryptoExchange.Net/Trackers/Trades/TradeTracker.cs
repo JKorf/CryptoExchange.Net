@@ -202,7 +202,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             var subResult = await DoStartAsync().ConfigureAwait(false);
             if (!subResult)
             {
-                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.ToString());
+                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return subResult;
             }
@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             SetSyncStatus();
             _logger.TradeTrackerStarted(SymbolName);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />
@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         protected virtual Task DoStopAsync() => _updateSubscription?.CloseAsync() ?? Task.CompletedTask;
 
         /// <inheritdoc />
-        public IEnumerable<SharedTrade> GetData(DateTime? since = null, DateTime? until = null)
+        public SharedTrade[] GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
@@ -309,7 +309,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                 if (until != null)
                     result = result.Where(d => d.Timestamp <= until);
 
-                return result.ToList();
+                return result.ToArray();
             }
         }
 

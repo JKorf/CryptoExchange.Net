@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "{Api} order book {Symbol} connection lost");
 
             _orderBookDisconnected = LoggerMessage.Define<string, string>(
-                LogLevel.Warning,
+                LogLevel.Debug,
                 new EventId(5004, "OrderBookDisconnected"),
                 "{Api} order book {Symbol} disconnected");
 

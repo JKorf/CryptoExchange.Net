@@ -21,6 +21,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<IEnumerable<SharedKline>>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedKline[]>> GetKlinesAsync(GetKlinesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

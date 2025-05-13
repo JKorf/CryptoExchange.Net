@@ -1,9 +1,9 @@
-using CryptoExchange.Net.Converters.JsonNet;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
@@ -41,6 +41,11 @@ namespace CryptoExchange.Net.Clients
         /// Keep alive interval for websocket connection
         /// </summary>
         protected TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromSeconds(10);
+
+        /// <summary>
+        /// Keep alive timeout for websocket connection
+        /// </summary>
+        protected TimeSpan KeepAliveTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Handlers for data from the socket which doesn't need to be forwarded to the caller. Ping or welcome messages for example.
@@ -133,13 +138,13 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IByteMessageAccessor CreateAccessor() => new JsonNetByteMessageAccessor();
+        protected internal abstract IByteMessageAccessor CreateAccessor();
 
         /// <summary>
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>
-        protected internal virtual IMessageSerializer CreateSerializer() => new JsonNetMessageSerializer();
+        protected internal abstract IMessageSerializer CreateSerializer();
 
         /// <summary>
         /// Keep an open connection to this url
@@ -206,9 +211,9 @@ namespace CryptoExchange.Net.Clients
             {
                 await semaphoreSlim.WaitAsync(ct).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException tce)
             {
-                return new CallResult<UpdateSubscription>(new CancellationRequestedError());
+                return new CallResult<UpdateSubscription>(new CancellationRequestedError(tce));
             }
 
             try
@@ -378,7 +383,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual async Task<CallResult> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
         {
             if (socket.Connected)
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             var connectResult = await ConnectSocketAsync(socket).ConfigureAwait(false);
             if (!connectResult)
@@ -388,7 +393,7 @@ namespace CryptoExchange.Net.Clients
                 await Task.Delay(ClientOptions.DelayAfterConnect).ConfigureAwait(false);
 
             if (!authenticated || socket.Authenticated)
-                return new CallResult(null);
+                return CallResult.SuccessResult;
 
             var result = await AuthenticateSocketAsync(socket).ConfigureAwait(false);
             if (!result)
@@ -427,7 +432,7 @@ namespace CryptoExchange.Net.Clients
             }
 
             socket.Authenticated = true;
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <summary>
@@ -475,7 +480,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected internal virtual Task<CallResult> RevitalizeRequestAsync(Subscription subscription)
         {
-            return Task.FromResult(new CallResult(null));
+            return Task.FromResult(CallResult.SuccessResult);
         }
 
         /// <summary>
@@ -561,11 +566,12 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected async virtual Task HandleConnectRateLimitedAsync()
         {
-            if (ClientOptions.RateLimiterEnabled && RateLimiter is not null && ClientOptions.ConnectDelayAfterRateLimited is not null)
+            if (ClientOptions.RateLimiterEnabled && ClientOptions.ConnectDelayAfterRateLimited.HasValue)
             {
                 var retryAfter = DateTime.UtcNow.Add(ClientOptions.ConnectDelayAfterRateLimited.Value);
                 _logger.AddingRetryAfterGuard(retryAfter);
-                await RateLimiter.SetRetryAfterGuardAsync(retryAfter, RateLimiting.RateLimitItemType.Connection).ConfigureAwait(false);
+                RateLimiter ??= new RateLimitGate("Connection");
+                await RateLimiter.SetRetryAfterGuardAsync(retryAfter, RateLimitItemType.Connection).ConfigureAwait(false);
             }
         }
 
@@ -596,6 +602,7 @@ namespace CryptoExchange.Net.Clients
             => new(new Uri(address), ClientOptions.ReconnectPolicy)
             {
                 KeepAliveInterval = KeepAliveInterval,
+                KeepAliveTimeout = KeepAliveTimeout,
                 ReconnectInterval = ClientOptions.ReconnectInterval,
                 RateLimiter = ClientOptions.RateLimiterEnabled ? RateLimiter : null,
                 RateLimitingBehavior = ClientOptions.RateLimitingBehaviour,
@@ -712,7 +719,7 @@ namespace CryptoExchange.Net.Clients
                     return new CallResult(connectResult.Error!);
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

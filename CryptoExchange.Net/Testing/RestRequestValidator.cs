@@ -22,7 +22,6 @@ namespace CryptoExchange.Net.Testing
         private readonly string _folder;
         private readonly string _baseAddress;
         private readonly string? _nestedPropertyForCompare;
-        private readonly bool _stjCompare;
 
         /// <summary>
         /// ctor
@@ -32,15 +31,13 @@ namespace CryptoExchange.Net.Testing
         /// <param name="baseAddress">The base address that is expected</param>
         /// <param name="isAuthenticated">Func for checking if the request is authenticated</param>
         /// <param name="nestedPropertyForCompare">Property to use for compare</param>
-        /// <param name="stjCompare">Use System.Text.Json for comparing</param>
-        public RestRequestValidator(TClient client, string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null, bool stjCompare = true)
+        public RestRequestValidator(TClient client, string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
         {
             _client = client;
             _folder = folder;
             _baseAddress = baseAddress;
             _nestedPropertyForCompare = nestedPropertyForCompare;
             _isAuthenticated = isAuthenticated;
-            _stjCompare = stjCompare;
         }
 
         /// <summary>
@@ -61,7 +58,7 @@ namespace CryptoExchange.Net.Testing
            string? nestedJsonProperty = null,
            List<string>? ignoreProperties = null,
            bool useSingleArrayItem = false,
-            bool skipResponseValidation = false)
+           bool skipResponseValidation = false)
             => ValidateAsync<TResponse, TResponse>(methodInvoke, name, nestedJsonProperty, ignoreProperties, useSingleArrayItem, skipResponseValidation);
 
         /// <summary>
@@ -127,10 +124,7 @@ namespace CryptoExchange.Net.Testing
             {
                 // Check response data
                 object responseData = (TActualResponse)result.Data!;
-                if (_stjCompare == true)
-                    SystemTextJsonComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
-                else
-                    JsonNetComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                SystemTextJsonComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
             }
 
             Trace.Listeners.Remove(listener);

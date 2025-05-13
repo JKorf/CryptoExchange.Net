@@ -46,11 +46,11 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 return await CheckGuardsAsync(_guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException tce)
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError());
+                return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -81,11 +81,11 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException tce)
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError());
+                return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.RateLimiting
                 }
             }
 
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

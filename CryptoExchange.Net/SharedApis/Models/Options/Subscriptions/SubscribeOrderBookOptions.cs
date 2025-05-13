@@ -13,12 +13,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Order book depths supported for updates
         /// </summary>
-        public IEnumerable<int> SupportedLimits { get; }
+        public int[] SupportedLimits { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeOrderBookOptions(bool needsAuthentication, IEnumerable<int> limits) : base(needsAuthentication)
+        public SubscribeOrderBookOptions(bool needsAuthentication, int[] limits) : base(needsAuthentication)
         {
             SupportedLimits = limits;
         }

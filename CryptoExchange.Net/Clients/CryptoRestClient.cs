@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Interfaces.CommonClients;
+﻿﻿using CryptoExchange.Net.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -24,24 +23,5 @@ namespace CryptoExchange.Net.Clients
         public CryptoRestClient(IServiceProvider serviceProvider) : base(serviceProvider)
         {
         }
-
-        /// <summary>
-        /// Get a list of the registered ISpotClient implementations
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ISpotClient> GetSpotClients()
-        {
-            if (_serviceProvider == null)
-                return new List<ISpotClient>();
-
-            return _serviceProvider.GetServices<ISpotClient>().ToList();
-        }
-
-        /// <summary>
-        /// Get an ISpotClient implementation by exchange name
-        /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <returns></returns>
-        public ISpotClient? SpotClient(string exchangeName) => _serviceProvider?.GetServices<ISpotClient>()?.SingleOrDefault(s => s.ExchangeName.Equals(exchangeName, StringComparison.InvariantCultureIgnoreCase));
     }
 }

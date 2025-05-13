@@ -51,6 +51,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
+        /// Timeout for keep alive response messages
+        /// </summary>
+        public TimeSpan? KeepAliveTimeout { get; set; }
+
+        /// <summary>
         /// The rate limiter for the socket connection
         /// </summary>
         public IRateLimitGate? RateLimiter { get; set; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
@@ -9,7 +10,6 @@ using CryptoExchange.Net.UnitTests.TestImplementations;
 using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.UnitTests
                 rstEvent.Set();
             });
             sub.AddSubscription(subObj);
-            var msgToSend = JsonConvert.SerializeObject(new { topic = "topic", action = "update", property = 123 });
+            var msgToSend = JsonSerializer.Serialize(new { topic = "topic", action = "update", property = "123" });
 
             // act
             socket.InvokeMessage(msgToSend);
@@ -198,7 +198,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, action = "subscribe", status = "error" }));
+            socket.InvokeMessage(JsonSerializer.Serialize(new { channel, action = "subscribe", status = "error" }));
             await sub;
 
             // assert
@@ -221,7 +221,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
-            socket.InvokeMessage(JsonConvert.SerializeObject(new { channel, action = "subscribe", status = "confirmed" }));
+            socket.InvokeMessage(JsonSerializer.Serialize(new { channel, action = "subscribe", status = "confirmed" }));
             await sub;
 
             // assert

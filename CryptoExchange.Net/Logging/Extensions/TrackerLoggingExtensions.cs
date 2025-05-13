@@ -173,9 +173,9 @@ namespace CryptoExchange.Net.Logging.Extensions
             _klineTrackerStarting(logger, symbol, null);
         }
 
-        public static void KlineTrackerStartFailed(this ILogger logger, string symbol, string error)
+        public static void KlineTrackerStartFailed(this ILogger logger, string symbol, string error, Exception? exception)
         {
-            _klineTrackerStartFailed(logger, symbol, error, null);
+            _klineTrackerStartFailed(logger, symbol, error, exception);
         }
 
         public static void KlineTrackerStarted(this ILogger logger, string symbol)
@@ -233,9 +233,9 @@ namespace CryptoExchange.Net.Logging.Extensions
             _tradeTrackerStarting(logger, symbol, null);
         }
 
-        public static void TradeTrackerStartFailed(this ILogger logger, string symbol, string error)
+        public static void TradeTrackerStartFailed(this ILogger logger, string symbol, string error, Exception? ex)
         {
-            _tradeTrackerStartFailed(logger, symbol, error, null);
+            _tradeTrackerStartFailed(logger, symbol, error, ex);
         }
 
         public static void TradeTrackerStarted(this ILogger logger, string symbol)

@@ -246,9 +246,9 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _receivedMessageNotRecognized(logger, socketId, id, null);
         }
-        public static void FailedToDeserializeMessage(this ILogger logger, int socketId, string? errorMessage)
+        public static void FailedToDeserializeMessage(this ILogger logger, int socketId, string? errorMessage, Exception? ex)
         {
-            _failedToDeserializeMessage(logger, socketId, errorMessage, null);
+            _failedToDeserializeMessage(logger, socketId, errorMessage, ex);
         }
         public static void UserMessageProcessingFailed(this ILogger logger, int socketId, string errorMessage, Exception e)
         {

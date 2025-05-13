@@ -179,7 +179,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             var startResult = await DoStartAsync().ConfigureAwait(false);
             if (!startResult)
             {
-                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.ToString());
+                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.Message, startResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return new CallResult(startResult.Error!);
             }
@@ -190,7 +190,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
             Status = SyncStatus.Synced;
             _logger.KlineTrackerStarted(SymbolName);
-            return new CallResult(null);
+            return CallResult.SuccessResult;
         }
 
         /// <inheritdoc />
@@ -285,7 +285,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         }
 
         /// <inheritdoc />
-        public IEnumerable<SharedKline> GetData(DateTime? since = null, DateTime? until = null)
+        public SharedKline[] GetData(DateTime? since = null, DateTime? until = null)
         {
             lock (_lock)
             {
@@ -297,7 +297,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                 if (until != null)
                     result = result.Where(d => d.OpenTime <= until);
 
-                return result.ToList();
+                return result.ToArray();
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using Moq;
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -12,11 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
-using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
+using System.Linq;
+using CryptoExchange.Net.Converters.SystemTextJson;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -49,13 +50,13 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             response.Setup(c => c.IsSuccessStatusCode).Returns(true);
             response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
             
-            var headers = new Dictionary<string, IEnumerable<string>>();
+            var headers = new Dictionary<string, string[]>();
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
             request.Setup(c => c.SetContent(It.IsAny<string>(), It.IsAny<string>())).Callback(new Action<string, string>((content, type) => { request.Setup(r => r.Content).Returns(content); }));
-            request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new List<string> { val }));
-            request.Setup(c => c.GetHeaders()).Returns(() => headers);
+            request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new string[] { val }));
+            request.Setup(c => c.GetHeaders()).Returns(() => headers.ToArray());
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
@@ -84,7 +85,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
            
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetHeaders()).Returns(new Dictionary<string, IEnumerable<string>>());
+            request.Setup(c => c.GetHeaders()).Returns(new KeyValuePair<string, string[]>[0]);
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(Api1.RequestFactory);
@@ -108,12 +109,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             response.Setup(c => c.IsSuccessStatusCode).Returns(false);
             response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
 
-            var headers = new Dictionary<string, IEnumerable<string>>();
+            var headers = new List<KeyValuePair<string, string[]>>();
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
-            request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new List<string> { val }));
-            request.Setup(c => c.GetHeaders()).Returns(headers);
+            request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(new KeyValuePair<string, string[]>(key, new string[] { val })));
+            request.Setup(c => c.GetHeaders()).Returns(headers.ToArray());
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
@@ -137,14 +138,17 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
+        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions() { TypeInfoResolver = new TestSerializerContext() });
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
+
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct, requestWeight: 0);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
-        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, Dictionary<string, object> parameters, Dictionary<string, string> headers) where T : class
+        public async Task<CallResult<T>> RequestWithParams<T>(HttpMethod method, ParameterCollection parameters, Dictionary<string, string> headers) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), method, default, parameters, requestWeight: 0, additionalHeaders: headers);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", method) { Weight = 0 }, parameters, default, additionalHeaders: headers);
         }
 
         public void SetParameterPosition(HttpMethod method, HttpMethodParameterPosition position)
@@ -178,15 +182,18 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
+        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions());
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
+
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
-            return await SendRequestAsync<T>(new Uri("http://www.test.com"), HttpMethod.Get, ct, requestWeight: 0);
+            return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
-        protected override Error ParseErrorResponse(int httpStatusCode, IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders, IMessageAccessor accessor)
+        protected override Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception exception)
         {
             var errorData = accessor.Deserialize<TestError>();
 
@@ -214,7 +221,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestError
     {
+        [JsonPropertyName("errorCode")]
         public int ErrorCode { get; set; }
+        [JsonPropertyName("errorMessage")]
         public string ErrorMessage { get; set; }
     }
 

@@ -10,6 +10,9 @@ using CryptoExchange.Net.Objects;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using CryptoExchange.Net.SharedApis;
+using System.Text.Json.Serialization.Metadata;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net
 {
@@ -440,6 +443,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IWithdrawRestClient)client(x)!);
             if (typeof(IFeeRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFeeRestClient)client(x)!);
+            if (typeof(IBookTickerRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IBookTickerRestClient)client(x)!);
 
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
@@ -447,6 +452,10 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (ISpotSymbolRestClient)client(x)!);
             if (typeof(ISpotTickerRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotTickerRestClient)client(x)!);
+            if (typeof(ISpotTriggerOrderRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotTriggerOrderRestClient)client(x)!);
+            if (typeof(ISpotOrderClientIdRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotOrderClientIdRestClient)client(x)!);
 
             if (typeof(IFundingRateRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFundingRateRestClient)client(x)!);
@@ -468,6 +477,12 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IPositionHistoryRestClient)client(x)!);
             if (typeof(IPositionModeRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IPositionModeRestClient)client(x)!);
+            if (typeof(IFuturesTpSlRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFuturesTpSlRestClient)client(x)!);
+            if (typeof(IFuturesTriggerOrderRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFuturesTriggerOrderRestClient)client(x)!);
+            if (typeof(IFuturesOrderClientIdRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFuturesOrderClientIdRestClient)client(x)!);
 
             return services;
         }

@@ -56,7 +56,7 @@ namespace CryptoExchange.Net.Objects
             if (!IsEnabled(logLevel))
                 return;
 
-            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logLevel} | {(_categoryName == null ? "" : $"{_categoryName} | ")}{formatter(state, exception)}";
+            var logMessage = $"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | {logLevel} | {(_categoryName == null ? "" : $"{_categoryName} | ")}{formatter(state, exception)}{(exception == null ? string.Empty : (", " + exception.ToLogString()))}";
             Trace.WriteLine(logMessage);
         }
     }

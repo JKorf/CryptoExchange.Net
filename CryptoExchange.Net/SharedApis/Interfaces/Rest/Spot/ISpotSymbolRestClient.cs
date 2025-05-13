@@ -19,6 +19,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedSpotSymbol>>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

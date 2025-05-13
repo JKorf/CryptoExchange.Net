@@ -21,15 +21,21 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Supported order types
         /// </summary>
-        IEnumerable<SharedOrderType> SpotSupportedOrderTypes { get; }
+        SharedOrderType[] SpotSupportedOrderTypes { get; }
         /// <summary>
         /// Supported time in force
         /// </summary>
-        IEnumerable<SharedTimeInForce> SpotSupportedTimeInForce { get; }
+        SharedTimeInForce[] SpotSupportedTimeInForce { get; }
         /// <summary>
         /// Quantity types support
         /// </summary>
         SharedQuantitySupport SpotSupportedOrderQuantity { get; }
+
+        /// <summary>
+        /// Generate a new random client order id
+        /// </summary>
+        /// <returns></returns>
+        string GenerateClientOrderId();
 
         /// <summary>
         /// Spot place order request options
@@ -62,7 +68,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Spot get closed orders request options
@@ -74,7 +80,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedSpotOrder>>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedSpotOrder[]>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
 
         /// <summary>
         /// Spot get order trades request options
@@ -85,7 +91,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedUserTrade[]>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Spot user trades request options
@@ -97,7 +103,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedUserTrade>>> GetSpotUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedUserTrade[]>> GetSpotUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
 
         /// <summary>
         /// Spot cancel order request options

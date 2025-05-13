@@ -18,13 +18,9 @@
         /// </summary>
         public SharedTimeInForce? TimeInForce { get; set; }
         /// <summary>
-        /// Quantity of the order in base asset.
+        /// Quantity of the order
         /// </summary>
-        public decimal? Quantity { get; set; }
-        /// <summary>
-        /// Quantity of the order in quote asset.
-        /// </summary>
-        public decimal? QuoteQuantity { get; set; }
+        public SharedQuantity? Quantity { get; set; }
         /// <summary>
         /// Price of the order
         /// </summary>
@@ -51,6 +47,15 @@
         public decimal? Leverage { get; set; }
 
         /// <summary>
+        /// Take profit price
+        /// </summary>
+        public decimal? TakeProfitPrice { get; set; }
+        /// <summary>
+        /// Stop loss price
+        /// </summary>
+        public decimal? StopLossPrice { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="symbol">Symbol to place the order on</param>
@@ -58,7 +63,6 @@
         /// <param name="side">Side of the order</param>
         /// <param name="orderType">Type of the order</param>
         /// <param name="quantity">Quantity of the order</param>
-        /// <param name="quoteQuantity">Quantity of the order in quote asset</param>
         /// <param name="price">Price of the order</param>
         /// <param name="timeInForce">Time in force</param>
         /// <param name="clientOrderId">Client order id</param>
@@ -71,8 +75,7 @@
             SharedSymbol symbol,
             SharedOrderSide side,
             SharedOrderType orderType,
-            decimal? quantity = null,
-            decimal? quoteQuantity = null,
+            SharedQuantity? quantity = null,
             decimal? price = null,
             bool? reduceOnly = null,
             decimal? leverage = null,
@@ -85,7 +88,6 @@
             Side = side;
             OrderType = orderType;
             Quantity = quantity;
-            QuoteQuantity = quoteQuantity;
             Price = price;
             MarginMode = marginMode;
             ClientOrderId = clientOrderId;

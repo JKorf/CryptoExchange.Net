@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Asset networks info
         /// </summary>
-        public IEnumerable<SharedAssetNetwork>? Networks { get; set; } = Array.Empty<SharedAssetNetwork>();
+        public SharedAssetNetwork[]? Networks { get; set; } = Array.Empty<SharedAssetNetwork>();
 
         /// <summary>
         /// ctor

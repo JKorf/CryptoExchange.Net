@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<IEnumerable<SharedDepositAddress>>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Deposits request options
@@ -34,6 +34,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<IEnumerable<SharedDeposit>>> GetDepositsAsync(GetDepositsRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedDeposit[]>> GetDepositsAsync(GetDepositsRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
     }
 }

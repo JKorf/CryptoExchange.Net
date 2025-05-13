@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.Logging.Extensions
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class RestApiClientLoggingExtensions
     {
-        private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiErrorReceived;
+        private static readonly Action<ILogger, int?, int?, long, string?, string?, Exception?> _restApiErrorReceived;
         private static readonly Action<ILogger, int?, int?, long, string?, Exception?> _restApiResponseReceived;
         private static readonly Action<ILogger, int, string, Exception?> _restApiFailedToSyncTime;
         private static readonly Action<ILogger, int, string, Exception?> _restApiNoApiCredentials;
@@ -25,10 +25,10 @@ namespace CryptoExchange.Net.Logging.Extensions
 
         static RestApiClientLoggingExtensions()
         {
-            _restApiErrorReceived = LoggerMessage.Define<int?, int?, long, string?>(
+            _restApiErrorReceived = LoggerMessage.Define<int?, int?, long, string?, string?>(
                 LogLevel.Warning,
                 new EventId(4000, "RestApiErrorReceived"),
-                "[Req {RequestId}] {ResponseStatusCode} - Error received in {ResponseTime}ms: {ErrorMessage}");
+                "[Req {RequestId}] {ResponseStatusCode} - Error received in {ResponseTime}ms: {ErrorMessage}, Data: {OriginalData}");
 
             _restApiResponseReceived = LoggerMessage.Define<int?, int?, long, string?>(
                 LogLevel.Debug,
@@ -92,9 +92,9 @@ namespace CryptoExchange.Net.Logging.Extensions
 
         }
 
-        public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error)
+        public static void RestApiErrorReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? error, string? originalData, Exception? exception)
         {
-            _restApiErrorReceived(logger, requestId, (int?)responseStatusCode, responseTime, error, null);
+            _restApiErrorReceived(logger, requestId, (int?)responseStatusCode, responseTime, error, originalData, exception);
         }
 
         public static void RestApiResponseReceived(this ILogger logger, int? requestId, HttpStatusCode? responseStatusCode, long responseTime, string? originalData)

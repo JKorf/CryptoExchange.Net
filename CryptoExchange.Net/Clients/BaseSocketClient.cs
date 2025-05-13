@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -33,10 +35,11 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger">Logger</param>
-        /// <param name="exchange">The name of the exchange this client is for</param>
-        protected BaseSocketClient(ILoggerFactory? logger, string exchange) : base(logger, exchange)
+        /// <param name="loggerFactory">Logger factory</param>
+        /// <param name="name">The name of the exchange this client is for</param>
+        protected BaseSocketClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
         {
+            _logger = loggerFactory?.CreateLogger(name + ".SocketClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
         }
 
         /// <summary>

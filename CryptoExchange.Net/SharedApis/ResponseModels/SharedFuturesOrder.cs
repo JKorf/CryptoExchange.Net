@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Futures order info
     /// </summary>
-    public record SharedFuturesOrder
+    public record SharedFuturesOrder : SharedSymbolModel
     {
-        /// <summary>
-        /// Symbol
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// Id of the order
         /// </summary>
@@ -40,21 +36,13 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public bool? ReduceOnly { get; set; }
         /// <summary>
-        /// Order quantity in the base asset or number of contracts
+        /// Order quantity
         /// </summary>
-        public decimal? Quantity { get; set; }
+        public SharedOrderQuantity? OrderQuantity { get; set; }
         /// <summary>
-        /// Quantity filled in the base asset or number of contracts
+        /// Filled quantity
         /// </summary>
-        public decimal? QuantityFilled { get; set; }
-        /// <summary>
-        /// Quantity of the order in quote asset
-        /// </summary>
-        public decimal? QuoteQuantity { get; set; }
-        /// <summary>
-        /// Quantity filled in the quote asset
-        /// </summary>
-        public decimal? QuoteQuantityFilled { get; set; }
+        public SharedOrderQuantity? QuantityFilled { get; set; }
         /// <summary>
         /// Order price
         /// </summary>
@@ -94,17 +82,42 @@ namespace CryptoExchange.Net.SharedApis
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>
+        /// Trigger price for a trigger order
+        /// </summary>
+        public decimal? TriggerPrice { get; set; }
+        /// <summary>
+        /// Whether or not the is order is a trigger order
+        /// </summary>
+        public bool? IsTriggerOrder { get; set; }
+
+        /// <summary>
+        /// Take profit price
+        /// </summary>
+        public decimal? TakeProfitPrice { get; set; }
+
+        /// <summary>
+        /// Stop loss price
+        /// </summary>
+        public decimal? StopLossPrice { get; set; }
+
+        /// <summary>
+        /// Whether this order is to close an existing position. If this is the case quantities might not be specified
+        /// </summary>
+        public bool? IsCloseOrder { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedFuturesOrder(
+            SharedSymbol? sharedSymbol, 
             string symbol,
             string orderId,
             SharedOrderType orderType,
             SharedOrderSide orderSide,
             SharedOrderStatus orderStatus,
             DateTime? createTime)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             OrderId = orderId;
             OrderType = orderType;
             Side = orderSide;

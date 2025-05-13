@@ -8,10 +8,6 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedFuturesSymbol : SharedSpotSymbol
     {
         /// <summary>
-        /// Symbol type
-        /// </summary>
-        public SharedSymbolType SymbolType { get; set; }
-        /// <summary>
         /// The size of a single contract
         /// </summary>
         public decimal? ContractSize { get; set; }
@@ -19,13 +15,20 @@ namespace CryptoExchange.Net.SharedApis
         /// Delivery time of the contract
         /// </summary>
         public DateTime? DeliveryTime { get; set; }
+        /// <summary>
+        /// Max short leverage setting
+        /// </summary>
+        public decimal? MaxShortLeverage { get; set; }
+        /// <summary>
+        /// Max long leverage setting
+        /// </summary>
+        public decimal? MaxLongLeverage { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedFuturesSymbol(SharedSymbolType symbolType, string baseAsset, string quoteAsset, string symbol, bool trading) : base(baseAsset, quoteAsset, symbol, trading)
+        public SharedFuturesSymbol(TradingMode symbolType, string baseAsset, string quoteAsset, string symbol, bool trading) : base(baseAsset, quoteAsset, symbol, trading, symbolType)
         {
-            SymbolType = symbolType;
         }
     }
 }

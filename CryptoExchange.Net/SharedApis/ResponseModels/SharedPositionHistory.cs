@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Position history
     /// </summary>
-    public record SharedPositionHistory
+    public record SharedPositionHistory : SharedSymbolModel
     {
-        /// <summary>
-        /// Symbol of the position
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// The side of the position
         /// </summary>
@@ -52,6 +48,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SharedPositionHistory(
+            SharedSymbol? sharedSymbol,
             string symbol,
             SharedPositionSide side,
             decimal openPrice,
@@ -59,8 +56,8 @@ namespace CryptoExchange.Net.SharedApis
             decimal quantity,
             decimal realizedPnl,
             DateTime timestamp)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             PositionSide = side;
             AverageOpenPrice = openPrice;
             AverageClosePrice = closePrice;

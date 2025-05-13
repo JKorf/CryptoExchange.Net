@@ -22,11 +22,11 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// List of changed/new asks
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
+        public ISymbolOrderBookEntry[] Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
 
         /// <summary>
         /// List of changed/new bids
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
+        public ISymbolOrderBookEntry[] Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
     }
 }

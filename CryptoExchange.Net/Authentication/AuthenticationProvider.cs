@@ -32,6 +32,10 @@ namespace CryptoExchange.Net.Authentication
         /// Get the API key of the current credentials
         /// </summary>
         public string ApiKey => _credentials.Key!;
+        /// <summary>
+        /// Get the Passphrase of the current credentials
+        /// </summary>
+        public string? Pass => _credentials.Pass;
 
         /// <summary>
         /// ctor

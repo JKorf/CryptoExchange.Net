@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Spot order info
     /// </summary>
-    public record SharedSpotOrder
+    public record SharedSpotOrder : SharedSymbolModel
     {
-        /// <summary>
-        /// The symbol the order is on
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// The id of the order
         /// </summary>
@@ -32,21 +28,13 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedTimeInForce? TimeInForce { get; set; }
         /// <summary>
-        /// Order quantity in base asset
+        /// Order quantity
         /// </summary>
-        public decimal? Quantity { get; set; }
+        public SharedOrderQuantity? OrderQuantity { get; set; }
         /// <summary>
-        /// Quantity filled in base asset, note that this quantity has not yet included trading fees paid
+        /// Filled quantity
         /// </summary>
-        public decimal? QuantityFilled { get; set; }
-        /// <summary>
-        /// Order quantity in quote asset
-        /// </summary>
-        public decimal? QuoteQuantity { get; set; }
-        /// <summary>
-        /// Quantity filled in the quote asset, note that this quantity has not yet included trading fees paid
-        /// </summary>
-        public decimal? QuoteQuantityFilled { get; set; }
+        public SharedOrderQuantity? QuantityFilled { get; set; }
         /// <summary>
         /// Order price
         /// </summary>
@@ -81,17 +69,27 @@ namespace CryptoExchange.Net.SharedApis
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>
+        /// Trigger price for a trigger order
+        /// </summary>
+        public decimal? TriggerPrice { get; set; }
+        /// <summary>
+        /// Whether or not the is order is a trigger order
+        /// </summary>
+        public bool IsTriggerOrder { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedSpotOrder(
+            SharedSymbol? sharedSymbol,
             string symbol,
             string orderId,
             SharedOrderType orderType,
             SharedOrderSide orderSide,
             SharedOrderStatus orderStatus,
             DateTime? createTime)
+            : base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             OrderId = orderId;
             OrderType = orderType;
             Side = orderSide;

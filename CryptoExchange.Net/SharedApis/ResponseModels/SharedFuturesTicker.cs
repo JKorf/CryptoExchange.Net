@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Futures ticker info
     /// </summary>
-    public record SharedFuturesTicker
+    public record SharedFuturesTicker: SharedSymbolModel
     {
-        /// <summary>
-        /// The symbol
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// Last trade price
         /// </summary>
@@ -51,9 +47,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedFuturesTicker(string symbol, decimal? lastPrice, decimal? highPrice, decimal? lowPrice, decimal volume, decimal? changePercentage)
+        public SharedFuturesTicker(SharedSymbol? sharedSymbol, string symbol, decimal? lastPrice, decimal? highPrice, decimal? lowPrice, decimal volume, decimal? changePercentage)
+            :base(sharedSymbol, symbol)
         {
-            Symbol = symbol;
             LastPrice = lastPrice;
             HighPrice = highPrice;
             LowPrice = lowPrice;

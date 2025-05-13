@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The response headers
         /// </summary>
-        IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; }
+        KeyValuePair<string, string[]>[] ResponseHeaders { get; }
 
         /// <summary>
         /// Get the response stream

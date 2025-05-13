@@ -11,16 +11,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Asks list
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Asks { get; set; }
+        public ISymbolOrderBookEntry[] Asks { get; set; }
         /// <summary>
         /// Bids list
         /// </summary>
-        public IEnumerable<ISymbolOrderBookEntry> Bids { get; set; }
+        public ISymbolOrderBookEntry[] Bids { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedOrderBook(IEnumerable<ISymbolOrderBookEntry> asks, IEnumerable<ISymbolOrderBookEntry> bids)
+        public SharedOrderBook(ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
         {
             Asks = asks;
             Bids = bids;

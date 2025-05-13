@@ -5,12 +5,8 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// A user trade
     /// </summary>
-    public record SharedUserTrade
+    public record SharedUserTrade : SharedSymbolModel
     {
-        /// <summary>
-        /// Symbol the trade was on
-        /// </summary>
-        public string Symbol { get; set; }
         /// <summary>
         /// The trade id
         /// </summary>
@@ -51,7 +47,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedUserTrade(string symbol, string orderId, string id, SharedOrderSide? side, decimal quantity, decimal price, DateTime timestamp)
+        public SharedUserTrade(SharedSymbol? sharedSymbol, string symbol, string orderId, string id, SharedOrderSide? side, decimal quantity, decimal price, DateTime timestamp)
+            : base(sharedSymbol, symbol)
         {
             Symbol = symbol;
             OrderId = orderId;

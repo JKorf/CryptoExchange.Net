@@ -112,7 +112,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
-                new List<KeyValuePair<string, IEnumerable<string>>>(),
+                new KeyValuePair<string, string[]>[0],
                 TimeSpan.FromSeconds(1),
                 null,
                 "{}",
@@ -120,7 +120,7 @@ namespace CryptoExchange.Net.UnitTests
                 "https://test.com/api",
                 null,
                 HttpMethod.Get,
-                new List<KeyValuePair<string, IEnumerable<string>>>(),
+                new KeyValuePair<string, string[]>[0],
                 ResultDataSource.Server,
                 new TestObjectResult(),
                 null);
@@ -142,7 +142,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
-                new List<KeyValuePair<string, IEnumerable<string>>>(),
+                new KeyValuePair<string, string[]>[0],
                 TimeSpan.FromSeconds(1),
                 null,
                 "{}",
@@ -150,7 +150,7 @@ namespace CryptoExchange.Net.UnitTests
                 "https://test.com/api",
                 null,
                 HttpMethod.Get,
-                new List<KeyValuePair<string, IEnumerable<string>>>(),
+                new KeyValuePair<string, string[]>[0],
                 ResultDataSource.Server,
                 new TestObjectResult(),
                 null);

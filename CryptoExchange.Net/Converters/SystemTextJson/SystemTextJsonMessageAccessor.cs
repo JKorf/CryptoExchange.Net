@@ -3,6 +3,7 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -20,7 +21,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         protected JsonDocument? _document;
 
-        private static readonly JsonSerializerOptions _serializerOptions = SerializerOptions.WithConverters;
         private readonly JsonSerializerOptions? _customSerializerOptions;
 
         /// <inheritdoc />
@@ -35,19 +35,16 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// ctor
         /// </summary>
-        public SystemTextJsonMessageAccessor()
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
         public SystemTextJsonMessageAccessor(JsonSerializerOptions options)
         {
             _customSerializerOptions = options;
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public CallResult<object> Deserialize(Type type, MessagePath? path = null)
         {
             if (!IsJson)
@@ -58,22 +55,26 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
-                var result = _document.Deserialize(type, _customSerializerOptions ?? _serializerOptions);
+                var result = _document.Deserialize(type, _customSerializerOptions);
                 return new CallResult<object>(result!);
             }
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<object>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
                 var info = $"Deserialize unknown Exception: {ex.Message}";
-                return new CallResult<object>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<object>(new DeserializeError(info, ex));
             }
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public CallResult<T> Deserialize<T>(MessagePath? path = null)
         {
             if (_document == null)
@@ -81,18 +82,18 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             try
             {
-                var result = _document.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
+                var result = _document.Deserialize<T>(_customSerializerOptions);
                 return new CallResult<T>(result!);
             }
             catch (JsonException ex)
             {
                 var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
-                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<T>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
                 var info = $"Unknown exception: {ex.Message}";
-                return new CallResult<T>(new DeserializeError(info, OriginalDataAvailable ? GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"));
+                return new CallResult<T>(new DeserializeError(info, ex));
             }
         }
 
@@ -132,6 +133,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public T? GetValue<T>(MessagePath path)
         {
             if (!IsJson)
@@ -145,7 +150,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 try
                 {
-                    return value.Value.Deserialize<T>(_customSerializerOptions ?? _serializerOptions);
+                    return value.Value.Deserialize<T>(_customSerializerOptions);
                 }
                 catch { }
 
@@ -158,11 +163,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return (T)(object)value.Value.GetInt64().ToString();
             }
 
-            return value.Value.Deserialize<T>();
+            return value.Value.Deserialize<T>(_customSerializerOptions);
         }
 
         /// <inheritdoc />
-        public List<T?>? GetValues<T>(MessagePath path)
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
+        public T?[]? GetValues<T>(MessagePath path)
         {
             if (!IsJson)
                 throw new InvalidOperationException("Can't access json data on non-json message");
@@ -174,7 +183,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (value.Value.ValueKind != JsonValueKind.Array)
                 return default;
 
-            return value.Value.Deserialize<List<T>>()!;
+            return value.Value.Deserialize<T[]>(_customSerializerOptions)!;
         }
 
         private JsonElement? GetPathNode(MessagePath path)
@@ -243,13 +252,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// ctor
         /// </summary>
-        public SystemTextJsonStreamMessageAccessor(): base()
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
         public SystemTextJsonStreamMessageAccessor(JsonSerializerOptions options): base(options)
         {
         }
@@ -278,13 +280,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 _document = await JsonDocument.ParseAsync(_stream ?? stream).ConfigureAwait(false);
                 IsJson = true;
-                return new CallResult(null);
+                return CallResult.SuccessResult;
             }
             catch (Exception ex)
             {
                 // Not a json message
                 IsJson = false;
-                return new CallResult(new ServerError("JsonError: " + ex.Message));
+                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
             }
         }
 
@@ -320,13 +322,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// ctor
         /// </summary>
-        public SystemTextJsonByteMessageAccessor() : base()
-        {
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
         public SystemTextJsonByteMessageAccessor(JsonSerializerOptions options) : base(options)
         {
         }
@@ -348,13 +343,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                 _document = JsonDocument.Parse(data);
                 IsJson = true;
-                return new CallResult(null);
+                return CallResult.SuccessResult;
             }
             catch (Exception ex)
             {
                 // Not a json message
                 IsJson = false;
-                return new CallResult(new ServerError("JsonError: " + ex.Message));
+                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
             }
         }
 

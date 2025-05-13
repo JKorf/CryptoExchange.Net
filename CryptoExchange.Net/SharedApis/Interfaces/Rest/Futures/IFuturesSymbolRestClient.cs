@@ -14,10 +14,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         EndpointOptions<GetSymbolsRequest> GetFuturesSymbolsOptions { get; }
         /// <summary>
-        /// Get info on all futures symbols supported on the exchagne
+        /// Get info on all futures symbols supported on the exchange
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<IEnumerable<SharedFuturesSymbol>>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }
