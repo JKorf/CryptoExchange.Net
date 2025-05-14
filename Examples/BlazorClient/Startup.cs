@@ -31,9 +31,6 @@ namespace BlazorClient
             services.AddBinance(restOptions =>
             {
                 restOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
-            }, socketOptions =>
-            {
-                socketOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
             });
 
             services.AddBingX();
@@ -54,6 +51,7 @@ namespace BlazorClient
             services.AddMexc();
             services.AddOKX();
             services.AddWhiteBit();
+            services.AddXT();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

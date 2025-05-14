@@ -18,10 +18,12 @@
 @inject IMexcSocketClient mexcSocketClient
 @inject IOKXSocketClient okxSocketClient
 @inject IWhiteBitSocketClient whitebitSocketClient
+@inject IXTSocketClient xtSocketClient
 @using System.Collections.Concurrent
 @using CryptoExchange.Net.Objects
 @using CryptoExchange.Net.Objects.Sockets;
 @using CryptoExchange.Net.Sockets
+@using XT.Net.Interfaces.Clients
 @implements IDisposable
 
 <h3>ETH-BTC prices, live updates:</h3>
@@ -41,7 +43,7 @@
             binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Binance", data.Data.LastPrice)),
             bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BingX", data.Data.LastPrice)),
             bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),
-            bitgetSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
+            bitgetSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
             bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
             bitmexSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH_XBT", data => UpdateData("BitMEX", data.Data.LastPrice ?? 0)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
@@ -51,6 +53,7 @@
             deepCoinSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH-BTC", data => UpdateData("DeepCoin", data.Data.LastPrice ?? 0)),
             gateioSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("GateIo", data.Data.LastPrice)),
             htxSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ethbtc", data => UpdateData("HTX", data.Data.ClosePrice ?? 0)),
+            xtSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("eth_btc", data => UpdateData("XT", data.Data.LastPrice ?? 0)),
             // HyperLiquid doesn't support the ETH/BTC pair
             //hyperLiquidSocketClient.SpotApi.SubscribeToSymbolUpdatesAsync("ETH", data => UpdateData("HyperLiquid", data.Data.MidPrice ?? 0)),
             krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH/BTC", data => UpdateData("Kraken", data.Data.LastPrice)),

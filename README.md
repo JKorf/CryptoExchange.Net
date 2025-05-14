@@ -43,7 +43,7 @@ A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free t
 ## Support the project
 Any support is greatly appreciated.
 
-## Referral
+### Referral
 When creating an account on new exchanges please consider using a referral link from above.
 
 ### Donate

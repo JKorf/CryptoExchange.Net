@@ -10,6 +10,7 @@
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
 @using Coinbase.Net.Interfaces
+@using CryptoExchange.Net.Authentication
 @using CryptoExchange.Net.Interfaces
 @using CryptoCom.Net.Interfaces
 @using DeepCoin.Net.Interfaces
@@ -22,6 +23,7 @@
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
+@using XT.Net.Interfaces
 @inject IBinanceOrderBookFactory binanceFactory
 @inject IBingXOrderBookFactory bingXFactory
 @inject IBitfinexOrderBookFactory bitfinexFactory
@@ -41,6 +43,7 @@
 @inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
 @inject IWhiteBitOrderBookFactory whitebitFactory
+@inject IXTOrderBookFactory xtFactory
 @implements IDisposable
 
 <h3>ETH-BTC books, live updates:</h3>
@@ -69,7 +72,7 @@
         // Since the Kucoin order book stream needs authentication we will need to provide API credentials beforehand
         KucoinRestClient.SetDefaultOptions(options =>
         {
-            options.ApiCredentials = new Kucoin.Net.Objects.KucoinApiCredentials("KEY", "SECRET", "PASSPHRASE");
+            options.ApiCredentials = new ApiCredentials("KEY", "SECRET", "PASSPHRASE");
         });
 
         _books = new Dictionary<string, ISymbolOrderBook>
@@ -85,7 +88,8 @@
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
-                { "DeepCoin", deepCoinFactory.Create("ETH-BTC") },
+                // DeepCoin does not support the ETH/BTC pair
+                //{ "DeepCoin", deepCoinFactory.Create("ETH-BTC") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
                 // HyperLiquid does not support the ETH/BTC pair
                 //{ "HyperLiquid", hyperLiquidFactory.Create("ETH/BTC") },
@@ -94,9 +98,10 @@
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
                 { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
+                { "XT", xtFactory.CreateSpot("eth_btc") },
             };
 
-        await Task.WhenAll(_books.Select(b => b.Value.StartAsync()));
+        var result = await Task.WhenAll(_books.Select(b => b.Value.StartAsync()));
 
         // Use a manual update timer so the page isn't refreshed too often
         _timer = new Timer(500);

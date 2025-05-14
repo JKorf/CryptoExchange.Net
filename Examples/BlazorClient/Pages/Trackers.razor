@@ -24,6 +24,7 @@
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
+@using XT.Net.Interfaces
 @inject IBinanceTrackerFactory binanceFactory
 @inject IBingXTrackerFactory bingXFactory
 @inject IBitfinexTrackerFactory bitfinexFactory
@@ -43,6 +44,7 @@
 @inject IMexcTrackerFactory mexcFactory
 @inject IOKXTrackerFactory okxFactory
 @inject IWhiteBitTrackerFactory whitebitFactory
+@inject IXTTrackerFactory xtFactory
 @implements IDisposable
 
 <h3>ETH-BTC trade Trackers, live updates:</h3>
@@ -89,6 +91,7 @@
                 { mexcFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { okxFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { whitebitFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
+                { xtFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
             };
 
         await Task.WhenAll(_trackers.Select(b => b.StartAsync()));

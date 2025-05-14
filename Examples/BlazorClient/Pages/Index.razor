@@ -18,6 +18,7 @@
 @inject IMexcRestClient mexcClient
 @inject IOKXRestClient okxClient
 @inject IWhiteBitRestClient whitebitClient
+@inject IXTRestClient xtClient
 
 <h3>BTC-USD prices:</h3>
 @foreach(var price in _prices.OrderBy(p => p.Key))
@@ -33,7 +34,7 @@
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
-        var bitgetTask = bitgetClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT_SPBL");
+        var bitgetTask = bitgetClient.SpotApiV2.ExchangeData.GetTickersAsync("BTCUSDT");
         var bitmartTask = bitmartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");
         var bitmexTask = bitmexClient.ExchangeApi.ExchangeData.GetSymbolsAsync("XBT_USDT");
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
@@ -49,6 +50,7 @@
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
+        var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("eth_btc");
 
         await Task.WhenAll(binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bybitTask, coinexTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, mexcTask, okxTask);
 
@@ -62,10 +64,10 @@
             _prices.Add("Bitfinex", bitfinexTask.Result.Data.LastPrice);
 
         if (bitgetTask.Result.Success)
-            _prices.Add("Bitget", bitgetTask.Result.Data.ClosePrice);
+            _prices.Add("Bitget", bitgetTask.Result.Data.Single().LastPrice);
 
         if (bitmartTask.Result.Success)
-            _prices.Add("BitMart", bitgetTask.Result.Data.ClosePrice);
+            _prices.Add("BitMart", bitmartTask.Result.Data.LastPrice);
 
         if (bitmexTask.Result.Success)
             _prices.Add("BitMEX", bitmexTask.Result.Data.First().LastPrice);
@@ -119,6 +121,9 @@
             var tickers = whitebitTask.Result.Data;
             _prices.Add("WhiteBit", tickers.Single(x => x.Symbol == "BTC_USDT").LastPrice);
         }
+
+        if (xtTask.Result.Success)
+            _prices.Add("XT", xtTask.Result.Data.Single().LastPrice ?? 0);
     }
 
 }

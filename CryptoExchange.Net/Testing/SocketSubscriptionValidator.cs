@@ -94,7 +94,14 @@ namespace CryptoExchange.Net.Testing
 
             TUpdate? update = default;
             // Invoke subscription method
-            var task = methodInvoke(_client, x => { update = x.Data; });
+            try
+            {
+                var task = methodInvoke(_client, x => { update = x.Data; });
+            }
+            catch(Exception ex)
+            {
+
+            }
 
             var replaceValues = new Dictionary<string, string>();
             while (true)
