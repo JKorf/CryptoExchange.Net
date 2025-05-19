@@ -80,6 +80,11 @@ namespace CryptoExchange.Net.Sockets
         public int Weight { get; }
 
         /// <summary>
+        /// Whether the query should wait for a response or not
+        /// </summary>
+        public bool ExpectsResponse { get; set; } = true;
+
+        /// <summary>
         /// Get the type the message should be deserialized to
         /// </summary>
         /// <param name="message"></param>
@@ -116,10 +121,19 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public void IsSend(TimeSpan timeout)
         {
-            // Start timeout countdown
             RequestTimestamp = DateTime.UtcNow;
-            _cts = new CancellationTokenSource(timeout);
-            _cts.Token.Register(Timeout, false);
+            if (ExpectsResponse)
+            {
+                // Start timeout countdown
+                _cts = new CancellationTokenSource(timeout);
+                _cts.Token.Register(Timeout, false);
+            }
+            else
+            {
+                Completed = true;
+                Result = CallResult.SuccessResult;
+                _event.Set();
+            }
         }
 
         /// <summary>
