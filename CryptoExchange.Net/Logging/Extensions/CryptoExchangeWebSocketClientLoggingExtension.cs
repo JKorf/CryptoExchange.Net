@@ -8,6 +8,7 @@ namespace CryptoExchange.Net.Logging.Extensions
     {
         private static readonly Action<ILogger, int, Exception?> _connecting;
         private static readonly Action<ILogger, int, string, Exception?> _connectionFailed;
+        private static readonly Action<ILogger, int, Exception?> _connectingCanceled;
         private static readonly Action<ILogger, int, Uri, Exception?> _connected;
         private static readonly Action<ILogger, int, Exception?> _startingProcessing;
         private static readonly Action<ILogger, int, Exception?> _finishedProcessing;
@@ -189,6 +190,12 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(1030, "SocketPingTimeout"),
                 "[Sckt {Id}] ping frame timeout; reconnecting socket");
 
+            _connectingCanceled = LoggerMessage.Define<int>(
+                LogLevel.Debug,
+                new EventId(1031, "ConnectingCanceled"),
+                "[Sckt {SocketId}] connecting canceled");
+
+
         }
 
         public static void SocketConnecting(
@@ -369,6 +376,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             this ILogger logger, int socketId)
         {
             _socketPingTimeout(logger, socketId, null);
+        }
+
+        public static void SocketConnectingCanceled(
+            this ILogger logger, int socketId)
+        {
+            _connectingCanceled(logger, socketId, null);
         }
     }
 }

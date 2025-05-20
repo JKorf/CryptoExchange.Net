@@ -98,9 +98,9 @@ namespace CryptoExchange.Net.Testing
             {
                 var task = methodInvoke(_client, x => { update = x.Data; });
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-
+                throw;
             }
 
             var replaceValues = new Dictionary<string, string>();

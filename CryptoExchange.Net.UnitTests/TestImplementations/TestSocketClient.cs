@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public CallResult ConnectSocketSub(SocketConnection sub)
         {
-            return ConnectSocketAsync(sub).Result;
+            return ConnectSocketAsync(sub, default).Result;
         }
 
         public override string GetListenerIdentifier(IMessageAccessor message)

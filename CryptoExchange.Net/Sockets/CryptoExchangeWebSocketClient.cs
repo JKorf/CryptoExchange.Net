@@ -166,9 +166,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public virtual async Task<CallResult> ConnectAsync()
+        public virtual async Task<CallResult> ConnectAsync(CancellationToken ct)
         {
-            var connectResult = await ConnectInternalAsync().ConfigureAwait(false);
+            var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
             if (!connectResult)
                 return connectResult;
             
@@ -215,7 +215,7 @@ namespace CryptoExchange.Net.Sockets
             return socket;
         }
 
-        private async Task<CallResult> ConnectInternalAsync()
+        private async Task<CallResult> ConnectInternalAsync(CancellationToken ct)
         {
             _logger.SocketConnecting(Id);
             try
@@ -229,12 +229,16 @@ namespace CryptoExchange.Net.Sockets
                 }
 
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
-                using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token);
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token, ct);
                 await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                if (!_ctsSource.IsCancellationRequested)
+                if (ct.IsCancellationRequested)
+                {
+                    _logger.SocketConnectingCanceled(Id);
+                }
+                else if (!_ctsSource.IsCancellationRequested)
                 {
                     // if _ctsSource was canceled this was already logged
                     _logger.SocketConnectionFailed(Id, e.Message, e);
@@ -325,7 +329,7 @@ namespace CryptoExchange.Net.Sockets
                     while (_sendBuffer.TryDequeue(out _)) { } // Clear send buffer
 
                     _reconnectAttempt++;
-                    var connected = await ConnectInternalAsync().ConfigureAwait(false);
+                    var connected = await ConnectInternalAsync(default).ConfigureAwait(false);
                     if (!connected)
                     {
                         // Delay between reconnect attempts

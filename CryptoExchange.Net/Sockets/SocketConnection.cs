@@ -571,7 +571,7 @@ namespace CryptoExchange.Net.Sockets
         /// Connect the websocket
         /// </summary>
         /// <returns></returns>
-        public async Task<CallResult> ConnectAsync() => await _socket.ConnectAsync().ConfigureAwait(false);
+        public async Task<CallResult> ConnectAsync(CancellationToken ct) => await _socket.ConnectAsync(ct).ConfigureAwait(false);
 
         /// <summary>
         /// Retrieve the underlying socket

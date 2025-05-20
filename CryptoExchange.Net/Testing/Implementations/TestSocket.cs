@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
@@ -50,7 +51,7 @@ namespace CryptoExchange.Net.Testing.Implementations
             }
         }
 
-        public Task<CallResult> ConnectAsync()
+        public Task<CallResult> ConnectAsync(CancellationToken ct)
         {
             Connected = CanConnect;
             return Task.FromResult(CanConnect ? new CallResult(null) : new CallResult(new CantConnectError()));

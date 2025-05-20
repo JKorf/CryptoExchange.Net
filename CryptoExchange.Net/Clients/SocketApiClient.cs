@@ -244,7 +244,7 @@ namespace CryptoExchange.Net.Clients
 
                     var needsConnecting = !socketConnection.Connected;
 
-                    var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated).ConfigureAwait(false);
+                    var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated, ct).ConfigureAwait(false);
                     if (!connectResult)
                         return new CallResult<UpdateSubscription>(connectResult.Error!);
 
@@ -268,7 +268,7 @@ namespace CryptoExchange.Net.Clients
             if (subQuery != null)
             {
                 // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent).ConfigureAwait(false);
+                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent, ct).ConfigureAwait(false);
                 if (!subResult)
                 {
                     waitEvent?.Set();
@@ -352,7 +352,7 @@ namespace CryptoExchange.Net.Clients
                     released = true;
                 }
 
-                var connectResult = await ConnectIfNeededAsync(socketConnection, query.Authenticated).ConfigureAwait(false);
+                var connectResult = await ConnectIfNeededAsync(socketConnection, query.Authenticated, ct).ConfigureAwait(false);
                 if (!connectResult)
                     return new CallResult<THandlerResponse>(connectResult.Error!);
             }
@@ -379,13 +379,14 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="socket">The connection to check</param>
         /// <param name="authenticated">Whether the socket should authenticated</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult> ConnectIfNeededAsync(SocketConnection socket, bool authenticated)
+        protected virtual async Task<CallResult> ConnectIfNeededAsync(SocketConnection socket, bool authenticated, CancellationToken ct)
         {
             if (socket.Connected)
                 return CallResult.SuccessResult;
 
-            var connectResult = await ConnectSocketAsync(socket).ConfigureAwait(false);
+            var connectResult = await ConnectSocketAsync(socket, ct).ConfigureAwait(false);
             if (!connectResult)
                 return connectResult;
 
@@ -579,10 +580,11 @@ namespace CryptoExchange.Net.Clients
         /// Connect a socket
         /// </summary>
         /// <param name="socketConnection">The socket to connect</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult> ConnectSocketAsync(SocketConnection socketConnection)
+        protected virtual async Task<CallResult> ConnectSocketAsync(SocketConnection socketConnection, CancellationToken ct)
         {
-            var connectResult = await socketConnection.ConnectAsync().ConfigureAwait(false);
+            var connectResult = await socketConnection.ConnectAsync(ct).ConfigureAwait(false);
             if (connectResult)
             {
                 socketConnections.TryAdd(socketConnection.SocketId, socketConnection);
@@ -714,7 +716,7 @@ namespace CryptoExchange.Net.Clients
                 if (!socketResult)
                     return socketResult.AsDataless();
 
-                var connectResult = await ConnectIfNeededAsync(socketResult.Data, item.Authenticated).ConfigureAwait(false);
+                var connectResult = await ConnectIfNeededAsync(socketResult.Data, item.Authenticated, default).ConfigureAwait(false);
                 if (!connectResult)
                     return new CallResult(connectResult.Error!);
             }

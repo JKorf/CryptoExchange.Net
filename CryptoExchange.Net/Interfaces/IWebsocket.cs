@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
 using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -75,7 +76,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Connect the socket
         /// </summary>
         /// <returns></returns>
-        Task<CallResult> ConnectAsync();
+        Task<CallResult> ConnectAsync(CancellationToken ct);
         /// <summary>
         /// Send data
         /// </summary>
