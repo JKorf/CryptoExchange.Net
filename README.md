@@ -57,6 +57,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.0.1 - 20 May 2025
+    * Improved response time on CancellationToken cancel during subscribing
+    * Added support for sending query without expecting a response
+
 * Version 9.0.0 - 13 May 2025
     * Added support for Native AOT compilation
     * Updated all IEnumerable response types to array response types
