@@ -57,6 +57,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.1.0 - 28 May 2025
+    * Added JsonConverter implementation for SharedQuantity and SharedSymbol types, making usage of the types easier
+    * Updated dotnet dependency packages from 9.0.0 to 9.0.5
+    * Replaced Microsoft.Extensions.Logging.Abstractions with Microsoft.Extensions.Logging
+    * Replaced Microsoft.Extensions.Options.ConfigurationExtensions with Microsoft.Extensions.Configuration.Binder, which includes a source generator for AOT publishing
+    * Removed redundant Microsoft.Extensions.DependencyInjection.Abstractions package reference
+
 * Version 9.0.1 - 20 May 2025
     * Improved response time on CancellationToken cancel during subscribing
     * Added support for sending query without expecting a response
