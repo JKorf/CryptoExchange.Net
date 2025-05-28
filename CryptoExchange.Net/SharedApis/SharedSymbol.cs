@@ -1,12 +1,15 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A symbol representation based on a base and quote asset
     /// </summary>
+    [JsonConverter(typeof(SharedSymbolConverter))]
     public record SharedSymbol
     {
         /// <summary>

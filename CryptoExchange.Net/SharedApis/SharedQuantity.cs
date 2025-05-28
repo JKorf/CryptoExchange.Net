@@ -1,6 +1,8 @@
-﻿using System;
+﻿using CryptoExchange.Net.Converters.SystemTextJson;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -25,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        protected SharedQuantityReference(decimal? baseAssetQuantity, decimal? quoteAssetQuantity, decimal? contractQuantity)
+        internal SharedQuantityReference(decimal? baseAssetQuantity, decimal? quoteAssetQuantity, decimal? contractQuantity)
         {
             QuantityInBaseAsset = baseAssetQuantity;
             QuantityInQuoteAsset = quoteAssetQuantity;
@@ -36,12 +38,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Quantity for an order
     /// </summary>
+    [JsonConverter(typeof(SharedQuantityConverter))]
     public record SharedQuantity : SharedQuantityReference
     {
         private SharedQuantity(decimal? baseAssetQuantity, decimal? quoteAssetQuantity, decimal? contractQuantity)
             : base(baseAssetQuantity, quoteAssetQuantity, contractQuantity)
         {
         }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SharedQuantity() : base(null, null, null) { }
 
         /// <summary>
         /// Specify quantity in base asset
@@ -98,6 +106,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Order quantity
     /// </summary>
+    [JsonConverter(typeof(SharedOrderQuantityConverter))]
     public record SharedOrderQuantity : SharedQuantityReference
     {
         /// <summary>
