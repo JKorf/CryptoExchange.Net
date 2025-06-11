@@ -17,6 +17,7 @@
 @inject IKucoinRestClient kucoinClient
 @inject IMexcRestClient mexcClient
 @inject IOKXRestClient okxClient
+@inject IToobitRestClient toobitClient
 @inject IWhiteBitRestClient whitebitClient
 @inject IXTRestClient xtClient
 
@@ -48,9 +49,10 @@
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
-        var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTCUSDT");
+        var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var toobitTask = toobitClient.SpotApi.ExchangeData.GetTickersAsync("BTCUSDT");
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
-        var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("eth_btc");
+        var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
         await Task.WhenAll(binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bybitTask, coinexTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, mexcTask, okxTask);
 
@@ -115,6 +117,9 @@
 
         if (okxTask.Result.Success)
             _prices.Add("OKX", okxTask.Result.Data.LastPrice ?? 0);
+
+        if (toobitTask.Result.Success)
+            _prices.Add("Toobit", toobitTask.Result.Data.Single().LastPrice ?? 0);
 
         if (whitebitTask.Result.Success){
             // WhiteBit API doesn't offer an endpoint to filter for a specific ticker, so we have to filter client side

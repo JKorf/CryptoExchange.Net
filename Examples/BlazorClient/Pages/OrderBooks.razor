@@ -22,6 +22,7 @@
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Toobit.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
 @inject IBinanceOrderBookFactory binanceFactory
@@ -42,6 +43,7 @@
 @inject IKucoinOrderBookFactory kucoinFactory
 @inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
+@inject IToobitOrderBookFactory toobitFactory
 @inject IWhiteBitOrderBookFactory whitebitFactory
 @inject IXTOrderBookFactory xtFactory
 @implements IDisposable
@@ -97,6 +99,8 @@
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
+                // Toobit does not support the ETH/BTC pair
+                //{ "Toobit", toobitFactory.Create("ETH/BTC") },
                 { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
                 { "XT", xtFactory.CreateSpot("eth_btc") },
             };

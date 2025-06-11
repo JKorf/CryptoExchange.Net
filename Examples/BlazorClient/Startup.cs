@@ -50,6 +50,7 @@ namespace BlazorClient
             services.AddKucoin();
             services.AddMexc();
             services.AddOKX();
+            services.AddToobit();
             services.AddWhiteBit();
             services.AddXT();
         }

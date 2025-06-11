@@ -23,6 +23,7 @@
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Toobit.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
 @inject IBinanceTrackerFactory binanceFactory
@@ -43,6 +44,7 @@
 @inject IKucoinTrackerFactory kucoinFactory
 @inject IMexcTrackerFactory mexcFactory
 @inject IOKXTrackerFactory okxFactory
+@inject IToobitTrackerFactory toobitFactory
 @inject IWhiteBitTrackerFactory whitebitFactory
 @inject IXTTrackerFactory xtFactory
 @implements IDisposable
@@ -90,6 +92,7 @@
                 { kucoinFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { mexcFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { okxFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
+                { toobitFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { whitebitFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { xtFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
             };
