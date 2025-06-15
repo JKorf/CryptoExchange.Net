@@ -13,9 +13,9 @@ namespace CryptoExchange.Net.Interfaces
     public interface IMessageAccessor
     {
         /// <summary>
-        /// Is this a json message
+        /// Is this a valid message
         /// </summary>
-        bool IsJson { get; }
+        bool IsValid { get; }
         /// <summary>
         /// Is the original data available for retrieval
         /// </summary>

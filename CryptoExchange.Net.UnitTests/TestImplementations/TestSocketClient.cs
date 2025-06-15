@@ -119,7 +119,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public override string GetListenerIdentifier(IMessageAccessor message)
         {
-            if (!message.IsJson)
+            if (!message.IsValid)
             {
                 return "topic";
             }

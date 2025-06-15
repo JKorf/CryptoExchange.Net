@@ -138,7 +138,7 @@ namespace CryptoExchange.Net.Clients
         /// Create a message accessor instance
         /// </summary>
         /// <returns></returns>
-        protected internal abstract IByteMessageAccessor CreateAccessor();
+        protected internal abstract IByteMessageAccessor CreateAccessor(WebSocketMessageType messageType);
 
         /// <summary>
         /// Create a serializer instance
