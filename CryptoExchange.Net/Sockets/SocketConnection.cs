@@ -465,7 +465,7 @@ namespace CryptoExchange.Net.Sockets
             else
                 accessor = _byteMessageAccessor ??= ApiClient.CreateAccessor(type);
 
-            accessor.Read(data);
+            var result = accessor.Read(data);
             try
             {
                 bool outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
@@ -473,6 +473,12 @@ namespace CryptoExchange.Net.Sockets
                 {
                     originalData = accessor.GetOriginalString();
                     _logger.ReceivedData(SocketId, originalData);
+                }
+
+                if (!accessor.IsValid)
+                {
+                    _logger.FailedToParse(SocketId, result.Error!.Message);
+                    return;
                 }
 
                 // 3. Determine the identifying properties of this message

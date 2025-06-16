@@ -348,6 +348,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         {
             _stream?.Dispose();
             _stream = null;
+            _intermediateType = default;
         }
 
     }
@@ -464,7 +465,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             {
                 // Not a json message
                 IsValid = false;
-                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
+                return new CallResult(new DeserializeError("ProtobufError: " + ex.Message, ex));
             }
         }
 
@@ -484,6 +485,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         public override void Clear()
         {
             _bytes = null;
+            _intermediateType = default;
         }
     }
 }

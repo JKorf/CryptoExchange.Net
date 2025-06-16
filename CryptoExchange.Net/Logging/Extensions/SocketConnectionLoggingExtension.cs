@@ -15,6 +15,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, string?, Exception?> _webSocketError;
         private static readonly Action<ILogger, int, int, Exception?> _messageSentNotPending;
         private static readonly Action<ILogger, int, string, Exception?> _receivedData;
+        private static readonly Action<ILogger, int, string, Exception?> _failedToParse;
         private static readonly Action<ILogger, int, string, Exception?> _failedToEvaluateMessage;
         private static readonly Action<ILogger, int, Exception?> _errorProcessingMessage;
         private static readonly Action<ILogger, int, int, string, Exception?> _processorMatched;
@@ -189,6 +190,11 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Warning,
                 new EventId(2029, "ReceivedMessageNotMatchedToAnyListener"),
                 "[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}");
+
+            _failedToParse = LoggerMessage.Define<int, string>(
+                LogLevel.Warning,
+                new EventId(2030, "FailedToParse"),
+                "[Sckt {SocketId}] failed to parse data: {Error}");
         }
 
         public static void ActivityPaused(this ILogger logger, int socketId, bool paused)
@@ -230,6 +236,12 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _receivedData(logger, socketId, originalData, null);
         }
+
+        public static void FailedToParse(this ILogger logger, int socketId, string error)
+        {
+            _failedToParse(logger, socketId, error, null);
+        }
+
         public static void FailedToEvaluateMessage(this ILogger logger, int socketId, string originalData)
         {
             _failedToEvaluateMessage(logger, socketId, originalData, null);
