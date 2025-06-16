@@ -19,22 +19,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.String)
             {
                 var value = reader.GetString();
-                if (string.IsNullOrEmpty(value) || string.Equals("null", value, StringComparison.OrdinalIgnoreCase))
-                    return null;
-
-                if (string.Equals("Infinity", value, StringComparison.Ordinal))
-                    // Infinity returned by the server, default to max value
-                    return decimal.MaxValue;
-
-                try
-                {
-                    return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
-                }
-                catch(OverflowException)
-                {
-                    // Value doesn't fit decimal, default to max value
-                    return decimal.MaxValue;
-                }
+                return ExchangeHelpers.ParseDecimal(value);
             }
 
             try

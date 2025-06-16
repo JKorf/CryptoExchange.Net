@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.Interfaces
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Serializer interface
@@ -7,6 +9,9 @@
     {
     }
 
+    /// <summary>
+    /// Serialize to byte array
+    /// </summary>
     public interface IByteMessageSerializer: IMessageSerializer
     {
         /// <summary>
@@ -17,7 +22,9 @@
         byte[] Serialize<T>(T message);
     }
 
-
+    /// <summary>
+    /// Serialize to string
+    /// </summary>
     public interface IStringMessageSerializer: IMessageSerializer
     {
         /// <summary>

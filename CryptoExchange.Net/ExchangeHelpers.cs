@@ -2,6 +2,7 @@
 using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
@@ -340,6 +341,29 @@ namespace CryptoExchange.Net
             adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, minNotionalAdjust ? RoundingType.Up : RoundingType.Down, adjustedQuantity);
             adjustedQuantity = symbol.QuantityDecimals.HasValue ? (minNotionalAdjust ? RoundUp(adjustedQuantity, symbol.QuantityDecimals.Value) : RoundDown(adjustedQuantity, symbol.QuantityDecimals.Value)) : adjustedQuantity;
 
+        }
+
+        /// <summary>
+        /// Parse a decimal value from a string
+        /// </summary>
+        public static decimal? ParseDecimal(string? value)
+        {
+            if (string.IsNullOrEmpty(value) || string.Equals("null", value, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            if (string.Equals("Infinity", value, StringComparison.Ordinal))
+                // Infinity returned by the server, default to max value
+                return decimal.MaxValue;
+
+            try
+            {
+                return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
+            }
+            catch (OverflowException)
+            {
+                // Value doesn't fit decimal, default to max value
+                return decimal.MaxValue;
+            }
         }
     }
 }

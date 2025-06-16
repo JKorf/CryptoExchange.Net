@@ -211,8 +211,8 @@ namespace CryptoExchange.Net.Sockets
         private SocketStatus _status;
 
         private readonly IMessageSerializer _serializer;
-        private IByteMessageAccessor _stringMessageAccessor;
-        private IByteMessageAccessor _byteMessageAccessor;
+        private IByteMessageAccessor? _stringMessageAccessor;
+        private IByteMessageAccessor? _byteMessageAccessor;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
