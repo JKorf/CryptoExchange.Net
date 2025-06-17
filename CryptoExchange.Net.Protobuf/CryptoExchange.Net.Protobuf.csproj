@@ -29,6 +29,9 @@
 		<None Include="..\CryptoExchange.Net\Icon\icon.png" Pack="true" PackagePath="\" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
+	<PropertyGroup Label="AOT" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
 	<PropertyGroup Label="Deterministic Build" Condition="'$(Configuration)' == 'Release'">
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -39,6 +42,9 @@
 	<PropertyGroup>
 		<DocumentationFile>CryptoExchange.Net.Protobuf.xml</DocumentationFile>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="protobuf-net" Version="3.2.52" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CryptoExchange.Net\CryptoExchange.Net.csproj" />

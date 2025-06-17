@@ -9,17 +9,21 @@ namespace CryptoExchange.Net.Converters.Protobuf
     /// <inheritdoc />
     public class ProtobufMessageSerializer : IByteMessageSerializer
     {
-        private readonly RuntimeTypeModel _model = RuntimeTypeModel.Create("CryptoExchange");
+        private RuntimeTypeModel _model;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public ProtobufMessageSerializer()
+        public ProtobufMessageSerializer(RuntimeTypeModel model)
         {
-            _model.UseImplicitZeroDefaults = false;
+            _model = model;
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
 #if NET5_0_OR_GREATER
         public byte[] Serialize<
             [DynamicallyAccessedMembers(

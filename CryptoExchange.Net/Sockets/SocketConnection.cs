@@ -480,6 +480,14 @@ namespace CryptoExchange.Net.Sockets
                     _logger.FailedToParse(SocketId, result.Error!.Message);
                     return;
                 }
+                else
+                {
+                    try
+                    {
+                        _logger.LogInformation("Valid: " + accessor.Underlying);
+                    }
+                    catch (Exception) { }
+                }
 
                 // 3. Determine the identifying properties of this message
                 var listenId = ApiClient.GetListenerIdentifier(accessor);

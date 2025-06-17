@@ -40,6 +40,10 @@ namespace CryptoExchange.Net.Converters.Protobuf
         /// The intermediate deserialization object
         /// </summary>
         protected TIntermediateType? _intermediateType;
+        /// <summary>
+        /// Runtime type model
+        /// </summary>
+        protected RuntimeTypeModel _model;
 
         /// <inheritdoc />
         public bool IsValid { get; set; }
@@ -48,19 +52,20 @@ namespace CryptoExchange.Net.Converters.Protobuf
         public abstract bool OriginalDataAvailable { get; }
 
         /// <inheritdoc />
-        public object? Underlying => throw new NotImplementedException();
+        public object? Underlying => _intermediateType;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public ProtobufMessageAccessor()
+        public ProtobufMessageAccessor(RuntimeTypeModel model)
         {
+            _model = model;
         }
 
         /// <inheritdoc />
         public NodeType? GetNodeType()
         {
-            throw new Exception("");
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -82,7 +87,9 @@ namespace CryptoExchange.Net.Converters.Protobuf
                 else if (step.Type == 1)
                 {
                     // property value
+#pragma warning disable IL2075 // Type is already annotated
                     value = value.GetType().GetProperty(step.Property!)?.GetValue(value);
+#pragma warning restore
                 }
                 else
                 {
@@ -136,7 +143,9 @@ namespace CryptoExchange.Net.Converters.Protobuf
                 else if (step.Type == 1)
                 {
                     // property value
+#pragma warning disable IL2075 // Type is already annotated
                     value = value.GetType().GetProperty(step.Property!)?.GetValue(value);
+#pragma warning restore
                 }
                 else
                 {
@@ -150,8 +159,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         /// <inheritdoc />
         public T?[]? GetValues<T>(MessagePath path)
         {
-            throw new Exception("");
-
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -161,6 +169,10 @@ namespace CryptoExchange.Net.Converters.Protobuf
         public abstract void Clear();
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public abstract CallResult<object> Deserialize(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(
@@ -181,10 +193,13 @@ namespace CryptoExchange.Net.Converters.Protobuf
         Type type, MessagePath? path = null);
 
         /// <inheritdoc />
-        public abstract CallResult<T> Deserialize<
-
 #if NET5_0_OR_GREATER
-            [DynamicallyAccessedMembers(
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
+        public abstract CallResult<T> Deserialize<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(
 #if NET8_0_OR_GREATER
             DynamicallyAccessedMemberTypes.NonPublicConstructors |
             DynamicallyAccessedMemberTypes.PublicFields |
@@ -232,11 +247,15 @@ namespace CryptoExchange.Net.Converters.Protobuf
         /// <summary>
         /// ctor
         /// </summary>
-        public ProtobufStreamMessageAccessor(): base()
+        public ProtobufStreamMessageAccessor(RuntimeTypeModel model) : base(model)
         {
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public override CallResult<object> Deserialize(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(
@@ -258,7 +277,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         {
             try
             {
-                var result = Serializer.Deserialize(type, _stream);
+                var result = _model.Deserialize(type, _stream);
                 return new CallResult<object>(result);
             }
             catch (Exception ex)
@@ -268,6 +287,10 @@ namespace CryptoExchange.Net.Converters.Protobuf
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public override CallResult<T> Deserialize<            
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(
@@ -289,7 +312,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         {
             try
             {
-                var result = Serializer.Deserialize<T>(_stream);
+                var result = _model.Deserialize<T>(_stream);
                 return new CallResult<T>(result);
             }
             catch(Exception ex)
@@ -320,7 +343,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
 
             try
             {
-                _intermediateType = Serializer.Deserialize<TIntermediate>(_stream);
+                _intermediateType = _model.Deserialize<TIntermediate>(_stream);
                 IsValid = true;
                 return Task.FromResult(CallResult.SuccessResult);
             }
@@ -328,7 +351,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             {
                 // Not a json message
                 IsValid = false;
-                return Task.FromResult(new CallResult(new DeserializeError("JsonError: " + ex.Message, ex)));
+                return Task.FromResult(new CallResult(new DeserializeError("ProtoBufError: " + ex.Message, ex)));
             }
         }
 
@@ -380,11 +403,15 @@ namespace CryptoExchange.Net.Converters.Protobuf
         /// <summary>
         /// ctor
         /// </summary>
-        public ProtobufByteMessageAccessor() : base()
+        public ProtobufByteMessageAccessor(RuntimeTypeModel model) : base(model)
         {
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public override CallResult<object> Deserialize(
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(
@@ -408,7 +435,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             {
                 using var stream = new MemoryStream(_bytes.ToArray());
                 stream.Position = 0;
-                var result = Serializer.Deserialize(type, stream);
+                var result = _model.Deserialize(type, stream);
                 return new CallResult<object>(result);
             }
             catch (Exception ex)
@@ -418,6 +445,10 @@ namespace CryptoExchange.Net.Converters.Protobuf
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
 #if NET5_0_OR_GREATER
         public override CallResult<T> Deserialize<
             [DynamicallyAccessedMembers(
@@ -441,7 +472,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
         {
             try
             {
-                var result = Serializer.Deserialize<T>(_bytes);
+                var result = _model.Deserialize<T>(_bytes);
                 return new CallResult<T>(result);
             }
             catch (Exception ex)
@@ -457,7 +488,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
 
             try
             {
-                _intermediateType = Serializer.Deserialize<TIntermediate>(data);
+                _intermediateType = _model.Deserialize<TIntermediate>(data);
                 IsValid = true;
                 return CallResult.SuccessResult;
             }
