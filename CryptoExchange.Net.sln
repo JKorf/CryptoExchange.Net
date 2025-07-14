@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleClient", "Examples\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedClients", "Examples\SharedClients\SharedClients.csproj", "{988A87EF-EAEA-4313-A6CF-FA869813D5AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoExchange.Net.Protobuf", "CryptoExchange.Net.Protobuf\CryptoExchange.Net.Protobuf.csproj", "{CC6A807A-9183-6F41-8EF1-8A70172B0E83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{988A87EF-EAEA-4313-A6CF-FA869813D5AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC6A807A-9183-6F41-8EF1-8A70172B0E83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC6A807A-9183-6F41-8EF1-8A70172B0E83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC6A807A-9183-6F41-8EF1-8A70172B0E83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC6A807A-9183-6F41-8EF1-8A70172B0E83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
