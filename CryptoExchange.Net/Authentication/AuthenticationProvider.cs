@@ -465,10 +465,13 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected static string GetSerializedBody(IMessageSerializer serializer, IDictionary<string, object> parameters)
         {
+            if (serializer is not IStringMessageSerializer stringSerializer)
+                throw new InvalidOperationException("Non-string message serializer can't get serialized request body");
+
             if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
-                return serializer.Serialize(value);
+                return stringSerializer.Serialize(value);
             else
-                return serializer.Serialize(parameters);
+                return stringSerializer.Serialize(parameters);
         }
     }
 

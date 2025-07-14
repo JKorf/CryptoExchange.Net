@@ -67,6 +67,17 @@ namespace CryptoExchange.Net.Testing.Implementations
             return true;
         }
 
+        public bool Send(int requestId, byte[] data, int weight)
+        {
+            if (!Connected)
+                throw new Exception("Socket not connected");
+
+            OnRequestSent?.Invoke(requestId);
+            OnMessageSend?.Invoke(Encoding.UTF8.GetString(data));
+            return true;
+        }
+
+
         public Task CloseAsync()
         {
             Connected = false;

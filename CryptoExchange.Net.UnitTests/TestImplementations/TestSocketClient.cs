@@ -17,6 +17,7 @@ using CryptoExchange.Net.Testing.Implementations;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
 using CryptoExchange.Net.Converters.SystemTextJson;
+using System.Net.WebSockets;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -98,7 +99,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         }
 
-        protected internal override IByteMessageAccessor CreateAccessor() => new SystemTextJsonByteMessageAccessor(new System.Text.Json.JsonSerializerOptions());
+        protected internal override IByteMessageAccessor CreateAccessor(WebSocketMessageType type) => new SystemTextJsonByteMessageAccessor(new System.Text.Json.JsonSerializerOptions());
         protected internal override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
 
         /// <inheritdoc />
@@ -119,7 +120,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
         public override string GetListenerIdentifier(IMessageAccessor message)
         {
-            if (!message.IsJson)
+            if (!message.IsValid)
             {
                 return "topic";
             }

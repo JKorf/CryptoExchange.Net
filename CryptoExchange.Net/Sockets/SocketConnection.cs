@@ -211,7 +211,8 @@ namespace CryptoExchange.Net.Sockets
         private SocketStatus _status;
 
         private readonly IMessageSerializer _serializer;
-        private readonly IByteMessageAccessor _accessor;
+        private IByteMessageAccessor? _stringMessageAccessor;
+        private IByteMessageAccessor? _byteMessageAccessor;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
@@ -258,7 +259,6 @@ namespace CryptoExchange.Net.Sockets
             _listeners = new List<IMessageProcessor>();
 
             _serializer = apiClient.CreateSerializer();
-            _accessor = apiClient.CreateAccessor();
         }
 
         /// <summary>
@@ -459,25 +459,37 @@ namespace CryptoExchange.Net.Sockets
             data = ApiClient.PreprocessStreamMessage(this, type, data);
 
             // 2. Read data into accessor
-            _accessor.Read(data);
+            IByteMessageAccessor accessor;
+            if (type == WebSocketMessageType.Binary)
+                accessor = _stringMessageAccessor ??= ApiClient.CreateAccessor(type);
+            else
+                accessor = _byteMessageAccessor ??= ApiClient.CreateAccessor(type);
+
+            var result = accessor.Read(data);
             try
             {
                 bool outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
                 if (outputOriginalData)
                 {
-                    originalData = _accessor.GetOriginalString();
+                    originalData = accessor.GetOriginalString();
                     _logger.ReceivedData(SocketId, originalData);
                 }
 
+                if (!accessor.IsValid)
+                {
+                    _logger.FailedToParse(SocketId, result.Error!.Message);
+                    return;
+                }
+
                 // 3. Determine the identifying properties of this message
-                var listenId = ApiClient.GetListenerIdentifier(_accessor);
+                var listenId = ApiClient.GetListenerIdentifier(accessor);
                 if (listenId == null)
                 {
-                    originalData = outputOriginalData ? _accessor.GetOriginalString() : "[OutputOriginalData is false]";
+                    originalData = outputOriginalData ? accessor.GetOriginalString() : "[OutputOriginalData is false]";
                     if (!ApiClient.UnhandledMessageExpected)
                         _logger.FailedToEvaluateMessage(SocketId, originalData);
 
-                    UnhandledMessage?.Invoke(_accessor);
+                    UnhandledMessage?.Invoke(accessor);
                     return;
                 }
 
@@ -494,7 +506,7 @@ namespace CryptoExchange.Net.Sockets
                         lock (_listenersLock)
                             listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
                         _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
-                        UnhandledMessage?.Invoke(_accessor);
+                        UnhandledMessage?.Invoke(accessor);
                     }
 
                     return;
@@ -512,7 +524,7 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var processor in processors)
                 {
                     // 5. Determine the type to deserialize to for this processor
-                    var messageType = processor.GetMessageType(_accessor);
+                    var messageType = processor.GetMessageType(accessor);
                     if (messageType == null)
                     {
                         _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
@@ -532,7 +544,7 @@ namespace CryptoExchange.Net.Sockets
 
                     if (deserialized == null)
                     {
-                        var desResult = processor.Deserialize(_accessor, messageType);
+                        var desResult = processor.Deserialize(accessor, messageType);
                         if (!desResult)
                         {
                             _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
@@ -563,7 +575,7 @@ namespace CryptoExchange.Net.Sockets
             }
             finally
             {
-                _accessor.Clear();
+                accessor.Clear();
             }
         }
 
@@ -825,8 +837,55 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="weight">The weight of the message</param>
         public virtual CallResult Send<T>(int requestId, T obj, int weight)
         {
-            var data = obj is string str ? str : _serializer.Serialize(obj!);
-            return Send(requestId, data, weight);
+            if (_serializer is IByteMessageSerializer byteSerializer)
+            {
+                return SendBytes(requestId, byteSerializer.Serialize(obj), weight);
+            }
+            else if (_serializer is IStringMessageSerializer stringSerializer)
+            {
+                if (obj is string str)
+                    return Send(requestId, str, weight);
+
+                str = stringSerializer.Serialize(obj);
+                return Send(requestId, str, weight);
+            }
+
+            throw new Exception("Unknown serializer when sending message");
+        }
+
+        /// <summary>
+        /// Send byte data over the websocket connection
+        /// </summary>
+        /// <param name="data">The data to send</param>
+        /// <param name="weight">The weight of the message</param>
+        /// <param name="requestId">The id of the request</param>
+        public virtual CallResult SendBytes(int requestId, byte[] data, int weight)
+        {
+            if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
+            {
+                var info = $"Message to send exceeds the max server message size ({ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
+                return new CallResult(new InvalidOperationError(info));
+            }
+
+            if (!_socket.IsOpen)
+            {
+                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
+                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+            }
+
+            _logger.SendingByteData(SocketId, requestId, data.Length);
+            try
+            {
+                if (!_socket.Send(requestId, data, weight))
+                    return new CallResult(new WebError("Failed to send message, connection not open"));
+
+                return CallResult.SuccessResult;
+            }
+            catch (Exception ex)
+            {
+                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
+            }
         }
 
         /// <summary>

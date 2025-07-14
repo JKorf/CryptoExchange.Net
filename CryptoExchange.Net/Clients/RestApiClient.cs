@@ -603,12 +603,16 @@ namespace CryptoExchange.Net.Clients
         {
             if (contentType == Constants.JsonContentHeader)
             {
+                var serializer = CreateSerializer();
+                if (serializer is not IStringMessageSerializer stringSerializer)
+                    throw new InvalidOperationException("Non-string message serializer can't get serialized request body");
+
                 // Write the parameters as json in the body
                 string stringData;
                 if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
-                    stringData = CreateSerializer().Serialize(value);
+                    stringData = stringSerializer.Serialize(value);
                 else
-                    stringData = CreateSerializer().Serialize(parameters);
+                    stringData = stringSerializer.Serialize(parameters);
                 request.SetContent(stringData, contentType);
             }
             else if (contentType == Constants.FormContentHeader)

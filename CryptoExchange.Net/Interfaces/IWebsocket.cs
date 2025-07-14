@@ -78,12 +78,19 @@ namespace CryptoExchange.Net.Interfaces
         /// <returns></returns>
         Task<CallResult> ConnectAsync(CancellationToken ct);
         /// <summary>
-        /// Send data
+        /// Send string data
         /// </summary>
         /// <param name="id"></param>
         /// <param name="data"></param>
         /// <param name="weight"></param>
         bool Send(int id, string data, int weight);
+        /// <summary>
+        /// Send byte data
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="data"></param>
+        /// <param name="weight"></param>
+        bool Send(int id, byte[] data, int weight);
         /// <summary>
         /// Reconnect the socket
         /// </summary>

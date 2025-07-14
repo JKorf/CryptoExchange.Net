@@ -377,7 +377,19 @@ namespace CryptoExchange.Net.Sockets
 
             var bytes = Parameters.Encoding.GetBytes(data);
             _logger.SocketAddingBytesToSendBuffer(Id, id, bytes);
-            _sendBuffer.Enqueue(new SendItem { Id = id, Weight = weight, Bytes = bytes });
+            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Text, Weight = weight, Bytes = bytes });
+            _sendEvent.Set();
+            return true;
+        }
+
+        /// <inheritdoc />
+        public virtual bool Send(int id, byte[] data, int weight)
+        {
+            if (_ctsSource.IsCancellationRequested || _processState != ProcessState.Processing)
+                return false;
+
+            _logger.SocketAddingBytesToSendBuffer(Id, id, data);
+            _sendBuffer.Enqueue(new SendItem { Id = id, Type = WebSocketMessageType.Binary, Weight = weight, Bytes = data });
             _sendEvent.Set();
             return true;
         }
@@ -532,7 +544,7 @@ namespace CryptoExchange.Net.Sockets
 
                         try
                         {
-                            await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
+                            await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), data.Type, true, _ctsSource.Token).ConfigureAwait(false);
                             await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
                             _logger.SocketSentBytes(Id, data.Id, data.Bytes.Length);
                         }
@@ -857,6 +869,11 @@ namespace CryptoExchange.Net.Sockets
         /// Timestamp the request was sent
         /// </summary>
         public DateTime SendTime { get; set; }
+
+        /// <summary>
+        /// Message type
+        /// </summary>
+        public WebSocketMessageType Type { get; set; }
 
         /// <summary>
         /// The bytes to send

@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,9 +14,9 @@ namespace CryptoExchange.Net.Interfaces
     public interface IMessageAccessor
     {
         /// <summary>
-        /// Is this a json message
+        /// Is this a valid message
         /// </summary>
-        bool IsJson { get; }
+        bool IsValid { get; }
         /// <summary>
         /// Is the original data available for retrieval
         /// </summary>
@@ -59,12 +60,20 @@ namespace CryptoExchange.Net.Interfaces
         /// <param name="type"></param>
         /// <param name="path"></param>
         /// <returns></returns>
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         CallResult<object> Deserialize(Type type, MessagePath? path = null);
         /// <summary>
         /// Deserialize the message into this type
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         CallResult<T> Deserialize<T>(MessagePath? path = null);
 
         /// <summary>

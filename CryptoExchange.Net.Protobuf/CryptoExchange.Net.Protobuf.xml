@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CryptoExchange.Net.Protobuf</name>
+    </assembly>
+    <members>
+        <member name="T:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1">
+            <summary>
+            System.Text.Json message accessor
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1._intermediateType">
+            <summary>
+            The intermediate deserialization object
+            </summary>
+        </member>
+        <member name="F:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1._model">
+            <summary>
+            Runtime type model
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.IsValid">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.OriginalDataAvailable">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Underlying">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
+            <summary>
+            ctor
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.GetNodeType">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.GetNodeType(CryptoExchange.Net.Converters.MessageParsing.MessagePath)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.GetValue``1(CryptoExchange.Net.Converters.MessageParsing.MessagePath)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.GetValues``1(CryptoExchange.Net.Converters.MessageParsing.MessagePath)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.GetOriginalString">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Clear">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Deserialize(System.Type,System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+            
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Deserialize``1(System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1">
+            <summary>
+            System.Text.Json stream message accessor
+            </summary>
+        </member>
+        <member name="P:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.OriginalDataAvailable">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
+            <summary>
+            ctor
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.Deserialize(System.Type,System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.Deserialize``1(System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.Read(System.IO.Stream,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.GetOriginalString">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufStreamMessageAccessor`1.Clear">
+            <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1">
+            <summary>
+            Protobuf byte message accessor
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
+            <summary>
+            ctor
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.Deserialize(System.Type,System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.Deserialize``1(System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.Read(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.GetOriginalString">
+            <inheritdoc />
+        </member>
+        <member name="P:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.OriginalDataAvailable">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufByteMessageAccessor`1.Clear">
+            <inheritdoc />
+        </member>
+        <member name="T:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageSerializer">
+            <inheritdoc />
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageSerializer.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
+            <summary>
+            ctor
+            </summary>
+        </member>
+        <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageSerializer.Serialize``1(``0)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>
