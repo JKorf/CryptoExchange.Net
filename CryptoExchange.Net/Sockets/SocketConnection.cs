@@ -480,14 +480,6 @@ namespace CryptoExchange.Net.Sockets
                     _logger.FailedToParse(SocketId, result.Error!.Message);
                     return;
                 }
-                else
-                {
-                    try
-                    {
-                        _logger.LogInformation("Valid: " + accessor.Underlying);
-                    }
-                    catch (Exception) { }
-                }
 
                 // 3. Determine the identifying properties of this message
                 var listenId = ApiClient.GetListenerIdentifier(accessor);
@@ -858,7 +850,7 @@ namespace CryptoExchange.Net.Sockets
                 return Send(requestId, str, weight);
             }
 
-            throw new Exception("");
+            throw new Exception("Unknown serializer when sending message");
         }
 
         /// <summary>
@@ -882,7 +874,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
-            //_logger.SendingData(SocketId, requestId, data);
+            _logger.SendingByteData(SocketId, requestId, data.Length);
             try
             {
                 if (!_socket.Send(requestId, data, weight))

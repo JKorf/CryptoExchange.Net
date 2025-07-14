@@ -38,6 +38,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, string, string, Exception?> _periodicSendFailed;
         private static readonly Action<ILogger, int, int, string, Exception?> _sendingData;
         private static readonly Action<ILogger, int, string, string, Exception?> _receivedMessageNotMatchedToAnyListener;
+        private static readonly Action<ILogger, int, int, int, Exception?> _sendingByteData;
 
         static SocketConnectionLoggingExtension()
         {
@@ -195,6 +196,11 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Warning,
                 new EventId(2030, "FailedToParse"),
                 "[Sckt {SocketId}] failed to parse data: {Error}");
+
+            _sendingByteData = LoggerMessage.Define<int, int, int>(
+                LogLevel.Trace,
+                new EventId(2031, "SendingByteData"),
+                "[Sckt {SocketId}] [Req {RequestId}] sending byte message of length: {Length}");
         }
 
         public static void ActivityPaused(this ILogger logger, int socketId, bool paused)
@@ -332,6 +338,11 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void ReceivedMessageNotMatchedToAnyListener(this ILogger logger, int socketId, string listenId, string listenIds)
         {
             _receivedMessageNotMatchedToAnyListener(logger, socketId, listenId, listenIds, null);
+        }
+
+        public static void SendingByteData(this ILogger logger, int socketId, int requestId, int length)
+        {
+            _sendingByteData(logger, socketId, requestId, length, null);
         }
     }
 }
