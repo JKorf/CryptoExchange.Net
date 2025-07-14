@@ -53,6 +53,7 @@
         </member>
         <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Deserialize(System.Type,System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
             <inheritdoc />
+            
         </member>
         <member name="M:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1.Deserialize``1(System.Nullable{CryptoExchange.Net.Converters.MessageParsing.MessagePath})">
             <inheritdoc />

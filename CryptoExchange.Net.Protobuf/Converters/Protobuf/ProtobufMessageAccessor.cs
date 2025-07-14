@@ -125,6 +125,9 @@ namespace CryptoExchange.Net.Converters.Protobuf
 
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2075:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public T? GetValue<T>(MessagePath path)
         {
             if (_intermediateType == null)
@@ -413,7 +416,10 @@ namespace CryptoExchange.Net.Converters.Protobuf
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
 #endif
         public override CallResult<object> Deserialize(
+
 #if NET5_0_OR_GREATER
+            [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+            [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
             [DynamicallyAccessedMembers(
 #if NET8_0_OR_GREATER
             DynamicallyAccessedMemberTypes.NonPublicConstructors |
@@ -451,6 +457,8 @@ namespace CryptoExchange.Net.Converters.Protobuf
 #endif
 #if NET5_0_OR_GREATER
         public override CallResult<T> Deserialize<
+            [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2092:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+            [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2095:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
             [DynamicallyAccessedMembers(
 #if NET8_0_OR_GREATER
             DynamicallyAccessedMemberTypes.NonPublicConstructors |
