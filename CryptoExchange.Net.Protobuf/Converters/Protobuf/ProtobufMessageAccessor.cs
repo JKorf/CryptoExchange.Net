@@ -317,7 +317,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch(Exception ex)
             {
-                return new CallResult<T>(new DeserializeError(ex.Message));
+                return new CallResult<T>(new DeserializeError(ex.ToLogString()));
             }
         }
 
@@ -440,7 +440,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch (Exception ex)
             {
-                return new CallResult<object>(new DeserializeError(ex.Message));
+                return new CallResult<object>(new DeserializeError(ex.ToLogString()));
             }
         }
 
