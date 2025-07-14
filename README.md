@@ -58,6 +58,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.2.0 - 14 Jul 2025
+    * Added support for sending byte data on websocket
+    * Added support for handling both string and byte data with different IMessageAccessor types
+    * Split IMessageSerializer into IByteMessageSerializer and IStringMessageSerializer
+    * Renamed IMessageAccessor.IsJson to IsValid
+    * Refactored ArrayConverter to remove separate converter options cache
+
 * Version 9.1.0 - 28 May 2025
     * Added JsonConverter implementation for SharedQuantity and SharedSymbol types, making usage of the types easier
     * Updated dotnet dependency packages from 9.0.0 to 9.0.5
