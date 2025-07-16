@@ -199,7 +199,12 @@ namespace CryptoExchange.Net.Trackers.Trades
             _startWithSnapshot = startWithSnapshot;
             Status = SyncStatus.Syncing;
             _logger.TradeTrackerStarting(SymbolName);
-            var subResult = await DoStartAsync().ConfigureAwait(false);
+            var subResult = await _socketClient.SubscribeToTradeUpdatesAsync(new SubscribeTradeRequest(Symbol),
+                 update =>
+                 {
+                     AddData(update.Data);
+                 }).ConfigureAwait(false);
+
             if (!subResult)
             {
                 _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
@@ -211,6 +216,15 @@ namespace CryptoExchange.Net.Trackers.Trades
             _updateSubscription.ConnectionLost += HandleConnectionLost;
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
+
+            var result = await DoStartAsync().ConfigureAwait(false);
+            if (!result)
+            {
+                _ = subResult.Data.CloseAsync();
+                Status = SyncStatus.Disconnected;
+                return result;
+            }
+
             SetSyncStatus();
             _logger.TradeTrackerStarted(SymbolName);
             return CallResult.SuccessResult;
@@ -231,22 +245,10 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// The start procedure needed for trade syncing, generally subscribing to an update stream and requesting the snapshot
         /// </summary>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
+        protected virtual async Task<CallResult> DoStartAsync()
         {
-            var subResult = await _socketClient.SubscribeToTradeUpdatesAsync(new SubscribeTradeRequest(Symbol),
-                 update =>
-                 {
-                     AddData(update.Data);
-                 }).ConfigureAwait(false);
-
-            if (!subResult)
-            {
-                Status = SyncStatus.Disconnected;
-                return subResult;
-            }
-
             if (!_startWithSnapshot)
-                return subResult;
+                return CallResult.SuccessResult;
 
             if (_historyRestClient != null)
             {
@@ -256,12 +258,8 @@ namespace CryptoExchange.Net.Trackers.Trades
                 await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
                 {
                     if (!result)
-                    {
-                        _ = subResult.Data.CloseAsync();
-                        Status = SyncStatus.Disconnected;
-                        return subResult.AsError<UpdateSubscription>(result.Error!);
-                    }
-
+                        return result;
+                    
                     if (Limit != null && data.Count > Limit)
                         break;
 
@@ -279,15 +277,13 @@ namespace CryptoExchange.Net.Trackers.Trades
                 var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(Symbol, limit)).ConfigureAwait(false);
                 if (!snapshot)
                 {
-                    _ = subResult.Data.CloseAsync();
-                    Status = SyncStatus.Disconnected;
-                    return subResult.AsError<UpdateSubscription>(snapshot.Error!);
+                    return snapshot;
                 }
 
                 SetInitialData(snapshot.Data);
             }
 
-            return subResult;
+            return CallResult.SuccessResult;
         }
 
         /// <summary>

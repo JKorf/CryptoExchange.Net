@@ -176,18 +176,32 @@ namespace CryptoExchange.Net.Trackers.Klines
             Status = SyncStatus.Syncing;
             _logger.KlineTrackerStarting(SymbolName);
 
-            var startResult = await DoStartAsync().ConfigureAwait(false);
-            if (!startResult)
+            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(Symbol, _interval),
+                 update =>
+                 {
+                     AddOrUpdate(update.Data);
+                 }).ConfigureAwait(false);
+
+            if (!subResult)
             {
-                _logger.KlineTrackerStartFailed(SymbolName, startResult.Error!.Message, startResult.Error.Exception);
+                _logger.KlineTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
-                return new CallResult(startResult.Error!);
+                return subResult;
             }
 
-            _updateSubscription = startResult.Data;
+            _updateSubscription = subResult.Data;
             _updateSubscription.ConnectionLost += HandleConnectionLost;
             _updateSubscription.ConnectionClosed += HandleConnectionClosed;
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
+
+            var startResult = await DoStartAsync().ConfigureAwait(false);
+            if (!startResult)
+            {
+                _ = subResult.Data.CloseAsync();
+                Status = SyncStatus.Disconnected;                
+                return new CallResult(startResult.Error!);
+            }
+
             Status = SyncStatus.Synced;
             _logger.KlineTrackerStarted(SymbolName);
             return CallResult.SuccessResult;
@@ -208,22 +222,10 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// The start procedure needed for kline syncing, generally subscribing to an update stream and requesting the snapshot
         /// </summary>
         /// <returns></returns>
-        protected virtual async Task<CallResult<UpdateSubscription>> DoStartAsync()
+        protected virtual async Task<CallResult> DoStartAsync()
         {
-            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(Symbol, _interval),
-                 update =>
-                 {
-                     AddOrUpdate(update.Data);
-                 }).ConfigureAwait(false);
-
-            if (!subResult)
-            {
-                Status = SyncStatus.Disconnected;
-                return subResult;
-            }
-
             if (!_startWithSnapshot)
-                return subResult;
+                return CallResult.SuccessResult;
 
             var startTime = Period == null ? (DateTime?)null : DateTime.UtcNow.Add(-Period.Value);
             if (_restClient.GetKlinesOptions.MaxAge != null && DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value) > startTime)
@@ -236,11 +238,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
             {
                 if (!result)
-                {
-                    _ = subResult.Data.CloseAsync();
-                    Status = SyncStatus.Disconnected;
-                    return subResult.AsError<UpdateSubscription>(result.Error!);
-                }
+                    return result;                
 
                 if (Limit != null && data.Count > Limit)
                     break;
@@ -249,7 +247,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             }
 
             SetInitialData(data);
-            return subResult;
+            return CallResult.SuccessResult;
         }
 
         /// <summary>
