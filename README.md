@@ -58,6 +58,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.2.1 - 16 Jul 2025
+    * Added setting for whether or not to process unparsable websocket messages
+    * Fixed issue causing duplicate subscriptions and data in the TradeTracker and KlineTracker when websocket connection was reconnected
+
 * Version 9.2.0 - 14 Jul 2025
     * Added support for sending byte data on websocket
     * Added support for handling both string and byte data with different IMessageAccessor types
