@@ -82,6 +82,11 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
 
+        /// <summary>
+        /// Whether to continue processing and forward unparsable messages to handlers
+        /// </summary>
+        protected internal bool ProcessUnparsableMessages { get; set; } = false;
+
         /// <inheritdoc />
         public double IncomingKbps
         {

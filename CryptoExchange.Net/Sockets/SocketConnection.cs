@@ -11,8 +11,6 @@ using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
-using CryptoExchange.Net.Objects.Options;
-using CryptoExchange.Net.Authentication;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -475,7 +473,7 @@ namespace CryptoExchange.Net.Sockets
                     _logger.ReceivedData(SocketId, originalData);
                 }
 
-                if (!accessor.IsValid)
+                if (!accessor.IsValid && !ApiClient.ProcessUnparsableMessages)
                 {
                     _logger.FailedToParse(SocketId, result.Error!.Message);
                     return;
