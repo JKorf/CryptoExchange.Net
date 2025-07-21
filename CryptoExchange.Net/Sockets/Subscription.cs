@@ -4,6 +4,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,9 +61,9 @@ namespace CryptoExchange.Net.Sockets
         public bool Authenticated { get; }
 
         /// <summary>
-        /// Strings to match this subscription to a received message
+        /// Matcher for this subscription
         /// </summary>
-        public abstract HashSet<string> ListenerIdentifiers { get; set; }
+        public ListenMatcher ListenMatcher { get; set; } = new ListenMatcher();
 
         /// <summary>
         /// Cancellation token registration
@@ -177,12 +178,12 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="Id">The id of the subscription</param>
         /// <param name="Confirmed">True when the subscription query is handled (either accepted or rejected)</param>
         /// <param name="Invocations">Number of times this subscription got a message</param>
-        /// <param name="Identifiers">Identifiers the subscription is listening to</param>
+        /// <param name="ListenMatcher">Matcher for this subscription</param>
         public record SubscriptionState(
             int Id,
             bool Confirmed,
             int Invocations,
-            HashSet<string> Identifiers
+            ListenMatcher ListenMatcher
         );
 
         /// <summary>
@@ -191,7 +192,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public SubscriptionState GetState()
         {
-            return new SubscriptionState(Id, Confirmed, TotalInvocations, ListenerIdentifiers);
+            return new SubscriptionState(Id, Confirmed, TotalInvocations, ListenMatcher);
         }
     }
 

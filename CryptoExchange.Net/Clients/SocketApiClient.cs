@@ -816,7 +816,7 @@ namespace CryptoExchange.Net.Clients
                             sb.AppendLine($"\t\t\tId: {subState.Id}");
                             sb.AppendLine($"\t\t\tConfirmed: {subState.Confirmed}");
                             sb.AppendLine($"\t\t\tInvocations: {subState.Invocations}");
-                            sb.AppendLine($"\t\t\tIdentifiers: [{string.Join(",", subState.Identifiers)}]");
+                            sb.AppendLine($"\t\t\tIdentifiers: [{subState.ListenMatcher.ToString()}]");
                         });
                     }
                 });

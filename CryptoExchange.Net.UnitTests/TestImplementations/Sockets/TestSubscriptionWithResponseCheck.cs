@@ -15,11 +15,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
         private readonly Action<DataEvent<T>> _handler;
         private readonly string _channel;
 
-        public override HashSet<string> ListenerIdentifiers { get; set; }
-
         public TestSubscriptionWithResponseCheck(string channel, Action<DataEvent<T>> handler) : base(Mock.Of<ILogger>(), false)
         {
-            ListenerIdentifiers = new HashSet<string>() { channel };
+            ListenMatcher = new ListenMatcher(channel);
             _handler = handler;
             _channel = channel;
         }

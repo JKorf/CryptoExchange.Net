@@ -31,11 +31,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 
     internal class TestChannelQuery : Query<SubResponse>
     {
-        public override HashSet<string> ListenerIdentifiers { get; set; }
-
         public TestChannelQuery(string channel, string request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
         {
-            ListenerIdentifiers = new HashSet<string> { request + "-" + channel };
+            ListenMatcher = new ListenMatcher(request + "-" + channel);
         }
 
         public override CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)

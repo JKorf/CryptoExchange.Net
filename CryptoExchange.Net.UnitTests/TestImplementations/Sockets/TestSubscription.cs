@@ -15,11 +15,11 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
     {
         private readonly Action<DataEvent<T>> _handler;
 
-        public override HashSet<string> ListenerIdentifiers { get; set; } = new HashSet<string> { "update-topic" };
-
         public TestSubscription(ILogger logger, Action<DataEvent<T>> handler) : base(logger, false)
         {
             _handler = handler;
+
+            ListenMatcher = new ListenMatcher("update-topic");
         }
 
         public override CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message)

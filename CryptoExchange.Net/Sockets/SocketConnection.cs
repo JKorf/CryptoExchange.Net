@@ -494,7 +494,7 @@ namespace CryptoExchange.Net.Sockets
                 // 4. Get the listeners interested in this message
                 List<IMessageProcessor> processors;
                 lock (_listenersLock)
-                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
+                    processors = _listeners.Where(s => s.ListenMatcher.Check(listenId)).ToList();
 
                 if (processors.Count == 0)
                 {
@@ -502,7 +502,8 @@ namespace CryptoExchange.Net.Sockets
                     {
                         List<string> listenerIds;
                         lock (_listenersLock)
-                            listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
+                            listenerIds = _listeners.Select(l => l.ListenMatcher.ToString()).ToList();
+
                         _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
                         UnhandledMessage?.Invoke(accessor);
                     }
@@ -652,7 +653,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool anyDuplicateSubscription;
             lock (_listenersLock)
-                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.ListenerIdentifiers.All(l => subscription.ListenerIdentifiers.Contains(l)));
+                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.ListenMatcher.Checkers.All(l => subscription.ListenMatcher.ContainsCheck(l)));
 
             bool shouldCloseConnection;
             lock (_listenersLock)

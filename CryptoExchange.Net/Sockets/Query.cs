@@ -3,6 +3,7 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,9 +61,9 @@ namespace CryptoExchange.Net.Sockets
         public AsyncResetEvent? ContinueAwaiter { get; set; }
 
         /// <summary>
-        /// Strings to match this query to a received message
+        /// Matcher for this query
         /// </summary>
-        public abstract HashSet<string> ListenerIdentifiers { get; set; }
+        public ListenMatcher ListenMatcher { get; set; } = new ListenMatcher();
 
         /// <summary>
         /// The query request object
