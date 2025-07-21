@@ -386,7 +386,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 var stringValue = jsonValue.GetString();
                 if (objectValue is decimal dec)
                 {
-                    if (decimal.Parse(stringValue!, CultureInfo.InvariantCulture) != dec)
+                    if (ExchangeHelpers.ParseDecimal(stringValue!) != dec)
                         throw new Exception($"{method}: {property} not equal: {stringValue} vs {dec}");
                 }
                 else if (objectValue is DateTime time)

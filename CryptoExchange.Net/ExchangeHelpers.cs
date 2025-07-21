@@ -348,22 +348,42 @@ namespace CryptoExchange.Net
         /// </summary>
         public static decimal? ParseDecimal(string? value)
         {
-            if (string.IsNullOrEmpty(value) || string.Equals("null", value, StringComparison.OrdinalIgnoreCase))
+            // Value is null or empty is the most common case to return null so check before trying to parse
+            if (string.IsNullOrEmpty(value))            
+                return null;            
+
+            // Try parse, only fails for these reasons:
+            // 1. string is null or empty
+            // 2. value is larger or smaller than decimal max/min
+            // 3. unparsable format
+            if (decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decValue))
+                return decValue;
+
+            // Check for values which should be parsed to null
+            if (string.Equals("null", value, StringComparison.OrdinalIgnoreCase)
+                || string.Equals("NaN", value, StringComparison.OrdinalIgnoreCase))
+            {
                 return null;
-
-            if (string.Equals("Infinity", value, StringComparison.Ordinal))
-                // Infinity returned by the server, default to max value
-                return decimal.MaxValue;
-
-            try
-            {
-                return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
             }
-            catch (OverflowException)
-            {
-                // Value doesn't fit decimal, default to max value
+
+            // Infinity value should be parsed to min/max value
+            if (string.Equals("Infinity", value, StringComparison.OrdinalIgnoreCase))
                 return decimal.MaxValue;
+            else if(string.Equals("-Infinity", value, StringComparison.OrdinalIgnoreCase))
+                    return decimal.MinValue;
+
+            if (value!.Length > 27 && decimal.TryParse(value.Substring(0, 27), out var overflowValue))
+            {
+                // Not a valid decimal value and more than 27 chars, from which the first part can be parsed correctly.
+                // assume overflow
+                if (overflowValue < 0)
+                    return decimal.MinValue;
+                else
+                    return decimal.MaxValue;
             }
+
+            // Unknown decimal format, return null
+            return null;
         }
     }
 }

@@ -224,13 +224,17 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(null, null)]
         [TestCase("", null)]
         [TestCase("null", null)]
+        [TestCase("nan", null)]
         [TestCase("1E+2", 100)]
         [TestCase("1E-2", 0.01)]
-        [TestCase("80228162514264337593543950335", -999)] // -999 is workaround for not being able to specify decimal.MaxValue
+        [TestCase("Infinity", 999)] // 999 is workaround for not being able to specify decimal.MinValue
+        [TestCase("-Infinity", -999)] // -999 is workaround for not being able to specify decimal.MaxValue
+        [TestCase("80228162514264337593543950335", 999)] // 999 is workaround for not being able to specify decimal.MaxValue
+        [TestCase("-80228162514264337593543950335", -999)] // -999 is workaround for not being able to specify decimal.MaxValue
         public void TestDecimalConverterString(string value, decimal? expected)
         {
             var result = JsonSerializer.Deserialize<STJDecimalObject>("{ \"test\": \""+ value + "\"}");
-            Assert.That(result.Test, Is.EqualTo(expected == -999 ? decimal.MaxValue : expected));
+            Assert.That(result.Test, Is.EqualTo(expected == -999 ? decimal.MinValue : expected == 999 ? decimal.MaxValue: expected));
         }
 
         [TestCase("1", 1)]
