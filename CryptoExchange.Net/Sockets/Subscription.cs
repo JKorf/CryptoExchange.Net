@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Matcher for this subscription
         /// </summary>
-        public ListenMatcher ListenMatcher { get; set; } = new ListenMatcher();
+        public MessageMatcher MessageMatcher { get; set; } = null!;
 
         /// <summary>
         /// Cancellation token registration
@@ -76,13 +76,6 @@ namespace CryptoExchange.Net.Sockets
         public event Action<Exception>? Exception;
 
         /// <summary>
-        /// Get the deserialization type for this message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract Type? GetMessageType(IMessageAccessor message);
-
-        /// <summary>
         /// Subscription topic
         /// </summary>
         public string? Topic { get; set; }
@@ -90,9 +83,6 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="authenticated"></param>
-        /// <param name="userSubscription"></param>
         public Subscription(ILogger logger, bool authenticated, bool userSubscription = true)
         {
             _logger = logger;
@@ -131,14 +121,11 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle an update message
         /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
+        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck matcher)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return Task.FromResult(DoHandleMessage(connection, message));
+            return Task.FromResult(matcher.Handle(connection, message));
         }
 
         /// <summary>
@@ -154,14 +141,6 @@ namespace CryptoExchange.Net.Sockets
         /// Connection has been reset, do any logic for resetting the subscription
         /// </summary>
         public virtual void DoHandleReset() { }
-
-        /// <summary>
-        /// Handle the update message
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message);
 
         /// <summary>
         /// Invoke the exception event
@@ -183,7 +162,7 @@ namespace CryptoExchange.Net.Sockets
             int Id,
             bool Confirmed,
             int Invocations,
-            ListenMatcher ListenMatcher
+            MessageMatcher ListenMatcher
         );
 
         /// <summary>
@@ -192,7 +171,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public SubscriptionState GetState()
         {
-            return new SubscriptionState(Id, Confirmed, TotalInvocations, ListenMatcher);
+            return new SubscriptionState(Id, Confirmed, TotalInvocations, MessageMatcher);
         }
     }
 

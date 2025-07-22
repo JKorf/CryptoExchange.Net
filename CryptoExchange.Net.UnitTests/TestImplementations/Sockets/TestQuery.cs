@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
     {
         public TestQuery(string identifier, object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
         {
-            ListenMatcher = new ListenMatcher(identifier);
+            MessageMatcher = MessageMatcher.Create<object>(identifier);
         }
     }
 }

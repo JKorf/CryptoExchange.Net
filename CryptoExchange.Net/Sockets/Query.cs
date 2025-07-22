@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Matcher for this query
         /// </summary>
-        public ListenMatcher ListenMatcher { get; set; } = new ListenMatcher();
+        public MessageMatcher MessageMatcher { get; set; } = null!;
 
         /// <summary>
         /// The query request object
@@ -84,13 +84,6 @@ namespace CryptoExchange.Net.Sockets
         /// Whether the query should wait for a response or not
         /// </summary>
         public bool ExpectsResponse { get; set; } = true;
-
-        /// <summary>
-        /// Get the type the message should be deserialized to
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract Type? GetMessageType(IMessageAccessor message);
 
         /// <summary>
         /// Wait event for response
@@ -162,23 +155,16 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message);
+        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck check);
 
     }
 
     /// <summary>
     /// Query
     /// </summary>
-    /// <typeparam name="TServerResponse">The type returned from the server</typeparam>
     /// <typeparam name="THandlerResponse">The type to be returned to the caller</typeparam>
-    public abstract class Query<TServerResponse, THandlerResponse> : Query
+    public abstract class Query<THandlerResponse> : Query
     {
-        /// <inheritdoc />
-        public override Type? GetMessageType(IMessageAccessor message) => typeof(TServerResponse);
-
         /// <summary>
         /// The typed call result
         /// </summary>
@@ -195,10 +181,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message)
+        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck check)
         {
-            var typedMessage = message.As((TServerResponse)message.Data);
-            if (!ValidateMessage(typedMessage))
+            if (!PreCheckMessage(message))
                 return CallResult.SuccessResult;
 
             CurrentResponses++;
@@ -210,7 +195,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
-                Result = HandleMessage(connection, typedMessage);
+                Result = check.Handle(connection, message);
 
             if (CurrentResponses == RequiredResponses)
             {
@@ -227,15 +212,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual bool ValidateMessage(DataEvent<TServerResponse> message) => true;
-
-        /// <summary>
-        /// Handle the query response
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public abstract CallResult<THandlerResponse> HandleMessage(SocketConnection connection, DataEvent<TServerResponse> message);
+        public virtual bool PreCheckMessage(DataEvent<object> message) => true;
 
         /// <inheritdoc />
         public override void Timeout()
@@ -257,30 +234,5 @@ namespace CryptoExchange.Net.Sockets
             ContinueAwaiter?.Set();
             _event.Set();
         }
-    }
-
-    /// <summary>
-    /// Query
-    /// </summary>
-    /// <typeparam name="TResponse">Response object type</typeparam>
-    public abstract class Query<TResponse> : Query<TResponse, TResponse>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="authenticated"></param>
-        /// <param name="weight"></param>
-        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
-        {
-        }
-
-        /// <summary>
-        /// Handle the query response
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public override CallResult<TResponse> HandleMessage(SocketConnection connection, DataEvent<TResponse> message) => message.ToCallResult();
     }
 }

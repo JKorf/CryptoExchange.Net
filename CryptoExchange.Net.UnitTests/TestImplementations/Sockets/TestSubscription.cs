@@ -19,17 +19,15 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
         {
             _handler = handler;
 
-            ListenMatcher = new ListenMatcher("update-topic");
+            MessageMatcher = MessageMatcher.Create<T>("update-topic", DoHandleMessage);
         }
 
-        public override CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message)
+        public CallResult DoHandleMessage(SocketConnection connection, DataEvent<T> message)
         {
-            var data = (T)message.Data;
-            _handler.Invoke(message.As(data));
+            _handler.Invoke(message);
             return new CallResult(null);
         }
 
-        public override Type GetMessageType(IMessageAccessor message) => typeof(T);
         public override Query GetSubQuery(SocketConnection connection) => new TestQuery("sub", new object(), false, 1);
         public override Query GetUnsubQuery() => new TestQuery("unsub", new object(), false, 1);
     }
