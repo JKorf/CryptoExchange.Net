@@ -58,6 +58,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.3.0 - 23 Jul 2025
+    * Updated websocket message to listener matching logic to be more flexible
+    * Updated decimal parser to support "NaN" and "-Infinity" strings, added check for negative overflow value, improved performance in most cases
+
 * Version 9.2.1 - 16 Jul 2025
     * Added setting for whether or not to process unparsable websocket messages
     * Fixed issue causing duplicate subscriptions and data in the TradeTracker and KlineTracker when websocket connection was reconnected
