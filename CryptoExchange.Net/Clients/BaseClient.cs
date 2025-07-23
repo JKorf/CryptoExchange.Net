@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using CryptoExchange.Net.Telemetry;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -52,6 +53,11 @@ namespace CryptoExchange.Net.Clients
         private readonly object _versionLock = new object();
         private Version _exchangeVersion;
 
+        /// <summary>
+        /// The telemetry object
+        /// </summary>
+        protected ICryptoExchangeTelemetryService? _telemetry = null;
+        
         /// <summary>
         /// Provided client options
         /// </summary>
