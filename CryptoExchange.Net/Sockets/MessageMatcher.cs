@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// Message id matching type
+    /// Message link type
     /// </summary>
-    public enum MessageIdMatchType
+    public enum MessageLinkType
     {
         /// <summary>
         /// Match when the listen id matches fully to the value
@@ -30,16 +30,16 @@ namespace CryptoExchange.Net.Sockets
     public class MessageMatcher
     {
         /// <summary>
-        /// Checkers in this matcher
+        /// Linkers in this matcher
         /// </summary>
-        public MessageCheck[] Checkers { get; }
+        public MessageHandlerLink[] HandlerLinks { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        private MessageMatcher(params MessageCheck[] checkers)
+        private MessageMatcher(params MessageHandlerLink[] links)
         {
-            Checkers = checkers;
+            HandlerLinks = links;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageMatcher Create<T>(string value)
         {
-            return new MessageMatcher(new MessageCheck<T>(MessageIdMatchType.Full, value, (con, msg) => CallResult.SuccessResult));
+            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, msg) => CallResult.SuccessResult));
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageMatcher Create<T>(string value, Func<SocketConnection, DataEvent<T>, CallResult> handler)
         {
-            return new MessageMatcher(new MessageCheck<T>(MessageIdMatchType.Full, value, handler));
+            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, handler));
         }
 
         /// <summary>
@@ -63,48 +63,48 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageMatcher Create<T>(IEnumerable<string> values, Func<SocketConnection, DataEvent<T>, CallResult> handler)
         {
-            return new MessageMatcher(values.Select(x => new MessageCheck<T>(MessageIdMatchType.Full, x, handler)).ToArray());
+            return new MessageMatcher(values.Select(x => new MessageHandlerLink<T>(MessageLinkType.Full, x, handler)).ToArray());
         }
 
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create<T>(MessageIdMatchType type, string value, Func<SocketConnection, DataEvent<T>, CallResult> handler)
+        public static MessageMatcher Create<T>(MessageLinkType type, string value, Func<SocketConnection, DataEvent<T>, CallResult> handler)
         {
-            return new MessageMatcher(new MessageCheck<T>(type, value, handler));
+            return new MessageMatcher(new MessageHandlerLink<T>(type, value, handler));
         }
 
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create(params MessageCheck[] checkers)
+        public static MessageMatcher Create(params MessageHandlerLink[] linkers)
         {
-            return new MessageMatcher(checkers);
+            return new MessageMatcher(linkers);
         }
 
         /// <summary>
-        /// Whether this matcher contains a specific check
+        /// Whether this matcher contains a specific link
         /// </summary>
-        public bool ContainsCheck(MessageCheck check) => Checkers.Any(x => x.Type == check.Type && x.Value == check.Value);
+        public bool ContainsCheck(MessageHandlerLink link) => HandlerLinks.Any(x => x.Type == link.Type && x.Value == link.Value);
 
         /// <summary>
-        /// Check whether this listen id matches this
+        /// Get any handler links matching with the listen id
         /// </summary>
-        public List<MessageCheck> GetListeners(string listenId) => Checkers.Where(x => x.Check(listenId)).ToList();
+        public List<MessageHandlerLink> GetHandlerLinks(string listenId) => HandlerLinks.Where(x => x.Check(listenId)).ToList();
 
         /// <inheritdoc />
-        public override string ToString() => string.Join(",", Checkers.Select(x => x.ToString()));
+        public override string ToString() => string.Join(",", HandlerLinks.Select(x => x.ToString()));
     }
 
     /// <summary>
-    /// Message matching check
+    /// Message handler link
     /// </summary>
-    public abstract class MessageCheck
+    public abstract class MessageHandlerLink
     {
         /// <summary>
         /// Type of check
         /// </summary>
-        public MessageIdMatchType Type { get; }
+        public MessageLinkType Type { get; }
         /// <summary>
         /// String value of the check
         /// </summary>
@@ -117,18 +117,18 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public MessageCheck(MessageIdMatchType type, string value)
+        public MessageHandlerLink(MessageLinkType type, string value)
         {
             Type = type;
             Value = value;
         }
 
         /// <summary>
-        /// Whether this listen id matches this checker
+        /// Whether this listen id matches this link
         /// </summary>
         public bool Check(string listenId)
         {
-            if (Type == MessageIdMatchType.Full)
+            if (Type == MessageLinkType.Full)
                 return Value.Equals(listenId, StringComparison.Ordinal);
 
             return listenId.StartsWith(Value, StringComparison.Ordinal);
@@ -144,9 +144,9 @@ namespace CryptoExchange.Net.Sockets
     }
 
     /// <summary>
-    /// Message matching check
+    /// Message handler link
     /// </summary>
-    public class MessageCheck<TServer>: MessageCheck
+    public class MessageHandlerLink<TServer>: MessageHandlerLink
     {
         private Func<SocketConnection, DataEvent<TServer>, CallResult> _handler;
 
@@ -156,44 +156,20 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public MessageCheck(string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
-            : this(MessageIdMatchType.Full, value, handler)
+        public MessageHandlerLink(string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
+            : this(MessageLinkType.Full, value, handler)
         {
         }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public MessageCheck(MessageIdMatchType type, string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
+        public MessageHandlerLink(MessageLinkType type, string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
             : base(type, value)
         {
             _handler = handler;
         }
 
-
-        /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DataEvent<object> message)
-        {
-            return _handler(connection, message.As((TServer)message.Data));
-        }
-    }
-
-    /// <summary>
-    /// Message matching check
-    /// </summary>
-    public class MessageCheck<TServer, TResult> : MessageCheck
-    {
-        private Func<SocketConnection, DataEvent<TServer>, CallResult<TResult>> _handler;
-
-        /// <inheritdoc />
-        public override Type GetDeserializationType(IMessageAccessor accessor) => typeof(TServer);
-
-        /// <inheritdoc />
-        public MessageCheck(MessageIdMatchType type, string value, Func<SocketConnection, DataEvent<TServer>, CallResult<TResult>> handler)
-            : base(type, value)
-        {
-            _handler = handler;
-        }
 
         /// <inheritdoc />
         public override CallResult Handle(SocketConnection connection, DataEvent<object> message)

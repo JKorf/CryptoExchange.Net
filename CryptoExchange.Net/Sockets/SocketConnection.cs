@@ -502,7 +502,7 @@ namespace CryptoExchange.Net.Sockets
 
                 foreach(var processor in localListeners)
                 {
-                    foreach(var listener in processor.MessageMatcher.GetListeners(listenId))
+                    foreach(var listener in processor.MessageMatcher.GetHandlerLinks(listenId))
                     {
                         processed = true;
                         _logger.ProcessorMatched(SocketId, listener.ToString(), listenId);
@@ -656,7 +656,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool anyDuplicateSubscription;
             lock (_listenersLock)
-                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.Checkers.All(l => subscription.MessageMatcher.ContainsCheck(l)));
+                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.HandlerLinks.All(l => subscription.MessageMatcher.ContainsCheck(l)));
 
             bool shouldCloseConnection;
             lock (_listenersLock)

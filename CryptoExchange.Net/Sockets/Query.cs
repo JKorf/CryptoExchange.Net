@@ -155,7 +155,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck check);
+        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
 
     }
 
@@ -181,7 +181,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck check)
+        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
         {
             if (!PreCheckMessage(message))
                 return CallResult.SuccessResult;

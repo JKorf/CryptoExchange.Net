@@ -121,7 +121,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageCheck matcher)
+        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matcher)
         {
             ConnectionInvocations++;
             TotalInvocations++;
