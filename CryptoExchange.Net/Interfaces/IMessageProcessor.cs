@@ -17,22 +17,13 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         public int Id { get; }
         /// <summary>
-        /// The identifiers for this processor
+        /// The matcher for this listener
         /// </summary>
-        public HashSet<string> ListenerIdentifiers { get; }
+        public MessageMatcher MessageMatcher { get; }
         /// <summary>
         /// Handle a message
         /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message);
-        /// <summary>
-        /// Get the type the message should be deserialized to
-        /// </summary>
-        /// <param name="messageAccessor"></param>
-        /// <returns></returns>
-        Type? GetMessageType(IMessageAccessor messageAccessor);
+        Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matchedHandler);
         /// <summary>
         /// Deserialize a message into object of type
         /// </summary>

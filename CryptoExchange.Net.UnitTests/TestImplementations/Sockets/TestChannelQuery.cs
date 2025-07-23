@@ -31,21 +31,19 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 
     internal class TestChannelQuery : Query<SubResponse>
     {
-        public override HashSet<string> ListenerIdentifiers { get; set; }
-
         public TestChannelQuery(string channel, string request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
         {
-            ListenerIdentifiers = new HashSet<string> { request + "-" + channel };
+            MessageMatcher = MessageMatcher.Create<SubResponse>(request + "-" + channel, HandleMessage);
         }
 
-        public override CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)
+        public CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)
         {
             if (!message.Data.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
             {
                 return new CallResult<SubResponse>(new ServerError(message.Data.Status));
             }
 
-            return base.HandleMessage(connection, message);
+            return message.ToCallResult();
         }
     }
 }

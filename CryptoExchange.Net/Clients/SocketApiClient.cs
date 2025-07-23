@@ -313,11 +313,10 @@ namespace CryptoExchange.Net.Clients
         /// Send a query on a socket connection to the BaseAddress and wait for the response
         /// </summary>
         /// <typeparam name="THandlerResponse">Expected result type</typeparam>
-        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">The query</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, CancellationToken ct = default)
+        protected virtual Task<CallResult<THandlerResponse>> QueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
         {
             return QueryAsync(BaseAddress, query, ct);
         }
@@ -326,12 +325,11 @@ namespace CryptoExchange.Net.Clients
         /// Send a query on a socket connection and wait for the response
         /// </summary>
         /// <typeparam name="THandlerResponse">Expected result type</typeparam>
-        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="url">The url for the request</param>
         /// <param name="query">The query</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<THandlerResponse>> QueryAsync<TServerResponse, THandlerResponse>(string url, Query<TServerResponse, THandlerResponse> query, CancellationToken ct = default)
+        protected virtual async Task<CallResult<THandlerResponse>> QueryAsync<THandlerResponse>(string url, Query<THandlerResponse> query, CancellationToken ct = default)
         {
             if (_disposing)
                 return new CallResult<THandlerResponse>(new InvalidOperationError("Client disposed, can't query"));
@@ -816,7 +814,7 @@ namespace CryptoExchange.Net.Clients
                             sb.AppendLine($"\t\t\tId: {subState.Id}");
                             sb.AppendLine($"\t\t\tConfirmed: {subState.Confirmed}");
                             sb.AppendLine($"\t\t\tInvocations: {subState.Invocations}");
-                            sb.AppendLine($"\t\t\tIdentifiers: [{string.Join(",", subState.Identifiers)}]");
+                            sb.AppendLine($"\t\t\tIdentifiers: [{subState.ListenMatcher.ToString()}]");
                         });
                     }
                 });

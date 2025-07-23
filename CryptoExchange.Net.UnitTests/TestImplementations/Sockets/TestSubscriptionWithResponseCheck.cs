@@ -15,23 +15,19 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
         private readonly Action<DataEvent<T>> _handler;
         private readonly string _channel;
 
-        public override HashSet<string> ListenerIdentifiers { get; set; }
-
         public TestSubscriptionWithResponseCheck(string channel, Action<DataEvent<T>> handler) : base(Mock.Of<ILogger>(), false)
         {
-            ListenerIdentifiers = new HashSet<string>() { channel };
+            MessageMatcher = MessageMatcher.Create<T>(channel, DoHandleMessage);
             _handler = handler;
             _channel = channel;
         }
 
-        public override CallResult DoHandleMessage(SocketConnection connection, DataEvent<object> message)
+        public CallResult DoHandleMessage(SocketConnection connection, DataEvent<T> message)
         {
-            var data = (T)message.Data;
-            _handler.Invoke(message.As(data));
+            _handler.Invoke(message);
             return new CallResult(null);
         }
 
-        public override Type GetMessageType(IMessageAccessor message) => typeof(T);
         public override Query GetSubQuery(SocketConnection connection) => new TestChannelQuery(_channel, "subscribe", false, 1);
         public override Query GetUnsubQuery() => new TestChannelQuery(_channel, "unsubscribe", false, 1);
     }

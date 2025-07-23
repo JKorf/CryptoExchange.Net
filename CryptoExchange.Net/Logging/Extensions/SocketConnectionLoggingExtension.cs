@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, string, Exception?> _failedToParse;
         private static readonly Action<ILogger, int, string, Exception?> _failedToEvaluateMessage;
         private static readonly Action<ILogger, int, Exception?> _errorProcessingMessage;
-        private static readonly Action<ILogger, int, int, string, Exception?> _processorMatched;
+        private static readonly Action<ILogger, int, string, string, Exception?> _processorMatched;
         private static readonly Action<ILogger, int, int, Exception?> _receivedMessageNotRecognized;
         private static readonly Action<ILogger, int, string?, Exception?> _failedToDeserializeMessage;
         private static readonly Action<ILogger, int, string, Exception?> _userMessageProcessingFailed;
@@ -91,11 +91,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Error,
                 new EventId(2009, "ErrorProcessingMessage"),
                 "[Sckt {SocketId}] error processing message");
-
-            _processorMatched = LoggerMessage.Define<int, int, string>(
-                LogLevel.Trace,
-                new EventId(2010, "ProcessorMatched"),
-                "[Sckt {SocketId}] {Count} processor(s) matched to message with listener identifier {ListenerId}");
 
             _receivedMessageNotRecognized = LoggerMessage.Define<int, int>(
                 LogLevel.Warning,
@@ -190,7 +185,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _receivedMessageNotMatchedToAnyListener = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,
                 new EventId(2029, "ReceivedMessageNotMatchedToAnyListener"),
-                "[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: {ListenIds}");
+                "[Sckt {SocketId}] received message not matched to any listener. ListenId: {ListenId}, current listeners: [{ListenIds}]");
 
             _failedToParse = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,
@@ -201,6 +196,12 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Trace,
                 new EventId(2031, "SendingByteData"),
                 "[Sckt {SocketId}] [Req {RequestId}] sending byte message of length: {Length}");
+
+            _processorMatched = LoggerMessage.Define<int, string, string>(
+                LogLevel.Trace,
+                new EventId(2032, "ProcessorMatched"),
+                "[Sckt {SocketId}] listener '{ListenId}' matched to message with listener identifier {ListenerId}");
+
         }
 
         public static void ActivityPaused(this ILogger logger, int socketId, bool paused)
@@ -256,9 +257,9 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _errorProcessingMessage(logger, socketId, e);
         }
-        public static void ProcessorMatched(this ILogger logger, int socketId, int count, string listenerId)
+        public static void ProcessorMatched(this ILogger logger, int socketId, string listener, string listenerId)
         {
-            _processorMatched(logger, socketId, count, listenerId, null);
+            _processorMatched(logger, socketId, listener, listenerId, null);
         }
         public static void ReceivedMessageNotRecognized(this ILogger logger, int socketId, int id)
         {

@@ -228,6 +228,11 @@ namespace CryptoExchange.Net.Sockets
         private readonly IWebsocket _socket;
 
         /// <summary>
+        /// Cache for deserialization, only caches for a single message
+        /// </summary>
+        private readonly Dictionary<Type, object> _deserializationCache = new Dictionary<Type, object>();
+
+        /// <summary>
         /// New socket connection
         /// </summary>
         /// <param name="logger">The logger</param>
@@ -444,9 +449,6 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a message
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
         protected virtual async Task HandleStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data)
         {
             var sw = Stopwatch.StartNew();
@@ -483,7 +485,7 @@ namespace CryptoExchange.Net.Sockets
                 var listenId = ApiClient.GetListenerIdentifier(accessor);
                 if (listenId == null)
                 {
-                    originalData = outputOriginalData ? accessor.GetOriginalString() : "[OutputOriginalData is false]";
+                    originalData ??= "[OutputOriginalData is false]";
                     if (!ApiClient.UnhandledMessageExpected)
                         _logger.FailedToEvaluateMessage(SocketId, originalData);
 
@@ -491,18 +493,78 @@ namespace CryptoExchange.Net.Sockets
                     return;
                 }
 
-                // 4. Get the listeners interested in this message
-                List<IMessageProcessor> processors;
-                lock (_listenersLock)
-                    processors = _listeners.Where(s => s.ListenerIdentifiers.Contains(listenId)).ToList();
+                bool processed = false;
+                var totalUserTime = 0;
 
-                if (processors.Count == 0)
+                List<IMessageProcessor> localListeners;
+                lock(_listenersLock)
+                    localListeners = _listeners.ToList();
+
+                foreach(var processor in localListeners)
+                {
+                    foreach(var listener in processor.MessageMatcher.GetHandlerLinks(listenId))
+                    {
+                        processed = true;
+                        _logger.ProcessorMatched(SocketId, listener.ToString(), listenId);
+
+                        // 4. Determine the type to deserialize to for this processor
+                        var messageType = listener.GetDeserializationType(accessor);
+                        if (messageType == null)
+                        {
+                            _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
+                            continue;
+                        }
+
+                        if (processor is Subscription subscriptionProcessor && !subscriptionProcessor.Confirmed)
+                        {
+                            // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
+                            subscriptionProcessor.Confirmed = true;
+                            // This doesn't trigger a waiting subscribe query, should probably also somehow set the wait event for that
+                        }
+
+                        // 5. Deserialize the message
+                        _deserializationCache.TryGetValue(messageType, out var deserialized);
+
+                        if (deserialized == null)
+                        {
+                            var desResult = processor.Deserialize(accessor, messageType);
+                            if (!desResult)
+                            {
+                                _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
+                                continue;
+                            }
+
+                            deserialized = desResult.Data;
+                            _deserializationCache.Add(messageType, deserialized);
+                        }
+
+                        // 6. Pass the message to the handler
+                        try
+                        {
+                            var innerSw = Stopwatch.StartNew();
+                            await processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null), listener).ConfigureAwait(false);
+                            if (processor is Query query && query.RequiredResponses != 1)
+                                _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
+                            totalUserTime += (int)innerSw.ElapsedMilliseconds;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
+                            if (processor is Subscription subscription)
+                                subscription.InvokeExceptionHandler(ex);
+                        }
+
+                    }
+                }
+
+                if (!processed)
                 {
                     if (!ApiClient.UnhandledMessageExpected)
                     {
                         List<string> listenerIds;
                         lock (_listenersLock)
-                            listenerIds = _listeners.SelectMany(l => l.ListenerIdentifiers).ToList();
+                            listenerIds = _listeners.Select(l => l.MessageMatcher.ToString()).ToList();
+
                         _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
                         UnhandledMessage?.Invoke(accessor);
                     }
@@ -510,69 +572,11 @@ namespace CryptoExchange.Net.Sockets
                     return;
                 }
 
-                _logger.ProcessorMatched(SocketId, processors.Count, listenId);
-                var totalUserTime = 0;
-                Dictionary<Type, object>? desCache = null;
-                if (processors.Count > 1)
-                {
-                    // Only instantiate a cache if there are multiple processors
-                    desCache = new Dictionary<Type, object>();
-                }
-
-                foreach (var processor in processors)
-                {
-                    // 5. Determine the type to deserialize to for this processor
-                    var messageType = processor.GetMessageType(accessor);
-                    if (messageType == null)
-                    {
-                        _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
-                        continue;
-                    }
-
-                    if (processor is Subscription subscriptionProcessor && !subscriptionProcessor.Confirmed)
-                    {
-                        // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
-                        subscriptionProcessor.Confirmed = true;
-                        // This doesn't trigger a waiting subscribe query, should probably also somehow set the wait event for that
-                    }
-
-                    // 6. Deserialize the message
-                    object? deserialized = null;
-                    desCache?.TryGetValue(messageType, out deserialized);
-
-                    if (deserialized == null)
-                    {
-                        var desResult = processor.Deserialize(accessor, messageType);
-                        if (!desResult)
-                        {
-                            _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
-                            continue;
-                        }
-                        deserialized = desResult.Data;
-                        desCache?.Add(messageType, deserialized);
-                    }
-
-                    // 7. Hand of the message to the subscription
-                    try
-                    {
-                        var innerSw = Stopwatch.StartNew();
-                        await processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null)).ConfigureAwait(false);
-                        if (processor is Query query && query.RequiredResponses != 1)
-                            _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
-                        totalUserTime += (int)innerSw.ElapsedMilliseconds;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
-                        if (processor is Subscription subscription)
-                            subscription.InvokeExceptionHandler(ex);
-                    }
-                }
-
                 _logger.MessageProcessed(SocketId, sw.ElapsedMilliseconds, sw.ElapsedMilliseconds - totalUserTime);
             }
             finally
             {
+                _deserializationCache.Clear();
                 accessor.Clear();
             }
         }
@@ -652,7 +656,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool anyDuplicateSubscription;
             lock (_listenersLock)
-                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.ListenerIdentifiers.All(l => subscription.ListenerIdentifiers.Contains(l)));
+                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.HandlerLinks.All(l => subscription.MessageMatcher.ContainsCheck(l)));
 
             bool shouldCloseConnection;
             lock (_listenersLock)
@@ -768,12 +772,11 @@ namespace CryptoExchange.Net.Sockets
         /// Send a query request and wait for an answer
         /// </summary>
         /// <typeparam name="THandlerResponse">Expected result type</typeparam>
-        /// <typeparam name="TServerResponse">The type returned to the caller</typeparam>
         /// <param name="query">Query to send</param>
         /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<TServerResponse, THandlerResponse>(Query<TServerResponse, THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
+        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
