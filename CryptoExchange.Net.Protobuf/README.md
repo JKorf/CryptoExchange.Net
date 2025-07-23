@@ -5,5 +5,8 @@
 Protobuf support for CryptoExchange.Net.
 
 ## Release notes
+* Version 9.3.0 - 23 Jul 2025
+    * Updated CryptoExchange.Net to version 9.3.0, see https://github.com/JKorf/CryptoExchange.Net/releases/
+
 * Version 9.2.0 - 14 Jul 2025
     * Initial release
