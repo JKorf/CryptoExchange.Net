@@ -17,11 +17,11 @@ public static class CryptoExchangeTelemetry
     /// Represents the name of the meter used for tracking metrics in the CryptoExchange.Net library.
     /// </summary>
     public const string MeterName = "CryptoExchange.Net";
-
+    
     /// <summary>
-    /// Represents the activity source used for tracing in the CryptoExchange.Net library.
+    /// Provides an <see cref="ActivitySource"/> for tracing and telemetry related to the CryptoExchange system.
     /// </summary>
-    public static readonly ActivitySource ActivitySource = new(ActivitySourceName);
+    public static readonly ActivitySource ActivitySource = new (ActivitySourceName, typeof(CryptoExchangeTelemetry).Assembly.GetName().Version?.ToString() ?? "unknown");
 
     /// <summary>
     /// Represents the meter used for metrics in the CryptoExchange.Net library.
@@ -37,9 +37,6 @@ public static class CryptoExchangeTelemetry
     public static readonly Counter<int> CacheHitCounter
         = Meter.CreateCounter<int>("jkorf.cache.hits", "requests", "Total number of request served from cache");
     
-    public static readonly Counter<long> CacheHitBytesCounter
-        = Meter.CreateCounter<long>("jkorf.cache.hits_bytes", "bytes", "Total number of bytes served from cache");
-
     public static readonly Histogram<long> CacheHitBytesHistogram
         = Meter.CreateHistogram<long>("jkorf.cache.hits_bytes_histogram", "bytes", "Total number of bytes served from cache");
 
@@ -52,9 +49,6 @@ public static class CryptoExchangeTelemetry
     public static readonly Counter<int> ApiResponseCounter
         = Meter.CreateCounter<int>("jkorf.response.count", "requests", "Total number of request responses");
     
-    public static readonly Counter<long> ApiResponseBytesCounter
-        = Meter.CreateCounter<long>("jkorf.response.bytes", "bytes", "Total number of content bytes from the server");
-
     public static readonly Histogram<long> ApiResponseBytesHistogram
         = Meter.CreateHistogram<long>("jkorf.response.bytes_histogram", "bytes", "Total number of content bytes from the server");
 
@@ -62,10 +56,6 @@ public static class CryptoExchangeTelemetry
     public static class Tags
     {
         // Common tags and otel conventions
-        public const string ServiceName = "service.name";
-        public const string ServiceVersion = "service.version";
-        public const string ServiceInstanceId = "service.instance.id";
-
         public const string ErrorType = "error.type";
 
         public const string HttpRequestMethod = "http.request.method";
@@ -75,6 +65,9 @@ public static class CryptoExchangeTelemetry
         public const string HttpResponseBodySize = "http.response.body.size";
 
         // Custom tags for CryptoExchange.Net telemetry
+        public const string ExchangeName = "jkorf.exchange.name";
+        public const string ExchangeLibraryVersion = "jkorf.exchange.version";
+
         public const string UserId = "jkorf.user.id";
         public const string RequestId = "jkorf.request.id";
         public const string RequestWeight = "jkorf.request.weight";
@@ -89,7 +82,7 @@ public static class CryptoExchangeTelemetry
         public const string RequestFailTypePrepareFailure = "prepare_failure";
         public const string RequestFailTypeRestApiError = "rest_api_error";
         public const string RequestFailTypeCancellationRequested = "cancellation_requested";
-        
+
         public const string RequestCacheHit = "hit";
         public const string RequestCacheMiss = "miss";
         public const string RequestCacheFill = "fill";

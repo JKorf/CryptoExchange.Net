@@ -8,11 +8,6 @@ namespace CryptoExchange.Net.Telemetry;
 
 public interface ICryptoExchangeTelemetryService
 {
-    /// <summary>
-    /// Gets a value indicating whether there are any active listeners for telemetry events.
-    /// </summary>
-    bool HasListeners { get; }
-    
     void SetUserIdentifier(string userId);
     
     /// <summary>
@@ -65,8 +60,10 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
     
     private KeyValuePair<string, object?>[] _baseTags;
 
-    /// <inheritdoc />
-    public bool HasListeners => CryptoExchangeTelemetry.ActivitySource.HasListeners();
+    /// <summary>
+    /// Represents the activity source used for tracing in the CryptoExchange.Net library.
+    /// </summary>
+    private readonly ActivitySource _activitySource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CryptoExchangeTelemetryService"/> class.
@@ -82,9 +79,8 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
     {
         var tagList = new TagList
         {
-            { CryptoExchangeTelemetry.Tags.ServiceName, _exchange },
-            { CryptoExchangeTelemetry.Tags.ServiceVersion, _exchangeLibVersion.ToString() },
-            { CryptoExchangeTelemetry.Tags.ServiceInstanceId, Environment.MachineName }
+            { CryptoExchangeTelemetry.Tags.ExchangeName, _exchange },
+            { CryptoExchangeTelemetry.Tags.ExchangeLibraryVersion, _exchangeLibVersion.ToString() }
         };
         
         if(!string.IsNullOrEmpty(_userIdentifier))
@@ -101,24 +97,16 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
     }
 
     /// <inheritdoc />
-    public Activity? StartActivity(string name, ActivityKind kind, ActivityContext? parentContext, IEnumerable<KeyValuePair<string, object?>>? tags = null, IEnumerable<ActivityLink>? links = null, DateTimeOffset startOffset = default)
+    public Activity? StartActivity(string name, ActivityKind kind, ActivityContext? parentContext, IEnumerable<KeyValuePair<string, object?>>? tags, IEnumerable<ActivityLink>? links = null, DateTimeOffset startOffset = default)
     {
-        var activity = CryptoExchangeTelemetry.ActivitySource.StartActivity(name, kind, parentContext ?? default, tags, links, startOffset);
-        if (activity != null)
-        {
-            foreach (var tag in _baseTags)
-                activity.AddTag(tag.Key, tag.Value);
-        }
-
+        var tagList = tags != null ? new TagList([.._baseTags, ..tags]) : new TagList(_baseTags);
+        var activity = CryptoExchangeTelemetry.ActivitySource.StartActivity(name, kind, parentContext ?? default, tagList, links, startOffset);
         return activity;
     }
 
     public Activity? StartSendAsyncActivity(string baseAddress, RequestDefinition definition, int? weight,
         int? weightSingleLimiter, string? rateLimitKeySuffix)
     {
-        if (!HasListeners)
-            return null;
-        
         var tags = new TagList(_baseTags)
         {
             { CryptoExchangeTelemetry.Tags.HttpRequestMethod, definition.Method },
@@ -143,7 +131,6 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
         CryptoExchangeTelemetry.CacheHitCounter.Add(1, tags);
         if (cached.ResponseLength.HasValue)
         {
-            CryptoExchangeTelemetry.CacheHitBytesCounter.Add(cached.ResponseLength.Value, tags);
             CryptoExchangeTelemetry.CacheHitBytesHistogram.Record(cached.ResponseLength.Value, tags);
         }
     }
@@ -231,10 +218,9 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
         CryptoExchangeTelemetry.ApiResponseCounter.Add(1, tags);
         if (result.ResponseLength.HasValue)
         {
-            CryptoExchangeTelemetry.ApiResponseBytesCounter.Add(result.ResponseLength.Value, tags);
             CryptoExchangeTelemetry.ApiResponseBytesHistogram.Record(result.ResponseLength.Value, tags);
         }
-
+        
         if (Activity.Current != null)
         {
             var elapsed = DateTime.UtcNow - Activity.Current.StartTimeUtc;
