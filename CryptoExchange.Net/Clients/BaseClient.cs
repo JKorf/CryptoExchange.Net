@@ -87,6 +87,9 @@ namespace CryptoExchange.Net.Clients
 
             ClientOptions = options;
             _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
+
+            if (ClientOptions.TelemetryEnabled)
+                _telemetry = new CryptoExchangeTelemetryService(Exchange, CryptoExchangeLibVersion);
         }
 
         /// <summary>
@@ -97,6 +100,8 @@ namespace CryptoExchange.Net.Clients
         {
             foreach (var apiClient in ApiClients)
                 apiClient.SetApiCredentials(credentials);
+
+            _telemetry?.SetUserIdentifier(credentials.Key);
         }
 
         /// <summary>
