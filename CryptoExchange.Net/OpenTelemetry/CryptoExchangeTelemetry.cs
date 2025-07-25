@@ -37,6 +37,12 @@ public static class CryptoExchangeTelemetry
     public static readonly Counter<int> RequestRateLimitCounter
         = Meter.CreateCounter<int>("jkorf.requests.rate_limits", "requests", "Total number of request hitting rate limits");
     
+    public static readonly Counter<long> RequestRateLimitDelayCounter
+        = Meter.CreateCounter<long>("jkorf.requests.rate_limits.delay", "millis", "Total time delayed for rate limits in milliseconds");
+   
+    public static readonly Counter<long> ConnectionsRateLimitDelayCounter
+        = Meter.CreateCounter<long>("jkorf.connections.rate_limits.delay", "millis", "Total time delayed for rate limits in milliseconds");
+
     public static readonly Counter<int> CacheHitCounter
         = Meter.CreateCounter<int>("jkorf.cache.hits", "requests", "Total number of request served from cache");
     
@@ -81,6 +87,7 @@ public static class CryptoExchangeTelemetry
         public const string RateLimitGuardName = "jkorf.rate_limit.guard.name";
         public const string RateLimitItemType = "jkorf.rate_limit.item_type";
         public const string RateLimitBehavior = "jkorf.rate_limit.behavior";
+        public const string RateLimitDelay = "jkorf.rate_limit.delay_nanos";
     }
 
     public static class TagValues
@@ -97,10 +104,16 @@ public static class CryptoExchangeTelemetry
     public static class Activities
     {
         public const string SendRequest = "SendAsync";
+        public const string RateLimitDelayingRequest = "RateLimitDelayingRequest";
+        public const string RateLimitDelayingConnection = "RateLimitDelayingConnection";
     }
 
     public static class ActivityEvents
     {
         public const string SendRequestIteration = "jkorf.request.iter";
+        public const string RateLimitDelayRequest = "jkorf.request.rate_limit.delay";
+        public const string RateLimitDelayConnection = "jkorf.connection.rate_limit.delay";
+        public const string RateLimitFailRequest = "jkorf.request.rate_limit.fail";
+        public const string RateLimitFailConnection = "jkorf.connection.rate_limit.fail";
     }
 }
