@@ -87,7 +87,7 @@ public static class CryptoExchangeTelemetry
         public const string RateLimitGuardName = "jkorf.rate_limit.guard.name";
         public const string RateLimitItemType = "jkorf.rate_limit.item_type";
         public const string RateLimitBehavior = "jkorf.rate_limit.behavior";
-        public const string RateLimitDelay = "jkorf.rate_limit.delay_nanos";
+        public const string RateLimitDelay = "jkorf.rate_limit.delay_millis";
     }
 
     public static class TagValues
@@ -103,9 +103,9 @@ public static class CryptoExchangeTelemetry
 
     public static class Activities
     {
-        public const string SendRequest = "SendAsync";
-        public const string RateLimitDelayingRequest = "RateLimitDelayingRequest";
-        public const string RateLimitDelayingConnection = "RateLimitDelayingConnection";
+        public const string SendRequest = "CryptoExchange.SendAsync";
+        public const string RateLimitDelayingRequest = "CryptoExchange.RateLimitDelayingRequest";
+        public const string RateLimitDelayingConnection = "CryptoExchange.RateLimitDelayingConnection";
     }
 
     public static class ActivityEvents
