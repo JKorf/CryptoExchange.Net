@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.OpenTelemetry;
 /// <summary>
 /// Provides constants for telemetry in the CryptoExchange.Net library.
 /// </summary>
-public static class CryptoExchangeTelemetry
+internal static class CryptoExchangeTelemetry
 {
     /// <summary>
     /// Represents the name of the activity source used for tracing in the CryptoExchange.Net library.
