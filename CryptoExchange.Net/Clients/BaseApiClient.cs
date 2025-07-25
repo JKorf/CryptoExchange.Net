@@ -3,8 +3,8 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.OpenTelemetry;
 using CryptoExchange.Net.SharedApis;
-using CryptoExchange.Net.Telemetry;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Clients
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Telemetry
         /// </summary>
-        protected ICryptoExchangeTelemetryService? _telemetry;
+        protected Telemetry? _telemetry;
 
         /// <summary>
         /// If we are disposing
@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
         /// <param name="telemetry">Telemetry sink</param>
-        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions, ICryptoExchangeTelemetryService? telemetry = null)
+        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions, Telemetry? telemetry = null)
         {
             _logger = logger;
             _telemetry = telemetry;

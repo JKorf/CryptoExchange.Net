@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.RateLimiting
 {
@@ -118,10 +119,16 @@ namespace CryptoExchange.Net.RateLimiting
                 {
                     // Delay is needed and limit behaviour is to fail the request
                     if (type == RateLimitItemType.Connection)
+                    {
                         logger.RateLimitConnectionFailed(itemId, guard.Name, guard.Description);
+                        Telemetry.Current?.RecordRateLimitConnectionFailed();
+                    }
                     else
+                    {
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
-                    
+                        Telemetry.Current?.RecordRateLimitRequestFailed(definition, guard, host, type, rateLimitingBehaviour);
+                    }
+
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
-using CryptoExchange.Net.Telemetry;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -56,7 +56,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// The telemetry object
         /// </summary>
-        protected ICryptoExchangeTelemetryService? _telemetry = null;
+        protected Telemetry? _telemetry = null;
         
         /// <summary>
         /// Provided client options
@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Clients
             _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
 
             if (ClientOptions.TelemetryEnabled)
-                _telemetry = new CryptoExchangeTelemetryService(Exchange, CryptoExchangeLibVersion);
+                _telemetry = new OpenTelemetry.Telemetry(Exchange, CryptoExchangeLibVersion);
         }
 
         /// <summary>

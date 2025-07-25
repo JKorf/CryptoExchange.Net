@@ -2,58 +2,49 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 
-namespace CryptoExchange.Net.Telemetry;
+namespace CryptoExchange.Net.OpenTelemetry;
 
-public interface ICryptoExchangeTelemetryService
+public class Telemetry
 {
-    void SetUserIdentifier(string userId);
-    
+    #region Scope Management
     /// <summary>
-    /// Starts a new telemetry activity with the specified parameters.
+    /// Represents the current telemetry scope for asynchronous operations.
     /// </summary>
-    /// <param name="name">The name of the activity to start.</param>
-    /// <param name="kind">The kind of activity, indicating its role in a distributed trace.</param>
-    /// <param name="parentContext">The context of the parent activity, used to establish a relationship between activities in a trace.</param>
-    /// <param name="tags">A collection of key-value pairs representing additional metadata to associate with the activity.</param>
-    /// <param name="links">A collection of links to other activities, used to establish relationships between activities in a trace.</param>
-    /// <param name="startOffset">The timestamp offset indicating when the activity started, relative to the current time.</param>
-    /// <returns>
-    /// An <see cref="Activity"/> instance representing the started activity, or <c>null</c> if the activity could not be started.
-    /// </returns>
-    Activity? StartActivity(string name, ActivityKind kind, ActivityContext? parentContext,
-        IEnumerable<KeyValuePair<string, object?>>? tags = null, IEnumerable<ActivityLink>? links = null,
-        DateTimeOffset startOffset = default);
+    private static readonly AsyncLocal<Telemetry?> CurrentScope = new();
 
     /// <summary>
-    /// 
+    /// Gets the current telemetry instance associated with the active scope.
     /// </summary>
-    /// <param name="baseAddress"></param>
-    /// <param name="requestDefinition"></param>
-    /// <param name="weight"></param>
-    /// <param name="weightSingleLimiter"></param>
-    /// <param name="rateLimitKeySuffix"></param>
-    /// <returns></returns>
-    Activity? StartSendAsyncActivity(string baseAddress, RequestDefinition requestDefinition, int? weight, int? weightSingleLimiter, string? rateLimitKeySuffix);
+    public static Telemetry? Current => CurrentScope.Value;
 
     /// <summary>
-    /// 
+    /// Represents a scope for managing asynchronous local state.
     /// </summary>
-    /// <param name="definition"></param>
-    void RecordTotalRequestsMade(RequestDefinition definition);
-    void RecordCacheHit<T>(RequestDefinition definition, WebCallResult<T> cached);
-    void RecordCacheMiss(RequestDefinition definition);
-    void RecordRequestAttempt(int currentTry, int requestId);
-    void RecordPrepareError(RequestDefinition definition, CallResult? prepareResult);
-    void RecordRestApiErrorReceived<T>(RequestDefinition definition, WebCallResult<T> result);
-    void RecordRestApiResponseReceived<T>(RequestDefinition definition, WebCallResult<T> result);
-    void RecordCacheFill<T>(RequestDefinition definition, WebCallResult<T> result);
-    void RecordRestApiCancellationRequested(RequestDefinition definition);
-}
+    private readonly struct AsyncLocalScope : IDisposable
+    {
+        private readonly Telemetry? _previous;
 
-public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
-{
+        public AsyncLocalScope(Telemetry? previous) => _previous = previous;
+
+        public void Dispose() => CurrentScope.Value = _previous;
+    }
+
+    /// <summary>
+    /// Starts a new telemetry scope and sets the specified telemetry as the current scope.
+    /// </summary>
+    public static IDisposable StartScope(Telemetry? telemetry)
+    {
+        var previous = CurrentScope.Value;
+        CurrentScope.Value = telemetry;
+        return new AsyncLocalScope(previous);
+    }
+    #endregion
+
     private readonly string _exchange;
     private readonly Version _exchangeLibVersion;
     private string _userIdentifier = null;
@@ -66,9 +57,9 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
     private readonly ActivitySource _activitySource;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CryptoExchangeTelemetryService"/> class.
+    /// Initializes a new instance of the <see cref="Telemetry"/> class.
     /// </summary>
-    public CryptoExchangeTelemetryService(string exchange, Version exchangeLibVersion)
+    public Telemetry(string exchange, Version exchangeLibVersion)
     {
         _exchange = exchange;
         _exchangeLibVersion = exchangeLibVersion;
@@ -252,6 +243,23 @@ public class CryptoExchangeTelemetryService : ICryptoExchangeTelemetryService
             .._baseTags,
             new(CryptoExchangeTelemetry.Tags.HttpRequestMethod, definition?.Method),
             new(CryptoExchangeTelemetry.Tags.HttpRequestUrlPath, definition?.Path)
+        ]);
+    }
+    
+    public void RecordRateLimitConnectionFailed()
+    {
+    }
+
+    public void RecordRateLimitRequestFailed(RequestDefinition definition, IRateLimitGuard guard, string host, RateLimitItemType itemType, RateLimitingBehaviour behavior)
+    {
+        CryptoExchangeTelemetry.RequestRateLimitCounter.Add(1, [
+            .._baseTags,
+            new(CryptoExchangeTelemetry.Tags.HttpRequestMethod, definition?.Method),
+            new(CryptoExchangeTelemetry.Tags.HttpRequestUrlPath, definition?.Path),
+            new(CryptoExchangeTelemetry.Tags.ServerAddress, definition),
+            new(CryptoExchangeTelemetry.Tags.RateLimitGuardName, guard.Name),
+            new(CryptoExchangeTelemetry.Tags.RateLimitItemType, itemType),
+            new(CryptoExchangeTelemetry.Tags.RateLimitBehavior, behavior),
         ]);
     }
 }

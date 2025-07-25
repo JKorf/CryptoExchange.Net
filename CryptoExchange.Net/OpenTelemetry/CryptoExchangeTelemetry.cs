@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
-namespace CryptoExchange.Net.Telemetry;
+namespace CryptoExchange.Net.OpenTelemetry;
 
 /// <summary>
 /// Provides constants for telemetry in the CryptoExchange.Net library.
@@ -34,6 +34,9 @@ public static class CryptoExchangeTelemetry
     public static readonly Counter<int> RequestErrorsCounter
         = Meter.CreateCounter<int>("jkorf.requests.errors", "requests", "Total number of request errors");
 
+    public static readonly Counter<int> RequestRateLimitCounter
+        = Meter.CreateCounter<int>("jkorf.requests.rate_limits", "requests", "Total number of request hitting rate limits");
+    
     public static readonly Counter<int> CacheHitCounter
         = Meter.CreateCounter<int>("jkorf.cache.hits", "requests", "Total number of request served from cache");
     
@@ -57,7 +60,7 @@ public static class CryptoExchangeTelemetry
     {
         // Common tags and otel conventions
         public const string ErrorType = "error.type";
-
+        public const string ServerAddress = "server.address";
         public const string HttpRequestMethod = "http.request.method";
         public const string HttpRequestUrlPath = "url.path";
         public const string HttpRequestRetryCount = "http.request.resend_count";
@@ -75,6 +78,9 @@ public static class CryptoExchangeTelemetry
         public const string RequestAuthenticated = "jkorf.request.auth";
         public const string RequestCache = "jkorf.request.cache";
         public const string ResultErrorCode = "jkorf.result.error_code";
+        public const string RateLimitGuardName = "jkorf.rate_limit.guard.name";
+        public const string RateLimitItemType = "jkorf.rate_limit.item_type";
+        public const string RateLimitBehavior = "jkorf.rate_limit.behavior";
     }
 
     public static class TagValues
