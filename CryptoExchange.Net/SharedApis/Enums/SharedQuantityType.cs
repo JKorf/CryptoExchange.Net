@@ -20,6 +20,10 @@
         /// <summary>
         /// Quantity can be either base or quote quantity
         /// </summary>
-        BaseAndQuoteAsset
+        BaseAndQuoteAsset,
+        /// <summary>
+        /// Quantity can be either base or quote quantity, or in contracts
+        /// </summary>
+        BaseAndQuoteAssetAndContracts
     }
 }

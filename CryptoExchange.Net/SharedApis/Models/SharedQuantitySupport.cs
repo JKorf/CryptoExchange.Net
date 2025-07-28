@@ -65,6 +65,9 @@ namespace CryptoExchange.Net.SharedApis
             if (supportedType == quantityType)
                 return true;
 
+            if (supportedType == SharedQuantityType.BaseAndQuoteAssetAndContracts)
+                return true;
+
             if (supportedType == SharedQuantityType.BaseAndQuoteAsset && (quantityType == SharedQuantityType.BaseAsset || quantityType == SharedQuantityType.QuoteAsset))
                 return true;
 
@@ -77,7 +80,7 @@ namespace CryptoExchange.Net.SharedApis
         public Error? Validate(SharedOrderSide side, SharedOrderType type, SharedQuantity? quantity)
         {
             var supportedType = GetSupportedQuantityType(side, type);
-            if (supportedType == SharedQuantityType.BaseAndQuoteAsset)
+            if (supportedType == SharedQuantityType.BaseAndQuoteAsset || supportedType == SharedQuantityType.BaseAndQuoteAssetAndContracts)
                 return null;
 
             if (supportedType == SharedQuantityType.BaseAndQuoteAsset && quantity != null && quantity.QuantityInBaseAsset == null && quantity.QuantityInQuoteAsset == null)
