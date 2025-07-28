@@ -8,6 +8,10 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedPosition : SharedSymbolModel
     {
         /// <summary>
+        /// Position id
+        /// </summary>
+        public string? Id { get; set; }
+        /// <summary>
         /// Current size of the position
         /// </summary>
         public decimal PositionSize { get; set; }
