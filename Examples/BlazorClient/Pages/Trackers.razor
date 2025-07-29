@@ -9,6 +9,7 @@
 @using BitMart.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
+@using CoinW.Net.Interfaces
 @using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Interfaces
 @using CryptoCom.Net.Interfaces
@@ -35,6 +36,7 @@
 @inject IBybitTrackerFactory bybitFactory
 @inject ICoinbaseTrackerFactory coinbaseFactory
 @inject ICoinExTrackerFactory coinExFactory
+@inject ICoinWTrackerFactory coinWFactory
 @inject ICryptoComTrackerFactory cryptocomFactory
 @inject IDeepCoinTrackerFactory deepCoinFactory
 @inject IGateIoTrackerFactory gateioFactory
@@ -82,6 +84,7 @@
                 { bybitFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { coinbaseFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { coinExFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
+                { coinWFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { cryptocomFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { deepCoinFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
                 { gateioFactory.CreateTradeTracker(usdtSymbol, period: TimeSpan.FromMinutes(5)) },
@@ -121,8 +124,8 @@
 
     public void Dispose()
     {
-        _timer.Stop();
-        _timer.Dispose();
+        _timer?.Stop();
+        _timer?.Dispose();
         foreach (var tracker in _trackers.Where(b => b.Status != CryptoExchange.Net.Objects.SyncStatus.Disconnected))
             // It's not necessary to wait for this
             _ = tracker.StopAsync();

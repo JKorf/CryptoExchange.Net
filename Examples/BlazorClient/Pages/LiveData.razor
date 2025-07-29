@@ -8,6 +8,7 @@
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinbaseSocketClient coinbaseSocketClient
 @inject ICoinExSocketClient coinExSocketClient
+@inject ICoinWSocketClient coinWSocketClient
 @inject ICryptoComSocketClient cryptocomSocketClient
 @inject IDeepCoinSocketClient deepCoinSocketClient
 @inject IGateIoSocketClient gateioSocketClient
@@ -49,6 +50,7 @@
             bitmexSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH_XBT", data => UpdateData("BitMEX", data.Data.LastPrice ?? 0)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
             coinExSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync(["ETHBTC"], data => UpdateData("CoinEx", data.Data.First().LastPrice)),
+            coinWSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CoinW", data.Data.LastPrice)),
             coinbaseSocketClient.AdvancedTradeApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Coinbase", data.Data.LastPrice ?? 0)),
             cryptocomSocketClient.ExchangeApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CryptoCom", data.Data.LastPrice ?? 0)),
             deepCoinSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH-BTC", data => UpdateData("DeepCoin", data.Data.LastPrice ?? 0)),

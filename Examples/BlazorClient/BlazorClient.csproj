@@ -5,28 +5,29 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="11.1.0" />
-    <PackageReference Include="Bitfinex.Net" Version="9.1.0" />
-    <PackageReference Include="BitMart.Net" Version="2.1.0" />
-    <PackageReference Include="Bybit.Net" Version="5.1.0" />
-    <PackageReference Include="CoinEx.Net" Version="9.1.0" />
-    <PackageReference Include="CryptoCom.Net" Version="2.1.0" />
-    <PackageReference Include="DeepCoin.Net" Version="2.1.0" />
-    <PackageReference Include="GateIo.Net" Version="2.1.0" />
-    <PackageReference Include="HyperLiquid.Net" Version="2.1.1" />
-    <PackageReference Include="JK.BingX.Net" Version="2.1.0" />
-    <PackageReference Include="JK.Bitget.Net" Version="2.1.0" />
-    <PackageReference Include="JK.Mexc.Net" Version="3.1.0" />
-    <PackageReference Include="JK.OKX.Net" Version="3.1.0" />
-    <PackageReference Include="JKorf.BitMEX.Net" Version="2.1.0" />
-    <PackageReference Include="JKorf.Coinbase.Net" Version="2.1.0" />
-    <PackageReference Include="JKorf.HTX.Net" Version="7.1.0" />
-    <PackageReference Include="KrakenExchange.Net" Version="6.1.0" />
-    <PackageReference Include="Kucoin.Net" Version="7.1.0" />
+    <PackageReference Include="Binance.Net" Version="11.3.0" />
+    <PackageReference Include="Bitfinex.Net" Version="9.3.0" />
+    <PackageReference Include="BitMart.Net" Version="2.4.1" />
+    <PackageReference Include="Bybit.Net" Version="5.4.0" />
+    <PackageReference Include="CoinEx.Net" Version="9.3.0" />
+    <PackageReference Include="CoinW.Net" Version="1.0.1" />
+    <PackageReference Include="CryptoCom.Net" Version="2.4.0" />
+    <PackageReference Include="DeepCoin.Net" Version="2.3.0" />
+    <PackageReference Include="GateIo.Net" Version="2.4.0" />
+    <PackageReference Include="HyperLiquid.Net" Version="2.4.0" />
+    <PackageReference Include="JK.BingX.Net" Version="2.3.0" />
+    <PackageReference Include="JK.Bitget.Net" Version="2.3.0" />
+    <PackageReference Include="JK.Mexc.Net" Version="3.3.0" />
+    <PackageReference Include="JK.OKX.Net" Version="3.3.1" />
+    <PackageReference Include="JKorf.BitMEX.Net" Version="2.3.0" />
+    <PackageReference Include="JKorf.Coinbase.Net" Version="2.3.0" />
+    <PackageReference Include="JKorf.HTX.Net" Version="7.3.0" />
+    <PackageReference Include="KrakenExchange.Net" Version="6.3.1" />
+    <PackageReference Include="Kucoin.Net" Version="7.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-    <PackageReference Include="Toobit.Net" Version="1.0.1" />
-    <PackageReference Include="WhiteBit.Net" Version="2.1.0" />
-    <PackageReference Include="XT.Net" Version="2.1.0" />
+    <PackageReference Include="Toobit.Net" Version="1.2.1" />
+    <PackageReference Include="WhiteBit.Net" Version="2.4.0" />
+    <PackageReference Include="XT.Net" Version="2.3.1" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@
 @using BitMEX.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
+@using CoinW.Net.Interfaces
 @using Coinbase.Net.Interfaces
 @using CryptoExchange.Net.Authentication
 @using CryptoExchange.Net.Interfaces
@@ -34,6 +35,7 @@
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
+@inject ICoinWOrderBookFactory coinWFactory
 @inject ICryptoComOrderBookFactory cryptocomFactory
 @inject IDeepCoinOrderBookFactory deepCoinFactory
 @inject IGateIoOrderBookFactory gateioFactory
@@ -88,6 +90,7 @@
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
+                { "CoinW", coinWFactory.CreateSpot("ETH_BTC") },
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
                 // DeepCoin does not support the ETH/BTC pair
@@ -115,7 +118,7 @@
 
     public void Dispose()
     {
-        _timer.Stop();
+        _timer?.Stop();
         _timer.Dispose();
         foreach (var book in _books.Where(b => b.Value.Status != CryptoExchange.Net.Objects.OrderBookStatus.Disconnected))
             // It's not necessary to wait for this

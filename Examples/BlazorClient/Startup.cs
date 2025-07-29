@@ -41,6 +41,7 @@ namespace BlazorClient
             services.AddBybit();
             services.AddCoinbase();
             services.AddCoinEx();
+            services.AddCoinW();
             services.AddCryptoCom();
             services.AddDeepCoin();
             services.AddGateIo();

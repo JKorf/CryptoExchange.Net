@@ -8,6 +8,7 @@
 @inject IBybitRestClient bybitClient
 @inject ICoinbaseRestClient coinbaseClient
 @inject ICoinExRestClient coinexClient
+@inject ICoinWRestClient coinWClient
 @inject ICryptoComRestClient cryptocomClient
 @inject IDeepCoinRestClient deepCoinClient
 @inject IGateIoRestClient gateioClient
@@ -41,6 +42,7 @@
         var bybitTask = bybitClient.V5Api.ExchangeData.GetSpotTickersAsync("BTCUSDT");
         var coinbaseTask = coinbaseClient.AdvancedTradeApi.ExchangeData.GetSymbolAsync("BTC-USDT");
         var coinexTask = coinexClient.SpotApiV2.ExchangeData.GetTickersAsync(["BTCUSDT"]);
+        var coinWTask = coinWClient.SpotApi.ExchangeData.GetTickersAsync();
         var cryptocomTask = cryptocomClient.ExchangeApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var deepCoinTask = deepCoinClient.ExchangeApi.ExchangeData.GetTickersAsync(DeepCoin.Net.Enums.SymbolType.Spot);
         var gateioTask = gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");
@@ -82,6 +84,9 @@
 
         if (coinexTask.Result.Success)
             _prices.Add("CoinEx", coinexTask.Result.Data.Single().LastPrice);
+
+        if (coinWTask.Result.Success)
+            _prices.Add("CoinW", coinWTask.Result.Data.Single(x => x.Symbol == "BTC_USDT").LastPrice);
 
         if (cryptocomTask.Result.Success)
             _prices.Add("CryptoCom", cryptocomTask.Result.Data.First().LastPrice ?? 0);
