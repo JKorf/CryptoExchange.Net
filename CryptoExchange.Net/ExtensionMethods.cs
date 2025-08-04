@@ -498,8 +498,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IBookTickerSocketClient)client(x)!);
             if (typeof(IKlineSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IKlineSocketClient)client(x)!);
-            if (typeof(IOrderBookRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IOrderBookRestClient)client(x)!);
+            if (typeof(IOrderBookSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IOrderBookSocketClient)client(x)!);
             if (typeof(ITickerSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ITickerSocketClient)client(x)!);
             if (typeof(ITickersSocketClient).IsAssignableFrom(typeof(T)))
