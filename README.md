@@ -59,6 +59,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.4.0 - 04 Aug 2025
+    * Updated Shared symbol requests/subscriptions to allow multiple symbols in one call if supported
+
 * Version 9.3.1 - 29 Jul 2025
     * Added BaseAndQuoteAssetAndContracts value to SharedQuantityType enum
     * Added Id property to SharedPosition model
