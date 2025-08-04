@@ -110,6 +110,15 @@ namespace CryptoExchange.Net.SharedApis
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
 
         /// <summary>
+        /// Whether this accepts multiple symbols (Only applicable to request requiring symbol parameters)
+        /// </summary>
+        public bool SupportsMultipleSymbols { get; set; } = false;
+        /// <summary>
+        /// The max number of symbols which can be passed in a call (Only applicable to request requiring symbol parameters)
+        /// </summary>
+        public int? MaxSymbolCount { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public EndpointOptions(bool needsAuthentication) : base(typeof(T).Name, needsAuthentication)
@@ -137,6 +146,19 @@ namespace CryptoExchange.Net.SharedApis
                 {
                     if (param.Names!.All(x => typeof(T).GetProperty(param.Name!)!.GetValue(request, null) == null))
                         return new ArgumentError($"One of optional parameters `{string.Join(", ", param.Names!)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
+                }
+
+            }
+
+            if (request is SharedSymbolRequest symbolsRequest)
+            {
+                if (symbolsRequest.Symbols != null) 
+                {
+                    if (!SupportsMultipleSymbols)
+                        return new ArgumentError($"Only a single symbol parameter is allowed, multiple symbols are not supported");
+
+                    if (symbolsRequest.Symbols.Length > MaxSymbolCount)
+                        return new ArgumentError($"Max number of symbols is {MaxSymbolCount} but {symbolsRequest.Symbols.Length} were passed");
                 }
 
             }

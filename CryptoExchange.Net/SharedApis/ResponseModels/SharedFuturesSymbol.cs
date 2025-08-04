@@ -30,5 +30,8 @@ namespace CryptoExchange.Net.SharedApis
         public SharedFuturesSymbol(TradingMode symbolType, string baseAsset, string quoteAsset, string symbol, bool trading) : base(baseAsset, quoteAsset, symbol, trading, symbolType)
         {
         }
+
+        /// <inheritdoc />
+        public override SharedSymbol SharedSymbol => new SharedSymbol(TradingMode, BaseAsset.ToUpperInvariant(), QuoteAsset.ToUpperInvariant(), DeliveryTime) { SymbolName = Name };
     }
 }

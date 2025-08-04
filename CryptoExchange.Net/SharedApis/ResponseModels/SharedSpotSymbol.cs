@@ -69,5 +69,11 @@
             Name = symbol;
             Trading = trading;
         }
+
+        /// <summary>
+        /// The SharedSymbol of this symbol
+        /// </summary>
+        /// <returns></returns>
+        public virtual SharedSymbol SharedSymbol => new SharedSymbol(TradingMode, BaseAsset.ToUpperInvariant(), QuoteAsset.ToUpperInvariant()) { SymbolName = Name };
     }
 }

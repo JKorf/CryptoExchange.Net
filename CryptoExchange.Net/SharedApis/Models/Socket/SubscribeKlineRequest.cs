@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Collections.Generic;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to subscribe to kline/candlestick updates
@@ -17,6 +19,27 @@
         /// <param name="interval">Kline interval</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
         public SubscribeKlineRequest(SharedSymbol symbol, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        {
+            Interval = interval;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="symbols">The symbols to subscribe to</param>
+        /// <param name="interval">Kline interval</param>
+        /// <param name="exchangeParameters">Exchange specific parameters</param>
+        public SubscribeKlineRequest(IEnumerable<SharedSymbol> symbols, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) : base(symbols, exchangeParameters)
+        {
+            Interval = interval;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="interval">Kline interval</param>
+        /// <param name="symbols">The symbols to subscribe to</param>
+        public SubscribeKlineRequest(SharedKlineInterval interval, params SharedSymbol[] symbols) : base(symbols, null)
         {
             Interval = interval;
         }
