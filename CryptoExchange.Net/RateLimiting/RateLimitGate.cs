@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ namespace CryptoExchange.Net.RateLimiting
     {
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private readonly SemaphoreSlim _semaphore;
+        private readonly AsyncLocal<StrongBox<bool>> _ownsLock = new();
         private readonly string _name;
 
         private int _waitingCount;
@@ -40,7 +42,7 @@ namespace CryptoExchange.Net.RateLimiting
         public async Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-            bool release = true;
+            _ownsLock.Value = new (true);
             _waitingCount++;
             try
             {
@@ -48,14 +50,12 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException tce)
             {
-                // The semaphore has already been released if the task was cancelled
-                release = false;
                 return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
                 _waitingCount--;
-                if (release)
+                if (_ownsLock.Value.Value)
                     _semaphore.Release();
             }
         }
@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.RateLimiting
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-            bool release = true;
+            _ownsLock.Value = new(true);
             _waitingCount++;
             try
             {
@@ -83,14 +83,12 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException tce)
             {
-                // The semaphore has already been released if the task was cancelled
-                release = false;
                 return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
                 _waitingCount--;
-                if (release)
+                if (_ownsLock.Value.Value)
                     _semaphore.Release();
             }
         }
@@ -117,6 +115,7 @@ namespace CryptoExchange.Net.RateLimiting
                 {
                     // Delay is needed and limit behaviour is to wait for the request to be under the limit
                     _semaphore.Release();
+                    _ownsLock.Value!.Value = false;
 
                     var description = result.Limit == null ? guard.Description : $"{guard.Description}, Request weight: {requestWeight}, Current: {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}";
                     if (type == RateLimitItemType.Connection)
@@ -127,6 +126,7 @@ namespace CryptoExchange.Net.RateLimiting
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+                    _ownsLock.Value!.Value = true;
                     return await CheckGuardsAsync(guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
                 }
             }
