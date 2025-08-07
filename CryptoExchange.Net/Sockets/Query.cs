@@ -187,11 +187,8 @@ namespace CryptoExchange.Net.Sockets
                 return CallResult.SuccessResult;
 
             CurrentResponses++;
-            if (CurrentResponses == RequiredResponses)
-            {
-                Completed = true;
-                Response = message.Data;
-            }
+            if (CurrentResponses == RequiredResponses)            
+                Response = message.Data;            
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
@@ -199,6 +196,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (CurrentResponses == RequiredResponses)
             {
+                Completed = true;
                 _event.Set();
                 if (ContinueAwaiter != null)
                     await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
