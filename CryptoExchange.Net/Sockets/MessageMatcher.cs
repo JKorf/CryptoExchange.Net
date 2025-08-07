@@ -47,7 +47,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageMatcher Create<T>(string value)
         {
-            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, msg) => CallResult.SuccessResult));
+            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, msg) => new CallResult<T>(default, msg.OriginalData, null)));
         }
 
         /// <summary>
