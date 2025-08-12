@@ -216,7 +216,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public static ArgumentError Missing(string parameterName) => new ArgumentError(_missingInfo with { Message = $"{_missingInfo.Message} '{parameterName}'" }, null);
+        public static ArgumentError Missing(string parameterName, string? message = null) => new ArgumentError(_missingInfo with { Message = message == null ? $"{_missingInfo.Message} '{parameterName}'" : $"{_missingInfo.Message} '{parameterName}': {message}" }, null);
 
         /// <summary>
         /// ctor
