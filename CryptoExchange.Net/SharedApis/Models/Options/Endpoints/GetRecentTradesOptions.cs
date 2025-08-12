@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         public Error? Validate(GetRecentTradesRequest request)
         {
             if (request.Limit > MaxLimit)
-                return new ArgumentError($"Only the most recent {MaxLimit} trades are available");
+                return ArgumentError.Invalid(nameof(GetRecentTradesRequest.Limit), $"Only the most recent {MaxLimit} trades are available");
 
             return null;
         }

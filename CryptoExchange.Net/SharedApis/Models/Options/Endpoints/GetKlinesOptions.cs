@@ -67,23 +67,23 @@ namespace CryptoExchange.Net.SharedApis
         public override Error? ValidateRequest(string exchange, GetKlinesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (!IsSupported(request.Interval))
-                return new ArgumentError("Interval not supported");
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), "Interval not supported");
 
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
-                return new ArgumentError($"Only the most recent {MaxAge} klines are available");
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} klines are available");
 
             if (request.Limit > MaxLimit)
-                return new ArgumentError($"Only {MaxLimit} klines can be retrieved per request");
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only {MaxLimit} klines can be retrieved per request");
 
             if (MaxTotalDataPoints.HasValue)
             {
                 if (request.Limit > MaxTotalDataPoints.Value)
-                    return new ArgumentError($"Only the most recent {MaxTotalDataPoints} klines are available");
+                    return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only the most recent {MaxTotalDataPoints} klines are available");
 
                 if (request.StartTime.HasValue == true)
                 {
                     if (((request.EndTime ?? DateTime.UtcNow) - request.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
-                        return new ArgumentError($"Only the most recent {MaxTotalDataPoints} klines are available, time filter failed");
+                        return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxTotalDataPoints} klines are available, time filter failed");
                 }
             }
 

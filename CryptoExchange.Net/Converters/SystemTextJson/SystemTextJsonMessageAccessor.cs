@@ -286,7 +286,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Not a json message
                 IsValid = false;
-                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
+                return new CallResult(new DeserializeError(ex.Message, ex));
             }
         }
 
@@ -338,7 +338,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     // Value doesn't start with `{` or `[`, prevent deserialization attempt as it's slow
                     IsValid = false;
-                    return new CallResult(new ServerError("Not a json value"));
+                    return new CallResult(new DeserializeError("Not a json value"));
                 }
 
                 _document = JsonDocument.Parse(data);

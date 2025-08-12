@@ -477,7 +477,7 @@ namespace CryptoExchange.Net.Sockets
 
                 if (!accessor.IsValid && !ApiClient.ProcessUnparsableMessages)
                 {
-                    _logger.FailedToParse(SocketId, result.Error!.Message);
+                    _logger.FailedToParse(SocketId, result.Error!.Message ?? result.Error!.ErrorDescription!);
                     return;
                 }
 
@@ -765,7 +765,7 @@ namespace CryptoExchange.Net.Sockets
         public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.Result ?? new CallResult(new ServerError("Timeout"));
+            return query.Result ?? new CallResult(new TimeoutError());
         }
 
         /// <summary>
@@ -779,7 +779,7 @@ namespace CryptoExchange.Net.Sockets
         public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
+            return query.TypedResult ?? new CallResult<THandlerResponse>(new TimeoutError());
         }
 
         private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)

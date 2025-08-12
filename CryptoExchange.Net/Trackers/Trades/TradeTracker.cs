@@ -207,7 +207,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             if (!subResult)
             {
-                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
+                _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message ?? subResult.Error!.ErrorDescription!, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return subResult;
             }

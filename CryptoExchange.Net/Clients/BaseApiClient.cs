@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
@@ -55,6 +57,11 @@ namespace CryptoExchange.Net.Clients
         public ExchangeOptions ClientOptions { get; }
 
         /// <summary>
+        /// Mapping of a response code to known error types
+        /// </summary>
+        protected internal virtual ErrorCollection ErrorMapping { get; } = new ErrorCollection([]);
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
@@ -86,6 +93,16 @@ namespace CryptoExchange.Net.Clients
 
         /// <inheritdoc />
         public abstract string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
+
+        /// <summary>
+        /// Get error info for a response code
+        /// </summary>
+        public ErrorInfo GetErrorInfo(int code, string? message = null) => GetErrorInfo(code.ToString(), message);
+
+        /// <summary>
+        /// Get error info for a response code
+        /// </summary>
+        public ErrorInfo GetErrorInfo(string code, string? message = null) => ErrorMapping.GetErrorInfo(code.ToString(), message);
 
         /// <inheritdoc />
         public void SetApiCredentials<T>(T credentials) where T : ApiCredentials

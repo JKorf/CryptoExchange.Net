@@ -219,7 +219,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             Completed = true;
-            Result = new CallResult<THandlerResponse>(new CancellationRequestedError(null, "Query timeout", null));
+            Result = new CallResult<THandlerResponse>(new TimeoutError());
             ContinueAwaiter?.Set();
             _event.Set();
         }

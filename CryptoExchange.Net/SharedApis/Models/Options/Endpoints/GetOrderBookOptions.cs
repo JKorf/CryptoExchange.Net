@@ -49,13 +49,13 @@ namespace CryptoExchange.Net.SharedApis
                 return null;
 
             if (MaxLimit.HasValue && request.Limit.Value > MaxLimit)
-                return new ArgumentError($"Max limit is {MaxLimit}");
+                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Max limit is {MaxLimit}");
 
             if (MinLimit.HasValue && request.Limit.Value < MinLimit)
-                return new ArgumentError($"Min limit is {MaxLimit}");
+                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Min limit is {MaxLimit}");
 
             if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
-                return new ArgumentError($"Limit should be one of " + string.Join(", ", SupportedLimits));
+                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Limit should be one of " + string.Join(", ", SupportedLimits));
 
             return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }

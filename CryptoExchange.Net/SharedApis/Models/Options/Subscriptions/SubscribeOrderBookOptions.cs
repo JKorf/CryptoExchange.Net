@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
-                return new ArgumentError("Limit not supported");
+                return ArgumentError.Invalid(nameof(SubscribeOrderBookRequest.Limit), "Limit not supported");
 
             return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }
