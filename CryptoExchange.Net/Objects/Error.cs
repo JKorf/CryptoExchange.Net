@@ -159,7 +159,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.NetworkError, false, "Failed to complete the request to the server due to a network error");
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.NetworkError, true, "Failed to complete the request to the server due to a network error");
 
         /// <summary>
         /// ctor

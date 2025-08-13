@@ -44,12 +44,12 @@ namespace CryptoExchange.Net.Objects.Errors
         /// </summary>
         public ErrorInfo GetErrorInfo(string code, string? message)
         {
-            message = message ?? "-";
-            if (_directMapping.TryGetValue(code, out var info))
+            message = message ?? code ?? "-";
+            if (_directMapping.TryGetValue(code!, out var info))
                 return info with { Message = message };
             
-            if (_evaluators.TryGetValue(code, out var eva))
-                return eva.ErrorTypeEvaluator.Invoke(code, message) with { Message = message };
+            if (_evaluators.TryGetValue(code!, out var eva))
+                return eva.ErrorTypeEvaluator.Invoke(code!, message) with { Message = message };
 
             return ErrorInfo.Unknown with { Message = message };
         }

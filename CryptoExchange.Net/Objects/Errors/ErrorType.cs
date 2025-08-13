@@ -141,13 +141,9 @@ namespace CryptoExchange.Net.Objects.Errors
         /// </summary>
         SymbolNotTrading,
         /// <summary>
-        /// Order rejected due to order type or time in force restrictions
+        /// Order rejected due to order configuration such as order type or time in force restrictions
         /// </summary>
         OrderConfigurationRejected,
-        /// <summary>
-        /// Order type not allowed
-        /// </summary>
-        OrderTypeInvalid,
         /// <summary>
         /// There is no open position
         /// </summary>
@@ -159,7 +155,11 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// The target object is not in the correct state for an operation
         /// </summary>
-        TargetIncorrectState
+        TargetIncorrectState,
+        /// <summary>
+        /// Risk management error
+        /// </summary>
+        RiskError
 
         #endregion
     }
