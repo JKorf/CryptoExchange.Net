@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.OpenTelemetry;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Interfaces
@@ -13,7 +14,8 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="logger">The logger</param>
         /// <param name="parameters">The parameters to use for the connection</param>
+        /// <param name="telemetry">Telemetry sink</param>
         /// <returns></returns>
-        IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters);
+        IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters, Telemetry? telemetry = null);
     }
 }

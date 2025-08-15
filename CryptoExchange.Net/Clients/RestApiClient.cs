@@ -98,6 +98,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
+        /// <param name="telemetry">Telemetry sink</param>
         public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions, Telemetry? telemetry = null)
             : base(logger,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,

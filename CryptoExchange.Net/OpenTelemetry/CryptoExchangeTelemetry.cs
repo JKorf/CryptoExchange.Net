@@ -61,6 +61,93 @@ internal static class CryptoExchangeTelemetry
     public static readonly Histogram<long> ApiResponseBytesHistogram
         = Meter.CreateHistogram<long>("jkorf.response.bytes_histogram", "bytes", "Total number of content bytes from the server");
 
+    public static readonly UpDownCounter<int> SocketsOpenTracker
+        = Meter.CreateUpDownCounter<int>("jkorf.sockets.open", "connections", "Open websocket connections");
+
+    public static readonly Counter<int> SocketsReconnectsCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.reconnects", "reconnects", "Websocket reconnect successes");
+
+    public static readonly Counter<int> SocketsConnectFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.connect_failures", "failures", "Websocket connect failures");
+
+    public static readonly Counter<int> SocketsErrorsCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.errors", "errors", "Websocket errors");
+
+    public static readonly Histogram<long> SocketsRecvBytesHistogram
+        = Meter.CreateHistogram<long>("jkorf.sockets.recv.bytes", "bytes", "Bytes received over websockets");
+
+    public static readonly Histogram<long> SocketsSendBytesHistogram
+        = Meter.CreateHistogram<long>("jkorf.sockets.send.bytes", "bytes", "Bytes sent over websockets");
+    
+    public static readonly Counter<int> SocketsMessagesReceivedCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.messages.received", "messages", "Messages received");
+
+    public static readonly Counter<int> SocketsMessagesProcessedCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.messages.processed", "messages", "Messages processed by handlers");
+
+    public static readonly Counter<int> SocketsParseFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.messages.parse_failures", "messages", "Messages failed to parse");
+
+    public static readonly Counter<int> SocketsDeserializeFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.messages.deserialize_failures", "messages", "Messages failed to deserialize");
+
+    public static readonly Counter<int> SocketsUnmatchedCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.messages.unmatched", "messages", "Messages not matched to any listener");
+
+    public static readonly Histogram<long> SocketsMessageProcessingMsHistogram
+        = Meter.CreateHistogram<long>("jkorf.sockets.message.processing_ms", "ms", "Message processing time");
+
+    public static readonly Histogram<long> SocketsHandlerUserMsHistogram
+        = Meter.CreateHistogram<long>("jkorf.sockets.message.handler_user_ms", "ms", "User handler time");
+
+    public static readonly Counter<int> SocketsSubscribeAttemptsCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.subscribe.attempts", "ops", "Subscribe attempts");
+
+    public static readonly Counter<int> SocketsSubscribeSuccessCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.subscribe.success", "ops", "Subscribe successes");
+
+    public static readonly Counter<int> SocketsSubscribeFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.subscribe.failures", "ops", "Subscribe failures");
+
+    public static readonly Counter<int> SocketsUnsubscribeTotalCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.unsubscribe.total", "ops", "Unsubscribe operations");
+
+    public static readonly Counter<int> SocketsResubscribeAttemptsCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.resubscribe.attempts", "ops", "Resubscribe attempts");
+
+    public static readonly Counter<int> SocketsResubscribeSuccessCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.resubscribe.success", "ops", "Resubscribe successes");
+
+    public static readonly Counter<int> SocketsResubscribeFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.resubscribe.failures", "ops", "Resubscribe failures");
+
+    public static readonly Histogram<int> SocketsResubscribeBatchSizeHistogram
+        = Meter.CreateHistogram<int>("jkorf.sockets.resubscribe.batch_size", "subs", "Resubscribe batch sizes");
+
+    public static readonly Histogram<long> SocketsResubscribeTotalMsHistogram
+        = Meter.CreateHistogram<long>("jkorf.sockets.resubscribe.total_ms", "ms", "Total resubscribe duration");
+    
+    public static readonly Counter<int> WsQueryAttemptsCounter
+        = Meter.CreateCounter<int>("jkorf.wsquery.attempts", "ops", "Websocket query attempts");
+
+    public static readonly Counter<int> WsQuerySuccessCounter
+        = Meter.CreateCounter<int>("jkorf.wsquery.success", "ops", "Websocket query successes");
+
+    public static readonly Counter<int> WsQueryFailuresCounter
+        = Meter.CreateCounter<int>("jkorf.wsquery.failures", "ops", "Websocket query failures");
+
+    public static readonly Counter<int> WsQueryTimeoutsCounter
+        = Meter.CreateCounter<int>("jkorf.wsquery.timeouts", "ops", "Websocket query timeouts");
+
+    public static readonly Histogram<long> WsQueryLatencyMsHistogram
+        = Meter.CreateHistogram<long>("jkorf.wsquery.latency_ms", "ms", "Websocket query latency");
+
+    public static readonly Histogram<int> WsQueryWeightHistogram
+        = Meter.CreateHistogram<int>("jkorf.wsquery.weight", "weight", "Websocket query weight");
+
+    public static readonly Counter<int> SocketsNoDataTimeoutsCounter
+        = Meter.CreateCounter<int>("jkorf.sockets.timeouts.no_data", "ops", "No-data timeouts triggering reconnect");
+
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class Tags
     {
@@ -88,6 +175,8 @@ internal static class CryptoExchangeTelemetry
         public const string RateLimitItemType = "jkorf.rate_limit.item_type";
         public const string RateLimitBehavior = "jkorf.rate_limit.behavior";
         public const string RateLimitDelay = "jkorf.rate_limit.delay_millis";
+        
+        public const string WebSocketMessageType = "jkorf.ws.message.type";
     }
 
     public static class TagValues
