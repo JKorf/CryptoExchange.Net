@@ -79,27 +79,23 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// Request rate limit error, too many requests 
         /// </summary>
-        RequestRateLimited,
+        RateLimitRequest,
         /// <summary>
         /// Connection rate limit error, too many connections
         /// </summary>
-        ConnectionRateLimited,
+        RateLimitConnection,
         /// <summary>
         /// Subscription rate limit error, too many subscriptions
         /// </summary>
-        SubscriptionRateLimited,
+        RateLimitSubscription,
         /// <summary>
         /// Order rate limit error, too many orders
         /// </summary>
-        OrderRateLimited,
+        RateLimitOrder,
         /// <summary>
-        /// Timestamp invalid
+        /// Request timestamp invalid
         /// </summary>
-        TimestampInvalid,
-        /// <summary>
-        /// Request signature invalid
-        /// </summary>
-        SignatureInvalid,
+        InvalidTimestamp,
         /// <summary>
         /// Unknown symbol
         /// </summary>
@@ -119,19 +115,19 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// Invalid quantity
         /// </summary>
-        QuantityInvalid,
+        InvalidQuantity,
         /// <summary>
         /// Invalid price
         /// </summary>
-        PriceInvalid,
+        InvalidPrice,
         /// <summary>
         /// Parameter(s) for stop or tp/sl order invalid
         /// </summary>
-        StopParametersInvalid,
+        InvalidStopParameters,
         /// <summary>
-        /// Not enough balance to execute order
+        /// Not enough balance to execute request
         /// </summary>
-        BalanceInsufficient,
+        InsufficientBalance,
         /// <summary>
         /// Client order id already in use
         /// </summary>
@@ -139,11 +135,11 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// Symbol is not currently trading
         /// </summary>
-        SymbolNotTrading,
+        UnavailableSymbol,
         /// <summary>
         /// Order rejected due to order configuration such as order type or time in force restrictions
         /// </summary>
-        OrderConfigurationRejected,
+        RejectedOrderConfiguration,
         /// <summary>
         /// There is no open position
         /// </summary>
@@ -155,7 +151,7 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// The target object is not in the correct state for an operation
         /// </summary>
-        TargetIncorrectState,
+        IncorrectState,
         /// <summary>
         /// Risk management error
         /// </summary>

@@ -44,7 +44,6 @@ namespace CryptoExchange.Net.Objects.Errors
         /// </summary>
         public ErrorInfo GetErrorInfo(string code, string? message)
         {
-            message = message ?? code ?? "-";
             if (_directMapping.TryGetValue(code!, out var info))
                 return info with { Message = message };
             

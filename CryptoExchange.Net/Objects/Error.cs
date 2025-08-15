@@ -253,7 +253,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RequestRateLimited, false, "Client rate limit exceeded");
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RateLimitRequest, false, "Client rate limit exceeded");
 
         /// <summary>
         /// ctor
@@ -274,7 +274,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RequestRateLimited, false, "Server rate limit exceeded");
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RateLimitRequest, false, "Server rate limit exceeded");
 
         /// <summary>
         /// ctor
