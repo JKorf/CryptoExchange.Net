@@ -15,6 +15,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -122,6 +123,8 @@ namespace CryptoExchange.Net.Clients
 
         #endregion
 
+        internal Telemetry? Telemetry => _telemetry;
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -129,13 +132,15 @@ namespace CryptoExchange.Net.Clients
         /// <param name="options">Client options</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions)
+        /// <param name="telemetry">Telemetry sink</param>
+        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions, Telemetry? telemetry = null)
             : base(logger,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   apiOptions.ApiCredentials ?? options.ApiCredentials,
                   baseAddress,
                   options,
-                  apiOptions)
+                  apiOptions,
+                  telemetry)
         {
         }
 
@@ -272,6 +277,8 @@ namespace CryptoExchange.Net.Clients
             var subQuery = subscription.GetSubQuery(socketConnection);
             if (subQuery != null)
             {
+                Telemetry?.RecordSubscribeAttempt(socketConnection.ConnectionUri, subscription.Authenticated);
+
                 // Send the request and wait for answer
                 var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent, ct).ConfigureAwait(false);
                 if (!subResult)
@@ -285,6 +292,7 @@ namespace CryptoExchange.Net.Clients
                     else
                     {
                         _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
+                        Telemetry?.RecordSubscribeFailure(socketConnection.ConnectionUri, socketConnection.Authenticated);
                         // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
                         await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                         return new CallResult<UpdateSubscription>(subResult.Error!);
@@ -306,6 +314,7 @@ namespace CryptoExchange.Net.Clients
 
             waitEvent?.Set();
             _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
+            Telemetry?.RecordSubscribeSuccess(socketConnection.ConnectionUri, subscription.Authenticated);
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
 
@@ -623,7 +632,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IWebsocket CreateSocket(string address)
         {
-            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
+            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address), _telemetry);
             _logger.SocketCreatedForAddress(socket.Id, address);
             return socket;
         }

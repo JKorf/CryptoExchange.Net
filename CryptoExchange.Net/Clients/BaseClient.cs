@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Clients
             _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
 
             if (ClientOptions.TelemetryEnabled)
-                _telemetry = new OpenTelemetry.Telemetry(Exchange, CryptoExchangeLibVersion);
+                _telemetry = new Telemetry(Exchange, CryptoExchangeLibVersion);
         }
 
         /// <summary>

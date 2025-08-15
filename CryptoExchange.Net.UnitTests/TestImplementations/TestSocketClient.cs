@@ -40,12 +40,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             SubClient = AddApiClient(new TestSubSocketClient(options.Value, options.Value.SubOptions));
             SubClient.SocketFactory = new Mock<IWebsocketFactory>().Object;
-            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket("https://test.com"));
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>(), null)).Returns(new TestSocket("https://test.com"));
         }
 
         public TestSocket CreateSocket()
         {
-            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>())).Returns(new TestSocket("https://test.com"));
+            Mock.Get(SubClient.SocketFactory).Setup(f => f.CreateWebsocket(It.IsAny<ILogger>(), It.IsAny<WebSocketParameters>(), null)).Returns(new TestSocket("https://test.com"));
             return (TestSocket)SubClient.CreateSocketInternal("https://localhost:123/");
         }
                 

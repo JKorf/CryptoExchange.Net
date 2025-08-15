@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -69,6 +70,11 @@ namespace CryptoExchange.Net.Sockets
         /// Log
         /// </summary>
         protected ILogger _logger;
+
+        /// <summary>
+        /// Telemetry sink
+        /// </summary>
+        private readonly Telemetry? _telemetry;
 
         /// <inheritdoc />
         public int Id { get; }
@@ -141,10 +147,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="logger">The log object to use</param>
         /// <param name="websocketParameters">The parameters for this socket</param>
-        public CryptoExchangeWebSocketClient(ILogger logger, WebSocketParameters websocketParameters)
+        /// <param name="telemetry">Telemetry sink</param>
+        public CryptoExchangeWebSocketClient(ILogger logger, WebSocketParameters websocketParameters, Telemetry? telemetry = null)
         {
             Id = NextStreamId();
             _logger = logger;
+            _telemetry = telemetry;
 
             Parameters = websocketParameters;
             _receivedMessages = new List<ReceiveItem>();
@@ -170,8 +178,11 @@ namespace CryptoExchange.Net.Sockets
         {
             var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
             if (!connectResult)
+            {
+                _telemetry?.RecordSocketConnectFailure(Uri);
                 return connectResult;
-            
+            }
+
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();
             return connectResult;
@@ -547,6 +558,7 @@ namespace CryptoExchange.Net.Sockets
                             await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), data.Type, true, _ctsSource.Token).ConfigureAwait(false);
                             await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
                             _logger.SocketSentBytes(Id, data.Id, data.Bytes.Length);
+                            _telemetry?.RecordSocketBytesSent(Uri, data.Bytes.Length);
                         }
                         catch (OperationCanceledException)
                         {
@@ -759,6 +771,7 @@ namespace CryptoExchange.Net.Sockets
                     if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
                     {
                         _logger.SocketNoDataReceiveTimoutReconnect(Id, Parameters.Timeout);
+                        _telemetry?.RecordNoDataTimeout(Uri);
                         _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }
