@@ -8,6 +8,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -176,12 +177,17 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual async Task<CallResult> ConnectAsync(CancellationToken ct)
         {
+            using var _ = Telemetry.StartScope(_telemetry);
+            var activity = Telemetry.Current?.StartSocketConnectActivity(Uri, Id);
+            
             var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
             if (!connectResult)
             {
                 _telemetry?.RecordSocketConnectFailure(Uri);
+                activity?.SetStatus(ActivityStatusCode.Error, connectResult.Error?.ToString());
                 return connectResult;
             }
+            activity?.SetStatus(ActivityStatusCode.Ok);
 
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();

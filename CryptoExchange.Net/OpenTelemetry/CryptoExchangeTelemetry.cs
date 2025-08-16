@@ -177,6 +177,12 @@ internal static class CryptoExchangeTelemetry
         public const string RateLimitDelay = "jkorf.rate_limit.delay_millis";
         
         public const string WebSocketMessageType = "jkorf.ws.message.type";
+        public const string WebSocketSocketId = "jkorf.ws.socket.id";
+        public const string WebSocketSubscriptionTopic = "jkorf.ws.subscription.topic";
+        public const string WebSocketSubscriptionMatchers = "jkorf.ws.subscription.matchers";
+        public const string WebSocketUser = "jkorf.ws.user";
+        public const string WebSocketRequestId = "jkorf.ws.request.id";
+        public const string WebSocketRequestMatchers = "jkorf.ws.request.matchers";
     }
 
     public static class TagValues
@@ -195,6 +201,11 @@ internal static class CryptoExchangeTelemetry
         public const string SendRequest = "CryptoExchange.SendAsync";
         public const string RateLimitDelayingRequest = "CryptoExchange.RateLimitDelayingRequest";
         public const string RateLimitDelayingConnection = "CryptoExchange.RateLimitDelayingConnection";
+
+        public const string SocketConnect = "CryptoExchange.SocketConnect";
+        public const string SocketAuthenticate = "CryptoExchange.SocketAuthenticate";
+        public const string SocketSubscribe = "CryptoExchange.SocketSubscribe";
+        public const string SocketQuery = "CryptoExchange.SocketQuery";
     }
 
     public static class ActivityEvents

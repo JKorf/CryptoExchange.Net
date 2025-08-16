@@ -11,6 +11,7 @@ using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -776,8 +777,13 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
+            using var _ = Telemetry.StartScope(Telemetry.Current);
+            using var __ = ApiClient.Telemetry?.StartSocketQueryActivity(SocketId, query, Authenticated);
+            
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.Result ?? new CallResult(new ServerError("Timeout"));
+            var result = query.Result ?? new CallResult(new ServerError("Timeout"));
+            
+            return result.RecordActivity();
         }
 
         /// <summary>
@@ -790,8 +796,13 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
+            using var _ = Telemetry.StartScope(Telemetry.Current);
+            using var __ = ApiClient.Telemetry?.StartSocketQueryActivity(SocketId, query, Authenticated);
+
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
+            var result = query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
+
+            return result.RecordActivity();
         }
 
         private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)
