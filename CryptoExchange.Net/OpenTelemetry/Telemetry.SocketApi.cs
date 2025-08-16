@@ -1,54 +1,59 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets;
+using System;
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 
 namespace CryptoExchange.Net.OpenTelemetry;
 
 public partial class Telemetry
 {
-    internal Activity? StartSocketConnectActivity(Uri uri, bool authenticated)
+    internal Activity? StartSocketConnectActivity(Uri uri, int connectionId)
     {
         var tags = new TagList(_baseTags)
         {
-            { "ws.server.address", uri.Host },
-            { "ws.url.path", uri.AbsolutePath },
-            { "request.authenticated", authenticated },
+            { CryptoExchangeTelemetry.Tags.ServerAddress, uri.Host },
+            { CryptoExchangeTelemetry.Tags.HttpRequestUrlPath, uri.AbsolutePath },
+            { CryptoExchangeTelemetry.Tags.WebSocketSocketId, connectionId }
         };
-        return StartActivity("ws.connect", ActivityKind.Client, Activity.Current?.Context, tags);
+        return StartActivity(CryptoExchangeTelemetry.Activities.SocketQuery, ActivityKind.Client, Activity.Current?.Context, tags);
     }
 
-    internal Activity? StartSocketAuthenticateActivity(int connectionId, Uri uri)
+    internal Activity? StartSocketAuthenticateActivity(Uri uri, int connectionId)
     {
         var tags = new TagList(_baseTags)
         {
-            { "ws.connection.id", connectionId },
-            { "ws.url.path", uri.AbsolutePath },
-            { "request.authenticated", true },
+            { CryptoExchangeTelemetry.Tags.ServerAddress, uri.Host },
+            { CryptoExchangeTelemetry.Tags.HttpRequestUrlPath, uri.AbsolutePath },
+            { CryptoExchangeTelemetry.Tags.WebSocketSocketId, connectionId }
         };
-        return StartActivity("ws.authenticate", ActivityKind.Client, Activity.Current?.Context, tags);
+        return StartActivity(CryptoExchangeTelemetry.Activities.SocketAuthenticate, ActivityKind.Client, Activity.Current?.Context, tags);
     }
 
-    internal Activity? StartSocketSubscribeActivity(int? connectionId, string? topic, bool authenticated)
+    internal Activity? StartSocketSubscribeActivity(Subscription subscription)
     {
         var tags = new TagList(_baseTags)
         {
-            { "ws.connection.id", connectionId },
-            { "subscription.topic", topic },
-            { "request.authenticated", authenticated },
+            { CryptoExchangeTelemetry.Tags.RequestAuthenticated, subscription.Authenticated },
+            { CryptoExchangeTelemetry.Tags.WebSocketSubscriptionTopic, subscription.Topic },
+            { CryptoExchangeTelemetry.Tags.WebSocketUser, subscription.UserSubscription },
+            { CryptoExchangeTelemetry.Tags.WebSocketSubscriptionMatchers, subscription.MessageMatcher.ToString() }
         };
-        return StartActivity("ws.subscribe", ActivityKind.Client, Activity.Current?.Context, tags);
+        return StartActivity(CryptoExchangeTelemetry.Activities.SocketSubscribe, ActivityKind.Client, Activity.Current?.Context, tags);
     }
 
-    internal Activity? StartSocketQueryActivity(int connectionId, int requestId, int weight, bool authenticated)
+    internal Activity? StartSocketQueryActivity(int connectionId, Query query, bool authenticated)
     {
         var tags = new TagList(_baseTags)
         {
-            { "ws.connection.id", connectionId },
-            { "request.id", requestId },
-            { "request.weight", weight },
-            { "request.authenticated", authenticated },
+            { CryptoExchangeTelemetry.Tags.WebSocketSocketId, connectionId },
+            { CryptoExchangeTelemetry.Tags.WebSocketRequestId, query.Id },
+            { CryptoExchangeTelemetry.Tags.RequestWeight, query.Weight },
+            { CryptoExchangeTelemetry.Tags.RequestAuthenticated, authenticated },
+            { CryptoExchangeTelemetry.Tags.WebSocketRequestMatchers, query.MessageMatcher.ToString() },
         };
-        return StartActivity("ws.query", ActivityKind.Client, Activity.Current?.Context, tags);
+        return StartActivity(CryptoExchangeTelemetry.Activities.SocketQuery, ActivityKind.Client, Activity.Current?.Context, tags);
     }
     
     private TagList SocketTags(Uri uri, bool? auth = null) => new(_baseTags)
@@ -157,4 +162,33 @@ public partial class Telemetry
 
     internal void RecordNoDataTimeout(Uri uri)
         => CryptoExchangeTelemetry.SocketsNoDataTimeoutsCounter.Add(1, SocketTags(uri));
+}
+
+internal static class TelemetryEx
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static CallResult RecordActivity(this CallResult result)
+    {
+        if (Activity.Current == null) return result;
+
+        if (result.Success)
+            Activity.Current.SetStatus(ActivityStatusCode.Ok);
+        else
+            Activity.Current.SetStatus(ActivityStatusCode.Error, result.Error?.ToString());
+
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static CallResult<T> RecordActivity<T>(this CallResult<T> result)
+    {
+        if (Activity.Current == null) return result;
+        
+        if (result.Success)
+            Activity.Current.SetStatus(ActivityStatusCode.Ok);
+        else
+            Activity.Current.SetStatus(ActivityStatusCode.Error, result.Error?.ToString());
+
+        return result;
+    }
 }
