@@ -379,5 +379,54 @@ namespace CryptoExchange.Net.UnitTests
             var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, ct.Token);
             Assert.That(result2.Error, Is.TypeOf<CancellationRequestedError>());
         }
+
+        [Test]
+        public async Task ExceptionWhenSemaphoreReleasedShouldNotCauseSemaphoreFullExceptionOnFutureCalls()
+        {
+            // RateLimitGate temporarily releases the semaphore when it will Task.Delay the request, so other requests can check their gates.
+            // If an exception is thrown whilst the semaphore is released, that is not the TaskCanceledException previous checked,
+            // RateLimitGate would release the semaphore again, which would cause a SemaphoreFullException on future calls.
+            // An example cause of this is if the RateLimitTriggered event handler throws an exception.
+
+            // This change uses an AsyncLocal<StrongBox<bool>> to track if the current async context owns the lock.
+            // If it does not own the lock, it will not release the semaphore again, preventing the SemaphoreFullException.
+            // We REQUIRE a StrongBox, as when an exception is thrown, AsyncLocal will be reset to before the Exception, hence we have to box the bool,
+            // preventing it from being reset to true when the exception is thrown.
+
+            var rateWindow = TimeSpan.FromSeconds(1);
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, rateWindow, RateLimitWindowType.Fixed));
+
+            var ct = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
+
+            // Add a handler that throws an exception when the rate limit is triggered
+            rateLimiter.RateLimitTriggered += RateLimitTriggered;
+
+            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, ct.Token);
+
+            Assert.ThrowsAsync<InconclusiveException>(async () =>
+            {
+                var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection,
+                    new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1,
+                    RateLimitingBehaviour.Wait, null, ct.Token);
+
+                // Expect the throw.
+                // Remove the exception
+                rateLimiter.RateLimitTriggered -= RateLimitTriggered;
+            });
+
+            // Move us past the rate limit window to avoid further exceptions
+            await Task.Delay(rateWindow);
+
+            // Assert that after the rate limit expires, we can continue to place requests.
+            ct = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
+            var result3 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, ct.Token);
+
+            static void RateLimitTriggered(RateLimitEvent rateLimitEvent)
+            {
+                // Simulate an exception thrown by the RateLimitTriggered event handler
+                throw new InconclusiveException("Simulated exception during semaphore release");
+            }
+        }
     }
 }

@@ -37,6 +37,11 @@ namespace CryptoExchange.Net.Objects.Options
         /// </summary>
         public RateLimitingBehaviour RateLimitingBehaviour { get; set; } = RateLimitingBehaviour.Wait;
 
+        /// <summary>
+        /// Whether or not telemetry is enabled for this client
+        /// </summary>
+        public bool TelemetryEnabled { get; set; } = false;
+
         /// <inheritdoc />
         public override string ToString()
         {

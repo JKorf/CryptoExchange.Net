@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -53,6 +54,11 @@ namespace CryptoExchange.Net.Clients
         private Version _exchangeVersion;
 
         /// <summary>
+        /// The telemetry object
+        /// </summary>
+        protected Telemetry? _telemetry = null;
+        
+        /// <summary>
         /// Provided client options
         /// </summary>
         public ExchangeOptions ClientOptions { get; private set; }
@@ -81,6 +87,9 @@ namespace CryptoExchange.Net.Clients
 
             ClientOptions = options;
             _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
+
+            if (ClientOptions.TelemetryEnabled)
+                _telemetry = new Telemetry(Exchange, CryptoExchangeLibVersion);
         }
 
         /// <summary>
@@ -91,6 +100,8 @@ namespace CryptoExchange.Net.Clients
         {
             foreach (var apiClient in ApiClients)
                 apiClient.SetApiCredentials(credentials);
+
+            _telemetry?.SetUserIdentifier(credentials.Key);
         }
 
         /// <summary>
@@ -103,6 +114,7 @@ namespace CryptoExchange.Net.Clients
                 throw new InvalidOperationException("Client should have called Initialize before adding API clients");
 
             _logger.Log(LogLevel.Trace, $"  {apiClient.GetType().Name}, base address: {apiClient.BaseAddress}");
+            apiClient.Telemetry = _telemetry;
             ApiClients.Add(apiClient);
             return apiClient;
         }

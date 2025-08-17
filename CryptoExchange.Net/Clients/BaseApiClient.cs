@@ -3,6 +3,7 @@ using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.OpenTelemetry;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
 
@@ -17,6 +18,11 @@ namespace CryptoExchange.Net.Clients
         /// Logger
         /// </summary>
         protected ILogger _logger;
+
+        /// <summary>
+        /// Telemetry
+        /// </summary>
+        internal Telemetry? Telemetry { get; set; }
 
         /// <summary>
         /// If we are disposing

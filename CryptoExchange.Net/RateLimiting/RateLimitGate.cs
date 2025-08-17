@@ -7,8 +7,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.RateLimiting
 {
@@ -18,8 +20,24 @@ namespace CryptoExchange.Net.RateLimiting
         private readonly ConcurrentBag<IRateLimitGuard> _guards;
         private readonly SemaphoreSlim _semaphore;
         private readonly string _name;
+        // We keep a reference to the lock owner to avoid releasing the semaphore we already temporarily released it and exit early.
+        private readonly AsyncLocal<StrongBox<bool>> _ownsLock = new();
 
         private int _waitingCount;
+
+        /// <summary>
+        /// Gets a value indicating whether the current asynchronous context owns the lock.
+        /// </summary>
+        private bool OwnsLock
+        {
+            get => _ownsLock.Value?.Value ?? false;
+            set
+            {
+                if (_ownsLock.Value == null)
+                    throw new InvalidOperationException("Lock ownership is not initialized for this async context.");
+                _ownsLock.Value.Value = value;
+            }
+        }
 
         /// <inheritdoc />
         public event Action<RateLimitEvent>? RateLimitTriggered;
@@ -40,7 +58,7 @@ namespace CryptoExchange.Net.RateLimiting
         public async Task<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-            bool release = true;
+            _ownsLock.Value = new(true);
             _waitingCount++;
             try
             {
@@ -48,14 +66,12 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException tce)
             {
-                // The semaphore has already been released if the task was cancelled
-                release = false;
                 return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
                 _waitingCount--;
-                if (release)
+                if (OwnsLock)
                     _semaphore.Release();
             }
         }
@@ -75,7 +91,7 @@ namespace CryptoExchange.Net.RateLimiting
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-            bool release = true;
+            _ownsLock.Value = new(true);
             _waitingCount++;
             try
             {
@@ -83,14 +99,12 @@ namespace CryptoExchange.Net.RateLimiting
             }
             catch (TaskCanceledException tce)
             {
-                // The semaphore has already been released if the task was cancelled
-                release = false;
                 return new CallResult(new CancellationRequestedError(tce));
             }
             finally
             {
                 _waitingCount--;
-                if (release)
+                if (OwnsLock)
                     _semaphore.Release();
             }
         }
@@ -105,10 +119,16 @@ namespace CryptoExchange.Net.RateLimiting
                 {
                     // Delay is needed and limit behaviour is to fail the request
                     if (type == RateLimitItemType.Connection)
+                    {
                         logger.RateLimitConnectionFailed(itemId, guard.Name, guard.Description);
+                    }
                     else
+                    {
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
-                    
+                    }
+                    Telemetry.Current?.RecordRateLimitFailed(definition, guard, host, type);
+
+
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }
@@ -117,16 +137,24 @@ namespace CryptoExchange.Net.RateLimiting
                 {
                     // Delay is needed and limit behaviour is to wait for the request to be under the limit
                     _semaphore.Release();
+                    OwnsLock = false;
 
                     var description = result.Limit == null ? guard.Description : $"{guard.Description}, Request weight: {requestWeight}, Current: {result.Current}, Limit: {result.Limit}, requests now being limited: {_waitingCount}";
                     if (type == RateLimitItemType.Connection)
+                    {
                         logger.RateLimitDelayingConnection(itemId, result.Delay, guard.Name, description);
+                        Telemetry.Current?.RecordRateLimitDelayingConnection(definition, guard, host, type, result.Delay);
+                    }
                     else
+                    {
                         logger.RateLimitDelayingRequest(itemId, definition.Path, result.Delay, guard.Name, description);
+                        Telemetry.Current?.RecordRateLimitDelayingRequest(definition, guard, host, type, result.Delay);
+                    }
 
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+                    OwnsLock = true;
                     return await CheckGuardsAsync(guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
                 }
             }

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,7 @@ using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -271,6 +272,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Status = SocketStatus.Connected;
             PausedActivity = false;
+            ApiClient.Telemetry?.RecordSocketOpened(ConnectionUri, Authenticated);
             return Task.CompletedTask;
         }
 
@@ -281,7 +283,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Status = SocketStatus.Closed;
             Authenticated = false;
-
+            
             lock (_listenersLock)
             {
                 foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
@@ -338,6 +340,7 @@ namespace CryptoExchange.Net.Sockets
         protected virtual Task HandleReconnectedAsync()
         {
             Status = SocketStatus.Resubscribing;
+            ApiClient.Telemetry?.RecordSocketReconnect(ConnectionUri);
 
             lock (_listenersLock)
             {
@@ -390,6 +393,8 @@ namespace CryptoExchange.Net.Sockets
                 _logger.WebSocketErrorCodeAndDetails(SocketId, wse.WebSocketErrorCode, wse.Message, wse);
             else
                 _logger.WebSocketError(SocketId, e.Message, e);
+            
+            ApiClient.Telemetry?.RecordSocketConnectionError(ConnectionUri);
 
             return Task.CompletedTask;
         }
@@ -454,6 +459,9 @@ namespace CryptoExchange.Net.Sockets
             var sw = Stopwatch.StartNew();
             var receiveTime = DateTime.UtcNow;
             string? originalData = null;
+            
+            ApiClient.Telemetry?.RecordSocketBytesReceived(ConnectionUri, data.Length, type);
+            ApiClient.Telemetry?.RecordSocketMessageReceived(ConnectionUri, type);
 
             // 1. Decrypt/Preprocess if necessary
             data = ApiClient.PreprocessStreamMessage(this, type, data);
@@ -478,6 +486,7 @@ namespace CryptoExchange.Net.Sockets
                 if (!accessor.IsValid && !ApiClient.ProcessUnparsableMessages)
                 {
                     _logger.FailedToParse(SocketId, result.Error!.Message);
+                    ApiClient.Telemetry?.RecordSocketParseFailure(ConnectionUri);
                     return;
                 }
 
@@ -488,8 +497,8 @@ namespace CryptoExchange.Net.Sockets
                     originalData ??= "[OutputOriginalData is false]";
                     if (!ApiClient.UnhandledMessageExpected)
                         _logger.FailedToEvaluateMessage(SocketId, originalData);
-
                     UnhandledMessage?.Invoke(accessor);
+                    ApiClient.Telemetry?.RecordSocketUnmatched(ConnectionUri);
                     return;
                 }
 
@@ -531,6 +540,7 @@ namespace CryptoExchange.Net.Sockets
                             if (!desResult)
                             {
                                 _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
+                                ApiClient.Telemetry?.RecordSocketDeserializeFailure(ConnectionUri);
                                 continue;
                             }
 
@@ -567,12 +577,14 @@ namespace CryptoExchange.Net.Sockets
 
                         _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
                         UnhandledMessage?.Invoke(accessor);
+                        ApiClient.Telemetry?.RecordSocketUnmatched(ConnectionUri);
                     }
 
                     return;
                 }
 
                 _logger.MessageProcessed(SocketId, sw.ElapsedMilliseconds, sw.ElapsedMilliseconds - totalUserTime);
+                ApiClient.Telemetry?.RecordSocketMessageProcessed(ConnectionUri, sw.ElapsedMilliseconds, totalUserTime);
             }
             finally
             {
@@ -764,8 +776,13 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
+            using var _ = Telemetry.StartScope(Telemetry.Current);
+            using var __ = ApiClient.Telemetry?.StartSocketQueryActivity(SocketId, query, Authenticated);
+            
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.Result ?? new CallResult(new ServerError("Timeout"));
+            var result = query.Result ?? new CallResult(new ServerError("Timeout"));
+            
+            return result.RecordActivity();
         }
 
         /// <summary>
@@ -778,15 +795,23 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
         {
+            using var _ = Telemetry.StartScope(Telemetry.Current);
+            using var __ = ApiClient.Telemetry?.StartSocketQueryActivity(SocketId, query, Authenticated);
+
             await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
-            return query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
+            var result = query.TypedResult ?? new CallResult<THandlerResponse>(new ServerError("Timeout"));
+
+            return result.RecordActivity();
         }
 
         private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)
         {
             lock(_listenersLock)
                 _listeners.Add(query);
-
+            
+            var sw = Stopwatch.StartNew();
+            ApiClient.Telemetry?.RecordWsQueryAttempt(ConnectionUri, Authenticated, query.Weight);
+            
             query.ContinueAwaiter = continueEvent;
             var sendResult = Send(query.Id, query.Request, query.Weight);
             if (!sendResult)
@@ -794,6 +819,7 @@ namespace CryptoExchange.Net.Sockets
                 query.Fail(sendResult.Error!);
                 lock (_listenersLock)
                     _listeners.Remove(query);
+                ApiClient.Telemetry?.RecordWsQueryFailure(ConnectionUri, sw.ElapsedMilliseconds);
                 return;
             }
 
@@ -826,6 +852,13 @@ namespace CryptoExchange.Net.Sockets
             {
                 lock (_listenersLock)
                     _listeners.Remove(query);
+                
+                if(query.Completed)
+                    ApiClient.Telemetry?.RecordWsQuerySuccess(ConnectionUri, sw.ElapsedMilliseconds);
+                else if(ct.IsCancellationRequested)
+                    ApiClient.Telemetry?.RecordWsQueryTimeout(ConnectionUri, sw.ElapsedMilliseconds);
+                else
+                    ApiClient.Telemetry?.RecordWsQueryFailure(ConnectionUri, sw.ElapsedMilliseconds);
             }
         }
 
@@ -966,7 +999,8 @@ namespace CryptoExchange.Net.Sockets
 
             // Foreach subscription which is subscribed by a subscription request we will need to resend that request to resubscribe
             int batch = 0;
-            int batchSize = ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket;
+            int batchSize = ApiClient.ClientOptions.MaxConcurrentResubscriptionsPerSocket; 
+            var sw = Stopwatch.StartNew();
             while (true)
             {
                 if (!_socket.IsOpen)
@@ -978,6 +1012,8 @@ namespace CryptoExchange.Net.Sockets
 
                 if (subList.Count == 0)
                     break;
+                
+                ApiClient.Telemetry?.RecordResubscribeAttempt(ConnectionUri, subList.Count);
 
                 var taskList = new List<Task<CallResult>>();
                 foreach (var subscription in subList)
@@ -992,6 +1028,7 @@ namespace CryptoExchange.Net.Sockets
                     if (!result)
                     {
                         _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
+                        ApiClient.Telemetry?.RecordResubscribeFailure(ConnectionUri);
                         subscription.IsResubscribing = false;
                         return result;
                     }
@@ -1017,7 +1054,10 @@ namespace CryptoExchange.Net.Sockets
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
                 if (taskList.Any(t => !t.Result.Success))
+                {
+                    ApiClient.Telemetry?.RecordResubscribeFailure(ConnectionUri);
                     return taskList.First(t => !t.Result.Success).Result;
+                }
 
                 batch++;
             }
@@ -1026,6 +1066,7 @@ namespace CryptoExchange.Net.Sockets
                 return new CallResult(new WebError("Socket not connected"));
 
             _logger.AllSubscriptionResubscribed(SocketId);
+            ApiClient.Telemetry?.RecordResubscribeSuccess(ConnectionUri, sw.ElapsedMilliseconds);
             return CallResult.SuccessResult;
         }
 
@@ -1037,6 +1078,7 @@ namespace CryptoExchange.Net.Sockets
 
             await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
             _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
+            ApiClient.Telemetry?.RecordUnsubscribe(ConnectionUri);
         }
 
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)

@@ -8,6 +8,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +16,7 @@ using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -69,6 +71,11 @@ namespace CryptoExchange.Net.Sockets
         /// Log
         /// </summary>
         protected ILogger _logger;
+
+        /// <summary>
+        /// Telemetry sink
+        /// </summary>
+        private readonly Telemetry? _telemetry;
 
         /// <inheritdoc />
         public int Id { get; }
@@ -141,10 +148,12 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="logger">The log object to use</param>
         /// <param name="websocketParameters">The parameters for this socket</param>
-        public CryptoExchangeWebSocketClient(ILogger logger, WebSocketParameters websocketParameters)
+        /// <param name="telemetry">Telemetry sink</param>
+        public CryptoExchangeWebSocketClient(ILogger logger, WebSocketParameters websocketParameters, Telemetry? telemetry = null)
         {
             Id = NextStreamId();
             _logger = logger;
+            _telemetry = telemetry;
 
             Parameters = websocketParameters;
             _receivedMessages = new List<ReceiveItem>();
@@ -168,10 +177,18 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public virtual async Task<CallResult> ConnectAsync(CancellationToken ct)
         {
+            using var _ = Telemetry.StartScope(_telemetry);
+            var activity = Telemetry.Current?.StartSocketConnectActivity(Uri, Id);
+            
             var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
             if (!connectResult)
+            {
+                _telemetry?.RecordSocketConnectFailure(Uri);
+                activity?.SetStatus(ActivityStatusCode.Error, connectResult.Error?.ToString());
                 return connectResult;
-            
+            }
+            activity?.SetStatus(ActivityStatusCode.Ok);
+
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _processTask = ProcessAsync();
             return connectResult;
@@ -475,6 +492,8 @@ namespace CryptoExchange.Net.Sockets
                 // Websocket is set to Aborted state when the cancelation token is set during SendAsync/ReceiveAsync
                 // So socket might go to aborted state, might still be open
             }
+            
+            _telemetry?.RecordSocketClosed(Uri);
 
             _ctsSource.Cancel();
         }
@@ -547,6 +566,7 @@ namespace CryptoExchange.Net.Sockets
                             await _socket.SendAsync(new ArraySegment<byte>(data.Bytes, 0, data.Bytes.Length), data.Type, true, _ctsSource.Token).ConfigureAwait(false);
                             await (OnRequestSent?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
                             _logger.SocketSentBytes(Id, data.Id, data.Bytes.Length);
+                            _telemetry?.RecordSocketBytesSent(Uri, data.Bytes.Length);
                         }
                         catch (OperationCanceledException)
                         {
@@ -759,6 +779,7 @@ namespace CryptoExchange.Net.Sockets
                     if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
                     {
                         _logger.SocketNoDataReceiveTimoutReconnect(Id, Parameters.Timeout);
+                        _telemetry?.RecordNoDataTimeout(Uri);
                         _ = ReconnectAsync().ConfigureAwait(false);
                         return;
                     }

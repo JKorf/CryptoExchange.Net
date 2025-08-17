@@ -1,12 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using CryptoExchange.Net.Caching;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
@@ -16,6 +7,16 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using CryptoExchange.Net.OpenTelemetry;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -97,6 +98,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
+        /// <param name="telemetry">Telemetry sink</param>
         public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions)
             : base(logger,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
@@ -203,6 +205,23 @@ namespace CryptoExchange.Net.Clients
             int? weightSingleLimiter = null,
             string? rateLimitKeySuffix = null)
         {
+            using var _ = Telemetry.StartScope(Telemetry);
+            using var activity = Telemetry.Current?.StartSendAsyncActivity(baseAddress, definition, weight, weightSingleLimiter, rateLimitKeySuffix);
+
+            try
+            {
+                /*
+                 Method impl shall be placed into this try-throw block to attach exceptions to the activity.
+                 Keeping this out of the initial PR to help with visibility of changes made. 
+                */
+            }
+            catch (Exception ex)
+            {
+                activity?.AddException(ex);
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                throw;
+            }
+
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
@@ -213,10 +232,13 @@ namespace CryptoExchange.Net.Clients
                 {
                     _logger.CacheHit(cacheKey);
                     var original = (WebCallResult<T>)cachedValue;
-                    return original.Cached();
+                    var cached = original.Cached();
+                    Telemetry.Current?.RecordCacheHit(definition, cached);
+                    return cached;
                 }
 
                 _logger.CacheNotHit(cacheKey);
+                Telemetry.Current?.RecordCacheMiss(definition);
             }
 
             int currentTry = 0;
@@ -224,10 +246,14 @@ namespace CryptoExchange.Net.Clients
             {
                 currentTry++;
                 var requestId = ExchangeHelpers.NextId();
+                Telemetry.Current?.RecordRequestAttempt(currentTry, requestId);
 
                 var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight, weightSingleLimiter, rateLimitKeySuffix).ConfigureAwait(false);
                 if (!prepareResult)
-                    return new WebCallResult<T>(prepareResult.Error!);
+                {
+                    Telemetry.Current?.RecordPrepareError(definition, prepareResult);
+                    return new WebCallResult<T>(prepareResult.Error);
+                }
 
                 var request = CreateRequest(
                     requestId,
@@ -238,18 +264,26 @@ namespace CryptoExchange.Net.Clients
                     additionalHeaders);
                 _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
+                Telemetry.Current?.RecordTotalRequestsMade(definition);
                 var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (result.Error is not CancellationRequestedError)
                 {
                     var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
                     if (!result)
+                    {
                         _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), originalData, result.Error?.Exception);
+                        Telemetry.Current?.RecordRestApiErrorReceived(definition, result);
+                    }
                     else
+                    {
                         _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
+                        Telemetry.Current?.RecordRestApiResponseReceived(definition, result);
+                    }
                 }
                 else
                 {
                     _logger.RestApiCancellationRequested(result.RequestId);
+                    Telemetry.Current?.RecordRestApiCancellationRequested(definition);
                 }
 
                 if (await ShouldRetryRequestAsync(definition.RateLimitGate, result, currentTry).ConfigureAwait(false))
@@ -259,8 +293,9 @@ namespace CryptoExchange.Net.Clients
                     ShouldCache(definition))
                 {
                     _cache.Add(cacheKey!, result);
+                    Telemetry.Current?.RecordCacheFill(definition, result);
                 }
-
+                
                 return result;
             }
         }
