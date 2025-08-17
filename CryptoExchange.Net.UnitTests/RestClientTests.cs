@@ -381,39 +381,6 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [Test]
-        public async Task PreviousRateLimitCodeThrowsSemaphoreFullException()
-        {
-            // RateLimitGate temporarily releases the semaphore when it will Task.Delay the request, so other requests can check their gates.
-            // If an exception is thrown whilst the semaphore is released, that is not the TaskCanceledException previous checked,
-            // RateLimitGate would release the semaphore again, which would cause a SemaphoreFullException on future calls.
-            // An example cause of this is if the RateLimitTriggered event handler throws an exception.
-
-            var rateWindow = TimeSpan.FromSeconds(1);
-            var rateLimiter = new RateLimitGate("Test");
-            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, rateWindow, RateLimitWindowType.Fixed));
-
-            var ct = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
-
-            // Add a handler that throws an exception when the rate limit is triggered
-            rateLimiter.RateLimitTriggered += RateLimitTriggered;
-
-            var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, ct.Token);
-
-            Assert.ThrowsAsync<SemaphoreFullException>(async () =>
-            {
-                var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection,
-                    new RequestDefinition("1", HttpMethod.Get), "https://test.com", "123", 1,
-                    RateLimitingBehaviour.Wait, null, ct.Token);
-            });
-            
-            static void RateLimitTriggered(RateLimitEvent rateLimitEvent)
-            {
-                // Simulate an exception thrown by the RateLimitTriggered event handler
-                throw new InconclusiveException("Simulated exception during semaphore release");
-            }
-        }
-
-        [Test]
         public async Task ExceptionWhenSemaphoreReleasedShouldNotCauseSemaphoreFullExceptionOnFutureCalls()
         {
             // RateLimitGate temporarily releases the semaphore when it will Task.Delay the request, so other requests can check their gates.
