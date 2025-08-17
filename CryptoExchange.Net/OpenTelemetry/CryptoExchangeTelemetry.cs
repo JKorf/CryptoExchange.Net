@@ -71,7 +71,7 @@ internal static class CryptoExchangeTelemetry
         = Meter.CreateCounter<int>("jkorf.sockets.connect_failures", "failures", "Websocket connect failures");
 
     public static readonly Counter<int> SocketsErrorsCounter
-        = Meter.CreateCounter<int>("jkorf.sockets.errors", "errors", "Websocket errors");
+        = Meter.CreateCounter<int>("jkorf.sockets.connect_errors", "errors", "Websocket errors");
 
     public static readonly Histogram<long> SocketsRecvBytesHistogram
         = Meter.CreateHistogram<long>("jkorf.sockets.recv.bytes", "bytes", "Bytes received over websockets");
@@ -99,6 +99,9 @@ internal static class CryptoExchangeTelemetry
 
     public static readonly Histogram<long> SocketsHandlerUserMsHistogram
         = Meter.CreateHistogram<long>("jkorf.sockets.message.handler_user_ms", "ms", "User handler time");
+
+    public static readonly UpDownCounter<int> SocketSubscriptionsOpenTracker
+        = Meter.CreateUpDownCounter<int>("jkorf.sockets.subscribe.open", "subscriptions", "Active websocket subscriptions");
 
     public static readonly Counter<int> SocketsSubscribeAttemptsCounter
         = Meter.CreateCounter<int>("jkorf.sockets.subscribe.attempts", "ops", "Subscribe attempts");

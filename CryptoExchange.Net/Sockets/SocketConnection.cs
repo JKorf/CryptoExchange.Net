@@ -283,8 +283,7 @@ namespace CryptoExchange.Net.Sockets
         {
             Status = SocketStatus.Closed;
             Authenticated = false;
-            ApiClient.Telemetry?.RecordSocketClosed(ConnectionUri);
-
+            
             lock (_listenersLock)
             {
                 foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
@@ -395,7 +394,7 @@ namespace CryptoExchange.Net.Sockets
             else
                 _logger.WebSocketError(SocketId, e.Message, e);
             
-            ApiClient.Telemetry?.RecordSocketError(ConnectionUri);
+            ApiClient.Telemetry?.RecordSocketConnectionError(ConnectionUri);
 
             return Task.CompletedTask;
         }

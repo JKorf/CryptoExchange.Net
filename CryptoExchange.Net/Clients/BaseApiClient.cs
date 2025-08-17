@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Telemetry
         /// </summary>
-        protected Telemetry? _telemetry;
+        internal Telemetry? Telemetry { get; set; }
 
         /// <summary>
         /// If we are disposing
@@ -69,11 +69,9 @@ namespace CryptoExchange.Net.Clients
         /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
-        /// <param name="telemetry">Telemetry sink</param>
-        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions, Telemetry? telemetry = null)
+        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions)
         {
             _logger = logger;
-            _telemetry = telemetry;
 
             ClientOptions = clientOptions;
             ApiOptions = apiOptions;

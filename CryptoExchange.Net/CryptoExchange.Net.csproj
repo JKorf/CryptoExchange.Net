@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
@@ -57,5 +57,6 @@
   <ItemGroup Label="Transitive Client Packages">
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
+	<PackageReference Include="OpenTelemetry.Api" Version="1.12.0" />
   </ItemGroup>
 </Project>

@@ -492,6 +492,8 @@ namespace CryptoExchange.Net.Sockets
                 // Websocket is set to Aborted state when the cancelation token is set during SendAsync/ReceiveAsync
                 // So socket might go to aborted state, might still be open
             }
+            
+            _telemetry?.RecordSocketClosed(Uri);
 
             _ctsSource.Cancel();
         }

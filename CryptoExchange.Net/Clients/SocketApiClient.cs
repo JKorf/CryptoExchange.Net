@@ -123,8 +123,6 @@ namespace CryptoExchange.Net.Clients
 
         #endregion
 
-        internal Telemetry? Telemetry => _telemetry;
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -132,15 +130,13 @@ namespace CryptoExchange.Net.Clients
         /// <param name="options">Client options</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>
-        /// <param name="telemetry">Telemetry sink</param>
-        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions, Telemetry? telemetry = null)
+        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions)
             : base(logger,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   apiOptions.ApiCredentials ?? options.ApiCredentials,
                   baseAddress,
                   options,
-                  apiOptions,
-                  telemetry)
+                  apiOptions)
         {
         }
 
@@ -204,8 +200,8 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<CallResult<UpdateSubscription>> SubscribeAsync(string url, Subscription subscription, CancellationToken ct)
         {
-            using var _ = Telemetry.StartScope(_telemetry);
-            using var activity = _telemetry?.StartSocketSubscribeActivity(subscription);
+            using var _ = Telemetry.StartScope(base.Telemetry);
+            using var activity = base.Telemetry?.StartSocketSubscribeActivity(subscription);
 
             if (_disposing)
             {
@@ -640,7 +636,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IWebsocket CreateSocket(string address)
         {
-            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address), _telemetry);
+            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address), base.Telemetry);
             _logger.SocketCreatedForAddress(socket.Id, address);
             return socket;
         }

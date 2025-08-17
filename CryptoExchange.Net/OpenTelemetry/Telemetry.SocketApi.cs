@@ -75,7 +75,7 @@ public partial class Telemetry
     internal void RecordSocketConnectFailure(Uri uri)
         => CryptoExchangeTelemetry.SocketsConnectFailuresCounter.Add(1, SocketTags(uri));
 
-    internal void RecordSocketError(Uri uri)
+    internal void RecordSocketConnectionError(Uri uri)
         => CryptoExchangeTelemetry.SocketsErrorsCounter.Add(1, SocketTags(uri));
 
     internal void RecordSocketBytesReceived(Uri uri, int bytes, WebSocketMessageType messageType)
@@ -113,13 +113,20 @@ public partial class Telemetry
         => CryptoExchangeTelemetry.SocketsSubscribeAttemptsCounter.Add(1, SocketTags(uri, authenticated));
 
     internal void RecordSubscribeSuccess(Uri uri, bool authenticated)
-        => CryptoExchangeTelemetry.SocketsSubscribeSuccessCounter.Add(1, SocketTags(uri, authenticated));
+    {
+        CryptoExchangeTelemetry.SocketSubscriptionsOpenTracker.Add(1, SocketTags(uri));
+        CryptoExchangeTelemetry.SocketsSubscribeSuccessCounter.Add(1, SocketTags(uri, authenticated));
+    }
 
     internal void RecordSubscribeFailure(Uri uri, bool authenticated)
         => CryptoExchangeTelemetry.SocketsSubscribeFailuresCounter.Add(1, SocketTags(uri, authenticated));
 
     internal void RecordUnsubscribe(Uri uri)
-        => CryptoExchangeTelemetry.SocketsUnsubscribeTotalCounter.Add(1, SocketTags(uri));
+    {
+        CryptoExchangeTelemetry.SocketSubscriptionsOpenTracker.Add(-1, SocketTags(uri));
+        CryptoExchangeTelemetry.SocketsUnsubscribeTotalCounter.Add(1, SocketTags(uri));
+    }
+        
 
     internal void RecordResubscribeAttempt(Uri uri, int batchSize)
     {

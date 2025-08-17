@@ -114,6 +114,7 @@ namespace CryptoExchange.Net.Clients
                 throw new InvalidOperationException("Client should have called Initialize before adding API clients");
 
             _logger.Log(LogLevel.Trace, $"  {apiClient.GetType().Name}, base address: {apiClient.BaseAddress}");
+            apiClient.Telemetry = _telemetry;
             ApiClients.Add(apiClient);
             return apiClient;
         }
