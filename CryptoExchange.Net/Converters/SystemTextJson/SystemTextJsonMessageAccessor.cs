@@ -60,13 +60,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
             catch (JsonException ex)
             {
-                var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
+                var info = $"Json deserialization failed: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
                 return new CallResult<object>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
-                var info = $"Deserialize unknown Exception: {ex.Message}";
-                return new CallResult<object>(new DeserializeError(info, ex));
+                return new CallResult<object>(new DeserializeError($"Json deserialization failed: {ex.Message}", ex));
             }
         }
 
@@ -87,13 +86,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
             catch (JsonException ex)
             {
-                var info = $"Deserialize JsonException: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
+                var info = $"Json deserialization failed: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
                 return new CallResult<T>(new DeserializeError(info, ex));
             }
             catch (Exception ex)
             {
-                var info = $"Unknown exception: {ex.Message}";
-                return new CallResult<T>(new DeserializeError(info, ex));
+                return new CallResult<T>(new DeserializeError($"Json deserialization failed: {ex.Message}", ex));
             }
         }
 
@@ -286,7 +284,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Not a json message
                 IsValid = false;
-                return new CallResult(new DeserializeError(ex.Message, ex));
+                return new CallResult(new DeserializeError($"Json deserialization failed: {ex.Message}", ex));
             }
         }
 
@@ -349,7 +347,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Not a json message
                 IsValid = false;
-                return new CallResult(new DeserializeError("JsonError: " + ex.Message, ex));
+                return new CallResult(new DeserializeError($"Json deserialization failed: {ex.Message}", ex));
             }
         }
 

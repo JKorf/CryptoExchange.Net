@@ -28,10 +28,6 @@ namespace CryptoExchange.Net.Objects.Errors
         /// </summary>
         InvalidParameter,
         /// <summary>
-        /// Invalid listen key
-        /// </summary>
-        InvalidListenKey,
-        /// <summary>
         /// Missing parameter value
         /// </summary>
         MissingParameter,
@@ -144,6 +140,10 @@ namespace CryptoExchange.Net.Objects.Errors
         /// There is no open position
         /// </summary>
         NoPosition,
+        /// <summary>
+        /// Max position reached
+        /// </summary>
+        MaxPosition,
         /// <summary>
         /// Error in the internal system
         /// </summary>

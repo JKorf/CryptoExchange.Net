@@ -541,7 +541,9 @@ namespace CryptoExchange.Net.Clients
                 else
                 {
                     // Request timed out
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out", exception: canceledException));
+                    var error = new WebError($"Request timed out", exception: canceledException);
+                    error.ErrorType = ErrorType.Timeout;
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
             }
             finally

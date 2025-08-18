@@ -295,7 +295,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.MissingCredentials, false, "Cancellation requested");
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.CancellationRequested, false, "Cancellation requested");
 
         /// <summary>
         /// ctor
@@ -316,7 +316,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Default error info
         /// </summary>
-        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.InvalidOperation, false, "");
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.InvalidOperation, false, "Operation invalid");
 
         /// <summary>
         /// ctor

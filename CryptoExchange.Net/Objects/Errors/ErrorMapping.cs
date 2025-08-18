@@ -5,12 +5,10 @@ using System.Text;
 
 namespace CryptoExchange.Net.Objects.Errors
 {
-
-
     /// <summary>
     /// Error mapping collection
     /// </summary>
-    public class ErrorCollection
+    public class ErrorMapping
     {
         private Dictionary<string, ErrorEvaluator> _evaluators = new Dictionary<string, ErrorEvaluator>();
         private Dictionary<string, ErrorInfo> _directMapping = new Dictionary<string, ErrorInfo>();
@@ -18,7 +16,7 @@ namespace CryptoExchange.Net.Objects.Errors
         /// <summary>
         /// ctor
         /// </summary>
-        public ErrorCollection(ErrorInfo[] errorMappings, ErrorEvaluator[]? errorTypeEvaluators = null)
+        public ErrorMapping(ErrorInfo[] errorMappings, ErrorEvaluator[]? errorTypeEvaluators = null)
         {
             foreach (var item in errorMappings)
             {

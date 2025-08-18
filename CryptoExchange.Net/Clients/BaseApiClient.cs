@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Mapping of a response code to known error types
         /// </summary>
-        protected internal virtual ErrorCollection ErrorMapping { get; } = new ErrorCollection([]);
+        protected internal virtual ErrorMapping ErrorMapping { get; } = new ErrorMapping([]);
 
         /// <summary>
         /// ctor
