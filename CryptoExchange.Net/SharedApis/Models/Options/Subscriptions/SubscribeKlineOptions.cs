@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (!IsSupported(request.Interval))
-                return new ArgumentError("Interval not supported");
+                return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
 
             return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
         }

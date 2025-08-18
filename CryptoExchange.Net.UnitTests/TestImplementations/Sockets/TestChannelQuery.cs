@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
 using System;
@@ -40,7 +41,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
         {
             if (!message.Data.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
             {
-                return new CallResult<SubResponse>(new ServerError(message.Data.Status));
+                return new CallResult<SubResponse>(new ServerError(ErrorInfo.Unknown with { Message = message.Data.Status }));
             }
 
             return message.ToCallResult();

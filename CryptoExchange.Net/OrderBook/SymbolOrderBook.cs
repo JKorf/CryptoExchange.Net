@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
@@ -549,7 +550,7 @@ namespace CryptoExchange.Net.OrderBook
                     return new CallResult<bool>(new CancellationRequestedError());
 
                 if (DateTime.UtcNow - startWait > timeout)
-                    return new CallResult<bool>(new ServerError("Timeout while waiting for data"));
+                    return new CallResult<bool>(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
 
                 try
                 {

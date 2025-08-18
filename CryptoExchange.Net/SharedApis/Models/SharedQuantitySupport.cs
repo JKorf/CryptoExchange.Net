@@ -84,16 +84,16 @@ namespace CryptoExchange.Net.SharedApis
                 return null;
 
             if (supportedType == SharedQuantityType.BaseAndQuoteAsset && quantity != null && quantity.QuantityInBaseAsset == null && quantity.QuantityInQuoteAsset == null)
-                return new ArgumentError($"Quantity for {side}.{type} required in base or quote asset");
+                return ArgumentError.Invalid("Quantity", $"Quantity for {side}.{type} required in base or quote asset");
 
             if (supportedType == SharedQuantityType.QuoteAsset && quantity != null && quantity.QuantityInQuoteAsset == null)
-                return new ArgumentError($"Quantity for {side}.{type} required in quote asset");
+                return ArgumentError.Invalid("Quantity", $"Quantity for {side}.{type} required in quote asset");
 
             if (supportedType == SharedQuantityType.BaseAsset && quantity != null && quantity.QuantityInBaseAsset == null && quantity.QuantityInContracts == null)
-                return new ArgumentError($"Quantity for {side}.{type} required in base asset");
+                return ArgumentError.Invalid("Quantity", $"Quantity for {side}.{type} required in base asset");
 
             if (supportedType == SharedQuantityType.Contracts && quantity != null && quantity.QuantityInContracts == null)
-                return new ArgumentError($"Quantity for {side}.{type} required in contracts");
+                return ArgumentError.Invalid("Quantity", $"Quantity for {side}.{type} required in contracts");
 
             return null;
         }

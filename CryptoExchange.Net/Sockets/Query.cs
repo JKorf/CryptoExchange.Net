@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Sockets
 
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)            
-                Response = message.Data;            
+                Response = message.Data;
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
@@ -219,7 +219,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
 
             Completed = true;
-            Result = new CallResult<THandlerResponse>(new CancellationRequestedError(null, "Query timeout", null));
+            Result = new CallResult<THandlerResponse>(new TimeoutError());
             ContinueAwaiter?.Set();
             _event.Set();
         }

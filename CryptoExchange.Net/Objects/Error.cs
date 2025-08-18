@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects.Errors;
+using System;
 
 namespace CryptoExchange.Net.Objects
 {
@@ -7,15 +8,50 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public abstract class Error
     {
+
+        private int? _code;
         /// <summary>
         /// The error code from the server
         /// </summary>
-        public int? Code { get; set; }
+        [Obsolete("Use ErrorCode instead", false)]
+        public int? Code 
+        { 
+            get
+            {
+                if (_code.HasValue)
+                    return _code;
+
+                return int.TryParse(ErrorCode, out var r) ? r : null;
+            }
+            set
+            {
+                _code = value;
+            }
+        }
 
         /// <summary>
-        /// The message for the error that occurred
+        /// The error code returned by the server
         /// </summary>
-        public string Message { get; set; }
+        public string? ErrorCode { get; set; }
+        /// <summary>
+        /// The error description
+        /// </summary>
+        public string? ErrorDescription { get; set; }
+
+        /// <summary>
+        /// Error type
+        /// </summary>
+        public ErrorType ErrorType { get; set; }
+
+        /// <summary>
+        /// Whether the error is transient and can be retried
+        /// </summary>
+        public bool IsTransient { get; set; }
+
+        /// <summary>
+        /// The server message for the error that occurred
+        /// </summary>
+        public string? Message { get; set; }
 
         /// <summary>
         /// Underlying exception
@@ -25,10 +61,13 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        protected Error (int? code, string message, Exception? exception)
+        protected Error(string? errorCode, ErrorInfo errorInfo, Exception? exception)
         {
-            Code = code;
-            Message = message;
+            ErrorCode = errorCode;
+            ErrorType = errorInfo.ErrorType;
+            Message = errorInfo.Message;
+            ErrorDescription = errorInfo.ErrorDescription;
+            IsTransient = errorInfo.IsTransient;
             Exception = exception;
         }
 
@@ -38,7 +77,7 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public override string ToString()
         {
-            return Code != null ? $"[{GetType().Name}] {Code}: {Message}" : $"[{GetType().Name}] {Message}";
+            return ErrorCode != null ? $"[{GetType().Name}.{ErrorType}] {ErrorCode}: {Message ?? ErrorDescription}" : $"[{GetType().Name}.{ErrorType}] {Message ?? ErrorDescription}";
         }
     }
 
@@ -48,19 +87,24 @@ namespace CryptoExchange.Net.Objects
     public class CantConnectError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public CantConnectError() : base(null, "Can't connect to the server", null) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.UnableToConnect, false, "Can't connect to the server");
 
         /// <summary>
         /// ctor
         /// </summary>
-        public CantConnectError(Exception? exception) : base(null, "Can't connect to the server", exception) { }
+        public CantConnectError() : base(null, _errorInfo, null) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected CantConnectError(int? code, string message, Exception? exception) : base(code, message, exception) { }
+        public CantConnectError(Exception? exception) : base(null, _errorInfo, exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected CantConnectError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
 
     /// <summary>
@@ -69,14 +113,19 @@ namespace CryptoExchange.Net.Objects
     public class NoApiCredentialsError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public NoApiCredentialsError() : base(null, "No credentials provided for private endpoint", null) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.MissingCredentials, false, "No credentials provided for private endpoint");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected NoApiCredentialsError(int? code, string message, Exception? exception) : base(code, message, exception) { }
+        public NoApiCredentialsError() : base(null, _errorInfo, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected NoApiCredentialsError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
 
     /// <summary>
@@ -87,12 +136,19 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public ServerError(string message) : base(null, message, null) { }
+        public ServerError(ErrorInfo errorInfo, Exception? exception = null)
+             : base(null, errorInfo, exception) { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public ServerError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public ServerError(int errorCode, ErrorInfo errorInfo, Exception? exception = null) 
+            : this(errorCode.ToString(), errorInfo, exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ServerError(string errorCode, ErrorInfo errorInfo, Exception? exception = null) : base(errorCode, errorInfo, exception) { }
     }
 
     /// <summary>
@@ -101,14 +157,30 @@ namespace CryptoExchange.Net.Objects
     public class WebError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public WebError(string message, Exception? exception = null) : base(null, message, exception) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.NetworkError, true, "Failed to complete the request to the server due to a network error");
 
         /// <summary>
         /// ctor
         /// </summary>
-        public WebError(int code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public WebError(string? message = null, Exception? exception = null) : base(null, _errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
+    }
+
+    /// <summary>
+    /// Timeout error waiting for a response from the server
+    /// </summary>
+    public class TimeoutError : Error
+    {
+        /// <summary>
+        /// Default error info
+        /// </summary>
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.Timeout, false, "Failed to receive a response from the server in time");
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public TimeoutError(string? message = null, Exception? exception = null) : base(null, _errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
     }
 
     /// <summary>
@@ -117,30 +189,14 @@ namespace CryptoExchange.Net.Objects
     public class DeserializeError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public DeserializeError(string message, Exception? exception = null) : base(null, message, exception) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.DeserializationFailed, false, "Failed to deserialize data");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected DeserializeError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
-    }
-
-    /// <summary>
-    /// Unknown error
-    /// </summary>
-    public class UnknownError : Error
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public UnknownError(string message, Exception? exception = null) : base(null, message, exception) { }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        protected UnknownError(int? code, string message, Exception? exception = null): base(code, message, exception) { }
+        public DeserializeError(string? message = null, Exception? exception = null) : base(null, _errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
     }
 
     /// <summary>
@@ -149,14 +205,28 @@ namespace CryptoExchange.Net.Objects
     public class ArgumentError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info for missing parameter
         /// </summary>
-        public ArgumentError(string message) : base(null, "Invalid parameter: " + message, null) { }
+        protected static readonly ErrorInfo _missingInfo = new ErrorInfo(ErrorType.MissingParameter, false, "Missing parameter");
+        /// <summary>
+        /// Default error info for invalid parameter
+        /// </summary>
+        protected static readonly ErrorInfo _invalidInfo = new ErrorInfo(ErrorType.InvalidParameter, false, "Invalid parameter");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected ArgumentError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public static ArgumentError Missing(string parameterName, string? message = null) => new ArgumentError(_missingInfo with { Message = message == null ? $"{_missingInfo.Message} '{parameterName}'" : $"{_missingInfo.Message} '{parameterName}': {message}" }, null);
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public static ArgumentError Invalid(string parameterName, string message) => new ArgumentError(_invalidInfo with { Message = $"{_invalidInfo.Message} '{parameterName}': {message}" }, null);
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected ArgumentError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
 
     /// <summary>
@@ -172,7 +242,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        protected BaseRateLimitError(int? code, string message, Exception? exception) : base(code, message, exception) { }
+        protected BaseRateLimitError(ErrorInfo errorInfo, Exception? exception) : base(null, errorInfo, exception) { }
     }
 
     /// <summary>
@@ -181,15 +251,19 @@ namespace CryptoExchange.Net.Objects
     public class ClientRateLimitError : BaseRateLimitError
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        /// <param name="message"></param>
-        public ClientRateLimitError(string message) : base(null, "Client rate limit exceeded: " + message, null) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RateLimitRequest, false, "Client rate limit exceeded");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected ClientRateLimitError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public ClientRateLimitError(string? message = null, Exception? exception = null) : base(_errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected ClientRateLimitError(ErrorInfo info, Exception? exception) : base(info, exception) { }
     }
 
     /// <summary>
@@ -198,14 +272,19 @@ namespace CryptoExchange.Net.Objects
     public class ServerRateLimitError : BaseRateLimitError
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public ServerRateLimitError(string? message = null, Exception? exception = null) : base(null, "Server rate limit exceeded" + (message?.Length > 0 ? " : " + message : null), exception) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.RateLimitRequest, false, "Server rate limit exceeded");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected ServerRateLimitError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public ServerRateLimitError(string? message = null, Exception? exception = null) : base(_errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected ServerRateLimitError(ErrorInfo info, Exception? exception) : base(info, exception) { }
     }
 
     /// <summary>
@@ -214,14 +293,19 @@ namespace CryptoExchange.Net.Objects
     public class CancellationRequestedError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public CancellationRequestedError(Exception? exception = null) : base(null, "Cancellation requested", exception) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.CancellationRequested, false, "Cancellation requested");
 
         /// <summary>
         /// ctor
         /// </summary>
-        public CancellationRequestedError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public CancellationRequestedError(Exception? exception = null) : base(null, _errorInfo, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected CancellationRequestedError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
 
     /// <summary>
@@ -230,13 +314,18 @@ namespace CryptoExchange.Net.Objects
     public class InvalidOperationError : Error
     {
         /// <summary>
-        /// ctor
+        /// Default error info
         /// </summary>
-        public InvalidOperationError(string message, Exception? exception = null) : base(null, message, exception) { }
+        protected static readonly ErrorInfo _errorInfo = new ErrorInfo(ErrorType.InvalidOperation, false, "Operation invalid");
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected InvalidOperationError(int? code, string message, Exception? exception = null) : base(code, message, exception) { }
+        public InvalidOperationError(string message) : base(null, _errorInfo with { Message = message }, null) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected InvalidOperationError(ErrorInfo info, Exception? exception) : base(null, info, exception) { }
     }
 }

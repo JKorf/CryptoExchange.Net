@@ -184,7 +184,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
             if (!subResult)
             {
-                _logger.KlineTrackerStartFailed(SymbolName, subResult.Error!.Message, subResult.Error.Exception);
+                _logger.KlineTrackerStartFailed(SymbolName, subResult.Error!.Message ?? subResult.Error!.ErrorDescription!, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
                 return subResult;
             }

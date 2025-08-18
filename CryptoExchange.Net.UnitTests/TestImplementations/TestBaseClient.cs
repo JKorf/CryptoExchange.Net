@@ -10,6 +10,7 @@ using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.UnitTests.TestImplementations;
@@ -55,7 +56,7 @@ namespace CryptoExchange.Net.UnitTests
             var accessor = CreateAccessor();
             var valid = accessor.Read(stream, true).Result;
             if (!valid)
-                return new CallResult<T>(new ServerError(data));
+                return new CallResult<T>(new ServerError(ErrorInfo.Unknown with { Message = data }));
             
             var deserializeResult = accessor.Deserialize<T>();
             return deserializeResult;

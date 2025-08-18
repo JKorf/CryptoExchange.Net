@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.UnitTests
             ClassicAssert.IsFalse(result.Success);
             Assert.That(result.Error != null);
             Assert.That(result.Error is ServerError);
-            Assert.That(result.Error.Code == 123);
+            Assert.That(result.Error.ErrorCode == "123");
             Assert.That(result.Error.Message == "Invalid request");
         }
 

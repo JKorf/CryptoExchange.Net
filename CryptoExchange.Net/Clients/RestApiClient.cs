@@ -11,6 +11,7 @@ using CryptoExchange.Net.Caching;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
@@ -485,8 +486,10 @@ namespace CryptoExchange.Net.Clients
                         error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor, readResult.Error?.Exception);
                     }
 
+#pragma warning disable CS0618 // Type or member is obsolete
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
+#pragma warning restore CS0618 // Type or member is obsolete
 
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
                 }
@@ -499,8 +502,7 @@ namespace CryptoExchange.Net.Clients
                 if (!valid)
                 {
                     // Invalid json
-                    var error = new DeserializeError("Failed to parse response: " + valid.Error!.Message, valid.Error.Exception);
-                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, valid.Error);
                 }
 
                 // Json response received
@@ -526,7 +528,8 @@ namespace CryptoExchange.Net.Clients
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
-                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError(requestException.Message, exception: requestException));
+                var error = new WebError(requestException.Message, requestException);
+                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
             }
             catch (OperationCanceledException canceledException)
             {
@@ -538,7 +541,9 @@ namespace CryptoExchange.Net.Clients
                 else
                 {
                     // Request timed out
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new WebError($"Request timed out", exception: canceledException));
+                    var error = new WebError($"Request timed out", exception: canceledException);
+                    error.ErrorType = ErrorType.Timeout;
+                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
             }
             finally
@@ -633,7 +638,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception? exception)
         {
-            return new ServerError(null, "Unknown request error", exception);
+            return new ServerError(ErrorInfo.Unknown, exception);
         }
 
         /// <summary>

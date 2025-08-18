@@ -1,6 +1,7 @@
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
@@ -265,7 +266,7 @@ namespace CryptoExchange.Net.Clients
             if (socketConnection.PausedActivity)
             {
                 _logger.HasBeenPausedCantSubscribeAtThisMoment(socketConnection.SocketId);
-                return new CallResult<UpdateSubscription>(new ServerError("Socket is paused"));
+                return new CallResult<UpdateSubscription>(new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
             }
 
             var waitEvent = new AsyncResetEvent(false);
@@ -368,7 +369,7 @@ namespace CryptoExchange.Net.Clients
             if (socketConnection.PausedActivity)
             {
                 _logger.HasBeenPausedCantSendQueryAtThisMoment(socketConnection.SocketId);
-                return new CallResult<THandlerResponse>(new ServerError("Socket is paused"));
+                return new CallResult<THandlerResponse>(new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
             }
 
             if (ct.IsCancellationRequested)

@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System.Text.Json.Serialization;
+using CryptoExchange.Net.Objects.Errors;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -197,7 +198,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             var errorData = accessor.Deserialize<TestError>();
 
-            return new ServerError(errorData.Data.ErrorCode, errorData.Data.ErrorMessage);
+            return new ServerError(errorData.Data.ErrorCode, GetErrorInfo(errorData.Data.ErrorCode, errorData.Data.ErrorMessage));
         }
 
         public override TimeSpan? GetTimeOffset()

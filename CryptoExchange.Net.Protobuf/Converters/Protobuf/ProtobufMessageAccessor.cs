@@ -285,7 +285,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch (Exception ex)
             {
-                return new CallResult<object>(new DeserializeError(ex.Message));
+                return new CallResult<object>(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex));
             }
         }
 
@@ -320,7 +320,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch(Exception ex)
             {
-                return new CallResult<T>(new DeserializeError(ex.ToLogString()));
+                return new CallResult<T>(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex));
             }
         }
 
@@ -354,7 +354,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             {
                 // Not a json message
                 IsValid = false;
-                return Task.FromResult(new CallResult(new DeserializeError("ProtoBufError: " + ex.Message, ex)));
+                return Task.FromResult(new CallResult(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex)));
             }
         }
 
@@ -446,7 +446,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch (Exception ex)
             {
-                return new CallResult<object>(new DeserializeError(ex.ToLogString()));
+                return new CallResult<object>(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex));
             }
         }
 
@@ -485,7 +485,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             }
             catch (Exception ex)
             {
-                return new CallResult<T>(new DeserializeError(ex.Message));
+                return new CallResult<T>(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex));
             }
         }
 
@@ -504,7 +504,7 @@ namespace CryptoExchange.Net.Converters.Protobuf
             {
                 // Not a json message
                 IsValid = false;
-                return new CallResult(new DeserializeError("ProtobufError: " + ex.Message, ex));
+                return new CallResult(new DeserializeError("Protobuf deserialization failed: " + ex.Message, ex));
             }
         }
 

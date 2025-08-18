@@ -34,10 +34,10 @@ namespace CryptoExchange.Net.SharedApis
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
             if (!supportedOrderTypes.Contains(request.OrderType))
-                return new ArgumentError("Order type not supported");
+                return ArgumentError.Invalid(nameof(PlaceSpotOrderRequest.OrderType), "Order type not supported");
 
             if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
-                return new ArgumentError("Order time in force not supported");
+                return ArgumentError.Invalid(nameof(PlaceSpotOrderRequest.TimeInForce), "Order time in force not supported");
 
             var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity);
             if (quantityError != null)
