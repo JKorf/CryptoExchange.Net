@@ -182,7 +182,7 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("/sapi/test1", true)]
         [TestCase("/sapi/test2", true)]
         [TestCase("/api/test1", false)]
-        [TestCase("sapi/test1", false)]
+        [TestCase("sapi/test1", true)]
         [TestCase("/sapi/", true)]
         public async Task PartialEndpointRateLimiterEndpoints(string endpoint, bool expectLimiting)
         {

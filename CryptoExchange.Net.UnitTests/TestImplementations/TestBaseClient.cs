@@ -82,6 +82,10 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
+        public override void ProcessRequest(RestApiClient apiClient, RestRequestConfiguration requestConfig)
+        {
+        }
+        
         public string GetKey() => _credentials.Key;
         public string GetSecret() => _credentials.Secret;
     }

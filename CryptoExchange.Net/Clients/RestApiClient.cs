@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Request headers to be sent with each request
         /// </summary>
-        protected Dictionary<string, string>? StandardRequestHeaders { get; set; }
+        protected Dictionary<string, string> StandardRequestHeaders { get; set; } = [];
 
         /// <summary>
         /// Whether parameters need to be ordered
@@ -364,74 +364,58 @@ namespace CryptoExchange.Net.Clients
             ParameterCollection? bodyParameters,
             Dictionary<string, string>? additionalHeaders)
         {
-            var uriParams = uriParameters == null ? null : CreateParameterDictionary(uriParameters);
-            var bodyParams = bodyParameters == null ? null : CreateParameterDictionary(bodyParameters);
+            var requestConfiguration = new RestRequestConfiguration(
+                definition,
+                baseAddress,
+                uriParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(uriParameters),
+                bodyParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(bodyParameters),
+                new Dictionary<string, string>(additionalHeaders ?? []),
+                definition.ArraySerialization ?? ArraySerialization,
+                definition.ParameterPosition ?? ParameterPositions[definition.Method],
+                definition.RequestBodyFormat ?? RequestBodyFormat);
 
-            var uri = new Uri(baseAddress.AppendPath(definition.Path));
-            var arraySerialization = definition.ArraySerialization ?? ArraySerialization;
-            var bodyFormat = definition.RequestBodyFormat ?? RequestBodyFormat;
-            var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
-
-            Dictionary<string, string>? headers = null;
-            if (AuthenticationProvider != null)
+            try
             {
-                try
-                {
-                    AuthenticationProvider.AuthenticateRequest(
-                        this,
-                        uri,
-                        definition.Method,
-                        ref uriParams,
-                        ref bodyParams,
-                        ref headers,
-                        definition.Authenticated,
-                        arraySerialization,
-                        parameterPosition,
-                        bodyFormat                        
-                        );
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
-                }
+                AuthenticationProvider?.ProcessRequest(this, requestConfiguration);
             }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
+            }
+            
+            var queryString = requestConfiguration.GetQueryString(true);
+            if (!string.IsNullOrEmpty(queryString) && !queryString.StartsWith("?"))
+                queryString = $"?{queryString}";
 
-            // Add the auth parameters to the uri, start with a new URI to be able to sort the parameters including the auth parameters
-            if (uriParams != null)
-                uri = uri.SetParameters(uriParams, arraySerialization);
-
+            var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
             var request = RequestFactory.Create(definition.Method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
 
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                    request.AddHeader(header.Key, header.Value);
-            }
+            foreach (var header in requestConfiguration.Headers)
+                request.AddHeader(header.Key, header.Value);            
 
-            if (additionalHeaders != null)
+            foreach (var header in StandardRequestHeaders)
             {
-                foreach (var header in additionalHeaders)
+                // Only add it if it isn't overwritten
+                if (!requestConfiguration.Headers.ContainsKey(header.Key))
                     request.AddHeader(header.Key, header.Value);
-            }
+            }            
 
-            if (StandardRequestHeaders != null)
+            if (requestConfiguration.ParameterPosition == HttpMethodParameterPosition.InBody)
             {
-                foreach (var header in StandardRequestHeaders)
+                var contentType = requestConfiguration.BodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
+                var bodyContent = requestConfiguration.GetBodyContent();
+                if (bodyContent != null)
                 {
-                    // Only add it if it isn't overwritten
-                    if (additionalHeaders?.ContainsKey(header.Key) != true)
-                        request.AddHeader(header.Key, header.Value);
+                    request.SetContent(bodyContent, contentType);
                 }
-            }
-
-            if (parameterPosition == HttpMethodParameterPosition.InBody)
-            {
-                var contentType = bodyFormat == RequestBodyFormat.Json ? Constants.JsonContentHeader : Constants.FormContentHeader;
-                if (bodyParams != null && bodyParams.Count != 0)
-                    WriteParamBody(request, bodyParams, contentType);
                 else
-                    request.SetContent(RequestBodyEmptyContent, contentType);
+                {
+                    if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
+                        WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
+                    else
+                        request.SetContent(RequestBodyEmptyContent, contentType);
+                }
             }
 
             return request;

@@ -76,6 +76,9 @@ namespace CryptoExchange.Net.Objects
         {
             Path = path;
             Method = method;
+
+            if (!Path.StartsWith("/"))
+                Path = $"/{Path}";
         }
 
         /// <inheritdoc />
