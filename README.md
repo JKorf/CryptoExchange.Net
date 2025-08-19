@@ -59,6 +59,16 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.5.0 - 19 Aug 2025
+    * Added better error handling support
+    * Added ErrorDescription, ErrorType and IsTransient to Error object
+    * Added ErrorCode in favor of Code
+    * Updated some error messages
+    * Refactored RestApiClient request authentication and AuthenticationProvider to prevent duplicate query string / body serialization
+    * Fixed IOrderBookSocketClient Shared interface not getting registered in DI
+    * Fixed response type in websocket queries not interested in the response
+    * Fixed timing issue in query response processing
+
 * Version 9.4.0 - 04 Aug 2025
     * Updated Shared symbol requests/subscriptions to allow multiple symbols in one call if supported
 
