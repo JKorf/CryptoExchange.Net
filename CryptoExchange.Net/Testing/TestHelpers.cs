@@ -128,12 +128,7 @@ namespace CryptoExchange.Net.Testing
             var uriParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InUri ? client.CreateParameterDictionary(parameters) : null;
             var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? client.CreateParameterDictionary(parameters) : null;
 
-            var headers = new Dictionary<string, string>();
-
-            authProvider.TimeProvider = new TestAuthTimeProvider(time ?? new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc));
-            authProvider.ProcessRequest(
-                client,
-                new RestRequestConfiguration(
+            var requestDefinition = new RestRequestConfiguration(
                     new RequestDefinition(path, method)
                     {
                         Authenticated = true
@@ -141,14 +136,19 @@ namespace CryptoExchange.Net.Testing
                     host,
                     uriParams ?? new Dictionary<string, object>(),
                     bodyParams ?? new Dictionary<string, object>(),
-                    headers,
+                    new Dictionary<string, string>(),
                     client.ArraySerialization,
                     client.ParameterPositions[method],
                     client.RequestBodyFormat
-                    )
+                    );
+
+            authProvider.TimeProvider = new TestAuthTimeProvider(time ?? new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc));
+            authProvider.ProcessRequest(
+                client,
+                requestDefinition
                 );
 
-            var signature = getSignature(uriParams, bodyParams, headers);
+            var signature = getSignature(requestDefinition.QueryParameters, requestDefinition.BodyParameters, requestDefinition.Headers);
 
             if (!string.Equals(signature, expectedSignature, compareCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
                 throw new Exception($"Signatures do not match. Expected: {expectedSignature}, Actual: {signature}");
