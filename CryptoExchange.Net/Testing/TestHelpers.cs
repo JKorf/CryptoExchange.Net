@@ -131,17 +131,21 @@ namespace CryptoExchange.Net.Testing
             var headers = new Dictionary<string, string>();
 
             authProvider.TimeProvider = new TestAuthTimeProvider(time ?? new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc));
-            authProvider.AuthenticateRequest(
-                client, 
-                new Uri(host.AppendPath(path)), 
-                method,
-                ref uriParams,
-                ref bodyParams,
-                ref headers,
-                true,
-                client.ArraySerialization, 
-                client.ParameterPositions[method],
-                client.RequestBodyFormat
+            authProvider.ProcessRequest(
+                client,
+                new RestRequestConfiguration(
+                    new RequestDefinition(path, method)
+                    {
+                        Authenticated = true
+                    },
+                    host,
+                    uriParams ?? new Dictionary<string, object>(),
+                    bodyParams ?? new Dictionary<string, object>(),
+                    headers,
+                    client.ArraySerialization,
+                    client.ParameterPositions[method],
+                    client.RequestBodyFormat
+                    )
                 );
 
             var signature = getSignature(uriParams, bodyParams, headers);

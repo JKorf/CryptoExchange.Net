@@ -78,10 +78,6 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public override void AuthenticateRequest(RestApiClient apiClient, Uri uri, HttpMethod method, ref IDictionary<string, object> uriParams, ref IDictionary<string, object> bodyParams, ref Dictionary<string, string> headers, bool auth, ArrayParametersSerialization arraySerialization, HttpMethodParameterPosition parameterPosition, RequestBodyFormat bodyFormat)
-        {
-        }
-
         public override void ProcessRequest(RestApiClient apiClient, RestRequestConfiguration requestConfig)
         {
         }
