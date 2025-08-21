@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
 using Microsoft.Extensions.Logging;
@@ -251,6 +252,11 @@ namespace CryptoExchange.Net.Sockets
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                         return new CallResult(new ServerRateLimitError(we.Message, we));
+                    }
+
+                    if (_socket.HttpStatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        return new CallResult(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
                     }
 #else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
