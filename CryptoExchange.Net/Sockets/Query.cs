@@ -30,6 +30,11 @@ namespace CryptoExchange.Net.Sockets
         public TimeSpan? RequestTimeout { get; set; }
 
         /// <summary>
+        /// What should happen if the query times out
+        /// </summary>
+        public TimeoutBehavior TimeoutBehavior { get; set; } = TimeoutBehavior.Fail;
+
+        /// <summary>
         /// The number of required responses. Can be more than 1 when for example subscribing multiple symbols streams in a single request,
         /// and each symbol receives it's own confirmation response
         /// </summary>
@@ -183,7 +188,7 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
         {
-            if (!PreCheckMessage(message))
+            if (!PreCheckMessage(connection, message))
                 return CallResult.SuccessResult;
 
             CurrentResponses++;
@@ -208,18 +213,20 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Validate if a message is actually processable by this query
         /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public virtual bool PreCheckMessage(DataEvent<object> message) => true;
+        public virtual bool PreCheckMessage(SocketConnection connection, DataEvent<object> message) => true;
 
         /// <inheritdoc />
         public override void Timeout()
         {
             if (Completed)
                 return;
-
+                        
             Completed = true;
-            Result = new CallResult<THandlerResponse>(new TimeoutError());
+            if (TimeoutBehavior == TimeoutBehavior.Fail)
+                Result = new CallResult<THandlerResponse>(new TimeoutError());
+            else
+                Result = new CallResult<THandlerResponse>(default, null, default);
+
             ContinueAwaiter?.Set();
             _event.Set();
         }

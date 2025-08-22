@@ -81,6 +81,16 @@ namespace CryptoExchange.Net.Sockets
         public string? Topic { get; set; }
 
         /// <summary>
+        /// The subscribe query for this subscription
+        /// </summary>
+        public Query? SubscriptionQuery { get; private set; }
+
+        /// <summary>
+        /// The unsubscribe query for this subscription
+        /// </summary>
+        public Query? UnsubscriptionQuery { get; private set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public Subscription(ILogger logger, bool authenticated, bool userSubscription = true)
@@ -92,10 +102,20 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Create a new subscription query
+        /// </summary>
+        public Query? CreateSubscriptionQuery(SocketConnection connection)
+        {
+            var query = GetSubQuery(connection);
+            SubscriptionQuery = query;
+            return query;
+        }
+
+        /// <summary>
         /// Get the subscribe query to send when subscribing
         /// </summary>
         /// <returns></returns>
-        public abstract Query? GetSubQuery(SocketConnection connection);
+        protected abstract Query? GetSubQuery(SocketConnection connection);
 
         /// <summary>
         /// Handle a subscription query response
@@ -110,10 +130,20 @@ namespace CryptoExchange.Net.Sockets
         public virtual void HandleUnsubQueryResponse(object message) { }
 
         /// <summary>
+        /// Create a new unsubscription query
+        /// </summary>
+        public Query? CreateUnsubscriptionQuery(SocketConnection connection)
+        {
+            var query = GetUnsubQuery(connection);
+            UnsubscriptionQuery = query;
+            return query;
+        }
+
+        /// <summary>
         /// Get the unsubscribe query to send when unsubscribing
         /// </summary>
         /// <returns></returns>
-        public abstract Query? GetUnsubQuery();
+        protected abstract Query? GetUnsubQuery(SocketConnection connection);
 
         /// <inheritdoc />
         public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);

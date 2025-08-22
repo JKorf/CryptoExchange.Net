@@ -22,9 +22,9 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override Query? GetSubQuery(SocketConnection connection) => null;
+        protected override Query? GetSubQuery(SocketConnection connection) => null;
 
         /// <inheritdoc />
-        public override Query? GetUnsubQuery() => null;
+        protected override Query? GetUnsubQuery(SocketConnection connection) => null;
     }
 }

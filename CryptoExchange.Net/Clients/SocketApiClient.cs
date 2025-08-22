@@ -270,7 +270,7 @@ namespace CryptoExchange.Net.Clients
             }
 
             var waitEvent = new AsyncResetEvent(false);
-            var subQuery = subscription.GetSubQuery(socketConnection);
+            var subQuery = subscription.CreateSubscriptionQuery(socketConnection);
             if (subQuery != null)
             {
                 // Send the request and wait for answer

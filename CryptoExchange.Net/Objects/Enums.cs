@@ -251,4 +251,20 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         DEX
     }
+
+    /// <summary>
+    /// Timeout behavior for queries
+    /// </summary>
+    public enum TimeoutBehavior
+    {
+        /// <summary>
+        /// Fail the request
+        /// </summary>
+        Fail,
+        /// <summary>
+        /// Mark the query as successful
+        /// </summary>
+        Succeed
+    }
+
 }

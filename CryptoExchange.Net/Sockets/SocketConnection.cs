@@ -202,6 +202,18 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <summary>
+        /// The number of current pending requests
+        /// </summary>
+        public int PendingRequests
+        {
+            get
+            {
+                lock (_listenersLock)
+                    return _listeners.OfType<Query>().Where(x => !x.Completed).Count();
+            }
+        }
+
         private bool _pausedActivity;
         private readonly object _listenersLock;
         private readonly List<IMessageProcessor> _listeners;
@@ -519,7 +531,10 @@ namespace CryptoExchange.Net.Sockets
                         {
                             // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
                             subscriptionProcessor.Confirmed = true;
-                            // This doesn't trigger a waiting subscribe query, should probably also somehow set the wait event for that
+                            if (subscriptionProcessor.SubscriptionQuery?.TimeoutBehavior == TimeoutBehavior.Succeed)
+                                // If this subscription has a query waiting for a timeout (success if there is no error response)
+                                // then time it out now as the data is being received, so we assume it's successful
+                                subscriptionProcessor.SubscriptionQuery.Timeout();
                         }
 
                         // 5. Deserialize the message
@@ -996,7 +1011,7 @@ namespace CryptoExchange.Net.Sockets
                         return result;
                     }
 
-                    var subQuery = subscription.GetSubQuery(this);
+                    var subQuery = subscription.CreateSubscriptionQuery(this);
                     if (subQuery == null)
                     {
                         subscription.IsResubscribing = false;
@@ -1031,7 +1046,7 @@ namespace CryptoExchange.Net.Sockets
 
         internal async Task UnsubscribeAsync(Subscription subscription)
         {
-            var unsubscribeRequest = subscription.GetUnsubQuery();
+            var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
             if (unsubscribeRequest == null)
                 return;
 
@@ -1044,7 +1059,7 @@ namespace CryptoExchange.Net.Sockets
             if (!_socket.IsOpen)
                 return new CallResult(new WebError("Socket is not connected"));
 
-            var subQuery = subscription.GetSubQuery(this);
+            var subQuery = subscription.CreateSubscriptionQuery(this);
             if (subQuery == null)
                 return CallResult.SuccessResult;
 
