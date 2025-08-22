@@ -11,9 +11,11 @@ namespace CryptoExchange.Net.Objects
 
         private int? _code;
         /// <summary>
-        /// The error code from the server
+        /// The int error code the server returned; or the http status code int value if there was no error code.<br />
+        /// <br />
+        /// <i>Note:</i><br />
+        /// The <see cref="ErrorCode"/> property should be used for more generic error checking; it might contain a string error code if the server does not return an int code.
         /// </summary>
-        [Obsolete("Use ErrorCode instead", false)]
         public int? Code 
         { 
             get

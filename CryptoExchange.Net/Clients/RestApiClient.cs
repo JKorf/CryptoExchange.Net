@@ -470,10 +470,8 @@ namespace CryptoExchange.Net.Clients
                         error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor, readResult.Error?.Exception);
                     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
-#pragma warning restore CS0618 // Type or member is obsolete
 
                     return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
                 }
