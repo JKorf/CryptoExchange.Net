@@ -1,47 +1,46 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson;
+
+/// <summary>
+/// Serializer options
+/// </summary>
+public static class SerializerOptions
 {
+    private static readonly ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions> _cache = new ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions>();
+
     /// <summary>
-    /// Serializer options
+    /// Get Json serializer settings which includes standard converters for DateTime, bool, enum and number types
     /// </summary>
-    public static class SerializerOptions
+    public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver, params JsonConverter[] additionalConverters)
     {
-        private static readonly ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions> _cache = new ConcurrentDictionary<JsonSerializerContext, JsonSerializerOptions>();
-
-        /// <summary>
-        /// Get Json serializer settings which includes standard converters for DateTime, bool, enum and number types
-        /// </summary>
-        public static JsonSerializerOptions WithConverters(JsonSerializerContext typeResolver, params JsonConverter[] additionalConverters)
+        if (!_cache.TryGetValue(typeResolver, out var options))
         {
-            if (!_cache.TryGetValue(typeResolver, out var options))
+            options = new JsonSerializerOptions
             {
-                options = new JsonSerializerOptions
+                NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                PropertyNameCaseInsensitive = false,
+                Converters =
                 {
-                    NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals,
-                    PropertyNameCaseInsensitive = false,
-                    Converters =
-                    {
-                        new DateTimeConverter(),
-                        new BoolConverter(),
-                        new DecimalConverter(),
-                        new IntConverter(),
-                        new LongConverter(),
-                        new NullableEnumConverterFactory(typeResolver)
-                    },
-                    TypeInfoResolver = typeResolver,
-                };
+                    new DateTimeConverter(),
+                    new BoolConverter(),
+                    new DecimalConverter(),
+                    new IntConverter(),
+                    new LongConverter(),
+                    new NullableEnumConverterFactory(typeResolver)
+                },
+                TypeInfoResolver = typeResolver,
+            };
 
-                foreach (var converter in additionalConverters)
-                    options.Converters.Add(converter);
+            foreach (var converter in additionalConverters)
+                options.Converters.Add(converter);
 
-                options.TypeInfoResolver = typeResolver;
-                _cache.TryAdd(typeResolver, options);
-            }
-
-            return options;
+            options.TypeInfoResolver = typeResolver;
+            _cache.TryAdd(typeResolver, options);
         }
+
+        return options;
     }
 }

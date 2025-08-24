@@ -1,9 +1,8 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson;
+
+internal interface INullableConverterFactory
 {
-    internal interface INullableConverterFactory
-    {
-        JsonConverter CreateNullableConverter();
-    }
+    JsonConverter CreateNullableConverter();
 }

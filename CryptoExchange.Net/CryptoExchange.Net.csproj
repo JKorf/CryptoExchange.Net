@@ -24,6 +24,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="C:\Projects\CryptoExchange.Net\CryptoExchange.Net\.editorconfig" />
     <None Include="Icon\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
@@ -39,6 +40,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <DocumentationFile>CryptoExchange.Net.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <AnalysisModeGlobalization>None</AnalysisModeGlobalization>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0.1">
@@ -57,5 +64,8 @@
   <ItemGroup Label="Transitive Client Packages">
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Projects\CryptoExchange.Net\CryptoExchange.Net\.editorconfig" />
   </ItemGroup>
 </Project>

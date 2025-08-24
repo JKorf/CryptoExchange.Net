@@ -1,21 +1,20 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Leverage setting mode
+/// </summary>
+public enum SharedLeverageSettingMode
 {
     /// <summary>
-    /// Leverage setting mode
+    /// Leverage is configured per side (in hedge mode)
     /// </summary>
-    public enum SharedLeverageSettingMode
-    {
-        /// <summary>
-        /// Leverage is configured per side (in hedge mode)
-        /// </summary>
-        PerSide,
-        /// <summary>
-        /// Leverage is configured for the symbol
-        /// </summary>
-        PerSymbol,
-        /// <summary>
-        /// Leverage is configured for the entire account
-        /// </summary>
-        PerAccount
-    }
+    PerSide,
+    /// <summary>
+    /// Leverage is configured for the symbol
+    /// </summary>
+    PerSymbol,
+    /// <summary>
+    /// Leverage is configured for the entire account
+    /// </summary>
+    PerAccount
 }

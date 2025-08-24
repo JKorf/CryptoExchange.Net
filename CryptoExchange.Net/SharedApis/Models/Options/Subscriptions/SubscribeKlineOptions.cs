@@ -1,68 +1,66 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for subscribing to kline/candlestick updates
+/// </summary>
+public class SubscribeKlineOptions : EndpointOptions<SubscribeKlineRequest>
 {
     /// <summary>
-    /// Options for subscribing to kline/candlestick updates
+    /// Kline intervals supported for updates
     /// </summary>
-    public class SubscribeKlineOptions : EndpointOptions<SubscribeKlineRequest>
+    public SharedKlineInterval[] SupportIntervals { get; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public SubscribeKlineOptions(bool needsAuthentication) : base(needsAuthentication)
     {
-        /// <summary>
-        /// Kline intervals supported for updates
-        /// </summary>
-        public SharedKlineInterval[] SupportIntervals { get; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SubscribeKlineOptions(bool needsAuthentication) : base(needsAuthentication)
+        SupportIntervals = new[]
         {
-            SupportIntervals = new[]
-            {
-                SharedKlineInterval.OneMinute,
-                SharedKlineInterval.ThreeMinutes,
-                SharedKlineInterval.FiveMinutes,
-                SharedKlineInterval.FifteenMinutes,
-                SharedKlineInterval.ThirtyMinutes,
-                SharedKlineInterval.OneHour,
-                SharedKlineInterval.TwoHours,
-                SharedKlineInterval.FourHours,
-                SharedKlineInterval.SixHours,
-                SharedKlineInterval.EightHours,
-                SharedKlineInterval.TwelveHours,
-                SharedKlineInterval.OneDay,
-                SharedKlineInterval.OneWeek,
-                SharedKlineInterval.OneMonth
-            };
-        }
+            SharedKlineInterval.OneMinute,
+            SharedKlineInterval.ThreeMinutes,
+            SharedKlineInterval.FiveMinutes,
+            SharedKlineInterval.FifteenMinutes,
+            SharedKlineInterval.ThirtyMinutes,
+            SharedKlineInterval.OneHour,
+            SharedKlineInterval.TwoHours,
+            SharedKlineInterval.FourHours,
+            SharedKlineInterval.SixHours,
+            SharedKlineInterval.EightHours,
+            SharedKlineInterval.TwelveHours,
+            SharedKlineInterval.OneDay,
+            SharedKlineInterval.OneWeek,
+            SharedKlineInterval.OneMonth
+        };
+    }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SubscribeKlineOptions(bool needsAuthentication, params SharedKlineInterval[] intervals) : base(needsAuthentication)
-        {
-            SupportIntervals = intervals;
-        }
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public SubscribeKlineOptions(bool needsAuthentication, params SharedKlineInterval[] intervals) : base(needsAuthentication)
+    {
+        SupportIntervals = intervals;
+    }
 
-        /// <summary>
-        /// Check whether a specific interval is supported
-        /// </summary>
-        /// <param name="interval">Interval</param>
-        /// <returns></returns>
-        public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
+    /// <summary>
+    /// Check whether a specific interval is supported
+    /// </summary>
+    /// <param name="interval">Interval</param>
+    /// <returns></returns>
+    public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
-        /// <summary>
-        /// Validate a request
-        /// </summary>
-        public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
-        {
-            if (!IsSupported(request.Interval))
-                return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
+    /// <summary>
+    /// Validate a request
+    /// </summary>
+    public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
+    {
+        if (!IsSupported(request.Interval))
+            return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
-        }
+        return base.ValidateRequest(exchange, request, tradingMode, supportedTradingModes);
     }
 }

@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace CryptoExchange.Net.SharedApis;
 
-namespace CryptoExchange.Net.SharedApis
+/// <summary>
+/// Take Profit / Stop Loss side
+/// </summary>
+public enum SharedTpSlSide
 {
     /// <summary>
-    /// Take Profit / Stop Loss side
+    /// Take profit
     /// </summary>
-    public enum SharedTpSlSide
-    {
-        /// <summary>
-        /// Take profit
-        /// </summary>
-        TakeProfit,
-        /// <summary>
-        /// Stop loss
-        /// </summary>
-        StopLoss
-    }
+    TakeProfit,
+    /// <summary>
+    /// Stop loss
+    /// </summary>
+    StopLoss
 }

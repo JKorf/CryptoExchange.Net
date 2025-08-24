@@ -1,15 +1,14 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for setting leverage
+/// </summary>
+public class SetLeverageOptions : EndpointOptions<SetLeverageRequest>
 {
     /// <summary>
-    /// Options for setting leverage
+    /// ctor
     /// </summary>
-    public class SetLeverageOptions : EndpointOptions<SetLeverageRequest>
+    public SetLeverageOptions() : base(true)
     {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SetLeverageOptions() : base(true)
-        {
-        }
     }
 }

@@ -1,34 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
-namespace CryptoExchange.Net.Trackers
+namespace CryptoExchange.Net.Trackers;
+
+/// <summary>
+/// Compare value
+/// </summary>
+public record CompareValue
 {
+    /// <summary>
+    /// The value difference
+    /// </summary>
+    public decimal? Difference { get; set; }
+    /// <summary>
+    /// The value difference percentage
+    /// </summary>
+    public decimal? PercentageDifference { get; set; }
 
     /// <summary>
-    /// Compare value
+    /// ctor
     /// </summary>
-    public record CompareValue
+    public CompareValue(decimal? value1, decimal? value2)
     {
-        /// <summary>
-        /// The value difference
-        /// </summary>
-        public decimal? Difference { get; set; }
-        /// <summary>
-        /// The value difference percentage
-        /// </summary>
-        public decimal? PercentageDifference { get; set; }
+        if (value1 == null || value2 == null)
+            return;
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public CompareValue(decimal? value1, decimal? value2)
-        {
-            if (value1 == null || value2 == null)
-                return;
-
-            Difference = value2 - value1;
-            PercentageDifference = value1.Value == 0 ? null : Math.Round(value2.Value / value1.Value * 100 - 100, 4);
-        }
+        Difference = value2 - value1;
+        PercentageDifference = value1.Value == 0 ? null : Math.Round(value2.Value / value1.Value * 100 - 100, 4);
     }
 }

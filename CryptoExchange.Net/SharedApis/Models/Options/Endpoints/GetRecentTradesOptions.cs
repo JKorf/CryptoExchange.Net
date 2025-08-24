@@ -1,41 +1,40 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for requesting recent trades
+/// </summary>
+public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest>
 {
     /// <summary>
-    /// Options for requesting recent trades
+    /// The max number of trades that can be requested
     /// </summary>
-    public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest>
+    public int MaxLimit { get; set; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public GetRecentTradesOptions(int limit, bool authenticated) : base(authenticated)
     {
-        /// <summary>
-        /// The max number of trades that can be requested
-        /// </summary>
-        public int MaxLimit { get; set; }
+        MaxLimit = limit;
+    }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetRecentTradesOptions(int limit, bool authenticated) : base(authenticated)
-        {
-            MaxLimit = limit;
-        }
+    /// <inheritdoc />
+    public Error? Validate(GetRecentTradesRequest request)
+    {
+        if (request.Limit > MaxLimit)
+            return ArgumentError.Invalid(nameof(GetRecentTradesRequest.Limit), $"Only the most recent {MaxLimit} trades are available");
 
-        /// <inheritdoc />
-        public Error? Validate(GetRecentTradesRequest request)
-        {
-            if (request.Limit > MaxLimit)
-                return ArgumentError.Invalid(nameof(GetRecentTradesRequest.Limit), $"Only the most recent {MaxLimit} trades are available");
+        return null;
+    }
 
-            return null;
-        }
-
-        /// <inheritdoc />
-        public override string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Max data points: {MaxLimit}");
-            return sb.ToString();
-        }
+    /// <inheritdoc />
+    public override string ToString(string exchange)
+    {
+        var sb = new StringBuilder(base.ToString(exchange));
+        sb.AppendLine($"Max data points: {MaxLimit}");
+        return sb.ToString();
     }
 }

@@ -1,18 +1,15 @@
-﻿using CryptoExchange.Net.Objects;
+namespace CryptoExchange.Net.SharedApis;
 
-namespace CryptoExchange.Net.SharedApis
+/// <summary>
+/// Request to retrieve a list of supported assets
+/// </summary>
+public record GetAssetsRequest : SharedRequest
 {
     /// <summary>
-    /// Request to retrieve a list of supported assets
+    /// ctor
     /// </summary>
-    public record GetAssetsRequest : SharedRequest
+    /// <param name="exchangeParameters">Exchange specific parameters</param>
+    public GetAssetsRequest(ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
     {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetAssetsRequest(ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
-        {
-        }
     }
 }

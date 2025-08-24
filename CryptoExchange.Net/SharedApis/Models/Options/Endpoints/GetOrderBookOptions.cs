@@ -1,71 +1,69 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for requesting order book
+/// </summary>
+public class GetOrderBookOptions : EndpointOptions<GetOrderBookRequest>
 {
     /// <summary>
-    /// Options for requesting order book
+    /// Supported order book depths
     /// </summary>
-    public class GetOrderBookOptions : EndpointOptions<GetOrderBookRequest>
+    public int[]? SupportedLimits { get; set; }
+
+    /// <summary>
+    /// The min order book depth
+    /// </summary>
+    public int? MinLimit { get; set; }
+    /// <summary>
+    /// The max order book depth
+    /// </summary>
+    public int? MaxLimit { get; set; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public GetOrderBookOptions(int minLimit, int maxLimit, bool authenticated) : base(authenticated)
     {
-        /// <summary>
-        /// Supported order book depths
-        /// </summary>
-        public int[]? SupportedLimits { get; set; }
+        MinLimit = minLimit;
+        MaxLimit = maxLimit;
+    }
 
-        /// <summary>
-        /// The min order book depth
-        /// </summary>
-        public int? MinLimit { get; set; }
-        /// <summary>
-        /// The max order book depth
-        /// </summary>
-        public int? MaxLimit { get; set; }
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public GetOrderBookOptions(int[] supportedLimits, bool authenticated) : base(authenticated)
+    {
+        SupportedLimits = supportedLimits;
+    }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetOrderBookOptions(int minLimit, int maxLimit, bool authenticated) : base(authenticated)
-        {
-            MinLimit = minLimit;
-            MaxLimit = maxLimit;
-        }
+    /// <inheritdoc />
+    public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
+    {
+        if (request.Limit == null)
+            return null;
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetOrderBookOptions(int[] supportedLimits, bool authenticated) : base(authenticated)
-        {
-            SupportedLimits = supportedLimits;
-        }
+        if (MaxLimit.HasValue && request.Limit.Value > MaxLimit)
+            return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Max limit is {MaxLimit}");
 
-        /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
-        {
-            if (request.Limit == null)
-                return null;
+        if (MinLimit.HasValue && request.Limit.Value < MinLimit)
+            return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Min limit is {MaxLimit}");
 
-            if (MaxLimit.HasValue && request.Limit.Value > MaxLimit)
-                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Max limit is {MaxLimit}");
+        if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
+            return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Limit should be one of " + string.Join(", ", SupportedLimits));
 
-            if (MinLimit.HasValue && request.Limit.Value < MinLimit)
-                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Min limit is {MaxLimit}");
+        return base.ValidateRequest(exchange, request, tradingMode, supportedTradingModes);
+    }
 
-            if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
-                return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Limit should be one of " + string.Join(", ", SupportedLimits));
-
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
-        }
-
-        /// <inheritdoc />
-        public override string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Supported limit values: [{(SupportedLimits != null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
-            return sb.ToString();
-        }
+    /// <inheritdoc />
+    public override string ToString(string exchange)
+    {
+        var sb = new StringBuilder(base.ToString(exchange));
+        sb.AppendLine($"Supported limit values: [{(SupportedLimits != null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
+        return sb.ToString();
     }
 }

@@ -1,25 +1,24 @@
-﻿using System;
+using System;
 
-namespace CryptoExchange.Net.Attributes
+namespace CryptoExchange.Net.Attributes;
+
+/// <summary>
+/// Map a enum entry to string values
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+public class MapAttribute : Attribute
 {
     /// <summary>
-    /// Map a enum entry to string values
+    /// Values mapping to the enum entry
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class MapAttribute : Attribute
-    {
-        /// <summary>
-        /// Values mapping to the enum entry
-        /// </summary>
-        public string[] Values { get; set; }
+    public string[] Values { get; set; }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="maps"></param>
-        public MapAttribute(params string[] maps)
-        {
-            Values = maps;
-        }
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="maps"></param>
+    public MapAttribute(params string[] maps)
+    {
+        Values = maps;
     }
 }

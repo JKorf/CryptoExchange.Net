@@ -1,30 +1,27 @@
-﻿using CryptoExchange.Net.Interfaces;
-using System.Collections.Generic;
+using CryptoExchange.Net.Interfaces;
 
-namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Order book info
+/// </summary>
+public record SharedOrderBook
 {
     /// <summary>
-    /// Order book info
+    /// Asks list
     /// </summary>
-    public record SharedOrderBook
+    public ISymbolOrderBookEntry[] Asks { get; set; }
+    /// <summary>
+    /// Bids list
+    /// </summary>
+    public ISymbolOrderBookEntry[] Bids { get; set; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public SharedOrderBook(ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
     {
-        /// <summary>
-        /// Asks list
-        /// </summary>
-        public ISymbolOrderBookEntry[] Asks { get; set; }
-        /// <summary>
-        /// Bids list
-        /// </summary>
-        public ISymbolOrderBookEntry[] Bids { get; set; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SharedOrderBook(ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
-        {
-            Asks = asks;
-            Bids = bids;
-        }
+        Asks = asks;
+        Bids = bids;
     }
-
 }

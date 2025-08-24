@@ -1,90 +1,89 @@
-﻿using CryptoExchange.Net.RateLimiting.Interfaces;
+using CryptoExchange.Net.RateLimiting.Interfaces;
 using System.Net.Http;
 
-namespace CryptoExchange.Net.Objects
+namespace CryptoExchange.Net.Objects;
+
+/// <summary>
+/// The definition of a rest request
+/// </summary>
+public class RequestDefinition
 {
+    private string? _stringRep;
+
+    // Basics
+
     /// <summary>
-    /// The definition of a rest request
+    /// Path of the request
     /// </summary>
-    public class RequestDefinition
+    public string Path { get; set; }
+    /// <summary>
+    /// Http method of the request
+    /// </summary>
+    public HttpMethod Method { get; set; }
+    /// <summary>
+    /// Is the request authenticated
+    /// </summary>
+    public bool Authenticated { get; set; }
+
+    // Formatting
+
+    /// <summary>
+    /// The body format for this request
+    /// </summary>
+    public RequestBodyFormat? RequestBodyFormat { get; set; }
+    /// <summary>
+    /// The position of parameters for this request
+    /// </summary>
+    public HttpMethodParameterPosition? ParameterPosition { get; set; }
+    /// <summary>
+    /// The array serialization type for this request
+    /// </summary>
+    public ArrayParametersSerialization? ArraySerialization { get; set; }
+
+    // Rate limiting
+    
+    /// <summary>
+    /// Request weight
+    /// </summary>
+    public int Weight { get; set; } = 1;
+
+    /// <summary>
+    /// Rate limit gate to use
+    /// </summary>
+    public IRateLimitGate? RateLimitGate { get; set; }
+
+    /// <summary>
+    /// Individual endpoint rate limit guard to use
+    /// </summary>
+    public IRateLimitGuard? LimitGuard { get; set; }
+
+    /// <summary>
+    /// Whether this request should never be cached
+    /// </summary>
+    public bool PreventCaching { get; set; }
+
+    /// <summary>
+    /// Connection id
+    /// </summary>
+    public int? ConnectionId { get; set; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="method"></param>
+    public RequestDefinition(string path, HttpMethod method)
     {
-        private string? _stringRep;
+        Path = path;
+        Method = method;
 
-        // Basics
+        if (!Path.StartsWith("/"))
+            Path = $"/{Path}";
+    }
 
-        /// <summary>
-        /// Path of the request
-        /// </summary>
-        public string Path { get; set; }
-        /// <summary>
-        /// Http method of the request
-        /// </summary>
-        public HttpMethod Method { get; set; }
-        /// <summary>
-        /// Is the request authenticated
-        /// </summary>
-        public bool Authenticated { get; set; }
-
-        // Formatting
-
-        /// <summary>
-        /// The body format for this request
-        /// </summary>
-        public RequestBodyFormat? RequestBodyFormat { get; set; }
-        /// <summary>
-        /// The position of parameters for this request
-        /// </summary>
-        public HttpMethodParameterPosition? ParameterPosition { get; set; }
-        /// <summary>
-        /// The array serialization type for this request
-        /// </summary>
-        public ArrayParametersSerialization? ArraySerialization { get; set; }
-
-        // Rate limiting
-        
-        /// <summary>
-        /// Request weight
-        /// </summary>
-        public int Weight { get; set; } = 1;
-
-        /// <summary>
-        /// Rate limit gate to use
-        /// </summary>
-        public IRateLimitGate? RateLimitGate { get; set; }
-
-        /// <summary>
-        /// Individual endpoint rate limit guard to use
-        /// </summary>
-        public IRateLimitGuard? LimitGuard { get; set; }
-
-        /// <summary>
-        /// Whether this request should never be cached
-        /// </summary>
-        public bool PreventCaching { get; set; }
-
-        /// <summary>
-        /// Connection id
-        /// </summary>
-        public int? ConnectionId { get; set; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="method"></param>
-        public RequestDefinition(string path, HttpMethod method)
-        {
-            Path = path;
-            Method = method;
-
-            if (!Path.StartsWith("/"))
-                Path = $"/{Path}";
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return _stringRep ??= $"{Method} {Path}{(Authenticated ? " authenticated" : "")}";
-        }
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _stringRep ??= $"{Method} {Path}{(Authenticated ? " authenticated" : "")}";
     }
 }

@@ -1,21 +1,20 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Id
+/// </summary>
+public record SharedId
 {
+    /// <summary>
+    /// The id
+    /// </summary>
+    public string Id { get; set; }
+
     /// <summary>
     /// Id
     /// </summary>
-    public record SharedId
+    public SharedId(string id)
     {
-        /// <summary>
-        /// The id
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Id
-        /// </summary>
-        public SharedId(string id)
-        {
-            Id = id;
-        }
+        Id = id;
     }
 }

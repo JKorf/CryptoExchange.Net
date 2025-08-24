@@ -1,17 +1,16 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using System;
 
-namespace CryptoExchange.Net.Testing.Implementations
+namespace CryptoExchange.Net.Testing.Implementations;
+
+internal class TestAuthTimeProvider : IAuthTimeProvider
 {
-    internal class TestAuthTimeProvider : IAuthTimeProvider
+    private readonly DateTime _timestamp;
+
+    public TestAuthTimeProvider(DateTime timestamp)
     {
-        private readonly DateTime _timestamp;
-
-        public TestAuthTimeProvider(DateTime timestamp)
-        {
-            _timestamp = timestamp;
-        }
-
-        public DateTime GetTime() => _timestamp;
+        _timestamp = timestamp;
     }
+
+    public DateTime GetTime() => _timestamp;
 }

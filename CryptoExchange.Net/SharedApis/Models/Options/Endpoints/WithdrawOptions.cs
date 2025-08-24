@@ -1,15 +1,14 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for requesting a withdrawal
+/// </summary>
+public class WithdrawOptions : EndpointOptions<WithdrawRequest>
 {
     /// <summary>
-    /// Options for requesting a withdrawal
+    /// ctor
     /// </summary>
-    public class WithdrawOptions : EndpointOptions<WithdrawRequest>
+    public WithdrawOptions() : base(true)
     {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public WithdrawOptions() : base(true)
-        {
-        }
     }
 }

@@ -1,17 +1,16 @@
-﻿namespace CryptoExchange.Net.Authentication
+namespace CryptoExchange.Net.Authentication;
+
+/// <summary>
+/// Output string type
+/// </summary>
+public enum SignOutputType
 {
     /// <summary>
-    /// Output string type
+    /// Hex string
     /// </summary>
-    public enum SignOutputType
-    {
-        /// <summary>
-        /// Hex string
-        /// </summary>
-        Hex,
-        /// <summary>
-        /// Base64 string
-        /// </summary>
-        Base64
-    }
+    Hex,
+    /// <summary>
+    /// Base64 string
+    /// </summary>
+    Base64
 }
