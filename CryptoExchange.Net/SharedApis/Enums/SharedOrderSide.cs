@@ -1,17 +1,16 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Side of an order
+/// </summary>
+public enum SharedOrderSide
 {
     /// <summary>
-    /// Side of an order
+    /// Buy order
     /// </summary>
-    public enum SharedOrderSide
-    {
-        /// <summary>
-        /// Buy order
-        /// </summary>
-        Buy,
-        /// <summary>
-        /// Sell order
-        /// </summary>
-        Sell
-    }
+    Buy,
+    /// <summary>
+    /// Sell order
+    /// </summary>
+    Sell
 }

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Attributes;
+using CryptoExchange.Net.Attributes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,281 +9,280 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson;
+
+/// <summary>
+/// Static EnumConverter methods
+/// </summary>
+public static class EnumConverter
 {
     /// <summary>
-    /// Static EnumConverter methods
+    /// Get the enum value from a string
     /// </summary>
-    public static class EnumConverter
-    {
-        /// <summary>
-        /// Get the enum value from a string
-        /// </summary>
-        /// <param name="value">String value</param>
-        /// <returns></returns>
+    /// <param name="value">String value</param>
+    /// <returns></returns>
 #if NET5_0_OR_GREATER
-        public static T? ParseString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string value) where T : struct, Enum
+    public static T? ParseString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string value) where T : struct, Enum
 #else
-        public static T? ParseString<T>(string value) where T : struct, Enum
+    public static T? ParseString<T>(string value) where T : struct, Enum
 #endif
-            => EnumConverter<T>.ParseString(value);
-
-        /// <summary>
-        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
-        /// </summary>
-        /// <param name="enumValue"></param>
-        /// <returns></returns>
-#if NET5_0_OR_GREATER
-        public static string GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T enumValue) where T : struct, Enum
-#else
-        public static string GetString<T>(T enumValue) where T : struct, Enum
-#endif
-            => EnumConverter<T>.GetString(enumValue);
-
-        /// <summary>
-        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
-        /// </summary>
-        /// <param name="enumValue"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull("enumValue")]
-#if NET5_0_OR_GREATER
-        public static string? GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T? enumValue) where T : struct, Enum
-#else
-        public static string? GetString<T>(T? enumValue) where T : struct, Enum
-#endif
-            => EnumConverter<T>.GetString(enumValue);
-    }
+        => EnumConverter<T>.ParseString(value);
 
     /// <summary>
-    /// Converter for enum values. Enums entries should be noted with a MapAttribute to map the enum value to a string value
+    /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
     /// </summary>
+    /// <param name="enumValue"></param>
+    /// <returns></returns>
 #if NET5_0_OR_GREATER
-    public class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>
+    public static string GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T enumValue) where T : struct, Enum
 #else
-    public class EnumConverter<T>
+    public static string GetString<T>(T enumValue) where T : struct, Enum
 #endif
-         : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
+        => EnumConverter<T>.GetString(enumValue);
+
+    /// <summary>
+    /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+    /// </summary>
+    /// <param name="enumValue"></param>
+    /// <returns></returns>
+    [return: NotNullIfNotNull("enumValue")]
+#if NET5_0_OR_GREATER
+    public static string? GetString<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(T? enumValue) where T : struct, Enum
+#else
+    public static string? GetString<T>(T? enumValue) where T : struct, Enum
+#endif
+        => EnumConverter<T>.GetString(enumValue);
+}
+
+/// <summary>
+/// Converter for enum values. Enums entries should be noted with a MapAttribute to map the enum value to a string value
+/// </summary>
+#if NET5_0_OR_GREATER
+public class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>
+#else
+public class EnumConverter<T>
+#endif
+     : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
+{
+    private static List<KeyValuePair<T, string>>? _mapping;
+    private NullableEnumConverter? _nullableEnumConverter;
+
+    private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
+
+    internal class NullableEnumConverter : JsonConverter<T?>
     {
-        private static List<KeyValuePair<T, string>>? _mapping = null;
-        private NullableEnumConverter? _nullableEnumConverter = null;
+        private readonly EnumConverter<T> _enumConverter;
 
-        private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
-
-        internal class NullableEnumConverter : JsonConverter<T?>
+        public NullableEnumConverter(EnumConverter<T> enumConverter)
         {
-            private readonly EnumConverter<T> _enumConverter;
-
-            public NullableEnumConverter(EnumConverter<T> enumConverter)
-            {
-                _enumConverter = enumConverter;
-            }
-            public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            {
-                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
-            }
-
-            public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
-            {
-                if (value == null)
-                {
-                    writer.WriteNullValue();
-                }
-                else
-                {
-                    _enumConverter.Write(writer, value.Value, options);
-                }
-            }
+            _enumConverter = enumConverter;
+        }
+        public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return EnumConverter<T>.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
         }
 
-        /// <inheritdoc />
-        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
         {
-            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
-            if (t == null)
+            if (value == null)
             {
-                if (warn)
-                {
-                    if (isEmptyString)
-                    {
-                        // We received an empty string and have no mapping for it, and the property isn't nullable
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
-                    }
-                    else
-                    {
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
-                    }
-                }
-
-                return new T(); // return default value
+                writer.WriteNullValue();
             }
             else
             {
-                return t.Value;
+                _enumConverter.Write(writer, value.Value, options);
             }
         }
+    }
 
-        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString, out bool warn)
+    /// <inheritdoc />
+    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
+        if (t == null)
         {
-            isEmptyString = false;
-            warn = false;
-            var enumType = typeof(T);
-            if (_mapping == null)
-                _mapping = AddMapping();
-
-            var stringValue = reader.TokenType switch
+            if (warn)
             {
-                JsonTokenType.String => reader.GetString(),
-                JsonTokenType.Number => reader.GetInt32().ToString(),
-                JsonTokenType.True => reader.GetBoolean().ToString(),
-                JsonTokenType.False => reader.GetBoolean().ToString(),
-                JsonTokenType.Null => null,
-                _ => throw new Exception("Invalid token type for enum deserialization: " + reader.TokenType)
-            };
-
-            if (string.IsNullOrEmpty(stringValue))
-                return null;
-
-            if (!GetValue(enumType, stringValue!, out var result))
-            {
-                if (string.IsNullOrWhiteSpace(stringValue))
+                if (isEmptyString)
                 {
-                    isEmptyString = true;
+                    // We received an empty string and have no mapping for it, and the property isn't nullable
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
                 }
                 else
                 {
-                    // We received an enum value but weren't able to parse it.
-                    if (!_unknownValuesWarned.Contains(stringValue))
-                    {
-                        warn = true;
-                        _unknownValuesWarned.Add(stringValue!);
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
-                    }
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
                 }
-
-                return null;
             }
 
-            return result;
+            return new T(); // return default value
         }
-
-        /// <inheritdoc />
-        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+        else
         {
-            var stringValue = GetString(value);
-            writer.WriteStringValue(stringValue);
+            return t.Value;
         }
+    }
 
-        private static bool GetValue(Type objectType, string value, out T? result)
+    private static T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString, out bool warn)
+    {
+        isEmptyString = false;
+        warn = false;
+        var enumType = typeof(T);
+        if (_mapping == null)
+            _mapping = AddMapping();
+
+        var stringValue = reader.TokenType switch
         {
-            if (_mapping != null)
+            JsonTokenType.String => reader.GetString(),
+            JsonTokenType.Number => reader.GetInt32().ToString(),
+            JsonTokenType.True => reader.GetBoolean().ToString(),
+            JsonTokenType.False => reader.GetBoolean().ToString(),
+            JsonTokenType.Null => null,
+            _ => throw new Exception("Invalid token type for enum deserialization: " + reader.TokenType)
+        };
+
+        if (string.IsNullOrEmpty(stringValue))
+            return null;
+
+        if (!GetValue(enumType, stringValue!, out var result))
+        {
+            if (string.IsNullOrWhiteSpace(stringValue))
             {
-                // Check for exact match first, then if not found fallback to a case insensitive match 
-                var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-                if (mapping.Equals(default(KeyValuePair<T, string>)))
-                    mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
-
-                if (!mapping.Equals(default(KeyValuePair<T, string>)))
+                isEmptyString = true;
+            }
+            else
+            {
+                // We received an enum value but weren't able to parse it.
+                if (!_unknownValuesWarned.Contains(stringValue))
                 {
-                    result = mapping.Key;
-                    return true;
+                    warn = true;
+                    _unknownValuesWarned.Add(stringValue!);
+                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
                 }
             }
 
-            if (objectType.IsDefined(typeof(FlagsAttribute)))
-            {
-                var intValue = int.Parse(value);
-                result = (T)Enum.ToObject(objectType, intValue);
-                return true;
-            }
-
-            if (_unknownValuesWarned.Contains(value))
-            {
-                // Check if it is an known unknown value
-                // Done here to prevent lookup overhead for normal conversions, but prevent expensive exception throwing
-                result = default;
-                return false;
-            }
-
-            try
-            {
-                // If no explicit mapping is found try to parse string
-                result = (T)Enum.Parse(objectType, value, true);
-                return true;
-            }
-            catch (Exception)
-            {
-                result = default;
-                return false;
-            }
+            return null;
         }
 
-        private static List<KeyValuePair<T, string>> AddMapping()
+        return result;
+    }
+
+    /// <inheritdoc />
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    {
+        var stringValue = GetString(value);
+        writer.WriteStringValue(stringValue);
+    }
+
+    private static bool GetValue(Type objectType, string value, out T? result)
+    {
+        if (_mapping != null)
         {
-            var mapping = new List<KeyValuePair<T, string>>();
-            var enumType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-            var enumMembers = enumType.GetFields();
-            foreach (var member in enumMembers)
-            {
-                var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
-                foreach (MapAttribute attribute in maps)
-                {
-                    foreach (var value in attribute.Values)
-                        mapping.Add(new KeyValuePair<T, string>((T)Enum.Parse(enumType, member.Name), value));
-                }
-            }
-
-            _mapping = mapping;
-            return mapping;
-        }
-
-        /// <summary>
-        /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
-        /// </summary>
-        /// <param name="enumValue"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull("enumValue")]
-        public static string? GetString(T? enumValue)
-        {
-            if (_mapping == null)
-                _mapping = AddMapping();
-
-            return enumValue == null ? null : (_mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
-        }
-
-        /// <summary>
-        /// Get the enum value from a string
-        /// </summary>
-        /// <param name="value">String value</param>
-        /// <returns></returns>
-        public static T? ParseString(string value)
-        {
-            var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-            if (_mapping == null)
-                _mapping = AddMapping();
-
+            // Check for exact match first, then if not found fallback to a case insensitive match 
             var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
             if (mapping.Equals(default(KeyValuePair<T, string>)))
                 mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
 
             if (!mapping.Equals(default(KeyValuePair<T, string>)))
-                return mapping.Key;
-
-            try
             {
-                // If no explicit mapping is found try to parse string
-                return (T)Enum.Parse(type, value, true);
-            }
-            catch (Exception)
-            {
-                return default;
+                result = mapping.Key;
+                return true;
             }
         }
 
-        /// <inheritdoc />
-        public JsonConverter CreateNullableConverter()
+        if (objectType.IsDefined(typeof(FlagsAttribute)))
         {
-            _nullableEnumConverter ??= new NullableEnumConverter(this);
-            return _nullableEnumConverter;
+            var intValue = int.Parse(value);
+            result = (T)Enum.ToObject(objectType, intValue);
+            return true;
         }
+
+        if (_unknownValuesWarned.Contains(value))
+        {
+            // Check if it is an known unknown value
+            // Done here to prevent lookup overhead for normal conversions, but prevent expensive exception throwing
+            result = default;
+            return false;
+        }
+
+        try
+        {
+            // If no explicit mapping is found try to parse string
+            result = (T)Enum.Parse(objectType, value, true);
+            return true;
+        }
+        catch (Exception)
+        {
+            result = default;
+            return false;
+        }
+    }
+
+    private static List<KeyValuePair<T, string>> AddMapping()
+    {
+        var mapping = new List<KeyValuePair<T, string>>();
+        var enumType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        var enumMembers = enumType.GetFields();
+        foreach (var member in enumMembers)
+        {
+            var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
+            foreach (MapAttribute attribute in maps)
+            {
+                foreach (var value in attribute.Values)
+                    mapping.Add(new KeyValuePair<T, string>((T)Enum.Parse(enumType, member.Name), value));
+            }
+        }
+
+        _mapping = mapping;
+        return mapping;
+    }
+
+    /// <summary>
+    /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
+    /// </summary>
+    /// <param name="enumValue"></param>
+    /// <returns></returns>
+    [return: NotNullIfNotNull("enumValue")]
+    public static string? GetString(T? enumValue)
+    {
+        if (_mapping == null)
+            _mapping = AddMapping();
+
+        return enumValue == null ? null : (_mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
+    }
+
+    /// <summary>
+    /// Get the enum value from a string
+    /// </summary>
+    /// <param name="value">String value</param>
+    /// <returns></returns>
+    public static T? ParseString(string value)
+    {
+        var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+        if (_mapping == null)
+            _mapping = AddMapping();
+
+        var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
+        if (mapping.Equals(default(KeyValuePair<T, string>)))
+            mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+
+        if (!mapping.Equals(default(KeyValuePair<T, string>)))
+            return mapping.Key;
+
+        try
+        {
+            // If no explicit mapping is found try to parse string
+            return (T)Enum.Parse(type, value, true);
+        }
+        catch (Exception)
+        {
+            return default;
+        }
+    }
+
+    /// <inheritdoc />
+    public JsonConverter CreateNullableConverter()
+    {
+        _nullableEnumConverter ??= new NullableEnumConverter(this);
+        return _nullableEnumConverter;
     }
 }

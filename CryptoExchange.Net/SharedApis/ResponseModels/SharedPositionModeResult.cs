@@ -1,21 +1,20 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Position mode result
+/// </summary>
+public record SharedPositionModeResult
 {
     /// <summary>
-    /// Position mode result
+    /// The current position mode
     /// </summary>
-    public record SharedPositionModeResult
-    {
-        /// <summary>
-        /// The current position mode
-        /// </summary>
-        public SharedPositionMode PositionMode { get; set; }
+    public SharedPositionMode PositionMode { get; set; }
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SharedPositionModeResult(SharedPositionMode positionMode)
-        {
-            PositionMode = positionMode;
-        }
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public SharedPositionModeResult(SharedPositionMode positionMode)
+    {
+        PositionMode = positionMode;
     }
 }

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
 using System;
@@ -6,126 +6,125 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Testing
+namespace CryptoExchange.Net.Testing;
+
+/// <summary>
+/// Base class for executing REST API integration tests
+/// </summary>
+/// <typeparam name="TClient">Client type</typeparam>
+public abstract class RestIntegrationTest<TClient>
 {
     /// <summary>
-    /// Base class for executing REST API integration tests
+    /// Get a client instance
     /// </summary>
-    /// <typeparam name="TClient">Client type</typeparam>
-    public abstract class RestIntegrationTest<TClient>
+    /// <param name="loggerFactory"></param>
+    /// <returns></returns>
+    public abstract TClient GetClient(ILoggerFactory loggerFactory);
+
+    /// <summary>
+    /// Whether the test should be run. By default integration tests aren't executed, can be set to true to force execution.
+    /// </summary>
+    public virtual bool Run { get; set; }
+
+    /// <summary>
+    /// Whether API credentials are provided and thus authenticated calls can be executed. Should be set in the GetClient implementation.
+    /// </summary>
+    public bool Authenticated { get; set; }
+
+    /// <summary>
+    /// Create a client
+    /// </summary>
+    /// <returns></returns>
+    protected TClient CreateClient()
     {
-        /// <summary>
-        /// Get a client instance
-        /// </summary>
-        /// <param name="loggerFactory"></param>
-        /// <returns></returns>
-        public abstract TClient GetClient(ILoggerFactory loggerFactory);
+        var fact = new LoggerFactory();
+        fact.AddProvider(new TraceLoggerProvider());
+        return GetClient(fact);
+    }
 
-        /// <summary>
-        /// Whether the test should be run. By default integration tests aren't executed, can be set to true to force execution.
-        /// </summary>
-        public virtual bool Run { get; set; }
+    /// <summary>
+    /// Check if integration tests should be executed
+    /// </summary>
+    /// <returns></returns>
+    protected bool ShouldRun()
+    {
+        var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
+        if (!Run && integrationTests != "1")
+            return false;
 
-        /// <summary>
-        /// Whether API credentials are provided and thus authenticated calls can be executed. Should be set in the GetClient implementation.
-        /// </summary>
-        public bool Authenticated { get; set; }
+        return true;
+    }
 
-        /// <summary>
-        /// Create a client
-        /// </summary>
-        /// <returns></returns>
-        protected TClient CreateClient()
+    /// <summary>
+    /// Execute a REST endpoint call and check for any errors or warnings.
+    /// </summary>
+    /// <typeparam name="T">Type of response</typeparam>
+    /// <param name="expression">The call expression</param>
+    /// <param name="authRequest">Whether this is an authenticated request</param>
+    public async Task RunAndCheckResult<T>(Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
+    {
+        if (!ShouldRun())
+            return;
+
+        var client = CreateClient();
+
+        var expressionBody = (MethodCallExpression)expression.Body;
+        if (authRequest && !Authenticated)
         {
-            var fact = new LoggerFactory();
-            fact.AddProvider(new TraceLoggerProvider());
-            return GetClient(fact);
+            Debug.WriteLine($"Skipping {expressionBody.Method.Name}, not authenticated");
+            return;
         }
 
-        /// <summary>
-        /// Check if integration tests should be executed
-        /// </summary>
-        /// <returns></returns>
-        protected bool ShouldRun()
-        {
-            var integrationTests = Environment.GetEnvironmentVariable("INTEGRATION");
-            if (!Run && integrationTests != "1")
-                return false;
+        var listener = new EnumValueTraceListener();
+        Trace.Listeners.Add(listener);
 
-            return true;
+        WebCallResult<T> result;
+        try
+        {
+            result = await expression.Compile().Invoke(client).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Method {expressionBody.Method.Name} threw an exception: " + ex.ToLogString());
+        }
+        finally
+        {
+            Trace.Listeners.Remove(listener);
         }
 
-        /// <summary>
-        /// Execute a REST endpoint call and check for any errors or warnings.
-        /// </summary>
-        /// <typeparam name="T">Type of response</typeparam>
-        /// <param name="expression">The call expression</param>
-        /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckResult<T>(Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
+        if (!result.Success)
+            throw new Exception($"Method {expressionBody.Method.Name} returned error: " + result.Error);
+
+        Debug.WriteLine($"{expressionBody.Method.Name} {result}");
+    }
+
+    /// <summary>
+    /// Start an order book implementation and expect it to sync and produce an update
+    /// </summary>
+    public async Task TestOrderBook(ISymbolOrderBook book)
+    {
+        if (!ShouldRun())
+            return;
+
+        var bookHasChanged = false;
+        book.OnStatusChange += (_, news) =>
         {
-            if (!ShouldRun())
-                return;
-
-            var client = CreateClient();
-
-            var expressionBody = (MethodCallExpression)expression.Body;
-            if (authRequest && !Authenticated)
-            {
-                Debug.WriteLine($"Skipping {expressionBody.Method.Name}, not authenticated");
-                return;
-            }
-
-            var listener = new EnumValueTraceListener();
-            Trace.Listeners.Add(listener);
-
-            WebCallResult<T> result;
-            try
-            {
-                result = await expression.Compile().Invoke(client).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Method {expressionBody.Method.Name} threw an exception: " + ex.ToLogString());
-            }
-            finally
-            {
-                Trace.Listeners.Remove(listener);
-            }
-
-            if (!result.Success)
-                throw new Exception($"Method {expressionBody.Method.Name} returned error: " + result.Error);
-
-            Debug.WriteLine($"{expressionBody.Method.Name} {result}");
-        }
-
-        /// <summary>
-        /// Start an order book implementation and expect it to sync and produce an update
-        /// </summary>
-        public async Task TestOrderBook(ISymbolOrderBook book)
+            if (news == OrderBookStatus.Reconnecting)
+                throw new Exception($"Book reconnecting");
+        };
+        book.OnOrderBookUpdate += (change) =>
         {
-            if (!ShouldRun())
-                return;
+            bookHasChanged = true;
+        };
 
-            var bookHasChanged = false;
-            book.OnStatusChange += (_, news) =>
-            {
-                if (news == OrderBookStatus.Reconnecting)
-                    throw new Exception($"Book reconnecting");
-            };
-            book.OnOrderBookUpdate += (change) =>
-            {
-                bookHasChanged = true;
-            };
+        var result = await book.StartAsync().ConfigureAwait(false);
+        if (!result)
+            throw new Exception($"Book failed to start: " + result.Error);
 
-            var result = await book.StartAsync().ConfigureAwait(false);
-            if (!result)
-                throw new Exception($"Book failed to start: " + result.Error);
+        await Task.Delay(5000).ConfigureAwait(false);
+        await book.StopAsync().ConfigureAwait(false);
 
-            await Task.Delay(5000).ConfigureAwait(false);
-            await book.StopAsync().ConfigureAwait(false);
-
-            if (!bookHasChanged)
-                throw new Exception($"Expected book to have changed at least once");
-        }
+        if (!bookHasChanged)
+            throw new Exception($"Expected book to have changed at least once");
     }
 }

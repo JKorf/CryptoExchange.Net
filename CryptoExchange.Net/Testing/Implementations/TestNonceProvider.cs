@@ -1,23 +1,22 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 
-namespace CryptoExchange.Net.Testing.Implementations
+namespace CryptoExchange.Net.Testing.Implementations;
+
+/// <summary>
+/// Test implementation for nonce provider, returning a prespecified nonce
+/// </summary>
+public class TestNonceProvider : INonceProvider
 {
+    private readonly long _nonce;
+
     /// <summary>
-    /// Test implementation for nonce provider, returning a prespecified nonce
+    /// ctor
     /// </summary>
-    public class TestNonceProvider : INonceProvider
+    public TestNonceProvider(long nonce)
     {
-        private readonly long _nonce;
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public TestNonceProvider(long nonce)
-        {
-            _nonce = nonce;
-        }
-
-        /// <inheritdoc />
-        public long GetNonce() => _nonce;
+        _nonce = nonce;
     }
+
+    /// <inheritdoc />
+    public long GetNonce() => _nonce;
 }

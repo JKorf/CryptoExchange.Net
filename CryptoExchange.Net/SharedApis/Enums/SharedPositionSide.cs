@@ -1,17 +1,16 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// The side of a position
+/// </summary>
+public enum SharedPositionSide
 {
     /// <summary>
-    /// The side of a position
+    /// Long position
     /// </summary>
-    public enum SharedPositionSide
-    {
-        /// <summary>
-        /// Long position
-        /// </summary>
-        Long,
-        /// <summary>
-        /// Short position
-        /// </summary>
-        Short
-    }
+    Long,
+    /// <summary>
+    /// Short position
+    /// </summary>
+    Short
 }

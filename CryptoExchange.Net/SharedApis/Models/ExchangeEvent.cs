@@ -1,34 +1,33 @@
-﻿using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Objects.Sockets;
 
-namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// An update event for a specific exchange
+/// </summary>
+/// <typeparam name="T">Type of the data</typeparam>
+public class ExchangeEvent<T> : DataEvent<T>
 {
     /// <summary>
-    /// An update event for a specific exchange
+    /// The exchange
     /// </summary>
-    /// <typeparam name="T">Type of the data</typeparam>
-    public class ExchangeEvent<T> : DataEvent<T>
+    public string Exchange { get; }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public ExchangeEvent(string exchange, DataEvent<T> evnt) :
+        base(evnt.Data,
+            evnt.StreamId,
+            evnt.Symbol,
+            evnt.OriginalData,
+            evnt.ReceiveTime,
+            evnt.UpdateType)
     {
-        /// <summary>
-        /// The exchange
-        /// </summary>
-        public string Exchange { get; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public ExchangeEvent(string exchange, DataEvent<T> evnt) :
-            base(evnt.Data,
-                evnt.StreamId,
-                evnt.Symbol,
-                evnt.OriginalData,
-                evnt.ReceiveTime,
-                evnt.UpdateType)
-        {
-            DataTime = evnt.DataTime;
-            Exchange = exchange;
-        }
-
-        /// <inheritdoc />
-        public override string ToString() => $"{Exchange} - " + base.ToString();
+        DataTime = evnt.DataTime;
+        Exchange = exchange;
     }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{Exchange} - " + base.ToString();
 }

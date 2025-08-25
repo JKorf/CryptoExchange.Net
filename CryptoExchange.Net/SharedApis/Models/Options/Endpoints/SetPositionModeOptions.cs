@@ -1,15 +1,14 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis;
+
+/// <summary>
+/// Options for setting position mode
+/// </summary>
+public class SetPositionModeOptions : EndpointOptions<SetPositionModeRequest>
 {
     /// <summary>
-    /// Options for setting position mode
+    /// ctor
     /// </summary>
-    public class SetPositionModeOptions : EndpointOptions<SetPositionModeRequest>
+    public SetPositionModeOptions() : base(true)
     {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SetPositionModeOptions() : base(true)
-        {
-        }
     }
 }

@@ -1,10 +1,9 @@
-﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces;
 using System;
 
-namespace CryptoExchange.Net.Objects
+namespace CryptoExchange.Net.Objects;
+
+internal class AuthTimeProvider : IAuthTimeProvider
 {
-    internal class AuthTimeProvider : IAuthTimeProvider
-    {
-        public DateTime GetTime() => DateTime.UtcNow;
-    }
+    public DateTime GetTime() => DateTime.UtcNow;
 }

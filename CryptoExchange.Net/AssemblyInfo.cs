@@ -1,6 +1,5 @@
-﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("CryptoExchange.Net.UnitTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("CryptoExchange.Net.UnitTests")]
 
-namespace System.Runtime.CompilerServices
-{
-    internal static class IsExternalInit { }
-}
+namespace System.Runtime.CompilerServices;
+
+internal static class IsExternalInit { }

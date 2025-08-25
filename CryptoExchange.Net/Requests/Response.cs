@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -6,46 +6,45 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 
-namespace CryptoExchange.Net.Requests
+namespace CryptoExchange.Net.Requests;
+
+/// <summary>
+/// Response object, wrapper for HttpResponseMessage
+/// </summary>
+internal class Response : IResponse
 {
+    private readonly HttpResponseMessage _response;
+
+    /// <inheritdoc />
+    public HttpStatusCode StatusCode => _response.StatusCode;
+
+    /// <inheritdoc />
+    public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;
+
+    /// <inheritdoc />
+    public long? ContentLength => _response.Content.Headers.ContentLength;
+
+    /// <inheritdoc />
+    public KeyValuePair<string, string[]>[] ResponseHeaders => _response.Headers.Select(x => new KeyValuePair<string, string[]>(x.Key, x.Value.ToArray())).ToArray();
+
     /// <summary>
-    /// Response object, wrapper for HttpResponseMessage
+    /// Create response for a http response message
     /// </summary>
-    internal class Response : IResponse
+    /// <param name="response">The actual response</param>
+    public Response(HttpResponseMessage response)
     {
-        private readonly HttpResponseMessage _response;
+        this._response = response;
+    }
 
-        /// <inheritdoc />
-        public HttpStatusCode StatusCode => _response.StatusCode;
+    /// <inheritdoc />
+    public async Task<Stream> GetResponseStreamAsync()
+    {
+        return await _response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+    }
 
-        /// <inheritdoc />
-        public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;
-
-        /// <inheritdoc />
-        public long? ContentLength => _response.Content.Headers.ContentLength;
-
-        /// <inheritdoc />
-        public KeyValuePair<string, string[]>[] ResponseHeaders => _response.Headers.Select(x => new KeyValuePair<string, string[]>(x.Key, x.Value.ToArray())).ToArray();
-
-        /// <summary>
-        /// Create response for a http response message
-        /// </summary>
-        /// <param name="response">The actual response</param>
-        public Response(HttpResponseMessage response)
-        {
-            this._response = response;
-        }
-
-        /// <inheritdoc />
-        public async Task<Stream> GetResponseStreamAsync()
-        {
-            return await _response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        }
-
-        /// <inheritdoc />
-        public void Close()
-        {
-            _response.Dispose();
-        }
+    /// <inheritdoc />
+    public void Close()
+    {
+        _response.Dispose();
     }
 }

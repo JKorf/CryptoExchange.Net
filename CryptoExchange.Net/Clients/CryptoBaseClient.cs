@@ -1,67 +1,78 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 
-namespace CryptoExchange.Net.Clients
+namespace CryptoExchange.Net.Clients;
+
+/// <summary>
+/// Base crypto client
+/// </summary>
+public class CryptoBaseClient : IDisposable
 {
+    private readonly Dictionary<Type, object> _serviceCache = new Dictionary<Type, object>();
+
     /// <summary>
-    /// Base crypto client
+    /// Service provider
     /// </summary>
-    public class CryptoBaseClient : IDisposable
+    protected readonly IServiceProvider? _serviceProvider;
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public CryptoBaseClient() { }
+
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="serviceProvider"></param>
+    public CryptoBaseClient(IServiceProvider serviceProvider)
     {
-        private readonly Dictionary<Type, object> _serviceCache = new Dictionary<Type, object>();
+        _serviceProvider = serviceProvider;
+        _serviceCache = new Dictionary<Type, object>();
+    }
 
-        /// <summary>
-        /// Service provider
-        /// </summary>
-        protected readonly IServiceProvider? _serviceProvider;
+    /// <summary>
+    /// Try get a client by type for the service collection
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public T TryGet<T>(Func<T> createFunc)
+    {
+        var type = typeof(T);
+        if (_serviceCache.TryGetValue(type, out var value))
+            return (T)value;
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public CryptoBaseClient() { }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="serviceProvider"></param>
-        public CryptoBaseClient(IServiceProvider serviceProvider)
+        if (_serviceProvider == null)
         {
-            _serviceProvider = serviceProvider;
-            _serviceCache = new Dictionary<Type, object>();
+            // Create with default options
+            var createResult = createFunc();
+            _serviceCache.Add(typeof(T), createResult!);
+            return createResult;
         }
 
-        /// <summary>
-        /// Try get a client by type for the service collection
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T TryGet<T>(Func<T> createFunc)
-        {
-            var type = typeof(T);
-            if (_serviceCache.TryGetValue(type, out var value))
-                return (T)value;
+        var result = _serviceProvider.GetService<T>() 
+            ?? throw new InvalidOperationException($"No service was found for {typeof(T).Name}, make sure the exchange is registered in dependency injection with the `services.Add[Exchange]()` method");
+        _serviceCache.Add(type, result!);
+        return result;
+    }
 
-            if (_serviceProvider == null)
-            {
-                // Create with default options
-                var createResult = createFunc();
-                _serviceCache.Add(typeof(T), createResult!);
-                return createResult;
-            }
-
-            var result = _serviceProvider.GetService<T>() 
-                ?? throw new InvalidOperationException($"No service was found for {typeof(T).Name}, make sure the exchange is registered in dependency injection with the `services.Add[Exchange]()` method");
-            _serviceCache.Add(type, result!);
-            return result;
-        }
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public void Dispose(bool disposing)
+    {
+        if (disposing)
         {
             _serviceCache.Clear();
         }
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

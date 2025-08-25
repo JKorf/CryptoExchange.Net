@@ -1,16 +1,15 @@
-﻿using System;
+using System;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces;
+
+/// <summary>
+/// Time provider
+/// </summary>
+internal interface IAuthTimeProvider
 {
     /// <summary>
-    /// Time provider
+    /// Get current time
     /// </summary>
-    internal interface IAuthTimeProvider
-    {
-        /// <summary>
-        /// Get current time
-        /// </summary>
-        /// <returns></returns>
-        DateTime GetTime();
-    }
+    /// <returns></returns>
+    DateTime GetTime();
 }
