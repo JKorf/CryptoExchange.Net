@@ -59,8 +59,20 @@ public class CryptoBaseClient : IDisposable
     /// <summary>
     /// Dispose
     /// </summary>
+    public void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _serviceCache.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
     public void Dispose()
     {
-        _serviceCache.Clear();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }

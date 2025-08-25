@@ -124,7 +124,16 @@ public abstract class BaseApiClient : IDisposable, IBaseApiClient
     /// <summary>
     /// Dispose
     /// </summary>
-    public virtual void Dispose()
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public virtual void Dispose(bool disposing)
     {
         _disposing = true;
     }

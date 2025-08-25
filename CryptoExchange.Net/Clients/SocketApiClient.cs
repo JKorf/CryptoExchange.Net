@@ -839,8 +839,11 @@ public abstract class SocketApiClient : BaseApiClient, ISocketApiClient
     /// <summary>
     /// Dispose the client
     /// </summary>
-    public override void Dispose()
+    public override void Dispose(bool disposing)
     {
+        if (disposing)
+            return;
+
         _disposing = true;
         var tasks = new List<Task>();
         {
@@ -855,7 +858,7 @@ public abstract class SocketApiClient : BaseApiClient, ISocketApiClient
         }
 
         semaphoreSlim?.Dispose();
-        base.Dispose();
+        base.Dispose(disposing);
     }
 
     /// <summary>

@@ -118,6 +118,18 @@ public class AsyncResetEvent : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _waits.Clear();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _waits.Clear();
+        }
     }
 }

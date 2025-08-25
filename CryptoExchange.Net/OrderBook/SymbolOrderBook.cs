@@ -578,21 +578,24 @@ public abstract class SymbolOrderBook : ISymbolOrderBook, IDisposable
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
-        Status = OrderBookStatus.Disposing;
+        if (disposing)
+        {
+            Status = OrderBookStatus.Disposing;
 
-        _cts?.Cancel();
-        _queueEvent.Set();
+            _cts?.Cancel();
+            _queueEvent.Set();
 
-        // Clear queue
-        while (_processQueue.TryDequeue(out _)) { }
+            // Clear queue
+            while (_processQueue.TryDequeue(out _)) { }
 
-        _processBuffer.Clear();
-        _asks.Clear();
-        _bids.Clear();
-        AskCount = 0;
-        BidCount = 0;
+            _processBuffer.Clear();
+            _asks.Clear();
+            _bids.Clear();
+            AskCount = 0;
+            BidCount = 0;
 
-        Status = OrderBookStatus.Disposed;
+            Status = OrderBookStatus.Disposed;
+        }
     }
 
     /// <summary>

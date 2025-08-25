@@ -22,8 +22,22 @@ public class TraceLoggerProvider : ILoggerProvider
 
     /// <inheritdoc />
     public ILogger CreateLogger(string categoryName) => new TraceLogger(categoryName, _logLevel);
-    /// <inheritdoc />
-    public void Dispose() { }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public static void Dispose(bool disposing)
+    {
+    }
 }
 
 /// <summary>

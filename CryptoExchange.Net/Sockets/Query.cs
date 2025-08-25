@@ -169,7 +169,6 @@ public abstract class Query : IMessageProcessor, IDisposable
         {
             if (disposing)
             {
-                // TODO: dispose managed state (managed objects)
                 _cts?.Dispose();
                 _event.Dispose();
             }

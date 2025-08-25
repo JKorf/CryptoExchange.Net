@@ -465,7 +465,11 @@ public abstract class AuthenticationProvider
 public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider where TApiCredentials : ApiCredentials
 {
     /// <inheritdoc />
+#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CA1707 // Naming Styles
     protected new TApiCredentials _credentials => (TApiCredentials)base._credentials;
+#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore CA1707 // Naming Styles
 
     /// <summary>
     /// ctor

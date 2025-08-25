@@ -488,9 +488,18 @@ public class CryptoExchangeWebSocketClient : IWebsocket
     }
 
     /// <summary>
-    /// Dispose the socket
+    /// Dispose
     /// </summary>
     public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Dispose the socket
+    /// </summary>
+    public void Dispose(bool disposing)
     {
         if (_disposed)
             return;

@@ -709,14 +709,29 @@ public class SocketConnection : IDisposable
     }
 
     /// <summary>
-    /// Dispose the connection
+    /// Dispose
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (Status != SocketStatus.Disposed)
+        {
+            if (disposing)
+            {
+                Status = SocketStatus.Disposed;
+                periodicEvent?.Set();
+                periodicEvent?.Dispose();
+                _socket.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Dispose
     /// </summary>
     public void Dispose()
     {
-        Status = SocketStatus.Disposed;
-        periodicEvent?.Set();
-        periodicEvent?.Dispose();
-        _socket.Dispose();
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

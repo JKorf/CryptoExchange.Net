@@ -119,10 +119,24 @@ public abstract class BaseClient : IDisposable
     /// <summary>
     /// Dispose
     /// </summary>
-    public virtual void Dispose()
+    public void Dispose()
     {
-        _logger.Log(LogLevel.Debug, "Disposing client");
-        foreach (var client in ApiClients)
-            client.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _logger.Log(LogLevel.Debug, "Disposing client");
+            foreach (var client in ApiClients)
+                client.Dispose();
+        }
+    }
+
+
 }

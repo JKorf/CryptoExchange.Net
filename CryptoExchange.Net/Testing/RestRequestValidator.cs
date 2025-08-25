@@ -23,6 +23,8 @@ public class RestRequestValidator<TClient> where TClient : BaseRestClient
     private readonly string _baseAddress;
     private readonly string? _nestedPropertyForCompare;
 
+    private static readonly char[] _paramSeparator = new char[] { '?' };
+
     /// <summary>
     /// ctor
     /// </summary>
@@ -117,8 +119,8 @@ public class RestRequestValidator<TClient> where TClient : BaseRestClient
             throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result.AsDataless())}");
         if (result.RequestMethod != new HttpMethod(expectedMethod!))
             throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
-        if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
-            throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
+        if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(_paramSeparator)[0])
+            throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(_paramSeparator)[0]}");
 
         if (!skipResponseValidation)
         {
@@ -176,8 +178,8 @@ public class RestRequestValidator<TClient> where TClient : BaseRestClient
             throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result)}");
         if (result.RequestMethod != new HttpMethod(expectedMethod!))
             throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
-        if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
-            throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
+        if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(_paramSeparator)[0])
+            throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(_paramSeparator)[0]}");
 
         Trace.Listeners.Remove(listener);
     }
