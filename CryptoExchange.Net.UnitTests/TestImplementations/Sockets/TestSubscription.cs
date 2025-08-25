@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             return new CallResult(null);
         }
 
-        public override Query GetSubQuery(SocketConnection connection) => new TestQuery("sub", new object(), false, 1);
-        public override Query GetUnsubQuery() => new TestQuery("unsub", new object(), false, 1);
+        protected override Query GetSubQuery(SocketConnection connection) => new TestQuery("sub", new object(), false, 1);
+        protected override Query GetUnsubQuery(SocketConnection connection) => new TestQuery("unsub", new object(), false, 1);
     }
 }
