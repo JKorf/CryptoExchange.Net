@@ -239,7 +239,7 @@ namespace CryptoExchange.Net.Clients
                     additionalHeaders);
                 _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
-                var result = await GetResponseAsync<T>(request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
+                var result = await GetResponseAsync<T>(definition, request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (result.Error is not CancellationRequestedError)
                 {
                     var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
@@ -424,11 +424,13 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Executes the request and returns the result deserialized into the type parameter class
         /// </summary>
+        /// <param name="requestDefinition">The request definition</param>
         /// <param name="request">The request object to execute</param>
         /// <param name="gate">The ratelimit gate used</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
         protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
+            RequestDefinition requestDefinition,
             IRequest request,
             IRateLimitGate? gate,
             CancellationToken cancellationToken)
@@ -448,7 +450,7 @@ namespace CryptoExchange.Net.Clients
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
 
                 accessor = CreateAccessor();
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode && !requestDefinition.TryParseOnNonSuccess)
                 {
                     // Error response
                     var readResult = await accessor.Read(responseStream, true).ConfigureAwait(false);
@@ -488,7 +490,7 @@ namespace CryptoExchange.Net.Clients
                 }
 
                 // Json response received
-                var parsedError = TryParseError(response.ResponseHeaders, accessor);
+                var parsedError = TryParseError(requestDefinition, response.ResponseHeaders, accessor);
                 if (parsedError != null)
                 {
                     if (parsedError is ServerRateLimitError rateError)
@@ -541,10 +543,11 @@ namespace CryptoExchange.Net.Clients
         /// This method will be called for each response to be able to check if the response is an error or not.
         /// If the response is an error this method should return the parsed error, else it should return null
         /// </summary>
+        /// <param name="requestDefinition">Request definition</param>
         /// <param name="accessor">Data accessor</param>
         /// <param name="responseHeaders">The response headers</param>
         /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Error? TryParseError(KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor) => null;
+        protected virtual Error? TryParseError(RequestDefinition requestDefinition, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.

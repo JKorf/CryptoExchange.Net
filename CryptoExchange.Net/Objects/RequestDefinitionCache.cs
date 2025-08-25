@@ -46,6 +46,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="parameterPosition">Parameter position</param>
         /// <param name="arraySerialization">Array serialization type</param>
         /// <param name="preventCaching">Prevent request caching</param>
+        /// <param name="tryParseOnNonSuccess">Try parse the response even when status is not success</param>
         /// <returns></returns>
         public RequestDefinition GetOrCreate(
             HttpMethod method,
@@ -57,8 +58,9 @@ namespace CryptoExchange.Net.Objects
             RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
-            bool? preventCaching = null)
-            => GetOrCreate(method + path, method, path, rateLimitGate, weight, authenticated, limitGuard, requestBodyFormat, parameterPosition, arraySerialization, preventCaching);
+            bool? preventCaching = null,
+            bool? tryParseOnNonSuccess = null)
+            => GetOrCreate(method + path, method, path, rateLimitGate, weight, authenticated, limitGuard, requestBodyFormat, parameterPosition, arraySerialization, preventCaching, tryParseOnNonSuccess);
 
         /// <summary>
         /// Get a definition if it is already in the cache or create a new definition and add it to the cache
@@ -74,6 +76,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="parameterPosition">Parameter position</param>
         /// <param name="arraySerialization">Array serialization type</param>
         /// <param name="preventCaching">Prevent request caching</param>
+        /// <param name="tryParseOnNonSuccess">Try parse the response even when status is not success</param>
         /// <returns></returns>
         public RequestDefinition GetOrCreate(
             string identifier,
@@ -86,7 +89,8 @@ namespace CryptoExchange.Net.Objects
             RequestBodyFormat? requestBodyFormat = null,
             HttpMethodParameterPosition? parameterPosition = null,
             ArrayParametersSerialization? arraySerialization = null,
-            bool? preventCaching = null)
+            bool? preventCaching = null,
+            bool? tryParseOnNonSuccess = null)
         {
 
             if (!_definitions.TryGetValue(identifier, out var def))
@@ -100,7 +104,8 @@ namespace CryptoExchange.Net.Objects
                     ArraySerialization = arraySerialization,
                     RequestBodyFormat = requestBodyFormat,
                     ParameterPosition = parameterPosition,
-                    PreventCaching = preventCaching ?? false
+                    PreventCaching = preventCaching ?? false,
+                    TryParseOnNonSuccess = tryParseOnNonSuccess ?? false
                 };
                 _definitions.TryAdd(identifier, def);
             }
