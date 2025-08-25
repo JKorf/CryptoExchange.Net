@@ -59,6 +59,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.6.0 - 25 Aug 2025
+    * Added support for parsing REST response even though status indicates error
+    * Added better support for subscriptions without subscribe confirmation
+    * Added check in websocket for receiving 401 unauthorized http response status when 101 was expected
+    * Removed obsolete attribute on Error.Code property, updated the description
+
 * Version 9.5.0 - 19 Aug 2025
     * Added better error handling support
     * Added ErrorDescription, ErrorType and IsTransient to Error object
