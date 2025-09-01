@@ -106,7 +106,7 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
-            RequestFactory.Configure(options.Proxy, options.RequestTimeout, httpClient);
+            RequestFactory.Configure(options, httpClient);
         }
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace CryptoExchange.Net.Clients
                 queryString = $"?{queryString}";
 
             var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
-            var request = RequestFactory.Create(definition.Method, uri, requestId);
+            var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
             request.Accept = Constants.JsonContentHeader;
 
             foreach (var header in requestConfiguration.Headers)
@@ -443,9 +443,6 @@ namespace CryptoExchange.Net.Clients
             {
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
-                var statusCode = response.StatusCode;
-                var headers = response.ResponseHeaders;
-                var responseLength = response.ContentLength;
                 responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
 
@@ -475,18 +472,18 @@ namespace CryptoExchange.Net.Clients
                     if (error.Code == null || error.Code == 0)
                         error.Code = (int)response.StatusCode;
 
-                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
                 }
 
                 var valid = await accessor.Read(responseStream, outputOriginalData).ConfigureAwait(false);
                 if (typeof(T) == typeof(object))
                     // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(statusCode, headers, sw.Elapsed, 0, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]", request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]", request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
 
                 if (!valid)
                 {
                     // Invalid json
-                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, valid.Error);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, valid.Error);
                 }
 
                 // Json response received
@@ -503,32 +500,54 @@ namespace CryptoExchange.Net.Clients
                     }
 
                     // Success status code, but TryParseError determined it was an error response
-                    return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
                 }
 
                 var deserializeResult = accessor.Deserialize<T>();
-                return new WebCallResult<T>(response.StatusCode, response.ResponseHeaders, sw.Elapsed, responseLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult.Data, deserializeResult.Error);
+                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult.Data, deserializeResult.Error);
             }
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
                 var error = new WebError(requestException.Message, requestException);
-                return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
             }
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError(canceledException));
+                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError(canceledException));
                 }
                 else
                 {
                     // Request timed out
                     var error = new WebError($"Request timed out", exception: canceledException);
                     error.ErrorType = ErrorType.Timeout;
-                    return new WebCallResult<T>(null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
+            }
+            catch (ArgumentException argumentException)
+            {
+                if (argumentException.Message.StartsWith("Only HTTP/"))
+                {
+                    // Unsupported HTTP version error .net framework
+                    var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version {request.HttpVersion}: " + argumentException.Message);
+                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                }
+
+                throw;
+            }
+            catch (NotSupportedException notSupportedException)
+            {
+                if (notSupportedException.Message.StartsWith("Request version value must be one of"))
+                {
+                    // Unsupported HTTP version error dotnet code
+                    var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version {request.HttpVersion}: " + notSupportedException.Message);
+                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                }
+
+                throw;
             }
             finally
             {
@@ -674,21 +693,21 @@ namespace CryptoExchange.Net.Clients
         {
             base.SetOptions(options);
 
-            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout);
+            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
 
         internal async Task<WebCallResult<bool>> SyncTimeAsync()
         {
             var timeSyncParams = GetTimeSyncInfo();
             if (timeSyncParams == null)
-                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
 
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
                 if (!timeSyncParams.SyncTime || DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval)
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+                    return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
                 }
 
                 var localTime = DateTime.UtcNow;
@@ -717,7 +736,7 @@ namespace CryptoExchange.Net.Clients
                 timeSyncParams.TimeSyncState.Semaphore.Release();
             }
 
-            return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+            return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
         }
 
         private bool ShouldCache(RequestDefinition definition)

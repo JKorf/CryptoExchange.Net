@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,6 +18,9 @@ namespace CryptoExchange.Net.Requests
 
         /// <inheritdoc />
         public HttpStatusCode StatusCode => _response.StatusCode;
+
+        /// <inheritdoc />
+        public Version HttpVersion => _response.Version;
 
         /// <inheritdoc />
         public bool IsSuccessStatusCode => _response.IsSuccessStatusCode;

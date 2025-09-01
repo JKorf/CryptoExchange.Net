@@ -1,5 +1,7 @@
 ﻿using CryptoExchange.Net.Authentication;
 using System;
+using System.Net;
+using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects.Options
 {
@@ -29,6 +31,20 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan CachingMaxAge { get; set; } = TimeSpan.FromSeconds(5);
 
         /// <summary>
+        /// The HTTP protocol version to use, typically 2.0 or 1.1
+        /// </summary>
+        public Version HttpVersion { get; set; }
+#if NET5_0_OR_GREATER
+            = new Version(2, 0);
+#else
+            = new Version(1, 1);
+#endif
+        /// <summary>
+        /// Http client keep alive interval for keeping connections open
+        /// </summary>
+        public TimeSpan? HttpKeepAliveInterval { get; set; } = TimeSpan.FromSeconds(15);
+
+        /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
         public T Set<T>(T item) where T : RestExchangeOptions, new()
@@ -43,6 +59,8 @@ namespace CryptoExchange.Net.Objects.Options
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.CachingEnabled = CachingEnabled;
             item.CachingMaxAge = CachingMaxAge;
+            item.HttpVersion = HttpVersion;
+            item.HttpKeepAliveInterval = HttpKeepAliveInterval;
             return item;
         }
     }

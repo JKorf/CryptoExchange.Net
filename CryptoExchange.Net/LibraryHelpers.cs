@@ -1,5 +1,8 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 
 namespace CryptoExchange.Net
@@ -42,6 +45,59 @@ namespace CryptoExchange.Net
             }
 
             return clientOrderId;
+        }
+
+        /// <summary>
+        /// Create a new HttpMessageHandler instance
+        /// </summary>  
+        public static HttpMessageHandler CreateHttpClientMessageHandler(ApiProxy? proxy, TimeSpan? keepAliveInterval)
+        {
+#if NET5_0_OR_GREATER
+            var socketHandler = new SocketsHttpHandler();
+            try
+            {
+                if (keepAliveInterval != null && keepAliveInterval != TimeSpan.Zero)
+                {
+                    socketHandler.KeepAlivePingPolicy = HttpKeepAlivePingPolicy.Always;
+                    socketHandler.KeepAlivePingDelay = keepAliveInterval.Value;
+                    socketHandler.KeepAlivePingTimeout = TimeSpan.FromSeconds(10);
+                }
+
+                socketHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                socketHandler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+            }
+            catch (PlatformNotSupportedException) { }
+            catch (NotImplementedException) { } // Mono runtime throws NotImplementedException
+
+            if (proxy != null)
+            {
+                socketHandler.Proxy = new WebProxy
+                {
+                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                };
+            }
+            return socketHandler;
+#else
+            var httpHandler = new HttpClientHandler();
+            try
+            {
+                httpHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                httpHandler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+            }
+            catch (PlatformNotSupportedException) { }
+            catch (NotImplementedException) { } // Mono runtime throws NotImplementedException
+
+            if (proxy != null)
+            {
+                httpHandler.Proxy = new WebProxy
+                {
+                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
+                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
+                };
+            }
+            return httpHandler;
+#endif
         }
     }
 }

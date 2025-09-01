@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using System;
 using System.Net.Http;
 
@@ -14,11 +15,11 @@ namespace CryptoExchange.Net.Testing.Implementations
             _request = request;
         }
 
-        public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? httpClient = null)
-        {
+        public void Configure(RestExchangeOptions options, HttpClient? client)
+        { 
         }
 
-        public IRequest Create(HttpMethod method, Uri uri, int requestId)
+        public IRequest Create(Version httpRequestVersion, HttpMethod method, Uri uri, int requestId)
         {
             _request.Method = method;
             _request.Uri = uri;
@@ -26,6 +27,6 @@ namespace CryptoExchange.Net.Testing.Implementations
             return _request;
         }
 
-        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout) {}
+        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout, TimeSpan? httpKeepAliveInterval) {}
     }
 }

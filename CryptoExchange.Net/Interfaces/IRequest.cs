@@ -28,6 +28,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         Uri Uri { get; }
         /// <summary>
+        /// HTTP protocol version
+        /// </summary>
+        Version HttpVersion { get; }
+        /// <summary>
         /// internal request id for tracing
         /// </summary>
         int RequestId { get; }

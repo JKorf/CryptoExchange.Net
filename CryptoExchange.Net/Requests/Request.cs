@@ -51,6 +51,9 @@ namespace CryptoExchange.Net.Requests
         public Uri Uri => _request.RequestUri!;
 
         /// <inheritdoc />
+        public Version HttpVersion => _request.Version!;
+
+        /// <inheritdoc />
         public int RequestId { get; }
 
         /// <inheritdoc />
@@ -81,7 +84,9 @@ namespace CryptoExchange.Net.Requests
         /// <inheritdoc />
         public async Task<IResponse> GetResponseAsync(CancellationToken cancellationToken)
         {
-            return new Response(await _httpClient.SendAsync(_request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false));
+            var response = await _httpClient.SendAsync(_request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+            
+            return new Response(response);
         }
     }
 }

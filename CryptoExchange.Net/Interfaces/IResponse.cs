@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -14,6 +15,11 @@ namespace CryptoExchange.Net.Interfaces
         /// The response status code
         /// </summary>
         HttpStatusCode StatusCode { get; }
+
+        /// <summary>
+        /// Http protocol version
+        /// </summary>
+        Version HttpVersion { get; }
 
         /// <summary>
         /// Whether the status code indicates a success status

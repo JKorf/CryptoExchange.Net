@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -11,6 +12,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         private readonly Stream _response;
 
         public HttpStatusCode StatusCode { get; }
+        public Version HttpVersion { get; }
 
         public bool IsSuccessStatusCode { get; }
 
@@ -21,6 +23,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         public TestResponse(HttpStatusCode code, Stream response)
         {
             StatusCode = code;
+            HttpVersion = new Version(2, 0);
             IsSuccessStatusCode = code == HttpStatusCode.OK;
             _response = response;
         }

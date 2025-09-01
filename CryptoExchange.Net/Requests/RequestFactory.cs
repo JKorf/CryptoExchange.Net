@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 
 namespace CryptoExchange.Net.Requests
 {
@@ -14,54 +15,43 @@ namespace CryptoExchange.Net.Requests
         private HttpClient? _httpClient;
 
         /// <inheritdoc />
-        public void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? client = null)
+        public void Configure(RestExchangeOptions options, HttpClient? client = null)
         {
             if (client == null)
-                client = CreateClient(proxy, requestTimeout);
+                client = CreateClient(options.Proxy, options.RequestTimeout, options.HttpKeepAliveInterval);
 
             _httpClient = client;
         }
 
         /// <inheritdoc />
-        public IRequest Create(HttpMethod method, Uri uri, int requestId)
+        public IRequest Create(Version httpRequestVersion, HttpMethod method, Uri uri, int requestId)
         {
             if (_httpClient == null)
                 throw new InvalidOperationException("Cant create request before configuring http client");
 
-            return new Request(new HttpRequestMessage(method, uri), _httpClient, requestId);
+            var requestMessage = new HttpRequestMessage(method, uri);
+            requestMessage.Version = httpRequestVersion;
+#if NET5_0_OR_GREATER
+            requestMessage.VersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+#endif
+            return new Request(requestMessage, _httpClient, requestId);
         }
 
         /// <inheritdoc />
-        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout)
+        public void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout, TimeSpan? httpKeepAliveInterval)
         {
-            _httpClient = CreateClient(proxy, requestTimeout);
+            _httpClient = CreateClient(proxy, requestTimeout, httpKeepAliveInterval);
         }
 
-        private static HttpClient CreateClient(ApiProxy? proxy, TimeSpan requestTimeout)
+        private static HttpClient CreateClient(ApiProxy? proxy, TimeSpan requestTimeout, TimeSpan? httpKeepAliveInterval)
         {
-            var handler = new HttpClientHandler();
-            try
-            {
-                handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-                handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
-            }
-            catch (PlatformNotSupportedException) { }
-            catch (NotImplementedException) { } // Mono runtime throws NotImplementedException
-
-            if (proxy != null)
-            {
-                handler.Proxy = new WebProxy
-                {
-                    Address = new Uri($"{proxy.Host}:{proxy.Port}"),
-                    Credentials = proxy.Password == null ? null : new NetworkCredential(proxy.Login, proxy.Password)
-                };
-            }
-
+            var handler = LibraryHelpers.CreateHttpClientMessageHandler(proxy, httpKeepAliveInterval);
             var client = new HttpClient(handler)
             {
-                Timeout = requestTimeout
+                Timeout = requestTimeout                
             };
             return client;
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Options;
 using System;
 using System.Net.Http;
 
@@ -12,25 +13,21 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Create a request for an uri
         /// </summary>
-        /// <param name="method"></param>
-        /// <param name="uri"></param>
-        /// <param name="requestId"></param>
-        /// <returns></returns>
-        IRequest Create(HttpMethod method, Uri uri, int requestId);
+        IRequest Create(Version httpRequestVersion, HttpMethod method, Uri uri, int requestId);
 
         /// <summary>
         /// Configure the requests created by this factory
         /// </summary>
-        /// <param name="requestTimeout">Request timeout to use</param>
+        /// <param name="options">Rest client options</param>
         /// <param name="httpClient">Optional shared http client instance</param>
-        /// <param name="proxy">Optional proxy to use when no http client is provided</param>
-        void Configure(ApiProxy? proxy, TimeSpan requestTimeout, HttpClient? httpClient = null);
+        void Configure(RestExchangeOptions options, HttpClient? httpClient = null);
 
         /// <summary>
         /// Update settings
         /// </summary>
         /// <param name="proxy">Proxy to use</param>
         /// <param name="requestTimeout">Request timeout to use</param>
-        void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout);
+        /// <param name="httpKeepAliveInterval">Http client keep alive interval</param>
+        void UpdateSettings(ApiProxy? proxy, TimeSpan requestTimeout, TimeSpan? httpKeepAliveInterval);
     }
 }
