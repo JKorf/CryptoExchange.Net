@@ -5,6 +5,7 @@ using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -113,6 +114,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
+                HttpVersion.Version11,
                 new KeyValuePair<string, string[]>[0],
                 TimeSpan.FromSeconds(1),
                 null,
@@ -143,6 +145,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
+                HttpVersion.Version11,
                 new KeyValuePair<string, string[]>[0],
                 TimeSpan.FromSeconds(1),
                 null,

@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
-                .Callback<HttpMethod, Uri, int>((method, uri, id) => 
+                .Callback<Version, HttpMethod, Uri, int>((version, method, uri, id) => 
                 { 
                     request.Setup(a => a.Uri).Returns(uri);
                     request.Setup(a => a.Method).Returns(method); 
@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             factory = Mock.Get(Api2.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
-                .Callback<HttpMethod, Uri, int>((method, uri, id) =>
+                .Callback<Version, HttpMethod, Uri, int>((version, method, uri, id) =>
                 {
                     request.Setup(a => a.Uri).Returns(uri);
                     request.Setup(a => a.Method).Returns(method);
@@ -119,12 +119,12 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
-                .Callback<HttpMethod, Uri, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
+                .Callback<Version, HttpMethod, Uri, int>((version, method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
                 .Returns(request.Object);
 
             factory = Mock.Get(Api2.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
-                .Callback<HttpMethod, Uri, int>((method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
+                .Callback<Version, HttpMethod, Uri, int>((version, method, uri, id) => request.Setup(a => a.Uri).Returns(uri))
                 .Returns(request.Object);
         }
     }
