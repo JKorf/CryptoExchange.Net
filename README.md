@@ -59,6 +59,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.7.0 - 01 Sep 2025
+    * Added LibraryHelpers.CreateHttpClientMessageHandle to standardize HttpMessageHandler creation
+    * Added REST client option for selecting HTTP protocol version
+    * Added REST client option for HTTP client keep alive interval
+    * Added HttpVersion to WebCallResult responses
+    * Updated request logic to default to using HTTP version 2.0 for dotnet core
+
 * Version 9.6.0 - 25 Aug 2025
     * Added support for parsing REST response even though status indicates error
     * Added better support for subscriptions without subscribe confirmation
