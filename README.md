@@ -38,6 +38,10 @@ Full list of all libraries part of the CryptoExchange.Net ecosystem. Consider us
 
 Any of these can be installed independently or install [CryptoClients.Net](https://github.com/jkorf/CryptoClients.Net) which includes all exchange API's.
 
+### Full demo application
+A full demo application is available using the [CryptoClients.Net](https://github.com/jkorf/CryptoClients.Net) library:  
+https://github.com/JKorf/CryptoManager.Net
+
 ## Discord
 [![Nuget version](https://img.shields.io/discord/847020490588422145?style=for-the-badge)](https://discord.gg/MSpeEtSY8t)  
 A Discord server is available [here](https://discord.gg/MSpeEtSY8t). Feel free to join for discussion and/or questions around the CryptoExchange.Net and implementation libraries.
