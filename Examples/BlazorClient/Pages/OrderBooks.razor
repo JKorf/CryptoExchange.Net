@@ -7,6 +7,7 @@
 @using Bitget.Net.Interfaces;
 @using BitMart.Net.Interfaces;
 @using BitMEX.Net.Interfaces;
+@using BloFin.Net.Interfaces;
 @using Bybit.Net.Interfaces
 @using CoinEx.Net.Interfaces
 @using CoinW.Net.Interfaces
@@ -32,6 +33,7 @@
 @inject IBitgetOrderBookFactory bitgetFactory
 @inject IBitMartOrderBookFactory bitmartFactory
 @inject IBitMEXOrderBookFactory bitmexFactory
+@inject IBloFinOrderBookFactory bloFinFactory
 @inject IBybitOrderBookFactory bybitFactory
 @inject ICoinbaseOrderBookFactory coinbaseFactory
 @inject ICoinExOrderBookFactory coinExFactory
@@ -55,7 +57,7 @@
     @foreach(var book in _books.OrderBy(p => p.Key))
     {
         <div style="margin-bottom: 20px; flex: 1; min-width: 300px;">
-            <h4>@book.Key</h4>
+            <h4>@book.Key - @book.Value.Symbol</h4>
             @if (book.Value.AskCount >= 3 && book.Value.BidCount >= 3)
             {
                 for (var i = 0; i < 3; i++)
@@ -87,23 +89,21 @@
                 { "Bitget", bitgetFactory.CreateSpot("ETHBTC") },
                 { "BitMart", bitmartFactory.CreateSpot("ETH_BTC", null) },
                 { "BitMEX", bitmexFactory.Create("ETH_XBT") },
+                { "BloFin", bloFinFactory.CreateFutures("ETH-USDT") },
                 { "Bybit", bybitFactory.Create("ETHBTC", Bybit.Net.Enums.Category.Spot) },
                 { "Coinbase", coinbaseFactory.Create("ETH-BTC", null) },
                 { "CoinEx", coinExFactory.CreateSpot("ETHBTC") },
                 { "CoinW", coinWFactory.CreateSpot("ETH_BTC") },
                 { "CryptoCom", cryptocomFactory.Create("ETH_BTC") },
                 { "GateIo", gateioFactory.CreateSpot("ETH_BTC") },
-                // DeepCoin does not support the ETH/BTC pair
-                //{ "DeepCoin", deepCoinFactory.Create("ETH-BTC") },
+                { "DeepCoin", deepCoinFactory.Create("ETH-USDT") },
                 { "HTX", htxFactory.CreateSpot("ethbtc") },
-                // HyperLiquid does not support the ETH/BTC pair
-                //{ "HyperLiquid", hyperLiquidFactory.Create("ETH/BTC") },
+                { "HyperLiquid", hyperLiquidFactory.Create("UETH/USDC") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/BTC") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
-                // Toobit does not support the ETH/BTC pair
-                //{ "Toobit", toobitFactory.Create("ETH/BTC") },
+                { "Toobit", toobitFactory.CreateSpot("ETHUSDT") },
                 { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
                 { "XT", xtFactory.CreateSpot("eth_btc") },
             };

@@ -5,6 +5,7 @@
 @inject IBitgetSocketClient bitgetSocketClient
 @inject IBitMartSocketClient bitmartSocketClient
 @inject IBitMEXSocketClient bitmexSocketClient
+@inject IBloFinSocketClient bloFinSocketClient
 @inject IBybitSocketClient bybitSocketClient
 @inject ICoinbaseSocketClient coinbaseSocketClient
 @inject ICoinExSocketClient coinExSocketClient
@@ -48,6 +49,8 @@
             bitgetSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bitget", data.Data.LastPrice)),
             bitmartSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("BitMart", data.Data.LastPrice)),
             bitmexSocketClient.ExchangeApi.SubscribeToSymbolUpdatesAsync("ETH_XBT", data => UpdateData("BitMEX", data.Data.LastPrice ?? 0)),
+            // BloFin doesn't support the ETH/BTC pair
+            //bloFinSocketClient.FuturesApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BloFin", data.Data.LastPrice)),
             bybitSocketClient.V5SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Bybit", data.Data.LastPrice)),
             coinExSocketClient.SpotApiV2.SubscribeToTickerUpdatesAsync(["ETHBTC"], data => UpdateData("CoinEx", data.Data.First().LastPrice)),
             coinWSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("CoinW", data.Data.LastPrice)),
@@ -61,7 +64,8 @@
             //hyperLiquidSocketClient.SpotApi.SubscribeToSymbolUpdatesAsync("ETH", data => UpdateData("HyperLiquid", data.Data.MidPrice ?? 0)),
             krakenSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH/BTC", data => UpdateData("Kraken", data.Data.LastPrice)),
             kucoinSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("Kucoin", data.Data.LastPrice ?? 0)),
-            mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHBTC", data => UpdateData("Mexc", data.Data.LastPrice)),
+            // Mexc doesn't offer a ticker stream currently
+            //mexcSocketClient.SpotApi.SubscribeToMiniTickerUpdatesAsync("ETHBTC", data => UpdateData("Mexc", data.Data.LastPrice)),
             okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("OKX", data.Data.LastPrice ?? 0)),
             // Toobit doesn't support the ETH/BTC pair
             //toobitSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Toobit", data.Data.LastPrice ?? 0)),
