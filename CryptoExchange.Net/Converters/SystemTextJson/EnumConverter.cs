@@ -140,10 +140,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _ => throw new Exception("Invalid token type for enum deserialization: " + reader.TokenType)
             };
 
-            if (string.IsNullOrEmpty(stringValue))
+            if (stringValue is null)
                 return null;
 
-            if (!GetValue(enumType, stringValue!, out var result))
+            if (!GetValue(enumType, stringValue, out var result))
             {
                 if (string.IsNullOrWhiteSpace(stringValue))
                 {
