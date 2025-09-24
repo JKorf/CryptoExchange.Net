@@ -204,6 +204,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return false;
             }
 
+            if (String.IsNullOrEmpty(value))
+            {
+                // An empty/null value will always fail when parsing, so just return here
+                result = default;
+                return false;
+            }
+
             try
             {
                 // If no explicit mapping is found try to parse string
