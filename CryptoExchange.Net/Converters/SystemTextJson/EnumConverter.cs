@@ -140,10 +140,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _ => throw new Exception("Invalid token type for enum deserialization: " + reader.TokenType)
             };
 
-            if (string.IsNullOrEmpty(stringValue))
+            if (stringValue is null)
                 return null;
 
-            if (!GetValue(enumType, stringValue!, out var result))
+            if (!GetValue(enumType, stringValue, out var result))
             {
                 if (string.IsNullOrWhiteSpace(stringValue))
                 {
@@ -200,6 +200,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // Check if it is an known unknown value
                 // Done here to prevent lookup overhead for normal conversions, but prevent expensive exception throwing
+                result = default;
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(value))
+            {
+                // An empty/null value will always fail when parsing, so just return here
                 result = default;
                 return false;
             }
