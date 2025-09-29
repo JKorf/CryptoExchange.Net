@@ -32,6 +32,7 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(0.1, 1, 0.0001, RoundingType.Closest, 0.532, 0.532)]
         [TestCase(0.1, 1, 0.0001, RoundingType.Down, 0.5516592, 0.5516)]
         [TestCase(0.1, 1, 0.0001, RoundingType.Closest, 0.5516592, 0.5517)]
+        [TestCase(0, 1, 0.000000001, RoundingType.Closest, 0.0000097232, 0.000009723)]
         public void AdjustValueStepTests(decimal min, decimal max, decimal? step, RoundingType roundingType, decimal input, decimal expected)
         {
             var result = ExchangeHelpers.AdjustValueStep(min, max, step, roundingType, input);

@@ -88,8 +88,6 @@ namespace CryptoExchange.Net
                     value -= offset;
                 else value += (step.Value - offset);
             }
-
-            value = RoundDown(value, 8);
                 
             return value.Normalize();
         }
