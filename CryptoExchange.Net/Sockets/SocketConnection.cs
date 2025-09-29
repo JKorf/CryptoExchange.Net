@@ -706,6 +706,8 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
                 _listeners.Remove(subscription);
+
+            subscription.InvokeUnsubscribedHandler();
         }
 
         /// <summary>

@@ -74,6 +74,10 @@ namespace CryptoExchange.Net.Sockets
         /// Exception event
         /// </summary>
         public event Action<Exception>? Exception;
+        /// <summary>
+        /// Listener unsubscribed event
+        /// </summary>
+        public event Action? Unsubscribed;
 
         /// <summary>
         /// Subscription topic
@@ -179,6 +183,14 @@ namespace CryptoExchange.Net.Sockets
         public void InvokeExceptionHandler(Exception e)
         {
             Exception?.Invoke(e);
+        }
+
+        /// <summary>
+        /// Invoke the unsubscribed event
+        /// </summary>
+        public void InvokeUnsubscribedHandler()
+        {
+            Unsubscribed?.Invoke();
         }
 
         /// <summary>
