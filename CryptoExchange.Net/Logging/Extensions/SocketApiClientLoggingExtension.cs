@@ -23,6 +23,8 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, int, Exception?> _unsubscribingSubscription;
         private static readonly Action<ILogger, int, Exception?> _reconnectingAllConnections;
         private static readonly Action<ILogger, DateTime, Exception?> _addingRetryAfterGuard;
+        private static readonly Action<ILogger, Exception?> _timeoutWaitingForReconnectingSocket;
+        private static readonly Action<ILogger, long, Exception?> _waitedForReconnectingSocket;
 
         static SocketApiClientLoggingExtension()
         {
@@ -110,6 +112,16 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Warning,
                 new EventId(3018, "AddRetryAfterGuard"),
                 "Adding RetryAfterGuard ({RetryAfter}) because the connection attempt was rate limited");
+
+            _timeoutWaitingForReconnectingSocket = LoggerMessage.Define(
+                LogLevel.Debug,
+                new EventId(3019, "TimeoutWaitingForReconnectingSocket"),
+                "Timeout while waiting for existing socket reconnection, failing request");
+
+            _waitedForReconnectingSocket = LoggerMessage.Define<long>(
+                LogLevel.Trace,
+                new EventId(3020, "WaitedForReconnectingSocket"),
+                "Waited for reconnecting socket for {Timespan}ms");
         }
 
         public static void FailedToAddSubscriptionRetryOnDifferentConnection(this ILogger logger, int socketId)
@@ -195,6 +207,15 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void AddingRetryAfterGuard(this ILogger logger, DateTime retryAfter)
         {
             _addingRetryAfterGuard(logger, retryAfter, null);
+        }
+
+        public static void TimeoutWaitingForReconnectingSocket(this ILogger logger)
+        {
+            _timeoutWaitingForReconnectingSocket(logger, null);
+        }
+        public static void WaitedForReconnectingSocket(this ILogger logger, long milliseconds)
+        {
+            _waitedForReconnectingSocket(logger, milliseconds, null);
         }
     }
 }
