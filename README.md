@@ -64,6 +64,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.8.0 - 30 Sep 2025
+    * Added ContractAddress to SharedAsset model
+    * Added ITrackerFactory interface
+    * Fixed UpdateSubscription still propagating connection events even though the specific listener is unsubscribed
+    * Fixed ExchangeHelpers.AdjustValueStep high precision calculation
+    * Fixed issue increasing the number of websocket connections increasing when sending a query when a previous connection was attempting to reconnect
+    * Fixed EnumConverter to allow mapping empty string values
+
 * Version 9.7.0 - 01 Sep 2025
     * Added LibraryHelpers.CreateHttpClientMessageHandle to standardize HttpMessageHandler creation
     * Added REST client option for selecting HTTP protocol version
