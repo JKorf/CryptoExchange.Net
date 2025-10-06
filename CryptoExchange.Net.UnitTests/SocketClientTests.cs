@@ -202,7 +202,7 @@ namespace CryptoExchange.Net.UnitTests
             await sub;
 
             // assert
-            ClassicAssert.IsFalse(client.SubClient.TestSubscription.Confirmed);
+            ClassicAssert.IsTrue(client.SubClient.TestSubscription.Status != SubscriptionStatus.Subscribed);
         }
 
         [TestCase()]
@@ -225,7 +225,7 @@ namespace CryptoExchange.Net.UnitTests
             await sub;
 
             // assert
-            Assert.That(client.SubClient.TestSubscription.Confirmed);
+            Assert.That(client.SubClient.TestSubscription.Status == SubscriptionStatus.Subscribed);
         }
     }
 }

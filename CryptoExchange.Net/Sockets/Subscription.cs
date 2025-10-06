@@ -34,21 +34,33 @@ namespace CryptoExchange.Net.Sockets
         /// Is it a user subscription
         /// </summary>
         public bool UserSubscription { get; set; }
-        
+
+        private SubscriptionStatus _status;
         /// <summary>
-        /// Has the subscription been confirmed
+        /// Current subscription status
         /// </summary>
-        public bool Confirmed { get; set; }
+        public SubscriptionStatus Status
+        {
+            get => _status;
+            set 
+            {
+                if (_status == value)
+                    return;
+
+                _status = value;
+                Task.Run(() => StatusChanged?.Invoke(value));
+            }
+        }
 
         /// <summary>
-        /// Is the subscription closed
+        /// Whether the subscription is active
         /// </summary>
-        public bool Closed { get; set; }
+        public bool Active => Status != SubscriptionStatus.Closing && Status != SubscriptionStatus.Closed;
 
         /// <summary>
-        /// Is the subscription currently resubscribing
+        /// Whether the unsubscribing of this subscription lead to the closing of the connection
         /// </summary>
-        public bool IsResubscribing { get; set; }
+        public bool IsClosingConnection { get; set; }
 
         /// <summary>
         /// Logger
@@ -77,7 +89,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Listener unsubscribed event
         /// </summary>
-        public event Action? Unsubscribed;
+        public event Action<SubscriptionStatus>? StatusChanged;
 
         /// <summary>
         /// Subscription topic
@@ -167,7 +179,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public void Reset()
         {
-            Confirmed = false;
+            Status = SubscriptionStatus.Pending;
             DoHandleReset();
         }
 
@@ -186,23 +198,15 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Invoke the unsubscribed event
-        /// </summary>
-        public void InvokeUnsubscribedHandler()
-        {
-            Unsubscribed?.Invoke();
-        }
-
-        /// <summary>
         /// State of this subscription
         /// </summary>
         /// <param name="Id">The id of the subscription</param>
-        /// <param name="Confirmed">True when the subscription query is handled (either accepted or rejected)</param>
+        /// <param name="Status">Subscription status</param>
         /// <param name="Invocations">Number of times this subscription got a message</param>
         /// <param name="ListenMatcher">Matcher for this subscription</param>
         public record SubscriptionState(
             int Id,
-            bool Confirmed,
+            SubscriptionStatus Status,
             int Invocations,
             MessageMatcher ListenMatcher
         );
@@ -213,7 +217,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public SubscriptionState GetState()
         {
-            return new SubscriptionState(Id, Confirmed, TotalInvocations, MessageMatcher);
+            return new SubscriptionState(Id, Status, TotalInvocations, MessageMatcher);
         }
     }
 

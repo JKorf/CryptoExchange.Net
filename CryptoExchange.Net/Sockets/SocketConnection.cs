@@ -296,7 +296,7 @@ namespace CryptoExchange.Net.Sockets
 
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription))
+                foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription && !l.IsClosingConnection))
                     subscription.Reset();
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
@@ -527,10 +527,10 @@ namespace CryptoExchange.Net.Sockets
                             continue;
                         }
 
-                        if (processor is Subscription subscriptionProcessor && !subscriptionProcessor.Confirmed)
+                        if (processor is Subscription subscriptionProcessor && subscriptionProcessor.Status == SubscriptionStatus.Subscribing)
                         {
                             // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
-                            subscriptionProcessor.Confirmed = true;
+                            subscriptionProcessor.Status = SubscriptionStatus.Subscribed;
                             if (subscriptionProcessor.SubscriptionQuery?.TimeoutBehavior == TimeoutBehavior.Succeed)
                                 // If this subscription has a query waiting for a timeout (success if there is no error response)
                                 // then time it out now as the data is being received, so we assume it's successful
@@ -657,13 +657,16 @@ namespace CryptoExchange.Net.Sockets
         public async Task CloseAsync(Subscription subscription)
         {
             // If we are resubscribing this subscription at this moment we'll want to wait for a bit until it is finished to avoid concurrency issues
-            while (subscription.IsResubscribing)
+            while (subscription.Status == SubscriptionStatus.Subscribing)
                 await Task.Delay(50).ConfigureAwait(false);
 
-            subscription.Closed = true;
+            subscription.Status = SubscriptionStatus.Closing;
 
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
+            {
+                subscription.Status = SubscriptionStatus.Closed;
                 return;
+            }
 
             _logger.ClosingSubscription(SocketId, subscription.Id);
             if (subscription.CancellationTokenRegistration.HasValue)
@@ -675,7 +678,7 @@ namespace CryptoExchange.Net.Sockets
 
             bool shouldCloseConnection;
             lock (_listenersLock)
-                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
+                shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Status == SubscriptionStatus.Closing || r.Status == SubscriptionStatus.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
             
             if (!anyDuplicateSubscription)
             {
@@ -693,6 +696,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (Status == SocketStatus.Closing)
             {
+                subscription.Status = SubscriptionStatus.Closed;
                 _logger.AlreadyClosing(SocketId);
                 return;
             }
@@ -700,6 +704,7 @@ namespace CryptoExchange.Net.Sockets
             if (shouldCloseConnection)
             {
                 Status = SocketStatus.Closing;
+                subscription.IsClosingConnection = true;
                 _logger.ClosingNoMoreSubscriptions(SocketId);
                 await CloseAsync().ConfigureAwait(false);
             }
@@ -707,7 +712,7 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenersLock)
                 _listeners.Remove(subscription);
 
-            subscription.InvokeUnsubscribedHandler();
+            subscription.Status = SubscriptionStatus.Closed;
         }
 
         /// <summary>
@@ -991,7 +996,7 @@ namespace CryptoExchange.Net.Sockets
 
                 List<Subscription> subList;
                 lock (_listenersLock)
-                    subList = _listeners.OfType<Subscription>().Where(x => !x.Closed).Skip(batch * batchSize).Take(batchSize).ToList();
+                    subList = _listeners.OfType<Subscription>().Where(x => x.Active).Skip(batch * batchSize).Take(batchSize).ToList();
 
                 if (subList.Count == 0)
                     break;
@@ -1000,34 +1005,32 @@ namespace CryptoExchange.Net.Sockets
                 foreach (var subscription in subList)
                 {
                     subscription.ConnectionInvocations = 0;
-                    if (subscription.Closed)
+                    if (!subscription.Active)
                         // Can be closed during resubscribing
                         continue;
 
-                    subscription.IsResubscribing = true;
+                    subscription.Status = SubscriptionStatus.Subscribing;
                     var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
                     if (!result)
                     {
                         _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
-                        subscription.IsResubscribing = false;
+                        subscription.Status = SubscriptionStatus.Pending;
                         return result;
                     }
 
                     var subQuery = subscription.CreateSubscriptionQuery(this);
                     if (subQuery == null)
                     {
-                        subscription.IsResubscribing = false;
+                        subscription.Status = SubscriptionStatus.Subscribed;
                         continue;
                     }
 
                     var waitEvent = new AsyncResetEvent(false);
                     taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
                     { 
-                        subscription.IsResubscribing = false;
+                        subscription.Status = r.Result.Success ? SubscriptionStatus.Subscribed: SubscriptionStatus.Pending;
                         subscription.HandleSubQueryResponse(subQuery.Response!);
                         waitEvent.Set();
-                        if (r.Result.Success)
-                            subscription.Confirmed = true;
                         return r.Result;
                     }));
                 }

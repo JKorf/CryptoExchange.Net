@@ -269,6 +269,7 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
             }
 
+            subscription.Status = SubscriptionStatus.Subscribing;
             var waitEvent = new AsyncResetEvent(false);
             var subQuery = subscription.CreateSubscriptionQuery(socketConnection);
             if (subQuery != null)
@@ -279,7 +280,7 @@ namespace CryptoExchange.Net.Clients
                 {
                     waitEvent?.Set();
                     var isTimeout = subResult.Error is CancellationRequestedError;
-                    if (isTimeout && subscription.Confirmed)
+                    if (isTimeout && subscription.Status == SubscriptionStatus.Subscribed)
                     {
                         // No response received, but the subscription did receive updates. We'll assume success
                     }
@@ -287,6 +288,7 @@ namespace CryptoExchange.Net.Clients
                     {
                         _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
                         // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
+                        subscription.Status = SubscriptionStatus.Pending;
                         await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                         return new CallResult<UpdateSubscription>(subResult.Error!);
                     }
@@ -295,7 +297,7 @@ namespace CryptoExchange.Net.Clients
                 subscription.HandleSubQueryResponse(subQuery.Response!);
             }
 
-            subscription.Confirmed = true;
+            subscription.Status = SubscriptionStatus.Subscribed;
             if (ct != default)
             {
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
@@ -847,7 +849,7 @@ namespace CryptoExchange.Net.Clients
                         cs.SubscriptionStates.ForEach(subState =>
                         {
                             sb.AppendLine($"\t\t\tId: {subState.Id}");
-                            sb.AppendLine($"\t\t\tConfirmed: {subState.Confirmed}");
+                            sb.AppendLine($"\t\t\tStatus: {subState.Status}");
                             sb.AppendLine($"\t\t\tInvocations: {subState.Invocations}");
                             sb.AppendLine($"\t\t\tIdentifiers: [{subState.ListenMatcher.ToString()}]");
                         });

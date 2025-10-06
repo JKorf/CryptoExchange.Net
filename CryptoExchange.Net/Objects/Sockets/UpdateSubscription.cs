@@ -15,12 +15,18 @@ namespace CryptoExchange.Net.Objects.Sockets
         private readonly Subscription _listener;
 
         private object _eventLock = new object();
+        private bool _connectionEventsSubscribed = true;
         private List<Action> _connectionClosedEventHandlers = new List<Action>();
         private List<Action> _connectionLostEventHandlers = new List<Action>();
         private List<Action<Error>> _resubscribeFailedEventHandlers = new List<Action<Error>>();
         private List<Action<TimeSpan>> _connectionRestoredEventHandlers = new List<Action<TimeSpan>>();
         private List<Action> _activityPausedEventHandlers = new List<Action>();
         private List<Action> _activityUnpausedEventHandlers = new List<Action>();
+
+        /// <summary>
+        /// Event when the status of the subscription changes
+        /// </summary>
+        public event Action<SubscriptionStatus>? SubscriptionStatusChanged;
 
         /// <summary>
         /// Event when the connection is lost. The socket will automatically reconnect when possible.
@@ -113,21 +119,34 @@ namespace CryptoExchange.Net.Objects.Sockets
             _connection.ActivityUnpaused += HandleUnpausedEvent;
 
             _listener = subscription;
-            _listener.Unsubscribed += HandleUnsubscribed;
+            _listener.StatusChanged += (x) => SubscriptionStatusChanged?.Invoke(x);
         }
 
-        private void HandleUnsubscribed()
+        private void UnsubscribeConnectionEvents()
         {
-            _connection.ConnectionClosed -= HandleConnectionClosedEvent;
-            _connection.ConnectionLost -= HandleConnectionLostEvent;
-            _connection.ConnectionRestored -= HandleConnectionRestoredEvent;
-            _connection.ResubscribingFailed -= HandleResubscribeFailedEvent;
-            _connection.ActivityPaused -= HandlePausedEvent;
-            _connection.ActivityUnpaused -= HandleUnpausedEvent;
+            lock (_eventLock)
+            {
+                if (!_connectionEventsSubscribed)
+                    return;
+
+                _connection.ConnectionClosed -= HandleConnectionClosedEvent;
+                _connection.ConnectionLost -= HandleConnectionLostEvent;
+                _connection.ConnectionRestored -= HandleConnectionRestoredEvent;
+                _connection.ResubscribingFailed -= HandleResubscribeFailedEvent;
+                _connection.ActivityPaused -= HandlePausedEvent;
+                _connection.ActivityUnpaused -= HandleUnpausedEvent;
+                _connectionEventsSubscribed = false;
+            }
         }
 
         private void HandleConnectionClosedEvent()
         {
+            UnsubscribeConnectionEvents();
+
+            // If we're not the subscription closing this connection don't bother emitting
+            if (!_listener.IsClosingConnection)
+                return;
+
             List<Action> handlers;
             lock (_eventLock)
                 handlers = _connectionClosedEventHandlers.ToList();
@@ -138,6 +157,12 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         private void HandleConnectionLostEvent()
         {
+            if (!_listener.Active)
+            {
+                UnsubscribeConnectionEvents();
+                return;
+            }
+
             List<Action> handlers;
             lock (_eventLock)
                 handlers = _connectionLostEventHandlers.ToList();
@@ -148,6 +173,12 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         private void HandleConnectionRestoredEvent(TimeSpan period)
         {
+            if (!_listener.Active)
+            {
+                UnsubscribeConnectionEvents();
+                return;
+            }
+
             List<Action<TimeSpan>> handlers;
             lock (_eventLock)
                 handlers = _connectionRestoredEventHandlers.ToList();
@@ -158,6 +189,12 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         private void HandleResubscribeFailedEvent(Error error)
         {
+            if (!_listener.Active)
+            {
+                UnsubscribeConnectionEvents();
+                return;
+            }
+
             List<Action<Error>> handlers;
             lock (_eventLock)
                 handlers = _resubscribeFailedEventHandlers.ToList();
@@ -168,6 +205,12 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         private void HandlePausedEvent()
         {
+            if (!_listener.Active)
+            {
+                UnsubscribeConnectionEvents();
+                return;
+            }
+
             List<Action> handlers;
             lock (_eventLock)
                 handlers = _activityPausedEventHandlers.ToList();
@@ -178,6 +221,12 @@ namespace CryptoExchange.Net.Objects.Sockets
 
         private void HandleUnpausedEvent()
         {
+            if (!_listener.Active)
+            {
+                UnsubscribeConnectionEvents();
+                return;
+            }
+
             List<Action> handlers;
             lock (_eventLock)
                 handlers = _activityUnpausedEventHandlers.ToList();

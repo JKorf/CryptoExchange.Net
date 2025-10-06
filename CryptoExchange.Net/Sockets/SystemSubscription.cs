@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="authenticated"></param>
         public SystemSubscription(ILogger logger, bool authenticated = false) : base(logger, authenticated, false)
         {
-            Confirmed = true;
+            Status = SubscriptionStatus.Subscribed;
         }
 
         /// <inheritdoc />

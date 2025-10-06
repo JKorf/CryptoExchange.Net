@@ -267,4 +267,31 @@ namespace CryptoExchange.Net.Objects
         Succeed
     }
 
+    /// <summary>
+    /// Subscription status
+    /// </summary>
+    public enum SubscriptionStatus
+    {
+        /// <summary>
+        /// Pending, waiting before (re)subscription can be started
+        /// </summary>
+        Pending,
+        /// <summary>
+        /// Currently (re)subscribing, will start producing updates soon if subscription is successful
+        /// </summary>
+        Subscribing,
+        /// <summary>
+        /// Subscribed and listening to updates
+        /// </summary>
+        Subscribed,
+        /// <summary>
+        /// Subscription is being closed and will stop producing updates
+        /// </summary>
+        Closing,
+        /// <summary>
+        /// Subscription is closed and will no long produce updates
+        /// </summary>
+        Closed
+    }
+
 }
