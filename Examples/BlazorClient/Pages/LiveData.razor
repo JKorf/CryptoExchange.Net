@@ -1,4 +1,5 @@
 ﻿@page "/LiveData"
+@inject IAsterSocketClient asterSocketClient
 @inject IBinanceSocketClient binanceSocketClient
 @inject IBingXSocketClient bingXSocketClient
 @inject IBitfinexSocketClient bitfinexSocketClient
@@ -43,6 +44,8 @@
     {
         var tasks = new Task<CallResult<UpdateSubscription>>[]
         {
+            // Aster doesn't support the ETH/BTC pair
+            //asterSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Aster", data.Data.LastPrice)),
             binanceSocketClient.SpotApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Binance", data.Data.LastPrice)),
             bingXSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("BingX", data.Data.LastPrice)),
             bitfinexSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("tETHBTC", data => UpdateData("Bitfinex", data.Data.LastPrice)),

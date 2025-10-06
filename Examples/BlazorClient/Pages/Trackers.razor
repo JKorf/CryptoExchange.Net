@@ -1,6 +1,7 @@
 ﻿@page "/Trackers"
 @using System.Collections.Concurrent
 @using System.Timers
+@using Aster.Net.Interfaces
 @using Binance.Net.Interfaces
 @using BingX.Net.Interfaces
 @using Bitfinex.Net.Interfaces
@@ -28,6 +29,7 @@
 @using Toobit.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
+@inject IAsterTrackerFactory asterFactory
 @inject IBinanceTrackerFactory binanceFactory
 @inject IBingXTrackerFactory bingXFactory
 @inject IBitfinexTrackerFactory bitfinexFactory
@@ -79,6 +81,7 @@
 
         _trackers = new List<ITradeTracker>
             {
+                { asterFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { binanceFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { bingXFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { bitfinexFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },

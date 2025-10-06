@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject IAsterRestClient asterClient
 @inject IBinanceRestClient binanceClient
 @inject IBingXRestClient bingXClient
 @inject IBitfinexRestClient bitfinexClient
@@ -34,6 +35,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var asterTask = asterClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
         var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
@@ -49,7 +51,7 @@
         var deepCoinTask = deepCoinClient.ExchangeApi.ExchangeData.GetTickersAsync(DeepCoin.Net.Enums.SymbolType.Spot);
         var gateioTask = gateioClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var htxTask = htxClient.SpotApi.ExchangeData.GetTickerAsync("btcusdt");
-        var hyperLiquidTask = hyperLiquidClient.FuturesApi.ExchangeData.GetExchangeInfoAndTickersAsync(); // HyperLiquid does not have BTC spot trading
+        var hyperLiquidTask = hyperLiquidClient.FuturesApi.ExchangeData.GetExchangeInfoAndTickersAsync();
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
@@ -58,7 +60,10 @@
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
         var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
-        await Task.WhenAll(binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bybitTask, coinexTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, mexcTask, okxTask);
+        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bitmexTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, mexcTask, okxTask);
+
+        if (asterTask.Result.Success)
+            _prices.Add("Aster", asterTask.Result.Data.LastPrice);
 
         if (binanceTask.Result.Success)
             _prices.Add("Binance", binanceTask.Result.Data.LastPrice);

@@ -33,6 +33,7 @@ namespace BlazorClient
                 restOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
             });
 
+            services.AddAster();
             services.AddBingX();
             services.AddBitfinex();
             services.AddBitget();
