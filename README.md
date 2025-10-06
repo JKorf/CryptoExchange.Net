@@ -65,6 +65,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.9.0 - 06 Oct 2025
+    * Updated socket Subscription status handling
+    * Added SubscriptionStatusChanged event to UpdateSubscription (SubscribeAsync methods reponse)
+    * Fixed timing issue for connection events in UpdateSubscription
+
 * Version 9.8.0 - 30 Sep 2025
     * Added ContractAddress to SharedAsset model
     * Added ITrackerFactory interface
