@@ -14,8 +14,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     {
         private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private const long _ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
-        private const double _ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000d;
-        private const double _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000d / 1000;
+        private const decimal _ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000m;
+        private const decimal _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
 
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
@@ -45,11 +45,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                 if (reader.TokenType is JsonTokenType.Number)
                 {
-                    var longValue = reader.GetDouble();
-                    if (longValue == 0 || longValue < 0)
+                    var decValue = reader.GetDecimal();
+                    if (decValue == 0 || decValue < 0)
                         return default;
 
-                    return ParseFromDouble(longValue);
+                    return ParseFromDecimal(decValue);
                 }
                 else if (reader.TokenType is JsonTokenType.String)
                 {
@@ -57,7 +57,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (string.IsNullOrWhiteSpace(stringValue)
                         || stringValue == "-1"
                         || stringValue == "0001-01-01T00:00:00Z"
-                        || double.TryParse(stringValue, out var doubleVal) && doubleVal == 0)
+                        || decimal.TryParse(stringValue, out var decVal) && decVal == 0)
                     {
                         return default;
                     }
@@ -90,18 +90,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Parse a long value to datetime
         /// </summary>
-        /// <param name="longValue"></param>
-        /// <returns></returns>
-        public static DateTime ParseFromDouble(double longValue)
-        {
-            if (longValue < 19999999999)
-                return ConvertFromSeconds(longValue);
-            if (longValue < 19999999999999)
-                return ConvertFromMilliseconds(longValue);
-            if (longValue < 19999999999999999)
-                return ConvertFromMicroseconds(longValue);
+        public static DateTime ParseFromDouble(double value)
+            => ParseFromDecimal((decimal)value);
 
-            return ConvertFromNanoseconds(longValue);
+        /// <summary>
+        /// Parse a long value to datetime
+        /// </summary>
+        public static DateTime ParseFromDecimal(decimal value)
+        {
+            if (value < 19999999999)
+                return ConvertFromSeconds(value);
+            if (value < 19999999999999)
+                return ConvertFromMilliseconds(value);
+            if (value < 19999999999999999)
+                return ConvertFromMicroseconds(value);
+
+            return ConvertFromNanoseconds(value);
         }
 
         /// <summary>
@@ -152,19 +156,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
             }
 
-            if (double.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
+            if (decimal.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var decimalValue))
             {
                 // Parse 1637745563.000 format
-                if (doubleValue <= 0)
+                if (decimalValue <= 0)
                     return default;
-                if (doubleValue < 19999999999)
-                    return ConvertFromSeconds(doubleValue);
-                if (doubleValue < 19999999999999)
-                    return ConvertFromMilliseconds((long)doubleValue);
-                if (doubleValue < 19999999999999999)
-                    return ConvertFromMicroseconds((long)doubleValue);
+                if (decimalValue < 19999999999)
+                    return ConvertFromSeconds(decimalValue);
+                if (decimalValue < 19999999999999)
+                    return ConvertFromMilliseconds(decimalValue);
+                if (decimalValue < 19999999999999999)
+                    return ConvertFromMicroseconds(decimalValue);
 
-                return ConvertFromNanoseconds((long)doubleValue);
+                return ConvertFromNanoseconds(decimalValue);
             }
 
             if (stringValue.Length == 10)
@@ -188,54 +192,54 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Convert a seconds since epoch (01-01-1970) value to DateTime
         /// </summary>
-        /// <param name="seconds"></param>
-        /// <returns></returns>
-        public static DateTime ConvertFromSeconds(double seconds) => _epoch.AddTicks((long)Math.Round(seconds * _ticksPerSecond));
-        /// <summary>
-        /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
-        /// </summary>
-        /// <param name="milliseconds"></param>
-        /// <returns></returns>
-        public static DateTime ConvertFromMilliseconds(double milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
-        /// <summary>
-        /// Convert a microseconds since epoch (01-01-1970) value to DateTime
-        /// </summary>
-        /// <param name="microseconds"></param>
-        /// <returns></returns>
-        public static DateTime ConvertFromMicroseconds(double microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * _ticksPerMicrosecond));
+        public static DateTime ConvertFromSeconds(decimal seconds) => _epoch.AddTicks((long)Math.Round(seconds * _ticksPerSecond));
         /// <summary>
         /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
-        /// <param name="nanoseconds"></param>
-        /// <returns></returns>
-        public static DateTime ConvertFromNanoseconds(double nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
+        public static DateTime ConvertFromSeconds(double seconds) => ConvertFromSeconds((decimal)seconds);
+        /// <summary>
+        /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromMilliseconds(decimal milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromMilliseconds(double milliseconds) => ConvertFromMilliseconds((decimal)milliseconds);
+        /// <summary>
+        /// Convert a microseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromMicroseconds(decimal microseconds) => _epoch.AddTicks((long)Math.Round(microseconds * _ticksPerMicrosecond));
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromMicroseconds(double microseconds) => ConvertFromMicroseconds((decimal)microseconds);
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromNanoseconds(decimal nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromNanoseconds(double nanoseconds) => ConvertFromNanoseconds((decimal)nanoseconds);
 
         /// <summary>
         /// Convert a DateTime value to seconds since epoch (01-01-1970) value
         /// </summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
         [return: NotNullIfNotNull("time")]
         public static long? ConvertToSeconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).TotalSeconds);
         /// <summary>
         /// Convert a DateTime value to milliseconds since epoch (01-01-1970) value
         /// </summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
         [return: NotNullIfNotNull("time")]
         public static long? ConvertToMilliseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).TotalMilliseconds);
         /// <summary>
         /// Convert a DateTime value to microseconds since epoch (01-01-1970) value
         /// </summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
         [return: NotNullIfNotNull("time")]
         public static long? ConvertToMicroseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / _ticksPerMicrosecond);
         /// <summary>
         /// Convert a DateTime value to nanoseconds since epoch (01-01-1970) value
         /// </summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
         [return: NotNullIfNotNull("time")]
         public static long? ConvertToNanoseconds(DateTime? time) => time == null ? null : (long)Math.Round((time.Value - _epoch).Ticks / _ticksPerNanosecond);
     }
