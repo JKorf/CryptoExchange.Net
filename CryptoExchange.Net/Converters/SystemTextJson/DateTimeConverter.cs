@@ -198,6 +198,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         public static DateTime ConvertFromSeconds(double seconds) => ConvertFromSeconds((decimal)seconds);
         /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromSeconds(long seconds) => ConvertFromSeconds((decimal)seconds);
+        /// <summary>
         /// Convert a milliseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
         public static DateTime ConvertFromMilliseconds(decimal milliseconds) => _epoch.AddTicks((long)Math.Round(milliseconds * TimeSpan.TicksPerMillisecond));
@@ -205,6 +209,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
         public static DateTime ConvertFromMilliseconds(double milliseconds) => ConvertFromMilliseconds((decimal)milliseconds);
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromMilliseconds(long milliseconds) => ConvertFromMilliseconds((decimal)milliseconds);
         /// <summary>
         /// Convert a microseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
@@ -216,11 +224,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
+        public static DateTime ConvertFromMicroseconds(long microseconds) => ConvertFromMicroseconds((decimal)microseconds);
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
         public static DateTime ConvertFromNanoseconds(decimal nanoseconds) => _epoch.AddTicks((long)Math.Round(nanoseconds * _ticksPerNanosecond));
         /// <summary>
         /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
         /// </summary>
         public static DateTime ConvertFromNanoseconds(double nanoseconds) => ConvertFromNanoseconds((decimal)nanoseconds);
+        /// <summary>
+        /// Convert a nanoseconds since epoch (01-01-1970) value to DateTime
+        /// </summary>
+        public static DateTime ConvertFromNanoseconds(long nanoseconds) => ConvertFromNanoseconds((decimal)nanoseconds);
 
         /// <summary>
         /// Convert a DateTime value to seconds since epoch (01-01-1970) value
