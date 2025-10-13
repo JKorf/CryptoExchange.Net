@@ -28,6 +28,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public string OrderId { get; set; }
         /// <summary>
+        /// The client order id
+        /// </summary>
+        public string? ClientOrderId { get; set; }
+        /// <summary>
         /// Side of the trade
         /// </summary>
         public SharedOrderSide? Side { get; set; }
