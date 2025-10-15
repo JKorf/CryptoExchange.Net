@@ -65,6 +65,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.10.0 - 15 Oct 2025
+    * Added ITransferRestClient Shared interface
+    * Updated IBalanceRestClient, GetBalancesRequest now mainly works with SharedAccountType type, allowing more options
+    * Updated IBalanceRestClient, GetBalanceOptions now specifies supported account types
+
 * Version 9.9.0 - 06 Oct 2025
     * Updated socket Subscription status handling
     * Added SubscriptionStatusChanged event to UpdateSubscription (SubscribeAsync methods reponse)
