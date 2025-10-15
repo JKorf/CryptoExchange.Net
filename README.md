@@ -66,9 +66,11 @@ Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/s
 
 ## Release notes
 * Version 9.10.0 - 15 Oct 2025
-    * Added ITransferRestClient Shared interface
+    * Added ITransferRestClient Shared interface	
+    * Added ClientOrderId property to SharedUserTrade model
     * Updated IBalanceRestClient, GetBalancesRequest now mainly works with SharedAccountType type, allowing more options
     * Updated IBalanceRestClient, GetBalanceOptions now specifies supported account types
+    * Updated DateTimeConverter to work primarily with decimal instead of double to prevent some floating point issues
 
 * Version 9.9.0 - 06 Oct 2025
     * Updated socket Subscription status handling
