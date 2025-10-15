@@ -17,6 +17,7 @@
         /// Total quantity
         /// </summary>
         public decimal Total { get; set; }
+
         /// <summary>
         /// Isolated margin symbol, only applicable for isolated margin futures
         /// </summary>

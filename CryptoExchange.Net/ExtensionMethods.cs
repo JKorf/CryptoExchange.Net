@@ -399,7 +399,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Whether the trading mode is linear
         /// </summary>
-        public static bool IsLinear(this TradingMode type) => type == TradingMode.PerpetualLinear || type == TradingMode.DeliveryLinear;
+        public static bool IsLinear(this TradingMode type) => type == TradingMode.PerpetualLinear || type == TradingMode.DeliveryLinear;        
 
         /// <summary>
         /// Whether the trading mode is inverse
@@ -415,6 +415,36 @@ namespace CryptoExchange.Net
         /// Whether the trading mode is delivery
         /// </summary>
         public static bool IsDelivery(this TradingMode type) => type == TradingMode.DeliveryInverse || type == TradingMode.DeliveryLinear;
+
+        /// <summary>
+        /// Whether the account type is a futures account
+        /// </summary>
+        public static bool IsFuturesAccount(this SharedAccountType type) =>
+            type == SharedAccountType.PerpetualLinearFutures
+            || type == SharedAccountType.DeliveryLinearFutures
+            || type == SharedAccountType.PerpetualInverseFutures
+            || type == SharedAccountType.DeliveryInverseFutures;
+
+        /// <summary>
+        /// Whether the account type is a margin account
+        /// </summary>
+        public static bool IsMarginAccount(this SharedAccountType type) =>
+            type == SharedAccountType.CrossMargin
+            || type == SharedAccountType.IsolatedMargin;
+
+        /// <summary>
+        /// Map a TradingMode value to a SharedAccountType enum value
+        /// </summary>
+        public static SharedAccountType ToAccountType(this TradingMode mode)
+        {
+            if (mode == TradingMode.Spot) return SharedAccountType.Spot;
+            if (mode == TradingMode.PerpetualLinear) return SharedAccountType.PerpetualLinearFutures;
+            if (mode == TradingMode.PerpetualInverse) return SharedAccountType.PerpetualInverseFutures;
+            if (mode == TradingMode.DeliveryInverse) return SharedAccountType.DeliveryInverseFutures;
+            if (mode == TradingMode.DeliveryLinear) return SharedAccountType.DeliveryLinearFutures;
+
+            throw new ArgumentException(nameof(mode), "Unmapped trading mode");
+        }
 
         /// <summary>
         /// Register rest client interfaces
@@ -445,6 +475,8 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IFeeRestClient)client(x)!);
             if (typeof(IBookTickerRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IBookTickerRestClient)client(x)!);
+            if (typeof(ITransferRestClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITransferRestClient)client(x)!);
 
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);

@@ -415,7 +415,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 var value = jsonValue.GetDecimal();
                 if (objectValue is DateTime time)
                 {
-                    if (time != DateTimeConverter.ParseFromDouble((double)value))
+                    if (time != DateTimeConverter.ParseFromDecimal(value))
                         throw new Exception($"{method}: {property} not equal: {DateTimeConverter.ParseFromDouble((double)value!)} vs {time}");
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)

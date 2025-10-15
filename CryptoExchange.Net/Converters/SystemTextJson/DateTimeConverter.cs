@@ -88,13 +88,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <summary>
-        /// Parse a long value to datetime
+        /// Parse a double value to datetime
         /// </summary>
         public static DateTime ParseFromDouble(double value)
             => ParseFromDecimal((decimal)value);
 
         /// <summary>
-        /// Parse a long value to datetime
+        /// Parse a decimal value to datetime
         /// </summary>
         public static DateTime ParseFromDecimal(decimal value)
         {

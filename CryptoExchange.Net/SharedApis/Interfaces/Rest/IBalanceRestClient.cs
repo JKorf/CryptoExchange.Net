@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Balances request options
         /// </summary>
-        EndpointOptions<GetBalancesRequest> GetBalancesOptions { get; }
+        GetBalancesOptions GetBalancesOptions { get; }
 
         /// <summary>
         /// Get balances for the user
