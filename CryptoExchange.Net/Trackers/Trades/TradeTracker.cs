@@ -325,9 +325,12 @@ namespace CryptoExchange.Net.Trackers.Trades
                 if (Period != null)
                     items = items.Where(e => e.Timestamp >= DateTime.UtcNow.Add(-Period.Value));
 
-                _snapshotId = data.Max(d => d.Timestamp.Ticks);
-                foreach (var item in items.OrderBy(d => d.Timestamp))
-                    _data.Add(item);
+                if (items.Any())
+                {
+                    _snapshotId = data.Max(d => d.Timestamp.Ticks);
+                    foreach (var item in items.OrderBy(d => d.Timestamp))
+                        _data.Add(item);
+                }
 
                 _snapshotSet = true;
                 _changed = true;
