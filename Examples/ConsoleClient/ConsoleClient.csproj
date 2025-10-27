@@ -6,20 +6,20 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Binance.Net" Version="11.1.0" />
-	<PackageReference Include="Bitfinex.Net" Version="9.1.0" />
-	<PackageReference Include="BitMart.Net" Version="2.1.0" />
-	<PackageReference Include="Bybit.Net" Version="5.1.0" />
-	<PackageReference Include="CoinEx.Net" Version="9.1.0" />
-	<PackageReference Include="CryptoCom.Net" Version="2.1.0" />
-	<PackageReference Include="GateIo.Net" Version="2.1.0" />
-	<PackageReference Include="JK.Bitget.Net" Version="2.1.0" />
-	<PackageReference Include="JK.Mexc.Net" Version="3.1.0" />
-	<PackageReference Include="JK.OKX.Net" Version="3.1.0" />
-	<PackageReference Include="JKorf.Coinbase.Net" Version="2.1.0" />
-	<PackageReference Include="JKorf.HTX.Net" Version="7.1.0" />
-	<PackageReference Include="KrakenExchange.Net" Version="6.1.0" />
-		<PackageReference Include="Kucoin.Net" Version="7.1.0" />
+		<PackageReference Include="Binance.Net" Version="11.9.0" />
+	<PackageReference Include="Bitfinex.Net" Version="9.9.0" />
+	<PackageReference Include="BitMart.Net" Version="2.10.0" />
+	<PackageReference Include="Bybit.Net" Version="5.10.1" />
+	<PackageReference Include="CoinEx.Net" Version="9.9.0" />
+	<PackageReference Include="CryptoCom.Net" Version="2.10.0" />
+	<PackageReference Include="GateIo.Net" Version="2.11.0" />
+	<PackageReference Include="JK.Bitget.Net" Version="2.9.0" />
+	<PackageReference Include="JK.Mexc.Net" Version="3.10.0" />
+	<PackageReference Include="JK.OKX.Net" Version="3.9.0" />
+	<PackageReference Include="JKorf.Coinbase.Net" Version="2.9.0" />
+	<PackageReference Include="JKorf.HTX.Net" Version="7.9.0" />
+	<PackageReference Include="KrakenExchange.Net" Version="6.9.0" />
+		<PackageReference Include="Kucoin.Net" Version="7.9.0" />
 	</ItemGroup>
 
 </Project>

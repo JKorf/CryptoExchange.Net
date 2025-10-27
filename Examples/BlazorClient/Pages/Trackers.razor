@@ -26,6 +26,7 @@
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
@@ -51,11 +52,12 @@
 @inject IMexcTrackerFactory mexcFactory
 @inject IOKXTrackerFactory okxFactory
 @inject IToobitTrackerFactory toobitFactory
+@inject IUpbitTrackerFactory upbitFactory
 @inject IWhiteBitTrackerFactory whitebitFactory
 @inject IXTTrackerFactory xtFactory
 @implements IDisposable
 
-<h3>ETH-BTC trade Trackers, live updates:</h3>
+<h3>Trade Trackers, live updates:</h3>
 <div style="display:flex; flex-wrap: wrap;">
     @foreach (var tracker in _trackers.OrderBy(p => p.Exchange))
     {
@@ -103,11 +105,12 @@
                 { mexcFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { okxFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { toobitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
+                { upbitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { whitebitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
                 { xtFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
             };
 
-        await Task.WhenAll(_trackers.Select(b => b.StartAsync()));
+        await Task.WhenAll(_trackers.Select(b => b.StartAsync(false)));
 
         // Use a manual update timer so the page isn't refreshed too often
         _timer = new Timer(500);

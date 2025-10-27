@@ -25,6 +25,7 @@
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
@@ -50,6 +51,7 @@
 @inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
 @inject IToobitOrderBookFactory toobitFactory
+@inject IUpbitOrderBookFactory upbitFactory
 @inject IWhiteBitOrderBookFactory whitebitFactory
 @inject IXTOrderBookFactory xtFactory
 @implements IDisposable
@@ -107,6 +109,7 @@
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
                 { "Toobit", toobitFactory.CreateSpot("ETHUSDT") },
+                { "Upbit", upbitFactory.CreateSpot("BTC-ETH") },
                 { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
                 { "XT", xtFactory.CreateSpot("eth_btc") },
             };

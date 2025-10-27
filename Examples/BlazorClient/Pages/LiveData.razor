@@ -21,6 +21,7 @@
 @inject IMexcSocketClient mexcSocketClient
 @inject IOKXSocketClient okxSocketClient
 @inject IToobitSocketClient toobitSocketClient
+@inject IUpbitSocketClient upbitSocketClient
 @inject IWhiteBitSocketClient whitebitSocketClient
 @inject IXTSocketClient xtSocketClient
 @using System.Collections.Concurrent
@@ -72,6 +73,7 @@
             okxSocketClient.UnifiedApi.ExchangeData.SubscribeToTickerUpdatesAsync("ETH-BTC", data => UpdateData("OKX", data.Data.LastPrice ?? 0)),
             // Toobit doesn't support the ETH/BTC pair
             //toobitSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("ETHBTC", data => UpdateData("Toobit", data.Data.LastPrice ?? 0)),
+            upbitSocketClient.SpotApi.SubscribeToTickerUpdatesAsync("BTC-ETH", data => UpdateData("Upbit", data.Data.LastPrice)),
             whitebitSocketClient.V4Api.SubscribeToTickerUpdatesAsync("ETH_BTC", data => UpdateData("WhiteBit", data.Data.Ticker.LastPrice)),
         };
 

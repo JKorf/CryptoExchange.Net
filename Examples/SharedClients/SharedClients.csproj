@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="11.1.0" />
-    <PackageReference Include="BitMart.Net" Version="2.1.0" />
-    <PackageReference Include="JK.OKX.Net" Version="3.1.0" />
+    <PackageReference Include="Binance.Net" Version="11.9.0" />
+    <PackageReference Include="BitMart.Net" Version="2.10.0" />
+    <PackageReference Include="JK.OKX.Net" Version="3.9.0" />
   </ItemGroup>
 
 </Project>

@@ -54,6 +54,7 @@ namespace BlazorClient
             services.AddMexc();
             services.AddOKX();
             services.AddToobit();
+            services.AddUpbit();
             services.AddWhiteBit();
             services.AddXT();
         }
