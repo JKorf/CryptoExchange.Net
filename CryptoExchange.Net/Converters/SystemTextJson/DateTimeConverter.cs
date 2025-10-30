@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -39,7 +40,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (reader.TokenType == JsonTokenType.Null)
                 {
                     if (typeToConvert == typeof(DateTime))
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | DateTime value of null, but property is not nullable");
+                        LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable");
                     return default;
                 }
 
@@ -124,7 +125,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(8, 2), out var hour)
                     || !int.TryParse(stringValue.Substring(10, 2), out var minute))
                 {
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
                     return default;
                 }
                 return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
@@ -137,7 +138,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(4, 2), out var month)
                     || !int.TryParse(stringValue.Substring(6, 2), out var day))
                 {
-                    Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
                     return default;
                 }
                 return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -150,7 +151,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(2, 2), out var month)
                     || !int.TryParse(stringValue.Substring(4, 2), out var day))
                 {
-                    Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
                     return default;
                 }
                 return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -179,7 +180,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(values[1], out var month)
                     || !int.TryParse(values[2], out var day))
                 {
-                    Trace.WriteLine("{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
                     return default;
                 }
 

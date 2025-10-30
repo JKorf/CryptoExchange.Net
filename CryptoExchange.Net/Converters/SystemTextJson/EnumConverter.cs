@@ -1,4 +1,6 @@
 ﻿using CryptoExchange.Net.Attributes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -79,7 +81,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
+                return _enumConverter.ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
             }
 
             public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
@@ -98,20 +100,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString, out var warn);
+            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
             if (t == null)
             {
-                if (warn)
+                if (isEmptyString && !_unknownValuesWarned.Contains(null))
                 {
-                    if (isEmptyString)
-                    {
-                        // We received an empty string and have no mapping for it, and the property isn't nullable
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received empty string as enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
-                    }
-                    else
-                    {
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
-                    }
+                    // We received an empty string and have no mapping for it, and the property isn't nullable
+                    LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
                 }
 
                 return new T(); // return default value
@@ -122,10 +117,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
         }
 
-        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString, out bool warn)
+        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)
         {
             isEmptyString = false;
-            warn = false;
             var enumType = typeof(T);
             if (_mapping == null)
                 _mapping = AddMapping();
@@ -154,9 +148,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     // We received an enum value but weren't able to parse it.
                     if (!_unknownValuesWarned.Contains(stringValue))
                     {
-                        warn = true;
                         _unknownValuesWarned.Add(stringValue!);
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
                     }
                 }
 

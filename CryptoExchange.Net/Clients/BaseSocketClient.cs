@@ -40,6 +40,8 @@ namespace CryptoExchange.Net.Clients
         protected BaseSocketClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
         {
             _logger = loggerFactory?.CreateLogger(name + ".SocketClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
+
+            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger(name);
         }
 
         /// <summary>

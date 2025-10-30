@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -12,6 +13,22 @@ namespace CryptoExchange.Net
     /// </summary>
     public static class LibraryHelpers
     {
+        private static ILogger? _staticLogger;
+        /// <summary>
+        /// Static logger
+        /// </summary>
+        public static ILogger? StaticLogger
+        {
+            get => _staticLogger;
+            internal set  
+            {
+                if (_staticLogger != null)
+                    return;
+
+                _staticLogger = value;
+            }
+        }
+
         /// <summary>
         /// Client order id separator
         /// </summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text.Json;
@@ -47,7 +48,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (string.IsNullOrEmpty(value))
                 {
                     if (typeToConvert == typeof(bool))
-                        Trace.WriteLine($"{DateTime.Now:yyyy/MM/dd HH:mm:ss:fff} | Warning | Received null bool value, but property type is not a nullable bool");
+                        LibraryHelpers.StaticLogger?.LogWarning("Received null bool value, but property type is not a nullable bool");
                     return default;
                 }
 

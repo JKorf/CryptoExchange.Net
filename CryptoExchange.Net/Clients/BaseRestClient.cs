@@ -21,6 +21,8 @@ namespace CryptoExchange.Net.Clients
         protected BaseRestClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
         {
             _logger = loggerFactory?.CreateLogger(name + ".RestClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
+
+            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger(name);
         }
     }
 }
