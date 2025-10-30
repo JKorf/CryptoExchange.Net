@@ -66,6 +66,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.11.0 - 30 Oct 2025
+    * Added StaticLogger to LibraryHelpers, updated warning logging for converters to use StaticLogger
+    * Added client reference helper to LibraryHelpers
+    * Fixed exception when initial trade snapshot has no items in TradeTracker
+
 * Version 9.10.0 - 15 Oct 2025
     * Added ITransferRestClient Shared interface	
     * Added ClientOrderId property to SharedUserTrade model
