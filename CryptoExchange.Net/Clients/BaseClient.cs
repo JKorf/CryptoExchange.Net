@@ -102,7 +102,6 @@ namespace CryptoExchange.Net.Clients
             if (ClientOptions == null)
                 throw new InvalidOperationException("Client should have called Initialize before adding API clients");
 
-            _logger.Log(LogLevel.Trace, $"  {apiClient.GetType().Name}, base address: {apiClient.BaseAddress}");
             ApiClients.Add(apiClient);
             return apiClient;
         }
@@ -122,7 +121,6 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public virtual void Dispose()
         {
-            _logger.Log(LogLevel.Debug, "Disposing client");
             foreach (var client in ApiClients)
                 client.Dispose();
         }

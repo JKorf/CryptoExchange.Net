@@ -13,7 +13,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, int, Exception?> _unknownExceptionWhileProcessingReconnection;
         private static readonly Action<ILogger, int, WebSocketError, string?, Exception?> _webSocketErrorCodeAndDetails;
         private static readonly Action<ILogger, int, string?, Exception?> _webSocketError;
-        private static readonly Action<ILogger, int, int, Exception?> _messageSentNotPending;
         private static readonly Action<ILogger, int, string, Exception?> _receivedData;
         private static readonly Action<ILogger, int, string, Exception?> _failedToParse;
         private static readonly Action<ILogger, int, string, Exception?> _failedToEvaluateMessage;
@@ -71,11 +70,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Warning,
                 new EventId(2005, "WebSocketError"),
                 "[Sckt {SocketId}] error: {ErrorMessage}");
-
-            _messageSentNotPending = LoggerMessage.Define<int, int>(
-                LogLevel.Debug,
-                new EventId(2006, "MessageSentNotPending"),
-                "[Sckt {SocketId}] [Req {RequestId}] message sent, but not pending");
 
             _receivedData = LoggerMessage.Define<int, string>(
                 LogLevel.Trace,
@@ -232,11 +226,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void WebSocketError(this ILogger logger, int socketId, string? errorMessage, Exception e)
         {
             _webSocketError(logger, socketId, errorMessage, e);
-        }
-
-        public static void MessageSentNotPending(this ILogger logger, int socketId, int requestId)
-        {
-            _messageSentNotPending(logger, socketId, requestId, null);
         }
 
         public static void ReceivedData(this ILogger logger, int socketId, string originalData)

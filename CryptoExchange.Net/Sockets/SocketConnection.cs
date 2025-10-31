@@ -449,10 +449,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             if (query == null)
-            {
-                _logger.MessageSentNotPending(SocketId, requestId);
-                return Task.CompletedTask;
-            }
+                return Task.CompletedTask;            
 
             query.IsSend(query.RequestTimeout ?? ApiClient.ClientOptions.RequestTimeout);
             return Task.CompletedTask;
