@@ -10,6 +10,10 @@ namespace CryptoExchange.Net.Objects
     public class AssetAlias
     {
         /// <summary>
+        /// Alias type
+        /// </summary>
+        public AliasType Type { get; set; }
+        /// <summary>
         /// The name of the asset on the exchange
         /// </summary>
         public string ExchangeAssetName { get; set; }
@@ -21,10 +25,26 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public AssetAlias(string exchangeName, string commonName)
+        public AssetAlias(string exchangeName, string commonName, AliasType type = AliasType.BothWays)
         {
             ExchangeAssetName = exchangeName;
             CommonAssetName = commonName;
+            Type = type;
         }
+    }
+
+    /// <summary>
+    /// Alias type
+    /// </summary>
+    public enum AliasType
+    {
+        /// <summary>
+        /// Translate both from and to exchange
+        /// </summary>
+        BothWays,
+        /// <summary>
+        /// Only translate when converting to exchange
+        /// </summary>
+        OnlyToExchange
     }
 }
