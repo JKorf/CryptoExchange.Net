@@ -34,6 +34,11 @@ namespace CryptoExchange.Net.SharedApis
         public DateTime? DeliverTime { get; set; }
 
         /// <summary>
+        /// Use this constant to dynamically select a USD or USD equivalent asset (stable coin) supported on the exchange
+        /// </summary>
+        public const string UsdOrStable = "CE-UsdStable";
+
+        /// <summary>
         /// Create a new SharedSymbol
         /// </summary>
         public SharedSymbol(TradingMode tradingMode, string baseAsset, string quoteAsset, DateTime? deliverTime = null)
