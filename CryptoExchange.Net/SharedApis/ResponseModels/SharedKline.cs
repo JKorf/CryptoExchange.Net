@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Kline info
     /// </summary>
-    public record SharedKline
+    public record SharedKline : SharedSymbolModel
     {
         /// <summary>
         /// Open time
@@ -35,7 +35,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedKline(DateTime openTime, decimal closePrice, decimal highPrice, decimal lowPrice, decimal openPrice, decimal volume)
+        public SharedKline(SharedSymbol? sharedSymbol, string symbol, DateTime openTime, decimal closePrice, decimal highPrice, decimal lowPrice, decimal openPrice, decimal volume)
+            : base(sharedSymbol, symbol)
         {
             OpenTime = openTime;
             ClosePrice = closePrice;

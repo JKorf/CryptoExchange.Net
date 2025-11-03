@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Public trade info
     /// </summary>
-    public record SharedTrade
+    public record SharedTrade : SharedSymbolModel
     {
         /// <summary>
         /// Quantity of the trade
@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedTrade(decimal quantity, decimal price, DateTime timestamp)
+        public SharedTrade(SharedSymbol? sharedSymbol, string symbol, decimal quantity, decimal price, DateTime timestamp) : base(sharedSymbol, symbol)
         {
             Quantity = quantity;
             Price = price;
