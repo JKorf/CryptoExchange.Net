@@ -66,11 +66,6 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
-* Version 9.11.0 - 03 Nov 2025
-    * Added constant for selecting a supported USD asset for use in a Shared API/SharedSymbol
-    * Added AliasType to specify only one way conversion for AssetAliases
-    * Removed some unhelpful verbose logs
-
 * Version 9.11.0 - 30 Oct 2025
     * Added StaticLogger to LibraryHelpers, updated warning logging for converters to use StaticLogger
     * Added client reference helper to LibraryHelpers
