@@ -139,7 +139,7 @@
             _prices.Add("Toobit", toobitTask.Result.Data.Single().LastPrice ?? 0);
 
         if (upbitTask.Result.Success)
-            _prices.Add("Upbit", upbitTask.Result.Data.LastPrice);
+            _prices.Add("Upbit", upbitTask.Result.Data.LastPrice ?? 0);
 
         if (whitebitTask.Result.Success){
             // WhiteBit API doesn't offer an endpoint to filter for a specific ticker, so we have to filter client side

@@ -77,37 +77,36 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var usdcSpotSymbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDC");
-        var usdtSpotSymbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
-        var usdtPerpLinSymbol = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDT");
+        var symbol = new SharedSymbol(TradingMode.Spot, "BTC", SharedSymbol.UsdOrStable);
+        var futuresSymbol = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", SharedSymbol.UsdOrStable);
 
         _trackers = new List<ITradeTracker>
             {
-                { asterFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { binanceFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bingXFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bitfinexFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bitgetFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bitmartFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bitmexFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bloFinFactory.CreateTradeTracker(usdtPerpLinSymbol, period: TimeSpan.FromMinutes(5)) },
-                { bybitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { coinbaseFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { coinExFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { coinWFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { cryptocomFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { deepCoinFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { gateioFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { htxFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { hyperLiquidFactory.CreateTradeTracker(usdcSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { krakenFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { kucoinFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { mexcFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { okxFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { toobitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { upbitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { whitebitFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
-                { xtFactory.CreateTradeTracker(usdtSpotSymbol, period: TimeSpan.FromMinutes(5)) },
+                { asterFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { binanceFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bingXFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitfinexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitgetFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitmartFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bitmexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { bloFinFactory.CreateTradeTracker(futuresSymbol, period: TimeSpan.FromMinutes(5)) },
+                { bybitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { coinbaseFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { coinExFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { coinWFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { cryptocomFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { deepCoinFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { gateioFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { htxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { hyperLiquidFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { krakenFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { kucoinFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { mexcFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { okxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { toobitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { upbitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { whitebitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { xtFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
             };
 
         await Task.WhenAll(_trackers.Select(b => b.StartAsync(false)));
