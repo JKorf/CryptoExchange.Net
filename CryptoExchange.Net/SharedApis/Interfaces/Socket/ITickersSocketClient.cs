@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Tickers subscription options
         /// </summary>
-        EndpointOptions<SubscribeAllTickersRequest> SubscribeAllTickersOptions { get; }
+        SubscribeTickersOptions SubscribeAllTickersOptions { get; }
 
         /// <summary>
         /// Subscribe to tickers updates for all symbols
