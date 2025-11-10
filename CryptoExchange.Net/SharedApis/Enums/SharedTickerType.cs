@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CryptoExchange.Net.SharedApis.Enums
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Type of ticker
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis.Enums
         /// <summary>
         /// The ticker data is calculated based on the start of the day at 00:00 on UTC+0 
         /// </summary>
-        DayUTc0,
+        DayUtc0,
         /// <summary>
         /// Ticker data is calculated in a different way or not consistent
         /// </summary>

@@ -67,7 +67,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
          : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
         private static List<KeyValuePair<T, string>>? _mapping = null;
-        private static string? objectLibrarySource = null; 
         private NullableEnumConverter? _nullableEnumConverter = null;
 
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();

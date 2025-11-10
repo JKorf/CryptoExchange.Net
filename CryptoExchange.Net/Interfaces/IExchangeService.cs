@@ -8,6 +8,6 @@
         /// <summary>
         /// The exchange the service is for
         /// </summary>
-        public string Exchange { get; }
+        public string ExchangeName { get; }
     }
 }
