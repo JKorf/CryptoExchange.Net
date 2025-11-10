@@ -66,6 +66,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 9.13.0 - 10 Nov 2025
+    * Added SharedTickerType for defining time used for ticker calculations by the API
+    * Added SharedSymbolModel base class to SharedFuturesKline, SharedKline, SharedTrade models
+    * Added IExchangeService interface
+    * Fixed incorrect exchange name in static logger when using multiple libraries
+
 * Version 9.12.0 - 03 Nov 2025
     * Added constant for selecting a supported USD asset for use in a Shared API/SharedSymbol
     * Added AliasType to specify only one way conversion for AssetAliases
