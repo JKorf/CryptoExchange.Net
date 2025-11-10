@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Clients
         {
             _logger = loggerFactory?.CreateLogger(name + ".RestClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
 
-            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger(name);
+            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger("CryptoExchange");
         }
     }
 }

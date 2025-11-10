@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.Clients
         {
             _logger = loggerFactory?.CreateLogger(name + ".SocketClient") ?? NullLoggerFactory.Instance.CreateLogger(name);
 
-            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger(name);
+            LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger("CryptoExchange");
         }
 
         /// <summary>

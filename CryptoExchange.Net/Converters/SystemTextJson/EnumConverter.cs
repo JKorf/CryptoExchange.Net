@@ -67,6 +67,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
          : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
         private static List<KeyValuePair<T, string>>? _mapping = null;
+        private static string? objectLibrarySource = null; 
         private NullableEnumConverter? _nullableEnumConverter = null;
 
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
@@ -106,7 +107,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (isEmptyString && !_unknownValuesWarned.Contains(null))
                 {
                     // We received an empty string and have no mapping for it, and the property isn't nullable
-                    LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).Name}. If you think {typeof(T).Name} should be nullable please open an issue on the Github repo");
+                    LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
                 }
 
                 return new T(); // return default value
@@ -149,7 +150,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (!_unknownValuesWarned.Contains(stringValue))
                     {
                         _unknownValuesWarned.Add(stringValue!);
-                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.Name}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.FullName}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
                     }
                 }
 
