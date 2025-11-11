@@ -48,7 +48,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (string.IsNullOrEmpty(value))
                 {
                     if (typeToConvert == typeof(bool))
-                        LibraryHelpers.StaticLogger?.LogWarning("Received null bool value, but property type is not a nullable bool");
+                        LibraryHelpers.StaticLogger?.LogWarning("Received null bool value, but property type is not a nullable bool. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
                     return default;
                 }
 

@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 if (reader.TokenType == JsonTokenType.Null)
                 {
                     if (typeToConvert == typeof(DateTime))
-                        LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable");
+                        LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
                     return default;
                 }
 
@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         return default;
                     }
 
-                    return ParseFromString(stringValue!);
+                    return ParseFromString(stringValue!, options.TypeInfoResolver?.GetType()?.Name);
                 }
                 else
                 {
@@ -112,9 +112,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Parse a string value to datetime
         /// </summary>
-        /// <param name="stringValue"></param>
-        /// <returns></returns>
-        public static DateTime ParseFromString(string stringValue)
+        public static DateTime ParseFromString(string stringValue, string? resolverName)
         {
             if (stringValue!.Length == 12 && stringValue.StartsWith("202"))
             {
@@ -125,7 +123,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(8, 2), out var hour)
                     || !int.TryParse(stringValue.Substring(10, 2), out var minute))
                 {
-                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: {Value}. Resolver: {Resolver}", stringValue, resolverName);
                     return default;
                 }
                 return new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Utc);
@@ -138,7 +136,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(4, 2), out var month)
                     || !int.TryParse(stringValue.Substring(6, 2), out var day))
                 {
-                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: {Value}. Resolver: {Resolver}", stringValue, resolverName);
                     return default;
                 }
                 return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -151,7 +149,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(stringValue.Substring(2, 2), out var month)
                     || !int.TryParse(stringValue.Substring(4, 2), out var day))
                 {
-                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: {Value}. Resolver: {Resolver}", stringValue, resolverName);
                     return default;
                 }
                 return new DateTime(year + 2000, month, day, 0, 0, 0, DateTimeKind.Utc);
@@ -180,7 +178,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || !int.TryParse(values[1], out var month)
                     || !int.TryParse(values[2], out var day))
                 {
-                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: " + stringValue);
+                    LibraryHelpers.StaticLogger?.LogWarning("Unknown DateTime format: {Value}. Resolver: {Resolver}", stringValue, resolverName);
                     return default;
                 }
 

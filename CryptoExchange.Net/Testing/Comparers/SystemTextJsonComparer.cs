@@ -391,7 +391,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (objectValue is DateTime time)
                 {
-                    if (!string.IsNullOrEmpty(stringValue) && time != DateTimeConverter.ParseFromString(stringValue!))
+                    if (!string.IsNullOrEmpty(stringValue) && time != DateTimeConverter.ParseFromString(stringValue!, null))
                         throw new Exception($"{method}: {property} not equal: {stringValue} vs {time}");
                 }
                 else if (objectValue is bool bl)
