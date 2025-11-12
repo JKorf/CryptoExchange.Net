@@ -1,5 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -339,6 +341,78 @@ namespace CryptoExchange.Net
             adjustedQuantity = AdjustValueStep(symbol.MinTradeQuantity ?? 0, symbol.MaxTradeQuantity ?? decimal.MaxValue, symbol.QuantityStep, minNotionalAdjust ? RoundingType.Up : RoundingType.Down, adjustedQuantity);
             adjustedQuantity = symbol.QuantityDecimals.HasValue ? (minNotionalAdjust ? RoundUp(adjustedQuantity, symbol.QuantityDecimals.Value) : RoundDown(adjustedQuantity, symbol.QuantityDecimals.Value)) : adjustedQuantity;
 
+        }
+
+        /// <summary>
+        /// Queue updates received from a websocket subscriptions and process them async
+        /// </summary>
+        /// <typeparam name="T">The queued update type</typeparam>
+        /// <param name="subscribeCall">The subscribe call</param>
+        /// <param name="asyncHandler">The async update handler</param>
+        /// <param name="maxQueuedItems">The max number of updates to be queued up. When happens when the queue is full and a new write is attempted can be specified with <see>fullMode</see></param>
+        /// <param name="fullBehavior">What should happen if the queue contains <see>maxQueuedItems</see> pending updates. If no max is set this setting is ignored</param>
+        public static async Task<CallResult<UpdateSubscription>> ProcessQueuedAsync<T>(
+            Func<Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>> subscribeCall,
+            Func<DataEvent<T>, Task> asyncHandler,
+            int? maxQueuedItems = null,
+            QueueFullBehavior? fullBehavior = null)
+        {
+            var processor = new ProcessQueue<DataEvent<T>>(asyncHandler, maxQueuedItems, fullBehavior);
+            await processor.StartAsync().ConfigureAwait(false);
+            var result = await subscribeCall(upd => processor.Write(upd)).ConfigureAwait(false);
+            if (!result)
+            {
+                await processor.StopAsync().ConfigureAwait(false);
+                return result;
+            }
+
+            processor.Exception += result.Data._subscription.InvokeExceptionHandler;
+            result.Data.SubscriptionStatusChanged += (upd) =>
+            {
+                if (upd == CryptoExchange.Net.Objects.SubscriptionStatus.Closed)
+                    _ = processor.StopAsync(true);
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// Queue updates received from a websocket subscriptions and process them async
+        /// </summary>
+        /// <typeparam name="TEventType">The type of the queued item</typeparam>
+        /// <typeparam name="TOutputType">The type of the item to pass to the processor</typeparam>
+        /// <param name="subscribeCall">The subscribe call</param>
+        /// <param name="mapper">The mapper function to go from <see>TEventType</see> to <see>TOutputType</see></param>
+        /// <param name="asyncHandler">The async update handler</param>
+        /// <param name="maxQueuedItems">The max number of updates to be queued up. When happens when the queue is full and a new write is attempted can be specified with <see>fullMode</see></param>
+        /// <param name="fullBehavior">What should happen if the queue contains <see>maxQueuedItems</see> pending updates. If no max is set this setting is ignored</param>
+        public static async Task<CallResult<UpdateSubscription>> ProcessQueuedAsync<TEventType, TOutputType>(
+            Func<ProcessQueue<DataEvent<TEventType>>, Task<CallResult<UpdateSubscription>>> subscribeCall,
+            Func<DataEvent<TEventType>, DataEvent<TOutputType>> mapper,
+            Func<DataEvent<TOutputType>, Task> asyncHandler,
+            int? maxQueuedItems = null,
+            QueueFullBehavior? fullBehavior = null
+            )
+        {
+            var processor = new ProcessQueue<DataEvent<TEventType>>((update) => {
+                return asyncHandler.Invoke(mapper.Invoke(update));
+            }, maxQueuedItems, fullBehavior);
+            await processor.StartAsync().ConfigureAwait(false);
+            var result = await subscribeCall(processor).ConfigureAwait(false);
+            if (!result)
+            {
+                await processor.StopAsync().ConfigureAwait(false);
+                return result;
+            }
+
+            processor.Exception += result.Data._subscription.InvokeExceptionHandler;
+            result.Data.SubscriptionStatusChanged += (upd) =>
+            {
+                if (upd == CryptoExchange.Net.Objects.SubscriptionStatus.Closed)
+                    _ = processor.StopAsync(true);
+            };
+
+            return result;
         }
 
         /// <summary>

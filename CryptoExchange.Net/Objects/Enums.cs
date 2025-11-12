@@ -294,4 +294,16 @@ namespace CryptoExchange.Net.Objects
         Closed
     }
 
+    /// <summary>
+    /// Queue full behavior
+    /// </summary>
+    public enum QueueFullBehavior
+    {
+        /// <summary>Remove and ignore the newest item in the queue in order to make room for the item being written.</summary>
+        DropNewest,
+        /// <summary>Remove and ignore the oldest item in the queue in order to make room for the item being written.</summary>
+        DropOldest,
+        /// <summary>Drop the item being written.</summary>
+        DropWrite
+    }
 }
