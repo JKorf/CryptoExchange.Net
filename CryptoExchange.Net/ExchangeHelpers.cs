@@ -2,11 +2,15 @@
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Sockets;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -379,6 +383,28 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Queue updates received from a websocket subscriptions and process them async
         /// </summary>
+        /// <typeparam name="T">The queued update type</typeparam>
+        /// <param name="subscribeCall">The subscribe call</param>
+        /// <param name="asyncHandler">The async update handler</param>
+        /// <param name="maxQueuedItems">The max number of updates to be queued up. When happens when the queue is full and a new write is attempted can be specified with <see>fullMode</see></param>
+        /// <param name="fullBehavior">What should happen if the queue contains <see>maxQueuedItems</see> pending updates. If no max is set this setting is ignored</param>
+        public static async Task ProcessQueuedAsync<T>(
+            Func<Action<T>, Task> subscribeCall,
+            Func<T, Task> asyncHandler,
+            CancellationToken ct,
+            int? maxQueuedItems = null,
+            QueueFullBehavior? fullBehavior = null)
+        {
+            var processor = new ProcessQueue<T>(asyncHandler, maxQueuedItems, fullBehavior);
+            await processor.StartAsync().ConfigureAwait(false);
+            ct.Register(() => _ = processor.StopAsync());
+
+            await subscribeCall(upd => processor.Write(upd)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Queue updates received from a websocket subscriptions and process them async
+        /// </summary>
         /// <typeparam name="TEventType">The type of the queued item</typeparam>
         /// <typeparam name="TOutputType">The type of the item to pass to the processor</typeparam>
         /// <param name="subscribeCall">The subscribe call</param>
@@ -414,6 +440,39 @@ namespace CryptoExchange.Net
 
             return result;
         }
+
+
+//        public static async Task SubscribeHighPerformance<T>(ILogger logger, string url, JsonSerializerOptions jsonOptions, Action<T> callback, CancellationToken ct)
+//        {
+
+//            var pipe = new Pipe(new PipeOptions());
+//            var ws = new HighPerformanceWebSocketClient(
+//                logger,
+//                new WebSocketParameters(new Uri(url), ReconnectPolicy.Disabled)
+//                {
+//                    PipeWriter = pipe.Writer
+//                });
+
+//            try
+//            {
+//                await ws.ConnectAsync(ct).ConfigureAwait(false);
+
+//                ct.Register(() => _ = ws.CloseAsync());
+
+//#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+//#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+//#if NET10_0
+//                await foreach (var item in JsonSerializer.DeserializeAsyncEnumerable<T>(pipe.Reader, jsonOptions, ct).ConfigureAwait(false))
+//                    callback(item!);
+//#else
+//                await foreach (var item in JsonSerializer.DeserializeAsyncEnumerable<T>(pipe.Reader.AsStream(), jsonOptions, ct).ConfigureAwait(false))
+//                    callback(item!);
+//#endif
+//#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+//#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+//            }
+//            catch (OperationCanceledException) { }
+//        }
 
         /// <summary>
         /// Parse a decimal value from a string

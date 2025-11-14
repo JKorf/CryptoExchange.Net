@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.RateLimiting.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Text;
 
 namespace CryptoExchange.Net.Objects.Sockets
@@ -73,6 +74,8 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// The buffer size to use for receiving data
         /// </summary>
         public int? ReceiveBufferSize { get; set; } = null;
+
+        public PipeWriter? PipeWriter { get; set; } = null;
 
         /// <summary>
         /// ctor

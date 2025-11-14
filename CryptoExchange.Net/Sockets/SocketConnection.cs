@@ -1,45 +1,83 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging.Extensions;
+using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using CryptoExchange.Net.Objects;
-using System.Net.WebSockets;
-using CryptoExchange.Net.Objects.Sockets;
 using System.Diagnostics;
-using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Logging.Extensions;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// A single socket connection to the server
+    /// State of a the connection
     /// </summary>
-    public class SocketConnection
+    /// <param name="Id">The id of the socket connection</param>
+    /// <param name="Address">The connection URI</param>
+    /// <param name="Subscriptions">Number of subscriptions on this socket</param>
+    /// <param name="Status">Socket status</param>
+    /// <param name="Authenticated">If the connection is authenticated</param>
+    /// <param name="DownloadSpeed">Download speed over this socket</param>
+    /// <param name="PendingQueries">Number of non-completed queries</param>
+    /// <param name="SubscriptionStates">State for each subscription on this socket</param>
+    public record SocketConnectionState(
+        int Id,
+        string Address,
+        int Subscriptions,
+        SocketStatus Status,
+        bool Authenticated,
+        double DownloadSpeed,
+        int PendingQueries,
+        List<Subscription.SubscriptionState> SubscriptionStates
+    );
+
+    /// <summary>
+    /// Status of the socket connection
+    /// </summary>
+    public enum SocketStatus
     {
         /// <summary>
-        /// State of a the connection
+        /// None/Initial
         /// </summary>
-        /// <param name="Id">The id of the socket connection</param>
-        /// <param name="Address">The connection URI</param>
-        /// <param name="Subscriptions">Number of subscriptions on this socket</param>
-        /// <param name="Status">Socket status</param>
-        /// <param name="Authenticated">If the connection is authenticated</param>
-        /// <param name="DownloadSpeed">Download speed over this socket</param>
-        /// <param name="PendingQueries">Number of non-completed queries</param>
-        /// <param name="SubscriptionStates">State for each subscription on this socket</param>
-        public record SocketConnectionState(
-            int Id,
-            string Address,
-            int Subscriptions,
-            SocketStatus Status,
-            bool Authenticated,
-            double DownloadSpeed,
-            int PendingQueries,
-            List<Subscription.SubscriptionState> SubscriptionStates
-        );
+        None,
+        /// <summary>
+        /// Connected
+        /// </summary>
+        Connected,
+        /// <summary>
+        /// Reconnecting
+        /// </summary>
+        Reconnecting,
+        /// <summary>
+        /// Resubscribing on reconnected socket
+        /// </summary>
+        Resubscribing,
+        /// <summary>
+        /// Closing
+        /// </summary>
+        Closing,
+        /// <summary>
+        /// Closed
+        /// </summary>
+        Closed,
+        /// <summary>
+        /// Disposed
+        /// </summary>
+        Disposed
+    }
+
+    /// <summary>
+    /// A single socket connection to the server
+    /// </summary>
+    public class SocketConnection : ISocketConnection
+    {
 
         /// <summary>
         /// Connection lost event
@@ -88,7 +126,7 @@ namespace CryptoExchange.Net.Sockets
         {
             get
             {
-                lock(_listenersLock)
+                lock (_listenersLock)
                     return _listeners.OfType<Subscription>().Count(h => h.UserSubscription);
             }
         }
@@ -100,7 +138,7 @@ namespace CryptoExchange.Net.Sockets
         {
             get
             {
-                lock(_listenersLock)
+                lock (_listenersLock)
                     return _listeners.OfType<Subscription>().Where(h => h.UserSubscription).ToArray();
             }
         }
@@ -144,7 +182,7 @@ namespace CryptoExchange.Net.Sockets
         /// Tag for identification
         /// </summary>
         public string Tag { get; set; }
-        
+
         /// <summary>
         /// Additional properties for this connection
         /// </summary>
@@ -162,7 +200,7 @@ namespace CryptoExchange.Net.Sockets
                 {
                     _pausedActivity = value;
                     _logger.ActivityPaused(SocketId, value);
-                    if(_pausedActivity) _ = Task.Run(() => ActivityPaused?.Invoke());
+                    if (_pausedActivity) _ = Task.Run(() => ActivityPaused?.Invoke());
                     else _ = Task.Run(() => ActivityUnpaused?.Invoke());
                 }
             }
@@ -247,19 +285,17 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// New socket connection
         /// </summary>
-        /// <param name="logger">The logger</param>
-        /// <param name="apiClient">The api client</param>
-        /// <param name="socket">The socket</param>
-        /// <param name="tag"></param>
-        public SocketConnection(ILogger logger, SocketApiClient apiClient, IWebsocket socket, string tag)
+        public SocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
         {
             _logger = logger;
             ApiClient = apiClient;
             Tag = tag;
             Properties = new Dictionary<string, object>();
 
-            _socket = socket;
-            _socket.OnStreamMessage += HandleStreamMessage;
+            _socket = socketFactory.CreateWebsocket(logger, parameters);
+            _logger.SocketCreatedForAddress(_socket.Id, parameters.Uri.ToString());
+
+            //_socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
             _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
             _socket.OnConnectRateLimited += HandleConnectRateLimitedAsync;
@@ -382,7 +418,7 @@ namespace CryptoExchange.Net.Sockets
                         });
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.UnknownExceptionWhileProcessingReconnection(SocketId, ex);
                     _ = _socket.ReconnectAsync().ConfigureAwait(false);
@@ -432,7 +468,7 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         protected async virtual Task HandleConnectRateLimitedAsync()
         {
-             if (ConnectRateLimitedAsync is not null)
+            if (ConnectRateLimitedAsync is not null)
                 await ConnectRateLimitedAsync().ConfigureAwait(false);
         }
 
@@ -449,7 +485,7 @@ namespace CryptoExchange.Net.Sockets
             }
 
             if (query == null)
-                return Task.CompletedTask;            
+                return Task.CompletedTask;
 
             query.IsSend(query.RequestTimeout ?? ApiClient.ClientOptions.RequestTimeout);
             return Task.CompletedTask;
@@ -506,12 +542,12 @@ namespace CryptoExchange.Net.Sockets
                 var totalUserTime = 0;
 
                 List<IMessageProcessor> localListeners;
-                lock(_listenersLock)
+                lock (_listenersLock)
                     localListeners = _listeners.ToList();
 
-                foreach(var processor in localListeners)
+                foreach (var processor in localListeners)
                 {
-                    foreach(var listener in processor.MessageMatcher.GetHandlerLinks(listenId))
+                    foreach (var listener in processor.MessageMatcher.GetHandlerLinks(listenId))
                     {
                         processed = true;
                         _logger.ProcessorMatched(SocketId, listener.ToString(), listenId);
@@ -676,7 +712,7 @@ namespace CryptoExchange.Net.Sockets
             bool shouldCloseConnection;
             lock (_listenersLock)
                 shouldCloseConnection = _listeners.OfType<Subscription>().All(r => !r.UserSubscription || r.Status == SubscriptionStatus.Closing || r.Status == SubscriptionStatus.Closed) && !DedicatedRequestConnection.IsDedicatedRequestConnection;
-            
+
             if (!anyDuplicateSubscription)
             {
                 bool needUnsub;
@@ -803,11 +839,11 @@ namespace CryptoExchange.Net.Sockets
 
         private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)
         {
-            lock(_listenersLock)
+            lock (_listenersLock)
                 _listeners.Add(query);
 
             query.ContinueAwaiter = continueEvent;
-            var sendResult = Send(query.Id, query.Request, query.Weight);
+            var sendResult = await SendAsync(query.Id, query.Request, query.Weight).ConfigureAwait(false);
             if (!sendResult)
             {
                 query.Fail(sendResult.Error!);
@@ -855,19 +891,19 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="requestId">The request id</param>
         /// <param name="obj">The object to send</param>
         /// <param name="weight">The weight of the message</param>
-        public virtual CallResult Send<T>(int requestId, T obj, int weight)
+        public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
             {
-                return SendBytes(requestId, byteSerializer.Serialize(obj), weight);
+                return SendBytesAsync(requestId, byteSerializer.Serialize(obj), weight);
             }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)
-                    return Send(requestId, str, weight);
+                    return SendStringAsync(requestId, str, weight);
 
                 str = stringSerializer.Serialize(obj);
-                return Send(requestId, str, weight);
+                return SendAsync(requestId, str, weight);
             }
 
             throw new Exception("Unknown serializer when sending message");
@@ -879,7 +915,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="data">The data to send</param>
         /// <param name="weight">The weight of the message</param>
         /// <param name="requestId">The id of the request</param>
-        public virtual CallResult SendBytes(int requestId, byte[] data, int weight)
+        public virtual async ValueTask<CallResult> SendBytesAsync(int requestId, byte[] data, int weight)
         {
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
@@ -914,7 +950,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="data">The data to send</param>
         /// <param name="weight">The weight of the message</param>
         /// <param name="requestId">The id of the request</param>
-        public virtual CallResult Send(int requestId, string data, int weight)
+        public virtual async ValueTask<CallResult> SendStringAsync(int requestId, string data, int weight)
         {
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
@@ -937,7 +973,7 @@ namespace CryptoExchange.Net.Sockets
 
                 return CallResult.SuccessResult;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
@@ -1023,9 +1059,9 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     var waitEvent = new AsyncResetEvent(false);
-                    taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) => 
-                    { 
-                        subscription.Status = r.Result.Success ? SubscriptionStatus.Subscribed: SubscriptionStatus.Pending;
+                    taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) =>
+                    {
+                        subscription.Status = r.Result.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
                         subscription.HandleSubQueryResponse(subQuery.Response!);
                         waitEvent.Set();
                         return r.Result;
@@ -1119,40 +1155,6 @@ namespace CryptoExchange.Net.Sockets
             });
         }
 
-        /// <summary>
-        /// Status of the socket connection
-        /// </summary>
-        public enum SocketStatus
-        {
-            /// <summary>
-            /// None/Initial
-            /// </summary>
-            None,
-            /// <summary>
-            /// Connected
-            /// </summary>
-            Connected,
-            /// <summary>
-            /// Reconnecting
-            /// </summary>
-            Reconnecting,
-            /// <summary>
-            /// Resubscribing on reconnected socket
-            /// </summary>
-            Resubscribing,
-            /// <summary>
-            /// Closing
-            /// </summary>
-            Closing,
-            /// <summary>
-            /// Closed
-            /// </summary>
-            Closed,
-            /// <summary>
-            /// Disposed
-            /// </summary>
-            Disposed
-        }
     }
 }
 

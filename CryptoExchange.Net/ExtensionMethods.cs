@@ -1,18 +1,19 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
-using System.IO.Compression;
+using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Web;
-using CryptoExchange.Net.Objects;
-using System.Globalization;
-using Microsoft.Extensions.DependencyInjection;
-using CryptoExchange.Net.SharedApis;
-using System.Text.Json.Serialization.Metadata;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace CryptoExchange.Net
 {

@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -155,5 +157,37 @@ namespace CryptoExchange.Net
             return httpHandler;
 #endif
         }
+
+        public static async ValueTask WhenAll(IReadOnlyList<ValueTask> tasks)
+        {
+            if (tasks.Count == 0)
+                return;
+
+            List<Task>? toAwait = null;
+
+            int completedTasks = 0;
+
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                if (!tasks[i].IsCompletedSuccessfully)
+                {
+                    toAwait ??= new();
+                    toAwait.Add(tasks[i].AsTask());
+                }
+                else
+                {
+                    completedTasks++;
+                }
+            }
+
+            if (completedTasks != tasks.Count)
+                await Task.WhenAll(toAwait!).ConfigureAwait(false);
+        }
+
+        public static ValueTask WhenAll(IEnumerable<ValueTask> tasks)
+        {
+            return WhenAll(tasks.ToList());
+        }
+
     }
 }
