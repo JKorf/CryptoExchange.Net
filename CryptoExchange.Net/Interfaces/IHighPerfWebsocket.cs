@@ -48,17 +48,11 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Send string data
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        /// <param name="weight"></param>
-        ValueTask<bool> SendAsync(int id, string data, int weight);
+        ValueTask<bool> SendAsync(string data);
         /// <summary>
         /// Send byte data
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="data"></param>
-        /// <param name="weight"></param>
-        ValueTask<bool> SendAsync(int id, byte[] data, int weight);
+        ValueTask<bool> SendAsync(byte[] data, WebSocketMessageType type = WebSocketMessageType.Binary);
         /// <summary>
         /// Close the connection
         /// </summary>

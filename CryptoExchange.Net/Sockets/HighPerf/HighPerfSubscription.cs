@@ -20,33 +20,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public int TotalInvocations { get; set; }
 
-        //private SubscriptionStatus _status;
-        ///// <summary>
-        ///// Current subscription status
-        ///// </summary>
-        //public SubscriptionStatus Status
-        //{
-        //    get => _status;
-        //    set 
-        //    {
-        //        if (_status == value)
-        //            return;
-
-        //        _status = value;
-        //        Task.Run(() => StatusChanged?.Invoke(value));
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Whether the subscription is active
-        ///// </summary>
-        //public bool Active => Status != SubscriptionStatus.Closing && Status != SubscriptionStatus.Closed;
-
-        ///// <summary>
-        ///// Whether the unsubscribing of this subscription lead to the closing of the connection
-        ///// </summary>
-        //public bool IsClosingConnection { get; set; }
-
         /// <summary>
         /// Logger
         /// </summary>
@@ -61,20 +34,16 @@ namespace CryptoExchange.Net.Sockets
         /// Exception event
         /// </summary>
         public event Action<Exception>? Exception;
-        ///// <summary>
-        ///// Listener unsubscribed event
-        ///// </summary>
-        //public event Action<SubscriptionStatus>? StatusChanged;
 
         /// <summary>
         /// The subscribe query for this subscription
         /// </summary>
-        public Query? SubscriptionQuery { get; private set; }
+        public object? SubscriptionQuery { get; private set; }
 
         /// <summary>
         /// The unsubscribe query for this subscription
         /// </summary>
-        public Query? UnsubscriptionQuery { get; private set; }
+        public object? UnsubscriptionQuery { get; private set; }
 
         /// <summary>
         /// ctor
@@ -88,7 +57,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create a new subscription query
         /// </summary>
-        public Query? CreateSubscriptionQuery(HighPerfSocketConnection connection)
+        public object? CreateSubscriptionQuery(HighPerfSocketConnection connection)
         {
             var query = GetSubQuery(connection);
             SubscriptionQuery = query;
@@ -99,12 +68,12 @@ namespace CryptoExchange.Net.Sockets
         /// Get the subscribe query to send when subscribing
         /// </summary>
         /// <returns></returns>
-        protected abstract Query? GetSubQuery(HighPerfSocketConnection connection);
+        protected abstract object? GetSubQuery(HighPerfSocketConnection connection);
 
         /// <summary>
         /// Create a new unsubscription query
         /// </summary>
-        public Query? CreateUnsubscriptionQuery(HighPerfSocketConnection connection)
+        public object? CreateUnsubscriptionQuery(HighPerfSocketConnection connection)
         {
             var query = GetUnsubQuery(connection);
             UnsubscriptionQuery = query;
@@ -115,20 +84,7 @@ namespace CryptoExchange.Net.Sockets
         /// Get the unsubscribe query to send when unsubscribing
         /// </summary>
         /// <returns></returns>
-        protected abstract Query? GetUnsubQuery(HighPerfSocketConnection connection);
-
-        /// <summary>
-        /// Reset the subscription
-        /// </summary>
-        public void Reset()
-        {
-            DoHandleReset();
-        }
-
-        /// <summary>
-        /// Connection has been reset, do any logic for resetting the subscription
-        /// </summary>
-        public virtual void DoHandleReset() { }
+        protected abstract object? GetUnsubQuery(HighPerfSocketConnection connection);
 
         /// <summary>
         /// Invoke the exception event

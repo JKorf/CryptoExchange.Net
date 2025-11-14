@@ -32,19 +32,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The amount of subscriptions on this connection
         /// </summary>
-        public int UserSubscriptionCount => _subscriptions.Count;
+        public int UserSubscriptionCount => _subscriptions.Length;
 
         /// <summary>
         /// Get a copy of the current message subscriptions
         /// </summary>
-        public HighPerfSubscription[] Subscriptions
-        {
-            get
-            {
-                lock (_listenersLock)
-                    return _subscriptions.ToArray();
-            }
-        }
+        public HighPerfSubscription[] Subscriptions => _subscriptions;
 
         /// <summary>
         /// If connection is made
@@ -93,18 +86,15 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        public string Topic { get; set; }
-
-        private readonly object _listenersLock;
         private readonly ILogger _logger;
         private SocketStatus _status;
         private readonly IMessageSerializer _serializer;
         protected readonly JsonSerializerOptions _serializerOptions;
         protected readonly Pipe _pipe;
-        private Task _processTask;
+        private Task? _processTask;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        protected abstract List<HighPerfSubscription> _subscriptions { get; }
+        protected abstract HighPerfSubscription[] _subscriptions { get; }
 
         public abstract Type UpdateType { get; }
 
@@ -129,7 +119,10 @@ namespace CryptoExchange.Net.Sockets
         public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, JsonSerializerOptions serializerOptions, string tag)
         {
             _logger = logger;
-            _pipe = new Pipe();
+            _pipe = new Pipe(new PipeOptions
+            {
+                //ReaderScheduler
+            });
             _serializerOptions = serializerOptions;
             ApiClient = apiClient;
             Tag = tag;
@@ -142,8 +135,6 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnClose += HandleCloseAsync;
 
             _socket.OnError += HandleErrorAsync;
-
-            _listenersLock = new object();
 
             _serializer = apiClient.CreateSerializer();
         }
@@ -162,19 +153,17 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handler for a socket closing without reconnect
         /// </summary>
-        protected virtual Task HandleCloseAsync()
+        protected virtual async Task HandleCloseAsync()
         {
             Status = SocketStatus.Closed;
             _cts.Cancel();
 
-            lock (_listenersLock)
-            {
-                foreach (var subscription in _subscriptions)
-                    subscription.Reset();
-            }
+            if (ApiClient.highPerfSocketConnections.ContainsKey(SocketId))
+                ApiClient.highPerfSocketConnections.TryRemove(SocketId, out _);
+
+            await _processTask!.ConfigureAwait(false);
 
             _ = Task.Run(() => ConnectionClosed?.Invoke());
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -222,13 +211,10 @@ namespace CryptoExchange.Net.Sockets
             if (ApiClient.socketConnections.ContainsKey(SocketId))
                 ApiClient.socketConnections.TryRemove(SocketId, out _);
 
-            lock (_listenersLock)
+            foreach (var subscription in _subscriptions)
             {
-                foreach (var subscription in _subscriptions)
-                {
-                    if (subscription.CancellationTokenRegistration.HasValue)
-                        subscription.CancellationTokenRegistration.Value.Dispose();
-                }
+                if (subscription.CancellationTokenRegistration.HasValue)
+                    subscription.CancellationTokenRegistration.Value.Dispose();
             }
 
             await _socket.CloseAsync().ConfigureAwait(false);
@@ -243,17 +229,13 @@ namespace CryptoExchange.Net.Sockets
         public async Task CloseAsync(HighPerfSubscription subscription)
         {
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
-            {
                 return;
-            }
 
             _logger.ClosingSubscription(SocketId, subscription.Id);
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            bool anyOtherSubscriptions;
-            lock (_listenersLock)
-                anyOtherSubscriptions = _subscriptions.Any(x => x != subscription);
+            var anyOtherSubscriptions = _subscriptions.Any(x => x != subscription);
 
             if (anyOtherSubscriptions)
                 await UnsubscribeAsync(subscription).ConfigureAwait(false);
@@ -271,8 +253,6 @@ namespace CryptoExchange.Net.Sockets
                 await CloseAsync().ConfigureAwait(false);
             }
 
-            lock (_listenersLock)
-                _subscriptions.Remove(subscription);
         }
 
         /// <summary>
@@ -287,41 +267,23 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Whether or not a new subscription can be added to this connection
-        /// </summary>
-        /// <returns></returns>
-        public bool CanAddSubscription() => Status == SocketStatus.None || Status == SocketStatus.Connected;
-
-        /// <summary>
-        /// Get a subscription on this connection by id
-        /// </summary>
-        /// <param name="id"></param>
-        public HighPerfSubscription? GetSubscription(int id)
-        {
-            lock (_listenersLock)
-                return _subscriptions.SingleOrDefault(s => s.Id == id);
-        }
-
-        /// <summary>
         /// Send data over the websocket connection
         /// </summary>
         /// <typeparam name="T">The type of the object to send</typeparam>
-        /// <param name="requestId">The request id</param>
         /// <param name="obj">The object to send</param>
-        /// <param name="weight">The weight of the message</param>
-        public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight)
+        public virtual ValueTask<CallResult> SendAsync<T>(T obj)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
             {
-                return SendBytesAsync(requestId, byteSerializer.Serialize(obj), weight);
+                return SendBytesAsync(byteSerializer.Serialize(obj));
             }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)
-                    return SendStringAsync(requestId, str, weight);
+                    return SendStringAsync(str);
 
                 str = stringSerializer.Serialize(obj);
-                return SendStringAsync(requestId, str, weight);
+                return SendStringAsync(str);
             }
 
             throw new Exception("Unknown serializer when sending message");
@@ -331,27 +293,25 @@ namespace CryptoExchange.Net.Sockets
         /// Send byte data over the websocket connection
         /// </summary>
         /// <param name="data">The data to send</param>
-        /// <param name="weight">The weight of the message</param>
-        /// <param name="requestId">The id of the request</param>
-        public virtual async ValueTask<CallResult> SendBytesAsync(int requestId, byte[] data, int weight)
+        public virtual async ValueTask<CallResult> SendBytesAsync(byte[] data)
         {
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
-                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
+                _logger.LogWarning("[Sckt {SocketId}] {Info}", SocketId, info);
                 return new CallResult(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
-                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
+                _logger.LogWarning("[Sckt {SocketId}] Request failed to send, socket no longer open", SocketId);
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
-            _logger.SendingByteData(SocketId, requestId, data.Length);
+            _logger.SendingByteData(SocketId, 0, data.Length);
             try
             {
-                if (!await _socket.SendAsync(requestId, data, weight).ConfigureAwait(false))
+                if (!await _socket.SendAsync(data).ConfigureAwait(false))
                     return new CallResult(new WebError("Failed to send message, connection not open"));
 
                 return CallResult.SuccessResult;
@@ -366,27 +326,25 @@ namespace CryptoExchange.Net.Sockets
         /// Send string data over the websocket connection
         /// </summary>
         /// <param name="data">The data to send</param>
-        /// <param name="weight">The weight of the message</param>
-        /// <param name="requestId">The id of the request</param>
-        public virtual async ValueTask<CallResult> SendStringAsync(int requestId, string data, int weight)
+        public virtual async ValueTask<CallResult> SendStringAsync(string data)
         {
             if (ApiClient.MessageSendSizeLimit != null && data.Length > ApiClient.MessageSendSizeLimit.Value)
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
-                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
+                _logger.LogWarning("[Sckt {SocketId}] {Info}", SocketId, info);
                 return new CallResult(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
-                _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
+                _logger.LogWarning("[Sckt {SocketId}] Request failed to send, socket no longer open", SocketId);
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
-            _logger.SendingData(SocketId, requestId, data);
+            _logger.SendingData(SocketId, 0, data);
             try
             {
-                if (!await _socket.SendAsync(requestId, data, weight).ConfigureAwait(false))
+                if (!await _socket.SendAsync(data).ConfigureAwait(false))
                     return new CallResult(new WebError("Failed to send message, connection not open"));
 
                 return CallResult.SuccessResult;
@@ -403,7 +361,7 @@ namespace CryptoExchange.Net.Sockets
             if (unsubscribeRequest == null)
                 return;
 
-            await SendAsync(unsubscribeRequest.Id, unsubscribeRequest.Request, unsubscribeRequest.Weight).ConfigureAwait(false);
+            await SendAsync(unsubscribeRequest).ConfigureAwait(false);
             _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
         }
 
@@ -413,8 +371,7 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="identifier">Identifier for the periodic send</param>
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
-        /// <param name="callback">The callback for processing the response</param>
-        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<HighPerfSocketConnection, Query> queryDelegate, Action<HighPerfSocketConnection, CallResult>? callback)
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<HighPerfSocketConnection, object> queryDelegate)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));
@@ -445,8 +402,7 @@ namespace CryptoExchange.Net.Sockets
 
                     try
                     {
-                        var result = await SendAsync(query.Id, query.Request, query.Weight).ConfigureAwait(false);
-                        callback?.Invoke(this, result);
+                        var result = await SendAsync(query).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -455,15 +411,20 @@ namespace CryptoExchange.Net.Sockets
                 }
             });
         }
-
-        public void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback) => throw new NotImplementedException();
     }
 
     public class HighPerfSocketConnection<T> : HighPerfSocketConnection
     {
-
+        private readonly object _listenersLock = new object();
         private List<HighPerfSubscription<T>> _typedSubscriptions;
-        protected override List<HighPerfSubscription> _subscriptions => _typedSubscriptions.Select(x => (HighPerfSubscription)x).ToList();
+        protected override HighPerfSubscription[] _subscriptions
+        {
+            get
+            {
+                lock (_listenersLock)
+                    return _typedSubscriptions.Select(x => (HighPerfSubscription)x).ToArray();
+            }
+        }
 
         public override Type UpdateType => typeof(T);
 
@@ -488,11 +449,17 @@ namespace CryptoExchange.Net.Sockets
             return true;
         }
 
+        public void RemoveSubscription(HighPerfSubscription<T> subscription)
+        {
+            lock (_listenersLock)
+                _typedSubscriptions.Remove(subscription);
+        }
+
         protected override async Task ProcessAsync(CancellationToken ct)
         {
             try
             {
-                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, _serializerOptions, ct).ConfigureAwait(false))
+                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _serializerOptions, ct).ConfigureAwait(false))
                 {
                     var tasks = _typedSubscriptions.Select(sub => sub.HandleAsync(update!));
                     await LibraryHelpers.WhenAll(tasks).ConfigureAwait(false);

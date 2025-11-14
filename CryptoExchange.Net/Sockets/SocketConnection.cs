@@ -295,7 +295,7 @@ namespace CryptoExchange.Net.Sockets
             _socket = socketFactory.CreateWebsocket(logger, parameters);
             _logger.SocketCreatedForAddress(_socket.Id, parameters.Uri.ToString());
 
-            //_socket.OnStreamMessage += HandleStreamMessage;
+            _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
             _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
             _socket.OnConnectRateLimited += HandleConnectRateLimitedAsync;
@@ -330,10 +330,16 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Closed;
             Authenticated = false;
 
+            if (ApiClient.socketConnections.ContainsKey(SocketId))
+                ApiClient.socketConnections.TryRemove(SocketId, out _);
+
             lock (_listenersLock)
             {
                 foreach (var subscription in _listeners.OfType<Subscription>().Where(l => l.UserSubscription && !l.IsClosingConnection))
+                {
+                    subscription.IsClosingConnection = true;
                     subscription.Reset();
+                }
 
                 foreach (var query in _listeners.OfType<Query>().ToList())
                 {

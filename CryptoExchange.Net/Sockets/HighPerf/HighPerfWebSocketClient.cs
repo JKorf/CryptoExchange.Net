@@ -6,6 +6,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Http;
@@ -22,17 +23,11 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class HighPerfWebSocketClient : IHighPerfWebsocket
     {
-        enum ProcessState
-        {
-            Idle,
-            Processing,
-            WaitingForClose,
-            Reconnecting
-        }
-
         private ClientWebSocket? _socket;
 
+#if NETSTANDARD2_0
         private static readonly ArrayPool<byte> _receiveBufferPool = ArrayPool<byte>.Shared;
+#endif
 
         private readonly SemaphoreSlim _closeSem;
 
@@ -41,15 +36,14 @@ namespace CryptoExchange.Net.Sockets
         private Task? _closeTask;
         private bool _stopRequested;
         private bool _disposed;
-        private ProcessState _processState;
-        private DateTime _lastReconnectTime;
-        private readonly string _baseAddress;
-        private int _reconnectAttempt;
+        private bool _processing;
         private readonly int _receiveBufferSize;
         private readonly PipeWriter _pipeWriter;
 
-        private const int _defaultReceiveBufferSize = 1048576;
+        private const int _defaultReceiveBufferSize = 4096;
         private const int _sendBufferSize = 4096;
+
+        private byte[] _commaBytes = new byte[] { 44 };
 
         /// <summary>
         /// Log
@@ -94,7 +88,6 @@ namespace CryptoExchange.Net.Sockets
 
             _pipeWriter = pipeWriter;
             _closeSem = new SemaphoreSlim(1, 1);
-            _baseAddress = $"{Uri.Scheme}://{Uri.Host}";
         }
 
         /// <inheritdoc />
@@ -206,65 +199,39 @@ namespace CryptoExchange.Net.Sockets
         private async Task ProcessAsync()
         {
             _logger.SocketStartingProcessing(Id);
-            SetProcessState(ProcessState.Processing);
+            _processing = true;
             await ReceiveLoopAsync().ConfigureAwait(false);
+            _processing = false;
             _logger.SocketFinishedProcessing(Id);
 
-            SetProcessState(ProcessState.WaitingForClose);
             while (_closeTask == null)
                 await Task.Delay(50).ConfigureAwait(false);
 
             await _closeTask.ConfigureAwait(false);
-            if (!_stopRequested)
-                _closeTask = null;
-
-            SetProcessState(ProcessState.Idle);
             await (OnClose?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
             _logger.SocketClosed(Id);
         }
 
         /// <inheritdoc />
-        public virtual async ValueTask<bool> SendAsync(int id, string data, int weight)
+        public virtual ValueTask<bool> SendAsync(string data)
         {
-            if (_ctsSource.IsCancellationRequested || _processState != ProcessState.Processing)
-                return false;
-
             var bytes = Parameters.Encoding.GetBytes(data);
-            _logger.SocketAddingBytesToSendBuffer(Id, id, bytes);
-
-            try
-            {
-                await _socket!.SendAsync(new ArraySegment<byte>(bytes, 0, bytes.Length), WebSocketMessageType.Text, true, _ctsSource.Token).ConfigureAwait(false);
-                _logger.SocketSentBytes(Id, id, bytes.Length);
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-                // canceled
-                return false;
-            }
-            catch (Exception ioe)
-            {
-                // Connection closed unexpectedly, .NET framework
-                await (OnError?.Invoke(ioe) ?? Task.CompletedTask).ConfigureAwait(false);
-                if (_closeTask?.IsCompleted != false)
-                    _closeTask = CloseInternalAsync();
-                return false;
-            }
+            return SendAsync(bytes, WebSocketMessageType.Text);
         }
 
         /// <inheritdoc />
-        public virtual async ValueTask<bool> SendAsync(int id, byte[] data, int weight)
+        public virtual async ValueTask<bool> SendAsync(byte[] data, WebSocketMessageType type = WebSocketMessageType.Binary)
         {
-            if (_ctsSource.IsCancellationRequested || _processState != ProcessState.Processing)
+            if (_ctsSource.IsCancellationRequested || !_processing)
                 return false;
 
-            _logger.SocketAddingBytesToSendBuffer(Id, id, data);
+#warning todo logging overloads without id
+            _logger.SocketAddingBytesToSendBuffer(Id, 0, data);
 
             try
             {
-                await _socket!.SendAsync(new ArraySegment<byte>(data, 0, data.Length), WebSocketMessageType.Binary, true, _ctsSource.Token).ConfigureAwait(false);
-                _logger.SocketSentBytes(Id, id, data.Length);
+                await _socket!.SendAsync(new ArraySegment<byte>(data, 0, data.Length), type, true, _ctsSource.Token).ConfigureAwait(false);
+                _logger.SocketSentBytes(Id, 0, data.Length);
                 return true;
             }
             catch (OperationCanceledException)
@@ -372,6 +339,112 @@ namespace CryptoExchange.Net.Sockets
             _logger.SocketDisposed(Id);
         }
 
+#if NETSTANDARD2_1 || NET8_0_OR_GREATER
+        private async Task ReceiveLoopAsync()
+        {
+            try
+            {
+                Exception? exitException = null;
+                while (true)
+                {
+                    if (_ctsSource.IsCancellationRequested)
+                        break;
+
+                    ValueWebSocketReceiveResult receiveResult = default;
+
+                    try
+                    {
+                        receiveResult = await _socket!.ReceiveAsync(_pipeWriter.GetMemory(_receiveBufferSize), _ctsSource.Token).ConfigureAwait(false);
+
+                        // Advance the writer to communicate which part the memory was written
+                        _pipeWriter.Advance(receiveResult.Count);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
+                        {
+                            // Specific case that the websocket connection got closed because of a ping frame timeout
+                            // Unfortunately doesn't seem to be a nicer way to catch
+                            _logger.SocketPingTimeout(Id);
+                        }
+
+                        if (_closeTask?.IsCompleted != false)
+                            _closeTask = CloseInternalAsync();
+
+                        // canceled
+                        exitException = ex;
+                        break;
+                    }
+                    catch (Exception wse)
+                    {
+                        if (!_ctsSource.Token.IsCancellationRequested && !_stopRequested)
+                            // Connection closed unexpectedly
+                            await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
+
+                        if (_closeTask?.IsCompleted != false)
+                            _closeTask = CloseInternalAsync();
+
+                        exitException = wse;
+                        break;
+                    }
+
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        // Connection closed
+                        if (_socket.State == WebSocketState.CloseReceived)
+                        {
+                            // Close received means it server initiated, we should send a confirmation and close the socket
+                            //_logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+                        }
+                        else
+                        {
+                            // Means the socket is now closed and we were the one initiating it
+                            //_logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
+                        }
+
+                        break;
+                    }
+
+                    if (receiveResult.EndOfMessage)
+                    {
+                        // Write a comma to split the json data for the reader
+                        // This will also flush the written bytes
+                        var flushResult = await _pipeWriter.FlushAsync().ConfigureAwait(false);
+                        if (flushResult.IsCompleted)
+                        {
+                            // Flush indicated that the reader is no longer listening
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+
+                            break;
+                        }
+                    }
+                }
+
+                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                // Because this is running in a separate task and not awaited until the socket gets closed
+                // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
+                // Make sure we at least let the owner know there was an error
+                _logger.SocketReceiveLoopStoppedWithException(Id, e);
+
+                await _pipeWriter.CompleteAsync(e).ConfigureAwait(false);
+
+                await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
+                if (_closeTask?.IsCompleted != false)
+                    _closeTask = CloseInternalAsync();
+            }
+            finally
+            {
+                _logger.SocketReceiveLoopFinished(Id);
+            }
+        }
+#else
+
         /// <summary>
         /// Loop for receiving and reassembling data
         /// </summary>
@@ -380,115 +453,95 @@ namespace CryptoExchange.Net.Sockets
         {
             byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
             var buffer = new ArraySegment<byte>(rentedBuffer);
-            var first = true;
+
             try
             {
+                Exception? exitException = null;
+
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
                         break;
 
                     WebSocketReceiveResult? receiveResult = null;
-                    while (true)
+                    try
                     {
-                        try
+                        receiveResult = await _socket!.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
                         {
-                            //_stream.Read
-                            receiveResult = await _socket!.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
+                            // Specific case that the websocket connection got closed because of a ping frame timeout
+                            // Unfortunately doesn't seem to be a nicer way to catch
+                            _logger.SocketPingTimeout(Id);
                         }
-                        catch (OperationCanceledException ex)
-                        {
-                            if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
-                            {
-                                // Specific case that the websocket connection got closed because of a ping frame timeout
-                                // Unfortunately doesn't seem to be a nicer way to catch
-                                _logger.SocketPingTimeout(Id);
-                            }
 
+                        if (_closeTask?.IsCompleted != false)
+                            _closeTask = CloseInternalAsync();
+
+                        // canceled
+                        exitException = ex;
+                        break;
+                    }
+                    catch (Exception wse)
+                    {
+                        if (!_ctsSource.Token.IsCancellationRequested && !_stopRequested)
+                            // Connection closed unexpectedly
+                            await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
+
+                        if (_closeTask?.IsCompleted != false)
+                            _closeTask = CloseInternalAsync();
+
+                        exitException = wse;
+                        break;
+                    }
+
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        // Connection closed
+                        if (_socket.State == WebSocketState.CloseReceived)
+                        {
+                            // Close received means it server initiated, we should send a confirmation and close the socket
+                            _logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
-
-                            // canceled
-                            break;
-                        }
-                        catch (Exception wse)
-                        {
-                            if (!_ctsSource.Token.IsCancellationRequested && !_stopRequested)
-                                // Connection closed unexpectedly
-                                await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
-
-                            if (_closeTask?.IsCompleted != false)
-                                _closeTask = CloseInternalAsync();
-                            break;
-                        }
-
-                        if (receiveResult.MessageType == WebSocketMessageType.Close)
-                        {
-                            // Connection closed
-                            if (_socket.State == WebSocketState.CloseReceived)
-                            {
-                                // Close received means it server initiated, we should send a confirmation and close the socket
-                                _logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
-                                if (_closeTask?.IsCompleted != false)
-                                    _closeTask = CloseInternalAsync();
-                            }
-                            else
-                            {
-                                // Means the socket is now closed and we were the one initiating it
-                                _logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
-                            }
-
-                            break;
-                        }
-
-                        if (!first)
-                        {
-                            // Write a comma to split the json data
-                            if (receiveResult.EndOfMessage)
-                                await _pipeWriter.WriteAsync(new byte[] { 44 }).ConfigureAwait(false);
                         }
                         else
                         {
-                            // Write a opening bracket
-                            await _pipeWriter.WriteAsync(new byte[] { 91 }).ConfigureAwait(false);
-                            first = false;
+                            // Means the socket is now closed and we were the one initiating it
+                            _logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
                         }
 
-                        await _pipeWriter.WriteAsync(new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
-                    }
-
-                    if (receiveResult?.MessageType == WebSocketMessageType.Close)
-                    {
-                        // Received close message
                         break;
                     }
 
-                    if (receiveResult == null || _ctsSource.IsCancellationRequested)
-                    {
-                        // Error during receiving or cancellation requested, stop.
-                        break;
-                    }
+
+                    await _pipeWriter.WriteAsync(buffer.AsMemory(0, receiveResult.Count)).ConfigureAwait(false);
                 }
+                
+                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // Because this is running in a separate task and not awaited until the socket gets closed
                 // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
                 // Make sure we at least let the owner know there was an error
                 _logger.SocketReceiveLoopStoppedWithException(Id, e);
+
+                await _pipeWriter.CompleteAsync(e).ConfigureAwait(false);
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 if (_closeTask?.IsCompleted != false)
                     _closeTask = CloseInternalAsync();
             }
             finally
             {
-                // Not needed?
-                //await _pipeWriter.WriteAsync(Encoding.UTF8.GetBytes("]")).ConfigureAwait(false);
 
                 _receiveBufferPool.Return(rentedBuffer, true);
                 _logger.SocketReceiveLoopFinished(Id);
             }
         }
+#endif
 
         /// <summary>
         /// Set proxy on socket
@@ -510,15 +563,6 @@ namespace CryptoExchange.Net.Sockets
 
             if (proxy.Login != null)
                 socket.Options.Proxy.Credentials = new NetworkCredential(proxy.Login, proxy.Password);
-        }
-
-        private void SetProcessState(ProcessState state)
-        {
-            if (_processState == state)
-                return;
-
-            _logger.SocketProcessingStateChanged(Id, _processState.ToString(), state.ToString());
-            _processState = state;
         }
     }
 }

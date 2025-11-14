@@ -7,6 +7,7 @@ using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.HighPerf;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -78,6 +79,10 @@ namespace CryptoExchange.Net.Clients
         /// Periodic task registrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
+        /// <summary>
+        /// Periodic task registrations
+        /// </summary>
+        protected List<HighPerfPeriodicTaskRegistration> HighPerfPeriodicTaskRegistrations { get; set; } = new List<HighPerfPeriodicTaskRegistration>();
 
         /// <summary>
         /// List of address to keep an alive connection to
@@ -389,11 +394,11 @@ namespace CryptoExchange.Net.Clients
                     semaphoreSlim.Release();
             }
 
-            var subQuery = subscription.CreateSubscriptionQuery(socketConnection);
-            if (subQuery != null)
+            var subRequest = subscription.CreateSubscriptionQuery(socketConnection);
+            if (subRequest != null)
             {
                 // Send the request and wait for answer
-                var sendResult = await socketConnection.SendAsync(subQuery.Id, subQuery.Request, subQuery.Weight).ConfigureAwait(false);
+                var sendResult = await socketConnection.SendAsync(subRequest).ConfigureAwait(false);
                 if (!sendResult)
                 {
                     // Needed?
@@ -741,11 +746,8 @@ namespace CryptoExchange.Net.Clients
 
             // Create new socket connection
             var socketConnection = new HighPerfSocketConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, JsonSerializerOptions, address);
-            foreach (var ptg in PeriodicTaskRegistrations)
-                socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.QueryDelegate, ptg.Callback);
-
-            //foreach (var systemSubscription in systemSubscriptions)
-            //    socketConnection.AddSubscription(systemSubscription);
+            foreach (var ptg in HighPerfPeriodicTaskRegistrations)
+                socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.GetRequestDelegate);
 
             return new CallResult<HighPerfSocketConnection<TUpdateType>>(socketConnection);
         }

@@ -23,8 +23,8 @@ namespace CryptoExchange.Net.Sockets
         Task CloseAsync();
         void Dispose();
 
-        ValueTask<CallResult> SendStringAsync(int requestId, string data, int weight);
-        ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight);
-        ValueTask<CallResult> SendBytesAsync(int requestId, byte[] data, int weight);
+        //ValueTask<CallResult> SendStringAsync(int requestId, string data, int weight);
+        //ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight);
+        //ValueTask<CallResult> SendBytesAsync(int requestId, byte[] data, int weight);
     }
 }
