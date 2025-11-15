@@ -381,13 +381,14 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Queue updates received from a websocket subscriptions and process them async
+        /// Queue updates and process them async
         /// </summary>
         /// <typeparam name="T">The queued update type</typeparam>
         /// <param name="subscribeCall">The subscribe call</param>
         /// <param name="asyncHandler">The async update handler</param>
         /// <param name="maxQueuedItems">The max number of updates to be queued up. When happens when the queue is full and a new write is attempted can be specified with <see>fullMode</see></param>
         /// <param name="fullBehavior">What should happen if the queue contains <see>maxQueuedItems</see> pending updates. If no max is set this setting is ignored</param>
+        /// <param name="ct">Cancellation token to stop the processing</param>
         public static async Task ProcessQueuedAsync<T>(
             Func<Action<T>, Task> subscribeCall,
             Func<T, Task> asyncHandler,

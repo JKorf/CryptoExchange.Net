@@ -253,7 +253,11 @@ namespace CryptoExchange.Net.Sockets
         }
 
         private bool _pausedActivity;
-        private readonly object _listenersLock;
+#if NET9_0_OR_GREATER
+        private readonly Lock _listenersLock = new Lock();
+#else
+        private readonly object _listenersLock = new object();
+#endif
         private readonly List<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
         private SocketStatus _status;
@@ -306,7 +310,6 @@ namespace CryptoExchange.Net.Sockets
             _socket.OnError += HandleErrorAsync;
             _socket.GetReconnectionUrl = GetReconnectionUrlAsync;
 
-            _listenersLock = new object();
             _listeners = new List<IMessageProcessor>();
 
             _serializer = apiClient.CreateSerializer();

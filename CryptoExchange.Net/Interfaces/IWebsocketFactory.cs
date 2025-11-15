@@ -1,8 +1,6 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
-using System;
 using System.IO.Pipelines;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
 {
@@ -19,6 +17,9 @@ namespace CryptoExchange.Net.Interfaces
         /// <returns></returns>
         IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters);
         
+        /// <summary>
+        /// Create high performance websocket
+        /// </summary>
         IHighPerfWebsocket CreateHighPerfWebsocket(ILogger logger, WebSocketParameters parameters, PipeWriter pipeWriter);
     }
 }

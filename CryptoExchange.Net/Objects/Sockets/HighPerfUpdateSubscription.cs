@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects.Sockets
@@ -14,14 +15,14 @@ namespace CryptoExchange.Net.Objects.Sockets
         private readonly HighPerfSocketConnection _connection;
         internal readonly HighPerfSubscription _subscription;
 
-        private object _eventLock = new object();
-        private bool _connectionEventsSubscribed = true;
-        private List<Action> _connectionClosedEventHandlers = new List<Action>();
+#if NET9_0_OR_GREATER
+        private readonly Lock _eventLock = new Lock();
+#else
+        private readonly object _eventLock = new object();
+#endif
 
-        /// <summary>
-        /// Event when the status of the subscription changes
-        /// </summary>
-        public event Action<SubscriptionStatus>? SubscriptionStatusChanged;
+        private bool _connectionEventsSubscribed = true;
+        private readonly List<Action> _connectionClosedEventHandlers = new List<Action>();
 
         /// <summary>
         /// Event when the connection is closed and will not be reconnected

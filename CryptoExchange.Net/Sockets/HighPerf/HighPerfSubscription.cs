@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,11 +18,6 @@ namespace CryptoExchange.Net.Sockets
         /// Total amount of invocations
         /// </summary>
         public int TotalInvocations { get; set; }
-
-        /// <summary>
-        /// Logger
-        /// </summary>
-        protected readonly ILogger _logger;
 
         /// <summary>
         /// Cancellation token registration
@@ -48,9 +42,8 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public HighPerfSubscription(ILogger logger)
+        public HighPerfSubscription()
         {
-            _logger = logger;
             Id = ExchangeHelpers.NextId();
         }
 
@@ -94,7 +87,6 @@ namespace CryptoExchange.Net.Sockets
         {
             Exception?.Invoke(e);
         }
-
     }
 
     /// <inheritdoc />
@@ -105,13 +97,17 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        protected HighPerfSubscription(ILogger logger, Func<TUpdateType, ValueTask> handler) : base(logger)
+        protected HighPerfSubscription(Func<TUpdateType, ValueTask> handler) : base()
         {
             _handler = handler;
         }
 
+        /// <summary>
+        /// Handle an update
+        /// </summary>
         public ValueTask HandleAsync(TUpdateType update)
         {
+            TotalInvocations++;
             return _handler.Invoke(update);
         }
     }

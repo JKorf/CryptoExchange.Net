@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Objects;
 using System.Net.WebSockets;
 using CryptoExchange.Net.Objects.Sockets;
-using System.Diagnostics;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
@@ -32,12 +31,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// The amount of subscriptions on this connection
         /// </summary>
-        public int UserSubscriptionCount => _subscriptions.Length;
+        public int UserSubscriptionCount => Subscriptions.Length;
 
         /// <summary>
         /// Get a copy of the current message subscriptions
         /// </summary>
-        public HighPerfSubscription[] Subscriptions => _subscriptions;
+        public abstract HighPerfSubscription[] Subscriptions { get; }
 
         /// <summary>
         /// If connection is made
@@ -86,16 +85,27 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
-        private readonly ILogger _logger;
-        private SocketStatus _status;
+        /// <summary>
+        /// Logger
+        /// </summary>
+        protected readonly ILogger _logger;
+
         private readonly IMessageSerializer _serializer;
-        protected readonly JsonSerializerOptions _serializerOptions;
-        protected readonly Pipe _pipe;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private SocketStatus _status;
         private Task? _processTask;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        protected abstract HighPerfSubscription[] _subscriptions { get; }
-
+        /// <summary>
+        /// Serializer options
+        /// </summary>
+        protected readonly JsonSerializerOptions _serializerOptions;
+        /// <summary>
+        /// The pipe the websocket will write to
+        /// </summary>
+        protected readonly Pipe _pipe;
+        /// <summary>
+        /// Update type
+        /// </summary>
         public abstract Type UpdateType { get; }
 
         /// <summary>
@@ -119,10 +129,7 @@ namespace CryptoExchange.Net.Sockets
         public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, JsonSerializerOptions serializerOptions, string tag)
         {
             _logger = logger;
-            _pipe = new Pipe(new PipeOptions
-            {
-                //ReaderScheduler
-            });
+            _pipe = new Pipe();
             _serializerOptions = serializerOptions;
             ApiClient = apiClient;
             Tag = tag;
@@ -139,6 +146,9 @@ namespace CryptoExchange.Net.Sockets
             _serializer = apiClient.CreateSerializer();
         }
 
+        /// <summary>
+        /// Process message from the pipe
+        /// </summary>
         protected abstract Task ProcessAsync(CancellationToken ct);
 
         /// <summary>
@@ -156,7 +166,7 @@ namespace CryptoExchange.Net.Sockets
         protected virtual async Task HandleCloseAsync()
         {
             Status = SocketStatus.Closed;
-            _cts.Cancel();
+            _cts.CancelAfter(TimeSpan.FromSeconds(1)); // Cancel after 1 second to make sure we process pending messages from the pipe
 
             if (ApiClient.highPerfSocketConnections.ContainsKey(SocketId))
                 ApiClient.highPerfSocketConnections.TryRemove(SocketId, out _);
@@ -194,12 +204,6 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Retrieve the underlying socket
-        /// </summary>
-        /// <returns></returns>
-        public IHighPerfWebsocket GetSocket() => _socket;
-
-        /// <summary>
         /// Close the connection
         /// </summary>
         /// <returns></returns>
@@ -211,7 +215,7 @@ namespace CryptoExchange.Net.Sockets
             if (ApiClient.socketConnections.ContainsKey(SocketId))
                 ApiClient.socketConnections.TryRemove(SocketId, out _);
 
-            foreach (var subscription in _subscriptions)
+            foreach (var subscription in Subscriptions)
             {
                 if (subscription.CancellationTokenRegistration.HasValue)
                     subscription.CancellationTokenRegistration.Value.Dispose();
@@ -235,7 +239,7 @@ namespace CryptoExchange.Net.Sockets
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            var anyOtherSubscriptions = _subscriptions.Any(x => x != subscription);
+            var anyOtherSubscriptions = Subscriptions.Any(x => x != subscription);
 
             if (anyOtherSubscriptions)
                 await UnsubscribeAsync(subscription).ConfigureAwait(false);
@@ -413,11 +417,19 @@ namespace CryptoExchange.Net.Sockets
         }
     }
 
+    /// <inheritdoc />
     public class HighPerfSocketConnection<T> : HighPerfSocketConnection
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _listenersLock = new Lock();
+#else
         private readonly object _listenersLock = new object();
-        private List<HighPerfSubscription<T>> _typedSubscriptions;
-        protected override HighPerfSubscription[] _subscriptions
+#endif
+
+        private readonly List<HighPerfSubscription<T>> _typedSubscriptions;
+
+        /// <inheritdoc />
+        public override HighPerfSubscription[] Subscriptions
         {
             get
             {
@@ -426,42 +438,65 @@ namespace CryptoExchange.Net.Sockets
             }
         }
 
+        /// <inheritdoc />
         public override Type UpdateType => typeof(T);
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, JsonSerializerOptions serializerOptions, string tag) : base(logger, socketFactory, parameters, apiClient, serializerOptions, tag)
         {
             _typedSubscriptions = new List<HighPerfSubscription<T>>();
         }
 
         /// <summary>
-        /// Add a subscription to this connection
+        /// Add a new subscription
         /// </summary>
-        /// <param name="subscription"></param>
         public bool AddSubscription(HighPerfSubscription<T> subscription)
         {
             if (Status != SocketStatus.None && Status != SocketStatus.Connected)
                 return false;
 
-            //lock (_listenersLock)
             _typedSubscriptions.Add(subscription);
 
-            //_logger.AddingNewSubscription(SocketId, subscription.Id, UserSubscriptionCount);
+            _logger.AddingNewSubscription(SocketId, subscription.Id, UserSubscriptionCount);
             return true;
         }
 
+        /// <summary>
+        /// Remove a subscription
+        /// </summary>
+        /// <param name="subscription"></param>
         public void RemoveSubscription(HighPerfSubscription<T> subscription)
         {
             lock (_listenersLock)
                 _typedSubscriptions.Remove(subscription);
         }
 
+        /// <inheritdoc />
         protected override async Task ProcessAsync(CancellationToken ct)
         {
             try
             {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
                 await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _serializerOptions, ct).ConfigureAwait(false))
+#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
                 {
-                    var tasks = _typedSubscriptions.Select(sub => sub.HandleAsync(update!));
+                    var tasks = _typedSubscriptions.Select(sub =>
+                    {
+                        try
+                        {
+                            return sub.HandleAsync(update!);
+                        }
+                        catch (Exception ex)
+                        {
+                            sub.InvokeExceptionHandler(ex);
+                            _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
+                            return new ValueTask();
+                        }
+                    });
                     await LibraryHelpers.WhenAll(tasks).ConfigureAwait(false);
                 }
             }

@@ -6,20 +6,16 @@ using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Net;
-using System.Net.Http;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// A wrapper around the ClientWebSocket
+    /// A high performance websocket client implementation
     /// </summary>
     public class HighPerfWebSocketClient : IHighPerfWebsocket
     {
@@ -42,8 +38,6 @@ namespace CryptoExchange.Net.Sockets
 
         private const int _defaultReceiveBufferSize = 4096;
         private const int _sendBufferSize = 4096;
-
-        private byte[] _commaBytes = new byte[] { 44 };
 
         /// <summary>
         /// Log
@@ -88,12 +82,6 @@ namespace CryptoExchange.Net.Sockets
 
             _pipeWriter = pipeWriter;
             _closeSem = new SemaphoreSlim(1, 1);
-        }
-
-        /// <inheritdoc />
-        public void UpdateProxy(ApiProxy? proxy)
-        {
-            Parameters.Proxy = proxy;
         }
 
         /// <inheritdoc />
@@ -169,7 +157,7 @@ namespace CryptoExchange.Net.Sockets
                 if (e is WebSocketException we)
                 {
 #if (NET6_0_OR_GREATER)
-                    if (_socket.HttpStatusCode == HttpStatusCode.TooManyRequests)
+                    if (_socket!.HttpStatusCode == HttpStatusCode.TooManyRequests)
                     {
                         return new CallResult(new ServerRateLimitError(we.Message, we));
                     }
@@ -296,19 +284,20 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (_socket!.State == WebSocketState.CloseReceived)
                 {
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
                 else if (_socket.State == WebSocketState.Open)
                 {
-                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+
                     var startWait = DateTime.UtcNow;
-                    while (_socket.State != WebSocketState.Closed && _socket.State != WebSocketState.Aborted)
+                    while (_processing && _socket.State != WebSocketState.Closed && _socket.State != WebSocketState.Aborted)
                     {
                         // Wait until we receive close confirmation
                         await Task.Delay(10).ConfigureAwait(false);
                         if (DateTime.UtcNow - startWait > TimeSpan.FromSeconds(1))
                             break; // Wait for max 1 second, then just abort the connection
-                    }
+                    }                    
                 }
             }
             catch (Exception)
@@ -318,7 +307,8 @@ namespace CryptoExchange.Net.Sockets
                 // So socket might go to aborted state, might still be open
             }
 
-            _ctsSource.Cancel();
+            if (!_disposed)
+                _ctsSource.Cancel();
         }
 
         /// <summary>
@@ -342,9 +332,9 @@ namespace CryptoExchange.Net.Sockets
 #if NETSTANDARD2_1 || NET8_0_OR_GREATER
         private async Task ReceiveLoopAsync()
         {
+            Exception? exitException = null;
             try
             {
-                Exception? exitException = null;
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -356,7 +346,7 @@ namespace CryptoExchange.Net.Sockets
                     {
                         receiveResult = await _socket!.ReceiveAsync(_pipeWriter.GetMemory(_receiveBufferSize), _ctsSource.Token).ConfigureAwait(false);
 
-                        // Advance the writer to communicate which part the memory was written
+                        // Advance the writer to communicate which part of the memory was written
                         _pipeWriter.Advance(receiveResult.Count);
                     }
                     catch (OperationCanceledException ex)
@@ -371,7 +361,6 @@ namespace CryptoExchange.Net.Sockets
                         if (_closeTask?.IsCompleted != false)
                             _closeTask = CloseInternalAsync();
 
-                        // canceled
                         exitException = ex;
                         break;
                     }
@@ -388,42 +377,39 @@ namespace CryptoExchange.Net.Sockets
                         break;
                     }
 
-                    if (receiveResult.MessageType == WebSocketMessageType.Close)
-                    {
-                        // Connection closed
-                        if (_socket.State == WebSocketState.CloseReceived)
-                        {
-                            // Close received means it server initiated, we should send a confirmation and close the socket
-                            //_logger.SocketReceivedCloseMessage(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
-                            if (_closeTask?.IsCompleted != false)
-                                _closeTask = CloseInternalAsync();
-                        }
-                        else
-                        {
-                            // Means the socket is now closed and we were the one initiating it
-                            //_logger.SocketReceivedCloseConfirmation(Id, receiveResult.CloseStatus.ToString()!, receiveResult.CloseStatusDescription ?? string.Empty);
-                        }
-
-                        break;
-                    }
-
                     if (receiveResult.EndOfMessage)
                     {
-                        // Write a comma to split the json data for the reader
-                        // This will also flush the written bytes
+                        // Flush the full message
                         var flushResult = await _pipeWriter.FlushAsync().ConfigureAwait(false);
                         if (flushResult.IsCompleted)
                         {
-                            // Flush indicated that the reader is no longer listening
+                            // Flush indicated that the reader is no longer listening, so we should stop writing
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
 
                             break;
                         }
                     }
-                }
 
-                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        // Connection closed
+                        if (_socket.State == WebSocketState.CloseReceived)
+                        {
+                            // Close received means it's server initiated, we should send a confirmation and close the socket
+                            _logger.SocketReceivedCloseMessage(Id, _socket.CloseStatus?.ToString() ?? string.Empty, _socket.CloseStatusDescription ?? string.Empty);
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+                        }
+                        else
+                        {
+                            // Means the socket is now closed and we were the one initiating it
+                            _logger.SocketReceivedCloseConfirmation(Id, _socket.CloseStatus?.ToString() ?? string.Empty, _socket.CloseStatusDescription ?? string.Empty);
+                        }
+
+                        break;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -432,32 +418,27 @@ namespace CryptoExchange.Net.Sockets
                 // Make sure we at least let the owner know there was an error
                 _logger.SocketReceiveLoopStoppedWithException(Id, e);
 
-                await _pipeWriter.CompleteAsync(e).ConfigureAwait(false);
-
+                exitException = e;
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 if (_closeTask?.IsCompleted != false)
                     _closeTask = CloseInternalAsync();
             }
             finally
             {
+                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
                 _logger.SocketReceiveLoopFinished(Id);
             }
         }
 #else
 
-        /// <summary>
-        /// Loop for receiving and reassembling data
-        /// </summary>
-        /// <returns></returns>
         private async Task ReceiveLoopAsync()
         {
             byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
             var buffer = new ArraySegment<byte>(rentedBuffer);
+            Exception? exitException = null;
 
             try
             {
-                Exception? exitException = null;
-
                 while (true)
                 {
                     if (_ctsSource.IsCancellationRequested)
@@ -480,7 +461,6 @@ namespace CryptoExchange.Net.Sockets
                         if (_closeTask?.IsCompleted != false)
                             _closeTask = CloseInternalAsync();
 
-                        // canceled
                         exitException = ex;
                         break;
                     }
@@ -496,6 +476,9 @@ namespace CryptoExchange.Net.Sockets
                         exitException = wse;
                         break;
                     }
+
+                    if (receiveResult.Count > 0)
+                        await _pipeWriter.WriteAsync(buffer.AsMemory(0, receiveResult.Count)).ConfigureAwait(false);
 
                     if (receiveResult.MessageType == WebSocketMessageType.Close)
                     {
@@ -515,12 +498,8 @@ namespace CryptoExchange.Net.Sockets
 
                         break;
                     }
-
-
-                    await _pipeWriter.WriteAsync(buffer.AsMemory(0, receiveResult.Count)).ConfigureAwait(false);
                 }
                 
-                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -529,13 +508,14 @@ namespace CryptoExchange.Net.Sockets
                 // Make sure we at least let the owner know there was an error
                 _logger.SocketReceiveLoopStoppedWithException(Id, e);
 
-                await _pipeWriter.CompleteAsync(e).ConfigureAwait(false);
+                exitException = e;
                 await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
                 if (_closeTask?.IsCompleted != false)
                     _closeTask = CloseInternalAsync();
             }
             finally
             {
+                await _pipeWriter.CompleteAsync(exitException).ConfigureAwait(false);
 
                 _receiveBufferPool.Return(rentedBuffer, true);
                 _logger.SocketReceiveLoopFinished(Id);

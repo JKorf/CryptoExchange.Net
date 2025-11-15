@@ -18,6 +18,7 @@ using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System.Net.WebSockets;
+using System.Text.Json;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -93,6 +94,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         private MessagePath _topicPath = MessagePath.Get().Property("topic");
 
         public Subscription TestSubscription { get; private set; } = null;
+
+        public override JsonSerializerOptions JsonSerializerOptions => new JsonSerializerOptions();
 
         public TestSubSocketClient(TestSocketOptions options, SocketApiOptions apiOptions) : base(new TraceLogger(), options.Environment.TestAddress, options, apiOptions)
         {

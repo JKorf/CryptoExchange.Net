@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Testing.Implementations;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using CryptoExchange.Net.UnitTests.TestImplementations.Sockets;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using System;
+using System.Collections.Generic;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -44,7 +46,8 @@ namespace CryptoExchange.Net.UnitTests
             socket.CanConnect = canConnect;
 
             //act
-            var connectResult = client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, null));
+            var connectResult = client.SubClient.ConnectSocketSub(
+                new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
 
             //assert
             Assert.That(connectResult.Success == canConnect);
@@ -59,7 +62,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
+            var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
             var rstEvent = new ManualResetEvent(false);
             Dictionary<string, string> result = null;
 
@@ -92,7 +95,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
+            var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
             var rstEvent = new ManualResetEvent(false);
             string original = null;
 
@@ -123,7 +126,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            var sub = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
+            var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
             client.SubClient.ConnectSocketSub(sub);
 
             var subscription = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
@@ -146,8 +149,8 @@ namespace CryptoExchange.Net.UnitTests
             var socket2 = client.CreateSocket();
             socket1.CanConnect = true;
             socket2.CanConnect = true;
-            var sub1 = new SocketConnection(new TraceLogger(), client.SubClient, socket1, null);
-            var sub2 = new SocketConnection(new TraceLogger(), client.SubClient, socket2, null);
+            var sub1 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket1), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
+            var sub2 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket2), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
             client.SubClient.ConnectSocketSub(sub1);
             client.SubClient.ConnectSocketSub(sub2);
             var subscription1 = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
@@ -173,7 +176,7 @@ namespace CryptoExchange.Net.UnitTests
             var client = new TestSocketClient(options => { options.ReconnectInterval = TimeSpan.Zero; });
             var socket = client.CreateSocket();
             socket.CanConnect = false;
-            var sub1 = new SocketConnection(new TraceLogger(), client.SubClient, socket, null);
+            var sub1 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
 
             // act
             var connectResult = client.SubClient.ConnectSocketSub(sub1);
@@ -194,7 +197,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test"));
+            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);
@@ -217,7 +220,7 @@ namespace CryptoExchange.Net.UnitTests
             });
             var socket = client.CreateSocket();
             socket.CanConnect = true;
-            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), client.SubClient, socket, "https://test.test"));
+            client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
 
             // act
             var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => {}, ct: default);

@@ -22,7 +22,11 @@ namespace CryptoExchange.Net.OrderBook
     /// </summary>
     public abstract class SymbolOrderBook : ISymbolOrderBook, IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _bookLock = new Lock();
+#else
         private readonly object _bookLock = new object();
+#endif
 
         private OrderBookStatus _status;
         private UpdateSubscription? _subscription;

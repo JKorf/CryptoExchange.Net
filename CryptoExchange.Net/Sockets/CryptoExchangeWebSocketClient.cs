@@ -33,7 +33,11 @@ namespace CryptoExchange.Net.Sockets
         }
 
         internal static int _lastStreamId;
-        private static readonly object _streamIdLock = new();
+#if NET9_0_OR_GREATER
+        private static readonly Lock _streamIdLock = new Lock();
+#else
+        private static readonly object _streamIdLock = new object();
+#endif
         private static readonly ArrayPool<byte> _receiveBufferPool = ArrayPool<byte>.Shared;
 
         private readonly AsyncResetEvent _sendEvent;
@@ -64,7 +68,11 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Received messages lock
         /// </summary>
-        protected readonly object _receivedMessagesLock;
+#if NET9_0_OR_GREATER
+        private readonly Lock _receivedMessagesLock = new Lock();
+#else
+        private readonly object _receivedMessagesLock = new object();
+#endif
 
         /// <summary>
         /// Log
@@ -152,7 +160,6 @@ namespace CryptoExchange.Net.Sockets
             _sendEvent = new AsyncResetEvent();
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
-            _receivedMessagesLock = new object();
             _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
 
             _closeSem = new SemaphoreSlim(1, 1);
@@ -460,11 +467,11 @@ namespace CryptoExchange.Net.Sockets
             {
                 if (_socket.State == WebSocketState.CloseReceived)
                 {
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                 }
                 else if (_socket.State == WebSocketState.Open)
                 {
-                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                     var startWait = DateTime.UtcNow;
                     while (_socket.State != WebSocketState.Closed && _socket.State != WebSocketState.Aborted)
                     {
@@ -482,7 +489,8 @@ namespace CryptoExchange.Net.Sockets
                 // So socket might go to aborted state, might still be open
             }
 
-            _ctsSource.Cancel();
+            if (!_disposed)
+                _ctsSource.Cancel();
         }
 
         /// <summary>

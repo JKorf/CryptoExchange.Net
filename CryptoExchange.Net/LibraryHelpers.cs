@@ -158,6 +158,9 @@ namespace CryptoExchange.Net
 #endif
         }
 
+        /// <summary>
+        /// Waits for all of the ValueTasks to complete
+        /// </summary>
         public static async ValueTask WhenAll(IReadOnlyList<ValueTask> tasks)
         {
             if (tasks.Count == 0)
@@ -184,6 +187,9 @@ namespace CryptoExchange.Net
                 await Task.WhenAll(toAwait!).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Waits for all of the ValueTasks to complete
+        /// </summary>
         public static ValueTask WhenAll(IEnumerable<ValueTask> tasks)
         {
             return WhenAll(tasks.ToList());

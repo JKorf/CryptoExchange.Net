@@ -75,8 +75,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public int? ReceiveBufferSize { get; set; } = null;
 
-        public PipeWriter? PipeWriter { get; set; } = null;
-
         /// <summary>
         /// ctor
         /// </summary>

@@ -1,30 +1,57 @@
 ﻿using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
+    /// <summary>
+    /// Socket connection
+    /// </summary>
     public interface ISocketConnection
     {
+        /// <summary>
+        /// The API client the connection belongs to
+        /// </summary>
         SocketApiClient ApiClient { get; set; }
+        /// <summary>
+        /// Whether the connection has been authenticated
+        /// </summary>
         bool Authenticated { get; set; }
+        /// <summary>
+        /// Whether the connection is established
+        /// </summary>
         bool Connected { get; }
+        /// <summary>
+        /// Connection URI
+        /// </summary>
         Uri ConnectionUri { get; }
+        /// <summary>
+        /// Id
+        /// </summary>
         int SocketId { get; }
+        /// <summary>
+        /// Tag
+        /// </summary>
         string Tag { get; set; }
+        /// <summary>
+        /// Closed event
+        /// </summary>
 
         event Action? ConnectionClosed;
-
+        /// <summary>
+        /// Connect the websocket
+        /// </summary>
         Task<CallResult> ConnectAsync(CancellationToken ct);
+        /// <summary>
+        /// Close the connection
+        /// </summary>
+        /// <returns></returns>
         Task CloseAsync();
+        /// <summary>
+        /// Dispose
+        /// </summary>
         void Dispose();
-
-        //ValueTask<CallResult> SendStringAsync(int requestId, string data, int weight);
-        //ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight);
-        //ValueTask<CallResult> SendBytesAsync(int requestId, byte[] data, int weight);
     }
 }

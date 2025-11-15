@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Objects.Sockets
@@ -14,7 +15,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         private readonly SocketConnection _connection;
         internal readonly Subscription _subscription;
 
-        private object _eventLock = new object();
+#if NET9_0_OR_GREATER
+        private readonly Lock _eventLock = new Lock();
+#else
+        private readonly object _eventLock = new object();
+#endif
+
         private bool _connectionEventsSubscribed = true;
         private List<Action> _connectionClosedEventHandlers = new List<Action>();
         private List<Action> _connectionLostEventHandlers = new List<Action>();

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Trades
@@ -42,7 +43,11 @@ namespace CryptoExchange.Net.Trackers.Trades
         /// <summary>
         /// Lock for accessing _data
         /// </summary>
-        protected readonly object _lock = new object();
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new Lock();
+#else
+        private readonly object _lock = new object();
+#endif
         /// <summary>
         /// Whether the snapshot has been set
         /// </summary>

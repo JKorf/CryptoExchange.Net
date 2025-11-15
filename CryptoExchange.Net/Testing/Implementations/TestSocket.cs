@@ -39,7 +39,11 @@ namespace CryptoExchange.Net.Testing.Implementations
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
         public static int lastId = 0;
-        public static object lastIdLock = new object();
+#if NET9_0_OR_GREATER
+        public static readonly Lock lastIdLock = new Lock();
+#else
+        public static readonly object lastIdLock = new object();
+#endif
 
         public TestSocket(string address)
         {
