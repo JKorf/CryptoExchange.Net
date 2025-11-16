@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -266,6 +268,8 @@ namespace CryptoExchange.Net.Sockets
         private IByteMessageAccessor? _stringMessageAccessor;
         private IByteMessageAccessor? _byteMessageAccessor;
 
+        private IMessageConverter? _messageConverter;
+
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
         /// </summary>
@@ -296,7 +300,7 @@ namespace CryptoExchange.Net.Sockets
             Tag = tag;
             Properties = new Dictionary<string, object>();
 
-            _socket = socketFactory.CreateWebsocket(logger, parameters);
+            _socket = socketFactory.CreateWebsocket(logger, this, parameters);
             _logger.SocketCreatedForAddress(_socket.Id, parameters.Uri.ToString());
 
             _socket.OnStreamMessage += HandleStreamMessage;
@@ -498,6 +502,52 @@ namespace CryptoExchange.Net.Sockets
 
             query.IsSend(query.RequestTimeout ?? ApiClient.ClientOptions.RequestTimeout);
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handle a message
+        /// </summary>
+        protected internal virtual void HandleStreamMessage2(WebSocketMessageType type, ReadOnlySpan<byte> data)
+        {
+            //var sw = Stopwatch.StartNew();
+            var receiveTime = DateTime.UtcNow;
+
+            //// 1. Decrypt/Preprocess if necessary
+            //data = ApiClient.PreprocessStreamMessage(this, type, data);
+
+            _messageConverter ??= ApiClient.CreateMessageConverter();
+
+            var messageType = _messageConverter.GetMessageType(data, type); 
+            if (messageType.Type == null)
+            {
+                // Failed to determine message type
+                return;
+            }
+
+            var result = _messageConverter.Deserialize(data, messageType.Type);
+            if (result == null)
+            {
+                // Deserialize error
+                return;
+            }
+
+            var targetType = messageType.Type;
+            List<IMessageProcessor> listeners;
+            lock (_listenersLock)
+                listeners = _listeners.Where(x => x.DeserializationTypes.Contains(targetType)).ToList();
+            if (listeners.Count == 0)
+            {
+                // No subscriptions found for type
+                return;
+            }
+
+            var dataEvent = new DataEvent<object>(result, null, null, null /*originalData*/, receiveTime, null);
+            foreach (var subscription in listeners)
+            {
+                var links = subscription.MessageMatcher.GetHandlerLinks(messageType.Identifier);
+                foreach(var link in links)
+                    subscription.Handle(this, dataEvent, link);
+            }
         }
 
         /// <summary>

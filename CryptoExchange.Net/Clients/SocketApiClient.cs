@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
@@ -813,19 +814,20 @@ namespace CryptoExchange.Net.Clients
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
                 ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
+                UseNewMessageDeserialization = ClientOptions.EnabledNewDeserialization
             };
 
-        /// <summary>
-        /// Create a socket for an address
-        /// </summary>
-        /// <param name="address">The address the socket should connect to</param>
-        /// <returns></returns>
-        protected internal virtual IWebsocket CreateSocket(string address)
-        {
-            var socket = SocketFactory.CreateWebsocket(_logger, GetWebSocketParameters(address));
-            _logger.SocketCreatedForAddress(socket.Id, address);
-            return socket;
-        }
+        ///// <summary>
+        ///// Create a socket for an address
+        ///// </summary>
+        ///// <param name="address">The address the socket should connect to</param>
+        ///// <returns></returns>
+        //protected internal virtual IWebsocket CreateSocket(string address)
+        //{
+        //    var socket = SocketFactory.CreateWebsocket(_logger,  GetWebSocketParameters(address));
+        //    _logger.SocketCreatedForAddress(socket.Id, address);
+        //    return socket;
+        //}
 
         /// <summary>
         /// Unsubscribe an update subscription
@@ -1059,5 +1061,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="data"></param>
         /// <returns></returns>
         public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
+
+        public abstract IMessageConverter CreateMessageConverter();
     }
 }

@@ -90,7 +90,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Get any handler links matching with the listen id
         /// </summary>
-        public List<MessageHandlerLink> GetHandlerLinks(string listenId) => HandlerLinks.Where(x => x.Check(listenId)).ToList();
+        public IEnumerable<MessageHandlerLink> GetHandlerLinks(string listenId) => HandlerLinks.Where(x => x.Check(listenId));
 
         /// <inheritdoc />
         public override string ToString() => string.Join(",", HandlerLinks.Select(x => x.ToString()));
@@ -113,6 +113,7 @@ namespace CryptoExchange.Net.Sockets
         /// Deserialization type
         /// </summary>
         public abstract Type GetDeserializationType(IMessageAccessor accessor);
+        public abstract Type DeserializationType { get; }
 
         /// <summary>
         /// ctor
@@ -149,6 +150,8 @@ namespace CryptoExchange.Net.Sockets
     public class MessageHandlerLink<TServer>: MessageHandlerLink
     {
         private Func<SocketConnection, DataEvent<TServer>, CallResult> _handler;
+
+        public override Type DeserializationType => typeof(TServer);
 
         /// <inheritdoc />
         public override Type GetDeserializationType(IMessageAccessor accessor) => typeof(TServer);

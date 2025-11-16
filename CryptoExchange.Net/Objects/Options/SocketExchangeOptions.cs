@@ -61,6 +61,8 @@ namespace CryptoExchange.Net.Objects.Options
         /// </remarks>
         public int? ReceiveBufferSize { get; set; }
 
+        public bool EnabledNewDeserialization { get; set; }
+
         /// <summary>
         /// Create a copy of this options
         /// </summary>
@@ -82,6 +84,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.RateLimiterEnabled = RateLimiterEnabled;
             item.ReceiveBufferSize = ReceiveBufferSize;
+            item.EnabledNewDeserialization = EnabledNewDeserialization;
             return item;
         }
     }

@@ -75,6 +75,8 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         public int? ReceiveBufferSize { get; set; } = null;
 
+        public bool UseNewMessageDeserialization { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>

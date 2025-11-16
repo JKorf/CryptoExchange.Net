@@ -9,6 +9,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -145,22 +146,28 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
+        private SocketConnection _connection;
+
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="logger">The log object to use</param>
         /// <param name="websocketParameters">The parameters for this socket</param>
-        public CryptoExchangeWebSocketClient(ILogger logger, WebSocketParameters websocketParameters)
+        public CryptoExchangeWebSocketClient(ILogger logger, SocketConnection connection, WebSocketParameters websocketParameters)
         {
             Id = NextStreamId();
             _logger = logger;
+            _connection = connection;
 
             Parameters = websocketParameters;
             _receivedMessages = new List<ReceiveItem>();
             _sendEvent = new AsyncResetEvent();
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
-            _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
+            if (websocketParameters.UseNewMessageDeserialization)
+                _receiveBufferSize = 1024;
+            else
+                _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
@@ -682,7 +689,10 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
-                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                if (!Parameters.UseNewMessageDeserialization)
+                                    await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
+                                else
+                                    ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(buffer.Array!, buffer.Offset, receiveResult.Count));
                             }
                             else
                             {
@@ -717,7 +727,11 @@ namespace CryptoExchange.Net.Sockets
                         {
                             _logger.SocketReassembledMessage(Id, multipartStream!.Length);
                             // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
-                            await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
+                            
+                            if (!Parameters.UseNewMessageDeserialization)
+                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
+                            else
+                                ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
                         }
                         else
                         {
@@ -741,6 +755,19 @@ namespace CryptoExchange.Net.Sockets
                 _receiveBufferPool.Return(rentedBuffer, true);
                 _logger.SocketReceiveLoopFinished(Id);
             }
+        }
+
+        /// <summary>
+        /// Process a stream message
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected void ProcessDataNew(WebSocketMessageType type, ReadOnlySpan<byte> data)
+        {
+            LastActionTime = DateTime.UtcNow;
+            _connection.HandleStreamMessage2(type, data);
+            //await (OnStreamMessage?.Invoke(type, data) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         /// <summary>

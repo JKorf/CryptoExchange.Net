@@ -13,9 +13,9 @@ namespace CryptoExchange.Net.Sockets
     public class WebsocketFactory : IWebsocketFactory
     {
         /// <inheritdoc />
-        public IWebsocket CreateWebsocket(ILogger logger, WebSocketParameters parameters)
+        public IWebsocket CreateWebsocket(ILogger logger, SocketConnection connection, WebSocketParameters parameters)
         {
-            return new CryptoExchangeWebSocketClient(logger, parameters);
+            return new CryptoExchangeWebSocketClient(logger, connection, parameters);
         }
         /// <inheritdoc />
         public IHighPerfWebsocket CreateHighPerfWebsocket(ILogger logger, WebSocketParameters parameters, PipeWriter pipeWriter)

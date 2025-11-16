@@ -484,23 +484,32 @@ namespace CryptoExchange.Net.Sockets
 #pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
 #pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
                 {
-                    var tasks = _typedSubscriptions.Select(sub =>
+                    if (_typedSubscriptions.Count == 1)
                     {
-                        try
-                        {
-                            return sub.HandleAsync(update!);
-                        }
-                        catch (Exception ex)
-                        {
-                            sub.InvokeExceptionHandler(ex);
-                            _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
-                            return new ValueTask();
-                        }
-                    });
+                        // If there is only one listener we can prevent the overhead of the await which will call a `ToList`
+                        await DelegateToSubscription(_typedSubscriptions[0], update!).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    var tasks = _typedSubscriptions.Select(sub => DelegateToSubscription(sub, update!));
                     await LibraryHelpers.WhenAll(tasks).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
+        }
+
+        private ValueTask DelegateToSubscription(HighPerfSubscription<T> sub, T update)
+        {
+            try
+            {
+                return sub.HandleAsync(update!);
+            }
+            catch (Exception ex)
+            {
+                sub.InvokeExceptionHandler(ex);
+                _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
+                return new ValueTask();
+            }
         }
     }
 }

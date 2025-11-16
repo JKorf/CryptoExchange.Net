@@ -65,10 +65,21 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public AsyncResetEvent? ContinueAwaiter { get; set; }
 
+        public HashSet<Type> DeserializationTypes { get; set; }
+
+        private MessageMatcher _matcher;
         /// <summary>
-        /// Matcher for this query
+        /// Matcher for this subscription
         /// </summary>
-        public MessageMatcher MessageMatcher { get; set; } = null!;
+        public MessageMatcher MessageMatcher
+        {
+            get => _matcher;
+            set
+            {
+                _matcher = value;
+                DeserializationTypes = new HashSet<Type>(MessageMatcher.HandlerLinks.Select(x => x.DeserializationType));
+            }
+        }
 
         /// <summary>
         /// The query request object
