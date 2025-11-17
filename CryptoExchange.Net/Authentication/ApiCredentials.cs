@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-using CryptoExchange.Net.Converters.SystemTextJson;
-using CryptoExchange.Net.Converters.MessageParsing;
 
 namespace CryptoExchange.Net.Authentication
 {

@@ -20,7 +20,9 @@ namespace CryptoExchange.Net.Interfaces
         /// The matcher for this listener
         /// </summary>
         public MessageMatcher MessageMatcher { get; }
-
+        /// <summary>
+        /// The types the message processor deserializes to
+        /// </summary>
         public HashSet<Type> DeserializationTypes { get; set; }
         /// <summary>
         /// Handle a message

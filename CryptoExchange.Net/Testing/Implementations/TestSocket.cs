@@ -48,11 +48,12 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         private bool _newDeserialization;
 
-        public SocketConnection Connection { get; set; }
+        public SocketConnection? Connection { get; set; }
 
         public TestSocket(bool newDeserialization, string address)
         {
             _newDeserialization = newDeserialization;
+
             Uri = new Uri(address);
             lock (lastIdLock)
             {
@@ -113,6 +114,9 @@ namespace CryptoExchange.Net.Testing.Implementations
             }
             else
             {
+                if (Connection == null)
+                    throw new ArgumentNullException(nameof(Connection));
+
                 Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
             }
         }

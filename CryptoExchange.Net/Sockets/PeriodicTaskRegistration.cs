@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Delegate for getting the query
         /// </summary>
-        public Func<SocketConnection, Query> QueryDelegate { get; set; } = null!;
+        public Func<ISocketConnection, Query> QueryDelegate { get; set; } = null!;
         /// <summary>
         /// Callback after query
         /// </summary>

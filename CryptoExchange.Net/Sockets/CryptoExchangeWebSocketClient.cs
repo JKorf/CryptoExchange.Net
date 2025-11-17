@@ -152,6 +152,7 @@ namespace CryptoExchange.Net.Sockets
         /// ctor
         /// </summary>
         /// <param name="logger">The log object to use</param>
+        /// <param name="connection">The socket connection</param>
         /// <param name="websocketParameters">The parameters for this socket</param>
         public CryptoExchangeWebSocketClient(ILogger logger, SocketConnection connection, WebSocketParameters websocketParameters)
         {
@@ -164,7 +165,7 @@ namespace CryptoExchange.Net.Sockets
             _sendEvent = new AsyncResetEvent();
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
-            if (websocketParameters.UseNewMessageDeserialization)
+            if (websocketParameters.UseUpdatedDeserialization)
                 _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? 65536;
             else
                 _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
@@ -689,7 +690,7 @@ namespace CryptoExchange.Net.Sockets
                             {
                                 // Received a complete message and it's not multi part
                                 _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
-                                if (!Parameters.UseNewMessageDeserialization)
+                                if (!Parameters.UseUpdatedDeserialization)
                                     await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                                 else
                                     ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(buffer.Array!, buffer.Offset, receiveResult.Count));
@@ -728,7 +729,7 @@ namespace CryptoExchange.Net.Sockets
                             _logger.SocketReassembledMessage(Id, multipartStream!.Length);
                             // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
                             
-                            if (!Parameters.UseNewMessageDeserialization)
+                            if (!Parameters.UseUpdatedDeserialization)
                                 await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
                             else
                                 ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));

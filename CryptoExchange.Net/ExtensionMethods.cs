@@ -9,10 +9,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using System.Threading.Tasks;
 using System.Web;
 
 namespace CryptoExchange.Net

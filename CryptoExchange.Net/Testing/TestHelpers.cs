@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Testing
 
         internal static TestSocket ConfigureSocketClient<T>(T client, string address) where T : BaseSocketClient
         {
-            var socket = new TestSocket(client.ClientOptions.EnabledNewDeserialization, address);
+            var socket = new TestSocket(client.ClientOptions.UseUpdatedDeserialization, address);
             foreach (var apiClient in client.ApiClients.OfType<SocketApiClient>())
             {
                 apiClient.SocketFactory = new TestWebsocketFactory(socket);

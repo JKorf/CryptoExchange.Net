@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -80,11 +79,7 @@ namespace CryptoExchange.Net.Clients
         /// Periodic task registrations
         /// </summary>
         protected List<PeriodicTaskRegistration> PeriodicTaskRegistrations { get; set; } = new List<PeriodicTaskRegistration>();
-        /// <summary>
-        /// Periodic task registrations
-        /// </summary>
-        protected List<HighPerfPeriodicTaskRegistration> HighPerfPeriodicTaskRegistrations { get; set; } = new List<HighPerfPeriodicTaskRegistration>();
-
+        
         /// <summary>
         /// List of address to keep an alive connection to
         /// </summary>
@@ -189,13 +184,6 @@ namespace CryptoExchange.Net.Clients
                 Callback = callback,
                 Interval = interval,
                 QueryDelegate = queryDelegate
-            });
-
-            HighPerfPeriodicTaskRegistrations.Add(new HighPerfPeriodicTaskRegistration
-            {
-                Identifier = identifier,
-                Interval = interval,
-                GetRequestDelegate = (con) => queryDelegate(con).Request
             });
         }
 
@@ -344,6 +332,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="url">The URL to connect to</param>
         /// <param name="subscription">The subscription</param>
+        /// <param name="connectionFactory">The factory for creating a socket connection</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
         protected virtual async Task<CallResult<HighPerfUpdateSubscription>> SubscribeHighPerfAsync<TUpdateType>(
@@ -723,6 +712,7 @@ namespace CryptoExchange.Net.Clients
         /// Gets a connection for a new subscription or query. Can be an existing if there are open position or a new one.
         /// </summary>
         /// <param name="address">The address the socket is for</param>
+        /// <param name="connectionFactory">The factory for creating a socket connection</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
         protected virtual async Task<CallResult<HighPerfSocketConnection<TUpdateType>>> GetHighPerfSocketConnection<TUpdateType>(
@@ -763,9 +753,8 @@ namespace CryptoExchange.Net.Clients
 
             // Create new socket connection
             var socketConnection = connectionFactory.CreateHighPerfConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, address);
-            //var socketConnection = new HighPerfJsonSocketConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, JsonSerializerOptions, address);
-            foreach (var ptg in HighPerfPeriodicTaskRegistrations)
-                socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.GetRequestDelegate);
+            foreach (var ptg in PeriodicTaskRegistrations)
+                socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, (con) => ptg.QueryDelegate(con).Request);
 
             return new CallResult<HighPerfSocketConnection<TUpdateType>>(socketConnection);
         }
@@ -831,7 +820,7 @@ namespace CryptoExchange.Net.Clients
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
                 ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
-                UseNewMessageDeserialization = ClientOptions.EnabledNewDeserialization
+                UseUpdatedDeserialization = ClientOptions.UseUpdatedDeserialization
             };
 
         ///// <summary>

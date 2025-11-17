@@ -11,12 +11,11 @@ using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
 using System.IO.Pipelines;
-using System.Text.Json;
 
 namespace CryptoExchange.Net.Sockets
 {
     /// <summary>
-    /// A single socket connection to the server
+    /// A single socket connection focused on performance
     /// </summary>
     public abstract class HighPerfSocketConnection : ISocketConnection
     {
@@ -418,12 +417,18 @@ namespace CryptoExchange.Net.Sockets
     /// <inheritdoc />
     public abstract class HighPerfSocketConnection<T> : HighPerfSocketConnection
     {
+        /// <summary>
+        /// Lock for listener access
+        /// </summary>
 #if NET9_0_OR_GREATER
         protected readonly Lock _listenersLock = new Lock();
 #else
         protected readonly object _listenersLock = new object();
 #endif
 
+        /// <summary>
+        /// Subscriptions
+        /// </summary>
         protected readonly List<HighPerfSubscription<T>> _typedSubscriptions;
 
         /// <inheritdoc />
@@ -472,65 +477,22 @@ namespace CryptoExchange.Net.Sockets
                 _typedSubscriptions.Remove(subscription);
         }
 
-        protected ValueTask DelegateToSubscription(HighPerfSubscription<T> sub, T update)
+        /// <summary>
+        /// Delegate the update to the listeners
+        /// </summary>
+        protected ValueTask DelegateToSubscription(HighPerfSubscription<T> subscription, T update)
         {
             try
             {
-                return sub.HandleAsync(update!);
+                return subscription.HandleAsync(update!);
             }
             catch (Exception ex)
             {
-                sub.InvokeExceptionHandler(ex);
+                subscription.InvokeExceptionHandler(ex);
                 _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
                 return new ValueTask();
             }
         }
-    }
-
-    public class HighPerfJsonSocketConnection<T> : HighPerfSocketConnection<T>
-    {
-        private JsonSerializerOptions _jsonOptions;
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public HighPerfJsonSocketConnection(
-            ILogger logger,
-            IWebsocketFactory socketFactory,
-            WebSocketParameters parameters, 
-            SocketApiClient apiClient, 
-            JsonSerializerOptions serializerOptions, 
-            string tag)
-            : base(logger, socketFactory, parameters, apiClient, tag)
-        {
-            _jsonOptions = serializerOptions;
-        }
-
-        /// <inheritdoc />
-        protected override async Task ProcessAsync(CancellationToken ct)
-        {
-            try
-            {
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _jsonOptions, ct).ConfigureAwait(false))
-#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-                {
-                    if (_typedSubscriptions.Count == 1)
-                    {
-                        // If there is only one listener we can prevent the overhead of the await which will call a `ToList`
-                        await DelegateToSubscription(_typedSubscriptions[0], update!).ConfigureAwait(false);
-                        continue;
-                    }
-
-                    var tasks = _typedSubscriptions.Select(sub => DelegateToSubscription(sub, update!));
-                    await LibraryHelpers.WhenAll(tasks).ConfigureAwait(false);
-                }
-            }
-            catch (OperationCanceledException) { }
-        }
-
     }
 }
 

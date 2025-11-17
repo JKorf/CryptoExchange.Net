@@ -9,11 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -151,6 +148,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Authenticated { get; set; }
 
+        /// <inheritdoc />
         public bool HasAuthenticatedSubscription => Subscriptions.Any(x => x.Authenticated);
 
         /// <summary>
@@ -536,7 +534,7 @@ namespace CryptoExchange.Net.Sockets
 
             List<IMessageProcessor>? processors = null;
             var messageInfo = messageConverter.GetMessageInfo(data, type); 
-            if (messageInfo.Type == null)
+            if (messageInfo.DeserializationType == null)
             {
                 if (messageInfo.Identifier == null)
                 {
@@ -556,11 +554,11 @@ namespace CryptoExchange.Net.Sockets
                         continue;
 
                     _logger.LogTrace("Message type determined based on identifier");
-                    messageInfo.Type = handler.DeserializationType;
+                    messageInfo.DeserializationType = handler.DeserializationType;
                     break;
                 }
 
-                if (messageInfo.Type == null)
+                if (messageInfo.DeserializationType == null)
                 {
                     // No handler found for identifier either, can't process
                     _logger.LogWarning("Failed to determine message type. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
@@ -571,7 +569,7 @@ namespace CryptoExchange.Net.Sockets
             object result;
             try
             {
-                result = messageConverter.Deserialize(data, messageInfo.Type!);
+                result = messageConverter.Deserialize(data, messageInfo.DeserializationType!);
             }
             catch(Exception ex)
             {
@@ -586,7 +584,7 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            var targetType = messageInfo.Type!;
+            var targetType = messageInfo.DeserializationType!;
             if (processors == null)
             {
                 lock (_listenersLock)
@@ -671,7 +669,7 @@ namespace CryptoExchange.Net.Sockets
                         _logger.ProcessorMatched(SocketId, listener.ToString(), listenId);
 
                         // 4. Determine the type to deserialize to for this processor
-                        var messageType = listener.GetDeserializationType(accessor);
+                        var messageType = listener.DeserializationType;
                         if (messageType == null)
                         {
                             _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);

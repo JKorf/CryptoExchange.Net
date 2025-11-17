@@ -16,7 +16,9 @@ namespace CryptoExchange.Net.Testing.Implementations
             _socket = socket;
         }
 
-        public IHighPerfWebsocket CreateHighPerfWebsocket(ILogger logger, WebSocketParameters parameters, PipeWriter pipeWriter) => throw new NotImplementedException();
+        public IHighPerfWebsocket CreateHighPerfWebsocket(ILogger logger, WebSocketParameters parameters, PipeWriter pipeWriter) 
+            => throw new NotImplementedException();
+        
         public IWebsocket CreateWebsocket(ILogger logger, SocketConnection connection, WebSocketParameters parameters)
         {
             _socket.Connection = connection;

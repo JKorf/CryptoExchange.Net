@@ -112,7 +112,6 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Deserialization type
         /// </summary>
-        public abstract Type GetDeserializationType(IMessageAccessor accessor);
         public abstract Type DeserializationType { get; }
 
         /// <summary>
@@ -151,10 +150,8 @@ namespace CryptoExchange.Net.Sockets
     {
         private Func<SocketConnection, DataEvent<TServer>, CallResult> _handler;
 
-        public override Type DeserializationType => typeof(TServer);
-
         /// <inheritdoc />
-        public override Type GetDeserializationType(IMessageAccessor accessor) => typeof(TServer);
+        public override Type DeserializationType => typeof(TServer);
 
         /// <summary>
         /// ctor

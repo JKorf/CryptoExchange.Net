@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Objects.Options
         public ApiProxy? Proxy { get; set; }
 
         /// <summary>
-        /// If true, the CallResult and DataEvent objects will also include the originally received json data in the OriginalData property
+        /// If true, the CallResult and DataEvent objects will also include the originally received data in the OriginalData property
         /// </summary>
         public bool OutputOriginalData { get; set; } = false;
 

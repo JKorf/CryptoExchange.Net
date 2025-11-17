@@ -389,6 +389,7 @@ namespace CryptoExchange.Net.Clients
 
             var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
+#warning Should be configurable
             request.Accept = Constants.JsonContentHeader;
 
             foreach (var header in requestConfiguration.Headers)
@@ -482,11 +483,11 @@ namespace CryptoExchange.Net.Clients
 
                 if (!valid)
                 {
-                    // Invalid json
+                    // Invalid data
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, valid.Error);
                 }
 
-                // Json response received
+                // Data response received
                 var parsedError = TryParseError(requestDefinition, response.ResponseHeaders, accessor);
                 if (parsedError != null)
                 {

@@ -1,25 +1,25 @@
 ﻿using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
 using System.Text.Json;
 
 namespace CryptoExchange.Net.Sockets.HighPerf
 {
-    public class HighPerfJsonConnectionFactory : IHighPerfConnectionFactory
+    /// <inheritdoc />
+    public class HighPerfJsonSocketConnectionFactory : IHighPerfConnectionFactory
     {
         private readonly JsonSerializerOptions _options;
 
-        public HighPerfJsonConnectionFactory(JsonSerializerOptions options)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public HighPerfJsonSocketConnectionFactory(JsonSerializerOptions options)
         {
             _options = options;
         }
 
+        /// <inheritdoc />
         public HighPerfSocketConnection<T> CreateHighPerfConnection<T>(
             ILogger logger, IWebsocketFactory factory, WebSocketParameters parameters, SocketApiClient client, string address)
         {

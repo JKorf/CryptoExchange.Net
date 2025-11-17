@@ -2,15 +2,11 @@
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Sockets;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -435,45 +431,12 @@ namespace CryptoExchange.Net
             processor.Exception += result.Data._subscription.InvokeExceptionHandler;
             result.Data.SubscriptionStatusChanged += (upd) =>
             {
-                if (upd == CryptoExchange.Net.Objects.SubscriptionStatus.Closed)
+                if (upd == SubscriptionStatus.Closed)
                     _ = processor.StopAsync(true);
             };
 
             return result;
         }
-
-
-//        public static async Task SubscribeHighPerformance<T>(ILogger logger, string url, JsonSerializerOptions jsonOptions, Action<T> callback, CancellationToken ct)
-//        {
-
-//            var pipe = new Pipe(new PipeOptions());
-//            var ws = new HighPerformanceWebSocketClient(
-//                logger,
-//                new WebSocketParameters(new Uri(url), ReconnectPolicy.Disabled)
-//                {
-//                    PipeWriter = pipe.Writer
-//                });
-
-//            try
-//            {
-//                await ws.ConnectAsync(ct).ConfigureAwait(false);
-
-//                ct.Register(() => _ = ws.CloseAsync());
-
-//#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-//#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-//#if NET10_0
-//                await foreach (var item in JsonSerializer.DeserializeAsyncEnumerable<T>(pipe.Reader, jsonOptions, ct).ConfigureAwait(false))
-//                    callback(item!);
-//#else
-//                await foreach (var item in JsonSerializer.DeserializeAsyncEnumerable<T>(pipe.Reader.AsStream(), jsonOptions, ct).ConfigureAwait(false))
-//                    callback(item!);
-//#endif
-//#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-//#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-//            }
-//            catch (OperationCanceledException) { }
-//        }
 
         /// <summary>
         /// Parse a decimal value from a string

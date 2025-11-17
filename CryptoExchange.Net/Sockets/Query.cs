@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.Sockets
         /// Response
         /// </summary>
         public object? Response { get; set; }
-
+#warning check if there is a better solution for this in combination with the MessageMatcher
         public HashSet<Type> DeserializationTypes { get; set; }
 
         private MessageMatcher _matcher;
@@ -107,11 +107,13 @@ namespace CryptoExchange.Net.Sockets
         protected CancellationTokenSource? _cts;
 
         /// <summary>
+        /// On complete callback
+        /// </summary>
+        public Action? OnComplete { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="authenticated"></param>
-        /// <param name="weight"></param>
         public Query(object request, bool authenticated, int weight = 1)
         {
             _event = new AsyncResetEvent(false, false);
@@ -168,7 +170,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
 
-        public Action OnComplete { get; set; }
     }
 
     /// <summary>

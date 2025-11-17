@@ -1,12 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.Converters.MessageParsing
 {
+    /// <summary>
+    /// Message info
+    /// </summary>
     public ref struct MessageInfo
     {
-        public Type? Type { get; set; }
+        /// <summary>
+        /// The deserialization type
+        /// </summary>
+        public Type? DeserializationType { get; set; }
+        /// <summary>
+        /// The listen identifier
+        /// </summary>
         public string? Identifier { get; set; }
     }
 

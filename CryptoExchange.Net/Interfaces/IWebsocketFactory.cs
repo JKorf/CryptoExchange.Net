@@ -14,6 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Create a websocket for an url
         /// </summary>
         /// <param name="logger">The logger</param>
+        /// <param name="connection">The socket connection</param>
         /// <param name="parameters">The parameters to use for the connection</param>
         /// <returns></returns>
         IWebsocket CreateWebsocket(ILogger logger, SocketConnection connection, WebSocketParameters parameters);

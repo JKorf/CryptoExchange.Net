@@ -249,14 +249,14 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override void HandleSubQueryResponse(object message)
-            => HandleSubQueryResponse((TSubResponse)message);
+        public override void HandleSubQueryResponse(object? message)
+            => HandleSubQueryResponse((TSubResponse?)message);
 
         /// <summary>
         /// Handle a subscription query response
         /// </summary>
         /// <param name="message"></param>
-        public virtual void HandleSubQueryResponse(TSubResponse message) { }
+        public virtual void HandleSubQueryResponse(TSubResponse? message) { }
 
         /// <inheritdoc />
         public override void HandleUnsubQueryResponse(object message)
