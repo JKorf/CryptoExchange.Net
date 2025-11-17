@@ -152,7 +152,7 @@ namespace CryptoExchange.Net.Sockets
         /// Handle a subscription query response
         /// </summary>
         /// <param name="message"></param>
-        public virtual void HandleSubQueryResponse(object message) { }
+        public virtual void HandleSubQueryResponse(object? message) { }
 
         /// <summary>
         /// Handle an unsubscription query response
@@ -182,11 +182,11 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matcher)
+        public CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matcher)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return Task.FromResult(matcher.Handle(connection, message));
+            return matcher.Handle(connection, message);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.WebSockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -333,6 +334,7 @@ namespace CryptoExchange.Net.Sockets
         private async Task ReceiveLoopAsync()
         {
             Exception? exitException = null;
+
             try
             {
                 while (true)
@@ -340,14 +342,14 @@ namespace CryptoExchange.Net.Sockets
                     if (_ctsSource.IsCancellationRequested)
                         break;
 
-                    ValueWebSocketReceiveResult receiveResult = default;
+                    ValueWebSocketReceiveResult receiveResult;
 
                     try
                     {
                         receiveResult = await _socket!.ReceiveAsync(_pipeWriter.GetMemory(_receiveBufferSize), _ctsSource.Token).ConfigureAwait(false);
 
                         // Advance the writer to communicate which part of the memory was written
-                        _pipeWriter.Advance(receiveResult.Count);
+                        _pipeWriter.Advance(receiveResult.Count);                        
                     }
                     catch (OperationCanceledException ex)
                     {

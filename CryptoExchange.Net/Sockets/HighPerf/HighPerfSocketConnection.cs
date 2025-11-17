@@ -28,6 +28,9 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public bool Authenticated { get; set; } = false;
 
+        /// <inheritdoc />
+        public bool HasAuthenticatedSubscription => false;
+
         /// <summary>
         /// The amount of subscriptions on this connection
         /// </summary>
@@ -96,10 +99,6 @@ namespace CryptoExchange.Net.Sockets
         private Task? _processTask;
 
         /// <summary>
-        /// Serializer options
-        /// </summary>
-        protected readonly JsonSerializerOptions _serializerOptions;
-        /// <summary>
         /// The pipe the websocket will write to
         /// </summary>
         protected readonly Pipe _pipe;
@@ -126,11 +125,10 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// New socket connection
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, JsonSerializerOptions serializerOptions, string tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
         {
             _logger = logger;
             _pipe = new Pipe();
-            _serializerOptions = serializerOptions;
             ApiClient = apiClient;
             Tag = tag;
             Properties = new Dictionary<string, object>();
@@ -147,7 +145,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
-        /// Process message from the pipe
+        /// Process messages from the pipe
         /// </summary>
         protected abstract Task ProcessAsync(CancellationToken ct);
 
@@ -418,15 +416,15 @@ namespace CryptoExchange.Net.Sockets
     }
 
     /// <inheritdoc />
-    public class HighPerfSocketConnection<T> : HighPerfSocketConnection
+    public abstract class HighPerfSocketConnection<T> : HighPerfSocketConnection
     {
 #if NET9_0_OR_GREATER
-        private readonly Lock _listenersLock = new Lock();
+        protected readonly Lock _listenersLock = new Lock();
 #else
-        private readonly object _listenersLock = new object();
+        protected readonly object _listenersLock = new object();
 #endif
 
-        private readonly List<HighPerfSubscription<T>> _typedSubscriptions;
+        protected readonly List<HighPerfSubscription<T>> _typedSubscriptions;
 
         /// <inheritdoc />
         public override HighPerfSubscription[] Subscriptions
@@ -444,7 +442,8 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, JsonSerializerOptions serializerOptions, string tag) : base(logger, socketFactory, parameters, apiClient, serializerOptions, tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
+            : base(logger, socketFactory, parameters, apiClient, tag)
         {
             _typedSubscriptions = new List<HighPerfSubscription<T>>();
         }
@@ -473,6 +472,40 @@ namespace CryptoExchange.Net.Sockets
                 _typedSubscriptions.Remove(subscription);
         }
 
+        protected ValueTask DelegateToSubscription(HighPerfSubscription<T> sub, T update)
+        {
+            try
+            {
+                return sub.HandleAsync(update!);
+            }
+            catch (Exception ex)
+            {
+                sub.InvokeExceptionHandler(ex);
+                _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
+                return new ValueTask();
+            }
+        }
+    }
+
+    public class HighPerfJsonSocketConnection<T> : HighPerfSocketConnection<T>
+    {
+        private JsonSerializerOptions _jsonOptions;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public HighPerfJsonSocketConnection(
+            ILogger logger,
+            IWebsocketFactory socketFactory,
+            WebSocketParameters parameters, 
+            SocketApiClient apiClient, 
+            JsonSerializerOptions serializerOptions, 
+            string tag)
+            : base(logger, socketFactory, parameters, apiClient, tag)
+        {
+            _jsonOptions = serializerOptions;
+        }
+
         /// <inheritdoc />
         protected override async Task ProcessAsync(CancellationToken ct)
         {
@@ -480,7 +513,7 @@ namespace CryptoExchange.Net.Sockets
             {
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
 #pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _serializerOptions, ct).ConfigureAwait(false))
+                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _jsonOptions, ct).ConfigureAwait(false))
 #pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
 #pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
                 {
@@ -498,19 +531,6 @@ namespace CryptoExchange.Net.Sockets
             catch (OperationCanceledException) { }
         }
 
-        private ValueTask DelegateToSubscription(HighPerfSubscription<T> sub, T update)
-        {
-            try
-            {
-                return sub.HandleAsync(update!);
-            }
-            catch (Exception ex)
-            {
-                sub.InvokeExceptionHandler(ex);
-                _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
-                return new ValueTask();
-            }
-        }
     }
 }
 

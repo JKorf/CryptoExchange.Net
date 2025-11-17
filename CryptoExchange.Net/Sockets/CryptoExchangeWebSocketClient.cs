@@ -165,7 +165,7 @@ namespace CryptoExchange.Net.Sockets
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
             if (websocketParameters.UseNewMessageDeserialization)
-                _receiveBufferSize = 1024;
+                _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? 65536;
             else
                 _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
 

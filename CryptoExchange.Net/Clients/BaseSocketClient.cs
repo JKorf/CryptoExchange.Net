@@ -1,14 +1,15 @@
-﻿using System;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Logging.Extensions;
+using CryptoExchange.Net.Objects.Options;
+using CryptoExchange.Net.Objects.Sockets;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging.Extensions;
-using CryptoExchange.Net.Objects.Sockets;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -30,6 +31,9 @@ namespace CryptoExchange.Net.Clients
         public int CurrentSubscriptions => ApiClients.OfType<SocketApiClient>().Sum(s => s.CurrentSubscriptions);
         /// <inheritdoc />
         public double IncomingKbps => ApiClients.OfType<SocketApiClient>().Sum(s => s.IncomingKbps);
+
+        /// <inheritdoc />
+        public new SocketExchangeOptions ClientOptions => (SocketExchangeOptions)base.ClientOptions;
         #endregion
 
         /// <summary>

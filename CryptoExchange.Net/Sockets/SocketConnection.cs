@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,6 +151,8 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Authenticated { get; set; }
 
+        public bool HasAuthenticatedSubscription => Subscriptions.Any(x => x.Authenticated);
+
         /// <summary>
         /// If connection is made
         /// </summary>
@@ -268,7 +271,8 @@ namespace CryptoExchange.Net.Sockets
         private IByteMessageAccessor? _stringMessageAccessor;
         private IByteMessageAccessor? _byteMessageAccessor;
 
-        private IMessageConverter? _messageConverter;
+        private IMessageConverter? _byteMessageConverter;
+        private IMessageConverter? _textMessageConverter;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
@@ -509,42 +513,97 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         protected internal virtual void HandleStreamMessage2(WebSocketMessageType type, ReadOnlySpan<byte> data)
         {
-            //var sw = Stopwatch.StartNew();
             var receiveTime = DateTime.UtcNow;
 
-            //// 1. Decrypt/Preprocess if necessary
+            // 1. Decrypt/Preprocess if necessary
             //data = ApiClient.PreprocessStreamMessage(this, type, data);
 
-            _messageConverter ??= ApiClient.CreateMessageConverter();
+            IMessageConverter messageConverter;
+            if (type == WebSocketMessageType.Binary)
+                messageConverter = _byteMessageConverter ??= ApiClient.CreateMessageConverter(type);
+            else
+                messageConverter = _textMessageConverter ??= ApiClient.CreateMessageConverter(type);
 
-            var messageType = _messageConverter.GetMessageType(data, type); 
-            if (messageType.Type == null)
+            string? originalData = null;
+            if (ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData)
             {
-                // Failed to determine message type
+#if NETSTANDARD2_0
+                originalData = Encoding.UTF8.GetString(data.ToArray());
+#else
+                originalData = Encoding.UTF8.GetString(data);
+#endif
+            }
+
+            List<IMessageProcessor>? processors = null;
+            var messageInfo = messageConverter.GetMessageInfo(data, type); 
+            if (messageInfo.Type == null)
+            {
+                if (messageInfo.Identifier == null)
+                {
+                    // Both deserialization type and identifier null, can't process
+                    _logger.LogWarning("Failed to evaluate message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
+                    return;
+                }
+
+                // Couldn't determine deserialization type, try determine the type based on identifier
+                lock (_listenersLock)
+                    processors = _listeners.ToList();
+
+                foreach (var subscription in processors)
+                {
+                    var handler = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier)?.FirstOrDefault();
+                    if (handler == null)
+                        continue;
+
+                    _logger.LogTrace("Message type determined based on identifier");
+                    messageInfo.Type = handler.DeserializationType;
+                    break;
+                }
+
+                if (messageInfo.Type == null)
+                {
+                    // No handler found for identifier either, can't process
+                    _logger.LogWarning("Failed to determine message type. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
+                    return;
+                }
+            }
+
+            object result;
+            try
+            {
+                result = messageConverter.Deserialize(data, messageInfo.Type!);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogWarning(ex, "Deserialization failed. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
                 return;
             }
 
-            var result = _messageConverter.Deserialize(data, messageType.Type);
             if (result == null)
             {
                 // Deserialize error
+                _logger.LogWarning("Deserialization returned null. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
                 return;
             }
 
-            var targetType = messageType.Type;
-            List<IMessageProcessor> listeners;
-            lock (_listenersLock)
-                listeners = _listeners.Where(x => x.DeserializationTypes.Contains(targetType)).ToList();
-            if (listeners.Count == 0)
+            var targetType = messageInfo.Type!;
+            if (processors == null)
+            {
+                lock (_listenersLock)
+                    processors = _listeners.Where(x => x.DeserializationTypes.Contains(targetType)).ToList();
+            }
+
+            if (processors.Count == 0)
             {
                 // No subscriptions found for type
+                _logger.LogWarning("No subscriptions found for message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
                 return;
             }
 
-            var dataEvent = new DataEvent<object>(result, null, null, null /*originalData*/, receiveTime, null);
-            foreach (var subscription in listeners)
+            var dataEvent = new DataEvent<object>(result, null, null, originalData, receiveTime, null);
+            foreach (var subscription in processors)
             {
-                var links = subscription.MessageMatcher.GetHandlerLinks(messageType.Identifier);
+                var links = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier!);
                 foreach(var link in links)
                     subscription.Handle(this, dataEvent, link);
             }
@@ -649,7 +708,7 @@ namespace CryptoExchange.Net.Sockets
                         try
                         {
                             var innerSw = Stopwatch.StartNew();
-                            await processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null), listener).ConfigureAwait(false);
+                            processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null), listener);
                             if (processor is Query query && query.RequiredResponses != 1)
                                 _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
                             totalUserTime += (int)innerSw.ElapsedMilliseconds;
@@ -873,12 +932,11 @@ namespace CryptoExchange.Net.Sockets
         /// Send a query request and wait for an answer
         /// </summary>
         /// <param name="query">Query to send</param>
-        /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
+        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, CancellationToken ct = default)
         {
-            await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
             return query.Result ?? new CallResult(new TimeoutError());
         }
 
@@ -887,21 +945,19 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <typeparam name="THandlerResponse">Expected result type</typeparam>
         /// <param name="query">Query to send</param>
-        /// <param name="continueEvent">Wait event for when the socket message handler can continue</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, AsyncResetEvent? continueEvent = null, CancellationToken ct = default)
+        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
         {
-            await SendAndWaitIntAsync(query, continueEvent, ct).ConfigureAwait(false);
+            await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
             return query.TypedResult ?? new CallResult<THandlerResponse>(new TimeoutError());
         }
 
-        private async Task SendAndWaitIntAsync(Query query, AsyncResetEvent? continueEvent, CancellationToken ct = default)
+        private async Task SendAndWaitIntAsync(Query query, CancellationToken ct = default)
         {
             lock (_listenersLock)
                 _listeners.Add(query);
 
-            query.ContinueAwaiter = continueEvent;
             var sendResult = await SendAsync(query.Id, query.Request, query.Weight).ConfigureAwait(false);
             if (!sendResult)
             {
@@ -1116,15 +1172,13 @@ namespace CryptoExchange.Net.Sockets
                         subscription.Status = SubscriptionStatus.Subscribed;
                         continue;
                     }
-
-                    var waitEvent = new AsyncResetEvent(false);
-                    taskList.Add(SendAndWaitQueryAsync(subQuery, waitEvent).ContinueWith((r) =>
+                    subQuery.OnComplete = () =>
                     {
-                        subscription.Status = r.Result.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
-                        subscription.HandleSubQueryResponse(subQuery.Response!);
-                        waitEvent.Set();
-                        return r.Result;
-                    }));
+                        subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
+                        subscription.HandleSubQueryResponse(subQuery.Response);
+                    };
+
+                    taskList.Add(SendAndWaitQueryAsync(subQuery));
                 }
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets;
 
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
 #pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
@@ -45,8 +46,13 @@ namespace CryptoExchange.Net.Testing.Implementations
         public static readonly object lastIdLock = new object();
 #endif
 
-        public TestSocket(string address)
+        private bool _newDeserialization;
+
+        public SocketConnection Connection { get; set; }
+
+        public TestSocket(bool newDeserialization, string address)
         {
+            _newDeserialization = newDeserialization;
             Uri = new Uri(address);
             lock (lastIdLock)
             {
@@ -101,12 +107,14 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void InvokeMessage(string data)
         {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
-        }
-
-        public void InvokeMessage<T>(T data)
-        {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data)))).Wait();
+            if (!_newDeserialization)
+            {
+                OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
+            }
+            else
+            {
+                Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
+            }
         }
 
         public Task ReconnectAsync() => throw new NotImplementedException();

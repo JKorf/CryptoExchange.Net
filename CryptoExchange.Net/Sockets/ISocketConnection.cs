@@ -19,6 +19,8 @@ namespace CryptoExchange.Net.Sockets
         /// Whether the connection has been authenticated
         /// </summary>
         bool Authenticated { get; set; }
+
+        bool HasAuthenticatedSubscription { get; }
         /// <summary>
         /// Whether the connection is established
         /// </summary>

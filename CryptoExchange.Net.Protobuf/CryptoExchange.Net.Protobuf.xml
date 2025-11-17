@@ -4,6 +4,11 @@
         <name>CryptoExchange.Net.Protobuf</name>
     </assembly>
     <members>
+        <member name="F:CryptoExchange.Net.Protobuf.Converters.Protobuf.DynamicProtobufConverter._model">
+            <summary>
+            Runtime type model
+            </summary>
+        </member>
         <member name="T:CryptoExchange.Net.Converters.Protobuf.ProtobufMessageAccessor`1">
             <summary>
             System.Text.Json message accessor

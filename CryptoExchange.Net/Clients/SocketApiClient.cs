@@ -127,11 +127,6 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
-        /// <summary>
-        /// Serializer options to be used for high performance socket deserialization
-        /// </summary>
-        public abstract JsonSerializerOptions JsonSerializerOptions { get; }
-
         /// <inheritdoc />
         public new SocketExchangeOptions ClientOptions => (SocketExchangeOptions)base.ClientOptions;
 
@@ -186,7 +181,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="interval"></param>
         /// <param name="queryDelegate"></param>
         /// <param name="callback"></param>
-        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
+        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<ISocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
         {
             PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
             {
@@ -194,6 +189,13 @@ namespace CryptoExchange.Net.Clients
                 Callback = callback,
                 Interval = interval,
                 QueryDelegate = queryDelegate
+            });
+
+            HighPerfPeriodicTaskRegistrations.Add(new HighPerfPeriodicTaskRegistration
+            {
+                Identifier = identifier,
+                Interval = interval,
+                GetRequestDelegate = (con) => queryDelegate(con).Request
             });
         }
 
@@ -286,16 +288,33 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
             }
 
+            void HandleSubscriptionComplete(bool success, object? response)
+            {
+                if (!success)
+                    return;
+
+                subscription.HandleSubQueryResponse(response);
+                subscription.Status = SubscriptionStatus.Subscribed;
+                if (ct != default)
+                {
+                    subscription.CancellationTokenRegistration = ct.Register(async () =>
+                    {
+                        _logger.CancellationTokenSetClosingSubscription(socketConnection.SocketId, subscription.Id);
+                        await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
+                    }, false);
+                }
+            }
+
             subscription.Status = SubscriptionStatus.Subscribing;
-            var waitEvent = new AsyncResetEvent(false);
             var subQuery = subscription.CreateSubscriptionQuery(socketConnection);
             if (subQuery != null)
             {
+                subQuery.OnComplete = () => HandleSubscriptionComplete(subQuery.Result?.Success ?? false, subQuery.Response);
+
                 // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, waitEvent, ct).ConfigureAwait(false);
+                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, ct).ConfigureAwait(false);
                 if (!subResult)
                 {
-                    waitEvent?.Set();
                     var isTimeout = subResult.Error is CancellationRequestedError;
                     if (isTimeout && subscription.Status == SubscriptionStatus.Subscribed)
                     {
@@ -304,27 +323,18 @@ namespace CryptoExchange.Net.Clients
                     else
                     {
                         _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
-                        // If this was a timeout we still need to send an unsubscribe to prevent messages coming in later
+                        // If this was a server process error we still might need to send an unsubscribe to prevent messages coming in later
                         subscription.Status = SubscriptionStatus.Pending;
                         await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                         return new CallResult<UpdateSubscription>(subResult.Error!);
                     }
                 }
-
-                subscription.HandleSubQueryResponse(subQuery.Response!);
             }
-
-            subscription.Status = SubscriptionStatus.Subscribed;
-            if (ct != default)
+            else 
             {
-                subscription.CancellationTokenRegistration = ct.Register(async () =>
-                {
-                    _logger.CancellationTokenSetClosingSubscription(socketConnection.SocketId, subscription.Id);
-                    await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
-                }, false);
+                HandleSubscriptionComplete(true, null);
             }
 
-            waitEvent?.Set();
             _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));
         }
@@ -336,7 +346,11 @@ namespace CryptoExchange.Net.Clients
         /// <param name="subscription">The subscription</param>
         /// <param name="ct">Cancellation token for closing this subscription</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<HighPerfUpdateSubscription>> SubscribeHighPerfAsync<TUpdateType>(string url, HighPerfSubscription<TUpdateType> subscription, CancellationToken ct)
+        protected virtual async Task<CallResult<HighPerfUpdateSubscription>> SubscribeHighPerfAsync<TUpdateType>(
+            string url,
+            HighPerfSubscription<TUpdateType> subscription,
+            IHighPerfConnectionFactory connectionFactory,
+            CancellationToken ct)
         {
             if (_disposing)
                 return new CallResult<HighPerfUpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
@@ -359,7 +373,7 @@ namespace CryptoExchange.Net.Clients
                 while (true)
                 {
                     // Get a new or existing socket connection
-                    var socketResult = await GetHighPerfSocketConnection<TUpdateType>(url, ct).ConfigureAwait(false);
+                    var socketResult = await GetHighPerfSocketConnection<TUpdateType>(url, connectionFactory, ct).ConfigureAwait(false);
                     if (!socketResult)
                         return socketResult.As<HighPerfUpdateSubscription>(null);
 
@@ -402,7 +416,6 @@ namespace CryptoExchange.Net.Clients
                 var sendResult = await socketConnection.SendAsync(subRequest).ConfigureAwait(false);
                 if (!sendResult)
                 {
-                    // Needed?
                     await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
                     return new CallResult<HighPerfUpdateSubscription>(sendResult.Error!);                    
                 }
@@ -486,7 +499,7 @@ namespace CryptoExchange.Net.Clients
             if (ct.IsCancellationRequested)
                 return new CallResult<THandlerResponse>(new CancellationRequestedError());
 
-            return await socketConnection.SendAndWaitQueryAsync(query, null, ct).ConfigureAwait(false);
+            return await socketConnection.SendAndWaitQueryAsync(query, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -712,7 +725,10 @@ namespace CryptoExchange.Net.Clients
         /// <param name="address">The address the socket is for</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<HighPerfSocketConnection<TUpdateType>>> GetHighPerfSocketConnection<TUpdateType>(string address, CancellationToken ct)
+        protected virtual async Task<CallResult<HighPerfSocketConnection<TUpdateType>>> GetHighPerfSocketConnection<TUpdateType>(
+            string address,
+            IHighPerfConnectionFactory connectionFactory,
+            CancellationToken ct)
         {
             var socketQuery = highPerfSocketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
                                                       && s.Value.ApiClient.GetType() == GetType()
@@ -746,7 +762,8 @@ namespace CryptoExchange.Net.Clients
                 _logger.ConnectionAddressSetTo(connectionAddress.Data!);
 
             // Create new socket connection
-            var socketConnection = new HighPerfSocketConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, JsonSerializerOptions, address);
+            var socketConnection = connectionFactory.CreateHighPerfConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, address);
+            //var socketConnection = new HighPerfJsonSocketConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, JsonSerializerOptions, address);
             foreach (var ptg in HighPerfPeriodicTaskRegistrations)
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, ptg.GetRequestDelegate);
 
@@ -1062,6 +1079,10 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
 
-        public abstract IMessageConverter CreateMessageConverter();
+        /// <summary>
+        /// Create a new message converter instance
+        /// </summary>
+        /// <returns></returns>
+        public abstract IMessageConverter CreateMessageConverter(WebSocketMessageType messageType);
     }
 }

@@ -60,11 +60,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public object? Response { get; set; }
 
-        /// <summary>
-        /// Wait event for the calling message processing thread
-        /// </summary>
-        public AsyncResetEvent? ContinueAwaiter { get; set; }
-
         public HashSet<Type> DeserializationTypes { get; set; }
 
         private MessageMatcher _matcher;
@@ -171,8 +166,9 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
+        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
 
+        public Action OnComplete { get; set; }
     }
 
     /// <summary>
@@ -192,12 +188,16 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="request"></param>
         /// <param name="authenticated"></param>
         /// <param name="weight"></param>
-        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
+        protected Query(
+            object request,
+            bool authenticated,
+            int weight = 1)
+            : base(request, authenticated, weight)
         {
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
+        public override CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
         {
             if (!PreCheckMessage(connection, message))
                 return CallResult.SuccessResult;
@@ -214,8 +214,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 Completed = true;
                 _event.Set();
-                if (ContinueAwaiter != null)
-                    await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
+                OnComplete?.Invoke();
             }
 
             return Result;
@@ -238,17 +237,20 @@ namespace CryptoExchange.Net.Sockets
             else
                 Result = new CallResult<THandlerResponse>(default, null, default);
 
-            ContinueAwaiter?.Set();
             _event.Set();
+            OnComplete?.Invoke();
         }
 
         /// <inheritdoc />
         public override void Fail(Error error)
         {
+            if (Completed)
+                return;
+
             Result = new CallResult<THandlerResponse>(error);
             Completed = true;
-            ContinueAwaiter?.Set();
             _event.Set();
+            OnComplete?.Invoke();
         }
     }
 }
