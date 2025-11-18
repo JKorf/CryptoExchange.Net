@@ -1062,10 +1062,10 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Preprocess a stream message
         /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="type"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        public virtual ReadOnlySpan<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlySpan<byte> data) => data;
+        /// <summary>
+        /// Preprocess a stream message
+        /// </summary>
         public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
 
         /// <summary>

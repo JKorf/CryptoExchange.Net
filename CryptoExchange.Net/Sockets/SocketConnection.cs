@@ -514,7 +514,7 @@ namespace CryptoExchange.Net.Sockets
             var receiveTime = DateTime.UtcNow;
 
             // 1. Decrypt/Preprocess if necessary
-            //data = ApiClient.PreprocessStreamMessage(this, type, data);
+            data = ApiClient.PreprocessStreamMessage(this, type, data);
 
             IMessageConverter messageConverter;
             if (type == WebSocketMessageType.Binary)
@@ -530,9 +530,9 @@ namespace CryptoExchange.Net.Sockets
 #else
                 originalData = Encoding.UTF8.GetString(data);
 #endif
+                _logger.ReceivedData(SocketId, originalData);
             }
 
-            List<IMessageProcessor>? processors = null;
             var messageInfo = messageConverter.GetMessageInfo(data, type); 
             if (messageInfo.DeserializationType == null)
             {
@@ -545,17 +545,17 @@ namespace CryptoExchange.Net.Sockets
 
                 // Couldn't determine deserialization type, try determine the type based on identifier
                 lock (_listenersLock)
-                    processors = _listeners.ToList();
-
-                foreach (var subscription in processors)
                 {
-                    var handler = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier)?.FirstOrDefault();
-                    if (handler == null)
-                        continue;
+                    foreach (var subscription in _listeners)
+                    {
+                        var handler = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier)?.FirstOrDefault();
+                        if (handler == null)
+                            continue;
 
-                    _logger.LogTrace("Message type determined based on identifier");
-                    messageInfo.DeserializationType = handler.DeserializationType;
-                    break;
+                        _logger.LogTrace("Message type determined based on identifier");
+                        messageInfo.DeserializationType = handler.DeserializationType;
+                        break;
+                    }
                 }
 
                 if (messageInfo.DeserializationType == null)
@@ -569,7 +569,18 @@ namespace CryptoExchange.Net.Sockets
             object result;
             try
             {
-                result = messageConverter.Deserialize(data, messageInfo.DeserializationType!);
+                if (messageInfo.DeserializationType == typeof(string))
+                {
+#if NETSTANDARD2_0
+                    result = Encoding.UTF8.GetString(data.ToArray());
+#else
+                    result = Encoding.UTF8.GetString(data);
+#endif
+                }
+                else
+                {
+                    result = messageConverter.Deserialize(data, messageInfo.DeserializationType!);
+                }
             }
             catch(Exception ex)
             {
@@ -584,26 +595,24 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
-            var targetType = messageInfo.DeserializationType!;
-            if (processors == null)
-            {
-                lock (_listenersLock)
-                    processors = _listeners.Where(x => x.DeserializationTypes.Contains(targetType)).ToList();
-            }
-
-            if (processors.Count == 0)
-            {
-                // No subscriptions found for type
-                _logger.LogWarning("No subscriptions found for message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
-                return;
-            }
-
+            bool processed = false;
             var dataEvent = new DataEvent<object>(result, null, null, originalData, receiveTime, null);
-            foreach (var subscription in processors)
+            lock (_listenersLock)
             {
-                var links = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier!);
-                foreach(var link in links)
-                    subscription.Handle(this, dataEvent, link);
+                foreach (var subscription in _listeners)
+                {
+                    var links = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier!);
+                    foreach (var link in links)
+                    {
+                        processed = true;
+                        subscription.Handle(this, dataEvent, link);
+                    }
+                }
+            }
+
+            if (!processed)
+            {
+                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, messageInfo.Identifier!, string.Join(",", _listeners.Select(x => x.MessageMatcher.HandlerLinks.Select(x => x.ToString()))));
             }
         }
 

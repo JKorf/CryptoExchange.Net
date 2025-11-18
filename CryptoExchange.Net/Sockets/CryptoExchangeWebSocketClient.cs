@@ -768,7 +768,6 @@ namespace CryptoExchange.Net.Sockets
         {
             LastActionTime = DateTime.UtcNow;
             _connection.HandleStreamMessage2(type, data);
-            //await (OnStreamMessage?.Invoke(type, data) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -363,15 +363,24 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Decompress using GzipStream
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        public static ReadOnlySpan<byte> DecompressGzip(this ReadOnlySpan<byte> data)
+        {
+            using var decompressedStream = new MemoryStream();
+            using var deflateStream = new GZipStream(new MemoryStream(data.ToArray()), CompressionMode.Decompress);
+            deflateStream.CopyTo(decompressedStream);
+            return new ReadOnlySpan<byte>(decompressedStream.GetBuffer(), 0, (int)decompressedStream.Length);
+        }
+
+        /// <summary>
+        /// Decompress using GzipStream
+        /// </summary>
         public static ReadOnlyMemory<byte> DecompressGzip(this ReadOnlyMemory<byte> data)
         {
             using var decompressedStream = new MemoryStream();
             using var dataStream = MemoryMarshal.TryGetArray(data, out var arraySegment)
                 ? new MemoryStream(arraySegment.Array!, arraySegment.Offset, arraySegment.Count)
                 : new MemoryStream(data.ToArray());
-            using var deflateStream = new GZipStream(new MemoryStream(data.ToArray()), CompressionMode.Decompress);
+            using var deflateStream = new GZipStream(dataStream, CompressionMode.Decompress);
             deflateStream.CopyTo(decompressedStream);
             return new ReadOnlyMemory<byte>(decompressedStream.GetBuffer(), 0, (int)decompressedStream.Length);
         }
@@ -381,7 +390,7 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static ReadOnlyMemory<byte> Decompress(this ReadOnlyMemory<byte> input)
+        public static ReadOnlySpan<byte> Decompress(this ReadOnlyMemory<byte> input)
         {
             var output = new MemoryStream();
 
@@ -390,7 +399,7 @@ namespace CryptoExchange.Net
                 decompressor.CopyTo(output);
 
             output.Position = 0;
-            return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
+            return new ReadOnlySpan<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
         /// <summary>
