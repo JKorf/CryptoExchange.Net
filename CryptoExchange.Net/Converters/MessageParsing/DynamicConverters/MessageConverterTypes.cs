@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         {
             foreach(var field in Fields)
             {
-                if (!result.ContainsKey(field.Name))
+                if (!result.ContainsKey(field.SearchName))
                     return false;
             }
 
@@ -35,16 +35,23 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 
     public class MessageFieldReference
     {
+        private string _searchName;
 
+        public string SearchName
+        {
+            get => _searchName ?? PropertyName;
+            set => _searchName = value;
+        }
         public FieldType FieldType { get; set; }
         public int? Depth { get; set; }
         public int? MaxDepth { get; set; }
-        public Type Type { get; set; }
 
         // For FieldType.Property
-        public string Name { get; set; }
+        public string? PropertyName { get; set; }
         // For FieldType.ArrayIndex
-        public int Index { get; set; }
+        public int? ArrayIndex { get; set; }
+
+        public Func<string, bool>? Constraint { get; set; }
     }
 
     public class MessageEvalutorFieldReference

@@ -27,6 +27,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             InitializeSearch();
 
+            int? arrayIndex = null;
+
             _searchResult.Clear();
             var reader = new Utf8JsonReader(data);
             while (reader.Read())
@@ -39,51 +41,112 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     continue;
                 }
 
-                if (reader.TokenType != JsonTokenType.PropertyName)
-                    continue;
+                if (reader.TokenType != JsonTokenType.StartArray)
+                    arrayIndex = 0;
+                else if (reader.TokenType == JsonTokenType.EndArray)
+                    arrayIndex = null;
+                else if (arrayIndex != null)
+                    arrayIndex++;
 
-                bool written = false;
-                foreach (var field in _searchFields)
+                if (reader.TokenType == JsonTokenType.PropertyName)
                 {
-                    if (field.Field.Depth != null)
+                    bool written = false;
+                    foreach (var field in _searchFields)
+                    {
+                        if (field.Field.Depth != null)
+                        {
+                            if (field.Field.Depth != reader.CurrentDepth)
+                                continue;
+                        }
+                        else
+                        {
+                            if (reader.CurrentDepth > field.Field.MaxDepth!.Value)
+                                continue;
+                        }
+
+                        if (!reader.ValueTextEquals(field.Field.PropertyName))
+                            continue;
+
+                        reader.Read();
+
+                        string? value = null;
+                        if (reader.TokenType == JsonTokenType.Number)
+                            value = reader.GetDecimal().ToString();
+                        else if (reader.TokenType == JsonTokenType.String)
+                            value = reader.GetString()!;
+                        else if (reader.TokenType == JsonTokenType.Null)
+                            value = null;
+                        else
+                            continue;
+
+                        if (field.Field.Constraint != null && !field.Field.Constraint(value))
+                            continue;
+
+                        _searchResult[field.Field.SearchName] = value;
+                        if (field.ForceEvaluator != null)
+                        {
+                            // Force the immediate return upon encountering this field
+                            return field.ForceEvaluator.MessageIdentifier(_searchResult);
+                        }
+
+                        written = true;
+                        break;
+                    }
+
+                    if (!written)
+                        continue;
+
+                    if (_topEvaluator.Statisfied(_searchResult))
+                        return _topEvaluator.MessageIdentifier(_searchResult);
+
+                    if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.SearchName)))
+                        break;
+                }
+                else if (arrayIndex != null && _hasArraySearches)
+                {
+                    bool written = false;
+                    foreach (var field in _searchFields)
                     {
                         if (field.Field.Depth != reader.CurrentDepth)
                             continue;
-                    }
-                    else
-                    {
-                        if (reader.CurrentDepth > field.Field.MaxDepth!.Value)
+
+                        if (field.Field.ArrayIndex != arrayIndex)
                             continue;
+
+                        string? value = null;
+                        if (reader.TokenType == JsonTokenType.Number)
+                            value = reader.GetDecimal().ToString();
+                        else if (reader.TokenType == JsonTokenType.String)
+                            value = reader.GetString()!;
+                        else if (reader.TokenType == JsonTokenType.Null)
+                            value = null;
+                        else
+                            continue;
+
+                        if (field.Field.Constraint != null && !field.Field.Constraint(value))
+                            continue;
+
+                        _searchResult[field.Field.SearchName] = value;
+
+                        if (field.ForceEvaluator != null)
+                        {
+                            // Force the immediate return upon encountering this field
+                            return field.ForceEvaluator.MessageIdentifier(_searchResult);
+                        }
+
+                        written = true;
+                        break;
                     }
 
-                    if (!reader.ValueTextEquals(field.Field.Name))
+                    if (!written)
                         continue;
 
-                    reader.Read();
+                    if (_topEvaluator.Statisfied(_searchResult))
+                        return _topEvaluator.MessageIdentifier(_searchResult);
 
-                    if (field.Field.Type == typeof(int))
-                        _searchResult[field.Field.Name] = reader.GetInt32().ToString();
-                    else
-                        _searchResult[field.Field.Name] = reader.GetString()!;
-
-                    if (field.ForceEvaluator != null)
-                    {
-                        // Force the immediate return upon encountering this field
-                        return field.ForceEvaluator.MessageIdentifier(_searchResult);
-                    }
-
-                    written = true;
-                    break;
+                    if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.SearchName)))
+                        break;
                 }
-
-                if (!written)
-                    continue;
-
-                if (_topEvaluator.Statisfied(_searchResult))
-                    return _topEvaluator.MessageIdentifier(_searchResult);
-
-                if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.Name)))
-                    break;
             }
 
             foreach (var evaluator in MessageEvaluators)
@@ -95,6 +158,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return null;
         }
 
+        protected bool _hasArraySearches;
         protected bool _initialized;
         protected List<MessageEvalutorFieldReference> _searchFields;
         protected int _maxSearchDepth;
@@ -112,7 +176,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
                 {
-                    var existing = _searchFields.SingleOrDefault(x => x.Field.Name == field.Name /*&& x.Field.Level == field.Level*/);
+                    var existing = _searchFields.SingleOrDefault(x => x.Field.PropertyName == field.PropertyName /*&& x.Field.Level == field.Level*/);
                     if (existing != null)
                     {
                         if (evaluator.ForceIfFound)
@@ -131,6 +195,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             Field = field
                         });
                     }
+
+                    if (field.FieldType == FieldType.ArrayIndex)
+                        _hasArraySearches = true;
 
                     if (field.Depth > _maxSearchDepth)
                         _maxSearchDepth = field.Depth.Value;

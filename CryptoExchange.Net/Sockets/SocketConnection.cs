@@ -598,8 +598,17 @@ namespace CryptoExchange.Net.Sockets
             var dataEvent = new DataEvent<object>(result, null, null, originalData, receiveTime, null);
             lock (_listenersLock)
             {
-                foreach (var subscription in _listeners)
+                var currentCount = _listeners.Count;
+                for(var i = 0; i < _listeners.Count; i++)
                 {
+                    if (_listeners.Count != currentCount)
+                    {
+                        // Possible a query added or removed. If added it's not a problem, if removed it is
+                        if (_listeners.Count < currentCount)
+                            throw new Exception("Listeners list adjusted, can't continue processing");                            
+                    }
+
+                    var subscription = _listeners[i];
                     var links = subscription.MessageMatcher.GetHandlerLinks(messageIdentifier!);
                     foreach (var link in links)
                     {
