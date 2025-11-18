@@ -533,43 +533,42 @@ namespace CryptoExchange.Net.Sockets
                 _logger.ReceivedData(SocketId, originalData);
             }
 
-            var messageInfo = messageConverter.GetMessageInfo(data, type); 
-            if (messageInfo.DeserializationType == null)
+            var messageIdentifier = messageConverter.GetMessageIdentifier(data, type); 
+            if (messageIdentifier == null)
             {
-                if (messageInfo.Identifier == null)
-                {
-                    // Both deserialization type and identifier null, can't process
-                    _logger.LogWarning("Failed to evaluate message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
-                    return;
-                }
+                // Both deserialization type and identifier null, can't process
+                _logger.LogWarning("Failed to evaluate message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
+                return;
+            }
 
-                // Couldn't determine deserialization type, try determine the type based on identifier
-                lock (_listenersLock)
+            Type? deserializationType = null;
+            // Couldn't determine deserialization type, try determine the type based on identifier
+            lock (_listenersLock)
+            {
+                foreach (var subscription in _listeners)
                 {
-                    foreach (var subscription in _listeners)
-                    {
-                        var handler = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier)?.FirstOrDefault();
-                        if (handler == null)
-                            continue;
+                    var handler = subscription.MessageMatcher.GetHandlerLinks(messageIdentifier)?.FirstOrDefault();
+                    if (handler == null)
+                        continue;
 
-                        _logger.LogTrace("Message type determined based on identifier");
-                        messageInfo.DeserializationType = handler.DeserializationType;
-                        break;
-                    }
-                }
-
-                if (messageInfo.DeserializationType == null)
-                {
-                    // No handler found for identifier either, can't process
-                    _logger.LogWarning("Failed to determine message type. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
-                    return;
+                    _logger.LogTrace("Message type determined based on identifier");
+                    deserializationType = handler.DeserializationType;
+                    break;
                 }
             }
+
+            if (deserializationType == null)
+            {
+                // No handler found for identifier either, can't process
+                _logger.LogWarning("Failed to determine message type. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
+                return;
+            }
+            
 
             object result;
             try
             {
-                if (messageInfo.DeserializationType == typeof(string))
+                if (deserializationType == typeof(string))
                 {
 #if NETSTANDARD2_0
                     result = Encoding.UTF8.GetString(data.ToArray());
@@ -579,7 +578,7 @@ namespace CryptoExchange.Net.Sockets
                 }
                 else
                 {
-                    result = messageConverter.Deserialize(data, messageInfo.DeserializationType!);
+                    result = messageConverter.Deserialize(data, deserializationType);
                 }
             }
             catch(Exception ex)
@@ -601,7 +600,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 foreach (var subscription in _listeners)
                 {
-                    var links = subscription.MessageMatcher.GetHandlerLinks(messageInfo.Identifier!);
+                    var links = subscription.MessageMatcher.GetHandlerLinks(messageIdentifier!);
                     foreach (var link in links)
                     {
                         processed = true;
@@ -612,7 +611,7 @@ namespace CryptoExchange.Net.Sockets
 
             if (!processed)
             {
-                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, messageInfo.Identifier!, string.Join(",", _listeners.Select(x => x.MessageMatcher.HandlerLinks.Select(x => x.ToString()))));
+                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, messageIdentifier!, string.Join(",", _listeners.Select(x => x.MessageMatcher.HandlerLinks.Select(x => x.ToString()))));
             }
         }
 

@@ -20,14 +20,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         protected abstract MessageEvaluator[] MessageEvaluators { get; }
 
-        private readonly SearchResult _searchResult = new SearchResult();
+        private readonly Dictionary<string, string> _searchResult = new();
 
         /// <inheritdoc />
-        public virtual MessageInfo GetMessageInfo(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
+        public virtual string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
         {
             InitializeSearch();
 
-            _searchResult.Reset();
+            _searchResult.Clear();
             var reader = new Utf8JsonReader(data);
             while (reader.Read())
             {
@@ -45,44 +45,54 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 bool written = false;
                 foreach (var field in _searchFields)
                 {
-                    if (reader.CurrentDepth == field.Field.Level
-                        && reader.ValueTextEquals(field.Field.Name))
+                    if (field.Field.Depth != null)
                     {
-                        reader.Read();
-
-                        if (field.Field.Type == typeof(int))
-                            _searchResult.WriteInt(field.Field.Name, reader.GetInt32());
-                        else
-                            _searchResult.WriteString(field.Field.Name, reader.GetString()!);
-
-                        if (field.ForceEvaluator != null)
-                        {
-                            // Force the immediate return upon encountering this field
-                            return field.ForceEvaluator.ProduceMessageInfo(_searchResult);
-                        }
-
-                        written = true;
-                        break;
+                        if (field.Field.Depth != reader.CurrentDepth)
+                            continue;
                     }
+                    else
+                    {
+                        if (reader.CurrentDepth > field.Field.MaxDepth!.Value)
+                            continue;
+                    }
+
+                    if (!reader.ValueTextEquals(field.Field.Name))
+                        continue;
+
+                    reader.Read();
+
+                    if (field.Field.Type == typeof(int))
+                        _searchResult[field.Field.Name] = reader.GetInt32().ToString();
+                    else
+                        _searchResult[field.Field.Name] = reader.GetString()!;
+
+                    if (field.ForceEvaluator != null)
+                    {
+                        // Force the immediate return upon encountering this field
+                        return field.ForceEvaluator.MessageIdentifier(_searchResult);
+                    }
+
+                    written = true;
+                    break;
                 }
 
                 if (!written)
                     continue;
 
                 if (_topEvaluator.Statisfied(_searchResult))
-                    return _topEvaluator.ProduceMessageInfo(_searchResult);
+                    return _topEvaluator.MessageIdentifier(_searchResult);
 
-                if (_searchFields.All(x => _searchResult.Contains(x.Field.Name)))
+                if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.Name)))
                     break;
             }
 
             foreach (var evaluator in MessageEvaluators)
             {
                 if (evaluator.Statisfied(_searchResult))
-                    return evaluator.ProduceMessageInfo(_searchResult);
+                    return evaluator.MessageIdentifier(_searchResult);
             }
 
-            return new MessageInfo();
+            return null;
         }
 
         protected bool _initialized;
@@ -102,7 +112,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
                 {
-                    var existing = _searchFields.SingleOrDefault(x => x.Field.Name == field.Name && x.Field.Level == field.Level);
+                    var existing = _searchFields.SingleOrDefault(x => x.Field.Name == field.Name /*&& x.Field.Level == field.Level*/);
                     if (existing != null)
                     {
                         if (evaluator.ForceIfFound)
@@ -122,8 +132,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         });
                     }
 
-                    if (field.Level > _maxSearchDepth)
-                        _maxSearchDepth = field.Level;
+                    if (field.Depth > _maxSearchDepth)
+                        _maxSearchDepth = field.Depth.Value;
+
+                    if (field.MaxDepth > _maxSearchDepth)
+                        _maxSearchDepth = field.MaxDepth.Value;
                 }
             }
 

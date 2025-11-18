@@ -27,6 +27,6 @@ namespace CryptoExchange.Net.Protobuf.Converters.Protobuf
             return result;
         }
 
-        public abstract MessageInfo GetMessageInfo(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+        public abstract string GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
     }
 }

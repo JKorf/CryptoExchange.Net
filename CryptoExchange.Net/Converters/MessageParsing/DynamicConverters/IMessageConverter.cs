@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Get message info
         /// </summary>
-        MessageInfo GetMessageInfo(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+        string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
 
         /// <summary>
         /// Deserialize to the provided type

@@ -10,73 +10,41 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     {
         public int Priority { get; set; }
         public bool ForceIfFound { get; set; }
+
         public MessageFieldReference[] Fields { get; set; }
 
-        public Func<SearchResult, string> MessageIdentifier { get; set; }
-        public Func<SearchResult, Type?> TypeIdentifier { get; set; }
+        public Func<Dictionary<string, string>, string> MessageIdentifier { get; set; }
 
-        public bool Statisfied(SearchResult result)
+        public bool Statisfied(Dictionary<string, string> result)
         {
             foreach(var field in Fields)
             {
-                if (!result.Contains(field.Name))
+                if (!result.ContainsKey(field.Name))
                     return false;
             }
 
             return true;
         }
+    }
 
-        public MessageInfo ProduceMessageInfo(SearchResult result)
-        {
-            return new MessageInfo
-            {
-                DeserializationType = TypeIdentifier(result),
-                Identifier = MessageIdentifier(result)
-            };
-        }
+    public enum FieldType
+    {
+        ArrayIndex,
+        Property
     }
 
     public class MessageFieldReference
     {
-        public int Level { get; set; }
-        public string Name { get; set; }
+
+        public FieldType FieldType { get; set; }
+        public int? Depth { get; set; }
+        public int? MaxDepth { get; set; }
         public Type Type { get; set; }
-    }
 
-    public class SearchResult
-    {
-        public Dictionary<string, string>? _stringValues;
-        public Dictionary<string, int>? _intValues;
-
-        public int GetInt(string name) => _intValues[name];
-        public string GetString(string name) => _stringValues[name];
-
-        public void WriteInt(string name, int value)
-        {
-            _intValues ??= new();
-            _intValues[name] = value;
-        }
-        public void WriteString(string name, string value)
-        {
-            _stringValues ??= new();
-            _stringValues[name] = value;
-        }
-
-        public bool Contains(string name)
-        {
-            if (_intValues?.ContainsKey(name) == true)
-                return true;
-            if (_stringValues?.ContainsKey(name) == true)
-                return true;
-
-            return false;
-        }
-
-        public void Reset()
-        {
-            _intValues?.Clear();
-            _stringValues?.Clear();
-        }
+        // For FieldType.Property
+        public string Name { get; set; }
+        // For FieldType.ArrayIndex
+        public int Index { get; set; }
     }
 
     public class MessageEvalutorFieldReference
