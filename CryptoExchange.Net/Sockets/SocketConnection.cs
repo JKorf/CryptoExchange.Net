@@ -530,7 +530,9 @@ namespace CryptoExchange.Net.Sockets
 #else
                 originalData = Encoding.UTF8.GetString(data);
 #endif
-                _logger.ReceivedData(SocketId, originalData);
+
+                if (_logger.IsEnabled(LogLevel.Trace))
+                    _logger.ReceivedData(SocketId, originalData);
             }
 
             var messageIdentifier = messageConverter.GetMessageIdentifier(data, type); 
