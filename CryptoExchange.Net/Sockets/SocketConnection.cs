@@ -542,7 +542,6 @@ namespace CryptoExchange.Net.Sockets
             }
 
             Type? deserializationType = null;
-            // Couldn't determine deserialization type, try determine the type based on identifier
             lock (_listenersLock)
             {
                 foreach (var subscription in _listeners)
@@ -551,7 +550,6 @@ namespace CryptoExchange.Net.Sockets
                     if (handler == null)
                         continue;
 
-                    _logger.LogTrace("Message type determined based on identifier");
                     deserializationType = handler.DeserializationType;
                     break;
                 }

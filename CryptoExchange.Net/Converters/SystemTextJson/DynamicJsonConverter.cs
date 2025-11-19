@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         protected abstract MessageEvaluator[] MessageEvaluators { get; }
 
-        private readonly Dictionary<string, string> _searchResult = new();
+        private readonly SearchResult _searchResult = new();
 
         /// <inheritdoc />
         public virtual string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
@@ -37,72 +37,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     || reader.TokenType == JsonTokenType.StartObject)
                     && reader.CurrentDepth == _maxSearchDepth)
                 {
+                    // There is no field we need to search for on a depth deeper than this, skip
                     reader.Skip();
                     continue;
                 }
 
-                if (reader.TokenType != JsonTokenType.StartArray)
+                if (reader.TokenType == JsonTokenType.StartArray)
                     arrayIndex = 0;
                 else if (reader.TokenType == JsonTokenType.EndArray)
                     arrayIndex = null;
                 else if (arrayIndex != null)
                     arrayIndex++;
 
-                if (reader.TokenType == JsonTokenType.PropertyName)
-                {
-                    bool written = false;
-                    foreach (var field in _searchFields)
-                    {
-                        if (field.Field.Depth != null)
-                        {
-                            if (field.Field.Depth != reader.CurrentDepth)
-                                continue;
-                        }
-                        else
-                        {
-                            if (reader.CurrentDepth > field.Field.MaxDepth!.Value)
-                                continue;
-                        }
-
-                        if (!reader.ValueTextEquals(field.Field.PropertyName))
-                            continue;
-
-                        reader.Read();
-
-                        string? value = null;
-                        if (reader.TokenType == JsonTokenType.Number)
-                            value = reader.GetDecimal().ToString();
-                        else if (reader.TokenType == JsonTokenType.String)
-                            value = reader.GetString()!;
-                        else if (reader.TokenType == JsonTokenType.Null)
-                            value = null;
-                        else
-                            continue;
-
-                        if (field.Field.Constraint != null && !field.Field.Constraint(value))
-                            continue;
-
-                        _searchResult[field.Field.SearchName] = value;
-                        if (field.ForceEvaluator != null)
-                        {
-                            // Force the immediate return upon encountering this field
-                            return field.ForceEvaluator.MessageIdentifier(_searchResult);
-                        }
-
-                        written = true;
-                        break;
-                    }
-
-                    if (!written)
-                        continue;
-
-                    if (_topEvaluator.Statisfied(_searchResult))
-                        return _topEvaluator.MessageIdentifier(_searchResult);
-
-                    if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.SearchName)))
-                        break;
-                }
-                else if (arrayIndex != null && _hasArraySearches)
+                if (reader.TokenType == JsonTokenType.PropertyName
+                    || arrayIndex != null && _hasArraySearches)
                 {
                     bool written = false;
                     foreach (var field in _searchFields)
@@ -110,8 +58,24 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         if (field.Field.Depth != reader.CurrentDepth)
                             continue;
 
-                        if (field.Field.ArrayIndex != arrayIndex)
-                            continue;
+                        if (field.Field is PropertyFieldReference propFieldRef)
+                        {
+                            if (reader.TokenType != JsonTokenType.PropertyName)
+                                continue;
+
+                            if (!reader.ValueTextEquals(propFieldRef.PropertyName))
+                                continue;
+
+                            reader.Read();
+                        }
+                        else if(field.Field is ArrayFieldReference arrayFieldRef)
+                        {
+                            if (reader.TokenType == JsonTokenType.PropertyName)
+                                continue;
+
+                            if (arrayFieldRef.ArrayIndex != arrayIndex)
+                                continue;
+                        }
 
                         string? value = null;
                         if (reader.TokenType == JsonTokenType.Number)
@@ -123,10 +87,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         else
                             continue;
 
-                        if (field.Field.Constraint != null && !field.Field.Constraint(value))
+                        if (field.Field.Constraint != null
+                            && !field.Field.Constraint(value))
+                        {
                             continue;
+                        }
 
-                        _searchResult[field.Field.SearchName] = value;
+                        _searchResult.Write(field.Field, value);
 
                         if (field.ForceEvaluator != null)
                         {
@@ -144,7 +111,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (_topEvaluator.Statisfied(_searchResult))
                         return _topEvaluator.MessageIdentifier(_searchResult);
 
-                    if (_searchFields.All(x => _searchResult.ContainsKey(x.Field.SearchName)))
+                    if (_searchFields.Count == _searchResult.Count)
                         break;
                 }
             }
@@ -176,7 +143,23 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
                 {
-                    var existing = _searchFields.SingleOrDefault(x => x.Field.PropertyName == field.PropertyName /*&& x.Field.Level == field.Level*/);
+                    MessageEvalutorFieldReference? existing = null;
+                    if (field is ArrayFieldReference arrayField)
+                    {
+                        _hasArraySearches = true;
+                        existing = _searchFields.SingleOrDefault(x =>
+                            x.Field is ArrayFieldReference arrayFieldRef
+                            && arrayFieldRef.ArrayIndex == arrayFieldRef.ArrayIndex
+                            && arrayFieldRef.Depth == arrayFieldRef.Depth);
+                    }
+                    else if(field is PropertyFieldReference propField)
+                    {
+                        existing = _searchFields.SingleOrDefault(x => 
+                            x.Field is PropertyFieldReference propFieldRef 
+                            && propFieldRef.PropertyName == propField.PropertyName 
+                            && propFieldRef.Depth == propField.Depth);
+                    }
+
                     if (existing != null)
                     {
                         if (evaluator.ForceIfFound)
@@ -196,14 +179,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         });
                     }
 
-                    if (field.FieldType == FieldType.ArrayIndex)
-                        _hasArraySearches = true;
-
                     if (field.Depth > _maxSearchDepth)
-                        _maxSearchDepth = field.Depth.Value;
-
-                    if (field.MaxDepth > _maxSearchDepth)
-                        _maxSearchDepth = field.MaxDepth.Value;
+                        _maxSearchDepth = field.Depth;
                 }
             }
 

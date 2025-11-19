@@ -13,13 +13,13 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 
         public MessageFieldReference[] Fields { get; set; }
 
-        public Func<Dictionary<string, string>, string> MessageIdentifier { get; set; }
+        public Func<SearchResult, string> MessageIdentifier { get; set; }
 
-        public bool Statisfied(Dictionary<string, string> result)
+        public bool Statisfied(SearchResult result)
         {
             foreach(var field in Fields)
             {
-                if (!result.ContainsKey(field.SearchName))
+                if (!result.Contains(field))
                     return false;
             }
 
@@ -27,36 +27,66 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         }
     }
 
-    public enum FieldType
+    public abstract class MessageFieldReference
     {
-        ArrayIndex,
-        Property
+        public string SearchName { get; set; }
+        public int Depth { get; set; } = 1;
+
+        public Func<string?, bool>? Constraint { get; set; }
+
+        public MessageFieldReference(string searchName)
+        {
+            SearchName = searchName;
+        }
     }
 
-    public class MessageFieldReference
+    public class PropertyFieldReference : MessageFieldReference
     {
-        private string _searchName;
-
-        public string SearchName
-        {
-            get => _searchName ?? PropertyName;
-            set => _searchName = value;
-        }
-        public FieldType FieldType { get; set; }
-        public int? Depth { get; set; }
-        public int? MaxDepth { get; set; }
-
-        // For FieldType.Property
         public string? PropertyName { get; set; }
-        // For FieldType.ArrayIndex
+
+        public PropertyFieldReference(string propertyName) : base(propertyName)
+        {
+            PropertyName = propertyName;
+        }
+    }
+
+    public class ArrayFieldReference : MessageFieldReference
+    {
         public int? ArrayIndex { get; set; }
 
-        public Func<string, bool>? Constraint { get; set; }
+        public ArrayFieldReference(string searchName) : base(searchName)
+        {
+        }
     }
 
     public class MessageEvalutorFieldReference
     {
         public MessageFieldReference Field { get; set; }
         public MessageEvaluator? ForceEvaluator { get; set; }
+    }
+
+    public class SearchResult
+    {
+        private List<SearchResultItem> _items = new List<SearchResultItem>();
+
+        public string FieldValue(string searchName) => _items.First(x => x.Field.SearchName == searchName).Value;
+
+        public int Count => _items.Count;
+
+        public void Clear() => _items.Clear();
+
+        public bool Contains(MessageFieldReference field) => _items.Any(x => x.Field == field);
+
+        public void Write(MessageFieldReference field, string? value) => _items.Add(new SearchResultItem
+        {
+            Field = field,
+            Value = value
+        });
+    }
+
+    public struct SearchResultItem
+    {
+        public MessageFieldReference Field { get; set; }
+        public string? Value { get; set; }
     }
 }
