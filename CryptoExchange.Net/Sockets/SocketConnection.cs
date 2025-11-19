@@ -546,12 +546,17 @@ namespace CryptoExchange.Net.Sockets
             {
                 foreach (var subscription in _listeners)
                 {
-                    var handler = subscription.MessageMatcher.GetHandlerLinks(messageIdentifier)?.FirstOrDefault();
-                    if (handler == null)
-                        continue;
+                    foreach (var link in subscription.MessageMatcher.HandlerLinks)
+                    {
+                        if (!link.Check(messageIdentifier!))
+                            continue;
 
-                    deserializationType = handler.DeserializationType;
-                    break;
+                        deserializationType = link.DeserializationType;
+                        break;
+                    }
+
+                    if (deserializationType != null)
+                        break;
                 }
             }
 
@@ -607,9 +612,11 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     var subscription = _listeners[i];
-                    var links = subscription.MessageMatcher.GetHandlerLinks(messageIdentifier!);
-                    foreach (var link in links)
+                    foreach (var link in subscription.MessageMatcher.HandlerLinks)
                     {
+                        if (!link.Check(messageIdentifier!))
+                            continue;
+
                         processed = true;
                         subscription.Handle(this, dataEvent, link);
                     }

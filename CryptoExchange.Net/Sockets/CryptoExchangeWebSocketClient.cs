@@ -9,7 +9,6 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -299,7 +298,13 @@ namespace CryptoExchange.Net.Sockets
                 _logger.SocketStartingProcessing(Id);
                 SetProcessState(ProcessState.Processing);
                 var sendTask = SendLoopAsync();
-                var receiveTask = ReceiveLoopAsync();
+                Task receiveTask;
+#if !NETSTANDARD2_0
+                if (Parameters.UseUpdatedDeserialization)
+                    receiveTask = ReceiveLoopNewAsync();
+                else
+#endif
+                    receiveTask = ReceiveLoopAsync();
                 var timeoutTask = Parameters.Timeout != null && Parameters.Timeout > TimeSpan.FromSeconds(0) ? CheckTimeoutAsync() : Task.CompletedTask;
                 await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
                 _logger.SocketFinishedProcessing(Id);
@@ -728,11 +733,161 @@ namespace CryptoExchange.Net.Sockets
                         {
                             _logger.SocketReassembledMessage(Id, multipartStream!.Length);
                             // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
-                            
+
                             if (!Parameters.UseUpdatedDeserialization)
-                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
+                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
                             else
-                                ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
+                                ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(buffer.Array!, buffer.Offset, receiveResult.Count));
+                        }
+                        else
+                        {
+                            _logger.SocketDiscardIncompleteMessage(Id, multipartStream!.Length);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                // Because this is running in a separate task and not awaited until the socket gets closed
+                // any exception here will crash the receive processing, but do so silently unless the socket gets stopped.
+                // Make sure we at least let the owner know there was an error
+                _logger.SocketReceiveLoopStoppedWithException(Id, e);
+                await (OnError?.Invoke(e) ?? Task.CompletedTask).ConfigureAwait(false);
+                if (_closeTask?.IsCompleted != false)
+                    _closeTask = CloseInternalAsync();
+            }
+            finally
+            {
+                _receiveBufferPool.Return(rentedBuffer, true);
+                _logger.SocketReceiveLoopFinished(Id);
+            }
+        }
+
+#if !NETSTANDARD2_0
+        /// <summary>
+        /// Loop for receiving and reassembling data
+        /// </summary>
+        /// <returns></returns>
+        private async Task ReceiveLoopNewAsync()
+        {
+            byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
+            var buffer = new Memory<byte>(rentedBuffer);
+            try
+            {
+                while (true)
+                {
+                    if (_ctsSource.IsCancellationRequested)
+                        break;
+
+                    MemoryStream? multipartStream = null;
+                    ValueWebSocketReceiveResult receiveResult = new();
+                    bool multiPartMessage = false;
+                    while (true)
+                    {
+                        try
+                        {
+                            receiveResult = await _socket.ReceiveAsync(buffer, _ctsSource.Token).ConfigureAwait(false);
+                            lock (_receivedMessagesLock)
+                                _receivedMessages.Add(new ReceiveItem(DateTime.UtcNow, receiveResult.Count));
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
+                            {
+                                // Specific case that the websocket connection got closed because of a ping frame timeout
+                                // Unfortunately doesn't seem to be a nicer way to catch
+                                _logger.SocketPingTimeout(Id);
+                            }
+
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+
+                            // canceled
+                            break;
+                        }
+                        catch (Exception wse)
+                        {
+                            if (!_ctsSource.Token.IsCancellationRequested && !_stopRequested)
+                                // Connection closed unexpectedly
+                                await (OnError?.Invoke(wse) ?? Task.CompletedTask).ConfigureAwait(false);
+
+                            if (_closeTask?.IsCompleted != false)
+                                _closeTask = CloseInternalAsync();
+                            break;
+                        }
+
+                        if (receiveResult.MessageType == WebSocketMessageType.Close)
+                        {
+                            // Connection closed
+                            if (_socket.State == WebSocketState.CloseReceived)
+                            {
+                                // Close received means it server initiated, we should send a confirmation and close the socket
+                                _logger.SocketReceivedCloseMessage(Id, _socket.CloseStatus.ToString()!, _socket.CloseStatusDescription ?? string.Empty);
+                                if (_closeTask?.IsCompleted != false)
+                                    _closeTask = CloseInternalAsync();
+                            }
+                            else
+                            {
+                                // Means the socket is now closed and we were the one initiating it
+                                _logger.SocketReceivedCloseConfirmation(Id, _socket.CloseStatus.ToString()!, _socket.CloseStatusDescription ?? string.Empty);
+                            }
+
+                            break;
+                        }
+
+                        if (!receiveResult.EndOfMessage)
+                        {
+                            // We received data, but it is not complete, write it to a memory stream for reassembling
+                            multiPartMessage = true;
+                            _logger.SocketReceivedPartialMessage(Id, receiveResult.Count);
+
+                            // Write the data to a memory stream to be reassembled later
+                            multipartStream ??= new MemoryStream();
+                            multipartStream.Write(buffer.Span.Slice(0, receiveResult.Count));
+                        }
+                        else
+                        {
+                            if (!multiPartMessage)
+                            {
+                                // Received a complete message and it's not multi part
+                                _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
+                                ProcessDataNew(receiveResult.MessageType, buffer.Span.Slice(0, receiveResult.Count));
+                            }
+                            else
+                            {
+                                // Received the end of a multipart message, write to memory stream for reassembling
+                                _logger.SocketReceivedPartialMessage(Id, receiveResult.Count);
+                                multipartStream!.Write(buffer.Span.Slice(0, receiveResult.Count));
+                            }
+
+                            break;
+                        }
+                    }
+
+                    lock (_receivedMessagesLock)
+                        UpdateReceivedMessages();
+
+                    if (receiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        // Received close message
+                        break;
+                    }
+
+                    if (_ctsSource.IsCancellationRequested)
+                    {
+                        // Error during receiving or cancellation requested, stop.
+                        break;
+                    }
+
+                    if (multiPartMessage)
+                    {
+                        // When the connection gets interrupted we might not have received a full message
+                        if (receiveResult.EndOfMessage == true)
+                        {
+                            _logger.SocketReassembledMessage(Id, multipartStream!.Length);
+                            // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
+                            
+                            ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream.GetBuffer(), 0, (int)multipartStream.Length));
                         }
                         else
                         {
@@ -757,6 +912,7 @@ namespace CryptoExchange.Net.Sockets
                 _logger.SocketReceiveLoopFinished(Id);
             }
         }
+#endif
 
         /// <summary>
         /// Process a stream message

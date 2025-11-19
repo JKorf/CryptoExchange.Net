@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
@@ -13,7 +12,16 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 
         public MessageFieldReference[] Fields { get; set; }
 
-        public Func<SearchResult, string> MessageIdentifier { get; set; }
+        public Func<SearchResult, string> IdentifyMessageCallback { get; set; }
+        public string? StaticIdentifier { get; set; }
+
+        public string? IdentifyMessage(SearchResult result)
+        {
+            if (StaticIdentifier != null)
+                return StaticIdentifier;
+
+            return IdentifyMessageCallback(result);
+        }
 
         public bool Statisfied(SearchResult result)
         {
@@ -42,25 +50,28 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 
     public class PropertyFieldReference : MessageFieldReference
     {
-        public string? PropertyName { get; set; }
+        public byte[] PropertyName { get; set; }
 
         public PropertyFieldReference(string propertyName) : base(propertyName)
         {
-            PropertyName = propertyName;
+            PropertyName = Encoding.UTF8.GetBytes(propertyName);
         }
     }
 
     public class ArrayFieldReference : MessageFieldReference
     {
-        public int? ArrayIndex { get; set; }
+        public int ArrayIndex { get; set; }
 
-        public ArrayFieldReference(string searchName) : base(searchName)
+        public ArrayFieldReference(string searchName, int depth, int index) : base(searchName)
         {
+            Depth = depth;
+            ArrayIndex = index;
         }
     }
 
     public class MessageEvalutorFieldReference
     {
+        public bool SkipReading { get; set; }
         public MessageFieldReference Field { get; set; }
         public MessageEvaluator? ForceEvaluator { get; set; }
     }
@@ -69,13 +80,31 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     {
         private List<SearchResultItem> _items = new List<SearchResultItem>();
 
-        public string FieldValue(string searchName) => _items.First(x => x.Field.SearchName == searchName).Value;
+        public string FieldValue(string searchName)
+        {
+            foreach(var item in _items)
+            {
+                if (item.Field.SearchName == searchName)
+                    return item.Value;
+            }
+
+            throw new Exception(""); // TODO
+        }
 
         public int Count => _items.Count;
 
         public void Clear() => _items.Clear();
 
-        public bool Contains(MessageFieldReference field) => _items.Any(x => x.Field == field);
+        public bool Contains(MessageFieldReference field)
+        {
+            foreach(var item in _items)
+            {
+                if (item.Field == field)
+                    return true;
+            }
+
+            return false;
+        }
 
         public void Write(MessageFieldReference field, string? value) => _items.Add(new SearchResultItem
         {

@@ -731,7 +731,7 @@ namespace CryptoExchange.Net.OrderBook
                         LastUpdateId = item.EndUpdateId,
                     });
 
-                    _logger.OrderBookUpdateBuffered(Api, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Count(), item.Bids.Count());
+                    _logger.OrderBookUpdateBuffered(Api, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Length, item.Bids.Length);
                 }
                 else
                 {
