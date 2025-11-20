@@ -33,11 +33,6 @@ namespace CryptoExchange.Net.Sockets
         }
 
         internal static int _lastStreamId;
-#if NET9_0_OR_GREATER
-        private static readonly Lock _streamIdLock = new Lock();
-#else
-        private static readonly object _streamIdLock = new object();
-#endif
         private static readonly ArrayPool<byte> _receiveBufferPool = ArrayPool<byte>.Shared;
 
         private readonly AsyncResetEvent _sendEvent;
@@ -975,14 +970,8 @@ namespace CryptoExchange.Net.Sockets
         /// Get the next identifier
         /// </summary>
         /// <returns></returns>
-        private static int NextStreamId()
-        {
-            lock (_streamIdLock)
-            {
-                _lastStreamId++;
-                return _lastStreamId;
-            }
-        }
+        private static int NextStreamId() => Interlocked.Increment(ref _lastStreamId);
+        
 
         /// <summary>
         /// Update the received messages list, removing messages received longer than 3s ago
