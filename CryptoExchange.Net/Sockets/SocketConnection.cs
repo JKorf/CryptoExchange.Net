@@ -600,7 +600,6 @@ namespace CryptoExchange.Net.Sockets
             }
 
             bool processed = false;
-            var dataEvent = new DataEvent<object>(result, null, null, originalData, receiveTime, null);
             lock (_listenersLock)
             {
                 var currentCount = _listeners.Count;
@@ -620,7 +619,7 @@ namespace CryptoExchange.Net.Sockets
                             continue;
 
                         processed = true;
-                        subscription.Handle(this, dataEvent, link);
+                        subscription.Handle(this, receiveTime, originalData, result, link);
                     }
                 }
             }
@@ -730,7 +729,7 @@ namespace CryptoExchange.Net.Sockets
                         try
                         {
                             var innerSw = Stopwatch.StartNew();
-                            processor.Handle(this, new DataEvent<object>(deserialized, null, null, originalData, receiveTime, null), listener);
+                            processor.Handle(this, receiveTime, originalData, deserialized, listener);
                             if (processor is Query query && query.RequiredResponses != 1)
                                 _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
                             totalUserTime += (int)innerSw.ElapsedMilliseconds;

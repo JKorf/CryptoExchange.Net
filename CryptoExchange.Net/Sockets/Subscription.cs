@@ -182,11 +182,11 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matcher)
+        public CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageHandlerLink matcher)
         {
             ConnectionInvocations++;
             TotalInvocations++;
-            return matcher.Handle(connection, message);
+            return matcher.Handle(connection, receiveTime, originalData, data);
         }
 
         /// <summary>

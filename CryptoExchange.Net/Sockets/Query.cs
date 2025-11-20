@@ -168,7 +168,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
+        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check);
 
     }
 
@@ -198,18 +198,18 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
+        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check)
         {
             if (!PreCheckMessage(connection, message))
                 return CallResult.SuccessResult;
 
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)            
-                Response = message.Data;
+                Response = message;
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
-                Result = check.Handle(connection, message);
+                Result = check.Handle(connection, receiveTime, originalData, message);
 
             if (CurrentResponses == RequiredResponses)
             {
@@ -224,7 +224,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Validate if a message is actually processable by this query
         /// </summary>
-        public virtual bool PreCheckMessage(SocketConnection connection, DataEvent<object> message) => true;
+        public virtual bool PreCheckMessage(SocketConnection connection, object message) => true;
 
         /// <inheritdoc />
         public override void Timeout()

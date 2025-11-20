@@ -16,15 +16,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public ExchangeEvent(string exchange, DataEvent<T> evnt) :
-            base(evnt.Data,
-                evnt.StreamId,
-                evnt.Symbol,
-                evnt.OriginalData,
-                evnt.ReceiveTime,
-                evnt.UpdateType)
+        public ExchangeEvent(string exchange, DataEvent baseEvent, T data) :
+            base(data,
+                 baseEvent.ReceiveTime,
+                 baseEvent.OriginalData)
         {
-            DataTime = evnt.DataTime;
+            StreamId = baseEvent.StreamId;
+            Symbol = baseEvent.Symbol;
+            UpdateType = baseEvent.UpdateType;
+            DataTime = baseEvent.DataTime;
             Exchange = exchange;
         }
 

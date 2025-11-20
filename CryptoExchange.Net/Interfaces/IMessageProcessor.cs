@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Handle a message
         /// </summary>
-        CallResult Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink matchedHandler);
+        CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object result, MessageHandlerLink matchedHandler);
         /// <summary>
         /// Deserialize a message into object of type
         /// </summary>
