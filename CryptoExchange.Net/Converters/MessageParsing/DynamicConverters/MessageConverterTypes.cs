@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         {
             foreach(var item in _items)
             {
-                if (item.Field.SearchName == searchName)
+                if (item.Field.SearchName.Equals(searchName, StringComparison.Ordinal))
                     return item.Value;
             }
 

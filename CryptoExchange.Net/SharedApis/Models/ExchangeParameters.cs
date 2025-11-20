@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -39,8 +40,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public bool HasValue(string exchange, string name, Type type)
         {
-            var val = _parameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
-            val ??= _staticParameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
+            var val = _parameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
+            val ??= _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
 
             if (val == null)
                 return false;
@@ -71,7 +72,7 @@ namespace CryptoExchange.Net.SharedApis
             if (provided == true)
                 return true;
 
-            var val = _staticParameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
+            var val = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
             if (val == null)
                 return false;
 
@@ -95,7 +96,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="name">Parameter name</param>
         public T? GetValue<T>(string exchange, string name)
         {
-            var val = _parameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);            
+            var val = _parameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
             if (val == null)
                 return default;
 
@@ -122,7 +123,7 @@ namespace CryptoExchange.Net.SharedApis
             T? value;
             if (exchangeParameters == null)
             {
-                var parameter = _staticParameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == name);
+                var parameter = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
                 if (parameter == null)
                     return default;
 
@@ -155,7 +156,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="value">Parameter value</param>
         public static void SetStaticParameter(string exchange, string key, object value)
         {
-            var existing = _staticParameters.SingleOrDefault(x => x.Exchange == exchange && x.Name == key);
+            var existing = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(key, StringComparison.InvariantCulture));
             if (existing != null)
             {
                 existing.Value = value;

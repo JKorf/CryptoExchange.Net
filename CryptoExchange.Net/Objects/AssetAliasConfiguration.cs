@@ -23,7 +23,8 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Map the common name to an exchange name for an asset. If there is no alias the input name is returned
         /// </summary>
-        public string CommonToExchangeName(string commonName) => !AutoConvertEnabled ? commonName : Aliases.FirstOrDefault(x => x.CommonAssetName == commonName)?.ExchangeAssetName ?? commonName;
+        public string CommonToExchangeName(string commonName) => 
+            !AutoConvertEnabled ? commonName : Aliases.FirstOrDefault(x => x.CommonAssetName.Equals(commonName, StringComparison.InvariantCulture))?.ExchangeAssetName ?? commonName;
 
         /// <summary>
         /// Map the exchange name to a common name for an asset. If there is no alias the input name is returned
@@ -33,7 +34,7 @@ namespace CryptoExchange.Net.Objects
             if (!AutoConvertEnabled)
                 return exchangeName;
 
-            var alias = Aliases.FirstOrDefault(x => x.ExchangeAssetName == exchangeName);
+            var alias = Aliases.FirstOrDefault(x => x.ExchangeAssetName.Equals(exchangeName, StringComparison.InvariantCulture));
             if (alias == null || alias.Type == AliasType.OnlyToExchange)
                 return exchangeName;
 

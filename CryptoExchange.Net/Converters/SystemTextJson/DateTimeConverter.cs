@@ -86,8 +86,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 var stringValue = reader.GetString();
                 if (string.IsNullOrWhiteSpace(stringValue)
-                    || stringValue == "-1"
-                    || stringValue == "0001-01-01T00:00:00Z"
+                    || stringValue!.Equals("-1", StringComparison.Ordinal)
+                    || stringValue!.Equals("0001-01-01T00:00:00Z", StringComparison.OrdinalIgnoreCase)
                     || decimal.TryParse(stringValue, out var decVal) && decVal == 0)
                 {
                     return default;
@@ -127,7 +127,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         public static DateTime ParseFromString(string stringValue, string? resolverName)
         {
-            if (stringValue!.Length == 12 && stringValue.StartsWith("202"))
+            if (stringValue!.Length == 12 && stringValue.StartsWith("202", StringComparison.OrdinalIgnoreCase))
             {
                 // Parse 202303261200 format
                 if (!int.TryParse(stringValue.Substring(0, 4), out var year)

@@ -48,7 +48,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         if (field is PropertyFieldReference propRef
                             && otherField is PropertyFieldReference otherPropRef)
                         {
-                            return field.Depth == otherPropRef.Depth && propRef.PropertyName == otherPropRef.PropertyName;
+                            return field.Depth == otherPropRef.Depth && propRef.PropertyName.SequenceEqual(otherPropRef.PropertyName);
                         }
                         else if (field is ArrayFieldReference arrayRef
                             && otherField is ArrayFieldReference otherArrayPropRef)
@@ -62,11 +62,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         _overlappingFields = true;
                     }
 
-                    MessageEvalutorFieldReference? existing = null;
+                    MessageEvalutorFieldReference? existingSameSearchField = null;
                     if (field is ArrayFieldReference arrayField)
                     {
                         _hasArraySearches = true;
-                        existing = _searchFields.SingleOrDefault(x =>
+                        existingSameSearchField = _searchFields.SingleOrDefault(x =>
                             x.Field is ArrayFieldReference arrayFieldRef
                             && arrayFieldRef.ArrayIndex == arrayField.ArrayIndex
                             && arrayFieldRef.Depth == arrayField.Depth
@@ -74,39 +74,37 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     }
                     else if (field is PropertyFieldReference propField)
                     {
-                        existing = _searchFields.SingleOrDefault(x =>
+                        existingSameSearchField = _searchFields.SingleOrDefault(x =>
                             x.Field is PropertyFieldReference propFieldRef
-                            && propFieldRef.PropertyName == propField.PropertyName
+                            && propFieldRef.PropertyName.SequenceEqual(propField.PropertyName)
                             && propFieldRef.Depth == propField.Depth
                             && (propFieldRef.Constraint == null && propFieldRef.Constraint == null));
                     }
 
-                    if (existing != null)
+                    if (existingSameSearchField != null)
                     {
-                        if (existing.SkipReading == true
+                        if (existingSameSearchField.SkipReading == true
                             && (evaluator.IdentifyMessageCallback != null
                                 || field.Constraint != null))
                         {
-                            existing.SkipReading = false;
+                            existingSameSearchField.SkipReading = false;
                         }
 
                         if (evaluator.ForceIfFound)
                         {
-                            if (evaluator.Fields.Length > 1 || existing.ForceEvaluator != null)
+                            if (evaluator.Fields.Length > 1 || existingSameSearchField.ForceEvaluator != null)
                                 throw new Exception("Invalid config");
 
-                            existing.ForceEvaluator = evaluator;
+                            existingSameSearchField.ForceEvaluator = evaluator;
                         }
                     }
-                    else
+
+                    _searchFields.Add(new MessageEvalutorFieldReference
                     {
-                        _searchFields.Add(new MessageEvalutorFieldReference
-                        {
-                            SkipReading = evaluator.IdentifyMessageCallback == null && field.Constraint == null,
-                            ForceEvaluator = evaluator.ForceIfFound ? evaluator : null,
-                            Field = field
-                        });
-                    }
+                        SkipReading = evaluator.IdentifyMessageCallback == null && field.Constraint == null,
+                        ForceEvaluator = evaluator.ForceIfFound ? evaluator : null,
+                        Field = field
+                    });                    
 
                     if (field.Depth > _maxSearchDepth)
                         _maxSearchDepth = field.Depth;
