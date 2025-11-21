@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
@@ -27,7 +28,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private bool _hasArraySearches;
         private bool _initialized;
         private int _maxSearchDepth;
-        private bool _overlappingFields;
         private MessageEvaluator? _topEvaluator;
         private List<MessageEvalutorFieldReference>? _searchFields;
 
@@ -43,68 +43,75 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
                 {
-                    if (MessageEvaluators.Where(x => x != evaluator).SelectMany(x => x.Fields).Any(otherField =>
+                    if (field.SearchName == "event")
+                    {
+                    }
+
+                    var overlapping = _searchFields.Where(otherField =>
                     {
                         if (field is PropertyFieldReference propRef
-                            && otherField is PropertyFieldReference otherPropRef)
+                            && otherField.Field is PropertyFieldReference otherPropRef)
                         {
                             return field.Depth == otherPropRef.Depth && propRef.PropertyName.SequenceEqual(otherPropRef.PropertyName);
                         }
                         else if (field is ArrayFieldReference arrayRef
-                            && otherField is ArrayFieldReference otherArrayPropRef)
+                            && otherField.Field is ArrayFieldReference otherArrayPropRef)
                         {
                             return field.Depth == otherArrayPropRef.Depth && arrayRef.ArrayIndex == otherArrayPropRef.ArrayIndex;
                         }
 
                         return false;
-                    }))
+                    }).ToList();
+
+                    if (overlapping.Any())
                     {
-                        _overlappingFields = true;
+                        foreach (var overlap in overlapping)
+                            overlap.OverlappingField = true;
                     }
 
-                    MessageEvalutorFieldReference? existingSameSearchField = null;
+                    List<MessageEvalutorFieldReference>? existingSameSearchField = new();
                     if (field is ArrayFieldReference arrayField)
                     {
                         _hasArraySearches = true;
-                        existingSameSearchField = _searchFields.SingleOrDefault(x =>
+                        existingSameSearchField = _searchFields.Where(x =>
                             x.Field is ArrayFieldReference arrayFieldRef
                             && arrayFieldRef.ArrayIndex == arrayField.ArrayIndex
                             && arrayFieldRef.Depth == arrayField.Depth
-                            && (arrayFieldRef.Constraint == null && arrayField.Constraint == null));
+                            && (arrayFieldRef.Constraint == null && arrayField.Constraint == null)).ToList();
                     }
                     else if (field is PropertyFieldReference propField)
                     {
-                        existingSameSearchField = _searchFields.SingleOrDefault(x =>
+                        existingSameSearchField = _searchFields.Where(x =>
                             x.Field is PropertyFieldReference propFieldRef
                             && propFieldRef.PropertyName.SequenceEqual(propField.PropertyName)
                             && propFieldRef.Depth == propField.Depth
-                            && (propFieldRef.Constraint == null && propFieldRef.Constraint == null));
+                            && (propFieldRef.Constraint == null && propFieldRef.Constraint == null)).ToList();
                     }
 
-                    if (existingSameSearchField != null)
+                    foreach(var sameSearchField in existingSameSearchField)
                     {
-                        if (existingSameSearchField.SkipReading == true
-                            && (evaluator.IdentifyMessageCallback != null
-                                || field.Constraint != null))
+                        if (sameSearchField.SkipReading == true
+                            && (evaluator.IdentifyMessageCallback != null || field.Constraint != null))
                         {
-                            existingSameSearchField.SkipReading = false;
+                            sameSearchField.SkipReading = false;
                         }
 
                         if (evaluator.ForceIfFound)
                         {
-                            if (evaluator.Fields.Length > 1 || existingSameSearchField.ForceEvaluator != null)
+                            if (evaluator.Fields.Length > 1 || sameSearchField.ForceEvaluator != null)
                                 throw new Exception("Invalid config");
 
-                            existingSameSearchField.ForceEvaluator = evaluator;
+                            //sameSearchField.ForceEvaluator = evaluator;
                         }
                     }
 
                     _searchFields.Add(new MessageEvalutorFieldReference
                     {
                         SkipReading = evaluator.IdentifyMessageCallback == null && field.Constraint == null,
-                        ForceEvaluator = evaluator.ForceIfFound ? evaluator : null,
+                        ForceEvaluator = !existingSameSearchField.Any() ? (evaluator.ForceIfFound ? evaluator : null) : null,
+                        OverlappingField = overlapping.Any(),
                         Field = field
-                    });                    
+                    });
 
                     if (field.Depth > _maxSearchDepth)
                         _maxSearchDepth = field.Depth;
@@ -153,6 +160,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         if (field.Field.Depth != reader.CurrentDepth)
                             continue;
 
+                        bool readArrayValues = false;
                         if (field.Field is PropertyFieldReference propFieldRef)
                         {
                             if (propName == null)
@@ -164,6 +172,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                     continue;
 
                                 propName = propFieldRef.PropertyName;
+                                readArrayValues = propFieldRef.ArrayValues;
                                 reader.Read();
                             }
                             else if (!propFieldRef.PropertyName.SequenceEqual(propName))
@@ -187,14 +196,40 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         {
                             if (value == null)
                             {
-                                if (reader.TokenType == JsonTokenType.Number)
-                                    value = reader.GetDecimal().ToString();
-                                else if (reader.TokenType == JsonTokenType.String)
-                                    value = reader.GetString()!;
-                                else if (reader.TokenType == JsonTokenType.Null)
-                                    value = null;
+                                if (readArrayValues)
+                                {
+                                    if (reader.TokenType != JsonTokenType.StartArray)
+                                    {
+                                        // error
+                                        return null;
+                                    }
+
+                                    var sb = new StringBuilder();
+                                    reader.Read();// Read start array
+                                    bool first = true;
+                                    while(reader.TokenType != JsonTokenType.EndArray)
+                                    {
+                                        if (!first)
+                                            sb.Append(",");
+
+                                        first = false;
+                                        sb.Append(reader.GetString());
+                                        reader.Read();
+                                    }
+
+                                    value = first ? null : sb.ToString();
+                                }
                                 else
-                                    continue;
+                                {
+                                    if (reader.TokenType == JsonTokenType.Number)
+                                        value = reader.GetDecimal().ToString();
+                                    else if (reader.TokenType == JsonTokenType.String)
+                                        value = reader.GetString()!;
+                                    else if (reader.TokenType == JsonTokenType.Null)
+                                        value = null;
+                                    else
+                                        continue;
+                                }
                             }
 
                             if (field.Field.Constraint != null
@@ -216,7 +251,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         }
 
                         written = true;
-                        if (!_overlappingFields)
+                        if (!field.OverlappingField)
                             break;
                     }
 

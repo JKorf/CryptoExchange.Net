@@ -51,6 +51,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     public class PropertyFieldReference : MessageFieldReference
     {
         public byte[] PropertyName { get; set; }
+        public bool ArrayValues { get; set; }
 
         public PropertyFieldReference(string propertyName) : base(propertyName)
         {
@@ -72,6 +73,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     public class MessageEvalutorFieldReference
     {
         public bool SkipReading { get; set; }
+        public bool OverlappingField { get; set; }
         public MessageFieldReference Field { get; set; }
         public MessageEvaluator? ForceEvaluator { get; set; }
     }

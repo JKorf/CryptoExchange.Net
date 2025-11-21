@@ -386,20 +386,31 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Decompress using GzipStream
+        /// </summary>
+        public static ReadOnlySpan<byte> Decompress(this ReadOnlySpan<byte> input)
+        {
+            using var output = new MemoryStream();
+            using var compressStream = new MemoryStream(input.ToArray());
+            using var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress);
+            decompressor.CopyTo(output);
+            return new ReadOnlySpan<byte>(output.GetBuffer(), 0, (int)output.Length);
+        }
+
+        /// <summary>
         /// Decompress using DeflateStream
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static ReadOnlySpan<byte> Decompress(this ReadOnlyMemory<byte> input)
+        public static ReadOnlyMemory<byte> Decompress(this ReadOnlyMemory<byte> input)
         {
             var output = new MemoryStream();
 
-            using (var compressStream = new MemoryStream(input.ToArray()))
-            using (var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress))
-                decompressor.CopyTo(output);
-
+            using var compressStream = new MemoryStream(input.ToArray());
+            using var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress);
+            decompressor.CopyTo(output);
             output.Position = 0;
-            return new ReadOnlySpan<byte>(output.GetBuffer(), 0, (int)output.Length);
+            return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
         /// <summary>

@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public DataEvent<T> WithSymbol(string symbol)
+        public DataEvent<T> WithSymbol(string? symbol)
         {
             Symbol = symbol;
             return this;
