@@ -9,7 +9,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.Protobuf.Converters.Protobuf
 {
-    public abstract class DynamicProtobufConverter<T> : IMessageConverter
+    public abstract class DynamicProtobufConverter<T> : ISocketMessageHandler
     {
         public object Deserialize(ReadOnlySpan<byte> data, Type type)
         {

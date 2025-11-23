@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Testing
         /// </summary>
         /// <param name="loggerFactory"></param>
         /// <returns></returns>
-        public abstract TClient GetClient(ILoggerFactory loggerFactory);
+        public abstract TClient GetClient(ILoggerFactory loggerFactory, bool newDeserialization);
 
         /// <summary>
         /// Whether the test should be run. By default integration tests aren't executed, can be set to true to force execution.
@@ -35,11 +35,11 @@ namespace CryptoExchange.Net.Testing
         /// Create a client
         /// </summary>
         /// <returns></returns>
-        protected TClient CreateClient()
+        protected TClient CreateClient(bool newDeserialization)
         {
             var fact = new LoggerFactory();
             fact.AddProvider(new TraceLoggerProvider());
-            return GetClient(fact);
+            return GetClient(fact, newDeserialization);
         }
 
         /// <summary>
@@ -61,12 +61,12 @@ namespace CryptoExchange.Net.Testing
         /// <typeparam name="T">Type of response</typeparam>
         /// <param name="expression">The call expression</param>
         /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckResult<T>(Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
+        public async Task RunAndCheckResult<T>(bool newDeserialization, Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
         {
             if (!ShouldRun())
                 return;
 
-            var client = CreateClient();
+            var client = CreateClient(newDeserialization);
 
             var expressionBody = (MethodCallExpression)expression.Body;
             if (authRequest && !Authenticated)

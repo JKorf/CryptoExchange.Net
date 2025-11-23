@@ -823,18 +823,6 @@ namespace CryptoExchange.Net.Clients
                 UseUpdatedDeserialization = ClientOptions.UseUpdatedDeserialization
             };
 
-        ///// <summary>
-        ///// Create a socket for an address
-        ///// </summary>
-        ///// <param name="address">The address the socket should connect to</param>
-        ///// <returns></returns>
-        //protected internal virtual IWebsocket CreateSocket(string address)
-        //{
-        //    var socket = SocketFactory.CreateWebsocket(_logger,  GetWebSocketParameters(address));
-        //    _logger.SocketCreatedForAddress(socket.Id, address);
-        //    return socket;
-        //}
-
         /// <summary>
         /// Unsubscribe an update subscription
         /// </summary>
@@ -1072,6 +1060,6 @@ namespace CryptoExchange.Net.Clients
         /// Create a new message converter instance
         /// </summary>
         /// <returns></returns>
-        public abstract IMessageConverter CreateMessageConverter(WebSocketMessageType messageType);
+        public abstract ISocketMessageHandler CreateMessageConverter(WebSocketMessageType messageType);
     }
 }

@@ -61,30 +61,71 @@ namespace CryptoExchange.Net
         /// <returns></returns>
         public static string CreateParamString(this IDictionary<string, object> parameters, bool urlEncodeValues, ArrayParametersSerialization serializationType)
         {
-            var uriString = string.Empty;
-            var arraysParameters = parameters.Where(p => p.Value.GetType().IsArray).ToList();
-            foreach (var arrayEntry in arraysParameters)
+            var uriString = new StringBuilder();
+            bool first = true;
+            foreach(var parameter in parameters)
             {
-                if (serializationType == ArrayParametersSerialization.Array)
+                if (!first)
+                    uriString.Append("&");
+
+                first = false;
+
+                if (parameter.GetType().IsArray)
                 {
-                    uriString += $"{string.Join("&", ((object[])(urlEncodeValues ? Uri.EscapeDataString(arrayEntry.Value.ToString()!) : arrayEntry.Value)).Select(v => $"{arrayEntry.Key}[]={string.Format(CultureInfo.InvariantCulture, "{0}", v)}"))}&";
+                    if (serializationType == ArrayParametersSerialization.Array)
+                    {
+                        foreach(var entry in (object[])parameter.Value)
+                        {
+                            uriString.Append(parameter.Key);
+                            uriString.Append("[]=");
+                            if (urlEncodeValues)
+                                uriString.Append(Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", entry)));
+                            else
+                                uriString.Append(string.Format(CultureInfo.InvariantCulture, "{0}", entry));
+                        }
+                    }
+                    else if (serializationType == ArrayParametersSerialization.MultipleValues)
+                    {
+                        foreach (var entry in (object[])parameter.Value)
+                        {
+                            uriString.Append(parameter.Key);
+                            uriString.Append("=");
+                            if (urlEncodeValues)
+                                uriString.Append(Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", entry)));
+                            else
+                                uriString.Append(string.Format(CultureInfo.InvariantCulture, "{0}", entry));
+                        }
+                    }
+                    else
+                    {
+                        uriString.Append('[');
+                        var firstArrayEntry = true;
+                        foreach (var entry in (object[])parameter.Value)
+                        {
+                            if (!firstArrayEntry)
+                                uriString.Append(',');                            
+
+                            firstArrayEntry = false;
+                            if (urlEncodeValues)
+                                uriString.Append(Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", entry)));
+                            else
+                                uriString.Append(string.Format(CultureInfo.InvariantCulture, "{0}", entry));
+                        }
+                        uriString.Append(']');
+                    }
                 }
-                else if (serializationType == ArrayParametersSerialization.MultipleValues)
+                else 
                 {
-                    var array = (Array)arrayEntry.Value;
-                    uriString += string.Join("&", array.OfType<object>().Select(a => $"{arrayEntry.Key}={Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", a))}"));
-                    uriString += "&";
-                }
-                else
-                {
-                    var array = (Array)arrayEntry.Value;
-                    uriString += $"{arrayEntry.Key}=[{string.Join(",", array.OfType<object>().Select(a => string.Format(CultureInfo.InvariantCulture, "{0}", a)))}]&";
+                    uriString.Append(parameter.Key);
+                    uriString.Append('=');
+                    if (urlEncodeValues)
+                        uriString.Append(Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", parameter.Value)));
+                    else
+                        uriString.Append(string.Format(CultureInfo.InvariantCulture, "{0}", parameter.Value));
                 }
             }
 
-            uriString += $"{string.Join("&", parameters.Where(p => !p.Value.GetType().IsArray).Select(s => $"{s.Key}={(urlEncodeValues ? Uri.EscapeDataString(string.Format(CultureInfo.InvariantCulture, "{0}", s.Value)) : string.Format(CultureInfo.InvariantCulture, "{0}", s.Value))}"))}";
-            uriString = uriString.TrimEnd('&');
-            return uriString;
+            return uriString.ToString();
         }
 
         /// <summary>

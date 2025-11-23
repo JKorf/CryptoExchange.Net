@@ -70,9 +70,9 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public KeyValuePair<string, string[]>[] GetHeaders()
+        public HttpRequestHeaders GetHeaders()
         {
-            return _request.Headers.Select(h => new KeyValuePair<string, string[]>(h.Key, h.Value.ToArray())).ToArray();
+            return _request.Headers;
         }
 
         /// <inheritdoc />

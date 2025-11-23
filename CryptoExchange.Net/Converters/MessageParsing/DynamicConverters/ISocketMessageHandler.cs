@@ -4,12 +4,12 @@ using System.Net.WebSockets;
 namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 {
     /// <summary>
-    /// Message converter
+    /// WebSocket message handler
     /// </summary>
-    public interface IMessageConverter
+    public interface ISocketMessageHandler
     {
         /// <summary>
-        /// Get message info
+        /// Get an identifier for the message which can be used to link it to a listener
         /// </summary>
         string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
 

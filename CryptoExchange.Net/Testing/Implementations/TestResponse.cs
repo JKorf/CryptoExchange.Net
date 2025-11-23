@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Testing.Implementations
@@ -18,7 +20,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public long? ContentLength { get; }
 
-        public KeyValuePair<string, string[]>[] ResponseHeaders { get; } = new KeyValuePair<string, string[]>[0];
+        public HttpResponseHeaders ResponseHeaders { get; } = new HttpResponseMessage().Headers;
 
         public TestResponse(HttpStatusCode code, Stream response)
         {

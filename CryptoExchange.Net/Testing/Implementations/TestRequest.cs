@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.Testing.Implementations
 {
     internal class TestRequest : IRequest
     {
-        private readonly List<KeyValuePair<string, string[]>> _headers = new();
+        private readonly HttpRequestHeaders _headers = new HttpRequestMessage().Headers;
         private readonly TestResponse _response;
 
         public string Accept { set { } }
@@ -34,10 +35,10 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void AddHeader(string key, string value)
         {
-            _headers.Add(new KeyValuePair<string, string[]>(key, new[] { value }));
+            _headers.Add(key, value);
         }
 
-        public KeyValuePair<string, string[]>[] GetHeaders() => _headers.ToArray();
+        public HttpRequestHeaders GetHeaders() => _headers;
 
         public Task<IResponse> GetResponseAsync(CancellationToken cancellationToken) => Task.FromResult<IResponse>(_response);
 

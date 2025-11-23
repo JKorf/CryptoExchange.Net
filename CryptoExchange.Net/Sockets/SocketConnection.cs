@@ -269,8 +269,8 @@ namespace CryptoExchange.Net.Sockets
         private IByteMessageAccessor? _stringMessageAccessor;
         private IByteMessageAccessor? _byteMessageAccessor;
 
-        private IMessageConverter? _byteMessageConverter;
-        private IMessageConverter? _textMessageConverter;
+        private ISocketMessageHandler? _byteMessageConverter;
+        private ISocketMessageHandler? _textMessageConverter;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
@@ -516,7 +516,7 @@ namespace CryptoExchange.Net.Sockets
             // 1. Decrypt/Preprocess if necessary
             data = ApiClient.PreprocessStreamMessage(this, type, data);
 
-            IMessageConverter messageConverter;
+            ISocketMessageHandler messageConverter;
             if (type == WebSocketMessageType.Binary)
                 messageConverter = _byteMessageConverter ??= ApiClient.CreateMessageConverter(type);
             else

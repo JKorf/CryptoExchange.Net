@@ -45,6 +45,11 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan? HttpKeepAliveInterval { get; set; } = TimeSpan.FromSeconds(15);
 
         /// <summary>
+        /// Whether or not to use the updated deserialization logic
+        /// </summary>
+        public bool UseUpdatedDeserialization { get; set; }
+
+        /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
         public T Set<T>(T item) where T : RestExchangeOptions, new()
@@ -61,6 +66,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.CachingMaxAge = CachingMaxAge;
             item.HttpVersion = HttpVersion;
             item.HttpKeepAliveInterval = HttpKeepAliveInterval;
+            item.UseUpdatedDeserialization = UseUpdatedDeserialization;
             return item;
         }
     }

@@ -9,9 +9,9 @@ using System.Text.Json;
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {
     /// <summary>
-    /// JSON message converter, sequentially read the json and looks for specific prefdefined fields to identify the message
+    /// JSON WebSocket message handler, sequentially read the JSON and looks for specific predefined fields to identify the message
     /// </summary>
-    public abstract class DynamicJsonConverter : IMessageConverter
+    public abstract class JsonSocketMessageHandler : ISocketMessageHandler
     {
         /// <summary>
         /// The serializer options to use
@@ -43,10 +43,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
                 {
-                    if (field.SearchName == "event")
-                    {
-                    }
-
                     var overlapping = _searchFields.Where(otherField =>
                     {
                         if (field is PropertyFieldReference propRef
