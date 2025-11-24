@@ -40,47 +40,50 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         public virtual object CreateState() => new JsonDocState();        
 
         /// <inheritdoc />
-        public virtual Task<ServerRateLimitError> ParseErrorRateLimitResponse(
+        public virtual ValueTask<ServerRateLimitError> ParseErrorRateLimitResponse(
             int httpStatusCode,
-            object state,
+            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream)
         {
             // Handle retry after header
             var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
             if (retryAfterHeader.Value?.Any() != true)
-                return Task.FromResult(_emptyRateLimitError);
+                return new ValueTask<ServerRateLimitError>(_emptyRateLimitError);
 
             var value = retryAfterHeader.Value.First();
             if (int.TryParse(value, out var seconds))
-                return Task.FromResult(new ServerRateLimitError() { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) });
+                return new ValueTask<ServerRateLimitError>(new ServerRateLimitError() { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) });
 
             if (DateTime.TryParse(value, out var datetime))
-                return Task.FromResult(new ServerRateLimitError() { RetryAfter = datetime });
+                return new ValueTask<ServerRateLimitError>(new ServerRateLimitError() { RetryAfter = datetime });
 
-            return Task.FromResult(_emptyRateLimitError);
+            return new ValueTask<ServerRateLimitError>(_emptyRateLimitError);
         }
 
         /// <inheritdoc />
-        public abstract Task<Error> ParseErrorResponse(
+        public abstract ValueTask<Error> ParseErrorResponse(
             int httpStatusCode,
-            object state,
+            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream);
 
         /// <inheritdoc />
-        public virtual Task<Error?> CheckForErrorResponse(
+        public virtual ValueTask<Error?> CheckForErrorResponse(
             RequestDefinition request,
-            object state,
+            object? state,
             HttpResponseHeaders responseHeaders,
-            Stream responseStream) => Task.FromResult<Error?> (null);
+            Stream responseStream) => new ValueTask<Error?>((Error?)null);
 
-        protected virtual async Task<(Error?, JsonDocument?)> GetJsonDocument(Stream stream, object state)
+        protected virtual async ValueTask<(Error?, JsonDocument?)> GetJsonDocument(Stream stream, object? state)
         {
+            if (state is JsonDocState documentState && documentState.Document != null)
+                return (null, documentState.Document);
+
             try
             {
                 var document = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
-                ((JsonDocState)state).Document = document;
+                ((JsonDocState)state!).Document = document;
                 return (null, document);
             }
             catch (Exception ex)
@@ -90,7 +93,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         }
 
         /// <inheritdoc />
-        public async ValueTask<(T? Result, Error? Error)> TryDeserializeAsync<T>(Stream responseStream, object state, CancellationToken cancellationToken)
+        public async ValueTask<(T? Result, Error? Error)> TryDeserializeAsync<T>(Stream responseStream, object? state, CancellationToken cancellationToken)
         {
             try
             {

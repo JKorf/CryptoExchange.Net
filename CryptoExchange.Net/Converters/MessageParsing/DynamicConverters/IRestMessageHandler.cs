@@ -14,12 +14,12 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     /// </summary>
     public interface IRestMessageHandler
     {
-        object CreateState();
+        object? CreateState();
 
         /// <summary>
         /// Parse the response when the HTTP response status indicated an error
         /// </summary>
-        Task<Error> ParseErrorResponse(
+        ValueTask<Error> ParseErrorResponse(
             int httpStatusCode,
             object? state,
             HttpResponseHeaders responseHeaders,
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Parse the response when the HTTP response status indicated a rate limit error
         /// </summary>
-        Task<ServerRateLimitError> ParseErrorRateLimitResponse(
+        ValueTask<ServerRateLimitError> ParseErrorRateLimitResponse(
             int httpStatusCode,
             object? state,
             HttpResponseHeaders responseHeaders,
@@ -37,7 +37,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check if the response is an error response; if so return the error
         /// </summary>
-        Task<Error?> CheckForErrorResponse(
+        ValueTask<Error?> CheckForErrorResponse(
             RequestDefinition request,
             object? state,
             HttpResponseHeaders responseHeaders,

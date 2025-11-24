@@ -449,7 +449,7 @@ namespace CryptoExchange.Net.Authentication
             if (serializer is not IStringMessageSerializer stringSerializer)
                 throw new InvalidOperationException("Non-string message serializer can't get serialized request body");
 
-            if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
+            if (parameters?.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
                 return stringSerializer.Serialize(value);
             else
                 return stringSerializer.Serialize(parameters);

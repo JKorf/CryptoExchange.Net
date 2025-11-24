@@ -424,6 +424,7 @@ namespace CryptoExchange.Net.Clients
             foreach (var header in StandardRequestHeaders)
             {
                 // Only add it if it isn't overwritten
+                requestConfiguration.Headers ??= new Dictionary<string, string>();
                 if (!requestConfiguration.Headers.ContainsKey(header.Key))
                     request.AddHeader(header.Key, header.Value);
             }            
@@ -501,7 +502,7 @@ namespace CryptoExchange.Net.Clients
                             responseStream).ConfigureAwait(false);
                     }
 
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null!);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
 
                 if (typeof(T) == typeof(object))
