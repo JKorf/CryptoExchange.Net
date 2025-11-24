@@ -17,8 +17,6 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get a client instance
         /// </summary>
-        /// <param name="loggerFactory"></param>
-        /// <returns></returns>
         public abstract TClient GetClient(ILoggerFactory loggerFactory, bool newDeserialization);
 
         /// <summary>
@@ -59,14 +57,15 @@ namespace CryptoExchange.Net.Testing
         /// Execute a REST endpoint call and check for any errors or warnings.
         /// </summary>
         /// <typeparam name="T">Type of response</typeparam>
+        /// <param name="useNewDeserialization">Whether to use the new deserialization method</param>
         /// <param name="expression">The call expression</param>
         /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckResult<T>(bool newDeserialization, Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
+        public async Task RunAndCheckResult<T>(bool useNewDeserialization, Expression<Func<TClient, Task<WebCallResult<T>>>> expression, bool authRequest)
         {
             if (!ShouldRun())
                 return;
 
-            var client = CreateClient(newDeserialization);
+            var client = CreateClient(useNewDeserialization);
 
             var expressionBody = (MethodCallExpression)expression.Body;
             if (authRequest && !Authenticated)

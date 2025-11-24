@@ -35,8 +35,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool UserSubscription { get; set; }
 
-        public HashSet<Type> DeserializationTypes { get; set; }
-
         private SubscriptionStatus _status;
         /// <summary>
         /// Current subscription status
@@ -74,20 +72,10 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool Authenticated { get; }
 
-
-        private MessageMatcher _matcher;
         /// <summary>
         /// Matcher for this subscription
         /// </summary>
-        public MessageMatcher MessageMatcher
-        {
-            get => _matcher;
-            set
-            {
-                _matcher = value;
-                DeserializationTypes = new HashSet<Type>(MessageMatcher.HandlerLinks.Select(x => x.DeserializationType));
-            }
-        }
+        public MessageMatcher MessageMatcher { get; set; }
 
         /// <summary>
         /// Cancellation token registration

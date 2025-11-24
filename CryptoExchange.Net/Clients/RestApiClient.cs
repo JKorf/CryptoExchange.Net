@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,9 +98,7 @@ namespace CryptoExchange.Net.Clients
         /// The message handler
         /// </summary>
         protected abstract IRestMessageHandler MessageHandler { get; }
-
-        private static MediaTypeWithQualityHeaderValue AcceptJsonContent = new MediaTypeWithQualityHeaderValue(Constants.JsonContentHeader);
-
+        
         /// <summary>
         /// ctor
         /// </summary>
@@ -327,6 +326,9 @@ namespace CryptoExchange.Net.Clients
             return null;
         }
 
+        /// <summary>
+        /// Check rate limits for the request
+        /// </summary>
         protected virtual async Task<Error?> RateLimitAsync(
             string host,
             int requestId,
@@ -412,8 +414,7 @@ namespace CryptoExchange.Net.Clients
 
             var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
-#warning Should be configurable
-            request.Accept = AcceptJsonContent;
+            request.Accept = MessageHandler.AcceptHeader;
 
             if (requestConfiguration.Headers != null) 
             {
@@ -473,7 +474,23 @@ namespace CryptoExchange.Net.Clients
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
                 responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
+                string? originalData = null;
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
+                if (outputOriginalData)
+                {
+                    // If we want to return the original string data from the stream, but still want to process it
+                    // we'll need to copy it as the stream isn't seekable, and thus we can only read it once
+                    var memoryStream = new MemoryStream();
+                    await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+                    using var reader = new StreamReader(memoryStream, Encoding.UTF8,false, 4096, true);
+                    memoryStream.Position = 0;
+                    originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+                    // Continue processing from the memory stream since the response stream is already read and we can't seek it
+                    responseStream.Close();
+                    memoryStream.Position = 0;
+                    responseStream = memoryStream;
+                }
 
                 if (!response.IsSuccessStatusCode && !requestDefinition.TryParseOnNonSuccess)
                 {
@@ -502,12 +519,12 @@ namespace CryptoExchange.Net.Clients
                             responseStream).ConfigureAwait(false);
                     }
 
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
 
                 if (typeof(T) == typeof(object))
                     // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, null/*accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]"*/, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
 
                 // Data response received
                 var parsedError = await MessageHandler.CheckForErrorResponse(
@@ -527,11 +544,11 @@ namespace CryptoExchange.Net.Clients
                     }
 
                     // Success status code, but TryParseError determined it was an error response
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
                 }
 
                 var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, state, cancellationToken).ConfigureAwait(false);                              
-                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError);
+                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError);
             }
             catch (HttpRequestException requestException)
             {

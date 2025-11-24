@@ -27,6 +27,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
     /// </summary>
     public abstract class JsonRestMessageHandler : IRestMessageHandler
     {
+        private static MediaTypeWithQualityHeaderValue _acceptJsonContent = new MediaTypeWithQualityHeaderValue(Constants.JsonContentHeader);
+
         /// <summary>
         /// Empty rate limit error
         /// </summary>
@@ -37,7 +39,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         /// </summary>
         public abstract JsonSerializerOptions Options { get; }
 
-        public virtual object CreateState() => new JsonDocState();        
+        /// <inheritdoc />
+        public MediaTypeWithQualityHeaderValue AcceptHeader => _acceptJsonContent;
+
+        /// <inheritdoc />
+        public virtual object CreateState() => new JsonDocState();
 
         /// <inheritdoc />
         public virtual ValueTask<ServerRateLimitError> ParseErrorRateLimitResponse(
@@ -75,6 +81,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
             HttpResponseHeaders responseHeaders,
             Stream responseStream) => new ValueTask<Error?>((Error?)null);
 
+        /// <summary>
+        /// Read the response into a JsonDocument object
+        /// </summary>
         protected virtual async ValueTask<(Error?, JsonDocument?)> GetJsonDocument(Stream stream, object? state)
         {
             if (state is JsonDocState documentState && documentState.Document != null)
@@ -106,7 +115,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
                 }
                 else
                 {
-                    result = await JsonSerializer.DeserializeAsync<T>(responseStream, Options)!.ConfigureAwait(false);
+                    result = await JsonSerializer.DeserializeAsync<T>(responseStream, Options)!.ConfigureAwait(false)!;
                 }
                 return (result, null);
             }

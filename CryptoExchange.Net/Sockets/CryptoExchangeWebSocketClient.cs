@@ -41,7 +41,6 @@ namespace CryptoExchange.Net.Sockets
 
         private ClientWebSocket _socket;
         private CancellationTokenSource _ctsSource;
-        private DateTime _lastReceivedMessagesUpdate;
         private Task? _processTask;
         private Task? _closeTask;
         private bool _stopRequested;

@@ -101,12 +101,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                         }
                     }
 
-                    _searchFields.Add(new MessageEvalutorFieldReference
+                    _searchFields.Add(new MessageEvalutorFieldReference(field)
                     {
                         SkipReading = evaluator.IdentifyMessageCallback == null && field.Constraint == null,
                         ForceEvaluator = !existingSameSearchField.Any() ? (evaluator.ForceIfFound ? evaluator : null) : null,
-                        OverlappingField = overlapping.Any(),
-                        Field = field
+                        OverlappingField = overlapping.Any()
                     });
 
                     if (field.Depth > _maxSearchDepth)

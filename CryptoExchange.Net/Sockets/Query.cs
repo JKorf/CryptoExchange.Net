@@ -59,22 +59,11 @@ namespace CryptoExchange.Net.Sockets
         /// Response
         /// </summary>
         public object? Response { get; set; }
-#warning check if there is a better solution for this in combination with the MessageMatcher
-        public HashSet<Type> DeserializationTypes { get; set; }
 
-        private MessageMatcher _matcher;
         /// <summary>
         /// Matcher for this subscription
         /// </summary>
-        public MessageMatcher MessageMatcher
-        {
-            get => _matcher;
-            set
-            {
-                _matcher = value;
-                DeserializationTypes = new HashSet<Type>(MessageMatcher.HandlerLinks.Select(x => x.DeserializationType));
-            }
-        }
+        public MessageMatcher MessageMatcher { get; set; }
 
         /// <summary>
         /// The query request object

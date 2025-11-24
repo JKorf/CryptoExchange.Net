@@ -56,9 +56,9 @@ namespace CryptoExchange.Net.Objects.Sockets
         }
     }
 
+    /// <inheritdoc />
     public class DataEvent<T> : DataEvent
     {
-
         /// <summary>
         /// The received data deserialized into an object
         /// </summary>
@@ -120,8 +120,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// Copy the DataEvent to a new data type
         /// </summary>
-        /// <param name="exchange">The exchange the result is for</param>
-        /// <returns></returns>
         public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, K data)
         {
             return new ExchangeEvent<K>(exchange, this, data)

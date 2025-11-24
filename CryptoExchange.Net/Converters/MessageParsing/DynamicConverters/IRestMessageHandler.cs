@@ -14,6 +14,15 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     /// </summary>
     public interface IRestMessageHandler
     {
+        /// <summary>
+        /// The `accept` HTTP response header for the request
+        /// </summary>
+        MediaTypeWithQualityHeaderValue AcceptHeader { get; }
+
+        /// <summary>
+        /// Create an object to keep state for a request
+        /// </summary>
+        /// <returns></returns>
         object? CreateState();
 
         /// <summary>
