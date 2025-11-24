@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Accept header
         /// </summary>
-        string Accept { set; }
+        MediaTypeWithQualityHeaderValue Accept { set; }
         /// <summary>
         /// Content
         /// </summary>

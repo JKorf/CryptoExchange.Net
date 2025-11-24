@@ -98,6 +98,8 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected abstract IRestMessageHandler MessageHandler { get; }
 
+        private static MediaTypeWithQualityHeaderValue AcceptJsonContent = new MediaTypeWithQualityHeaderValue(Constants.JsonContentHeader);
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -388,9 +390,9 @@ namespace CryptoExchange.Net.Clients
             var requestConfiguration = new RestRequestConfiguration(
                 definition,
                 baseAddress,
-                uriParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(uriParameters),
-                bodyParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(bodyParameters),
-                new Dictionary<string, string>(additionalHeaders ?? []),
+                uriParameters == null ? null : CreateParameterDictionary(uriParameters),
+                bodyParameters == null ? null : CreateParameterDictionary(bodyParameters),
+                additionalHeaders,
                 definition.ArraySerialization ?? ArraySerialization,
                 definition.ParameterPosition ?? ParameterPositions[definition.Method],
                 definition.RequestBodyFormat ?? RequestBodyFormat);
@@ -411,10 +413,13 @@ namespace CryptoExchange.Net.Clients
             var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
 #warning Should be configurable
-            request.Accept = Constants.JsonContentHeader;
+            request.Accept = AcceptJsonContent;
 
-            foreach (var header in requestConfiguration.Headers)
-                request.AddHeader(header.Key, header.Value);            
+            if (requestConfiguration.Headers != null) 
+            {
+                foreach (var header in requestConfiguration.Headers)
+                    request.AddHeader(header.Key, header.Value);
+            }
 
             foreach (var header in StandardRequestHeaders)
             {

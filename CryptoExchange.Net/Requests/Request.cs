@@ -35,9 +35,9 @@ namespace CryptoExchange.Net.Requests
         public string? Content { get; private set; }
 
         /// <inheritdoc />
-        public string Accept
+        public MediaTypeWithQualityHeaderValue Accept
         {
-            set => _request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(value));
+            set => _request.Headers.Accept.Add(value);
         }
 
         /// <inheritdoc />

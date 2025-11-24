@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         private readonly HttpRequestHeaders _headers = new HttpRequestMessage().Headers;
         private readonly TestResponse _response;
 
-        public string Accept { set { } }
+        public MediaTypeWithQualityHeaderValue Accept { set { } }
 
         public string? Content { get; private set; }
 

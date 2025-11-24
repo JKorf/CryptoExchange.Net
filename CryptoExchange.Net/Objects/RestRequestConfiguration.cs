@@ -30,15 +30,15 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Query parameters
         /// </summary>
-        public IDictionary<string, object> QueryParameters { get; set; }
+        public IDictionary<string, object>? QueryParameters { get; set; }
         /// <summary>
         /// Body parameters
         /// </summary>
-        public IDictionary<string, object> BodyParameters { get; set; }
+        public IDictionary<string, object>? BodyParameters { get; set; }
         /// <summary>
         /// Request headers
         /// </summary>
-        public IDictionary<string, string> Headers { get; set; }
+        public IDictionary<string, string>? Headers { get; set; }
         /// <summary>
         /// Array serialization type
         /// </summary>
@@ -58,9 +58,9 @@ namespace CryptoExchange.Net.Objects
         public RestRequestConfiguration(
             RequestDefinition requestDefinition,
             string baseAddress,
-            IDictionary<string, object> queryParams,
-            IDictionary<string, object> bodyParams,
-            IDictionary<string, string> headers,
+            IDictionary<string, object>? queryParams,
+            IDictionary<string, object>? bodyParams,
+            IDictionary<string, string>? headers,
             ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parametersPosition,
             RequestBodyFormat bodyFormat)
@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Get the parameter collection based on the ParameterPosition
         /// </summary>
-        public IDictionary<string, object> GetPositionParameters()
+        public IDictionary<string, object>? GetPositionParameters()
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
                 return BodyParameters;
@@ -94,7 +94,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="urlEncode">Whether to URL encode the parameter string if creating new</param>
         public string GetQueryString(bool urlEncode = true)
         {
-            return _queryString ?? QueryParameters.CreateParamString(urlEncode, ArraySerialization);
+            return _queryString ?? QueryParameters?.CreateParamString(urlEncode, ArraySerialization) ?? string.Empty;
         }
 
         /// <summary>
