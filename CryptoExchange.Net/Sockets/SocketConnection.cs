@@ -565,7 +565,7 @@ namespace CryptoExchange.Net.Sockets
             if (deserializationType == null)
             {
                 // No handler found for identifier either, can't process
-                _logger.LogWarning("Failed to determine message type. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
+                _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", messageIdentifier, Encoding.UTF8.GetString(data.ToArray()));
                 return;
             }
             

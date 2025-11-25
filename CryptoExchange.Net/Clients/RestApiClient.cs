@@ -486,6 +486,10 @@ namespace CryptoExchange.Net.Clients
                     memoryStream.Position = 0;
                     originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
 
+                    if (_logger.IsEnabled(LogLevel.Trace))
+#warning TODO extension
+                        _logger.LogTrace("[Req {RequestId}] Received response: {Data}", request.RequestId, originalData);
+
                     // Continue processing from the memory stream since the response stream is already read and we can't seek it
                     responseStream.Close();
                     memoryStream.Position = 0;
@@ -494,9 +498,12 @@ namespace CryptoExchange.Net.Clients
 
                 if (!response.IsSuccessStatusCode && !requestDefinition.TryParseOnNonSuccess)
                 {
+                    // If the response status is not success it is an error by definition
+
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
                     {
+                        // Specifically handle rate limit errors
                         var rateError = await MessageHandler.ParseErrorRateLimitResponse(
                             (int)response.StatusCode,
                             state,
@@ -512,6 +519,7 @@ namespace CryptoExchange.Net.Clients
                     }
                     else
                     {
+                        // Handle a 'normal' error response. Can still be either a json error message or some random HTML or other string
                         error = await MessageHandler.ParseErrorResponse(
                             (int)response.StatusCode,
                             state,
@@ -526,7 +534,7 @@ namespace CryptoExchange.Net.Clients
                     // Success status code and expected empty response, assume it's correct
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
 
-                // Data response received
+                // Data response received, inspect the message and check if it is an error or not
                 var parsedError = await MessageHandler.CheckForErrorResponse(
                     requestDefinition,
                     state,
@@ -547,8 +555,17 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
                 }
 
+                // Try deserialization into the expected type
                 var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, state, cancellationToken).ConfigureAwait(false);                              
-                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError);
+                if (deserializeError != null)
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError); ;
+
+                // Check the deserialized response to see if it's an error or not
+                var responseError = MessageHandler.CheckDeserializedResponse(response.ResponseHeaders, deserializeResult);
+                if (responseError != null)
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, responseError);
+
+                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, null);
             }
             catch (HttpRequestException requestException)
             {

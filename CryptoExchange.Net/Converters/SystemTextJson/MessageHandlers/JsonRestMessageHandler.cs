@@ -118,50 +118,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
                     result = await JsonSerializer.DeserializeAsync<T>(responseStream, Options)!.ConfigureAwait(false)!;
                 }
                 return (result, null);
-            }
-            catch (HttpRequestException requestException)
+            }            
+            catch (JsonException ex)
             {
-                // Request exception, can't reach server for instance
-                var error = new WebError(requestException.Message, requestException);
-                return (default, error);
+                var info = $"Json deserialization failed: {ex.Message}, Path: {ex.Path}, LineNumber: {ex.LineNumber}, LinePosition: {ex.BytePositionInLine}";
+                return (default, new DeserializeError(info, ex));
             }
-            catch (OperationCanceledException canceledException)
+            catch (Exception ex)
             {
-                if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
-                {
-                    // Cancellation token canceled by caller
-                    return (default, new CancellationRequestedError(canceledException));
-                }
-                else
-                {
-                    // Request timed out
-                    var error = new WebError($"Request timed out", exception: canceledException);
-                    error.ErrorType = ErrorType.Timeout;
-                    return (default, error);
-                }
-            }
-            catch (ArgumentException argumentException)
-            {
-                if (argumentException.Message.StartsWith("Only HTTP/"))
-                {
-                    // Unsupported HTTP version error .net framework
-                    var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version: " + argumentException.Message);
-                    return (default, error);
-                }
-
-                throw;
-            }
-            catch (NotSupportedException notSupportedException)
-            {
-                if (notSupportedException.Message.StartsWith("Request version value must be one of"))
-                {
-                    // Unsupported HTTP version error dotnet code
-                    var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version: " + notSupportedException.Message);
-                    return (default, error);
-                }
-
-                throw;
+                return (default, new DeserializeError($"Json deserialization failed: {ex.Message}", ex));
             }
         }
+
+        /// <inheritdoc />
+        public virtual Error? CheckDeserializedResponse<T>(HttpResponseHeaders responseHeaders, T result) => null;
     }
 }

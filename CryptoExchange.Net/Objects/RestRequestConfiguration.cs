@@ -80,11 +80,15 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Get the parameter collection based on the ParameterPosition
         /// </summary>
-        public IDictionary<string, object>? GetPositionParameters()
+        public IDictionary<string, object> GetPositionParameters()
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
+            {
+                BodyParameters ??= new Dictionary<string, object>();
                 return BodyParameters;
+            }
 
+            QueryParameters ??= new Dictionary<string, object>();
             return QueryParameters;
         }
 

@@ -44,7 +44,10 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
             Stream responseStream);
 
         /// <summary>
-        /// Check if the response is an error response; if so return the error
+        /// Check if the response is an error response; if so return the error.<br />
+        /// Note that if the API returns a standard result wrapper, something like this:
+        /// <code>{ "code": 400, "msg": "error", "data": {} }</code> 
+        /// then the `CheckDeserializedResponse` method should be used for checking the result
         /// </summary>
         ValueTask<Error?> CheckForErrorResponse(
             RequestDefinition request,
@@ -59,6 +62,11 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
             Stream responseStream,
             object? state,
             CancellationToken ct);
+
+        /// <summary>
+        /// Check whether the resulting T object indicates an error or not
+        /// </summary>
+        Error? CheckDeserializedResponse<T>(HttpResponseHeaders responseHeaders, T result);
     }
 
 }
