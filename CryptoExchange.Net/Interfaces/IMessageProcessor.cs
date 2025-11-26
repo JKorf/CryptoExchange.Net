@@ -21,6 +21,10 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         public MessageMatcher MessageMatcher { get; }
         /// <summary>
+        /// The message router for this processor
+        /// </summary>
+        public MessageRouter MessageRouter { get; }
+        /// <summary>
         /// Handle a message
         /// </summary>
         CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object result, MessageHandlerLink matchedHandler);

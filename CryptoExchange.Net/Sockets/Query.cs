@@ -61,9 +61,14 @@ namespace CryptoExchange.Net.Sockets
         public object? Response { get; set; }
 
         /// <summary>
-        /// Matcher for this subscription
+        /// Matcher for this query
         /// </summary>
         public MessageMatcher MessageMatcher { get; set; }
+
+        /// <summary>
+        /// Router for this query
+        /// </summary>
+        public MessageRouter MessageRouter { get; set; }
 
         /// <summary>
         /// The query request object

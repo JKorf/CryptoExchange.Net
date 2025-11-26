@@ -13,6 +13,9 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// </summary>
         string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
 
+        // string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+        // string? GetTopicFilter(object deserializedObject);
+
         /// <summary>
         /// Deserialize to the provided type
         /// </summary>

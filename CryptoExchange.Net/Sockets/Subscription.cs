@@ -78,6 +78,11 @@ namespace CryptoExchange.Net.Sockets
         public MessageMatcher MessageMatcher { get; set; }
 
         /// <summary>
+        /// Router for this subscription
+        /// </summary>
+        public MessageRouter MessageRouter { get; set; }
+
+        /// <summary>
         /// Cancellation token registration
         /// </summary>
         public CancellationTokenRegistration? CancellationTokenRegistration { get; set; }
