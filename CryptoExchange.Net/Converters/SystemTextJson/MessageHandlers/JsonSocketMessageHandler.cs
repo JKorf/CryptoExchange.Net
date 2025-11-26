@@ -220,6 +220,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                         value = reader.GetDecimal().ToString();
                                     else if (reader.TokenType == JsonTokenType.String)
                                         value = reader.GetString()!;
+                                    else if (reader.TokenType == JsonTokenType.True
+                                           || reader.TokenType == JsonTokenType.False)
+                                        value = reader.GetBoolean().ToString()!;
                                     else if (reader.TokenType == JsonTokenType.Null)
                                         value = null;
                                     else
