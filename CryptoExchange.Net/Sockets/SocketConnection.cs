@@ -552,9 +552,9 @@ namespace CryptoExchange.Net.Sockets
             // Type id: kline
             // Topic filter: ethusdt-1m
 
-
-            var messageIdentifier = messageConverter.GetMessageIdentifier(data, type); 
-            if (messageIdentifier == null)
+            var typeIdentifier = messageConverter.GetTypeIdentifier(data, type);
+            //var messageIdentifier = messageConverter.GetMessageIdentifier(data, type); 
+            if (typeIdentifier == null)
             {
                 // Both deserialization type and identifier null, can't process
                 _logger.LogWarning("Failed to evaluate message. Data: {Message}", Encoding.UTF8.GetString(data.ToArray()));
@@ -566,12 +566,12 @@ namespace CryptoExchange.Net.Sockets
             {
                 foreach (var subscription in _listeners)
                 {
-                    foreach (var link in subscription.MessageMatcher.HandlerLinks)
+                    foreach (var route in subscription.MessageRouter.Routes)
                     {
-                        if (!link.Check(messageIdentifier!))
+                        if (!route.TypeIdentifier.Equals(typeIdentifier, StringComparison.Ordinal))
                             continue;
 
-                        deserializationType = link.DeserializationType;
+                        deserializationType = route.DeserializationType;
                         break;
                     }
 
@@ -583,7 +583,7 @@ namespace CryptoExchange.Net.Sockets
             if (deserializationType == null)
             {
                 // No handler found for identifier either, can't process
-                _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", messageIdentifier, Encoding.UTF8.GetString(data.ToArray()));
+                _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", typeIdentifier, Encoding.UTF8.GetString(data.ToArray()));
                 return;
             }
             
@@ -617,6 +617,8 @@ namespace CryptoExchange.Net.Sockets
                 return;
             }
 
+            var topicFilter = messageConverter.GetTopicFilter(result);
+
             bool processed = false;
             lock (_listenersLock)
             {
@@ -631,20 +633,25 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     var subscription = _listeners[i];
-                    foreach (var link in subscription.MessageMatcher.HandlerLinks)
+                    foreach (var route in subscription.MessageRouter.Routes)
                     {
-                        if (!link.Check(messageIdentifier!))
+                        if (route.DeserializationType != deserializationType)
                             continue;
 
-                        processed = true;
-                        subscription.Handle(this, receiveTime, originalData, result, link);
+                        if (topicFilter == null || route.TopicFilter == null || route.TopicFilter.Contains(topicFilter))
+                        {
+                            processed = true;
+                            subscription.Handle(this, receiveTime, originalData, result, route);
+                        }
+
                     }
                 }
             }
 
             if (!processed)
             {
-                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, messageIdentifier!, string.Join(",", _listeners.Select(x => x.MessageMatcher.HandlerLinks.Select(x => x.ToString()))));
+                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, topicFilter!,
+                    string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
             }
         }
 

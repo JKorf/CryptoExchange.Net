@@ -35,9 +35,33 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageRouter Create<T>(string typeIdentifier, string? topicFilter = null)
+        public static MessageRouter Create<T>(string typeIdentifier)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null)));
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter Create<T>(IEnumerable<string> values, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            return new MessageRouter(values.Select(x => new MessageRoute<T>(x, (string?)null, handler)).ToArray());
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter Create<T>(string typeIdentifier, string topicFilter)
         {
             return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null)));
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter Create<T>(string typeIdentifier, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, handler));
         }
 
         /// <summary>
@@ -46,6 +70,36 @@ namespace CryptoExchange.Net.Sockets
         public static MessageRouter Create<T>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
         {
             return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, handler));
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter Create<T>(string typeIdentifier, IEnumerable<string>? topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilters, handler));
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter Create<T>(IEnumerable<string> typeIdentifiers, IEnumerable<string>? topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            var routes = new List<MessageRoute>();
+            foreach(var type in typeIdentifiers)
+            {
+                if (topicFilters?.Count() > 0)
+                {
+                    foreach (var filter in topicFilters ?? [])
+                        routes.Add(new MessageRoute<T>(type, filter, handler));
+                }
+                else
+                {
+                    routes.Add(new MessageRoute<T>(type, (string?)null, handler));
+                }
+            }
+
+            return new MessageRouter(routes.ToArray());
         }
 
         /// <summary>
@@ -65,7 +119,7 @@ namespace CryptoExchange.Net.Sockets
     public abstract class MessageRoute
     {
         public string TypeIdentifier { get; set; }
-        public string? TopicFilter { get; set; }
+        public HashSet<string>? TopicFilter { get; set; }
         /// <summary>
         /// Deserialization type
         /// </summary>
@@ -74,7 +128,13 @@ namespace CryptoExchange.Net.Sockets
         public MessageRoute(string typeIdentifier, string? topicFilter)
         {
             TypeIdentifier = typeIdentifier;
-            TopicFilter = topicFilter;
+            TopicFilter = topicFilter == null ? null : new HashSet<string>() { topicFilter };
+        }
+
+        public MessageRoute(string typeIdentifier, IEnumerable<string>? topicFilters)
+        {
+            TypeIdentifier = typeIdentifier;
+            TopicFilter = topicFilters == null ? null : new HashSet<string>(topicFilters);
         }
 
         /// <summary>
@@ -94,6 +154,15 @@ namespace CryptoExchange.Net.Sockets
         /// ctor
         /// </summary>
         public MessageRoute(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult> handler)
+            : base(typeIdentifier, topicFilter)
+        {
+            _handler = handler;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public MessageRoute(string typeIdentifier, IEnumerable<string>? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult> handler)
             : base(typeIdentifier, topicFilter)
         {
             _handler = handler;

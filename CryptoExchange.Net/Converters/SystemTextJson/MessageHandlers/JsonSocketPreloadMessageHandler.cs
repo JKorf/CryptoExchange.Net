@@ -16,18 +16,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public abstract JsonSerializerOptions Options { get; }
 
         /// <inheritdoc />
-        public virtual string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
+        public virtual string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
         {
             var reader = new Utf8JsonReader(data);
             var jsonDocument = JsonDocument.ParseValue(ref reader);
 
-            return GetMessageIdentifier(jsonDocument);
+            return GetTypeIdentifier(jsonDocument);
         }
 
         /// <summary>
         /// Get the message identifier for this document
         /// </summary>
-        protected abstract string? GetMessageIdentifier(JsonDocument docuement);
+        protected abstract string? GetTypeIdentifier(JsonDocument document);
+
+        public virtual string? GetTopicFilter(object deserializedObject) => null;
 
         /// <inheritdoc />
         public virtual object Deserialize(ReadOnlySpan<byte> data, Type type)

@@ -18,10 +18,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         public abstract JsonSerializerOptions Options { get; }
 
+
         /// <summary>
         /// Message evaluators
         /// </summary>
-        protected abstract MessageEvaluator[] MessageEvaluators { get; }
+        protected abstract MessageEvaluator[] TypeEvaluators { get; }
 
         private readonly SearchResult _searchResult = new();
 
@@ -31,6 +32,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private MessageEvaluator? _topEvaluator;
         private List<MessageEvalutorFieldReference>? _searchFields;
 
+        private Dictionary<Type, Func<object, string?>> _mapping;
+        private Dictionary<Type, Func<object, string?>>? _baseTypeMapping;
+
+        protected void AddTopicMapping<T>(Func<T, string?> mapping)
+        {
+            _mapping ??= new Dictionary<Type, Func<object, string?>>();
+            _mapping.Add(typeof(T), x => mapping((T)x));
+        }
+
         private void InitializeConverter()
         {
             if (_initialized)
@@ -38,7 +48,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             _maxSearchDepth = int.MinValue;
             _searchFields = new List<MessageEvalutorFieldReference>();
-            foreach (var evaluator in MessageEvaluators.OrderBy(x => x.Priority))
+            foreach (var evaluator in TypeEvaluators.OrderBy(x => x.Priority))
             {
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
@@ -116,8 +126,42 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             _initialized = true;
         }
 
+        public virtual string? GetTopicFilter(object deserializedObject)
+        {
+            if (_mapping == null)
+                return null;
+
+            // Cache the found type for future 
+            var currentType = deserializedObject.GetType();
+            if (_baseTypeMapping != null)
+            {
+                if (_baseTypeMapping.TryGetValue(currentType, out var typeMapping))
+                    return typeMapping(deserializedObject);
+            }
+
+            var mappedBase = false;
+            while (currentType != null)
+            {
+                if (_mapping.TryGetValue(currentType, out var mapping))
+                {
+                    if (mappedBase) 
+                    {
+                        _baseTypeMapping ??= new Dictionary<Type, Func<object, string>>();
+                        _baseTypeMapping.Add(deserializedObject.GetType(), mapping);
+                    }
+
+                    return mapping(deserializedObject);
+                }
+
+                mappedBase = true;
+                currentType = currentType.BaseType;
+            }
+
+            return null;
+        }
+
         /// <inheritdoc />
-        public virtual string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
+        public virtual string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
         {
             InitializeConverter();
 
@@ -225,6 +269,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                         value = reader.GetBoolean().ToString()!;
                                     else if (reader.TokenType == JsonTokenType.Null)
                                         value = null;
+                                    else if (reader.TokenType == JsonTokenType.StartObject
+                                          || reader.TokenType == JsonTokenType.StartArray)
+                                        value = null;
                                     else
                                         continue;
                                 }
@@ -264,7 +311,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 }
             }
 
-            foreach (var evaluator in MessageEvaluators)
+            foreach (var evaluator in TypeEvaluators)
             {
                 if (evaluator.Statisfied(_searchResult))
                     return evaluator.IdentifyMessage(_searchResult);

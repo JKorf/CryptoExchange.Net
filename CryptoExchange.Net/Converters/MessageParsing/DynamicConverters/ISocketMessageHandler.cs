@@ -11,10 +11,10 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Get an identifier for the message which can be used to link it to a listener
         /// </summary>
-        string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+        //string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
 
-        // string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
-        // string? GetTopicFilter(object deserializedObject);
+        string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+        string? GetTopicFilter(object deserializedObject);
 
         /// <summary>
         /// Deserialize to the provided type

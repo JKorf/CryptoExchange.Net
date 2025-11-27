@@ -163,6 +163,7 @@ namespace CryptoExchange.Net.Sockets
         /// Handle a response message
         /// </summary>
         public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check);
+        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route);
 
     }
 
@@ -189,6 +190,29 @@ namespace CryptoExchange.Net.Sockets
             int weight = 1)
             : base(request, authenticated, weight)
         {
+        }
+
+        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route)
+        {
+            if (!PreCheckMessage(connection, message))
+                return CallResult.SuccessResult;
+
+            CurrentResponses++;
+            if (CurrentResponses == RequiredResponses)
+                Response = message;
+
+            if (Result?.Success != false)
+                // If an error result is already set don't override that
+                Result = route.Handle(connection, receiveTime, originalData, message);
+
+            if (CurrentResponses == RequiredResponses)
+            {
+                Completed = true;
+                _event.Set();
+                OnComplete?.Invoke();
+            }
+
+            return Result;
         }
 
         /// <inheritdoc />

@@ -182,6 +182,13 @@ namespace CryptoExchange.Net.Sockets
             return matcher.Handle(connection, receiveTime, originalData, data);
         }
 
+        public CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
+        {
+            ConnectionInvocations++;
+            TotalInvocations++;
+            return route.Handle(connection, receiveTime, originalData, data);
+        }
+
         /// <summary>
         /// Reset the subscription
         /// </summary>
