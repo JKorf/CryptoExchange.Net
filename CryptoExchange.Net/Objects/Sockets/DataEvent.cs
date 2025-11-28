@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{StreamId} - {(Symbol == null ? "" : (Symbol + " - "))}{(UpdateType == null ? "" : (UpdateType + " - "))}";
+            return $"{StreamId} - {(Symbol == null ? "" : (Symbol + " - "))}{UpdateType}";
         }
     }
 
@@ -127,5 +127,8 @@ namespace CryptoExchange.Net.Objects.Sockets
                 DataTime = DataTime
             };
         }
+
+        /// <inheritdoc />
+        public override string ToString() => base.ToString().TrimEnd('-') + Data?.ToString();
     }
 }
