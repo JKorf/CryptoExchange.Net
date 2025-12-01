@@ -146,7 +146,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 {
                     if (mappedBase) 
                     {
-                        _baseTypeMapping ??= new Dictionary<Type, Func<object, string>>();
+                        _baseTypeMapping ??= new Dictionary<Type, Func<object, string?>>();
                         _baseTypeMapping.Add(deserializedObject.GetType(), mapping);
                     }
 
