@@ -271,7 +271,6 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.UseUpdatedDeserialization)
                 {
                     result = await GetResponseAsync2<T>(definition, request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
-
                 }
                 else
                 {
@@ -304,7 +303,7 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
-        private async Task<Error?> CheckTimeSync(int requestId, RequestDefinition definition)
+        private async ValueTask<Error?> CheckTimeSync(int requestId, RequestDefinition definition)
         {
             if (!definition.Authenticated)
                 return null;
@@ -329,7 +328,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Check rate limits for the request
         /// </summary>
-        protected virtual async Task<Error?> RateLimitAsync(
+        protected virtual async ValueTask<Error?> RateLimitAsync(
             string host,
             int requestId,
             RequestDefinition definition,
@@ -626,7 +625,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="callResult">The result of the call</param>
         /// <param name="tries">The current try number</param>
         /// <returns>True if call should retry, false if the call should return</returns>
-        protected virtual async Task<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
+        protected virtual async ValueTask<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
         {
             if (tries >= 2)
                 // Only retry once
@@ -708,7 +707,7 @@ namespace CryptoExchange.Net.Clients
             RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
 
-        internal async Task<Error?> SyncTimeAsync()
+        internal async ValueTask<Error?> SyncTimeAsync()
         {
             var timeSyncParams = GetTimeSyncInfo();
             if (timeSyncParams == null)
