@@ -635,10 +635,10 @@ namespace CryptoExchange.Net.Sockets
                     var subscription = _listeners[i];
                     foreach (var route in subscription.MessageRouter.Routes)
                     {
-                        if (route.DeserializationType != deserializationType)
+                        if (route.TypeIdentifier != typeIdentifier)
                             continue;
 
-                        if (topicFilter == null || route.TopicFilter == null || route.TopicFilter.Contains(topicFilter))
+                        if (topicFilter == null || route.TopicFilter == null || route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
                         {
                             processed = true;
                             subscription.Handle(this, receiveTime, originalData, result, route);

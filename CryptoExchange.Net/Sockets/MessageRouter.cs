@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -88,6 +89,28 @@ namespace CryptoExchange.Net.Sockets
                 routes.Add(new MessageRoute<T>(typeIdentifier, null, handler));
             }
                 
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageRouter CreateWithOptionalTopicFilters<T>(IEnumerable<string> typeIdentifiers, IEnumerable<string>? topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var typeIdentifier in typeIdentifiers)
+            {
+                if (topicFilters?.Count() > 0)
+                {
+                    foreach (var filter in topicFilters)
+                        routes.Add(new MessageRoute<T>(typeIdentifier, filter, handler));
+                }
+                else
+                {
+                    routes.Add(new MessageRoute<T>(typeIdentifier, null, handler));
+                }
+            }
+
             return new MessageRouter(routes.ToArray());
         }
 
