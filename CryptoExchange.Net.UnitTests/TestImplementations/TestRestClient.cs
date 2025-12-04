@@ -19,6 +19,7 @@ using System.Linq;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System.Text.Json.Serialization;
 using CryptoExchange.Net.Objects.Errors;
+using System.Net.Http.Headers;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -86,7 +87,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
            
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetHeaders()).Returns(new KeyValuePair<string, string[]>[0]);
+            request.Setup(c => c.GetHeaders()).Returns(new HttpRequestMessage().Headers);
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(Api1.RequestFactory);
@@ -115,7 +116,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(new KeyValuePair<string, string[]>(key, new string[] { val })));
-            request.Setup(c => c.GetHeaders()).Returns(headers.ToArray());
+            request.Setup(c => c.GetHeaders()).Returns(new HttpRequestMessage().Headers);
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
@@ -194,7 +195,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
-        protected override Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception exception)
+        protected override Error ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, IMessageAccessor accessor, Exception exception)
         {
             var errorData = accessor.Deserialize<TestError>();
 

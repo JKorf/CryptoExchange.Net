@@ -93,10 +93,11 @@ namespace CryptoExchange.Net.Testing
             };
 
             TUpdate? update = default;
+            Task<CallResult<UpdateSubscription>> task;
             // Invoke subscription method
             try
             {
-                var task = methodInvoke(_client, x => { update = x.Data; });
+                task = methodInvoke(_client, x => { update = x.Data; });
             }
             catch(Exception)
             {
@@ -193,6 +194,10 @@ namespace CryptoExchange.Net.Testing
                         SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
                 }
             }
+
+            var res = await task.ConfigureAwait(false);
+            if (!res)
+                throw new Exception("Subscribe failed: " + res.Error!.ToString());
 
             await _client.UnsubscribeAllAsync().ConfigureAwait(false);
             Trace.Listeners.Remove(listener);

@@ -20,17 +20,15 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         MediaTypeWithQualityHeaderValue AcceptHeader { get; }
 
         /// <summary>
-        /// Create an object to keep state for a request
+        /// Whether a seekable stream is required
         /// </summary>
-        /// <returns></returns>
-        object? CreateState();
+        bool RequiresSeekableStream { get; }
 
         /// <summary>
         /// Parse the response when the HTTP response status indicated an error
         /// </summary>
         ValueTask<Error> ParseErrorResponse(
             int httpStatusCode,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream);
 
@@ -39,7 +37,6 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// </summary>
         ValueTask<ServerRateLimitError> ParseErrorRateLimitResponse(
             int httpStatusCode,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream);
 
@@ -51,7 +48,6 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// </summary>
         ValueTask<Error?> CheckForErrorResponse(
             RequestDefinition request,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream);
 
@@ -60,7 +56,6 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// </summary>
         ValueTask<(T? Result, Error? Error)> TryDeserializeAsync<T>(
             Stream responseStream,
-            object? state,
             CancellationToken ct);
 
         /// <summary>

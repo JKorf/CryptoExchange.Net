@@ -139,10 +139,13 @@ namespace CryptoExchange.Net.RateLimiting
                 {
                     RateLimitUpdated?.Invoke(new RateLimitUpdateEvent(itemId, _name, guard.Description, result.Current, result.Limit, result.Period));
 
-                    if (type == RateLimitItemType.Connection)
-                        logger.RateLimitAppliedConnection(itemId, guard.Name, guard.Description, result.Current);
-                    else
-                        logger.RateLimitAppliedRequest(itemId, definition.Path, guard.Name, guard.Description, result.Current);
+                    if (logger.IsEnabled(LogLevel.Trace))
+                    {
+                        if (type == RateLimitItemType.Connection)
+                            logger.RateLimitAppliedConnection(itemId, guard.Name, guard.Description, result.Current);
+                        else
+                            logger.RateLimitAppliedRequest(itemId, definition.Path, guard.Name, guard.Description, result.Current);
+                    }
                 }
             }
 

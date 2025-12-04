@@ -17,11 +17,6 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
 {
-    internal class JsonDocState
-    {
-        public JsonDocument? Document { get; set; }
-    }
-
     /// <summary>
     /// JSON REST message handler
     /// </summary>
@@ -34,6 +29,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         /// </summary>
         protected static readonly ServerRateLimitError _emptyRateLimitError = new ServerRateLimitError();
 
+        /// <inheritdoc />
+        public virtual bool RequiresSeekableStream => false;
+
         /// <summary>
         /// The serializer options to use
         /// </summary>
@@ -43,12 +41,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         public MediaTypeWithQualityHeaderValue AcceptHeader => _acceptJsonContent;
 
         /// <inheritdoc />
-        public virtual object CreateState() => new JsonDocState();
-
-        /// <inheritdoc />
         public virtual ValueTask<ServerRateLimitError> ParseErrorRateLimitResponse(
             int httpStatusCode,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream)
         {
@@ -70,29 +64,23 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         /// <inheritdoc />
         public abstract ValueTask<Error> ParseErrorResponse(
             int httpStatusCode,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream);
 
         /// <inheritdoc />
         public virtual ValueTask<Error?> CheckForErrorResponse(
             RequestDefinition request,
-            object? state,
             HttpResponseHeaders responseHeaders,
             Stream responseStream) => new ValueTask<Error?>((Error?)null);
 
         /// <summary>
         /// Read the response into a JsonDocument object
         /// </summary>
-        protected virtual async ValueTask<(Error?, JsonDocument?)> GetJsonDocument(Stream stream, object? state)
+        protected virtual async ValueTask<(Error?, JsonDocument?)> GetJsonDocument(Stream stream)
         {
-            if (state is JsonDocState documentState && documentState.Document != null)
-                return (null, documentState.Document);
-
             try
             {
                 var document = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
-                ((JsonDocState)state!).Document = document;
                 return (null, document);
             }
             catch (Exception ex)
@@ -102,21 +90,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
         }
 
         /// <inheritdoc />
-        public async ValueTask<(T? Result, Error? Error)> TryDeserializeAsync<T>(Stream responseStream, object? state, CancellationToken cancellationToken)
+        public async ValueTask<(T? Result, Error? Error)> TryDeserializeAsync<T>(Stream responseStream, CancellationToken cancellationToken)
         {
             try
             {
-                // If the document was already loaded (because we needed it for checking a response code for instance)
-                // then we deserialize from the document, else from the stream
-                T result;
-                if (state is JsonDocState documentState && documentState.Document != null)
-                {
-                    result = documentState.Document.Deserialize<T>(Options)!;
-                }
-                else
-                {
-                    result = await JsonSerializer.DeserializeAsync<T>(responseStream, Options)!.ConfigureAwait(false)!;
-                }
+                var result = await JsonSerializer.DeserializeAsync<T>(responseStream, Options)!.ConfigureAwait(false)!;                
                 return (result, null);
             }            
             catch (JsonException ex)

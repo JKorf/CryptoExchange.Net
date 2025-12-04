@@ -235,38 +235,4 @@ namespace CryptoExchange.Net.Sockets
             return new SubscriptionState(Id, Status, TotalInvocations, MessageMatcher);
         }
     }
-
-    /// <inheritdoc />
-    public abstract class Subscription<TSubResponse, TUnsubResponse> : Subscription
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="authenticated"></param>
-        protected Subscription(ILogger logger, bool authenticated) : base(logger, authenticated)
-        {
-        }
-
-        /// <inheritdoc />
-        public override void HandleSubQueryResponse(object? message)
-            => HandleSubQueryResponse((TSubResponse?)message);
-
-        /// <summary>
-        /// Handle a subscription query response
-        /// </summary>
-        /// <param name="message"></param>
-        public virtual void HandleSubQueryResponse(TSubResponse? message) { }
-
-        /// <inheritdoc />
-        public override void HandleUnsubQueryResponse(object message)
-            => HandleUnsubQueryResponse((TUnsubResponse)message);
-
-        /// <summary>
-        /// Handle an unsubscription query response
-        /// </summary>
-        /// <param name="message"></param>
-        public virtual void HandleUnsubQueryResponse(TUnsubResponse message) { }
-
-    }
 }

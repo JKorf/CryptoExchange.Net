@@ -264,7 +264,9 @@ namespace CryptoExchange.Net.Clients
                     uriParameters,
                     bodyParameters,
                     additionalHeaders);
-                _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
 
                 WebCallResult<T> result;
@@ -281,9 +283,14 @@ namespace CryptoExchange.Net.Clients
                 {
                     var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
                     if (!result)
+                    {
                         _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), originalData, result.Error?.Exception);
+                    }
                     else
-                        _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
+                    {
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                            _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
+                    }
                 }
                 else
                 {
@@ -466,7 +473,6 @@ namespace CryptoExchange.Net.Clients
             var sw = Stopwatch.StartNew();
             Stream? responseStream = null;
             IResponse? response = null;
-            var state = MessageHandler.CreateState();
 
             try
             {
@@ -475,19 +481,22 @@ namespace CryptoExchange.Net.Clients
                 responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
                 string? originalData = null;
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
-                if (outputOriginalData)
+                if (outputOriginalData || MessageHandler.RequiresSeekableStream)
                 {
                     // If we want to return the original string data from the stream, but still want to process it
                     // we'll need to copy it as the stream isn't seekable, and thus we can only read it once
                     var memoryStream = new MemoryStream();
                     await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
                     using var reader = new StreamReader(memoryStream, Encoding.UTF8,false, 4096, true);
-                    memoryStream.Position = 0;
-                    originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    if (outputOriginalData) 
+                    {
+                        memoryStream.Position = 0;
+                        originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-                    if (_logger.IsEnabled(LogLevel.Trace))
+                        if (_logger.IsEnabled(LogLevel.Trace))
 #warning TODO extension
-                        _logger.LogTrace("[Req {RequestId}] Received response: {Data}", request.RequestId, originalData);
+                            _logger.LogTrace("[Req {RequestId}] Received response: {Data}", request.RequestId, originalData);
+                    }
 
                     // Continue processing from the memory stream since the response stream is already read and we can't seek it
                     responseStream.Close();
@@ -505,7 +514,6 @@ namespace CryptoExchange.Net.Clients
                         // Specifically handle rate limit errors
                         var rateError = await MessageHandler.ParseErrorRateLimitResponse(
                             (int)response.StatusCode,
-                            state,
                             response.ResponseHeaders,
                             responseStream).ConfigureAwait(false);
                         if (rateError.RetryAfter != null && gate != null && ClientOptions.RateLimiterEnabled)
@@ -521,7 +529,6 @@ namespace CryptoExchange.Net.Clients
                         // Handle a 'normal' error response. Can still be either a json error message or some random HTML or other string
                         error = await MessageHandler.ParseErrorResponse(
                             (int)response.StatusCode,
-                            state,
                             response.ResponseHeaders,
                             responseStream).ConfigureAwait(false);
                     }
@@ -536,7 +543,6 @@ namespace CryptoExchange.Net.Clients
                 // Data response received, inspect the message and check if it is an error or not
                 var parsedError = await MessageHandler.CheckForErrorResponse(
                     requestDefinition,
-                    state,
                     response.ResponseHeaders,
                     responseStream).ConfigureAwait(false);
                 if (parsedError != null)
@@ -554,8 +560,12 @@ namespace CryptoExchange.Net.Clients
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
                 }
 
+                if (MessageHandler.RequiresSeekableStream)
+                    // Reset stream read position as it might not be at the start if `CheckForErrorResponse` has read from it
+                    responseStream.Position = 0;
+
                 // Try deserialization into the expected type
-                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, state, cancellationToken).ConfigureAwait(false);                              
+                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);                              
                 if (deserializeError != null)
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError); ;
 

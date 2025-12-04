@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 {
-    internal class TestSubscription<T> : Subscription<object, object>
+    internal class TestSubscription<T> : Subscription
     {
         private readonly Action<DataEvent<T>> _handler;
 
@@ -22,9 +22,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             MessageMatcher = MessageMatcher.Create<T>("update-topic", DoHandleMessage);
         }
 
-        public CallResult DoHandleMessage(SocketConnection connection, DataEvent<T> message)
+        public CallResult DoHandleMessage(SocketConnection connection, DateTime receiveTime, string? originalData, T message)
         {
-            _handler.Invoke(message);
+            _handler.Invoke(new DataEvent<T>(message, receiveTime, originalData));
             return new CallResult(null);
         }
 

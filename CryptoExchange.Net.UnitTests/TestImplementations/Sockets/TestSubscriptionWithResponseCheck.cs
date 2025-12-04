@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 {
-    internal class TestSubscriptionWithResponseCheck<T> : Subscription<SubResponse, UnsubResponse>
+    internal class TestSubscriptionWithResponseCheck<T> : Subscription
     {
         private readonly Action<DataEvent<T>> _handler;
         private readonly string _channel;
@@ -22,9 +22,9 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             _channel = channel;
         }
 
-        public CallResult DoHandleMessage(SocketConnection connection, DataEvent<T> message)
+        public CallResult DoHandleMessage(SocketConnection connection, DateTime receiveTime, string? originalData, T message)
         {
-            _handler.Invoke(message);
+            _handler.Invoke(new DataEvent<T>(message, receiveTime, originalData));
             return new CallResult(null);
         }
 

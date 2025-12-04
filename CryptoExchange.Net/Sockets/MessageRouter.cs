@@ -68,6 +68,18 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create message matcher
         /// </summary>
+        public static MessageRouter CreateWithTopicFilter<T>(IEnumerable<string> typeIdentifiers, string topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var type in typeIdentifiers)
+                routes.Add(new MessageRoute<T>(type, topicFilter, handler));
+
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
         public static MessageRouter CreateWithOptionalTopicFilter<T>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
         {
             return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, handler));
