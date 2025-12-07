@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         public bool SkipReading { get; set; }
         public bool OverlappingField { get; set; }
         public MessageFieldReference Field { get; set; }
-        public MessageEvaluator? ForceEvaluator { get; set; }
+        public MessageTypeDefinition? ForceEvaluator { get; set; }
 
         public MessageEvalutorFieldReference(MessageFieldReference field)
         {

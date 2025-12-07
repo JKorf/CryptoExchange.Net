@@ -1,8 +1,5 @@
 ﻿using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using System;
-#if !NETSTANDARD
-using System.Collections.Frozen;
-#endif
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,18 +19,17 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         public abstract JsonSerializerOptions Options { get; }
 
-
         /// <summary>
         /// Message evaluators
         /// </summary>
-        protected abstract MessageEvaluator[] TypeEvaluators { get; }
+        protected abstract MessageTypeDefinition[] TypeEvaluators { get; }
 
         private readonly SearchResult _searchResult = new();
 
         private bool _hasArraySearches;
         private bool _initialized;
         private int _maxSearchDepth;
-        private MessageEvaluator? _topEvaluator;
+        private MessageTypeDefinition? _topEvaluator;
         private List<MessageEvalutorFieldReference>? _searchFields;
         private Dictionary<Type, Func<object, string?>>? _baseTypeMapping;
         private Dictionary<Type, Func<object, string?>>? _mapping;
@@ -56,7 +52,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             _maxSearchDepth = int.MinValue;
             _searchFields = new List<MessageEvalutorFieldReference>();
-            foreach (var evaluator in TypeEvaluators.OrderBy(x => x.Priority))
+            foreach (var evaluator in TypeEvaluators)
             {
                 _topEvaluator ??= evaluator;
                 foreach (var field in evaluator.Fields)
@@ -105,7 +101,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     foreach(var sameSearchField in existingSameSearchField)
                     {
                         if (sameSearchField.SkipReading == true
-                            && (evaluator.IdentifyMessageCallback != null || field.Constraint != null))
+                            && (evaluator.TypeIdentifierCallback != null || field.Constraint != null))
                         {
                             sameSearchField.SkipReading = false;
                         }
@@ -121,7 +117,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
                     _searchFields.Add(new MessageEvalutorFieldReference(field)
                     {
-                        SkipReading = evaluator.IdentifyMessageCallback == null && field.Constraint == null,
+                        SkipReading = evaluator.TypeIdentifierCallback == null && field.Constraint == null,
                         ForceEvaluator = !existingSameSearchField.Any() ? (evaluator.ForceIfFound ? evaluator : null) : null,
                         OverlappingField = overlapping.Any()
                     });
@@ -309,7 +305,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 return field.ForceEvaluator.StaticIdentifier;
 
                             // Force the immediate return upon encountering this field
-                            return field.ForceEvaluator.IdentifyMessage(_searchResult);
+                            return field.ForceEvaluator.GetMessageType(_searchResult);
                         }
 
                         written = true;
@@ -320,8 +316,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (!written)
                         continue;
 
-                    if (_topEvaluator!.Statisfied(_searchResult))
-                        return _topEvaluator.IdentifyMessage(_searchResult);
+                    if (_topEvaluator!.Satisfied(_searchResult))
+                        return _topEvaluator.GetMessageType(_searchResult);
 
                     if (_searchFields.Count == _searchResult.Count)
                         break;
@@ -330,8 +326,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             foreach (var evaluator in TypeEvaluators)
             {
-                if (evaluator.Statisfied(_searchResult))
-                    return evaluator.IdentifyMessage(_searchResult);
+                if (evaluator.Satisfied(_searchResult))
+                    return evaluator.GetMessageType(_searchResult);
             }
 
             return null;

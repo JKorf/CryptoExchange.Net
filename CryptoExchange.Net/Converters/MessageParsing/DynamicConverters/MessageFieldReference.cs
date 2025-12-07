@@ -20,7 +20,82 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Callback to check if the field value matches an expected constraint
         /// </summary>
-        public Func<string?, bool>? Constraint { get; set; }
+        public Func<string?, bool>? Constraint { get; private set; }
+
+        /// <summary>
+        /// Check whether the value is one of the string values in the set
+        /// </summary>
+        public MessageFieldReference WithFilterContstraint(HashSet<string?> set)
+        {
+            Constraint = set.Contains;
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value is equal to a string
+        /// </summary>
+        public MessageFieldReference WithEqualContstraint(string compare)
+        {
+            Constraint = x => x != null && x.Equals(compare, StringComparison.Ordinal);
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value is not equal to a string
+        /// </summary>
+        public MessageFieldReference WithNotEqualContstraint(string compare)
+        {
+            Constraint = x => x == null || !x.Equals(compare, StringComparison.Ordinal);
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value is not null
+        /// </summary>
+        public MessageFieldReference WithNotNullContstraint()
+        {
+            Constraint = x => x != null;
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value starts with a certain string
+        /// </summary>
+        public MessageFieldReference WithStartsWithContstraint(string start)
+        {
+            Constraint = x => x != null && x.StartsWith(start, StringComparison.Ordinal);
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value starts with a certain string
+        /// </summary>
+        public MessageFieldReference WithStartsWithContstraints(params string[] startValues)
+        {
+            Constraint = x =>
+            {
+                if (x == null)
+                    return false;
+
+                foreach (var item in startValues)
+                {
+                    if (x!.StartsWith(item, StringComparison.Ordinal))
+                        return true;
+                }
+
+                return false;
+            };
+            return this;
+        }
+
+        /// <summary>
+        /// Check whether the value starts with a certain string
+        /// </summary>
+        public MessageFieldReference WithCustomContstraint(Func<string?, bool> constraint)
+        {
+            Constraint = constraint;
+            return this;
+        }
 
         /// <summary>
         /// ctor
