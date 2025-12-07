@@ -29,6 +29,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         protected abstract string? GetTypeIdentifier(JsonDocument document);
 
+        /// <summary>
+        /// Get optional topic filter, for example a symbol name
+        /// </summary>
         public virtual string? GetTopicFilter(object deserializedObject) => null;
 
         /// <inheritdoc />

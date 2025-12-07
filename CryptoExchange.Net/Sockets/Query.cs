@@ -108,7 +108,9 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Query(object request, bool authenticated, int weight = 1)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             _event = new AsyncResetEvent(false, false);
 
@@ -163,6 +165,10 @@ namespace CryptoExchange.Net.Sockets
         /// Handle a response message
         /// </summary>
         public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check);
+
+        /// <summary>
+        /// Handle a response message
+        /// </summary>
         public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route);
 
     }
@@ -192,6 +198,7 @@ namespace CryptoExchange.Net.Sockets
         {
         }
 
+        /// <inheritdoc />
         public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route)
         {
             if (!PreCheckMessage(connection, message))

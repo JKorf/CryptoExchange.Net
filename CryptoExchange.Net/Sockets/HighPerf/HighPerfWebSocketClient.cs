@@ -214,13 +214,9 @@ namespace CryptoExchange.Net.Sockets
             if (_ctsSource.IsCancellationRequested || !_processing)
                 return false;
 
-#warning todo logging overloads without id
-            _logger.SocketAddingBytesToSendBuffer(Id, 0, data);
-
             try
             {
                 await _socket!.SendAsync(new ArraySegment<byte>(data, 0, data.Length), type, true, _ctsSource.Token).ConfigureAwait(false);
-                _logger.SocketSentBytes(Id, 0, data.Length);
                 return true;
             }
             catch (OperationCanceledException)

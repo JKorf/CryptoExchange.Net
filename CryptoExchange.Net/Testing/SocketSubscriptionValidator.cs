@@ -40,6 +40,13 @@ namespace CryptoExchange.Net.Testing
             _nestedPropertyForCompare = nestedPropertyForCompare;
         }
 
+        /// <summary>
+        /// Validate to subscriptions being established concurrently are indeed handled correctly
+        /// </summary>
+        /// <typeparam name="TUpdate">Type of the subscription update</typeparam>
+        /// <param name="methodInvoke1">Subscription delegate 1</param>
+        /// <param name="methodInvoke2">Subscription delegate 2</param>
+        /// <param name="name">Name</param>
         public async Task ValidateConcurrentAsync<TUpdate>(
             Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke1,
             Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke2,
@@ -120,7 +127,7 @@ namespace CryptoExchange.Net.Testing
                     {
                         var match = matches[0];
                         var prevMessage = line1[1] == '1' ? lastMessage1 : lastMessage2;
-                        var json = JsonDocument.Parse(prevMessage);
+                        var json = JsonDocument.Parse(prevMessage!);
                         var propName = match.Value.Substring(1, match.Value.Length - 2);
                         var split = propName.Split('.');
                         var jsonProp = json.RootElement;
@@ -141,7 +148,7 @@ namespace CryptoExchange.Net.Testing
                     {
                         var match = matches[0];
                         var prevMessage = line1[1] == '1' ? lastMessage1 : lastMessage2;
-                        var json = JsonDocument.Parse(prevMessage);
+                        var json = JsonDocument.Parse(prevMessage!);
                         var propName = match.Value.Substring(1, match.Value.Length - 2);
                         var split = propName.Split('.');
                         var jsonProp = json.RootElement;
@@ -164,8 +171,6 @@ namespace CryptoExchange.Net.Testing
 
             if (updates1 != 1 || updates2 != 1)
                 throw new Exception($"Expected 1 update for both subscriptions, instead got {updates1} and {updates2}");
-
-            //await _client.UnsubscribeAllAsync().ConfigureAwait(false);
         }
 
 

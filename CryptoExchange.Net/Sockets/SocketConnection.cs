@@ -535,25 +535,7 @@ namespace CryptoExchange.Net.Sockets
                     _logger.ReceivedData(SocketId, originalData);
             }
 
-
-            // Current:
-            // 1. Get message identifier
-            // 2. Look for matching handlers and grab the type
-            // 3. Deserialize
-            // 4. Dispatch
-            // Listen id: kline-ethusdt-1m
-
-            // Update:
-            // 1. Get message type identifier
-            // 2. Look for matching handlers and grab the type
-            // 3. Deserialize
-            // 4. Get message topic filter from deserialized type
-            // 5. Dispatch to filtered
-            // Type id: kline
-            // Topic filter: ethusdt-1m
-
             var typeIdentifier = messageConverter.GetTypeIdentifier(data, type);
-            //var messageIdentifier = messageConverter.GetMessageIdentifier(data, type); 
             if (typeIdentifier == null)
             {
                 // Both deserialization type and identifier null, can't process

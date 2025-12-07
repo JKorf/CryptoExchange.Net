@@ -1,6 +1,10 @@
 ﻿using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using System;
+#if !NETSTANDARD
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -31,10 +35,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private int _maxSearchDepth;
         private MessageEvaluator? _topEvaluator;
         private List<MessageEvalutorFieldReference>? _searchFields;
-
-        private Dictionary<Type, Func<object, string?>> _mapping;
         private Dictionary<Type, Func<object, string?>>? _baseTypeMapping;
+        private Dictionary<Type, Func<object, string?>>? _mapping;
 
+        /// <summary>
+        /// Add a mapping of a specific object of a type to a specific topic
+        /// </summary>
+        /// <typeparam name="T">Type to get topic for</typeparam>
+        /// <param name="mapping">The topic retrieve delegate</param>
         protected void AddTopicMapping<T>(Func<T, string?> mapping)
         {
             _mapping ??= new Dictionary<Type, Func<object, string?>>();
@@ -126,6 +134,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             _initialized = true;
         }
 
+        /// <inheritdoc />
         public virtual string? GetTopicFilter(object deserializedObject)
         {
             if (_mapping == null)
@@ -260,20 +269,28 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 }
                                 else
                                 {
-                                    if (reader.TokenType == JsonTokenType.Number)
-                                        value = reader.GetDecimal().ToString();
-                                    else if (reader.TokenType == JsonTokenType.String)
-                                        value = reader.GetString()!;
-                                    else if (reader.TokenType == JsonTokenType.True
-                                           || reader.TokenType == JsonTokenType.False)
-                                        value = reader.GetBoolean().ToString()!;
-                                    else if (reader.TokenType == JsonTokenType.Null)
-                                        value = null;
-                                    else if (reader.TokenType == JsonTokenType.StartObject
-                                          || reader.TokenType == JsonTokenType.StartArray)
-                                        value = null;
-                                    else
-                                        continue;
+                                    switch (reader.TokenType)
+                                    {
+                                        case JsonTokenType.Number:
+                                            value = reader.GetDecimal().ToString();
+                                            break;
+                                        case JsonTokenType.String:
+                                            value = reader.GetString()!;
+                                            break;
+                                        case JsonTokenType.True:
+                                        case JsonTokenType.False:
+                                            value = reader.GetBoolean().ToString()!;
+                                            break;
+                                        case JsonTokenType.Null:
+                                            value = null;
+                                            break;
+                                        case JsonTokenType.StartObject:
+                                        case JsonTokenType.StartArray:
+                                            value = null;
+                                            break;
+                                        default:
+                                            continue;
+                                    }
                                 }
                             }
 
@@ -321,6 +338,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         }
 
         /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL3050:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode", Justification = "JsonSerializerOptions provided here has TypeInfoResolver set")]
+#endif
         public virtual object Deserialize(ReadOnlySpan<byte> data, Type type)
         {
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code

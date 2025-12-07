@@ -114,7 +114,9 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Subscription(
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
             ILogger logger,
             bool authenticated,
             bool userSubscription = true)
@@ -182,6 +184,9 @@ namespace CryptoExchange.Net.Sockets
             return matcher.Handle(connection, receiveTime, originalData, data);
         }
 
+        /// <summary>
+        /// Handle an update message
+        /// </summary>
         public CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
         {
             ConnectionInvocations++;

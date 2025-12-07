@@ -9,11 +9,13 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
     public interface ISocketMessageHandler
     {
         /// <summary>
-        /// Get an identifier for the message which can be used to link it to a listener
+        /// Get an identifier for the message which can be used to determine the type of the message
         /// </summary>
-        //string? GetMessageIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
-
         string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType);
+
+        /// <summary>
+        /// Get optional topic filter, for example a symbol name
+        /// </summary>
         string? GetTopicFilter(object deserializedObject);
 
         /// <summary>

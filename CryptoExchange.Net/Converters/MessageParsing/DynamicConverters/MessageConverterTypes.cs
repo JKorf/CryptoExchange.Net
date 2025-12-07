@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// The fields this evaluator has to look for
         /// </summary>
-        public MessageFieldReference[] Fields { get; set; }
+        public MessageFieldReference[] Fields { get; set; } = [];
         /// <summary>
         /// The callback for getting the identifier string
         /// </summary>

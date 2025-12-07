@@ -223,7 +223,6 @@ namespace CryptoExchange.Net.Clients
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
-#warning caching should be static per api client type
                 cacheKey = baseAddress + definition + uriParameters?.ToFormData();
                 _logger.CheckingCache(cacheKey);
                 var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
@@ -487,15 +486,14 @@ namespace CryptoExchange.Net.Clients
                     // we'll need to copy it as the stream isn't seekable, and thus we can only read it once
                     var memoryStream = new MemoryStream();
                     await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
-                    using var reader = new StreamReader(memoryStream, Encoding.UTF8,false, 4096, true);
+                    using var reader = new StreamReader(memoryStream, Encoding.UTF8, false, 4096, true);
                     if (outputOriginalData) 
                     {
                         memoryStream.Position = 0;
                         originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
 
                         if (_logger.IsEnabled(LogLevel.Trace))
-#warning TODO extension
-                            _logger.LogTrace("[Req {RequestId}] Received response: {Data}", request.RequestId, originalData);
+                            _logger.RestApiReceivedResponse(request.RequestId, originalData);
                     }
 
                     // Continue processing from the memory stream since the response stream is already read and we can't seek it
