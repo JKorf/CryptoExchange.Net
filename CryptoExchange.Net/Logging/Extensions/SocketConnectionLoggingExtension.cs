@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net.WebSockets;
-using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.Default;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Logging.Extensions

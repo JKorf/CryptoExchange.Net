@@ -1,9 +1,11 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
     /// Socket API client
@@ -26,6 +28,10 @@ namespace CryptoExchange.Net.Interfaces
         /// The factory for creating sockets. Used for unit testing
         /// </summary>
         IWebsocketFactory SocketFactory { get; set; }
+        /// <summary>
+        /// High performance websocket factory
+        /// </summary>
+        IHighPerfConnectionFactory? HighPerfConnectionFactory { get; set; }
         /// <summary>
         /// Current client options
         /// </summary>

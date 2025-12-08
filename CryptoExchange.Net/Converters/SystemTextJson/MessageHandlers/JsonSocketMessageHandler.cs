@@ -7,7 +7,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
 {
     /// <summary>
     /// JSON WebSocket message handler, sequentially read the JSON and looks for specific predefined fields to identify the message
@@ -87,7 +87,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             x.Field is ArrayFieldReference arrayFieldRef
                             && arrayFieldRef.ArrayIndex == arrayField.ArrayIndex
                             && arrayFieldRef.Depth == arrayField.Depth
-                            && (arrayFieldRef.Constraint == null && arrayField.Constraint == null)).ToList();
+                            && arrayFieldRef.Constraint == null && arrayField.Constraint == null).ToList();
                     }
                     else if (field is PropertyFieldReference propField)
                     {
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             x.Field is PropertyFieldReference propFieldRef
                             && propFieldRef.PropertyName.SequenceEqual(propField.PropertyName)
                             && propFieldRef.Depth == propField.Depth
-                            && (propFieldRef.Constraint == null && propFieldRef.Constraint == null)).ToList();
+                            && propFieldRef.Constraint == null && propFieldRef.Constraint == null).ToList();
                     }
 
                     foreach(var sameSearchField in existingSameSearchField)
@@ -118,7 +118,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     _searchFields.Add(new MessageEvalutorFieldReference(field)
                     {
                         SkipReading = evaluator.TypeIdentifierCallback == null && field.Constraint == null,
-                        ForceEvaluator = !existingSameSearchField.Any() ? (evaluator.ForceIfFound ? evaluator : null) : null,
+                        ForceEvaluator = !existingSameSearchField.Any() ? evaluator.ForceIfFound ? evaluator : null : null,
                         OverlappingField = overlapping.Any()
                     });
 
@@ -243,10 +243,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                                 if (readArrayValues)
                                 {
                                     if (reader.TokenType != JsonTokenType.StartArray)
-                                    {
                                         // error
                                         return null;
-                                    }
 
                                     var sb = new StringBuilder();
                                     reader.Read();// Read start array

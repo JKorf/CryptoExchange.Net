@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Trackers.Trades
+﻿namespace CryptoExchange.Net.Trackers.Trades
 {
     /// <summary>
     /// Trades statistics comparison

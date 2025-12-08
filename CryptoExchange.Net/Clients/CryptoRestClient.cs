@@ -1,8 +1,5 @@
-﻿﻿using CryptoExchange.Net.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+﻿using CryptoExchange.Net.Interfaces.Clients;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CryptoExchange.Net.Clients
 {

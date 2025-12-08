@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using CryptoExchange.Net.Attributes;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Diagnostics;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
 {

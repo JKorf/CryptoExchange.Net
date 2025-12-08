@@ -1,6 +1,7 @@
 using CryptoExchange.Net.Caching;
 using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
@@ -18,7 +19,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 

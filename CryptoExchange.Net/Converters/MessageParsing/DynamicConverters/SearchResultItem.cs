@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
+﻿namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
 {
     /// <summary>
     /// Search result value

@@ -4,6 +4,8 @@ using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Default
 {
     /// <summary>
     /// State of a the connection
@@ -339,8 +341,8 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Closed;
             Authenticated = false;
 
-            if (ApiClient.socketConnections.ContainsKey(SocketId))
-                ApiClient.socketConnections.TryRemove(SocketId, out _);
+            if (ApiClient._socketConnections.ContainsKey(SocketId))
+                ApiClient._socketConnections.TryRemove(SocketId, out _);
 
             lock (_listenersLock)
             {
@@ -812,8 +814,8 @@ namespace CryptoExchange.Net.Sockets
             if (Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            if (ApiClient.socketConnections.ContainsKey(SocketId))
-                ApiClient.socketConnections.TryRemove(SocketId, out _);
+            if (ApiClient._socketConnections.ContainsKey(SocketId))
+                ApiClient._socketConnections.TryRemove(SocketId, out _);
 
             lock (_listenersLock)
             {
@@ -1037,9 +1039,7 @@ namespace CryptoExchange.Net.Sockets
         public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
-            {
                 return SendBytesAsync(requestId, byteSerializer.Serialize(obj), weight);
-            }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)
@@ -1145,7 +1145,7 @@ namespace CryptoExchange.Net.Sockets
             lock (_listenersLock)
             {
                 anyAuthenticated = _listeners.OfType<Subscription>().Any(s => s.Authenticated)
-                    || (DedicatedRequestConnection.IsDedicatedRequestConnection && DedicatedRequestConnection.Authenticated);
+                    || DedicatedRequestConnection.IsDedicatedRequestConnection && DedicatedRequestConnection.Authenticated;
             }
 
             if (anyAuthenticated)

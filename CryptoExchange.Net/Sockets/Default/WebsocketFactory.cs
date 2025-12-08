@@ -1,11 +1,11 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects.Sockets;
+﻿using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.HighPerf;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
 using System.IO.Pipelines;
-using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Default
 {
     /// <summary>
     /// Default websocket factory implementation

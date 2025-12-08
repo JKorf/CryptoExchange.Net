@@ -1,9 +1,9 @@
 ﻿using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace CryptoExchange.Net.Sockets.HighPerf
+namespace CryptoExchange.Net.Sockets.HighPerf.Interfaces
 {
     /// <summary>
     /// Factory for creating connections

@@ -1,7 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace CryptoExchange.Net.UnitTests

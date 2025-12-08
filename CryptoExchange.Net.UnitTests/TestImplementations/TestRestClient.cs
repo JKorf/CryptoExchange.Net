@@ -13,13 +13,12 @@ using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System.Text.Json.Serialization;
-using CryptoExchange.Net.Objects.Errors;
 using System.Net.Http.Headers;
+using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {

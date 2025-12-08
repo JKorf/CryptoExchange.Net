@@ -1,22 +1,16 @@
 ﻿using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
-using CryptoExchange.Net.Objects.Options;
-using CryptoExchange.Net.Requests;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson.MessageConverters
+namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
 {
     /// <summary>
     /// JSON REST message handler

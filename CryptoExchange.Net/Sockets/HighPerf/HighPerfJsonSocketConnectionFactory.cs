@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 

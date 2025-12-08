@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.SharedApis
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Account type

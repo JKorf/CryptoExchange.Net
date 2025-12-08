@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.RateLimiting.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.IO.Pipelines;
 using System.Text;
 
 namespace CryptoExchange.Net.Objects.Sockets

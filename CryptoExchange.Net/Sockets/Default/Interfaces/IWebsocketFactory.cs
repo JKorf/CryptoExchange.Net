@@ -1,9 +1,9 @@
 ﻿using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.IO.Pipelines;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Sockets.Default.Interfaces
 {
     /// <summary>
     /// Websocket factory interface

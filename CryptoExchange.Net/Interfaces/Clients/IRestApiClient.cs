@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.Interfaces
+﻿namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
     /// Base rest API client

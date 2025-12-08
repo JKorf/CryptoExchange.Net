@@ -1,5 +1,6 @@
 using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
@@ -8,7 +9,11 @@ using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
 using CryptoExchange.Net.Sockets.HighPerf;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
+using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -29,16 +34,18 @@ namespace CryptoExchange.Net.Clients
         #region Fields
         /// <inheritdoc/>
         public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
+        /// <inheritdoc/>
+        public IHighPerfConnectionFactory? HighPerfConnectionFactory { get; set; }
 
         /// <summary>
         /// List of socket connections currently connecting/connected
         /// </summary>
-        protected internal ConcurrentDictionary<int, SocketConnection> socketConnections = new();
+        protected internal ConcurrentDictionary<int, SocketConnection> _socketConnections = new();
 
         /// <summary>
         /// List of HighPerf socket connections currently connecting/connected
         /// </summary>
-        protected internal ConcurrentDictionary<int, HighPerfSocketConnection> highPerfSocketConnections = new();
+        protected internal ConcurrentDictionary<int, HighPerfSocketConnection> _highPerfSocketConnections = new();
 
         /// <summary>
         /// Semaphore used while creating sockets
@@ -100,25 +107,25 @@ namespace CryptoExchange.Net.Clients
         {
             get
             {
-                if (socketConnections.IsEmpty)
+                if (_socketConnections.IsEmpty)
                     return 0;
 
-                return socketConnections.Sum(s => s.Value.IncomingKbps);
+                return _socketConnections.Sum(s => s.Value.IncomingKbps);
             }
         }
 
         /// <inheritdoc />
-        public int CurrentConnections => socketConnections.Count;
+        public int CurrentConnections => _socketConnections.Count;
 
         /// <inheritdoc />
         public int CurrentSubscriptions
         {
             get
             {
-                if (socketConnections.IsEmpty)
+                if (_socketConnections.IsEmpty)
                     return 0;
 
-                return socketConnections.Sum(s => s.Value.UserSubscriptionCount);
+                return _socketConnections.Sum(s => s.Value.UserSubscriptionCount);
             }
         }
 
@@ -569,7 +576,7 @@ namespace CryptoExchange.Net.Clients
         protected void AddSystemSubscription(SystemSubscription systemSubscription)
         {
             systemSubscriptions.Add(systemSubscription);
-            foreach (var connection in socketConnections.Values)
+            foreach (var connection in _socketConnections.Values)
                 connection.AddSubscription(systemSubscription);
         }
 
@@ -615,7 +622,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated, bool dedicatedRequestConnection, CancellationToken ct, string? topic = null)
         {
-            var socketQuery = socketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
+            var socketQuery = _socketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
                                                       && s.Value.ApiClient.GetType() == GetType()
                                                       && (AllowTopicsOnTheSameConnection || !s.Value.Topics.Contains(topic)))
                                                 .Select(x => x.Value)
@@ -668,7 +675,7 @@ namespace CryptoExchange.Net.Clients
             if (connection != null)
             {
                 if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget
-                    || (socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
+                    || (_socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && _socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     return new CallResult<SocketConnection>(connection);
@@ -720,27 +727,6 @@ namespace CryptoExchange.Net.Clients
             IHighPerfConnectionFactory connectionFactory,
             CancellationToken ct)
         {
-            var socketQuery = highPerfSocketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
-                                                      && s.Value.ApiClient.GetType() == GetType()
-                                                      && s.Value.UpdateType == typeof(TUpdateType))
-                                                .Select(x => x.Value)
-                                                .ToList();
-
-
-            socketQuery = socketQuery.Where(s => (s.Status == SocketStatus.None || s.Status == SocketStatus.Connected)
-                                                && s.Connected).ToList();
-
-            var connection = socketQuery.OrderBy(s => s.UserSubscriptionCount).FirstOrDefault();
-            if (connection != null)
-            {
-                if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget
-                    || (socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
-                {
-                    // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
-                    return new CallResult<HighPerfSocketConnection<TUpdateType>>((HighPerfSocketConnection<TUpdateType>)connection);
-                }
-            }
-
             var connectionAddress = await GetConnectionUrlAsync(address, false).ConfigureAwait(false);
             if (!connectionAddress)
             {
@@ -794,9 +780,9 @@ namespace CryptoExchange.Net.Clients
             if (connectResult)
             {
                 if (socketConnection is SocketConnection sc)
-                    socketConnections.TryAdd(socketConnection.SocketId, sc);
+                    _socketConnections.TryAdd(socketConnection.SocketId, sc);
                 else if (socketConnection is HighPerfSocketConnection hsc)
-                    highPerfSocketConnections.TryAdd(socketConnection.SocketId, hsc);
+                    _highPerfSocketConnections.TryAdd(socketConnection.SocketId, hsc);
                 return connectResult;
             }
 
@@ -832,7 +818,7 @@ namespace CryptoExchange.Net.Clients
         {
             Subscription? subscription = null;
             SocketConnection? connection = null;
-            foreach (var socket in socketConnections.Values.ToList())
+            foreach (var socket in _socketConnections.Values.ToList())
             {
                 subscription = socket.GetSubscription(subscriptionId);
                 if (subscription != null)
@@ -870,14 +856,14 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
-            var sum = socketConnections.Sum(s => s.Value.UserSubscriptionCount);
+            var sum = _socketConnections.Sum(s => s.Value.UserSubscriptionCount);
             if (sum == 0)
                 return;
 
-            _logger.UnsubscribingAll(socketConnections.Sum(s => s.Value.UserSubscriptionCount));
+            _logger.UnsubscribingAll(_socketConnections.Sum(s => s.Value.UserSubscriptionCount));
             var tasks = new List<Task>();
             {
-                var socketList = socketConnections.Values;
+                var socketList = _socketConnections.Values;
                 foreach (var connection in socketList)
                 {
                     foreach(var subscription in connection.Subscriptions.Where(x => x.UserSubscription))
@@ -894,10 +880,10 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task ReconnectAsync()
         {
-            _logger.ReconnectingAllConnections(socketConnections.Count);
+            _logger.ReconnectingAllConnections(_socketConnections.Count);
             var tasks = new List<Task>();
             {
-                var socketList = socketConnections.Values;
+                var socketList = _socketConnections.Values;
                 foreach (var sub in socketList)
                     tasks.Add(sub.TriggerReconnectAsync());
             }
@@ -929,7 +915,7 @@ namespace CryptoExchange.Net.Clients
             base.SetOptions(options);
 
             if ((!previousProxyIsSet && options.Proxy == null)
-                || socketConnections.IsEmpty)
+                || _socketConnections.IsEmpty)
             {
                 return;
             }
@@ -937,7 +923,7 @@ namespace CryptoExchange.Net.Clients
             _logger.LogInformation("Reconnecting websockets to apply proxy");
 
             // Update proxy, also triggers reconnect
-            foreach (var connection in socketConnections)
+            foreach (var connection in _socketConnections)
                 _ = connection.Value.UpdateProxy(options.Proxy);
         }
 
@@ -957,14 +943,14 @@ namespace CryptoExchange.Net.Clients
         public SocketApiClientState GetState(bool includeSubDetails = true)
         {
             var connectionStates = new List<SocketConnectionState>();
-            foreach (var socketIdAndConnection in socketConnections)
+            foreach (var socketIdAndConnection in _socketConnections)
             {
                 SocketConnection connection = socketIdAndConnection.Value;
                 SocketConnectionState connectionState = connection.GetState(includeSubDetails);
                 connectionStates.Add(connectionState);
             }
 
-            return new SocketApiClientState(socketConnections.Count, CurrentSubscriptions, IncomingKbps, connectionStates);
+            return new SocketApiClientState(_socketConnections.Count, CurrentSubscriptions, IncomingKbps, connectionStates);
         }
 
         /// <summary>
@@ -1026,7 +1012,7 @@ namespace CryptoExchange.Net.Clients
             _disposing = true;
             var tasks = new List<Task>();
             {
-                var socketList = socketConnections.Values.Where(x => x.UserSubscriptionCount > 0 || x.Connected);
+                var socketList = _socketConnections.Values.Where(x => x.UserSubscriptionCount > 0 || x.Connected);
                 if (socketList.Any())
                     _logger.DisposingSocketClient();
 

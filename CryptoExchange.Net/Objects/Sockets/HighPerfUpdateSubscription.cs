@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Sockets;
+﻿using CryptoExchange.Net.Sockets.HighPerf;
 using System;
 using System.Collections.Generic;
 using System.Linq;

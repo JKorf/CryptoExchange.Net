@@ -1,7 +1,4 @@
 ﻿using CryptoExchange.Net.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
 {

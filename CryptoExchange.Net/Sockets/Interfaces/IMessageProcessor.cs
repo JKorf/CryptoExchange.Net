@@ -1,11 +1,9 @@
-﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Sockets;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Sockets.Interfaces
 {
     /// <summary>
     /// Message processor

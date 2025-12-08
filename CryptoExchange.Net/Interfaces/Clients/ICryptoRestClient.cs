@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
-    /// Client for accessing Websocket API's for different exchanges
+    /// Client for accessing REST API's for different exchanges
     /// </summary>
-    public interface ICryptoSocketClient
+    public interface ICryptoRestClient
     {
         /// <summary>
-        /// Try get a client by type for the service collection
+        /// Try get 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Trackers.Klines
+﻿namespace CryptoExchange.Net.Trackers.Klines
 {
     /// <summary>
     /// Klines statistics comparison

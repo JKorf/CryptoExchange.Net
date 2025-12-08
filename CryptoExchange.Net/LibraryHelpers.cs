@@ -2,11 +2,8 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -71,7 +68,7 @@ namespace CryptoExchange.Net
         {
             var reservedLength = brokerId.Length + ClientOrderIdSeparator.Length;
 
-            if ((clientOrderId?.Length + reservedLength) > maxLength)
+            if (clientOrderId?.Length + reservedLength > maxLength)
                 return clientOrderId!;
 
             if (!string.IsNullOrEmpty(clientOrderId))
@@ -157,43 +154,5 @@ namespace CryptoExchange.Net
             return httpHandler;
 #endif
         }
-
-        /// <summary>
-        /// Waits for all of the ValueTasks to complete
-        /// </summary>
-        public static async ValueTask WhenAll(IReadOnlyList<ValueTask> tasks)
-        {
-            if (tasks.Count == 0)
-                return;
-
-            List<Task>? toAwait = null;
-
-            int completedTasks = 0;
-
-            for (int i = 0; i < tasks.Count; i++)
-            {
-                if (!tasks[i].IsCompletedSuccessfully)
-                {
-                    toAwait ??= new();
-                    toAwait.Add(tasks[i].AsTask());
-                }
-                else
-                {
-                    completedTasks++;
-                }
-            }
-
-            if (completedTasks != tasks.Count)
-                await Task.WhenAll(toAwait!).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Waits for all of the ValueTasks to complete
-        /// </summary>
-        public static ValueTask WhenAll(IEnumerable<ValueTask> tasks)
-        {
-            return WhenAll(tasks.ToList());
-        }
-
     }
 }

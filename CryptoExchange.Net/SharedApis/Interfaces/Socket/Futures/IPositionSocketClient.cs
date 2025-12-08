@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using CryptoExchange.Net.Objects.Sockets;

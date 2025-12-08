@@ -1,11 +1,10 @@
-﻿using CryptoExchange.Net.Objects;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Objects
 {
 
     /// <summary>

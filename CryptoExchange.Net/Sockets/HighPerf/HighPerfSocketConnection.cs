@@ -11,8 +11,12 @@ using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using System.Threading;
 using System.IO.Pipelines;
+using CryptoExchange.Net.Sockets.Interfaces;
+using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.HighPerf
 {
     /// <summary>
     /// A single socket connection focused on performance
@@ -165,8 +169,8 @@ namespace CryptoExchange.Net.Sockets
             Status = SocketStatus.Closed;
             _cts.CancelAfter(TimeSpan.FromSeconds(1)); // Cancel after 1 second to make sure we process pending messages from the pipe
 
-            if (ApiClient.highPerfSocketConnections.ContainsKey(SocketId))
-                ApiClient.highPerfSocketConnections.TryRemove(SocketId, out _);
+            if (ApiClient._highPerfSocketConnections.ContainsKey(SocketId))
+                ApiClient._highPerfSocketConnections.TryRemove(SocketId, out _);
 
             await _processTask!.ConfigureAwait(false);
 
@@ -209,8 +213,8 @@ namespace CryptoExchange.Net.Sockets
             if (Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            if (ApiClient.socketConnections.ContainsKey(SocketId))
-                ApiClient.socketConnections.TryRemove(SocketId, out _);
+            if (ApiClient._socketConnections.ContainsKey(SocketId))
+                ApiClient._socketConnections.TryRemove(SocketId, out _);
 
             foreach (var subscription in Subscriptions)
             {
@@ -275,9 +279,7 @@ namespace CryptoExchange.Net.Sockets
         public virtual ValueTask<CallResult> SendAsync<T>(T obj)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
-            {
                 return SendBytesAsync(byteSerializer.Serialize(obj));
-            }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)
@@ -480,17 +482,16 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Delegate the update to the listeners
         /// </summary>
-        protected ValueTask DelegateToSubscription(HighPerfSubscription<T> subscription, T update)
+        protected void DelegateToSubscription(HighPerfSubscription<T> subscription, T update)
         {
             try
             {
-                return subscription.HandleAsync(update!);
+                subscription.HandleAsync(update!);
             }
             catch (Exception ex)
             {
                 subscription.InvokeExceptionHandler(ex);
                 _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
-                return new ValueTask();
             }
         }
     }

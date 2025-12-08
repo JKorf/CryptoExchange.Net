@@ -1,9 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace CryptoExchange.Net.SharedApis
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for subscribing to ticker updates

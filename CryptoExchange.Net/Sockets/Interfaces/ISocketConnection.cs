@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Interfaces
 {
     /// <summary>
     /// Socket connection

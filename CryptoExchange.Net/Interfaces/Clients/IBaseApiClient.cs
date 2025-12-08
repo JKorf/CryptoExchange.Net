@@ -1,10 +1,9 @@
 ﻿using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using System;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
     /// Base api client

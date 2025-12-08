@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.HighPerf
 {
     /// <summary>
     /// Socket subscription
@@ -92,12 +91,12 @@ namespace CryptoExchange.Net.Sockets
     /// <inheritdoc />
     public abstract class HighPerfSubscription<TUpdateType> : HighPerfSubscription
     {
-        private Func<TUpdateType, ValueTask> _handler;
+        private Action<TUpdateType> _handler;
 
         /// <summary>
         /// ctor
         /// </summary>
-        protected HighPerfSubscription(Func<TUpdateType, ValueTask> handler) : base()
+        protected HighPerfSubscription(Action<TUpdateType> handler) : base()
         {
             _handler = handler;
         }
@@ -105,10 +104,10 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle an update
         /// </summary>
-        public ValueTask HandleAsync(TUpdateType update)
+        public void HandleAsync(TUpdateType update)
         {
             TotalInvocations++;
-            return _handler.Invoke(update);
+            _handler.Invoke(update);
         }
     }
 }

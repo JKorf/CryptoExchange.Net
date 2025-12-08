@@ -79,7 +79,20 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public override string ToString()
         {
-            return ErrorCode != null ? $"[{GetType().Name}.{ErrorType}] {ErrorCode}: {Message ?? ErrorDescription}" : $"[{GetType().Name}.{ErrorType}] {Message ?? ErrorDescription}";
+            return Code != null
+                ? $"[{GetType().Name}.{ErrorType}] {Code}: {GetErrorDescription()}" 
+                : $"[{GetType().Name}.{ErrorType}] {GetErrorDescription()}";
+        }
+
+        private string GetErrorDescription()
+        {
+            if (!string.IsNullOrEmpty(Message))
+                return Message!;
+
+            if (ErrorDescription != "Unknown error" || Exception == null)
+                return ErrorDescription!;
+
+            return Exception.Message;
         }
     }
 

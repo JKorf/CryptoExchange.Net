@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.Attributes;
-
-namespace CryptoExchange.Net.Objects
+﻿namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// What to do when a request would exceed the rate limit

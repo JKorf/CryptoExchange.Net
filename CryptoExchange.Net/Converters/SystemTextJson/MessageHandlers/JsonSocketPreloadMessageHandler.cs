@@ -3,7 +3,7 @@ using System;
 using System.Net.WebSockets;
 using System.Text.Json;
 
-namespace CryptoExchange.Net.Converters.SystemTextJson
+namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
 {
     /// <summary>
     /// JSON WebSocket message handler, reads the json data info a JsonDocument after which the data can be inspected to identify the message

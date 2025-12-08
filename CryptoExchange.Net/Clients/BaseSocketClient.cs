@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
+﻿using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace CryptoExchange.Net.Clients
 {

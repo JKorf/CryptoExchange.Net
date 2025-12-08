@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-
-namespace CryptoExchange.Net.SharedApis
+﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Request to stop the update stream for the specific listen key

@@ -2,8 +2,8 @@
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.Default;
 using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets

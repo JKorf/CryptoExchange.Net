@@ -1,10 +1,7 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
+﻿using CryptoExchange.Net.Objects;
 using Microsoft.Extensions.Logging;
-using System;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Default
 {
     /// <summary>
     /// A system subscription

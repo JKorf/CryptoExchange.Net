@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
-using CryptoExchange.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

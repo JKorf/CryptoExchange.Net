@@ -1,4 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Interfaces;
 using System;
 
 namespace CryptoExchange.Net.Sockets

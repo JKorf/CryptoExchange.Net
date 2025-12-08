@@ -4,7 +4,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Sockets.Default.Interfaces
 {
     /// <summary>
     /// Websocket connection interface

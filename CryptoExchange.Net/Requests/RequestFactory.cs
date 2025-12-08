@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Net.Http;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;

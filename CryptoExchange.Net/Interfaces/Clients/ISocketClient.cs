@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
     /// Base class for socket API implementations

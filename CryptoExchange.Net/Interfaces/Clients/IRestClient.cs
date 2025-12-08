@@ -1,7 +1,7 @@
 ﻿using System;
 using CryptoExchange.Net.Objects.Options;
 
-namespace CryptoExchange.Net.Interfaces
+namespace CryptoExchange.Net.Interfaces.Clients
 {
     /// <summary>
     /// Base class for rest API implementations

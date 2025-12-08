@@ -1,23 +1,21 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Logging.Extensions;
+﻿using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.RateLimiting;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Default
 {
     /// <summary>
     /// A wrapper around the ClientWebSocket
@@ -227,9 +225,7 @@ namespace CryptoExchange.Net.Sockets
             catch (Exception e)
             {
                 if (ct.IsCancellationRequested)
-                {
                     _logger.SocketConnectingCanceled(Id);
-                }
                 else if (!_ctsSource.IsCancellationRequested)
                 {
                     // if _ctsSource was canceled this was already logged
@@ -246,9 +242,7 @@ namespace CryptoExchange.Net.Sockets
                     }
 
                     if (_socket.HttpStatusCode == HttpStatusCode.Unauthorized)
-                    {
                         return new CallResult(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
-                    }
 #else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
                     // Try to read 429 from the message instead
@@ -456,9 +450,7 @@ namespace CryptoExchange.Net.Sockets
             try
             {
                 if (_socket.State == WebSocketState.CloseReceived)
-                {
                     await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
-                }
                 else if (_socket.State == WebSocketState.Open)
                 {
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
@@ -612,11 +604,9 @@ namespace CryptoExchange.Net.Sockets
                         catch (OperationCanceledException ex)
                         {
                             if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
-                            {
                                 // Specific case that the websocket connection got closed because of a ping frame timeout
                                 // Unfortunately doesn't seem to be a nicer way to catch
                                 _logger.SocketPingTimeout(Id);
-                            }
 
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
@@ -695,16 +685,12 @@ namespace CryptoExchange.Net.Sockets
                     UpdateReceivedMessages();
 
                     if (receiveResult?.MessageType == WebSocketMessageType.Close)
-                    {
                         // Received close message
                         break;
-                    }
 
                     if (receiveResult == null || _ctsSource.IsCancellationRequested)
-                    {
                         // Error during receiving or cancellation requested, stop.
                         break;
-                    }
 
                     if (multiPartMessage)
                     {
@@ -774,11 +760,9 @@ namespace CryptoExchange.Net.Sockets
                         catch (OperationCanceledException ex)
                         {
                             if (ex.InnerException?.InnerException?.Message.Contains("KeepAliveTimeout") == true)
-                            {
                                 // Specific case that the websocket connection got closed because of a ping frame timeout
                                 // Unfortunately doesn't seem to be a nicer way to catch
                                 _logger.SocketPingTimeout(Id);
-                            }
 
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
@@ -852,16 +836,12 @@ namespace CryptoExchange.Net.Sockets
                     UpdateReceivedMessages();
 
                     if (receiveResult.MessageType == WebSocketMessageType.Close)
-                    {
                         // Received close message
                         break;
-                    }
 
                     if (_ctsSource.IsCancellationRequested)
-                    {
                         // Error during receiving or cancellation requested, stop.
                         break;
-                    }
 
                     if (multiPartMessage)
                     {
