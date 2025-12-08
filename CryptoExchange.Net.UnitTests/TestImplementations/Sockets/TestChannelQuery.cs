@@ -37,14 +37,14 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
             MessageMatcher = MessageMatcher.Create<SubResponse>(request + "-" + channel, HandleMessage);
         }
 
-        public CallResult<SubResponse> HandleMessage(SocketConnection connection, DataEvent<SubResponse> message)
+        public CallResult<SubResponse> HandleMessage(SocketConnection connection, DateTime time, string? originalData, SubResponse message)
         {
-            if (!message.Data.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
+            if (!message.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
             {
-                return new CallResult<SubResponse>(new ServerError(ErrorInfo.Unknown with { Message = message.Data.Status }));
+                return new CallResult<SubResponse>(new ServerError(ErrorInfo.Unknown with { Message = message.Status }));
             }
 
-            return message.ToCallResult();
+            return new CallResult<SubResponse>(message, originalData, null);
         }
     }
 }
