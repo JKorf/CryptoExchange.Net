@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Exceptions;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets.Default.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -37,14 +38,21 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         {
             try
             {
+                while (!ct.IsCancellationRequested)
+                {
+                    try
+                    {
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
 #pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-                await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _jsonOptions, ct).ConfigureAwait(false))
+                        await foreach (var update in JsonSerializer.DeserializeAsyncEnumerable<T>(_pipe.Reader, true, _jsonOptions, ct).ConfigureAwait(false))
 #pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
 #pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-                {
-                    foreach(var sub in _typedSubscriptions)
-                        DelegateToSubscription(_typedSubscriptions[0], update!);
+                        {
+                            foreach (var sub in _typedSubscriptions)
+                                DelegateToSubscription(_typedSubscriptions[0], update!);
+                        }
+                    }
+                    catch (CeDeserializationException) { } // Might just be a different message, ignore
                 }
             }
             catch (OperationCanceledException) { }

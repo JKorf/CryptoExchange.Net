@@ -34,11 +34,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         public object? SubscriptionQuery { get; private set; }
 
         /// <summary>
-        /// The unsubscribe query for this subscription
-        /// </summary>
-        public object? UnsubscriptionQuery { get; private set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
         public HighPerfSubscription()
@@ -61,22 +56,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// </summary>
         /// <returns></returns>
         protected abstract object? GetSubQuery(HighPerfSocketConnection connection);
-
-        /// <summary>
-        /// Create a new unsubscription query
-        /// </summary>
-        public object? CreateUnsubscriptionQuery(HighPerfSocketConnection connection)
-        {
-            var query = GetUnsubQuery(connection);
-            UnsubscriptionQuery = query;
-            return query;
-        }
-
-        /// <summary>
-        /// Get the unsubscribe query to send when unsubscribing
-        /// </summary>
-        /// <returns></returns>
-        protected abstract object? GetUnsubQuery(HighPerfSocketConnection connection);
 
         /// <summary>
         /// Invoke the exception event

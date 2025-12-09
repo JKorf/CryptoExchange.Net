@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CryptoExchange.Net.Exceptions;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Serialization;
 using System.Text.Json;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace CryptoExchange.Net.Converters.SystemTextJson
@@ -109,7 +110,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
         {
             if (reader.TokenType != JsonTokenType.StartArray)
-                throw new Exception("Not an array");
+                throw new CeDeserializationException("Not an array");
 
             int index = 0;
             while (reader.Read())
@@ -158,7 +159,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                             JsonTokenType.String => reader.GetString(),
                             JsonTokenType.Number => reader.GetDecimal(),
                             JsonTokenType.StartObject => JsonSerializer.Deserialize(ref reader, attribute.TargetType, options),
-                            _ => throw new NotImplementedException($"Array deserialization of type {reader.TokenType} not supported"),
+                            _ => throw new CeDeserializationException($"Array deserialization of type {reader.TokenType} not supported"),
                         };
                     }
 

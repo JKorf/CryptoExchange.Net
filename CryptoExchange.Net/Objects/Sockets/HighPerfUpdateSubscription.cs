@@ -97,14 +97,5 @@ namespace CryptoExchange.Net.Objects.Sockets
         {
             return _connection.CloseAsync(_subscription);
         }
-
-        /// <summary>
-        /// Unsubscribe a subscription
-        /// </summary>
-        /// <returns></returns>
-        internal async Task UnsubscribeAsync()
-        {
-            await _connection.UnsubscribeAsync(_subscription).ConfigureAwait(false);
-        }
     }
 }

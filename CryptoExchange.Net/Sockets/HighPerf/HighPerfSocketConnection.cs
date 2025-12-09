@@ -240,24 +240,8 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             if (subscription.CancellationTokenRegistration.HasValue)
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
-            var anyOtherSubscriptions = Subscriptions.Any(x => x != subscription);
-
-            if (anyOtherSubscriptions)
-                await UnsubscribeAsync(subscription).ConfigureAwait(false);
-
-            if (Status == SocketStatus.Closing)
-            {
-                _logger.AlreadyClosing(SocketId);
-                return;
-            }
-
-            if (!anyOtherSubscriptions)
-            {
-                Status = SocketStatus.Closing;
-                _logger.ClosingNoMoreSubscriptions(SocketId);
-                await CloseAsync().ConfigureAwait(false);
-            }
-
+            Status = SocketStatus.Closing;
+            await CloseAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -311,7 +295,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
-            _logger.SendingByteData(SocketId, 0, data.Length);
             try
             {
                 if (!await _socket.SendAsync(data).ConfigureAwait(false))
@@ -344,7 +327,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
                 return new CallResult(new WebError("Failed to send message, socket no longer open"));
             }
 
-            _logger.SendingData(SocketId, 0, data);
             try
             {
                 if (!await _socket.SendAsync(data).ConfigureAwait(false))
@@ -356,16 +338,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             {
                 return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
-        }
-
-        internal async Task UnsubscribeAsync(HighPerfSubscription subscription)
-        {
-            var unsubscribeRequest = subscription.CreateUnsubscriptionQuery(this);
-            if (unsubscribeRequest == null)
-                return;
-
-            await SendAsync(unsubscribeRequest).ConfigureAwait(false);
-            _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
         }
 
         /// <summary>
