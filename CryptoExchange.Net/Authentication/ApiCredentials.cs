@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -43,6 +45,16 @@ namespace CryptoExchange.Net.Authentication
             Key = key;
             Secret = secret;
             Pass = pass;
+        }
+
+        /// <summary>
+        /// Load a private key from a file path
+        /// </summary>
+        public async Task<string> LoadPrivateKey(string path)
+        {
+            using var filestream = File.OpenRead(path);
+            using var streamReader = new StreamReader(filestream);
+            return await streamReader.ReadToEndAsync().ConfigureAwait(false);
         }
 
         /// <summary>
