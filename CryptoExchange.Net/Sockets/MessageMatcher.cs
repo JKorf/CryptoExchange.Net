@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageMatcher Create<T>(string value)
         {
-            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null)));
+            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null)));
         }
 
         /// <summary>

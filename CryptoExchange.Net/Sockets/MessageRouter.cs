@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier)
         {
-            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null)));
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null)));
         }
 
         /// <summary>

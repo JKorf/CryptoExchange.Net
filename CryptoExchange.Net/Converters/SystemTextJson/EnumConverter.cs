@@ -2,6 +2,9 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -64,7 +67,23 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
          : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
-        private static List<KeyValuePair<T, string>>? _mapping = null;
+        class EnumMapping
+        {
+            public T Value { get; set; }
+            public string StringValue { get; set; }
+
+            public EnumMapping(T value, string stringValue)
+            {
+                Value = value;
+                StringValue = stringValue;
+            }
+        }
+
+#if NET8_0_OR_GREATER
+        private static FrozenSet<EnumMapping>? _mapping = null;
+#else
+        private static List<EnumMapping>? _mapping = null;
+#endif
         private NullableEnumConverter? _nullableEnumConverter = null;
 
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
@@ -168,14 +187,27 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             if (_mapping != null)
             {
-                // Check for exact match first, then if not found fallback to a case insensitive match 
-                var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-                if (mapping.Equals(default(KeyValuePair<T, string>)))
-                    mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
-
-                if (!mapping.Equals(default(KeyValuePair<T, string>)))
+                EnumMapping? mapping = null;
+                // Try match on full equals
+                foreach (var item in _mapping)
                 {
-                    result = mapping.Key;
+                    if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                        mapping = item;
+                }
+
+                // If not found, try matching ignoring case
+                if (mapping == null)
+                {
+                    foreach (var item in _mapping)
+                    {
+                        if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                            mapping = item;
+                    }
+                }
+
+                if (mapping != null)
+                {
+                    result = mapping.Value;
                     return true;
                 }
             }
@@ -215,9 +247,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
         }
 
-        private static List<KeyValuePair<T, string>> AddMapping()
+#if NET8_0_OR_GREATER
+        private static FrozenSet<EnumMapping> AddMapping()
+#else
+        private static List<EnumMapping> AddMapping()
+#endif
         {
-            var mapping = new List<KeyValuePair<T, string>>();
+            var mapping = new List<EnumMapping>();
             var enumType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
             var enumMembers = enumType.GetFields();
             foreach (var member in enumMembers)
@@ -226,12 +262,15 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 foreach (MapAttribute attribute in maps)
                 {
                     foreach (var value in attribute.Values)
-                        mapping.Add(new KeyValuePair<T, string>((T)Enum.Parse(enumType, member.Name), value));
+                        mapping.Add(new EnumMapping((T)Enum.Parse(enumType, member.Name), value));
                 }
             }
 
-            _mapping = mapping;
+#if NET8_0_OR_GREATER
+            return mapping.ToFrozenSet();
+#else
             return mapping;
+#endif
         }
 
         /// <summary>
@@ -245,7 +284,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (_mapping == null)
                 _mapping = AddMapping();
 
-            return enumValue == null ? null : (_mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
+            return enumValue == null ? null : (_mapping.FirstOrDefault(v => v.Value.Equals(enumValue))?.StringValue ?? enumValue.ToString());
         }
 
         /// <summary>
@@ -259,12 +298,26 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (_mapping == null)
                 _mapping = AddMapping();
 
-            var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-            if (mapping.Equals(default(KeyValuePair<T, string>)))
-                mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            EnumMapping? mapping = null;
+            // Try match on full equals
+            foreach(var item in _mapping)
+            {
+                if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                    mapping = item;
+            }
 
-            if (!mapping.Equals(default(KeyValuePair<T, string>)))
-                return mapping.Key;
+            // If not found, try matching ignoring case
+            if (mapping == null)
+            {
+                foreach (var item in _mapping)
+                {
+                    if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                        mapping = item;
+                }
+            }
+
+            if (mapping != null)
+                return mapping.Value;
 
             try
             {
