@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     internal class TestRestMessageHandler : JsonRestMessageHandler
     {
-        private ErrorMapping _errorMapping;
+        private ErrorMapping _errorMapping = new ErrorMapping([]);
         public override JsonSerializerOptions Options => new JsonSerializerOptions();
 
         public override ValueTask<Error> ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, Stream responseStream)
