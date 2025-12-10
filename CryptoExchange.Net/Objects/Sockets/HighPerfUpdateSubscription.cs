@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public Task CloseAsync()
         {
-            return _connection.CloseAsync(_subscription);
+            return _connection.CloseAsync();
         }
     }
 }

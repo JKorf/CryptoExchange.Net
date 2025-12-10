@@ -393,7 +393,10 @@ namespace CryptoExchange.Net
         {
             var processor = new ProcessQueue<T>(asyncHandler, maxQueuedItems, fullBehavior);
             await processor.StartAsync().ConfigureAwait(false);
-            ct.Register(() => _ = processor.StopAsync());
+            ct.Register(async () =>
+            {
+                await processor.StopAsync().ConfigureAwait(false);
+            });
 
             await subscribeCall(upd => processor.Write(upd)).ConfigureAwait(false);
         }

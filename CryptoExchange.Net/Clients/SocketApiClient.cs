@@ -412,7 +412,7 @@ namespace CryptoExchange.Net.Clients
                 var sendResult = await socketConnection.SendAsync(subRequest).ConfigureAwait(false);
                 if (!sendResult)
                 {
-                    await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
+                    await socketConnection.CloseAsync().ConfigureAwait(false);
                     return new CallResult<HighPerfUpdateSubscription>(sendResult.Error!);                    
                 }
             }
@@ -422,7 +422,7 @@ namespace CryptoExchange.Net.Clients
                 subscription.CancellationTokenRegistration = ct.Register(async () =>
                 {
                     _logger.CancellationTokenSetClosingSubscription(socketConnection.SocketId, subscription.Id);
-                    await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
+                    await socketConnection.CloseAsync().ConfigureAwait(false);
                 }, false);
             }
 

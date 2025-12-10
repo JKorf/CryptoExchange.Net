@@ -199,13 +199,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
 
-        protected override Error ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, IMessageAccessor accessor, Exception exception)
-        {
-            var errorData = accessor.Deserialize<TestError>();
-
-            return new ServerError(errorData.Data.ErrorCode, GetErrorInfo(errorData.Data.ErrorCode, errorData.Data.ErrorMessage));
-        }
-
         public override TimeSpan? GetTimeOffset()
         {
             throw new NotImplementedException();

@@ -73,6 +73,8 @@ namespace CryptoExchange.Net.UnitTests
 
     public class TestAuthProvider : AuthenticationProvider
     {
+        public override ApiCredentialsType[] SupportedCredentialTypes => [ApiCredentialsType.Hmac];
+
         public TestAuthProvider(ApiCredentials credentials) : base(credentials)
         {
         }

@@ -16,11 +16,14 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
     internal class TestRestMessageHandler : JsonRestMessageHandler
     {
+        private ErrorMapping _errorMapping;
         public override JsonSerializerOptions Options => new JsonSerializerOptions();
 
         public override ValueTask<Error> ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, Stream responseStream)
         {
-            return new ValueTask<Error>(new ServerError(ErrorInfo.Unknown));
+            var errorData = JsonSerializer.Deserialize<TestError>(responseStream);
+
+            return new ValueTask<Error>(new ServerError(errorData.ErrorCode, _errorMapping.GetErrorInfo(errorData.ErrorCode.ToString(), errorData.ErrorMessage)));
         }
     }
 }

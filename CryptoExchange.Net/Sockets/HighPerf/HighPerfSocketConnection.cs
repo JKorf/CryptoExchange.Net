@@ -213,8 +213,8 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             if (Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
                 return;
 
-            if (ApiClient._socketConnections.ContainsKey(SocketId))
-                ApiClient._socketConnections.TryRemove(SocketId, out _);
+            if (ApiClient._highPerfSocketConnections.ContainsKey(SocketId))
+                ApiClient._highPerfSocketConnections.TryRemove(SocketId, out _);
 
             foreach (var subscription in Subscriptions)
             {
@@ -224,24 +224,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
 
             await _socket.CloseAsync().ConfigureAwait(false);
             _socket.Dispose();
-        }
-
-        /// <summary>
-        /// Close a subscription on this connection. If all subscriptions on this connection are closed the connection gets closed as well
-        /// </summary>
-        /// <param name="subscription">Subscription to close</param>
-        /// <returns></returns>
-        public async Task CloseAsync(HighPerfSubscription subscription)
-        {
-            if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
-                return;
-
-            _logger.ClosingSubscription(SocketId, subscription.Id);
-            if (subscription.CancellationTokenRegistration.HasValue)
-                subscription.CancellationTokenRegistration.Value.Dispose();
-
-            Status = SocketStatus.Closing;
-            await CloseAsync().ConfigureAwait(false);
         }
 
         /// <summary>
