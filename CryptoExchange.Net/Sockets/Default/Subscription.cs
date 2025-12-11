@@ -109,6 +109,8 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public Query? UnsubscriptionQuery { get; private set; }
 
+        public int IndividualSubscriptionCount { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>

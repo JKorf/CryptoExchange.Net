@@ -135,6 +135,8 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
 
+        public int? MaxSubscriptionsPerConnection { get; set; }
+
         #endregion
 
         /// <summary>
@@ -241,7 +243,7 @@ namespace CryptoExchange.Net.Clients
                 while (true)
                 {
                     // Get a new or existing socket connection
-                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription.Topic).ConfigureAwait(false);
+                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription.Topic, subscription.IndividualSubscriptionCount).ConfigureAwait(false);
                     if (!socketResult)
                         return socketResult.As<UpdateSubscription>(null);
 
@@ -620,7 +622,13 @@ namespace CryptoExchange.Net.Clients
         /// <param name="ct">Cancellation token</param>
         /// <param name="topic">The subscription topic, can be provided when multiple of the same topics are not allowed on a connection</param>
         /// <returns></returns>
-        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(string address, bool authenticated, bool dedicatedRequestConnection, CancellationToken ct, string? topic = null)
+        protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(
+            string address,
+            bool authenticated,
+            bool dedicatedRequestConnection, 
+            CancellationToken ct,
+            string? topic = null,
+            int individualSubscriptionCount = 1)
         {
             var socketQuery = _socketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
                                                       && s.Value.ApiClient.GetType() == GetType()
@@ -678,7 +686,13 @@ namespace CryptoExchange.Net.Clients
                     || (_socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && _socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
-                    return new CallResult<SocketConnection>(connection);
+                    // If there is a max subscriptions per connection limit also only use existing if the new subscription doesn't go over the limit
+                    if (MaxSubscriptionsPerConnection == null)
+                        return new CallResult<SocketConnection>(connection);
+                                        
+                    var currentCount = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
+                    if (currentCount + individualSubscriptionCount <= MaxSubscriptionsPerConnection)
+                        return new CallResult<SocketConnection>(connection);
                 }
             }
 

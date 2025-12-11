@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value is one of the string values in the set
         /// </summary>
-        public MessageFieldReference WithFilterContstraint(HashSet<string?> set)
+        public MessageFieldReference WithFilterConstraint(HashSet<string?> set)
         {
             Constraint = set.Contains;
             return this;
@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value is equal to a string
         /// </summary>
-        public MessageFieldReference WithEqualContstraint(string compare)
+        public MessageFieldReference WithEqualConstraint(string compare)
         {
             Constraint = x => x != null && x.Equals(compare, StringComparison.Ordinal);
             return this;
@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value is not equal to a string
         /// </summary>
-        public MessageFieldReference WithNotEqualContstraint(string compare)
+        public MessageFieldReference WithNotEqualConstraint(string compare)
         {
             Constraint = x => x == null || !x.Equals(compare, StringComparison.Ordinal);
             return this;
@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value is not null
         /// </summary>
-        public MessageFieldReference WithNotNullContstraint()
+        public MessageFieldReference WithNotNullConstraint()
         {
             Constraint = x => x != null;
             return this;
@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value starts with a certain string
         /// </summary>
-        public MessageFieldReference WithStartsWithContstraint(string start)
+        public MessageFieldReference WithStartsWithConstraint(string start)
         {
             Constraint = x => x != null && x.StartsWith(start, StringComparison.Ordinal);
             return this;
@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value starts with a certain string
         /// </summary>
-        public MessageFieldReference WithStartsWithContstraints(params string[] startValues)
+        public MessageFieldReference WithStartsWithConstraints(params string[] startValues)
         {
             Constraint = x =>
             {
@@ -91,7 +91,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
         /// <summary>
         /// Check whether the value starts with a certain string
         /// </summary>
-        public MessageFieldReference WithCustomContstraint(Func<string?, bool> constraint)
+        public MessageFieldReference WithCustomConstraint(Func<string?, bool> constraint)
         {
             Constraint = constraint;
             return this;
