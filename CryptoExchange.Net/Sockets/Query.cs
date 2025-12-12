@@ -90,6 +90,11 @@ namespace CryptoExchange.Net.Sockets
         public bool ExpectsResponse { get; set; } = true;
 
         /// <summary>
+        /// Whether responses to this query might be read by multiple listeners
+        /// </summary>
+        public bool MultipleReaders { get; set; } = false;
+
+        /// <summary>
         /// Wait event for response
         /// </summary>
         protected AsyncResetEvent _event;

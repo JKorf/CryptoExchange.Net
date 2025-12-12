@@ -16,6 +16,8 @@ namespace CryptoExchange.Net.Sockets.Default
         public SystemSubscription(ILogger logger, bool authenticated = false) : base(logger, authenticated, false)
         {
             Status = SubscriptionStatus.Subscribed;
+
+            IndividualSubscriptionCount = 0;
         }
 
         /// <inheritdoc />

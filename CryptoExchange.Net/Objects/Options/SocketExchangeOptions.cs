@@ -32,9 +32,23 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// The amount of subscriptions that should be made on a single socket connection. Not all API's support multiple subscriptions on a single socket.
         /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
-        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues.
+        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues or delays.
+        /// <para>
+        /// This setting counts each Subscribe request as one instead of counting the individual subscriptions as <see cref="SocketIndividualSubscriptionCombineTarget"/> does
+        /// </para>
         /// </summary>
         public int? SocketSubscriptionsCombineTarget { get; set; }
+
+        /// <summary>
+        /// The amount of subscriptions that should be made on a single socket connection. Not all API's support multiple subscriptions on a single socket.
+        /// Setting this to a higher number increases subscription speed because not every subscription needs to connect to the server, but having more subscriptions on a 
+        /// single connection will also increase the amount of traffic on that single connection, potentially leading to issues or delays.
+        /// <para>
+        /// This setting counts the individual subscriptions in a request instead of counting subscriptions in batched request as one as <see cref="SocketSubscriptionsCombineTarget"/> does.
+        /// </para>
+        /// <para>Defaults to 20</para>
+        /// </summary>
+        public int SocketIndividualSubscriptionCombineTarget { get; set; } = 20;
 
         /// <summary>
         /// The max amount of connections to make to the server. Can be used for API's which only allow a certain number of connections. Changing this to a high value might cause issues.

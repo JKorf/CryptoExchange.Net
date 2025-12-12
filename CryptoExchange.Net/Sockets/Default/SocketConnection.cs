@@ -616,19 +616,34 @@ namespace CryptoExchange.Net.Sockets.Default
                             throw new Exception("Listeners list adjusted, can't continue processing");                            
                     }
 
-                    var subscription = _listeners[i];
-                    foreach (var route in subscription.MessageRouter.Routes)
+                    var processor = _listeners[i];
+                    bool isQuery = false;
+                    Query? query = null;
+                    if (processor is Query cquery)
+                    {
+                        isQuery = true;
+                        query = cquery;
+                    }
+
+                    foreach (var route in processor.MessageRouter.Routes)
                     {
                         if (route.TypeIdentifier != typeIdentifier)
                             continue;
 
-                        if (topicFilter == null || route.TopicFilter == null || route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
+                        if (topicFilter == null
+                            || route.TopicFilter == null 
+                            || route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
                         {
-                            processed = true;
-                            subscription.Handle(this, receiveTime, originalData, result, route);
-                        }
+                            if (isQuery && query!.Completed)
+                                continue;
 
+                            processed = true;
+                            processor.Handle(this, receiveTime, originalData, result, route);
+                        }
                     }
+
+                    if (processed && isQuery && !query!.MultipleReaders)
+                        break;
                 }
             }
 

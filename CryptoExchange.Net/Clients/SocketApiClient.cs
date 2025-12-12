@@ -135,7 +135,10 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public new SocketApiOptions ApiOptions => (SocketApiOptions)base.ApiOptions;
 
-        public int? MaxSubscriptionsPerConnection { get; set; }
+        /// <summary>
+        /// The max number of individual subscriptions on a single connection
+        /// </summary>
+        public int? MaxIndividualSubscriptionsPerConnection { get; set; }
 
         #endregion
 
@@ -224,6 +227,9 @@ namespace CryptoExchange.Net.Clients
                 _logger.LogWarning("Failed to subscribe, private subscription but no API credentials set");
                 return new CallResult<UpdateSubscription>(new NoApiCredentialsError());
             }
+
+            if (subscription.IndividualSubscriptionCount > MaxIndividualSubscriptionsPerConnection)
+                return new CallResult<UpdateSubscription>(ArgumentError.Invalid("subscriptions", $"Max number of subscriptions in a single call is {MaxIndividualSubscriptionsPerConnection}"));
 
             SocketConnection socketConnection;
             var released = false;
@@ -680,21 +686,28 @@ namespace CryptoExchange.Net.Clients
                     connection.DedicatedRequestConnection.Authenticated = authenticated;
             }
 
+            bool maxConnectionsReached = _socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections);
             if (connection != null)
             {
-                if (connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget
-                    || (_socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections) && _socketConnections.All(s => s.Value.UserSubscriptionCount >= ClientOptions.SocketSubscriptionsCombineTarget)))
+                bool lessThanBatchSubCombineTarget = connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget;
+                bool lessThanIndividualSubCombineTarget = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount) < ClientOptions.SocketIndividualSubscriptionCombineTarget;
+
+                if ((lessThanBatchSubCombineTarget && lessThanIndividualSubCombineTarget)
+                    || maxConnectionsReached) 
                 {
                     // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
                     // If there is a max subscriptions per connection limit also only use existing if the new subscription doesn't go over the limit
-                    if (MaxSubscriptionsPerConnection == null)
+                    if (MaxIndividualSubscriptionsPerConnection == null)
                         return new CallResult<SocketConnection>(connection);
                                         
                     var currentCount = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
-                    if (currentCount + individualSubscriptionCount <= MaxSubscriptionsPerConnection)
+                    if (currentCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection)
                         return new CallResult<SocketConnection>(connection);
                 }
             }
+
+            if (maxConnectionsReached)
+                return new CallResult<SocketConnection>(new InvalidOperationError("Max amount of socket connections reached"));
 
             var connectionAddress = await GetConnectionUrlAsync(address, authenticated).ConfigureAwait(false);
             if (!connectionAddress)

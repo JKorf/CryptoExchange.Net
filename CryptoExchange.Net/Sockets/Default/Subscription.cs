@@ -109,7 +109,10 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public Query? UnsubscriptionQuery { get; private set; }
 
-        public int IndividualSubscriptionCount { get; set; }
+        /// <summary>
+        /// The number of individual streams in this subscription
+        /// </summary>
+        public int IndividualSubscriptionCount { get; set; } = 1;
 
         /// <summary>
         /// ctor
