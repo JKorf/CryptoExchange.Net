@@ -450,10 +450,12 @@ namespace CryptoExchange.Net.Sockets.Default
             try
             {
                 if (_socket.State == WebSocketState.CloseReceived)
-                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
-                else if (_socket.State == WebSocketState.Open)
                 {
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                }
+                else if (_socket.State == WebSocketState.Open)
+                {
+                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
                     var startWait = DateTime.UtcNow;
                     while (_socket.State != WebSocketState.Closed && _socket.State != WebSocketState.Aborted)
                     {
@@ -819,6 +821,7 @@ namespace CryptoExchange.Net.Sockets.Default
                                 // Received a complete message and it's not multi part
                                 if (_logger.IsEnabled(LogLevel.Trace))
                                     _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
+
                                 ProcessDataNew(receiveResult.MessageType, buffer.Span.Slice(0, receiveResult.Count));
                             }
                             else
@@ -826,6 +829,7 @@ namespace CryptoExchange.Net.Sockets.Default
                                 // Received the end of a multipart message, write to memory stream for reassembling
                                 if (_logger.IsEnabled(LogLevel.Trace))
                                     _logger.SocketReceivedPartialMessage(Id, receiveResult.Count);
+
                                 multipartStream!.Write(buffer.Span.Slice(0, receiveResult.Count));
                             }
 
