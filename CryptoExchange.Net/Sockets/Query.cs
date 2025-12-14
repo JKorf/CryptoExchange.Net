@@ -90,11 +90,6 @@ namespace CryptoExchange.Net.Sockets
         public bool ExpectsResponse { get; set; } = true;
 
         /// <summary>
-        /// Whether responses to this query might be read by multiple listeners
-        /// </summary>
-        public bool MultipleReaders { get; set; } = false;
-
-        /// <summary>
         /// Wait event for response
         /// </summary>
         protected AsyncResetEvent _event;
@@ -205,16 +200,18 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route)
         {
-            if (!PreCheckMessage(connection, message))
-                return CallResult.SuccessResult;
-
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
                 Response = message;
 
             if (Result?.Success != false)
+            {
                 // If an error result is already set don't override that
                 Result = route.Handle(connection, receiveTime, originalData, message);
+                if (Result == null)
+                    // Null from Handle means it wasn't actually for this query
+                    CurrentResponses -= 1;
+            }
 
             if (CurrentResponses == RequiredResponses)
             {
@@ -223,7 +220,7 @@ namespace CryptoExchange.Net.Sockets
                 OnComplete?.Invoke();
             }
 
-            return Result;
+            return Result ?? CallResult.SuccessResult;
         }
 
         /// <inheritdoc />

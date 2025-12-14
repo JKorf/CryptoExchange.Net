@@ -627,6 +627,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="dedicatedRequestConnection">Whether a dedicated request connection should be returned</param>
         /// <param name="ct">Cancellation token</param>
         /// <param name="topic">The subscription topic, can be provided when multiple of the same topics are not allowed on a connection</param>
+        /// <param name="individualSubscriptionCount">The number of individual subscriptions in this subscribe request</param>
         /// <returns></returns>
         protected virtual async Task<CallResult<SocketConnection>> GetSocketConnection(
             string address,

@@ -29,6 +29,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public string? Symbol { get; set; }
 
         /// <summary>
+        /// The exchange name
+        /// </summary>
+        public string Exchange { get; set; }
+
+        /// <summary>
         /// The original data that was received, only available when OutputOriginalData is set to true in the client options
         /// </summary>
         public string? OriginalData { get; set; }
@@ -42,9 +47,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// ctor
         /// </summary>
         public DataEvent(
+            string exchange,
             DateTime receiveTimestamp,
             string? originalData)
         {
+            Exchange = exchange;
             OriginalData = originalData;
             ReceiveTime = receiveTimestamp;
         }
@@ -68,9 +75,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// ctor
         /// </summary>
         public DataEvent(
+            string exchange,
             T data,
             DateTime receiveTimestamp,
-            string? originalData): base(receiveTimestamp, originalData)
+            string? originalData): base(exchange, receiveTimestamp, originalData)
         {
             Data = data;
         }
@@ -118,13 +126,15 @@ namespace CryptoExchange.Net.Objects.Sockets
         }
 
         /// <summary>
-        /// Copy the DataEvent to a new data type
+        /// Create a new DataEvent of the new type
         /// </summary>
-        public ExchangeEvent<K> AsExchangeEvent<K>(string exchange, K data)
+        public DataEvent<TNew> ToType<TNew>(TNew data)
         {
-            return new ExchangeEvent<K>(exchange, this, data)
+            return new DataEvent<TNew>(Exchange, data, ReceiveTime, OriginalData)
             {
-                DataTime = DataTime
+                StreamId = StreamId,
+                UpdateType = UpdateType,
+                Symbol = Symbol                
             };
         }
 

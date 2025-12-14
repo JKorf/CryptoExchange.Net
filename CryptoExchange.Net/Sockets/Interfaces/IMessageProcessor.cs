@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Sockets.Interfaces
         /// <summary>
         /// Handle a message
         /// </summary>
-        CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object result, MessageRoute route);
+        CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object result, MessageRoute route);
         /// <summary>
         /// Deserialize a message into object of type
         /// </summary>

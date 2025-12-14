@@ -625,6 +625,8 @@ namespace CryptoExchange.Net.Sockets.Default
                         query = cquery;
                     }
 
+                    var complete = false;
+
                     foreach (var route in processor.MessageRouter.Routes)
                     {
                         if (route.TypeIdentifier != typeIdentifier)
@@ -639,10 +641,16 @@ namespace CryptoExchange.Net.Sockets.Default
 
                             processed = true;
                             processor.Handle(this, receiveTime, originalData, result, route);
+
+                            if (isQuery && !route.MultipleReaders)
+                            {
+                                complete = true;
+                                break;
+                            }
                         }
                     }
 
-                    if (processed && isQuery && !query!.MultipleReaders)
+                    if (complete)
                         break;
                 }
             }
@@ -1054,7 +1062,9 @@ namespace CryptoExchange.Net.Sockets.Default
         public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
+            {
                 return SendBytesAsync(requestId, byteSerializer.Serialize(obj), weight);
+            }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)

@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations.Sockets
 
         public CallResult DoHandleMessage(SocketConnection connection, DateTime receiveTime, string? originalData, T message)
         {
-            _handler.Invoke(new DataEvent<T>(message, receiveTime, originalData));
+            _handler.Invoke(new DataEvent<T>("Test", message, receiveTime, originalData));
             return new CallResult(null);
         }
 

@@ -190,7 +190,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
+        public CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
         {
             ConnectionInvocations++;
             TotalInvocations++;
