@@ -443,7 +443,7 @@ namespace CryptoExchange.Net.Clients
             {
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
-                responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
+                responseStream = await response.GetResponseStreamAsync(cancellationToken).ConfigureAwait(false);
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
 
                 accessor = CreateAccessor();
