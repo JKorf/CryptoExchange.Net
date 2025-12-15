@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var response = new Mock<IResponse>();
             response.Setup(c => c.IsSuccessStatusCode).Returns(true);
-            response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
+            response.Setup(c => c.GetResponseStreamAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult((Stream)responseStream));
             
             var headers = new Dictionary<string, string[]>();
             var request = new Mock<IRequest>();
@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
             var response = new Mock<IResponse>();
             response.Setup(c => c.IsSuccessStatusCode).Returns(false);
-            response.Setup(c => c.GetResponseStreamAsync()).Returns(Task.FromResult((Stream)responseStream));
+            response.Setup(c => c.GetResponseStreamAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult((Stream)responseStream));
 
             var headers = new List<KeyValuePair<string, string[]>>();
             var request = new Mock<IRequest>();

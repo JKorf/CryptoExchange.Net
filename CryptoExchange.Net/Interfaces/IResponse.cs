@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Interfaces
@@ -40,7 +41,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Get the response stream
         /// </summary>
         /// <returns></returns>
-        Task<Stream> GetResponseStreamAsync();
+        Task<Stream> GetResponseStreamAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Close the response

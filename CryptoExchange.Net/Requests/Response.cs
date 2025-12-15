@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CryptoExchange.Net.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Interfaces;
 
 namespace CryptoExchange.Net.Requests
 {
@@ -41,9 +42,13 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetResponseStreamAsync()
+        public async Task<Stream> GetResponseStreamAsync(CancellationToken cancellationToken)
         {
-            return await _response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            #if NET5_0_OR_GREATER
+                return await _response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            #else
+                return await _response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            #endif
         }
 
         /// <inheritdoc />

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Testing.Implementations
@@ -32,6 +33,6 @@ namespace CryptoExchange.Net.Testing.Implementations
         {
         }
 
-        public Task<Stream> GetResponseStreamAsync() => Task.FromResult(_response);
+        public Task<Stream> GetResponseStreamAsync(CancellationToken cancellationToken) => Task.FromResult(_response);
     }
 }
