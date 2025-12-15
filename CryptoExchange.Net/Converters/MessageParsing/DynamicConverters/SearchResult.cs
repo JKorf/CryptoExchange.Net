@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.Converters.MessageParsing.DynamicConverters
                     return item.Value;
             }
 
-            throw new Exception(""); // TODO
+            throw new Exception($"No field value found for {searchName}");
         }
 
         /// <summary>
