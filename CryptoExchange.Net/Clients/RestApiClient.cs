@@ -468,7 +468,7 @@ namespace CryptoExchange.Net.Clients
             {
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
-                responseStream = await response.GetResponseStreamAsync().ConfigureAwait(false);
+                responseStream = await response.GetResponseStreamAsync(cancellationToken).ConfigureAwait(false);
                 string? originalData = null;
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
                 if (outputOriginalData || MessageHandler.RequiresSeekableStream)
