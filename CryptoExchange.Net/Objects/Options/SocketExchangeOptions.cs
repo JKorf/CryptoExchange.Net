@@ -76,9 +76,9 @@ namespace CryptoExchange.Net.Objects.Options
         public int? ReceiveBufferSize { get; set; }
 
         /// <summary>
-        /// Whether or not to use the updated deserialization logic
+        /// Whether or not to use the updated deserialization logic, default is true
         /// </summary>
-        public bool UseUpdatedDeserialization { get; set; }
+        public bool UseUpdatedDeserialization { get; set; } = true;
 
         /// <summary>
         /// Create a copy of this options
