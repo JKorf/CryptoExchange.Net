@@ -41,10 +41,7 @@
     <DocumentationFile>CryptoExchange.Net.Protobuf.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LightProto" Version="0.8.5" />
+    <PackageReference Include="CryptoExchange.Net" Version="9.13.0" />
     <PackageReference Include="protobuf-net" Version="3.2.56" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CryptoExchange.Net\CryptoExchange.Net.csproj" />
   </ItemGroup>
 </Project>
