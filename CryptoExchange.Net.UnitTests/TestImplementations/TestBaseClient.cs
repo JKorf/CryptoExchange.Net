@@ -86,4 +86,14 @@ namespace CryptoExchange.Net.UnitTests
         public string GetKey() => _credentials.Key;
         public string GetSecret() => _credentials.Secret;
     }
+
+    public class TestEnvironment : TradeEnvironment
+    {
+        public string TestAddress { get; }
+
+        public TestEnvironment(string name, string url) : base(name)
+        {
+            TestAddress = url;
+        }
+    }
 }

@@ -56,7 +56,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
             {
-                var dtValue = (DateTime)(object)value;
+                var dtValue = value;
                 if (dtValue == default)
                     writer.WriteStringValue(default(DateTime));
                 else

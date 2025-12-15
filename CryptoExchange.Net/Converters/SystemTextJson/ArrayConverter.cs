@@ -21,7 +21,6 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
     public class ArrayConverter<T> : JsonConverter<T> where T : new()
 #endif
     {
-        //private static readonly Lazy<List<ArrayPropertyInfo>> _typePropertyInfo = new Lazy<List<ArrayPropertyInfo>>(CacheTypeAttributes, LazyThreadSafetyMode.PublicationOnly);
         private static SortedDictionary<int, List<ArrayPropertyInfo>>? _typePropertyInfo;
 
         /// <inheritdoc />

@@ -884,20 +884,24 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task UnsubscribeAllAsync()
         {
-            var sum = _socketConnections.Sum(s => s.Value.UserSubscriptionCount);
+            var sum = _socketConnections.Sum(s => s.Value.UserSubscriptionCount) + _highPerfSocketConnections.Sum(s => s.Value.UserSubscriptionCount);
             if (sum == 0)
                 return;
 
-            _logger.UnsubscribingAll(_socketConnections.Sum(s => s.Value.UserSubscriptionCount));
+            _logger.UnsubscribingAll(sum);
             var tasks = new List<Task>();
+            
+            var socketList = _socketConnections.Values;
+            foreach (var connection in socketList)
             {
-                var socketList = _socketConnections.Values;
-                foreach (var connection in socketList)
-                {
-                    foreach(var subscription in connection.Subscriptions.Where(x => x.UserSubscription))
-                        tasks.Add(connection.CloseAsync(subscription));
-                }
+                foreach(var subscription in connection.Subscriptions.Where(x => x.UserSubscription))
+                    tasks.Add(connection.CloseAsync(subscription));
             }
+
+            var highPerfSocketList = _highPerfSocketConnections.Values;
+            foreach (var connection in highPerfSocketList)
+                tasks.Add(connection.CloseAsync());
+            
 
             await Task.WhenAll(tasks.ToArray()).ConfigureAwait(false);
         }

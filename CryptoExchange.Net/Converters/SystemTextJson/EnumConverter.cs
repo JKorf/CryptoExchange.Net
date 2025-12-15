@@ -194,7 +194,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 foreach (var item in _mappingToEnum)
                 {
                     if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                    {
                         mapping = item;
+                        break;
+                    }
                 }
 
                 // If not found, try matching ignoring case
@@ -203,7 +206,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     foreach (var item in _mappingToEnum)
                     {
                         if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                        {
                             mapping = item;
+                            break;
+                        }
                     }
                 }
 
@@ -310,7 +316,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             foreach(var item in _mappingToEnum!)
             {
                 if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                {
                     mapping = item;
+                    break;
+                }
             }
 
             // If not found, try matching ignoring case
@@ -319,7 +328,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 foreach (var item in _mappingToEnum)
                 {
                     if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    {
                         mapping = item;
+                        break;
+                    }
                 }
             }
 

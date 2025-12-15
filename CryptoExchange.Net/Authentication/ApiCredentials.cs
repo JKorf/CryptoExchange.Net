@@ -82,7 +82,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Load a key from a file
         /// </summary>
-        public string ReadFromFile(string path)
+        public static string ReadFromFile(string path)
         {
             using var fileStream = File.OpenRead(path);
             using var streamReader = new StreamReader(fileStream);
