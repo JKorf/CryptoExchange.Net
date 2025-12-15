@@ -145,7 +145,9 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             catch (Exception e)
             {
                 if (ct.IsCancellationRequested)
+                {
                     _logger.SocketConnectingCanceled(Id);
+                }
                 else if (!_ctsSource.IsCancellationRequested)
                 {
                     // if _ctsSource was canceled this was already logged
@@ -271,10 +273,12 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             try
             {
                 if (_socket!.State == WebSocketState.CloseReceived)
-                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
-                else if (_socket.State == WebSocketState.Open)
                 {
                     await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
+                }
+                else if (_socket.State == WebSocketState.Open)
+                {
+                    await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", default).ConfigureAwait(false);
 
                     var startWait = DateTime.UtcNow;
                     while (_processing && _socket.State != WebSocketState.Closed && _socket.State != WebSocketState.Aborted)
