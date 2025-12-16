@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -35,9 +33,9 @@ namespace CryptoExchange.Net.Requests
         public string? Content { get; private set; }
 
         /// <inheritdoc />
-        public string Accept
+        public MediaTypeWithQualityHeaderValue Accept
         {
-            set => _request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(value));
+            set => _request.Headers.Accept.Add(value);
         }
 
         /// <inheritdoc />
@@ -70,9 +68,9 @@ namespace CryptoExchange.Net.Requests
         }
 
         /// <inheritdoc />
-        public KeyValuePair<string, string[]>[] GetHeaders()
+        public HttpRequestHeaders GetHeaders()
         {
-            return _request.Headers.Select(h => new KeyValuePair<string, string[]>(h.Key, h.Value.ToArray())).ToArray();
+            return _request.Headers;
         }
 
         /// <inheritdoc />

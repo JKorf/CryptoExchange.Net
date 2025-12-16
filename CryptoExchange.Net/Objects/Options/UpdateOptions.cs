@@ -1,7 +1,5 @@
 ﻿using CryptoExchange.Net.Authentication;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.Objects.Options
 {

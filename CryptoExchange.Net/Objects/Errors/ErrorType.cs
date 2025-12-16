@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Objects.Errors
+﻿namespace CryptoExchange.Net.Objects.Errors
 {
     /// <summary>
     /// Type of error

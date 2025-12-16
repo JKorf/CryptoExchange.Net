@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 
 namespace CryptoExchange.Net.Caching
 {
     internal class MemoryCache
     {
         private readonly ConcurrentDictionary<string, CacheItem> _cache = new ConcurrentDictionary<string, CacheItem>();
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new Lock();
+#else
         private readonly object _lock = new object();
+#endif
 
         /// <summary>
         /// Add a new cache entry. Will override an existing entry if it already exists

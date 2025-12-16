@@ -1,9 +1,9 @@
 ﻿using CryptoExchange.Net.SharedApis;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace CryptoExchange.Net.Objects
@@ -214,7 +214,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The headers sent with the request
         /// </summary>
-        public KeyValuePair<string, string[]>[]? RequestHeaders { get; set; }
+        public HttpRequestHeaders? RequestHeaders { get; set; }
 
         /// <summary>
         /// The request id
@@ -244,7 +244,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The response headers
         /// </summary>
-        public KeyValuePair<string, string[]>[]? ResponseHeaders { get; set; }
+        public HttpResponseHeaders? ResponseHeaders { get; set; }
 
         /// <summary>
         /// The time between sending the request and receiving the response
@@ -257,14 +257,14 @@ namespace CryptoExchange.Net.Objects
         public WebCallResult(
             HttpStatusCode? code,
             Version? httpVersion,
-            KeyValuePair<string, string[]>[]? responseHeaders,
+            HttpResponseHeaders? responseHeaders,
             TimeSpan? responseTime,
             string? originalData,
             int? requestId,
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
-            KeyValuePair<string, string[]>[]? requestHeaders,
+            HttpRequestHeaders? requestHeaders,
             Error? error) : base(error)
         {
             ResponseStatusCode = code;
@@ -370,7 +370,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The headers sent with the request
         /// </summary>
-        public KeyValuePair<string, string[]>[]? RequestHeaders { get; set; }
+        public HttpRequestHeaders? RequestHeaders { get; set; }
 
         /// <summary>
         /// The request id
@@ -400,7 +400,7 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// The response headers
         /// </summary>
-        public KeyValuePair<string, string[]>[]? ResponseHeaders { get; set; }
+        public HttpResponseHeaders? ResponseHeaders { get; set; }
 
         /// <summary>
         /// The time between sending the request and receiving the response
@@ -418,7 +418,7 @@ namespace CryptoExchange.Net.Objects
         public WebCallResult(
             HttpStatusCode? code,
             Version? httpVersion,
-            KeyValuePair<string, string[]>[]? responseHeaders,
+            HttpResponseHeaders? responseHeaders,
             TimeSpan? responseTime,
             long? responseLength,
             string? originalData,
@@ -426,7 +426,7 @@ namespace CryptoExchange.Net.Objects
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
-            KeyValuePair<string, string[]>[]? requestHeaders,
+            HttpRequestHeaders? requestHeaders,
             ResultDataSource dataSource,
             [AllowNull] T data,
             Error? error) : base(data, originalData, error)

@@ -1,10 +1,11 @@
 ﻿using CryptoExchange.Net.Attributes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -66,7 +67,25 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
          : JsonConverter<T>, INullableConverterFactory where T : struct, Enum
     {
-        private static List<KeyValuePair<T, string>>? _mapping = null;
+        class EnumMapping
+        {
+            public T Value { get; set; }
+            public string StringValue { get; set; }
+
+            public EnumMapping(T value, string stringValue)
+            {
+                Value = value;
+                StringValue = stringValue;
+            }
+        }
+
+#if NET8_0_OR_GREATER
+        private static FrozenSet<EnumMapping>? _mappingToEnum = null;
+        private static FrozenDictionary<T, string>? _mappingToString = null;
+#else
+        private static List<EnumMapping>? _mappingToEnum = null;
+        private static Dictionary<T, string>? _mappingToString = null;
+#endif
         private NullableEnumConverter? _nullableEnumConverter = null;
 
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
@@ -121,8 +140,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             isEmptyString = false;
             var enumType = typeof(T);
-            if (_mapping == null)
-                _mapping = AddMapping();
+            if (_mappingToEnum == null)
+                CreateMapping();
 
             var stringValue = reader.TokenType switch
             {
@@ -149,7 +168,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (!_unknownValuesWarned.Contains(stringValue))
                     {
                         _unknownValuesWarned.Add(stringValue!);
-                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.FullName}, Value: {stringValue}, Known values: {string.Join(", ", _mapping.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.FullName}, Value: {stringValue}, Known values: {string.Join(", ", _mappingToEnum!.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
                     }
                 }
 
@@ -168,16 +187,35 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         private static bool GetValue(Type objectType, string value, out T? result)
         {
-            if (_mapping != null)
+            if (_mappingToEnum != null)
             {
-                // Check for exact match first, then if not found fallback to a case insensitive match 
-                var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-                if (mapping.Equals(default(KeyValuePair<T, string>)))
-                    mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
-
-                if (!mapping.Equals(default(KeyValuePair<T, string>)))
+                EnumMapping? mapping = null;
+                // Try match on full equals
+                foreach (var item in _mappingToEnum)
                 {
-                    result = mapping.Key;
+                    if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                    {
+                        mapping = item;
+                        break;
+                    }
+                }
+
+                // If not found, try matching ignoring case
+                if (mapping == null)
+                {
+                    foreach (var item in _mappingToEnum)
+                    {
+                        if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            mapping = item;
+                            break;
+                        }
+                    }
+                }
+
+                if (mapping != null)
+                {
+                    result = mapping.Value;
                     return true;
                 }
             }
@@ -217,9 +255,11 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             }
         }
 
-        private static List<KeyValuePair<T, string>> AddMapping()
+        private static void CreateMapping()
         {
-            var mapping = new List<KeyValuePair<T, string>>();
+            var mappingToEnum = new List<EnumMapping>();
+            var mappingToString = new Dictionary<T, string>();
+
             var enumType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
             var enumMembers = enumType.GetFields();
             foreach (var member in enumMembers)
@@ -228,12 +268,22 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 foreach (MapAttribute attribute in maps)
                 {
                     foreach (var value in attribute.Values)
-                        mapping.Add(new KeyValuePair<T, string>((T)Enum.Parse(enumType, member.Name), value));
+                    {
+                        var enumVal = (T)Enum.Parse(enumType, member.Name);
+                        mappingToEnum.Add(new EnumMapping(enumVal, value));
+                        if (!mappingToString.ContainsKey(enumVal))
+                            mappingToString.Add(enumVal, value);
+                    }
                 }
             }
 
-            _mapping = mapping;
-            return mapping;
+#if NET8_0_OR_GREATER
+            _mappingToEnum = mappingToEnum.ToFrozenSet();
+            _mappingToString = mappingToString.ToFrozenDictionary();
+#else
+            _mappingToEnum = mappingToEnum;
+            _mappingToString = mappingToString;
+#endif
         }
 
         /// <summary>
@@ -244,10 +294,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         [return: NotNullIfNotNull("enumValue")]
         public static string? GetString(T? enumValue)
         {
-            if (_mapping == null)
-                _mapping = AddMapping();
+            if (_mappingToString == null)
+                CreateMapping();
 
-            return enumValue == null ? null : (_mapping.FirstOrDefault(v => v.Key.Equals(enumValue)).Value ?? enumValue.ToString());
+            return enumValue == null ? null : (_mappingToString!.TryGetValue(enumValue.Value, out var str) ? str : enumValue.ToString());
         }
 
         /// <summary>
@@ -258,15 +308,35 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public static T? ParseString(string value)
         {
             var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-            if (_mapping == null)
-                _mapping = AddMapping();
+            if (_mappingToEnum == null)
+                CreateMapping();
 
-            var mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCulture));
-            if (mapping.Equals(default(KeyValuePair<T, string>)))
-                mapping = _mapping.FirstOrDefault(kv => kv.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            EnumMapping? mapping = null;
+            // Try match on full equals
+            foreach(var item in _mappingToEnum!)
+            {
+                if (item.StringValue.Equals(value, StringComparison.Ordinal))
+                {
+                    mapping = item;
+                    break;
+                }
+            }
 
-            if (!mapping.Equals(default(KeyValuePair<T, string>)))
-                return mapping.Key;
+            // If not found, try matching ignoring case
+            if (mapping == null)
+            {
+                foreach (var item in _mappingToEnum)
+                {
+                    if (item.StringValue.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        mapping = item;
+                        break;
+                    }
+                }
+            }
+
+            if (mapping != null)
+                return mapping.Value;
 
             try
             {

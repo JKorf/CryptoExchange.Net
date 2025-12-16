@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis

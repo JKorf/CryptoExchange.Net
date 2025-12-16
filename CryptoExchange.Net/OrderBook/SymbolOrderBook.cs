@@ -22,7 +22,11 @@ namespace CryptoExchange.Net.OrderBook
     /// </summary>
     public abstract class SymbolOrderBook : ISymbolOrderBook, IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _bookLock = new Lock();
+#else
         private readonly object _bookLock = new object();
+#endif
 
         private OrderBookStatus _status;
         private UpdateSubscription? _subscription;
@@ -473,15 +477,13 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         protected void CheckProcessBuffer()
         {
-            var pbList = _processBuffer.ToList();
-            if (pbList.Count > 0)
-                _logger.OrderBookProcessingBufferedUpdates(Api, Symbol, pbList.Count);
+            if (_processBuffer.Count > 0)
+                _logger.OrderBookProcessingBufferedUpdates(Api, Symbol, _processBuffer.Count);
 
-            foreach (var bufferEntry in pbList)
-            {
+            foreach (var bufferEntry in _processBuffer)
                 ProcessRangeUpdates(bufferEntry.FirstUpdateId, bufferEntry.LastUpdateId, bufferEntry.Bids, bufferEntry.Asks);
-                _processBuffer.Remove(bufferEntry);
-            }
+
+            _processBuffer.Clear();
         }
 
         /// <summary>
@@ -727,7 +729,9 @@ namespace CryptoExchange.Net.OrderBook
                         LastUpdateId = item.EndUpdateId,
                     });
 
-                    _logger.OrderBookUpdateBuffered(Api, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Count(), item.Bids.Count());
+
+                    if (_logger.IsEnabled(LogLevel.Trace))
+                        _logger.OrderBookUpdateBuffered(Api, Symbol, item.StartUpdateId, item.EndUpdateId, item.Asks.Length, item.Bids.Length);
                 }
                 else
                 {
@@ -840,7 +844,8 @@ namespace CryptoExchange.Net.OrderBook
 
             LastSequenceNumber = lastUpdateId;
 
-            _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId, lastUpdateId);
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId, lastUpdateId);
         }        
     }
 

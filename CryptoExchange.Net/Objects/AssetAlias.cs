@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CryptoExchange.Net.Objects
+﻿namespace CryptoExchange.Net.Objects
 {
     /// <summary>
     /// An alias used by the exchange for an asset commonly known by another name

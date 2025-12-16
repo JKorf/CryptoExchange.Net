@@ -1,11 +1,8 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Sockets
 {
@@ -45,15 +42,23 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create<T>(string value)
+        public static MessageMatcher Create(string value)
         {
-            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, msg) => new CallResult<T>(default, msg.OriginalData, null)));
+            return new MessageMatcher(new MessageHandlerLink<string>(MessageLinkType.Full, value, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null)));
         }
 
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create<T>(string value, Func<SocketConnection, DataEvent<T>, CallResult> handler)
+        public static MessageMatcher Create<T>(string value)
+        {
+            return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null)));
+        }
+
+        /// <summary>
+        /// Create message matcher
+        /// </summary>
+        public static MessageMatcher Create<T>(string value, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
         {
             return new MessageMatcher(new MessageHandlerLink<T>(MessageLinkType.Full, value, handler));
         }
@@ -61,7 +66,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create<T>(IEnumerable<string> values, Func<SocketConnection, DataEvent<T>, CallResult> handler)
+        public static MessageMatcher Create<T>(IEnumerable<string> values, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
         {
             return new MessageMatcher(values.Select(x => new MessageHandlerLink<T>(MessageLinkType.Full, x, handler)).ToArray());
         }
@@ -69,7 +74,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Create message matcher
         /// </summary>
-        public static MessageMatcher Create<T>(MessageLinkType type, string value, Func<SocketConnection, DataEvent<T>, CallResult> handler)
+        public static MessageMatcher Create<T>(MessageLinkType type, string value, Func<SocketConnection, DateTime, string?, T, CallResult> handler)
         {
             return new MessageMatcher(new MessageHandlerLink<T>(type, value, handler));
         }
@@ -90,7 +95,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Get any handler links matching with the listen id
         /// </summary>
-        public List<MessageHandlerLink> GetHandlerLinks(string listenId) => HandlerLinks.Where(x => x.Check(listenId)).ToList();
+        public IEnumerable<MessageHandlerLink> GetHandlerLinks(string listenId) => HandlerLinks.Where(x => x.Check(listenId));
 
         /// <inheritdoc />
         public override string ToString() => string.Join(",", HandlerLinks.Select(x => x.ToString()));
@@ -112,7 +117,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Deserialization type
         /// </summary>
-        public abstract Type GetDeserializationType(IMessageAccessor accessor);
+        public abstract Type DeserializationType { get; }
 
         /// <summary>
         /// ctor
@@ -137,7 +142,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Message handler
         /// </summary>
-        public abstract CallResult Handle(SocketConnection connection, DataEvent<object> message);
+        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data);
 
         /// <inheritdoc />
         public override string ToString() => $"{Type} match for \"{Value}\"";
@@ -148,15 +153,15 @@ namespace CryptoExchange.Net.Sockets
     /// </summary>
     public class MessageHandlerLink<TServer>: MessageHandlerLink
     {
-        private Func<SocketConnection, DataEvent<TServer>, CallResult> _handler;
+        private Func<SocketConnection, DateTime, string?, TServer, CallResult> _handler;
 
         /// <inheritdoc />
-        public override Type GetDeserializationType(IMessageAccessor accessor) => typeof(TServer);
+        public override Type DeserializationType => typeof(TServer);
 
         /// <summary>
         /// ctor
         /// </summary>
-        public MessageHandlerLink(string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
+        public MessageHandlerLink(string value, Func<SocketConnection, DateTime, string?, TServer, CallResult> handler)
             : this(MessageLinkType.Full, value, handler)
         {
         }
@@ -164,7 +169,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// ctor
         /// </summary>
-        public MessageHandlerLink(MessageLinkType type, string value, Func<SocketConnection, DataEvent<TServer>, CallResult> handler)
+        public MessageHandlerLink(MessageLinkType type, string value, Func<SocketConnection, DateTime, string?, TServer, CallResult> handler)
             : base(type, value)
         {
             _handler = handler;
@@ -172,9 +177,9 @@ namespace CryptoExchange.Net.Sockets
 
 
         /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DataEvent<object> message)
+        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data)
         {
-            return _handler(connection, message.As((TServer)message.Data));
+            return _handler(connection, receiveTime, originalData, (TServer)data);
         }
     }
 }

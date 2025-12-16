@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;

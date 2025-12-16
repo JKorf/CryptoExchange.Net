@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// The response headers
         /// </summary>
-        KeyValuePair<string, string[]>[] ResponseHeaders { get; }
+        HttpResponseHeaders ResponseHeaders { get; }
 
         /// <summary>
         /// Get the response stream

@@ -4,9 +4,7 @@ using System.Text.Json;
 using NUnit.Framework;
 using System;
 using System.Text.Json.Serialization;
-using NUnit.Framework.Legacy;
 using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.Testing.Comparers;
 using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net.UnitTests

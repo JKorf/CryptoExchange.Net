@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using NUnit.Framework.Legacy;
 using CryptoExchange.Net.RateLimiting;
-using System.Net;
 using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Interfaces;

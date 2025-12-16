@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
@@ -27,64 +26,77 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            return typeToConvert == typeof(DateTime) ? new DateTimeConverterInner<DateTime>() : new DateTimeConverterInner<DateTime?>();
+            return typeToConvert == typeof(DateTime) ? new DateTimeConverterInner() : new NullableDateTimeConverterInner();
         }
 
-        private class DateTimeConverterInner<T> : JsonConverter<T>
+        private class NullableDateTimeConverterInner : JsonConverter<DateTime?>
         {
-            public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-                => (T)((object?)ReadDateTime(ref reader, typeToConvert, options) ?? default(T))!;
+            public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => ReadDateTime(ref reader, typeToConvert, options);
 
-            private DateTime? ReadDateTime(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            {
-                if (reader.TokenType == JsonTokenType.Null)
-                {
-                    if (typeToConvert == typeof(DateTime))
-                        LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
-                    return default;
-                }
-
-                if (reader.TokenType is JsonTokenType.Number)
-                {
-                    var decValue = reader.GetDecimal();
-                    if (decValue == 0 || decValue < 0)
-                        return default;
-
-                    return ParseFromDecimal(decValue);
-                }
-                else if (reader.TokenType is JsonTokenType.String)
-                {
-                    var stringValue = reader.GetString();
-                    if (string.IsNullOrWhiteSpace(stringValue)
-                        || stringValue == "-1"
-                        || stringValue == "0001-01-01T00:00:00Z"
-                        || decimal.TryParse(stringValue, out var decVal) && decVal == 0)
-                    {
-                        return default;
-                    }
-
-                    return ParseFromString(stringValue!, options.TypeInfoResolver?.GetType()?.Name);
-                }
-                else
-                {
-                    return reader.GetDateTime();
-                }
-            }
-
-            public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+            public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
             {
                 if (value == null)
                 {
                     writer.WriteNullValue();
+                    return;
                 }
+
+                if (value.Value == default)
+                    writer.WriteStringValue(default(DateTime));
                 else
+                    writer.WriteNumberValue((long)Math.Round((value.Value - new DateTime(1970, 1, 1)).TotalMilliseconds));
+            }
+        }
+
+        private class DateTimeConverterInner : JsonConverter<DateTime>
+        {
+            public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => ReadDateTime(ref reader, typeToConvert, options) ?? default;            
+
+            public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+            {
+                var dtValue = value;
+                if (dtValue == default)
+                    writer.WriteStringValue(default(DateTime));
+                else
+                    writer.WriteNumberValue((long)Math.Round((dtValue - new DateTime(1970, 1, 1)).TotalMilliseconds));
+            }
+        }
+
+        private static DateTime? ReadDateTime(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                if (typeToConvert == typeof(DateTime))
+                    LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
+                return default;
+            }
+
+            if (reader.TokenType is JsonTokenType.Number)
+            {
+                var decValue = reader.GetDecimal();
+                if (decValue == 0 || decValue < 0)
+                    return default;
+
+                return ParseFromDecimal(decValue);
+            }
+            else if (reader.TokenType is JsonTokenType.String)
+            {
+                var stringValue = reader.GetString();
+                if (string.IsNullOrWhiteSpace(stringValue)
+                    || stringValue!.Equals("-1", StringComparison.Ordinal)
+                    || stringValue!.Equals("0001-01-01T00:00:00Z", StringComparison.OrdinalIgnoreCase)
+                    || decimal.TryParse(stringValue, out var decVal) && decVal == 0)
                 {
-                    var dtValue = (DateTime)(object)value;
-                    if (dtValue == default)
-                        writer.WriteStringValue(default(DateTime));
-                    else
-                        writer.WriteNumberValue((long)Math.Round((dtValue - new DateTime(1970, 1, 1)).TotalMilliseconds));
+                    return default;
                 }
+
+                return ParseFromString(stringValue!, options.TypeInfoResolver?.GetType()?.Name);
+            }
+            else
+            {
+                return reader.GetDateTime();
             }
         }
 
@@ -114,7 +126,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// </summary>
         public static DateTime ParseFromString(string stringValue, string? resolverName)
         {
-            if (stringValue!.Length == 12 && stringValue.StartsWith("202"))
+            if (stringValue!.Length == 12 && stringValue.StartsWith("202", StringComparison.OrdinalIgnoreCase))
             {
                 // Parse 202303261200 format
                 if (!int.TryParse(stringValue.Substring(0, 4), out var year)

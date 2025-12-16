@@ -14,6 +14,11 @@ namespace CryptoExchange.Net.Objects
     {
         private static readonly Task<bool> _completed = Task.FromResult(true);
         private Queue<TaskCompletionSource<bool>> _waits = new Queue<TaskCompletionSource<bool>>();
+#if NET9_0_OR_GREATER
+        private readonly Lock _waitsLock = new Lock();
+#else
+        private readonly object _waitsLock = new object();
+#endif
         private bool _signaled;
         private readonly bool _reset;
 
@@ -38,7 +43,7 @@ namespace CryptoExchange.Net.Objects
             try
             {
                 Task<bool> waiter = _completed;
-                lock (_waits)
+                lock (_waitsLock)
                 {
                     if (_signaled)
                     {
@@ -57,7 +62,7 @@ namespace CryptoExchange.Net.Objects
 
                         registration = ct.Register(() =>
                         {
-                            lock (_waits)
+                            lock (_waitsLock)
                             {
                                 tcs.TrySetResult(false);
 
@@ -85,7 +90,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public void Set()
         {
-            lock (_waits)
+            lock (_waitsLock)
             {
                 if (!_reset)
                 {
@@ -106,7 +111,9 @@ namespace CryptoExchange.Net.Objects
                         toRelease.TrySetResult(true);
                     }
                     else if (!_signaled)
+                    {
                         _signaled = true;
+                    }
                 }
             }
         }

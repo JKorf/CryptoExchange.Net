@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Accept header
         /// </summary>
-        string Accept { set; }
+        MediaTypeWithQualityHeaderValue Accept { set; }
         /// <summary>
         /// Content
         /// </summary>
@@ -58,7 +58,7 @@ namespace CryptoExchange.Net.Interfaces
         /// Get all headers
         /// </summary>
         /// <returns></returns>
-        KeyValuePair<string, string[]>[] GetHeaders();
+        HttpRequestHeaders GetHeaders();
 
         /// <summary>
         /// Get the response

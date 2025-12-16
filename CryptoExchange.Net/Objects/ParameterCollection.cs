@@ -13,6 +13,15 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ParameterCollection : Dictionary<string, object>
     {
+        /// <inheritdoc />
+        public new void Add(string key, object value)
+        {
+            if (value == null)
+                throw new ArgumentNullException(key);
+
+            base.Add(key, value);
+        }
+
         /// <summary>
         /// Add an optional parameter. Not added if value is null
         /// </summary>
@@ -21,7 +30,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptional(string key, object? value)
         {
             if (value != null)
-                Add(key, value);
+                base.Add(key, value);
         }
 
         /// <summary>
@@ -31,7 +40,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddString(string key, decimal value)
         {
-            Add(key, value.ToString(CultureInfo.InvariantCulture));
+            base.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -42,7 +51,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalString(string key, decimal? value)
         {
             if (value != null)
-                Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
+                base.Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -52,7 +61,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddString(string key, int value)
         {
-            Add(key, value.ToString(CultureInfo.InvariantCulture));
+            base.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -63,7 +72,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalString(string key, int? value)
         {
             if (value != null)
-                Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
+                base.Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -73,7 +82,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddString(string key, long value)
         {
-            Add(key, value.ToString(CultureInfo.InvariantCulture));
+            base.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -84,7 +93,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalString(string key, long? value)
         {
             if (value != null)
-                Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
+                base.Add(key, value.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -94,7 +103,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddMilliseconds(string key, DateTime value)
         {
-            Add(key, DateTimeConverter.ConvertToMilliseconds(value));
+            base.Add(key, DateTimeConverter.ConvertToMilliseconds(value));
         }
 
         /// <summary>
@@ -105,7 +114,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalMilliseconds(string key, DateTime? value)
         {
             if (value != null)
-                Add(key, DateTimeConverter.ConvertToMilliseconds(value));
+                base.Add(key, DateTimeConverter.ConvertToMilliseconds(value));
         }
 
         /// <summary>
@@ -115,7 +124,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddMillisecondsString(string key, DateTime value)
         {
-            Add(key, DateTimeConverter.ConvertToMilliseconds(value).Value.ToString(CultureInfo.InvariantCulture));
+            base.Add(key, DateTimeConverter.ConvertToMilliseconds(value).Value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -126,7 +135,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalMillisecondsString(string key, DateTime? value)
         {
             if (value != null)
-                Add(key, DateTimeConverter.ConvertToMilliseconds(value).Value.ToString(CultureInfo.InvariantCulture));
+                base.Add(key, DateTimeConverter.ConvertToMilliseconds(value).Value.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
@@ -136,7 +145,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddSeconds(string key, DateTime value)
         {
-            Add(key, DateTimeConverter.ConvertToSeconds(value));
+            base.Add(key, DateTimeConverter.ConvertToSeconds(value));
         }
 
         /// <summary>
@@ -147,7 +156,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalSeconds(string key, DateTime? value)
         {
             if (value != null)
-                Add(key, DateTimeConverter.ConvertToSeconds(value));
+                base.Add(key, DateTimeConverter.ConvertToSeconds(value));
         }
 
         /// <summary>
@@ -157,7 +166,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value"></param>
         public void AddSecondsString(string key, DateTime value)
         {
-            Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
+            base.Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
         }
 
         /// <summary>
@@ -168,7 +177,7 @@ namespace CryptoExchange.Net.Objects
         public void AddOptionalSecondsString(string key, DateTime? value)
         {
             if (value != null)
-                Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
+                base.Add(key, DateTimeConverter.ConvertToSeconds(value).ToString()!);
         }
 
         /// <summary>
@@ -181,7 +190,7 @@ namespace CryptoExchange.Net.Objects
 #endif
             where T : struct, Enum
         {
-            Add(key, EnumConverter<T>.GetString(value)!);
+            base.Add(key, EnumConverter<T>.GetString(value)!);
         }
 
         /// <summary>
@@ -197,7 +206,7 @@ namespace CryptoExchange.Net.Objects
             where T : struct, Enum
         {
             var stringVal = EnumConverter<T>.GetString(value)!;
-            Add(key, int.Parse(stringVal)!);
+            base.Add(key, int.Parse(stringVal)!);
         }
 
         /// <summary>
@@ -213,7 +222,7 @@ namespace CryptoExchange.Net.Objects
             where T : struct, Enum
         {
             if (value != null)
-                Add(key, EnumConverter<T>.GetString(value));
+                base.Add(key, EnumConverter<T>.GetString(value));
         }
 
         /// <summary>
@@ -229,7 +238,7 @@ namespace CryptoExchange.Net.Objects
             if (value != null)
             {
                 var stringVal = EnumConverter<T>.GetString(value);
-                Add(key, int.Parse(stringVal));
+                base.Add(key, int.Parse(stringVal));
             }
         }
 
@@ -243,7 +252,7 @@ namespace CryptoExchange.Net.Objects
             if (this.Any())
                 throw new InvalidOperationException("Can't set body when other parameters already specified");
 
-            Add(Constants.BodyPlaceHolderKey, body);
+            base.Add(Constants.BodyPlaceHolderKey, body);
         }
     }
 }

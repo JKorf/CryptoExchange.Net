@@ -13,12 +13,13 @@ using CryptoExchange.Net.Authentication;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using System.Text.Json.Serialization;
-using CryptoExchange.Net.Objects.Errors;
+using System.Net.Http.Headers;
+using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
@@ -51,13 +52,13 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             response.Setup(c => c.IsSuccessStatusCode).Returns(true);
             response.Setup(c => c.GetResponseStreamAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult((Stream)responseStream));
             
-            var headers = new Dictionary<string, string[]>();
+            var headers = new HttpRequestMessage().Headers;
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
             request.Setup(c => c.SetContent(It.IsAny<string>(), It.IsAny<string>())).Callback(new Action<string, string>((content, type) => { request.Setup(r => r.Content).Returns(content); }));
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new string[] { val }));
-            request.Setup(c => c.GetHeaders()).Returns(() => headers.ToArray());
+            request.Setup(c => c.GetHeaders()).Returns(() => headers);
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
@@ -86,7 +87,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
            
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
-            request.Setup(c => c.GetHeaders()).Returns(new KeyValuePair<string, string[]>[0]);
+            request.Setup(c => c.GetHeaders()).Returns(new HttpRequestMessage().Headers);
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Throws(we);
 
             var factory = Mock.Get(Api1.RequestFactory);
@@ -115,7 +116,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(new KeyValuePair<string, string[]>(key, new string[] { val })));
-            request.Setup(c => c.GetHeaders()).Returns(headers.ToArray());
+            request.Setup(c => c.GetHeaders()).Returns(new HttpRequestMessage().Headers);
 
             var factory = Mock.Get(Api1.RequestFactory);
             factory.Setup(c => c.Create(It.IsAny<Version>(), It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<int>()))
@@ -131,6 +132,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestRestApi1Client : RestApiClient
     {
+        protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
+
         public TestRestApi1Client(TestClientOptions options) : base(new TraceLogger(), null, "https://localhost:123", options, options.Api1Options)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
@@ -178,6 +181,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
 
     public class TestRestApi2Client : RestApiClient
     {
+        protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
+
         public TestRestApi2Client(TestClientOptions options) : base(new TraceLogger(), null, "https://localhost:123", options, options.Api2Options)
         {
             RequestFactory = new Mock<IRequestFactory>().Object;
@@ -192,13 +197,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
         {
             return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
-        }
-
-        protected override Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception exception)
-        {
-            var errorData = accessor.Deserialize<TestError>();
-
-            return new ServerError(errorData.Data.ErrorCode, GetErrorInfo(errorData.Data.ErrorCode, errorData.Data.ErrorMessage));
         }
 
         public override TimeSpan? GetTimeOffset()

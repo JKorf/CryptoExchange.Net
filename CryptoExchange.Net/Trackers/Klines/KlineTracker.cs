@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.Klines
@@ -31,7 +31,11 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// <summary>
         /// Lock for accessing _data
         /// </summary>
-        protected readonly object _lock = new object();
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new Lock();
+#else
+        private readonly object _lock = new object();
+#endif
         /// <summary>
         /// The last time the window was applied
         /// </summary>

@@ -1,7 +1,5 @@
 ﻿using CryptoExchange.Net.Converters.SystemTextJson;
-using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.SharedApis

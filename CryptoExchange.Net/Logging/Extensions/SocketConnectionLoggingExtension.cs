@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.WebSockets;
+using CryptoExchange.Net.Sockets.Default;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoExchange.Net.Logging.Extensions
@@ -8,7 +9,7 @@ namespace CryptoExchange.Net.Logging.Extensions
     public static class SocketConnectionLoggingExtension
     {
         private static readonly Action<ILogger, int, bool, Exception?> _activityPaused;
-        private static readonly Action<ILogger, int, Sockets.SocketConnection.SocketStatus, Sockets.SocketConnection.SocketStatus, Exception?> _socketStatusChanged;
+        private static readonly Action<ILogger, int, SocketStatus, SocketStatus, Exception?> _socketStatusChanged;
         private static readonly Action<ILogger, int, string?, Exception?> _failedReconnectProcessing;
         private static readonly Action<ILogger, int, Exception?> _unknownExceptionWhileProcessingReconnection;
         private static readonly Action<ILogger, int, WebSocketError, string?, Exception?> _webSocketErrorCodeAndDetails;
@@ -46,7 +47,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(2000, "ActivityPaused"),
                 "[Sckt {SocketId}] paused activity: {Paused}");
 
-            _socketStatusChanged = LoggerMessage.Define<int, Sockets.SocketConnection.SocketStatus, Sockets.SocketConnection.SocketStatus>(
+            _socketStatusChanged = LoggerMessage.Define<int, SocketStatus, SocketStatus>(
                 LogLevel.Debug,
                 new EventId(2001, "SocketStatusChanged"),
                 "[Sckt {SocketId}] status changed from {OldStatus} to {NewStatus}");
@@ -203,7 +204,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _activityPaused(logger, socketId, paused, null);
         }
 
-        public static void SocketStatusChanged(this ILogger logger, int socketId, Sockets.SocketConnection.SocketStatus oldStatus, Sockets.SocketConnection.SocketStatus newStatus)
+        public static void SocketStatusChanged(this ILogger logger, int socketId, SocketStatus oldStatus, SocketStatus newStatus)
         {
             _socketStatusChanged(logger, socketId, oldStatus, newStatus, null);
         }

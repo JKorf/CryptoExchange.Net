@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 
 namespace CryptoExchange.Net
 {
@@ -69,7 +68,7 @@ namespace CryptoExchange.Net
         {
             var reservedLength = brokerId.Length + ClientOrderIdSeparator.Length;
 
-            if ((clientOrderId?.Length + reservedLength) > maxLength)
+            if (clientOrderId?.Length + reservedLength > maxLength)
                 return clientOrderId!;
 
             if (!string.IsNullOrEmpty(clientOrderId))

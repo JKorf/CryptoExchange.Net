@@ -4,11 +4,8 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -115,7 +112,7 @@ namespace CryptoExchange.Net.UnitTests
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
                 HttpVersion.Version11,
-                new KeyValuePair<string, string[]>[0],
+                new HttpResponseMessage().Headers,
                 TimeSpan.FromSeconds(1),
                 null,
                 "{}",
@@ -123,7 +120,7 @@ namespace CryptoExchange.Net.UnitTests
                 "https://test.com/api",
                 null,
                 HttpMethod.Get,
-                new KeyValuePair<string, string[]>[0],
+                new HttpRequestMessage().Headers,
                 ResultDataSource.Server,
                 new TestObjectResult(),
                 null);
@@ -146,7 +143,7 @@ namespace CryptoExchange.Net.UnitTests
             var result = new WebCallResult<TestObjectResult>(
                 System.Net.HttpStatusCode.OK,
                 HttpVersion.Version11,
-                new KeyValuePair<string, string[]>[0],
+                new HttpResponseMessage().Headers,
                 TimeSpan.FromSeconds(1),
                 null,
                 "{}",
@@ -154,7 +151,7 @@ namespace CryptoExchange.Net.UnitTests
                 "https://test.com/api",
                 null,
                 HttpMethod.Get,
-                new KeyValuePair<string, string[]>[0],
+                new HttpRequestMessage().Headers,
                 ResultDataSource.Server,
                 new TestObjectResult(),
                 null);

@@ -1,9 +1,8 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,14 +60,14 @@ namespace CryptoExchange.Net.Sockets
         public object? Response { get; set; }
 
         /// <summary>
-        /// Wait event for the calling message processing thread
-        /// </summary>
-        public AsyncResetEvent? ContinueAwaiter { get; set; }
-
-        /// <summary>
         /// Matcher for this query
         /// </summary>
-        public MessageMatcher MessageMatcher { get; set; } = null!;
+        public MessageMatcher MessageMatcher { get; set; }
+
+        /// <summary>
+        /// Router for this query
+        /// </summary>
+        public MessageRouter MessageRouter { get; set; }
 
         /// <summary>
         /// The query request object
@@ -101,12 +100,16 @@ namespace CryptoExchange.Net.Sockets
         protected CancellationTokenSource? _cts;
 
         /// <summary>
+        /// On complete callback
+        /// </summary>
+        public Action? OnComplete { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="authenticated"></param>
-        /// <param name="weight"></param>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Query(object request, bool authenticated, int weight = 1)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             _event = new AsyncResetEvent(false, false);
 
@@ -160,7 +163,12 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check);
+        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check);
+
+        /// <summary>
+        /// Handle a response message
+        /// </summary>
+        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route);
 
     }
 
@@ -181,30 +189,59 @@ namespace CryptoExchange.Net.Sockets
         /// <param name="request"></param>
         /// <param name="authenticated"></param>
         /// <param name="weight"></param>
-        protected Query(object request, bool authenticated, int weight = 1) : base(request, authenticated, weight)
+        protected Query(
+            object request,
+            bool authenticated,
+            int weight = 1)
+            : base(request, authenticated, weight)
         {
         }
 
         /// <inheritdoc />
-        public override async Task<CallResult> Handle(SocketConnection connection, DataEvent<object> message, MessageHandlerLink check)
+        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route)
+        {
+            CurrentResponses++;
+            if (CurrentResponses == RequiredResponses)
+                Response = message;
+
+            if (Result?.Success != false)
+            {
+                // If an error result is already set don't override that
+                Result = route.Handle(connection, receiveTime, originalData, message);
+                if (Result == null)
+                    // Null from Handle means it wasn't actually for this query
+                    CurrentResponses -= 1;
+            }
+
+            if (CurrentResponses == RequiredResponses)
+            {
+                Completed = true;
+                _event.Set();
+                OnComplete?.Invoke();
+            }
+
+            return Result ?? CallResult.SuccessResult;
+        }
+
+        /// <inheritdoc />
+        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check)
         {
             if (!PreCheckMessage(connection, message))
                 return CallResult.SuccessResult;
 
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)            
-                Response = message.Data;
+                Response = message;
 
             if (Result?.Success != false)
                 // If an error result is already set don't override that
-                Result = check.Handle(connection, message);
+                Result = check.Handle(connection, receiveTime, originalData, message);
 
             if (CurrentResponses == RequiredResponses)
             {
                 Completed = true;
                 _event.Set();
-                if (ContinueAwaiter != null)
-                    await ContinueAwaiter.WaitAsync().ConfigureAwait(false);
+                OnComplete?.Invoke();
             }
 
             return Result;
@@ -213,7 +250,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Validate if a message is actually processable by this query
         /// </summary>
-        public virtual bool PreCheckMessage(SocketConnection connection, DataEvent<object> message) => true;
+        public virtual bool PreCheckMessage(SocketConnection connection, object message) => true;
 
         /// <inheritdoc />
         public override void Timeout()
@@ -227,17 +264,20 @@ namespace CryptoExchange.Net.Sockets
             else
                 Result = new CallResult<THandlerResponse>(default, null, default);
 
-            ContinueAwaiter?.Set();
             _event.Set();
+            OnComplete?.Invoke();
         }
 
         /// <inheritdoc />
         public override void Fail(Error error)
         {
+            if (Completed)
+                return;
+
             Result = new CallResult<THandlerResponse>(error);
             Completed = true;
-            ContinueAwaiter?.Set();
             _event.Set();
+            OnComplete?.Invoke();
         }
     }
 }

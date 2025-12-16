@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-using System;
+﻿using System;
 
 namespace CryptoExchange.Net.SharedApis
 {

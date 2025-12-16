@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace CryptoExchange.Net.Interfaces
+﻿namespace CryptoExchange.Net.Interfaces
 {
     /// <summary>
     /// Serializer interface

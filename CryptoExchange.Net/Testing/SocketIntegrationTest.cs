@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using Microsoft.Extensions.Logging;
 using System;
@@ -19,9 +18,7 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get a client instance
         /// </summary>
-        /// <param name="loggerFactory"></param>
-        /// <returns></returns>
-        public abstract TClient GetClient(ILoggerFactory loggerFactory);
+        public abstract TClient GetClient(ILoggerFactory loggerFactory, bool newDeserialization);
 
         /// <summary>
         /// Whether the test should be run. By default integration tests aren't executed, can be set to true to force execution.
@@ -37,11 +34,11 @@ namespace CryptoExchange.Net.Testing
         /// Create a client
         /// </summary>
         /// <returns></returns>
-        protected TClient CreateClient()
+        protected TClient CreateClient(bool useNewDeserialization)
         {
             var fact = new LoggerFactory();
             fact.AddProvider(new TraceLoggerProvider());
-            return GetClient(fact);
+            return GetClient(fact, useNewDeserialization);
         }
 
         /// <summary>
@@ -61,15 +58,16 @@ namespace CryptoExchange.Net.Testing
         /// Execute a REST endpoint call and check for any errors or warnings.
         /// </summary>
         /// <typeparam name="T">Type of the update</typeparam>
+        /// <param name="useNewDeserialization">Whether to use the new deserialization method</param>
         /// <param name="expression">The call expression</param>
         /// <param name="expectUpdate">Whether an update is expected</param>
         /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckUpdate<T>(Expression<Func<TClient, Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
+        public async Task RunAndCheckUpdate<T>(bool useNewDeserialization, Expression<Func<TClient, Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
         {
             if (!ShouldRun())
                 return;
 
-            var client = CreateClient();
+            var client = CreateClient(useNewDeserialization);
 
             var expressionBody = (MethodCallExpression)expression.Body;
             if (authRequest && !Authenticated)

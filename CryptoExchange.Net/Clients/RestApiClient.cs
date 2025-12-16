@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using CryptoExchange.Net.Caching;
+using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Errors;
@@ -17,6 +10,17 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.Requests;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -90,6 +94,11 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         private readonly static MemoryCache _cache = new MemoryCache();
 
+        /// <summary>
+        /// The message handler
+        /// </summary>
+        protected abstract IRestMessageHandler MessageHandler { get; }
+        
         /// <summary>
         /// ctor
         /// </summary>
@@ -204,6 +213,13 @@ namespace CryptoExchange.Net.Clients
             int? weightSingleLimiter = null,
             string? rateLimitKeySuffix = null)
         {
+            var requestId = ExchangeHelpers.NextId();
+            if (definition.Authenticated && AuthenticationProvider == null)
+            {
+                _logger.RestApiNoApiCredentials(requestId, definition.Path);
+                return new WebCallResult<T>(new NoApiCredentialsError());
+            }
+
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
@@ -224,11 +240,21 @@ namespace CryptoExchange.Net.Clients
             while (true)
             {
                 currentTry++;
-                var requestId = ExchangeHelpers.NextId();
 
-                var prepareResult = await PrepareAsync(requestId, baseAddress, definition, cancellationToken, additionalHeaders, weight, weightSingleLimiter, rateLimitKeySuffix).ConfigureAwait(false);
-                if (!prepareResult)
-                    return new WebCallResult<T>(prepareResult.Error!);
+                var error = await CheckTimeSync(requestId, definition).ConfigureAwait(false);
+                if (error != null)
+                    return new WebCallResult<T>(error);
+
+                error = await RateLimitAsync(
+                    baseAddress,
+                    requestId,
+                    definition,
+                    weight ?? definition.Weight,
+                    cancellationToken,
+                    weightSingleLimiter,
+                    rateLimitKeySuffix).ConfigureAwait(false);
+                if (error != null)
+                    return new WebCallResult<T>(error);
 
                 var request = CreateRequest(
                     requestId,
@@ -237,16 +263,24 @@ namespace CryptoExchange.Net.Clients
                     uriParameters,
                     bodyParameters,
                     additionalHeaders);
-                _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
+
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.RestApiSendRequest(request.RequestId, definition, request.Content, string.IsNullOrEmpty(request.Uri.Query) ? "-" : request.Uri.Query, string.Join(", ", request.GetHeaders().Select(h => h.Key + $"=[{string.Join(",", h.Value)}]")));
                 TotalRequestsMade++;
-                var result = await GetResponseAsync<T>(definition, request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
+
+                var result = await GetResponseAsync2<T>(definition, request, definition.RateLimitGate, cancellationToken).ConfigureAwait(false);
                 if (result.Error is not CancellationRequestedError)
                 {
                     var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
                     if (!result)
+                    {
                         _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), originalData, result.Error?.Exception);
+                    }
                     else
-                        _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
+                    {
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                            _logger.RestApiResponseReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), originalData);
+                    }
                 }
                 else
                 {
@@ -266,55 +300,42 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
+        private async ValueTask<Error?> CheckTimeSync(int requestId, RequestDefinition definition)
+        {
+            if (!definition.Authenticated)
+                return null;
+
+            var syncTask = SyncTimeAsync();
+            var timeSyncInfo = GetTimeSyncInfo();
+
+            if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
+            {
+                // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
+                var syncTimeError = await syncTask.ConfigureAwait(false);
+                if (syncTimeError != null)
+                {
+                    _logger.RestApiFailedToSyncTime(requestId, syncTimeError!.ToString());
+                    return syncTimeError;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
-        /// Prepare before sending a request. Sync time between client and server and check rate limits
+        /// Check rate limits for the request
         /// </summary>
-        /// <param name="requestId">Request id</param>
-        /// <param name="baseAddress">Host and schema</param>
-        /// <param name="definition">Request definition</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="additionalHeaders">Additional headers for this request</param>
-        /// <param name="weight">Override the request weight for this request</param>
-        /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
-        /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector</param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        protected virtual async Task<CallResult> PrepareAsync(
+        protected virtual async ValueTask<Error?> RateLimitAsync(
+            string host,
             int requestId,
-            string baseAddress,
             RequestDefinition definition,
+            int weight,
             CancellationToken cancellationToken,
-            Dictionary<string, string>? additionalHeaders = null,
-            int? weight = null,
             int? weightSingleLimiter = null,
             string? rateLimitKeySuffix = null)
         {
-            // Time sync
-            if (definition.Authenticated)
-            {
-                if (AuthenticationProvider == null)
-                {
-                    _logger.RestApiNoApiCredentials(requestId, definition.Path);
-                    return new CallResult<IRequest>(new NoApiCredentialsError());
-                }
-
-                var syncTask = SyncTimeAsync();
-                var timeSyncInfo = GetTimeSyncInfo();
-
-                if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
-                {
-                    // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
-                    var syncTimeResult = await syncTask.ConfigureAwait(false);
-                    if (!syncTimeResult)
-                    {
-                        _logger.RestApiFailedToSyncTime(requestId, syncTimeResult.Error!.ToString());
-                        return syncTimeResult.AsDataless();
-                    }
-                }
-            }            
-
             // Rate limiting
-            var requestWeight = weight ?? definition.Weight;
+            var requestWeight = weight;
             if (requestWeight != 0)
             {
                 if (definition.RateLimitGate == null)
@@ -322,9 +343,9 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, host, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult(limitResult.Error!);
+                        return limitResult.Error!;
                 }
             }
 
@@ -337,13 +358,13 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RateLimiterEnabled)
                 {
                     var singleRequestWeight = weightSingleLimiter ?? 1;
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, baseAddress, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, host, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
-                        return new CallResult(limitResult.Error!);
+                        return limitResult.Error!;
                 }
             }
 
-            return CallResult.SuccessResult;
+            return null;
         }
 
         /// <summary>
@@ -367,9 +388,9 @@ namespace CryptoExchange.Net.Clients
             var requestConfiguration = new RestRequestConfiguration(
                 definition,
                 baseAddress,
-                uriParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(uriParameters),
-                bodyParameters == null ? new Dictionary<string, object>() : CreateParameterDictionary(bodyParameters),
-                new Dictionary<string, string>(additionalHeaders ?? []),
+                uriParameters == null ? null : CreateParameterDictionary(uriParameters),
+                bodyParameters == null ? null : CreateParameterDictionary(bodyParameters),
+                additionalHeaders,
                 definition.ArraySerialization ?? ArraySerialization,
                 definition.ParameterPosition ?? ParameterPositions[definition.Method],
                 definition.RequestBodyFormat ?? RequestBodyFormat);
@@ -389,14 +410,18 @@ namespace CryptoExchange.Net.Clients
 
             var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
-            request.Accept = Constants.JsonContentHeader;
+            request.Accept = MessageHandler.AcceptHeader;
 
-            foreach (var header in requestConfiguration.Headers)
-                request.AddHeader(header.Key, header.Value);            
+            if (requestConfiguration.Headers != null) 
+            {
+                foreach (var header in requestConfiguration.Headers)
+                    request.AddHeader(header.Key, header.Value);
+            }
 
             foreach (var header in StandardRequestHeaders)
             {
                 // Only add it if it isn't overwritten
+                requestConfiguration.Headers ??= new Dictionary<string, string>();
                 if (!requestConfiguration.Headers.ContainsKey(header.Key))
                     request.AddHeader(header.Key, header.Value);
             }            
@@ -429,7 +454,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="gate">The ratelimit gate used</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> GetResponseAsync<T>(
+        protected virtual async Task<WebCallResult<T>> GetResponseAsync2<T>(
             RequestDefinition requestDefinition,
             IRequest request,
             IRateLimitGate? gate,
@@ -438,24 +463,48 @@ namespace CryptoExchange.Net.Clients
             var sw = Stopwatch.StartNew();
             Stream? responseStream = null;
             IResponse? response = null;
-            IStreamMessageAccessor? accessor = null;
+
             try
             {
                 response = await request.GetResponseAsync(cancellationToken).ConfigureAwait(false);
                 sw.Stop();
                 responseStream = await response.GetResponseStreamAsync(cancellationToken).ConfigureAwait(false);
+                string? originalData = null;
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
+                if (outputOriginalData || MessageHandler.RequiresSeekableStream)
+                {
+                    // If we want to return the original string data from the stream, but still want to process it
+                    // we'll need to copy it as the stream isn't seekable, and thus we can only read it once
+                    var memoryStream = new MemoryStream();
+                    await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+                    using var reader = new StreamReader(memoryStream, Encoding.UTF8, false, 4096, true);
+                    if (outputOriginalData) 
+                    {
+                        memoryStream.Position = 0;
+                        originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
 
-                accessor = CreateAccessor();
+                        if (_logger.IsEnabled(LogLevel.Trace))
+                            _logger.RestApiReceivedResponse(request.RequestId, originalData);
+                    }
+
+                    // Continue processing from the memory stream since the response stream is already read and we can't seek it
+                    responseStream.Close();
+                    memoryStream.Position = 0;
+                    responseStream = memoryStream;
+                }
+
                 if (!response.IsSuccessStatusCode && !requestDefinition.TryParseOnNonSuccess)
                 {
-                    // Error response
-                    var readResult = await accessor.Read(responseStream, true).ConfigureAwait(false);
+                    // If the response status is not success it is an error by definition
 
                     Error error;
                     if (response.StatusCode == (HttpStatusCode)418 || response.StatusCode == (HttpStatusCode)429)
                     {
-                        var rateError = ParseRateLimitResponse((int)response.StatusCode, response.ResponseHeaders, accessor);
+                        // Specifically handle rate limit errors
+                        var rateError = await MessageHandler.ParseErrorRateLimitResponse(
+                            (int)response.StatusCode,
+                            response.ResponseHeaders,
+                            responseStream).ConfigureAwait(false);
                         if (rateError.RetryAfter != null && gate != null && ClientOptions.RateLimiterEnabled)
                         {
                             _logger.RestApiRateLimitPauseUntil(request.RequestId, rateError.RetryAfter.Value);
@@ -466,28 +515,25 @@ namespace CryptoExchange.Net.Clients
                     }
                     else
                     {
-                        error = ParseErrorResponse((int)response.StatusCode, response.ResponseHeaders, accessor, readResult.Error?.Exception);
+                        // Handle a 'normal' error response. Can still be either a json error message or some random HTML or other string
+                        error = await MessageHandler.ParseErrorResponse(
+                            (int)response.StatusCode,
+                            response.ResponseHeaders,
+                            responseStream).ConfigureAwait(false);
                     }
 
-                    if (error.Code == null || error.Code == 0)
-                        error.Code = (int)response.StatusCode;
-
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error!);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
                 }
 
-                var valid = await accessor.Read(responseStream, outputOriginalData).ConfigureAwait(false);
                 if (typeof(T) == typeof(object))
                     // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, accessor.OriginalDataAvailable ? accessor.GetOriginalString() : "[Data only available when OutputOriginal = true in client options]", request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
 
-                if (!valid)
-                {
-                    // Invalid json
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, valid.Error);
-                }
-
-                // Json response received
-                var parsedError = TryParseError(requestDefinition, response.ResponseHeaders, accessor);
+                // Data response received, inspect the message and check if it is an error or not
+                var parsedError = await MessageHandler.CheckForErrorResponse(
+                    requestDefinition,
+                    response.ResponseHeaders,
+                    responseStream).ConfigureAwait(false);
                 if (parsedError != null)
                 {
                     if (parsedError is ServerRateLimitError rateError)
@@ -500,11 +546,24 @@ namespace CryptoExchange.Net.Clients
                     }
 
                     // Success status code, but TryParseError determined it was an error response
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
                 }
 
-                var deserializeResult = accessor.Deserialize<T>();
-                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, OutputOriginalData ? accessor.GetOriginalString() : null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult.Data, deserializeResult.Error);
+                if (MessageHandler.RequiresSeekableStream)
+                    // Reset stream read position as it might not be at the start if `CheckForErrorResponse` has read from it
+                    responseStream.Position = 0;
+
+                // Try deserialization into the expected type
+                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);                              
+                if (deserializeError != null)
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError); ;
+
+                // Check the deserialized response to see if it's an error or not
+                var responseError = MessageHandler.CheckDeserializedResponse(response.ResponseHeaders, deserializeResult);
+                if (responseError != null)
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, responseError);
+
+                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, null);
             }
             catch (HttpRequestException requestException)
             {
@@ -551,22 +610,10 @@ namespace CryptoExchange.Net.Clients
             }
             finally
             {
-                accessor?.Clear();
                 responseStream?.Close();
                 response?.Close();
             }
         }
-
-        /// <summary>
-        /// Can be used to parse an error even though response status indicates success. Some apis always return 200 OK, even though there is an error.
-        /// This method will be called for each response to be able to check if the response is an error or not.
-        /// If the response is an error this method should return the parsed error, else it should return null
-        /// </summary>
-        /// <param name="requestDefinition">Request definition</param>
-        /// <param name="accessor">Data accessor</param>
-        /// <param name="responseHeaders">The response headers</param>
-        /// <returns>Null if not an error, Error otherwise</returns>
-        protected virtual Error? TryParseError(RequestDefinition requestDefinition, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor) => null;
 
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
@@ -577,7 +624,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="callResult">The result of the call</param>
         /// <param name="tries">The current try number</param>
         /// <returns>True if call should retry, false if the call should return</returns>
-        protected virtual async Task<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
+        protected virtual async ValueTask<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
         {
             if (tries >= 2)
                 // Only retry once
@@ -633,43 +680,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Parse an error response from the server. Only used when server returns a status other than Success(200) or ratelimit error (429 or 418)
-        /// </summary>
-        /// <param name="httpStatusCode">The response status code</param>
-        /// <param name="responseHeaders">The response headers</param>
-        /// <param name="accessor">Data accessor</param>
-        /// <param name="exception">Exception</param>
-        /// <returns></returns>
-        protected virtual Error ParseErrorResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor, Exception? exception)
-        {
-            return new ServerError(ErrorInfo.Unknown, exception);
-        }
-
-        /// <summary>
-        /// Parse a rate limit error response from the server. Only used when server returns http status 429 or 418
-        /// </summary>
-        /// <param name="httpStatusCode">The response status code</param>
-        /// <param name="responseHeaders">The response headers</param>
-        /// <param name="accessor">Data accessor</param>
-        /// <returns></returns>
-        protected virtual ServerRateLimitError ParseRateLimitResponse(int httpStatusCode, KeyValuePair<string, string[]>[] responseHeaders, IMessageAccessor accessor)
-        {
-            // Handle retry after header
-            var retryAfterHeader = responseHeaders.SingleOrDefault(r => r.Key.Equals("Retry-After", StringComparison.InvariantCultureIgnoreCase));
-            if (retryAfterHeader.Value?.Any() != true)
-                return new ServerRateLimitError();
-
-            var value = retryAfterHeader.Value.First();
-            if (int.TryParse(value, out var seconds))
-                return new ServerRateLimitError() { RetryAfter = DateTime.UtcNow.AddSeconds(seconds) };
-
-            if (DateTime.TryParse(value, out var datetime))
-                return new ServerRateLimitError() { RetryAfter = datetime };
-
-            return new ServerRateLimitError();
-        }
-
-        /// <summary>
         /// Create the parameter IDictionary
         /// </summary>
         /// <param name="parameters"></param>
@@ -696,18 +706,18 @@ namespace CryptoExchange.Net.Clients
             RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
 
-        internal async Task<WebCallResult<bool>> SyncTimeAsync()
+        internal async ValueTask<Error?> SyncTimeAsync()
         {
             var timeSyncParams = GetTimeSyncInfo();
             if (timeSyncParams == null)
-                return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+                return null;
 
             if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
             {
                 if (!timeSyncParams.SyncTime || DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval)
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+                    return null;
                 }
 
                 var localTime = DateTime.UtcNow;
@@ -715,7 +725,7 @@ namespace CryptoExchange.Net.Clients
                 if (!result)
                 {
                     timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return result.As(false);
+                    return result.Error;
                 }
 
                 if (TotalRequestsMade == 1)
@@ -726,7 +736,7 @@ namespace CryptoExchange.Net.Clients
                     if (!result)
                     {
                         timeSyncParams.TimeSyncState.Semaphore.Release();
-                        return result.As(false);
+                        return result.Error;
                     }
                 }
 
@@ -736,12 +746,13 @@ namespace CryptoExchange.Net.Clients
                 timeSyncParams.TimeSyncState.Semaphore.Release();
             }
 
-            return new WebCallResult<bool>(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, true, null);
+            return null;
         }
 
         private bool ShouldCache(RequestDefinition definition)
             => ClientOptions.CachingEnabled
             && definition.Method == HttpMethod.Get
             && !definition.PreventCaching;
+
     }
 }

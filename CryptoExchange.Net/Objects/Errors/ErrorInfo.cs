@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CryptoExchange.Net.Objects.Errors
+﻿namespace CryptoExchange.Net.Objects.Errors
 {
     /// <summary>
     /// Error info

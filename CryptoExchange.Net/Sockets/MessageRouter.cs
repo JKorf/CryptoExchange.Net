@@ -1,0 +1,268 @@
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace CryptoExchange.Net.Sockets
+{
+    /// <summary>
+    /// Message router
+    /// </summary>
+    public class MessageRouter
+    {
+        /// <summary>
+        /// The routes registered for this router
+        /// </summary>
+        public MessageRoute[] Routes { get; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        private MessageRouter(params MessageRoute[] routes)
+        {
+            Routes = routes;
+        }
+
+        /// <summary>
+        /// Create message router without specific message handler
+        /// </summary>
+        public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier, bool multipleReaders = false)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null), multipleReaders));
+        }
+
+        /// <summary>
+        /// Create message router without specific message handler
+        /// </summary>
+        public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier, string topicFilter, bool multipleReaders = false)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null), multipleReaders));
+        }
+
+        /// <summary>
+        /// Create message router without topic filter
+        /// </summary>
+        public static MessageRouter CreateWithoutTopicFilter<T>(IEnumerable<string> values, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRouter(values.Select(x => new MessageRoute<T>(x, null, handler, multipleReaders)).ToArray());
+        }
+
+        /// <summary>
+        /// Create message router without topic filter
+        /// </summary>
+        public static MessageRouter CreateWithoutTopicFilter<T>(string typeIdentifier, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, null, handler, multipleReaders));
+        }
+
+        /// <summary>
+        /// Create message router with topic filter
+        /// </summary>
+        public static MessageRouter CreateWithTopicFilter<T>(string typeIdentifier, string topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, handler, multipleReaders));
+        }
+
+        /// <summary>
+        /// Create message router with topic filter
+        /// </summary>
+        public static MessageRouter CreateWithTopicFilter<T>(IEnumerable<string> typeIdentifiers, string topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var type in typeIdentifiers)
+                routes.Add(new MessageRoute<T>(type, topicFilter, handler, multipleReaders));
+
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message router with topic filter
+        /// </summary>
+        public static MessageRouter CreateWithTopicFilters<T>(string typeIdentifier, IEnumerable<string> topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var filter in topicFilters)
+                routes.Add(new MessageRoute<T>(typeIdentifier, filter, handler, multipleReaders));
+
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message router with topic filter
+        /// </summary>
+        public static MessageRouter CreateWithTopicFilters<T>(IEnumerable<string> typeIdentifiers, IEnumerable<string> topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var type in typeIdentifiers)
+            {
+                foreach (var filter in topicFilters)
+                    routes.Add(new MessageRoute<T>(type, filter, handler, multipleReaders));
+            }
+
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message router with optional topic filter
+        /// </summary>
+        public static MessageRouter CreateWithOptionalTopicFilter<T>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, handler, multipleReaders));
+        }
+
+        /// <summary>
+        /// Create message router with optional topic filter
+        /// </summary>
+        public static MessageRouter CreateWithOptionalTopicFilters<T>(string typeIdentifier, IEnumerable<string>? topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            var routes = new List<MessageRoute>();
+            if (topicFilters?.Count() > 0)
+            {
+                foreach (var filter in topicFilters)
+                    routes.Add(new MessageRoute<T>(typeIdentifier, filter, handler, multipleReaders));
+            }
+            else
+            {
+                routes.Add(new MessageRoute<T>(typeIdentifier, null, handler, multipleReaders));
+            }
+                
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message router with optional topic filter
+        /// </summary>
+        public static MessageRouter CreateWithOptionalTopicFilters<T>(IEnumerable<string> typeIdentifiers, IEnumerable<string>? topicFilters, Func<SocketConnection, DateTime, string?, T, CallResult?> handler, bool multipleReaders = false)
+        {
+            var routes = new List<MessageRoute>();
+            foreach (var typeIdentifier in typeIdentifiers)
+            {
+                if (topicFilters?.Count() > 0)
+                {
+                    foreach (var filter in topicFilters)
+                        routes.Add(new MessageRoute<T>(typeIdentifier, filter, handler, multipleReaders));
+                }
+                else
+                {
+                    routes.Add(new MessageRoute<T>(typeIdentifier, null, handler, multipleReaders));
+                }
+            }
+
+            return new MessageRouter(routes.ToArray());
+        }
+
+        /// <summary>
+        /// Create message matcher with specific routes
+        /// </summary>
+        public static MessageRouter Create(params MessageRoute[] routes)
+        {
+            return new MessageRouter(routes);
+        }
+
+        /// <summary>
+        /// Whether this matcher contains a specific link
+        /// </summary>
+        public bool ContainsCheck(MessageRoute route) => Routes.Any(x => x.TypeIdentifier == route.TypeIdentifier && x.TopicFilter == route.TopicFilter);
+    }
+
+    /// <summary>
+    /// Message route
+    /// </summary>
+    public abstract class MessageRoute
+    {
+        /// <summary>
+        /// Type identifier
+        /// </summary>
+        public string TypeIdentifier { get; set; }
+        /// <summary>
+        /// Optional topic filter
+        /// </summary>
+        public string? TopicFilter { get; set; }
+
+        /// <summary>
+        /// Whether responses to this route might be read by multiple listeners
+        /// </summary>
+        public bool MultipleReaders { get; set; } = false;
+
+        /// <summary>
+        /// Deserialization type
+        /// </summary>
+        public abstract Type DeserializationType { get; }
+        
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public MessageRoute(string typeIdentifier, string? topicFilter)
+        {
+            TypeIdentifier = typeIdentifier;
+            TopicFilter = topicFilter;
+        }
+
+        /// <summary>
+        /// Message handler
+        /// </summary>
+        public abstract CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data);
+    }
+
+    /// <summary>
+    /// Message route
+    /// </summary>
+    public class MessageRoute<TMessage> : MessageRoute
+    {
+        private Func<SocketConnection, DateTime, string?, TMessage, CallResult?> _handler;
+
+        /// <inheritdoc />
+        public override Type DeserializationType { get; } = typeof(TMessage);
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        internal MessageRoute(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
+            : base(typeIdentifier, topicFilter)
+        {
+            _handler = handler;
+            MultipleReaders = multipleReaders;
+        }
+
+        /// <summary>
+        /// Create route without topic filter
+        /// </summary>
+        public static MessageRoute<TMessage> CreateWithoutTopicFilter(string typeIdentifier, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRoute<TMessage>(typeIdentifier, null, handler)
+            {
+                MultipleReaders = multipleReaders
+            };
+        }
+
+        /// <summary>
+        /// Create route with optional topic filter
+        /// </summary>
+        public static MessageRoute<TMessage> CreateWithOptionalTopicFilter(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRoute<TMessage>(typeIdentifier, topicFilter, handler)
+            {
+                MultipleReaders = multipleReaders
+            };
+        }
+
+        /// <summary>
+        /// Create route with topic filter
+        /// </summary>
+        public static MessageRoute<TMessage> CreateWithTopicFilter(string typeIdentifier, string topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRoute<TMessage>(typeIdentifier, topicFilter, handler)
+            {
+                MultipleReaders = multipleReaders
+            };
+        }
+
+        /// <inheritdoc />
+        public override CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data)
+        {
+            return _handler(connection, receiveTime, originalData, (TMessage)data);
+        }
+    }
+
+}

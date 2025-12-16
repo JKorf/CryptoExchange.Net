@@ -17,8 +17,6 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get a client instance
         /// </summary>
-        /// <param name="loggerFactory"></param>
-        /// <returns></returns>
         public abstract TClient GetClient(ILoggerFactory loggerFactory);
 
         /// <summary>

@@ -1,9 +1,9 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.SharedApis
             TradingMode[]? dataTradeModes,
             HttpStatusCode? code,
             Version? httpVersion,
-            KeyValuePair<string, string[]>[]? responseHeaders,
+            HttpResponseHeaders? responseHeaders,
             TimeSpan? responseTime,
             long? responseLength,
             string? originalData,
@@ -111,7 +111,7 @@ namespace CryptoExchange.Net.SharedApis
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
-            KeyValuePair<string, string[]>[]? requestHeaders,
+            HttpRequestHeaders? requestHeaders,
             ResultDataSource dataSource,
             [AllowNull] T data,
             Error? error,

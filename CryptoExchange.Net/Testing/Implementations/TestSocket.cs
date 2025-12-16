@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Default.Interfaces;
 
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
 #pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
@@ -39,10 +39,20 @@ namespace CryptoExchange.Net.Testing.Implementations
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
         public static int lastId = 0;
-        public static object lastIdLock = new object();
+#if NET9_0_OR_GREATER
+        public static readonly Lock lastIdLock = new Lock();
+#else
+        public static readonly object lastIdLock = new object();
+#endif
 
-        public TestSocket(string address)
+        private bool _newDeserialization;
+
+        public SocketConnection? Connection { get; set; }
+
+        public TestSocket(bool newDeserialization, string address)
         {
+            _newDeserialization = newDeserialization;
+
             Uri = new Uri(address);
             lock (lastIdLock)
             {
@@ -97,15 +107,20 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void InvokeMessage(string data)
         {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
+            if (!_newDeserialization)
+            {
+                OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
+            }
+            else
+            {
+                if (Connection == null)
+                    throw new ArgumentNullException(nameof(Connection));
+
+                Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
+            }
         }
 
-        public void InvokeMessage<T>(T data)
-        {
-            OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data)))).Wait();
-        }
-
-        public Task ReconnectAsync() => throw new NotImplementedException();
+        public Task ReconnectAsync() => Task.CompletedTask;
         public void Dispose() { }
 
         public void UpdateProxy(ApiProxy? proxy) => throw new NotImplementedException();
