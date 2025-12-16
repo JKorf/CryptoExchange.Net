@@ -66,6 +66,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.0.0 - 16 Dec 2025
+    * -
+
 * Version 9.13.0 - 10 Nov 2025
     * Added SharedTickerType for defining time used for ticker calculations by the API
     * Added SharedSymbolModel base class to SharedFuturesKline, SharedKline, SharedTrade models
