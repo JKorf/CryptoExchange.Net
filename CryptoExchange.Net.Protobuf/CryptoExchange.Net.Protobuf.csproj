@@ -6,9 +6,9 @@
     <PackageId>CryptoExchange.Net.Protobuf</PackageId>
     <Authors>JKorf</Authors>
     <Description>Protobuf support for CryptoExchange.Net</Description>
-    <PackageVersion>10.0.0</PackageVersion>
-    <AssemblyVersion>10.0.0</AssemblyVersion>
-    <FileVersion>10.0.0</FileVersion>
+    <PackageVersion>10.0.1</PackageVersion>
+    <AssemblyVersion>10.0.1</AssemblyVersion>
+    <FileVersion>10.0.1</FileVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>CryptoExchange;CryptoExchange.Net</PackageTags>
     <RepositoryType>git</RepositoryType>
