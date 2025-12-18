@@ -66,6 +66,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.0.1 - 18 Dec 2025
+    * Fixed query array parameter serialization
+
 * Version 10.0.0 - 16 Dec 2025
     * -
 
