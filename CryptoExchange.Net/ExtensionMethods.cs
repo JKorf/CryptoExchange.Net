@@ -70,7 +70,7 @@ namespace CryptoExchange.Net
 
                 first = false;
 
-                if (parameter.GetType().IsArray)
+                if (parameter.Value.GetType().IsArray)
                 {
                     if (serializationType == ArrayParametersSerialization.Array)
                     {
