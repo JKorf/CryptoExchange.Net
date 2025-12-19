@@ -877,8 +877,16 @@ namespace CryptoExchange.Net.Sockets.Default
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
             bool anyDuplicateSubscription;
-            lock (_listenersLock)
-                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.HandlerLinks.All(l => subscription.MessageMatcher.ContainsCheck(l)));
+            if (ApiClient.ClientOptions.UseUpdatedDeserialization)
+            {
+                lock (_listenersLock)
+                    anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
+            }
+            else
+            {
+                lock (_listenersLock)
+                    anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.HandlerLinks.All(l => subscription.MessageMatcher.ContainsCheck(l)));
+            }
 
             bool shouldCloseConnection;
             lock (_listenersLock)
