@@ -516,10 +516,20 @@ namespace CryptoExchange.Net.Clients
                     else
                     {
                         // Handle a 'normal' error response. Can still be either a json error message or some random HTML or other string
-                        error = await MessageHandler.ParseErrorResponse(
+
+                        try
+                        {
+                            error = await MessageHandler.ParseErrorResponse(
                             (int)response.StatusCode,
                             response.ResponseHeaders,
                             responseStream).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Unhandled exception when parsing error response: {Message}", ex.Message);
+                            var errorResult = new ServerError(ErrorInfo.Unknown with { Message = ex.Message });
+                            return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, errorResult);
+                        }
                     }
 
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
@@ -558,10 +568,19 @@ namespace CryptoExchange.Net.Clients
                 if (deserializeError != null)
                     return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError); ;
 
-                // Check the deserialized response to see if it's an error or not
-                var responseError = MessageHandler.CheckDeserializedResponse(response.ResponseHeaders, deserializeResult);
-                if (responseError != null)
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, responseError);
+                try
+                {
+                    // Check the deserialized response to see if it's an error or not
+                    var responseError = MessageHandler.CheckDeserializedResponse(response.ResponseHeaders, deserializeResult);
+                    if (responseError != null)
+                        return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, responseError);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unhandled exception when checking deserialized response: {Message}", ex.Message);
+                    var error = new ServerError(ErrorInfo.Unknown with { Message = ex.Message });
+                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, error);
+                }
 
                 return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, null);
             }
