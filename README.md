@@ -66,6 +66,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.0.2 - 19 Dec 2025
+    * Fixed duplicate subscription check with updated deserialization
+    * Added exception handlers for REST response processing
+
 * Version 10.0.1 - 18 Dec 2025
     * Fixed query array parameter serialization
 
