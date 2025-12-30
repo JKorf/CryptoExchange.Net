@@ -242,8 +242,7 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Generate a long value
         /// </summary>
-        /// <param name="maxLength">Max character length</param>
-        /// <returns></returns>
+        /// <param name="maxLength">Max number of digits</param>
         public static long RandomLong(int maxLength)
         {
 #if NETSTANDARD2_1_OR_GREATER || NET9_0_OR_GREATER
@@ -257,6 +256,19 @@ namespace CryptoExchange.Net
                 return int.Parse(val.Substring(0, maxLength));
             else
                 return value;
+        }
+
+        public static long RandomLong(long minValue, long maxValue)
+        {
+#if NET8_0_OR_GREATER
+            var buf = RandomNumberGenerator.GetBytes(8);
+#else
+            byte[] buf = new byte[8];
+            var random = new Random();
+            random.NextBytes(buf);
+#endif
+            long longRand = BitConverter.ToInt64(buf, 0);
+            return (Math.Abs(longRand % (maxValue - minValue)) + minValue);
         }
 
         /// <summary>
