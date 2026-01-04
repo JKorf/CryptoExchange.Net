@@ -258,6 +258,12 @@ namespace CryptoExchange.Net
                 return value;
         }
 
+        /// <summary>
+        /// Generate a long value between two values
+        /// </summary>
+        /// <param name="minValue">Min value</param>
+        /// <param name="maxValue">Max value</param>
+        /// <returns></returns>
         public static long RandomLong(long minValue, long maxValue)
         {
 #if NET8_0_OR_GREATER

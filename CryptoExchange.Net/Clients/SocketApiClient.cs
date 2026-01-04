@@ -32,8 +32,10 @@ namespace CryptoExchange.Net.Clients
     public abstract class SocketApiClient : BaseApiClient, ISocketApiClient
     {
         #region Fields
+
         /// <inheritdoc/>
         public IWebsocketFactory SocketFactory { get; set; } = new WebsocketFactory();
+
         /// <inheritdoc/>
         public IHighPerfConnectionFactory? HighPerfConnectionFactory { get; set; }
 
@@ -180,6 +182,24 @@ namespace CryptoExchange.Net.Clients
         {
             DedicatedConnectionConfigs.Add(new DedicatedConnectionConfig() { SocketAddress = url, Authenticated = auth });
         }
+
+        /// <summary>
+        /// Update the timestamp offset between client and server based on the timestamp
+        /// </summary>
+        /// <param name="timestamp">Timestamp received from the server</param>
+        public virtual void UpdateTimeOffset(DateTime timestamp)
+        {
+            if (timestamp == default)
+                return;
+
+            TimeOffsetManager.UpdateSocketOffset(ClientName, (DateTime.UtcNow - timestamp).TotalMilliseconds);
+        }
+
+        /// <summary>
+        /// Get the time offset between client and server
+        /// </summary>
+        /// <returns></returns>
+        public virtual TimeSpan? GetTimeOffset() => TimeOffsetManager.GetSocketOffset(ClientName);
 
         /// <summary>
         /// Add a query to periodically send on each connection
@@ -575,7 +595,8 @@ namespace CryptoExchange.Net.Clients
         /// Should return the request which can be used to authenticate a socket connection
         /// </summary>
         /// <returns></returns>
-        protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection) => throw new NotImplementedException();
+        protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection) => 
+            Task.FromResult(AuthenticationProvider!.GetAuthenticationQuery(this, connection));
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests

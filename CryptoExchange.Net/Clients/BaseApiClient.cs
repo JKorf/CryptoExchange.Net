@@ -13,6 +13,8 @@ namespace CryptoExchange.Net.Clients
     /// </summary>
     public abstract class BaseApiClient : IDisposable, IBaseApiClient
     {
+        private string? _clientName;
+
         /// <summary>
         /// Logger
         /// </summary>
@@ -22,6 +24,21 @@ namespace CryptoExchange.Net.Clients
         /// If we are disposing
         /// </summary>
         protected bool _disposing;
+
+        /// <summary>
+        /// Name of the client
+        /// </summary>
+        protected internal string ClientName
+        {
+            get
+            {
+                if (_clientName != null)
+                    return _clientName;
+
+                _clientName = GetType().Name;
+                return _clientName;
+            }
+        }
 
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)

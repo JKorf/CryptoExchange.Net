@@ -28,6 +28,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, string, Exception?> _orderBookReconnectingSocket;
         private static readonly Action<ILogger, string, string, long, long, Exception?> _orderBookSkippedMessage;
         private static readonly Action<ILogger, string, string, long, long, Exception?> _orderBookProcessedMessage;
+        private static readonly Action<ILogger, string, string, long, Exception?> _orderBookProcessedMessageSingle;
         private static readonly Action<ILogger, string, string, long, long, Exception?> _orderBookOutOfSync;
 
         static SymbolOrderBookLoggingExtensions()
@@ -136,6 +137,11 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Warning,
                 new EventId(5020, "OrderBookOutOfSyncChecksum"),
                 "{Api} order book {Symbol} out of sync. Checksum mismatch, resyncing");
+
+            _orderBookProcessedMessageSingle = LoggerMessage.Define<string, string, long>(
+                LogLevel.Trace,
+                new EventId(5021, "OrderBookProcessedMessage"),
+                "{Api} order book {Symbol} update processed #{UpdateId}");
         }
 
         public static void OrderBookStatusChanged(this ILogger logger, string api, string symbol, OrderBookStatus previousStatus, OrderBookStatus newStatus)
@@ -229,6 +235,10 @@ namespace CryptoExchange.Net.Logging.Extensions
             _orderBookProcessedMessage(logger, api, symbol, firstUpdateId, lastUpdateId, null);
         }
 
+        public static void OrderBookProcessedMessage(this ILogger logger, string api, string symbol, long updateId)
+        {
+            _orderBookProcessedMessageSingle(logger, api, symbol, updateId, null);
+        }
         public static void OrderBookOutOfSyncChecksum(this ILogger logger, string api, string symbol)
         {
             _orderBookOutOfSyncChecksum(logger, api, symbol, null);

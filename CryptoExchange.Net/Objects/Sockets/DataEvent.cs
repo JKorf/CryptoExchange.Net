@@ -19,6 +19,16 @@ namespace CryptoExchange.Net.Objects.Sockets
         public DateTime? DataTime { get; set; }
 
         /// <summary>
+        /// The timestamp of the data in local time. Note that this is an estimation based on average delay from the server.
+        /// </summary>
+        public DateTime? DataTimeLocal { get; set; }
+
+        /// <summary>
+        /// The age of the data. Note that this is an estimation based on average delay from the server.
+        /// </summary>
+        public TimeSpan? DataAge => DateTime.UtcNow - DataTimeLocal;
+
+        /// <summary>
         /// The stream producing the update
         /// </summary>
         public string? StreamId { get; set; }
@@ -119,9 +129,16 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// Specify the data timestamp
         /// </summary>
-        public DataEvent<T> WithDataTimestamp(DateTime? timestamp)
+        public DataEvent<T> WithDataTimestamp(DateTime? timestamp, TimeSpan? offset = null)
         {
+            if (timestamp == null || timestamp == default(DateTime))
+                return this;
+
             DataTime = timestamp;
+            if (offset == null)
+                return this;
+
+            DataTimeLocal = DataTime + offset;
             return this;
         }
 

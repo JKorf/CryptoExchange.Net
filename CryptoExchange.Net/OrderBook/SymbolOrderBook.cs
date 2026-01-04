@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -132,6 +133,15 @@ namespace CryptoExchange.Net.OrderBook
 
         /// <inheritdoc/>
         public DateTime UpdateTime { get; private set; }
+
+        /// <inheritdoc/>
+        public DateTime? UpdateServerTime { get; private set; }
+
+        /// <inheritdoc/>
+        public DateTime? UpdateLocalTime { get; set; }
+
+        /// <inheritdoc/>
+        public TimeSpan? DataAge => DateTime.UtcNow - UpdateLocalTime;
 
         /// <inheritdoc/>
         public int AskCount { get; private set; }
@@ -406,10 +416,8 @@ namespace CryptoExchange.Net.OrderBook
         /// Implementation for validating a checksum value with the current order book. If checksum validation fails (returns false)
         /// the order book will be resynchronized
         /// </summary>
-        /// <param name="checksum"></param>
-        /// <returns></returns>
         protected virtual bool DoChecksum(int checksum) => true;
-                
+
         /// <summary>
         /// Set the initial data for the order book. Typically the snapshot which was requested from the Rest API, or the first snapshot
         /// received from a socket subscription
@@ -417,9 +425,25 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="orderBookSequenceNumber">The last update sequence number until which the snapshot is in sync</param>
         /// <param name="askList">List of asks</param>
         /// <param name="bidList">List of bids</param>
-        protected void SetInitialOrderBook(long orderBookSequenceNumber, ISymbolOrderBookEntry[] bidList, ISymbolOrderBookEntry[] askList)
+        /// <param name="serverDataTime">Server data timestamp</param>
+        /// <param name="localDataTime">local data timestamp</param>
+        protected void SetInitialOrderBook(
+            long orderBookSequenceNumber,
+            ISymbolOrderBookEntry[] bidList,
+            ISymbolOrderBookEntry[] askList,
+            DateTime? serverDataTime = null,
+            DateTime? localDataTime = null)
         {
-            _processQueue.Enqueue(new InitialOrderBookItem { StartUpdateId = orderBookSequenceNumber, EndUpdateId = orderBookSequenceNumber, Asks = askList, Bids = bidList });
+            _processQueue.Enqueue(
+                new InitialOrderBookItem
+                {
+                    LocalDataTime = localDataTime,
+                    ServerDataTime = serverDataTime,
+                    StartUpdateId = orderBookSequenceNumber,
+                    EndUpdateId = orderBookSequenceNumber,
+                    Asks = askList,
+                    Bids = bidList
+                });
             _queueEvent.Set();
         }
 
@@ -429,9 +453,25 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="updateId">The sequence number</param>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(long updateId, ISymbolOrderBookEntry[] bids, ISymbolOrderBookEntry[] asks)
+        /// <param name="serverDataTime">Server data timestamp</param>
+        /// <param name="localDataTime">local data timestamp</param>
+        protected void UpdateOrderBook(
+            long updateId,
+            ISymbolOrderBookEntry[] bids,
+            ISymbolOrderBookEntry[] asks,
+            DateTime? serverDataTime = null,
+            DateTime? localDataTime = null)
         {
-            _processQueue.Enqueue(new ProcessQueueItem { StartUpdateId = updateId, EndUpdateId = updateId, Asks = asks, Bids = bids });
+            _processQueue.Enqueue(
+                new ProcessQueueItem
+                { 
+                    LocalDataTime = localDataTime,
+                    ServerDataTime = serverDataTime,
+                    StartUpdateId = updateId, 
+                    EndUpdateId = updateId,
+                    Asks = asks,
+                    Bids = bids 
+                });
             _queueEvent.Set();
         }
 
@@ -442,9 +482,26 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="lastUpdateId">The sequence number of the last update</param>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(long firstUpdateId, long lastUpdateId, ISymbolOrderBookEntry[] bids, ISymbolOrderBookEntry[] asks)
+        /// <param name="serverDataTime">Server data timestamp</param>
+        /// <param name="localDataTime">local data timestamp</param>
+        protected void UpdateOrderBook(
+            long firstUpdateId,
+            long lastUpdateId,
+            ISymbolOrderBookEntry[] bids,
+            ISymbolOrderBookEntry[] asks,
+            DateTime? serverDataTime = null,
+            DateTime? localDataTime = null)
         {
-            _processQueue.Enqueue(new ProcessQueueItem { StartUpdateId = firstUpdateId, EndUpdateId = lastUpdateId, Asks = asks, Bids = bids });
+            _processQueue.Enqueue(
+                new ProcessQueueItem
+                {
+                    LocalDataTime = localDataTime,
+                    ServerDataTime = serverDataTime,
+                    StartUpdateId = firstUpdateId,
+                    EndUpdateId = lastUpdateId,
+                    Asks = asks,
+                    Bids = bids
+                });
             _queueEvent.Set();
         }
 
@@ -453,12 +510,27 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         /// <param name="bids">List of updated/new bids</param>
         /// <param name="asks">List of updated/new asks</param>
-        protected void UpdateOrderBook(ISymbolOrderSequencedBookEntry[] bids, ISymbolOrderSequencedBookEntry[] asks)
+        /// <param name="serverDataTime">Server data timestamp</param>
+        /// <param name="localDataTime">local data timestamp</param>
+        protected void UpdateOrderBook(
+            ISymbolOrderSequencedBookEntry[] bids,
+            ISymbolOrderSequencedBookEntry[] asks,
+            DateTime? serverDataTime = null,
+            DateTime? localDataTime = null)
         {
             var highest = Math.Max(bids.Any() ? bids.Max(b => b.Sequence) : 0, asks.Any() ? asks.Max(a => a.Sequence) : 0);
             var lowest = Math.Min(bids.Any() ? bids.Min(b => b.Sequence) : long.MaxValue, asks.Any() ? asks.Min(a => a.Sequence) : long.MaxValue);
 
-            _processQueue.Enqueue(new ProcessQueueItem { StartUpdateId = lowest, EndUpdateId = highest, Asks = asks, Bids = bids });
+            _processQueue.Enqueue(
+                new ProcessQueueItem
+                {
+                    LocalDataTime = localDataTime,
+                    ServerDataTime = serverDataTime,
+                    StartUpdateId = lowest, 
+                    EndUpdateId = highest, 
+                    Asks = asks,
+                    Bids = bids 
+                });
             _queueEvent.Set();
         }
 
@@ -614,6 +686,12 @@ namespace CryptoExchange.Net.OrderBook
         {
             var stringBuilder = new StringBuilder();
             var book = Book;
+            stringBuilder.AppendLine($"{Exchange} - {Symbol}");
+            stringBuilder.AppendLine($"Update time local:     {UpdateTime:HH:mm:ss.fff} ({Math.Round((DateTime.UtcNow - UpdateTime).TotalMilliseconds)}ms ago)");
+            stringBuilder.AppendLine($"Data timestamp server: {UpdateServerTime:HH:mm:ss.fff}");
+            stringBuilder.AppendLine($"Data timestamp local:  {UpdateLocalTime:HH:mm:ss.fff}");
+            stringBuilder.AppendLine($"Data age:              {DataAge?.TotalMilliseconds}ms");
+            stringBuilder.AppendLine();
             stringBuilder.AppendLine($"   Ask quantity       Ask price | Bid price       Bid quantity");
             for(var i = 0; i < numberOfEntries; i++)
             {
@@ -623,6 +701,22 @@ namespace CryptoExchange.Net.OrderBook
             }
 
             return stringBuilder.ToString();
+        }
+
+        /// <inheritdoc />
+        public Task OutputToConsoleAsync(int numberOfEntries, TimeSpan refreshInterval, CancellationToken ct = default)
+        {
+            return Task.Run(async () =>
+            {
+                var referenceTime = DateTime.UtcNow;
+                while (!ct.IsCancellationRequested)
+                {
+                    Console.Clear();
+                    Console.WriteLine(ToString(numberOfEntries));
+                    var delay = Math.Max(1, (DateTime.UtcNow - referenceTime).TotalMilliseconds % refreshInterval.TotalMilliseconds);
+                    try { await Task.Delay(refreshInterval.Add(TimeSpan.FromMilliseconds(-delay)), ct).ConfigureAwait(false); } catch { }
+                }
+            });
         }
 
         private void CheckBestOffersChanged(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
@@ -708,6 +802,9 @@ namespace CryptoExchange.Net.OrderBook
                 BidCount = _bids.Count;
 
                 UpdateTime = DateTime.UtcNow;
+                UpdateServerTime = item.ServerDataTime;
+                UpdateLocalTime = item.LocalDataTime;
+
                 _logger.OrderBookDataSet(Api, Symbol, BidCount, AskCount, item.EndUpdateId);
                 CheckProcessBuffer();
                 OnOrderBookUpdate?.Invoke((item.Bids.ToArray(), item.Asks.ToArray()));
@@ -749,6 +846,9 @@ namespace CryptoExchange.Net.OrderBook
                         Resubscribe();
                         return;
                     }
+
+                    UpdateServerTime = item.ServerDataTime;
+                    UpdateLocalTime = item.LocalDataTime;
 
                     OnOrderBookUpdate?.Invoke((item.Bids.ToArray(), item.Asks.ToArray()));
                     CheckBestOffersChanged(prevBestBid, prevBestAsk);
@@ -813,7 +913,11 @@ namespace CryptoExchange.Net.OrderBook
             });
         }
 
-        private void ProcessRangeUpdates(long firstUpdateId, long lastUpdateId, IEnumerable<ISymbolOrderBookEntry> bids, IEnumerable<ISymbolOrderBookEntry> asks)
+        private void ProcessRangeUpdates(
+            long firstUpdateId,
+            long lastUpdateId,
+            IEnumerable<ISymbolOrderBookEntry> bids,
+            IEnumerable<ISymbolOrderBookEntry> asks)
         {
             if (lastUpdateId <= LastSequenceNumber)
             {
@@ -829,23 +933,28 @@ namespace CryptoExchange.Net.OrderBook
 
             if (Levels.HasValue && _strictLevels)
             {
-                while (this._bids.Count > Levels.Value)
+                while (_bids.Count > Levels.Value)
                 {
                     BidCount--;
-                    this._bids.Remove(this._bids.Last().Key);
+                    _bids.Remove(_bids.Last().Key);
                 }
 
-                while (this._asks.Count > Levels.Value)
+                while (_asks.Count > Levels.Value)
                 {
                     AskCount--;
-                    this._asks.Remove(this._asks.Last().Key);
+                    _asks.Remove(this._asks.Last().Key);
                 }
             }
 
             LastSequenceNumber = lastUpdateId;
 
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId, lastUpdateId);
+            {
+                if (firstUpdateId != lastUpdateId)
+                    _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId, lastUpdateId);
+                else
+                    _logger.OrderBookProcessedMessage(Api, Symbol, firstUpdateId);
+            }
         }        
     }
 

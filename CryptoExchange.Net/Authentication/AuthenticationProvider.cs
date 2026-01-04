@@ -11,6 +11,8 @@ using System.Linq;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using CryptoExchange.Net.Sockets;
+using CryptoExchange.Net.Sockets.Default;
 
 namespace CryptoExchange.Net.Authentication
 {
@@ -76,11 +78,18 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// Authenticate a request
+        /// Authenticate a REST request
         /// </summary>
-        /// <param name="apiClient">The Api client sending the request</param>
+        /// <param name="apiClient">The API client sending the request</param>
         /// <param name="requestConfig">The request configuration</param>
         public abstract void ProcessRequest(RestApiClient apiClient, RestRequestConfiguration requestConfig);
+
+        /// <summary>
+        /// Get an authentication query for a websocket
+        /// </summary>
+        /// <param name="apiClient">The API client sending the request</param>
+        /// <param name="connection">The connection to authenticate</param>
+        public virtual Query? GetAuthenticationQuery(SocketApiClient apiClient, SocketConnection connection) => null;
 
         /// <summary>
         /// SHA256 sign the data and return the bytes
@@ -494,32 +503,50 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Get current timestamp including the time sync offset from the api client
         /// </summary>
-        /// <param name="apiClient"></param>
-        /// <returns></returns>
-        protected DateTime GetTimestamp(RestApiClient apiClient)
+        protected DateTime GetTimestamp(RestApiClient apiClient, bool includeOneSecondOffset = true)
         {
-            return TimeProvider.GetTime().Add(apiClient.GetTimeOffset() ?? TimeSpan.Zero)!;
+            var result =  TimeProvider.GetTime().Add(TimeOffsetManager.GetRestOffset(apiClient.ClientName) ?? TimeSpan.Zero)!;
+            if (includeOneSecondOffset)
+                result = result.AddSeconds(-1);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get current timestamp including the time sync offset from the api client
+        /// </summary>
+        protected DateTime GetTimestamp(SocketApiClient apiClient, bool includeOneSecondOffset = true)
+        {
+            var result = TimeProvider.GetTime().Add(TimeOffsetManager.GetSocketOffset(apiClient.ClientName) ?? TimeSpan.Zero)!;
+            if (includeOneSecondOffset)
+                result = result.AddSeconds(-1);
+
+            return result;
         }
 
         /// <summary>
         /// Get millisecond timestamp as a string including the time sync offset from the api client
         /// </summary>
-        /// <param name="apiClient"></param>
-        /// <returns></returns>
-        protected string GetMillisecondTimestamp(RestApiClient apiClient)
-        {
-            return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value.ToString(CultureInfo.InvariantCulture);
-        }
+        protected string GetMillisecondTimestamp(RestApiClient apiClient, bool includeOneSecondOffset = true)
+            => DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient, includeOneSecondOffset)).Value.ToString(CultureInfo.InvariantCulture);
+
+        /// <summary>
+        /// Get millisecond timestamp as a string including the time sync offset from the api client
+        /// </summary>
+        protected string GetMillisecondTimestamp(SocketApiClient apiClient, bool includeOneSecondOffset = true)
+            => DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient, includeOneSecondOffset)).Value.ToString(CultureInfo.InvariantCulture);
 
         /// <summary>
         /// Get millisecond timestamp as a long including the time sync offset from the api client
         /// </summary>
-        /// <param name="apiClient"></param>
-        /// <returns></returns>
-        protected long GetMillisecondTimestampLong(RestApiClient apiClient)
-        {
-            return DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient)).Value;
-        }
+        protected long GetMillisecondTimestampLong(RestApiClient apiClient, bool includeOneSecondOffset = true)
+            => DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient, includeOneSecondOffset)).Value;
+
+        /// <summary>
+        /// Get millisecond timestamp as a long including the time sync offset from the api client
+        /// </summary>
+        protected long GetMillisecondTimestampLong(SocketApiClient apiClient, bool includeOneSecondOffset = true)
+            => DateTimeConverter.ConvertToMilliseconds(GetTimestamp(apiClient, includeOneSecondOffset)).Value;
 
         /// <summary>
         /// Return the serialized request body
