@@ -47,9 +47,21 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         event Action<(ISymbolOrderBookEntry BestBid, ISymbolOrderBookEntry BestAsk)> OnBestOffersChanged;
         /// <summary>
-        /// Timestamp of the last update
+        /// Timestamp of when the last update was applied to the book, local time
         /// </summary>
         DateTime UpdateTime { get; }
+        /// <summary>
+        /// Timestamp of the last event that was applied, server time
+        /// </summary>
+        DateTime? UpdateServerTime { get; }
+        /// <summary>
+        /// Timestamp of the last event that was applied, in local time, estimated based on timestamp difference between client and server
+        /// </summary>
+        DateTime? UpdateLocalTime { get; }
+        /// <summary>
+        /// Age of the data, in local time, estimated based on timestamp difference between client and server + the period since last update
+        /// </summary>
+        TimeSpan? DataAge { get; }
 
         /// <summary>
         /// The number of asks in the book
@@ -126,5 +138,13 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <returns></returns>
         string ToString(int rows);
+
+        /// <summary>
+        /// Output the orderbook to the console
+        /// </summary>
+        /// <param name="numberOfEntries">Number of rows to display</param>
+        /// <param name="refreshInterval">Refresh interval</param>
+        /// <param name="ct">Cancellation token</param>
+        Task OutputToConsoleAsync(int numberOfEntries, TimeSpan refreshInterval, CancellationToken ct = default);
     }
 }

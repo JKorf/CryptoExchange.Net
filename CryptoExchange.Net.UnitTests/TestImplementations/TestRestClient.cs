@@ -160,20 +160,10 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             ParameterPositions[method] = position;
         }
 
-        public override TimeSpan? GetTimeOffset()
-        {
-            throw new NotImplementedException();
-        }
-
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
 
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override TimeSyncInfo GetTimeSyncInfo()
         {
             throw new NotImplementedException();
         }
@@ -198,12 +188,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
-
-        public override TimeSpan? GetTimeOffset()
-        {
-            throw new NotImplementedException();
-        }
-
+        
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
             => new TestAuthProvider(credentials);
 
@@ -212,10 +197,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             throw new NotImplementedException();
         }
 
-        public override TimeSyncInfo GetTimeSyncInfo()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class TestError

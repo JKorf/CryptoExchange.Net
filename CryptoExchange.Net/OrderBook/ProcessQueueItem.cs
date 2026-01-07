@@ -5,6 +5,8 @@ namespace CryptoExchange.Net.OrderBook
 {
     internal class ProcessQueueItem
     {
+        public DateTime? LocalDataTime { get; set; }
+        public DateTime? ServerDataTime { get; set; }
         public long StartUpdateId { get; set; }
         public long EndUpdateId { get; set; }
         public ISymbolOrderBookEntry[] Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
@@ -13,6 +15,8 @@ namespace CryptoExchange.Net.OrderBook
 
     internal class InitialOrderBookItem
     {
+        public DateTime? LocalDataTime { get; set; }
+        public DateTime? ServerDataTime { get; set; }
         public long StartUpdateId { get; set; }
         public long EndUpdateId { get; set; }
         public ISymbolOrderBookEntry[] Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();

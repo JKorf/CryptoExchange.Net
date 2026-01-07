@@ -33,12 +33,6 @@ namespace CryptoExchange.Net.Clients
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
         /// <inheritdoc />
-        public abstract TimeSyncInfo? GetTimeSyncInfo();
-
-        /// <inheritdoc />
-        public abstract TimeSpan? GetTimeOffset();
-
-        /// <inheritdoc />
         public int TotalRequestsMade { get; set; }
 
         /// <summary>
@@ -115,6 +109,8 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
+            TimeOffsetManager.RegisterRestApi(ClientName);
+
             RequestFactory.Configure(options, httpClient);
         }
 
@@ -241,11 +237,9 @@ namespace CryptoExchange.Net.Clients
             {
                 currentTry++;
 
-                var error = await CheckTimeSync(requestId, definition).ConfigureAwait(false);
-                if (error != null)
-                    return new WebCallResult<T>(error);
+                await CheckTimeSync(requestId, definition).ConfigureAwait(false);
 
-                error = await RateLimitAsync(
+                var error = await RateLimitAsync(
                     baseAddress,
                     requestId,
                     definition,
@@ -298,28 +292,6 @@ namespace CryptoExchange.Net.Clients
 
                 return result;
             }
-        }
-
-        private async ValueTask<Error?> CheckTimeSync(int requestId, RequestDefinition definition)
-        {
-            if (!definition.Authenticated)
-                return null;
-
-            var syncTask = SyncTimeAsync();
-            var timeSyncInfo = GetTimeSyncInfo();
-
-            if (timeSyncInfo != null && timeSyncInfo.TimeSyncState.LastSyncTime == default)
-            {
-                // Initially with first request we'll need to wait for the time syncing, if it's not the first request we can just continue
-                var syncTimeError = await syncTask.ConfigureAwait(false);
-                if (syncTimeError != null)
-                {
-                    _logger.RestApiFailedToSyncTime(requestId, syncTimeError!.ToString());
-                    return syncTimeError;
-                }
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -725,26 +697,44 @@ namespace CryptoExchange.Net.Clients
             RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
 
-        internal async ValueTask<Error?> SyncTimeAsync()
+        private async ValueTask CheckTimeSync(int requestId, RequestDefinition definition)
         {
-            var timeSyncParams = GetTimeSyncInfo();
-            if (timeSyncParams == null)
-                return null;
+            if (!definition.Authenticated)
+                return;
 
-            if (await timeSyncParams.TimeSyncState.Semaphore.WaitAsync(0).ConfigureAwait(false))
+            var lastUpdateTime = TimeOffsetManager.GetRestLastUpdateTime(ClientName);
+            var syncTask = CheckTimeOffsetAsync();
+
+            if (lastUpdateTime == null)
             {
-                if (!timeSyncParams.SyncTime || DateTime.UtcNow - timeSyncParams.TimeSyncState.LastSyncTime < timeSyncParams.RecalculationInterval)
-                {
-                    timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return null;
-                }
+                // Initially with first request we'll need to wait for the time syncing before making the actual request.
+                // If it's not the first request we can just continue and let it complete in the background
+                await syncTask.ConfigureAwait(false);
+            }
+
+            return;
+        }
+
+        internal async ValueTask CheckTimeOffsetAsync()
+        {
+            if (!(ApiOptions.AutoTimestamp ?? ClientOptions.AutoTimestamp))
+                // Time syncing not enabled
+                return;
+
+            await TimeOffsetManager.EnterAsync(ClientName).ConfigureAwait(false);
+            try
+            {
+                var lastUpdateTime = TimeOffsetManager.GetRestLastUpdateTime(ClientName);
+                if (DateTime.UtcNow - lastUpdateTime < (ApiOptions.TimestampRecalculationInterval ?? ClientOptions.TimestampRecalculationInterval))
+                    // Time syncing was recently done
+                    return;
 
                 var localTime = DateTime.UtcNow;
                 var result = await GetServerTimestampAsync().ConfigureAwait(false);
                 if (!result)
                 {
-                    timeSyncParams.TimeSyncState.Semaphore.Release();
-                    return result.Error;
+                    _logger.LogWarning("Failed to determine time offset between client and server, timestamping might fail");
+                    return;
                 }
 
                 if (TotalRequestsMade == 1)
@@ -754,18 +744,29 @@ namespace CryptoExchange.Net.Clients
                     result = await GetServerTimestampAsync().ConfigureAwait(false);
                     if (!result)
                     {
-                        timeSyncParams.TimeSyncState.Semaphore.Release();
-                        return result.Error;
+                        _logger.LogWarning("Failed to determine time offset between client and server, timestamping might fail");
+                        return;
                     }
                 }
 
-                // Calculate time offset between local and server
+                // Estimate the offset as the round trip time / 2
                 var offset = result.Data - localTime.AddMilliseconds(result.ResponseTime!.Value.TotalMilliseconds / 2);
-                timeSyncParams.UpdateTimeOffset(offset);
-                timeSyncParams.TimeSyncState.Semaphore.Release();
-            }
+                if (offset.TotalMilliseconds > 0 && offset.TotalMilliseconds < 500)
+                {
+                    _logger.LogInformation("{ClientName} Time offset within limits ({Offset}ms), set offset to 0ms", ClientName, Math.Round(offset.TotalMilliseconds));
+                    offset = TimeSpan.Zero;
+                }
+                else
+                {
+                    _logger.LogInformation("{ClientName} Time offset set to {Offset}ms", ClientName, Math.Round(offset.TotalMilliseconds));
+                }
 
-            return null;
+                TimeOffsetManager.UpdateRestOffset(ClientName, offset.TotalMilliseconds);
+            }
+            finally
+            {
+                TimeOffsetManager.Release(ClientName);
+            }
         }
 
         private bool ShouldCache(RequestDefinition definition)
