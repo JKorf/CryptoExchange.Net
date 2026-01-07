@@ -316,7 +316,7 @@ namespace CryptoExchange.Net.Clients
                 if (!success)
                     return;
 
-                subscription.HandleSubQueryResponse(response);
+                subscription.HandleSubQueryResponse(socketConnection, response);
                 subscription.Status = SubscriptionStatus.Subscribed;
                 if (ct != default)
                 {

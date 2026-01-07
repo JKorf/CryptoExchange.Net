@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net
 {
@@ -10,13 +12,12 @@ namespace CryptoExchange.Net
     {
         class SocketTimeOffset
         {
-            private DateTime _lastUpdate;
             private DateTime _lastRollOver = DateTime.UtcNow;
             private double? _fallbackLowest;
             private double? _currentLowestOffset;
 
             /// <summary>
-            /// Get the estimated offset
+            /// Get the estimated offset, resolves to the lowest offset in time measured in the last two minutes
             /// </summary>
             public double? Offset
             {
@@ -37,7 +38,6 @@ namespace CryptoExchange.Net
 
             public void Update(double offsetMs)
             {
-                _lastUpdate = DateTime.UtcNow;
                 if (_currentLowestOffset == null || _currentLowestOffset > offsetMs)
                 {
                     _currentLowestOffset = offsetMs;
@@ -55,8 +55,8 @@ namespace CryptoExchange.Net
 
         class RestTimeOffset
         {
+            public SemaphoreSlim SemaphoreSlim { get; } = new SemaphoreSlim(1, 1);
             public DateTime? LastUpdate { get; set; }
-
             public double? Offset { get; set; }
 
             public void Update(double offsetMs)
@@ -82,7 +82,7 @@ namespace CryptoExchange.Net
                 _lastSocketDelays.TryAdd(api, offsetValues);
             }
 
-            offsetValues.Update(offsetMs);
+            _lastSocketDelays[api].Update(offsetMs);
         }
 
         /// <summary>
@@ -92,13 +92,7 @@ namespace CryptoExchange.Net
         /// <param name="offsetMs">Offset in milliseconds</param>
         public static void UpdateRestOffset(string api, double offsetMs)
         {
-            if (!_lastRestDelays.TryGetValue(api, out var offsetValues))
-            {
-                offsetValues = new RestTimeOffset();
-                _lastRestDelays.TryAdd(api, offsetValues);
-            }
-
-            offsetValues.Update(offsetMs);
+            _lastRestDelays[api].Update(offsetMs);
         }
 
         /// <summary>
@@ -114,6 +108,31 @@ namespace CryptoExchange.Net
         public static DateTime? GetRestLastUpdateTime(string api) => _lastRestDelays.TryGetValue(api, out var val) && val.LastUpdate != null ? val.LastUpdate.Value : null;
 
         /// <summary>
+        /// Register a REST API client to be tracked
+        /// </summary>
+        /// <param name="api"></param>
+        internal static void RegisterRestApi(string api)
+        {
+            _lastRestDelays[api] = new RestTimeOffset();
+        }
+
+        /// <summary>
+        /// Enter exclusive access for the API to update the time offset
+        /// </summary>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        public static async ValueTask EnterAsync(string api) 
+        {
+            await _lastRestDelays[api].SemaphoreSlim.WaitAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Release exclusive access for the API
+        /// </summary>
+        /// <param name="api"></param>
+        public static void Release(string api) => _lastRestDelays[api].SemaphoreSlim.Release();
+
+        /// <summary>
         /// Get WebSocket API offset
         /// </summary>
         /// <param name="api">API name</param>
@@ -125,8 +144,7 @@ namespace CryptoExchange.Net
         /// <param name="api">API name</param>
         public static void ResetRestUpdateTime(string api)
         {
-            if (_lastRestDelays.TryGetValue(api, out var val))
-                val.LastUpdate = null;
+            _lastRestDelays[api].LastUpdate = null;
         }
     }
 }

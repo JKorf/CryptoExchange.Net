@@ -129,7 +129,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// Specify the data timestamp
         /// </summary>
-        public DataEvent<T> WithDataTimestamp(DateTime? timestamp, TimeSpan? offset = null)
+        public DataEvent<T> WithDataTimestamp(DateTime? timestamp, TimeSpan? offset)
         {
             if (timestamp == null || timestamp == default(DateTime))
                 return this;

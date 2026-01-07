@@ -89,7 +89,8 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="apiClient">The API client sending the request</param>
         /// <param name="connection">The connection to authenticate</param>
-        public virtual Query? GetAuthenticationQuery(SocketApiClient apiClient, SocketConnection connection) => null;
+        /// <param name="context">Optional context required for creating the authentication query</param>
+        public virtual Query? GetAuthenticationQuery(SocketApiClient apiClient, SocketConnection connection, Dictionary<string, object?>? context = null) => null;
 
         /// <summary>
         /// SHA256 sign the data and return the bytes

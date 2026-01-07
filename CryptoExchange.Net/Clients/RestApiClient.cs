@@ -29,8 +29,6 @@ namespace CryptoExchange.Net.Clients
     /// </summary>
     public abstract class RestApiClient : BaseApiClient, IRestApiClient
     {
-        private readonly SemaphoreSlim _timeOffsetSem = new SemaphoreSlim(1);
-
         /// <inheritdoc />
         public IRequestFactory RequestFactory { get; set; } = new RequestFactory();
 
@@ -111,6 +109,8 @@ namespace CryptoExchange.Net.Clients
                   options,
                   apiOptions)
         {
+            TimeOffsetManager.RegisterRestApi(ClientName);
+
             RequestFactory.Configure(options, httpClient);
         }
 
@@ -721,7 +721,7 @@ namespace CryptoExchange.Net.Clients
                 // Time syncing not enabled
                 return;
 
-            await _timeOffsetSem.WaitAsync().ConfigureAwait(false);
+            await TimeOffsetManager.EnterAsync(ClientName).ConfigureAwait(false);
             try
             {
                 var lastUpdateTime = TimeOffsetManager.GetRestLastUpdateTime(ClientName);
@@ -765,7 +765,7 @@ namespace CryptoExchange.Net.Clients
             }
             finally
             {
-                _timeOffsetSem.Release();
+                TimeOffsetManager.Release(ClientName);
             }
         }
 

@@ -1236,7 +1236,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     subQuery.OnComplete = () =>
                     {
                         subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
-                        subscription.HandleSubQueryResponse(subQuery.Response);
+                        subscription.HandleSubQueryResponse(this, subQuery.Response);
                     };
 
                     taskList.Add(SendAndWaitQueryAsync(subQuery));
@@ -1276,7 +1276,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 return CallResult.SuccessResult;
 
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
-            subscription.HandleSubQueryResponse(subQuery.Response!);
+            subscription.HandleSubQueryResponse(this, subQuery.Response!);
             return result;
         }
 
