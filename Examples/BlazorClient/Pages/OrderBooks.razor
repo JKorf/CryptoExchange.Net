@@ -62,6 +62,7 @@
     {
         <div style="margin-bottom: 20px; flex: 1; min-width: 300px;">
             <h4>@book.Key - @book.Value.Symbol</h4>
+            <div>@(book.Value.DataAge?.TotalMilliseconds)ms since last update</div>
             @if (book.Value.AskCount >= 3 && book.Value.BidCount >= 3)
             {
                 for (var i = 0; i < 3; i++)
