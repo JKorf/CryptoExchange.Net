@@ -66,6 +66,21 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.1.0 - 07 Jan 2026
+    * Updated time sync / time offset management for REST API's
+    * Added time offset tracking for WebSocket API's
+    * Added GetAuthenticationQuery virtual method on AuthenticationProvider
+    * Updated AuthenticationProvider GetTimestamp methods to include a one second offset by default
+    * Added AuthenticationProvider GetTimestamp methods for SocketApiClient instances
+    * Added ClientName property on BaseApiClient, resolving to the type name
+    * Added ObjectOrArrayConverter JsonConverterFactory implementation for resolving json data which might be returned as object or array
+    * Added UpdateServerTime, UpdateLocalTime and DataAge properties to (I)SymbolOrderBook
+    * Added OutputToConsoleAsync method to (I)SymbolOrderBook
+    * Updated SymbolOrderBook string representation
+    * Added DataTimeLocal and DataAge properties to DataEvent object
+    * Added SocketConnection parameter to subscription HandleSubQueryResponse and HandleUnsubQueryResponse methods
+    * Added some utility methods
+
 * Version 10.0.2 - 19 Dec 2025
     * Fixed duplicate subscription check with updated deserialization
     * Added exception handlers for REST response processing
