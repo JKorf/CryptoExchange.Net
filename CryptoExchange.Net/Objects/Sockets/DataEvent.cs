@@ -54,6 +54,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public SocketUpdateType? UpdateType { get; set; }
 
         /// <summary>
+        /// Sequence number of the update
+        /// </summary>
+        public long? SequenceNumber { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public DataEvent(
@@ -123,6 +128,15 @@ namespace CryptoExchange.Net.Objects.Sockets
         public DataEvent<T> WithStreamId(string streamId)
         {
             StreamId = streamId;
+            return this;
+        }
+
+        /// <summary>
+        /// Specify the sequence number of the update
+        /// </summary>
+        public DataEvent<T> WithSequenceNumber(long? sequenceNumber)
+        {
+            SequenceNumber = sequenceNumber;
             return this;
         }
 

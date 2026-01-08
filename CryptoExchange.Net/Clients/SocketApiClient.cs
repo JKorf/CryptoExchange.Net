@@ -142,6 +142,10 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public int? MaxIndividualSubscriptionsPerConnection { get; set; }
 
+        /// <summary>
+        /// Whether or not to enforce that sequence number updates are always (lastSequenceNumber + 1)
+        /// </summary>
+        public bool EnforceSequenceNumbers { get; set; }
         #endregion
 
         /// <summary>
