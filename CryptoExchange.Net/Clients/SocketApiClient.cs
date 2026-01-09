@@ -710,6 +710,10 @@ namespace CryptoExchange.Net.Clients
                 if (connection != null && !connection.DedicatedRequestConnection.Authenticated)
                     // Mark dedicated request connection as authenticated if the request is authenticated
                     connection.DedicatedRequestConnection.Authenticated = authenticated;
+
+                if (connection == null)
+                    // Fall back to an existing connection if there is no dedicated request connection available
+                    connection = socketQuery.OrderBy(s => s.UserSubscriptionCount).FirstOrDefault();
             }
 
             bool maxConnectionsReached = _socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections);

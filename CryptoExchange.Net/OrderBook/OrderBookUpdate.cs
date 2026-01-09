@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.OrderBook
     {
         public DateTime? LocalDataTime { get; set; }
         public DateTime? ServerDataTime { get; set; }
-        public long SequenceNumber { get; set; }
+        public long? SequenceNumber { get; set; }
         public ISymbolOrderBookEntry[] Bids { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
         public ISymbolOrderBookEntry[] Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
     }

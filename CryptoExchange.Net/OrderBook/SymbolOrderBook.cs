@@ -50,6 +50,13 @@ namespace CryptoExchange.Net.OrderBook
 
         private static readonly ISymbolOrderBookEntry _emptySymbolOrderBookEntry = new EmptySymbolOrderBookEntry();
 
+        private enum SequenceNumberResult
+        {
+            Skip,
+            Ok,
+            OutOfSync
+        }
+
         /// <summary>
         /// A buffer to store messages received before the initial book snapshot is processed. These messages
         /// will be processed after the book snapshot is set. Any messages in this buffer with sequence numbers lower
@@ -423,16 +430,16 @@ namespace CryptoExchange.Net.OrderBook
         protected virtual bool DoChecksum(int checksum) => true;
 
         /// <summary>
-        /// Set the initial data for the order book. Typically the snapshot which was requested from the Rest API, or the first snapshot
-        /// received from a socket subscription
+        /// Set snapshot data for the order book. Typically the snapshot which was requested from the Rest API, or the first snapshot
+        /// received from a socket subscription. Will clear any previous data.
         /// </summary>
         /// <param name="orderBookSequenceNumber">The last update sequence number until which the snapshot is in sync</param>
         /// <param name="askList">List of asks</param>
         /// <param name="bidList">List of bids</param>
         /// <param name="serverDataTime">Server data timestamp</param>
         /// <param name="localDataTime">local data timestamp</param>
-        protected void SetInitialOrderBook(
-            long orderBookSequenceNumber,
+        protected void SetSnapshot(
+            long? orderBookSequenceNumber,
             ISymbolOrderBookEntry[] bidList,
             ISymbolOrderBookEntry[] askList,
             DateTime? serverDataTime = null,
@@ -557,7 +564,12 @@ namespace CryptoExchange.Net.OrderBook
                 _logger.OrderBookProcessingBufferedUpdates(Api, Symbol, _processBuffer.Count);
 
             foreach (var bufferEntry in _processBuffer)
+            {
+                if (_stopProcessing)
+                    break;
+
                 ProcessUpdate(bufferEntry.FirstUpdateId, bufferEntry.LastUpdateId, bufferEntry.Bids, bufferEntry.Asks, true);
+            }
 
             _processBuffer.Clear();
         }
@@ -707,12 +719,6 @@ namespace CryptoExchange.Net.OrderBook
             });
         }
 
-        protected void TriggerResubscribe()
-        {
-            _stopProcessing = true;
-            Resubscribe();
-        }
-
         private void CheckBestOffersChanged(ISymbolOrderBookEntry prevBestBid, ISymbolOrderBookEntry prevBestAsk)
         {
             var (bestBid, bestAsk) = BestOffers;
@@ -793,7 +799,8 @@ namespace CryptoExchange.Net.OrderBook
                 foreach (var bid in item.Bids)
                     _bids.Add(bid.Price, bid);
 
-                LastSequenceNumber = item.SequenceNumber;
+                if (item.SequenceNumber != null)
+                    LastSequenceNumber = item.SequenceNumber.Value;
 
                 AskCount = _asks.Count;
                 BidCount = _bids.Count;
@@ -921,33 +928,23 @@ namespace CryptoExchange.Net.OrderBook
             IEnumerable<ISymbolOrderBookEntry> asks,
             bool fromBuffer)
         {
-            if (updateSequenceNumberEnd <= LastSequenceNumber)
+            var sequenceResult = fromBuffer ? ValidateBufferSequenceNumber(updateSequenceNumberStart, updateSequenceNumberEnd) : ValidateLiveSequenceNumber(updateSequenceNumberStart);
+            if (sequenceResult == SequenceNumberResult.Skip)
             {
-                if (fromBuffer)
-                {
-                    // We're already past this update, discard buffered update
-                    _logger.OrderBookUpdateSkipped(Api, Symbol, updateSequenceNumberEnd, LastSequenceNumber);
-                    return;
-                }
+                if (updateSequenceNumberStart != updateSequenceNumberEnd)
+                    _logger.OrderBookUpdateSkipped(Api, Symbol, updateSequenceNumberStart, updateSequenceNumberEnd, LastSequenceNumber);
                 else
-                {
-                    // Somehow this sequence number is before the last sequence number
-                    _stopProcessing = true;
-                    Resubscribe();
-                    return;
-                }
+                    _logger.OrderBookUpdateSkipped(Api, Symbol, updateSequenceNumberStart, LastSequenceNumber);
+
+                return;
             }
 
-            if (_sequencesAreConsecutive && updateSequenceNumberStart != LastSequenceNumber + 1)
+            if (sequenceResult == SequenceNumberResult.OutOfSync)
             {
-                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
-                {
-                    // Expected the start sequenceNumber to be LastSequenceNumber + 1, but wasn't
-                    _logger.OrderBookOutOfSync(Api, Symbol, LastSequenceNumber + 1, updateSequenceNumberEnd);
-                    _stopProcessing = true;
-                    Resubscribe();
-                    return;
-                }
+                _logger.OrderBookOutOfSync(Api, Symbol, LastSequenceNumber + 1, updateSequenceNumberStart);
+                _stopProcessing = true;
+                Resubscribe();
+                return;
             }
 
             foreach (var entry in bids)
@@ -981,7 +978,40 @@ namespace CryptoExchange.Net.OrderBook
                 else
                     _logger.OrderBookProcessedMessage(Api, Symbol, updateSequenceNumberStart);
             }
-        }        
+        }
+
+        private SequenceNumberResult ValidateBufferSequenceNumber(long startSequenceNumber, long endSequenceNumber)
+        {
+            if (endSequenceNumber <= LastSequenceNumber)
+                // Buffered update is from before the snapshot, ignore
+                return SequenceNumberResult.Skip;
+
+            if (_sequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
+            {
+                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                    // Buffered update is not the next sequence number when it was expected
+                    return SequenceNumberResult.OutOfSync;
+            }
+
+            // Buffered sequence number is larger than the last sequence number
+            return SequenceNumberResult.Ok;
+        }
+
+        private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
+        {
+            if (sequenceNumber < LastSequenceNumber)
+                return SequenceNumberResult.OutOfSync;
+
+            if (_sequencesAreConsecutive
+                && LastSequenceNumber != 0
+                && sequenceNumber != LastSequenceNumber + 1)
+            {
+                if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
+                    return SequenceNumberResult.OutOfSync;                
+            }
+
+            return SequenceNumberResult.Ok;
+        }
     }
 
     internal class DescComparer<T> : IComparer<T>

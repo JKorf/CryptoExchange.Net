@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, string, Exception?> _orderBookResyncing;
         private static readonly Action<ILogger, string, string, Exception?> _orderBookResynced;
         private static readonly Action<ILogger, string, string, Exception?> _orderBookMessageSkippedBecauseOfResubscribing;
-        private static readonly Action<ILogger, string, string, long, long, long, Exception?> _orderBookDataSet;
+        private static readonly Action<ILogger, string, string, long, long, long?, Exception?> _orderBookDataSet;
         private static readonly Action<ILogger, string, string, long, long, long, long, Exception?> _orderBookUpdateBuffered;
         private static readonly Action<ILogger, string, string, decimal, decimal, Exception?> _orderBookOutOfSyncDetected;
         private static readonly Action<ILogger, string, string, Exception?> _orderBookReconnectingSocket;
@@ -30,6 +30,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, string, long, long, Exception?> _orderBookProcessedMessage;
         private static readonly Action<ILogger, string, string, long, Exception?> _orderBookProcessedMessageSingle;
         private static readonly Action<ILogger, string, string, long, long, Exception?> _orderBookOutOfSync;
+        private static readonly Action<ILogger, string, string, long, long, long, Exception?> _orderBookUpdateSkippedStartEnd;
 
         static SymbolOrderBookLoggingExtensions()
         {
@@ -93,7 +94,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 new EventId(5011, "OrderBookMessageSkippedResubscribing"),
                 "{Api} order book {Symbol} Skipping message because of resubscribing");
 
-            _orderBookDataSet = LoggerMessage.Define<string, string, long, long, long>(
+            _orderBookDataSet = LoggerMessage.Define<string, string, long, long, long?>(
                 LogLevel.Debug,
                 new EventId(5012, "OrderBookDataSet"),
                 "{Api} order book {Symbol} snapshot set: {BidCount} bids, {AskCount} asks. #{EndUpdateId}");
@@ -142,6 +143,12 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Trace,
                 new EventId(5021, "OrderBookProcessedMessage"),
                 "{Api} order book {Symbol} update processed #{UpdateId}");
+
+            _orderBookUpdateSkippedStartEnd = LoggerMessage.Define<string, string, long, long, long>(
+                LogLevel.Debug,
+                new EventId(5022, "OrderBookUpdateSkippedStartEnd"),
+                "{Api} order book {Symbol} update skipped #{SequenceStart}-#{SequenceEnd}, currently at #{LastSequenceNumber}");
+
         }
 
         public static void OrderBookStatusChanged(this ILogger logger, string api, string symbol, OrderBookStatus previousStatus, OrderBookStatus newStatus)
@@ -200,7 +207,7 @@ namespace CryptoExchange.Net.Logging.Extensions
         {
             _orderBookMessageSkippedBecauseOfResubscribing(logger, api, symbol, null);
         }
-        public static void OrderBookDataSet(this ILogger logger, string api, string symbol, long bidCount, long askCount, long endUpdateId)
+        public static void OrderBookDataSet(this ILogger logger, string api, string symbol, long bidCount, long askCount, long? endUpdateId)
         {
             _orderBookDataSet(logger, api, symbol, bidCount, askCount, endUpdateId, null);
         }
@@ -242,6 +249,11 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void OrderBookOutOfSyncChecksum(this ILogger logger, string api, string symbol)
         {
             _orderBookOutOfSyncChecksum(logger, api, symbol, null);
+        }
+
+        public static void OrderBookUpdateSkipped(this ILogger logger, string api, string symbol, long sequenceStart, long sequenceEnd, long lastSequenceNumber)
+        {
+            _orderBookUpdateSkippedStartEnd(logger, api, symbol, sequenceStart, sequenceEnd, lastSequenceNumber, null);
         }
     }
 }
