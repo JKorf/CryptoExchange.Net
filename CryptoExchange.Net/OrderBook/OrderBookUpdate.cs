@@ -3,7 +3,7 @@ using System;
 
 namespace CryptoExchange.Net.OrderBook
 {
-    internal class ProcessQueueItem
+    internal class OrderBookUpdate
     {
         public DateTime? LocalDataTime { get; set; }
         public DateTime? ServerDataTime { get; set; }
@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.OrderBook
         public ISymbolOrderBookEntry[] Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
     }
 
-    internal class InitialOrderBookItem
+    internal class OrderBookSnapshot
     {
         public DateTime? LocalDataTime { get; set; }
         public DateTime? ServerDataTime { get; set; }
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.OrderBook
         public ISymbolOrderBookEntry[] Asks { get; set; } = Array.Empty<ISymbolOrderBookEntry>();
     }
 
-    internal class ChecksumItem
+    internal class OrderBookChecksum
     {
         public long? SequenceNumber { get; set; }
         public int Checksum { get; set; }

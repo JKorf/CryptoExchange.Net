@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _orderBookDataSet = LoggerMessage.Define<string, string, long, long, long>(
                 LogLevel.Debug,
                 new EventId(5012, "OrderBookDataSet"),
-                "{Api} order book {Symbol} data set: {BidCount} bids, {AskCount} asks. #{EndUpdateId}");
+                "{Api} order book {Symbol} snapshot set: {BidCount} bids, {AskCount} asks. #{EndUpdateId}");
 
             _orderBookUpdateBuffered = LoggerMessage.Define<string, string, long, long, long, long>(
                 LogLevel.Trace,
