@@ -10,6 +10,8 @@ namespace CryptoExchange.Net.Interfaces
     /// </summary>
     public interface ISymbolOrderBook
     {
+        Task ReconnectAsync();
+
         /// <summary>
         /// The exchange the book is for
         /// </summary>

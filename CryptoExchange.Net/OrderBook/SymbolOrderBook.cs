@@ -39,6 +39,7 @@ namespace CryptoExchange.Net.OrderBook
         private readonly AsyncResetEvent _queueEvent;
         private readonly ConcurrentQueue<object> _processQueue;
         private bool _validateChecksum;
+        private bool _firstUpdateAfterSnapshotDone;
 
         private class EmptySymbolOrderBookEntry : ISymbolOrderBookEntry
         {
@@ -85,8 +86,10 @@ namespace CryptoExchange.Net.OrderBook
         /// </summary>
         protected bool _sequencesAreConsecutive;
 
+        /// <summary>
+        /// Whether the first update message after a snapshot may have overlapping sequence numbers instead of the snapshot sequence number + 1
+        /// </summary>
         protected bool _skipSequenceCheckFirstUpdateAfterSnapshotSet;
-        private bool _firstUpdateAfterSnapshotDone;
 
         /// <summary>
         /// Whether levels should be strictly enforced. For example, when an order book has 25 levels and a new update comes in which pushes
@@ -323,6 +326,11 @@ namespace CryptoExchange.Net.OrderBook
 
         private async void HandleConnectionRestored(TimeSpan _) {
             await ResyncAsync().ConfigureAwait(false);
+        }
+
+        public async Task ReconnectAsync()
+        {
+            _subscription.ReconnectAsync();
         }
 
         /// <inheritdoc/>
@@ -989,7 +997,7 @@ namespace CryptoExchange.Net.OrderBook
             if (_sequencesAreConsecutive && startSequenceNumber != LastSequenceNumber + 1)
             {
                 if (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet)
-                    // Buffered update is not the next sequence number when it was expected
+                    // Buffered update is not the next sequence number when it was expected to be
                     return SequenceNumberResult.OutOfSync;
             }
 
@@ -1000,6 +1008,7 @@ namespace CryptoExchange.Net.OrderBook
         private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
         {
             if (sequenceNumber < LastSequenceNumber)
+                // Update is somehow from before the current state
                 return SequenceNumberResult.OutOfSync;
 
             if (_sequencesAreConsecutive
