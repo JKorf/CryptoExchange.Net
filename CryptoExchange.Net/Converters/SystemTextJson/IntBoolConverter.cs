@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             _trueValue = trueValue;
         }
 
+        /// <inheritdoc />
         public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.Number)
@@ -28,6 +29,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return reader.GetDecimal() == _trueValue;              
         }
 
+        /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
         {
             writer.WriteNumberValue(_trueValue);
