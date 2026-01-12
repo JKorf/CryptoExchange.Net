@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "{Api} order book {Symbol} Processing {NumberBufferedUpdated} buffered updates");
 
             _orderBookUpdateSkipped = LoggerMessage.Define<string, string, long, long>(
-                LogLevel.Debug,
+                LogLevel.Trace,
                 new EventId(5008, "OrderBookUpdateSkipped"),
                 "{Api} order book {Symbol} update skipped #{SequenceNumber}, currently at #{LastSequenceNumber}");
 
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "{Api} order book {Symbol} Skipping message because of resubscribing");
 
             _orderBookDataSet = LoggerMessage.Define<string, string, long, long, long?>(
-                LogLevel.Debug,
+                LogLevel.Trace,
                 new EventId(5012, "OrderBookDataSet"),
                 "{Api} order book {Symbol} snapshot set: {BidCount} bids, {AskCount} asks. #{EndUpdateId}");
 
@@ -145,7 +145,7 @@ namespace CryptoExchange.Net.Logging.Extensions
                 "{Api} order book {Symbol} update processed #{UpdateId}");
 
             _orderBookUpdateSkippedStartEnd = LoggerMessage.Define<string, string, long, long, long>(
-                LogLevel.Debug,
+                LogLevel.Trace,
                 new EventId(5022, "OrderBookUpdateSkippedStartEnd"),
                 "{Api} order book {Symbol} update skipped #{SequenceStart}-#{SequenceEnd}, currently at #{LastSequenceNumber}");
 
