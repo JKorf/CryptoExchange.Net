@@ -328,11 +328,6 @@ namespace CryptoExchange.Net.OrderBook
             await ResyncAsync().ConfigureAwait(false);
         }
 
-        public async Task ReconnectAsync()
-        {
-            _subscription.ReconnectAsync();
-        }
-
         /// <inheritdoc/>
         public async Task StopAsync()
         {
