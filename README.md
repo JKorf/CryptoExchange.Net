@@ -66,6 +66,17 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.2.0 - 12 Jan 2026
+    * Added EnforceSequenceNumbers property on SocketApiClient to configure whether websocket message contain sequence numbers and if these should be checked to be sequential
+    * Added fallback to existing websocket connection if no dedicated request connection was found
+    * Added IntBoolConverter base class for arbitrary int value to bool mapping
+    * Added SequenceNumber property to DataEvent object
+    * Added _skipSequenceCheckFirstUpdateAfterSnapshotSet property for SymbolOrderBook implementations
+    * Updated SymbolOrderBook sequenceNumber validation
+    * Updated SymbolOrderBook log verbosities
+    * Renamed SetInitialOrderBook to SetSnapshot in SymbolOrderBook
+    * Renamed updateId references to sequenceNumber in SymbolOrderBook
+
 * Version 10.1.0 - 07 Jan 2026
     * Updated time sync / time offset management for REST API's
     * Added time offset tracking for WebSocket API's
