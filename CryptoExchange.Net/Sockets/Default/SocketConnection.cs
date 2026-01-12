@@ -257,6 +257,7 @@ namespace CryptoExchange.Net.Sockets.Default
             }
         }
 
+
         private bool _pausedActivity;
 #if NET9_0_OR_GREATER
         private readonly Lock _listenersLock = new Lock();
@@ -273,6 +274,8 @@ namespace CryptoExchange.Net.Sockets.Default
 
         private ISocketMessageHandler? _byteMessageConverter;
         private ISocketMessageHandler? _textMessageConverter;
+
+        private long _lastSequenceNumber;
 
         /// <summary>
         /// The task that is sending periodic data on the websocket. Can be used for sending Ping messages every x seconds or similar. Not necessary.
@@ -293,7 +296,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// Cache for deserialization, only caches for a single message
         /// </summary>
         private readonly Dictionary<Type, object> _deserializationCache = new Dictionary<Type, object>();
-
+        
         /// <summary>
         /// New socket connection
         /// </summary>
@@ -340,6 +343,7 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             Status = SocketStatus.Closed;
             Authenticated = false;
+            _lastSequenceNumber = 0;
 
             if (ApiClient._socketConnections.ContainsKey(SocketId))
                 ApiClient._socketConnections.TryRemove(SocketId, out _);
@@ -371,6 +375,7 @@ namespace CryptoExchange.Net.Sockets.Default
             Status = SocketStatus.Reconnecting;
             DisconnectTime = DateTime.UtcNow;
             Authenticated = false;
+            _lastSequenceNumber = 0;
 
             lock (_listenersLock)
             {
@@ -1278,6 +1283,23 @@ namespace CryptoExchange.Net.Sockets.Default
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             subscription.HandleSubQueryResponse(this, subQuery.Response!);
             return result;
+        }
+
+        /// <summary>
+        /// Update the sequence number for this connection
+        /// </summary>
+        public void UpdateSequenceNumber(long sequenceNumber)
+        {
+            if (ApiClient.EnforceSequenceNumbers
+                && _lastSequenceNumber != 0
+                && _lastSequenceNumber + 1 != sequenceNumber)
+            {
+                // Not sequential
+                _logger.LogWarning("[Sckt {SocketId}] update not in sequence. Last recorded sequence number: {LastSequence}, update sequence number: {UpdateSequence}. Reconnecting", SocketId, _lastSequenceNumber, sequenceNumber);
+                _ = TriggerReconnectAsync();
+            }
+
+            _lastSequenceNumber = sequenceNumber;
         }
 
         /// <summary>
