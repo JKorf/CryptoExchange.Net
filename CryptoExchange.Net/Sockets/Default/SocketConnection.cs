@@ -1291,8 +1291,9 @@ namespace CryptoExchange.Net.Sockets.Default
         public void UpdateSequenceNumber(long sequenceNumber)
         {
             if (ApiClient.EnforceSequenceNumbers
-                && _lastSequenceNumber != 0
-                && _lastSequenceNumber + 1 != sequenceNumber)
+                && _lastSequenceNumber != 0 // Initial value is 0
+                && _lastSequenceNumber != sequenceNumber // When there are multiple listeners for the same message it's possible this gets recorded multiple times, shouldn't be an issue
+                && _lastSequenceNumber + 1 != sequenceNumber) // Expected value
             {
                 // Not sequential
                 _logger.LogWarning("[Sckt {SocketId}] update not in sequence. Last recorded sequence number: {LastSequence}, update sequence number: {UpdateSequence}. Reconnecting", SocketId, _lastSequenceNumber, sequenceNumber);
