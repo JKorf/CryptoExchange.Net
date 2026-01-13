@@ -802,7 +802,6 @@ namespace CryptoExchange.Net.Clients
             return new CallResult<HighPerfSocketConnection<TUpdateType>>(socketConnection);
         }
 
-
         /// <summary>
         /// Process an unhandled message
         /// </summary>
@@ -810,6 +809,14 @@ namespace CryptoExchange.Net.Clients
         protected virtual void HandleUnhandledMessage(IMessageAccessor message)
         {
         }
+
+        /// <summary>
+        /// Process an unhandled message
+        /// </summary>
+        /// <param name="connection">The socket connection</param>
+        /// <param name="typeIdentifier">The type as identified</param>
+        /// <param name="data">The data</param>
+        protected internal virtual bool HandleUnhandledMessage(SocketConnection connection, string typeIdentifier, ReadOnlySpan<byte> data) => false;
 
         /// <summary>
         /// Process connect rate limited

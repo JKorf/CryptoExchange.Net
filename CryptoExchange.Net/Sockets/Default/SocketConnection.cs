@@ -571,8 +571,12 @@ namespace CryptoExchange.Net.Sockets.Default
 
             if (deserializationType == null)
             {
-                // No handler found for identifier either, can't process
-                _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", typeIdentifier, Encoding.UTF8.GetString(data.ToArray()));
+                if (!ApiClient.HandleUnhandledMessage(this, typeIdentifier, data))
+                {
+                    // No handler found for identifier either, can't process
+                    _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", typeIdentifier, Encoding.UTF8.GetString(data.ToArray()));
+                }
+                    
                 return;
             }
             
