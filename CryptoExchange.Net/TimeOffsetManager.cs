@@ -113,7 +113,8 @@ namespace CryptoExchange.Net
         /// <param name="api"></param>
         internal static void RegisterRestApi(string api)
         {
-            _lastRestDelays[api] = new RestTimeOffset();
+            if (!_lastRestDelays.ContainsKey(api))
+                _lastRestDelays.TryAdd(api, new RestTimeOffset());
         }
 
         /// <summary>
