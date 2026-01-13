@@ -22,7 +22,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         private static readonly Action<ILogger, string, Exception?> _restApiCacheHit;
         private static readonly Action<ILogger, string, Exception?> _restApiCacheNotHit;
         private static readonly Action<ILogger, int?, Exception?> _restApiCancellationRequested;
-        private static readonly Action<ILogger, int?, string?, Exception?> _restApiReceivedResponse;
 
         static RestApiClientLoggingExtensions()
         {
@@ -90,11 +89,6 @@ namespace CryptoExchange.Net.Logging.Extensions
                 LogLevel.Debug,
                 new EventId(4012, "RestApiCancellationRequested"),
                 "[Req {RequestId}] Request cancelled by user");
-
-            _restApiReceivedResponse = LoggerMessage.Define<int?, string?>(
-                LogLevel.Trace,
-                new EventId(4013, "RestApiReceivedResponse"),
-                "[Req {RequestId}] Received response: {Data}");
             
         }
 
@@ -160,11 +154,6 @@ namespace CryptoExchange.Net.Logging.Extensions
         public static void RestApiCancellationRequested(this ILogger logger, int? requestId)
         {
             _restApiCancellationRequested(logger, requestId, null);
-        }
-
-        public static void RestApiReceivedResponse(this ILogger logger, int requestId, string? originalData)
-        {
-            _restApiReceivedResponse(logger, requestId, originalData, null);
         }
     }
 }

@@ -454,9 +454,6 @@ namespace CryptoExchange.Net.Clients
                     {
                         memoryStream.Position = 0;
                         originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
-
-                        if (_logger.IsEnabled(LogLevel.Trace))
-                            _logger.RestApiReceivedResponse(request.RequestId, originalData);
                     }
 
                     // Continue processing from the memory stream since the response stream is already read and we can't seek it
