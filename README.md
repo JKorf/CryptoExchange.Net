@@ -66,6 +66,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.2.1 - 13 Jan 2026
+    * Removed duplicate logging for rest responses in Trace verbosity
+    * Fixed parameter URL creation for array values with ArrayParametersSerialization.MultipleValues
+
 * Version 10.2.0 - 12 Jan 2026
     * Added EnforceSequenceNumbers property on SocketApiClient to configure whether websocket message contain sequence numbers and if these should be checked to be sequential
     * Added fallback to existing websocket connection if no dedicated request connection was found
