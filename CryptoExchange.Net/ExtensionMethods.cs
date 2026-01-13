@@ -86,8 +86,12 @@ namespace CryptoExchange.Net
                     }
                     else if (serializationType == ArrayParametersSerialization.MultipleValues)
                     {
+                        bool firstArrayValue = true;
                         foreach (var entry in (object[])parameter.Value)
                         {
+                            if (!firstArrayValue)
+                                uriString.Append('&');
+                            firstArrayValue = false;
                             uriString.Append(parameter.Key);
                             uriString.Append("=");
                             if (urlEncodeValues)
