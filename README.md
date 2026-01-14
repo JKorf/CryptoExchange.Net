@@ -66,6 +66,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.2.3 - 14 Jan 2026
+    * Added HandleUnhandledMessage virtual method to SocketApiClient to allow some processing for messages which couldn't be mapped via the normal way
+    * Fixed semaphore exception when creating a new REST client while time sync is in progress on another client
+
 * Version 10.2.2 - 13 Jan 2026
     * Allow the same websocket connection sequence number to be recorded multiple times
 
