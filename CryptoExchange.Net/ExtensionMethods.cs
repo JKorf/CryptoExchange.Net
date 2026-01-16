@@ -74,8 +74,13 @@ namespace CryptoExchange.Net
                 {
                     if (serializationType == ArrayParametersSerialization.Array)
                     {
-                        foreach(var entry in (object[])parameter.Value)
+                        bool firstArrayValue = true;
+                        foreach (var entry in (object[])parameter.Value)
                         {
+                            if (!firstArrayValue)
+                                uriString.Append('&');
+                            firstArrayValue = false;
+
                             uriString.Append(parameter.Key);
                             uriString.Append("[]=");
                             if (urlEncodeValues)
@@ -610,6 +615,26 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IPositionSocketClient)client(x)!);
 
             return services;
+        }
+
+        /// <summary>
+        /// Convert a hex encoded string to byte array
+        /// </summary>
+        /// <param name="hexString"></param>
+        /// <returns></returns>
+        public static byte[] HexStringToBytes(this string hexString)
+        {
+            if (hexString.StartsWith("0x"))
+                hexString = hexString.Substring(2);
+
+            byte[] bytes = new byte[hexString.Length / 2];
+            for (int i = 0; i < hexString.Length; i += 2)
+            {
+                string hexSubstring = hexString.Substring(i, 2);
+                bytes[i / 2] = Convert.ToByte(hexSubstring, 16);
+            }
+
+            return bytes;
         }
     }
 }

@@ -97,6 +97,23 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Add a DateTime value as string
+        /// </summary>
+        public void AddString(string key, DateTime value)
+        {
+            base.Add(key, value.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+        }
+
+        /// <summary>
+        /// Add a DateTime value as string. Not added if value is null
+        /// </summary>
+        public void AddOptionalString(string key, DateTime? value)
+        {
+            if (value != null)
+                base.Add(key, value.Value.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+        }
+
+        /// <summary>
         /// Add a datetime value as milliseconds timestamp
         /// </summary>
         /// <param name="key"></param>
@@ -241,6 +258,45 @@ namespace CryptoExchange.Net.Objects
                 base.Add(key, int.Parse(stringVal));
             }
         }
+        
+        /// <summary>
+        /// Add key as comma separated values
+        /// </summary>
+        public void AddCommaSeparated(string key, IEnumerable<string> values)
+        {
+            base.Add(key, string.Join(",", values));
+        }
+
+        /// <summary>
+        /// Add key as comma separated values if there are values provided
+        /// </summary>
+        public void AddOptionalCommaSeparated(string key, IEnumerable<string>? values)
+        {
+            if (values == null || !values.Any())
+                return;
+
+            base.Add(key, string.Join(",", values));
+        }
+
+        /// <summary>
+        /// Add key as boolean lower case value
+        /// </summary>
+        public void AddBoolString(string key, bool value)
+        {
+            base.Add(key, value.ToString().ToLower());
+        }
+
+        /// <summary>
+        /// Add key as boolean lower case value if it's not null
+        /// </summary>
+        public void AddOptionalBoolString(string key, bool? value)
+        {
+            if (value == null)
+                return;
+
+            base.Add(key, value.ToString()!.ToLower());
+        }
+
 
         /// <summary>
         /// Set the request body. Can be used to specify a simple value or array as the body instead of an object
