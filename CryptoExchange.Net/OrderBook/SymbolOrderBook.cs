@@ -641,6 +641,34 @@ namespace CryptoExchange.Net.OrderBook
         }
 
         /// <summary>
+        /// Wait until an update has been buffered
+        /// </summary>
+        /// <param name="timeout">Max wait time</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        protected async Task<CallResult<bool>> WaitUntilFirstUpdateBufferedAsync(TimeSpan timeout, CancellationToken ct)
+        {
+            var startWait = DateTime.UtcNow;
+            while (_processBuffer.Count == 0)
+            {
+                if (ct.IsCancellationRequested)
+                    return new CallResult<bool>(new CancellationRequestedError());
+
+                if (DateTime.UtcNow - startWait > timeout)
+                    return new CallResult<bool>(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
+
+                try
+                {
+                    await Task.Delay(20, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                { }
+            }
+
+            return new CallResult<bool>(true);
+        }
+
+        /// <summary>
         /// IDisposable implementation for the order book
         /// </summary>
         public void Dispose()
@@ -1002,7 +1030,8 @@ namespace CryptoExchange.Net.OrderBook
 
         private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
         {
-            if (sequenceNumber < LastSequenceNumber)
+            if (sequenceNumber < LastSequenceNumber 
+                && (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet))
                 // Update is somehow from before the current state
                 return SequenceNumberResult.OutOfSync;
 
