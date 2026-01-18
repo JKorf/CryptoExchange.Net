@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -138,6 +140,26 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="api">API name</param>
         public static TimeSpan? GetSocketOffset(string api) => _lastSocketDelays.TryGetValue(api, out var val) && val.Offset != null ? TimeSpan.FromMilliseconds(val.Offset.Value) : null;
+
+        /// <summary>
+        /// Get a dictionary of API/Client name -> time offset for Rest api's
+        /// </summary>
+        public static Dictionary<string, TimeSpan?> GetRestOffsets()
+        {
+            return _lastRestDelays.ToDictionary(
+                x => x.Key, 
+                x => (x.Value.Offset == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(x.Value.Offset.Value)));
+        }
+
+        /// <summary>
+        /// Get a dictionary of API/Client name -> time offset for Websocket api's
+        /// </summary>
+        public static Dictionary<string, TimeSpan?> GetWebsocketOffsets()
+        {
+            return _lastSocketDelays.ToDictionary(
+                x => x.Key,
+                x => (x.Value.Offset == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(x.Value.Offset.Value)));
+        }
 
         /// <summary>
         /// Reset the WebSocket API update timestamp to trigger a new time offset calculation
