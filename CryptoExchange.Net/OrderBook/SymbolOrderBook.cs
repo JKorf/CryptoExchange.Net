@@ -643,19 +643,20 @@ namespace CryptoExchange.Net.OrderBook
         /// <summary>
         /// Wait until an update has been buffered
         /// </summary>
-        /// <param name="timeout">Max wait time</param>
+        /// <param name="minWait">Min wait time</param>
+        /// <param name="maxWait">Max wait time</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        protected async Task<CallResult<bool>> WaitUntilFirstUpdateBufferedAsync(TimeSpan timeout, CancellationToken ct)
+        protected async Task<CallResult> WaitUntilFirstUpdateBufferedAsync(TimeSpan? minWait, TimeSpan maxWait, CancellationToken ct)
         {
             var startWait = DateTime.UtcNow;
             while (_processBuffer.Count == 0)
             {
                 if (ct.IsCancellationRequested)
-                    return new CallResult<bool>(new CancellationRequestedError());
+                    return new CallResult(new CancellationRequestedError());
 
-                if (DateTime.UtcNow - startWait > timeout)
-                    return new CallResult<bool>(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
+                if (DateTime.UtcNow - startWait > maxWait)
+                    return new CallResult(new ServerError(new ErrorInfo(ErrorType.OrderBookTimeout, "Timeout while waiting for data")));
 
                 try
                 {
@@ -665,7 +666,14 @@ namespace CryptoExchange.Net.OrderBook
                 { }
             }
 
-            return new CallResult<bool>(true);
+            if (minWait != null)
+            {
+                var dif = DateTime.UtcNow - startWait;
+                if (dif < minWait)
+                    await Task.Delay(minWait.Value - dif).ConfigureAwait(false);
+            }
+
+            return CallResult.SuccessResult;
         }
 
         /// <summary>
