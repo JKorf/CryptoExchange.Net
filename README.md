@@ -66,6 +66,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.2.5 - 19 Jan 2026
+    * Updated SymbolOrderBook.WaitUntilFirstUpdateBufferedAsync
+    * Added GetRestOffsets and GetWebsocketOffsets to TimeOffsetManager
+
 * Version 10.2.4 - 17 Jan 2026
     * Added WaitUntilFirstUpdateBufferedAsync method on SymbolOrderBook
     * Added some util methods
