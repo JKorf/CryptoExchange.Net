@@ -356,6 +356,9 @@ namespace CryptoExchange.Net.Clients
                         return new CallResult<UpdateSubscription>(subResult.Error!);
                     }
                 }
+
+                if (!subQuery.ExpectsResponse)
+                    HandleSubscriptionComplete(true, null);
             }
             else 
             {

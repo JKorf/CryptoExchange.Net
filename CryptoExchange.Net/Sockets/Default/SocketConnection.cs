@@ -1249,6 +1249,13 @@ namespace CryptoExchange.Net.Sockets.Default
                     };
 
                     taskList.Add(SendAndWaitQueryAsync(subQuery));
+
+                    if (!subQuery.ExpectsResponse)
+                    {
+                        // If there won't be an answer we can immediately set this
+                        subscription.Status = SubscriptionStatus.Subscribed;
+                        subscription.HandleSubQueryResponse(this, null);
+                    }
                 }
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
