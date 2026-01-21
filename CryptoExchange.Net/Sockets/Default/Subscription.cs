@@ -149,8 +149,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an unsubscription query response
         /// </summary>
-        #warning ?
-        public virtual void HandleUnsubQueryResponse(SocketConnection connection, object message) { }
+        public virtual void HandleUnsubQueryResponse(SocketConnection connection, object? message) { }
 
         /// <summary>
         /// Create a new unsubscription query

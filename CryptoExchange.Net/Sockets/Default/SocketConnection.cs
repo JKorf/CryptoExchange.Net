@@ -1114,6 +1114,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 return;
 
             await SendAndWaitQueryAsync(unsubscribeRequest).ConfigureAwait(false);
+            subscription.HandleUnsubQueryResponse(this, unsubscribeRequest.Response);
             _logger.SubscriptionUnsubscribed(SocketId, subscription.Id);
         }
 
@@ -1127,7 +1128,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 return CallResult.SuccessResult;
 
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
-            subscription.HandleSubQueryResponse(this, subQuery.Response!);
+            subscription.HandleSubQueryResponse(this, subQuery.Response);
             return result;
         }
 
