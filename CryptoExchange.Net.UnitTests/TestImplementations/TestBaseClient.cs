@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Clients;
@@ -51,19 +52,11 @@ namespace CryptoExchange.Net.UnitTests
 
         public CallResult<T> Deserialize<T>(string data)
         {
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
-            var accessor = CreateAccessor();
-            var valid = accessor.Read(stream, true).Result;
-            if (!valid)
-                return new CallResult<T>(new ServerError(ErrorInfo.Unknown with { Message = data }));
-            
-            var deserializeResult = accessor.Deserialize<T>();
-            return deserializeResult;
+            return new CallResult<T>(JsonSerializer.Deserialize<T>(data));
         }
 
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
-        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions());
         protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
         protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();

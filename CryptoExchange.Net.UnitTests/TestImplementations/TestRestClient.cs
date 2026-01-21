@@ -142,7 +142,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
 
-        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions() { TypeInfoResolver = new TestSerializerContext() });
         protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
 
         public async Task<CallResult<T>> Request<T>(CancellationToken ct = default) where T : class
@@ -178,7 +177,6 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             RequestFactory = new Mock<IRequestFactory>().Object;
         }
 
-        protected override IStreamMessageAccessor CreateAccessor() => new SystemTextJsonStreamMessageAccessor(new System.Text.Json.JsonSerializerOptions());
         protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
 
         /// <inheritdoc />

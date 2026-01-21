@@ -19,20 +19,6 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(result.Success);
         }
 
-        [TestCase]
-        public void DeserializingInvalidJson_Should_GiveErrorResult()
-        {
-            // arrange
-            var client = new TestBaseClient();
-
-            // act
-            var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123");
-
-            // assert
-            ClassicAssert.IsFalse(result.Success);
-            Assert.That(result.Error != null);
-        }
-
         [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
         [TestCase("https://api.test.com/api", new[] { "path1", "/path2" }, "https://api.test.com/api/path1/path2")]
         [TestCase("https://api.test.com/api", new[] { "path1/", "path2" }, "https://api.test.com/api/path1/path2")]

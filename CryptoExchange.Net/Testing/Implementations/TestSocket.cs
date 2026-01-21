@@ -12,7 +12,8 @@ using CryptoExchange.Net.Sockets.Default.Interfaces;
 
 namespace CryptoExchange.Net.Testing.Implementations
 {
-    internal class TestSocket : IWebsocket
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+    public class TestSocket : IWebsocket
     {
         public event Action<string>? OnMessageSend;
 
@@ -108,7 +109,17 @@ namespace CryptoExchange.Net.Testing.Implementations
             Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
         }
 
-        public Task ReconnectAsync() => Task.CompletedTask;
+        public async Task ReconnectAsync()
+        {
+            if (OnReconnecting != null)
+                await OnReconnecting().ConfigureAwait(false);
+
+            await Task.Delay(10).ConfigureAwait(false);
+
+            if (OnReconnected != null)
+                await OnReconnected().ConfigureAwait(false);
+        }
+
         public void Dispose() { }
 
         public void UpdateProxy(ApiProxy? proxy) => throw new NotImplementedException();

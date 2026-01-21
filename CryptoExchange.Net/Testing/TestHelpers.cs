@@ -27,8 +27,11 @@ namespace CryptoExchange.Net.Testing
     /// </summary>
     public class TestHelpers
     {
+        /// <summary>
+        /// Deep compare the values of two objects
+        /// </summary>
         [ExcludeFromCodeCoverage]
-        internal static bool AreEqual<T>(T? self, T? to, params string[] ignore) where T : class
+        public static bool AreEqual<T>(T? self, T? to, params string[] ignore) where T : class
         {
             if (self != null && to != null)
             {
@@ -61,7 +64,10 @@ namespace CryptoExchange.Net.Testing
             return self == to;
         }
 
-        internal static TestSocket ConfigureSocketClient<T>(T client, string address) where T : BaseSocketClient
+        /// <summary>
+        /// Configure a socket client
+        /// </summary>
+        public static TestSocket ConfigureSocketClient<T>(T client, string address) where T : BaseSocketClient
         {
             var socket = new TestSocket(address);
             foreach (var apiClient in client.ApiClients.OfType<SocketApiClient>())
