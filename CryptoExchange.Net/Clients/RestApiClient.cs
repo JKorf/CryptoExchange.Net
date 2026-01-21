@@ -721,7 +721,16 @@ namespace CryptoExchange.Net.Clients
                     return;
 
                 var localTime = DateTime.UtcNow;
-                var result = await GetServerTimestampAsync().ConfigureAwait(false);
+                WebCallResult<DateTime> result;
+                try
+                {
+                    result = await GetServerTimestampAsync().ConfigureAwait(false);
+                }
+                catch (NotImplementedException)
+                {
+                    throw new ArgumentException("AutoTimestamp is not available for this API");
+                }
+
                 if (!result)
                 {
                     _logger.LogWarning("Failed to determine time offset between client and server, timestamping might fail");
