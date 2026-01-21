@@ -251,6 +251,40 @@
     }
 
     /// <summary>
+    /// Type of platform
+    /// </summary>
+    public enum PlatformType 
+    { 
+        /// <summary>
+        /// Platform to trade cryptocurrency
+        /// </summary>
+        CryptoCurrencyExchange,
+        /// <summary>
+        /// Platform for trading on predictions
+        /// </summary>
+        PredictionMarket,
+        /// <summary>
+        /// Other
+        /// </summary>
+        Other
+    }
+
+    /// <summary>
+    /// Centralization type
+    /// </summary>
+    public enum CentralizationType
+    {
+        /// <summary>
+        /// Centralized, a person or company is in full control
+        /// </summary>
+        Centralized,
+        /// <summary>
+        /// Decentralized, governance is split over different entities with no single entity in full control
+        /// </summary>
+        Decentralized
+    }
+
+    /// <summary>
     /// Timeout behavior for queries
     /// </summary>
     public enum TimeoutBehavior
