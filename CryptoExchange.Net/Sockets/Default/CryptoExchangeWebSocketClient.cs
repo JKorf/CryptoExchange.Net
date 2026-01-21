@@ -96,9 +96,6 @@ namespace CryptoExchange.Net.Sockets.Default
         public event Func<Task>? OnClose;
 
         /// <inheritdoc />
-        public event Func<WebSocketMessageType, ReadOnlyMemory<byte>, Task>? OnStreamMessage;
-
-        /// <inheritdoc />
         public event Func<int, Task>? OnRequestSent;
 
         /// <inheritdoc />
@@ -139,10 +136,7 @@ namespace CryptoExchange.Net.Sockets.Default
             _sendEvent = new AsyncResetEvent();
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
-            if (websocketParameters.UseUpdatedDeserialization)
-                _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? 65536;
-            else
-                _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? _defaultReceiveBufferSize;
+            _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? 65536;
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
@@ -225,7 +219,9 @@ namespace CryptoExchange.Net.Sockets.Default
             catch (Exception e)
             {
                 if (ct.IsCancellationRequested)
+                {
                     _logger.SocketConnectingCanceled(Id);
+                }
                 else if (!_ctsSource.IsCancellationRequested)
                 {
                     // if _ctsSource was canceled this was already logged
@@ -271,11 +267,10 @@ namespace CryptoExchange.Net.Sockets.Default
                 var sendTask = SendLoopAsync();
                 Task receiveTask;
 #if !NETSTANDARD2_0
-                if (Parameters.UseUpdatedDeserialization)
-                    receiveTask = ReceiveLoopNewAsync();
-                else
+                receiveTask = ReceiveLoopNewAsync();
+#else
+                receiveTask = ReceiveLoopAsync();
 #endif
-                    receiveTask = ReceiveLoopAsync();
                 var timeoutTask = Parameters.Timeout != null && Parameters.Timeout > TimeSpan.FromSeconds(0) ? CheckTimeoutAsync() : Task.CompletedTask;
                 await Task.WhenAll(sendTask, receiveTask, timeoutTask).ConfigureAwait(false);
                 _logger.SocketFinishedProcessing(Id);
@@ -578,6 +573,7 @@ namespace CryptoExchange.Net.Sockets.Default
             }
         }
 
+#if NETSTANDARD2_0
         /// <summary>
         /// Loop for receiving and reassembling data
         /// </summary>
@@ -666,10 +662,7 @@ namespace CryptoExchange.Net.Sockets.Default
                                 if (_logger.IsEnabled(LogLevel.Trace))
                                     _logger.SocketReceivedSingleMessage(Id, receiveResult.Count);
 
-                                if (!Parameters.UseUpdatedDeserialization)
-                                    await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(buffer.Array!, buffer.Offset, receiveResult.Count)).ConfigureAwait(false);
-                                else
-                                    ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(buffer.Array!, buffer.Offset, receiveResult.Count));
+                                ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(buffer.Array!, buffer.Offset, receiveResult.Count));
                             }
                             else
                             {
@@ -703,11 +696,7 @@ namespace CryptoExchange.Net.Sockets.Default
                                 _logger.SocketReassembledMessage(Id, multipartStream!.Length);
 
                             // Get the underlying buffer of the memory stream holding the written data and delimit it (GetBuffer return the full array, not only the written part)
-
-                            if (!Parameters.UseUpdatedDeserialization)
-                                await ProcessData(receiveResult.MessageType, new ReadOnlyMemory<byte>(multipartStream!.GetBuffer(), 0, (int)multipartStream.Length)).ConfigureAwait(false);
-                            else
-                                ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream!.GetBuffer(), 0, (int)multipartStream.Length));
+                             ProcessDataNew(receiveResult.MessageType, new ReadOnlySpan<byte>(multipartStream!.GetBuffer(), 0, (int)multipartStream.Length));
                         }
                         else
                         {
@@ -732,6 +721,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _logger.SocketReceiveLoopFinished(Id);
             }
         }
+#endif
 
 #if !NETSTANDARD2_0
         /// <summary>
@@ -893,18 +883,6 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             LastActionTime = DateTime.UtcNow;
             _connection.HandleStreamMessage2(type, data);
-        }
-
-        /// <summary>
-        /// Process a stream message
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        protected async Task ProcessData(WebSocketMessageType type, ReadOnlyMemory<byte> data)
-        {
-            LastActionTime = DateTime.UtcNow;
-            await (OnStreamMessage?.Invoke(type, data) ?? Task.CompletedTask).ConfigureAwait(false);
         }
 
         /// <summary>

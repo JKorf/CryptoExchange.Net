@@ -71,11 +71,6 @@ namespace CryptoExchange.Net.Sockets.Default
         public bool Authenticated { get; }
 
         /// <summary>
-        /// Matcher for this subscription
-        /// </summary>
-        public MessageMatcher MessageMatcher { get; set; }
-
-        /// <summary>
         /// Router for this subscription
         /// </summary>
         public MessageRouter MessageRouter { get; set; }
@@ -154,6 +149,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an unsubscription query response
         /// </summary>
+        #warning ?
         public virtual void HandleUnsubQueryResponse(SocketConnection connection, object message) { }
 
         /// <summary>
@@ -171,19 +167,6 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         /// <returns></returns>
         protected abstract Query? GetUnsubQuery(SocketConnection connection);
-
-        /// <inheritdoc />
-        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
-
-        /// <summary>
-        /// Handle an update message
-        /// </summary>
-        public CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageHandlerLink matcher)
-        {
-            ConnectionInvocations++;
-            TotalInvocations++;
-            return matcher.Handle(connection, receiveTime, originalData, data);
-        }
 
         /// <summary>
         /// Handle an update message
@@ -224,12 +207,12 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="Id">The id of the subscription</param>
         /// <param name="Status">Subscription status</param>
         /// <param name="Invocations">Number of times this subscription got a message</param>
-        /// <param name="ListenMatcher">Matcher for this subscription</param>
+        /// <param name="MessageRouter">Router for this subscription</param>
         public record SubscriptionState(
             int Id,
             SubscriptionStatus Status,
             int Invocations,
-            MessageMatcher ListenMatcher
+            MessageRouter MessageRouter
         );
 
         /// <summary>
@@ -238,7 +221,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <returns></returns>
         public SubscriptionState GetState()
         {
-            return new SubscriptionState(Id, Status, TotalInvocations, MessageMatcher);
+            return new SubscriptionState(Id, Status, TotalInvocations, MessageRouter);
         }
     }
 }

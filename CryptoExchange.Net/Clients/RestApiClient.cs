@@ -115,12 +115,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Create a message accessor instance
-        /// </summary>
-        /// <returns></returns>
-        protected abstract IStreamMessageAccessor CreateAccessor();
-
-        /// <summary>
         /// Create a serializer instance
         /// </summary>
         /// <returns></returns>

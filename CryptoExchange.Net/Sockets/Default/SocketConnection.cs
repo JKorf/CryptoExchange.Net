@@ -112,11 +112,6 @@ namespace CryptoExchange.Net.Sockets.Default
         public event Action? ActivityUnpaused;
 
         /// <summary>
-        /// Unhandled message event
-        /// </summary>
-        public event Action<IMessageAccessor>? UnhandledMessage;
-
-        /// <summary>
         /// Connection was rate limited and couldn't be established
         /// </summary>
         public Func<Task>? ConnectRateLimitedAsync;
@@ -269,8 +264,6 @@ namespace CryptoExchange.Net.Sockets.Default
         private SocketStatus _status;
 
         private readonly IMessageSerializer _serializer;
-        private IByteMessageAccessor? _stringMessageAccessor;
-        private IByteMessageAccessor? _byteMessageAccessor;
 
         private ISocketMessageHandler? _byteMessageConverter;
         private ISocketMessageHandler? _textMessageConverter;
@@ -291,11 +284,6 @@ namespace CryptoExchange.Net.Sockets.Default
         /// The underlying websocket
         /// </summary>
         private readonly IWebsocket _socket;
-
-        /// <summary>
-        /// Cache for deserialization, only caches for a single message
-        /// </summary>
-        private readonly Dictionary<Type, object> _deserializationCache = new Dictionary<Type, object>();
         
         /// <summary>
         /// New socket connection
@@ -310,7 +298,6 @@ namespace CryptoExchange.Net.Sockets.Default
             _socket = socketFactory.CreateWebsocket(logger, this, parameters);
             _logger.SocketCreatedForAddress(_socket.Id, parameters.Uri.ToString());
 
-            _socket.OnStreamMessage += HandleStreamMessage;
             _socket.OnRequestSent += HandleRequestSentAsync;
             _socket.OnRequestRateLimited += HandleRequestRateLimitedAsync;
             _socket.OnConnectRateLimited += HandleConnectRateLimitedAsync;
@@ -672,144 +659,6 @@ namespace CryptoExchange.Net.Sockets.Default
         }
 
         /// <summary>
-        /// Handle a message
-        /// </summary>
-        protected virtual async Task HandleStreamMessage(WebSocketMessageType type, ReadOnlyMemory<byte> data)
-        {
-            var sw = Stopwatch.StartNew();
-            var receiveTime = DateTime.UtcNow;
-            string? originalData = null;
-
-            // 1. Decrypt/Preprocess if necessary
-            data = ApiClient.PreprocessStreamMessage(this, type, data);
-
-            // 2. Read data into accessor
-            IByteMessageAccessor accessor;
-            if (type == WebSocketMessageType.Binary)
-                accessor = _stringMessageAccessor ??= ApiClient.CreateAccessor(type);
-            else
-                accessor = _byteMessageAccessor ??= ApiClient.CreateAccessor(type);
-
-            var result = accessor.Read(data);
-            try
-            {
-                bool outputOriginalData = ApiClient.ApiOptions.OutputOriginalData ?? ApiClient.ClientOptions.OutputOriginalData;
-                if (outputOriginalData)
-                {
-                    originalData = accessor.GetOriginalString();
-                    _logger.ReceivedData(SocketId, originalData);
-                }
-
-                if (!accessor.IsValid && !ApiClient.ProcessUnparsableMessages)
-                {
-                    _logger.FailedToParse(SocketId, result.Error!.Message ?? result.Error!.ErrorDescription!);
-                    return;
-                }
-
-                // 3. Determine the identifying properties of this message
-                var listenId = ApiClient.GetListenerIdentifier(accessor);
-                if (listenId == null)
-                {
-                    originalData ??= "[OutputOriginalData is false]";
-                    if (!ApiClient.UnhandledMessageExpected)
-                        _logger.FailedToEvaluateMessage(SocketId, originalData);
-
-                    UnhandledMessage?.Invoke(accessor);
-                    return;
-                }
-
-                bool processed = false;
-                var totalUserTime = 0;
-
-                List<IMessageProcessor> localListeners;
-                lock (_listenersLock)
-                    localListeners = _listeners.ToList();
-
-                foreach (var processor in localListeners)
-                {
-                    foreach (var listener in processor.MessageMatcher.GetHandlerLinks(listenId))
-                    {
-                        processed = true;
-                        _logger.ProcessorMatched(SocketId, listener.ToString(), listenId);
-
-                        // 4. Determine the type to deserialize to for this processor
-                        var messageType = listener.DeserializationType;
-                        if (messageType == null)
-                        {
-                            _logger.ReceivedMessageNotRecognized(SocketId, processor.Id);
-                            continue;
-                        }
-
-                        if (processor is Subscription subscriptionProcessor && subscriptionProcessor.Status == SubscriptionStatus.Subscribing)
-                        {
-                            // If this message is for this listener then it is automatically confirmed, even if the subscription is not (yet) confirmed
-                            subscriptionProcessor.Status = SubscriptionStatus.Subscribed;
-                            if (subscriptionProcessor.SubscriptionQuery?.TimeoutBehavior == TimeoutBehavior.Succeed)
-                                // If this subscription has a query waiting for a timeout (success if there is no error response)
-                                // then time it out now as the data is being received, so we assume it's successful
-                                subscriptionProcessor.SubscriptionQuery.Timeout();
-                        }
-
-                        // 5. Deserialize the message
-                        _deserializationCache.TryGetValue(messageType, out var deserialized);
-
-                        if (deserialized == null)
-                        {
-                            var desResult = processor.Deserialize(accessor, messageType);
-                            if (!desResult)
-                            {
-                                _logger.FailedToDeserializeMessage(SocketId, desResult.Error?.ToString(), desResult.Error?.Exception);
-                                continue;
-                            }
-
-                            deserialized = desResult.Data;
-                            _deserializationCache.Add(messageType, deserialized);
-                        }
-
-                        // 6. Pass the message to the handler
-                        try
-                        {
-                            var innerSw = Stopwatch.StartNew();
-                            processor.Handle(this, receiveTime, originalData, deserialized, listener);
-                            if (processor is Query query && query.RequiredResponses != 1)
-                                _logger.LogDebug($"[Sckt {SocketId}] [Req {query.Id}] responses: {query.CurrentResponses}/{query.RequiredResponses}");
-                            totalUserTime += (int)innerSw.ElapsedMilliseconds;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.UserMessageProcessingFailed(SocketId, ex.Message, ex);
-                            if (processor is Subscription subscription)
-                                subscription.InvokeExceptionHandler(ex);
-                        }
-
-                    }
-                }
-
-                if (!processed)
-                {
-                    if (!ApiClient.UnhandledMessageExpected)
-                    {
-                        List<string> listenerIds;
-                        lock (_listenersLock)
-                            listenerIds = _listeners.Select(l => l.MessageMatcher.ToString()).ToList();
-
-                        _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, listenId, string.Join(",", listenerIds));
-                        UnhandledMessage?.Invoke(accessor);
-                    }
-
-                    return;
-                }
-
-                _logger.MessageProcessed(SocketId, sw.ElapsedMilliseconds, sw.ElapsedMilliseconds - totalUserTime);
-            }
-            finally
-            {
-                _deserializationCache.Clear();
-                accessor.Clear();
-            }
-        }
-
-        /// <summary>
         /// Connect the websocket
         /// </summary>
         /// <returns></returns>
@@ -886,16 +735,8 @@ namespace CryptoExchange.Net.Sockets.Default
                 subscription.CancellationTokenRegistration.Value.Dispose();
 
             bool anyDuplicateSubscription;
-            if (ApiClient.ClientOptions.UseUpdatedDeserialization)
-            {
-                lock (_listenersLock)
-                    anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
-            }
-            else
-            {
-                lock (_listenersLock)
-                    anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageMatcher.HandlerLinks.All(l => subscription.MessageMatcher.ContainsCheck(l)));
-            }
+            lock (_listenersLock)
+                anyDuplicateSubscription = _listeners.OfType<Subscription>().Any(x => x != subscription && x.MessageRouter.Routes.All(l => subscription.MessageRouter.ContainsCheck(l)));
 
             bool shouldCloseConnection;
             lock (_listenersLock)
@@ -946,12 +787,6 @@ namespace CryptoExchange.Net.Sockets.Default
             periodicEvent?.Dispose();
             _socket.Dispose();
         }
-
-        /// <summary>
-        /// Whether or not a new subscription can be added to this connection
-        /// </summary>
-        /// <returns></returns>
-        public bool CanAddSubscription() => Status == SocketStatus.None || Status == SocketStatus.Connected;
 
         /// <summary>
         /// Add a subscription to this connection

@@ -99,11 +99,6 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
 
-        /// <summary>
-        /// Whether to continue processing and forward unparsable messages to handlers
-        /// </summary>
-        protected internal bool ProcessUnparsableMessages { get; set; } = false;
-
         /// <inheritdoc />
         public double IncomingKbps
         {
@@ -164,12 +159,6 @@ namespace CryptoExchange.Net.Clients
                   apiOptions)
         {
         }
-
-        /// <summary>
-        /// Create a message accessor instance
-        /// </summary>
-        /// <returns></returns>
-        protected internal abstract IByteMessageAccessor CreateAccessor(WebSocketMessageType messageType);
 
         /// <summary>
         /// Create a serializer instance
@@ -754,7 +743,6 @@ namespace CryptoExchange.Net.Clients
 
             // Create new socket connection
             var socketConnection = new SocketConnection(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, address);
-            socketConnection.UnhandledMessage += HandleUnhandledMessage;
             socketConnection.ConnectRateLimitedAsync += HandleConnectRateLimitedAsync;
             if (dedicatedRequestConnection)
             {
@@ -803,14 +791,6 @@ namespace CryptoExchange.Net.Clients
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, (con) => ptg.QueryDelegate(con).Request);
 
             return new CallResult<HighPerfSocketConnection<TUpdateType>>(socketConnection);
-        }
-
-        /// <summary>
-        /// Process an unhandled message
-        /// </summary>
-        /// <param name="message">The message that wasn't processed</param>
-        protected virtual void HandleUnhandledMessage(IMessageAccessor message)
-        {
         }
 
         /// <summary>
@@ -873,7 +853,6 @@ namespace CryptoExchange.Net.Clients
                 Proxy = ClientOptions.Proxy,
                 Timeout = ApiOptions.SocketNoDataTimeout ?? ClientOptions.SocketNoDataTimeout,
                 ReceiveBufferSize = ClientOptions.ReceiveBufferSize,
-                UseUpdatedDeserialization = ClientOptions.UseUpdatedDeserialization
             };
 
         /// <summary>
@@ -1066,7 +1045,6 @@ namespace CryptoExchange.Net.Clients
                             sb.AppendLine($"\t\t\tId: {subState.Id}");
                             sb.AppendLine($"\t\t\tStatus: {subState.Status}");
                             sb.AppendLine($"\t\t\tInvocations: {subState.Invocations}");
-                            sb.AppendLine($"\t\t\tIdentifiers: [{subState.ListenMatcher.ToString()}]");
                         });
                     }
                 });
@@ -1098,20 +1076,9 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Get the listener identifier for the message
-        /// </summary>
-        /// <param name="messageAccessor"></param>
-        /// <returns></returns>
-        public abstract string? GetListenerIdentifier(IMessageAccessor messageAccessor);
-
-        /// <summary>
         /// Preprocess a stream message
         /// </summary>
         public virtual ReadOnlySpan<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlySpan<byte> data) => data;
-        /// <summary>
-        /// Preprocess a stream message
-        /// </summary>
-        public virtual ReadOnlyMemory<byte> PreprocessStreamMessage(SocketConnection connection, WebSocketMessageType type, ReadOnlyMemory<byte> data) => data;
 
         /// <summary>
         /// Create a new message converter instance

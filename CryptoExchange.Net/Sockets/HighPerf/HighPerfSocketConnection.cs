@@ -245,7 +245,9 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         public virtual ValueTask<CallResult> SendAsync<T>(T obj)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
+            {
                 return SendBytesAsync(byteSerializer.Serialize(obj));
+            }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
                 if (obj is string str)

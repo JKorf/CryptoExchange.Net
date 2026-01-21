@@ -76,11 +76,6 @@ namespace CryptoExchange.Net.Objects.Options
         public int? ReceiveBufferSize { get; set; }
 
         /// <summary>
-        /// Whether or not to use the updated deserialization logic, default is true
-        /// </summary>
-        public bool UseUpdatedDeserialization { get; set; } = true;
-
-        /// <summary>
         /// Create a copy of this options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -101,7 +96,6 @@ namespace CryptoExchange.Net.Objects.Options
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.RateLimiterEnabled = RateLimiterEnabled;
             item.ReceiveBufferSize = ReceiveBufferSize;
-            item.UseUpdatedDeserialization = UseUpdatedDeserialization;
             return item;
         }
     }

@@ -28,7 +28,6 @@ namespace CryptoExchange.Net.Testing.Implementations
         public event Func<Exception, Task>? OnError;
 #pragma warning restore 0067
         public event Func<int, Task>? OnRequestSent;
-        public event Func<WebSocketMessageType, ReadOnlyMemory<byte>, Task>? OnStreamMessage;
         public event Func<Task>? OnOpen;
 
         public int Id { get; }
@@ -45,14 +44,10 @@ namespace CryptoExchange.Net.Testing.Implementations
         public static readonly object lastIdLock = new object();
 #endif
 
-        private bool _newDeserialization;
-
         public SocketConnection? Connection { get; set; }
 
-        public TestSocket(bool newDeserialization, string address)
+        public TestSocket(string address)
         {
-            _newDeserialization = newDeserialization;
-
             Uri = new Uri(address);
             lock (lastIdLock)
             {
@@ -107,17 +102,10 @@ namespace CryptoExchange.Net.Testing.Implementations
 
         public void InvokeMessage(string data)
         {
-            if (!_newDeserialization)
-            {
-                OnStreamMessage?.Invoke(WebSocketMessageType.Text, new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(data))).Wait();
-            }
-            else
-            {
-                if (Connection == null)
-                    throw new ArgumentNullException(nameof(Connection));
+            if (Connection == null)
+                throw new ArgumentNullException(nameof(Connection));
 
-                Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
-            }
+            Connection.HandleStreamMessage2(WebSocketMessageType.Text, Encoding.UTF8.GetBytes(data));
         }
 
         public Task ReconnectAsync() => Task.CompletedTask;

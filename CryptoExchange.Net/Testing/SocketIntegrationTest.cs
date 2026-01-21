@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Get a client instance
         /// </summary>
-        public abstract TClient GetClient(ILoggerFactory loggerFactory, bool newDeserialization);
+        public abstract TClient GetClient(ILoggerFactory loggerFactory);
 
         /// <summary>
         /// Whether the test should be run. By default integration tests aren't executed, can be set to true to force execution.
@@ -34,11 +34,11 @@ namespace CryptoExchange.Net.Testing
         /// Create a client
         /// </summary>
         /// <returns></returns>
-        protected TClient CreateClient(bool useNewDeserialization)
+        protected TClient CreateClient()
         {
             var fact = new LoggerFactory();
             fact.AddProvider(new TraceLoggerProvider());
-            return GetClient(fact, useNewDeserialization);
+            return GetClient(fact);
         }
 
         /// <summary>
@@ -58,16 +58,15 @@ namespace CryptoExchange.Net.Testing
         /// Execute a REST endpoint call and check for any errors or warnings.
         /// </summary>
         /// <typeparam name="T">Type of the update</typeparam>
-        /// <param name="useNewDeserialization">Whether to use the new deserialization method</param>
         /// <param name="expression">The call expression</param>
         /// <param name="expectUpdate">Whether an update is expected</param>
         /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckUpdate<T>(bool useNewDeserialization, Expression<Func<TClient, Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
+        public async Task RunAndCheckUpdate<T>(Expression<Func<TClient, Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
         {
             if (!ShouldRun())
                 return;
 
-            var client = CreateClient(useNewDeserialization);
+            var client = CreateClient();
 
             var expressionBody = (MethodCallExpression)expression.Body;
             if (authRequest && !Authenticated)

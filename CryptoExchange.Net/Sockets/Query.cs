@@ -60,11 +60,6 @@ namespace CryptoExchange.Net.Sockets
         public object? Response { get; set; }
 
         /// <summary>
-        /// Matcher for this query
-        /// </summary>
-        public MessageMatcher MessageMatcher { get; set; }
-
-        /// <summary>
         /// Router for this query
         /// </summary>
         public MessageRouter MessageRouter { get; set; }
@@ -146,9 +141,6 @@ namespace CryptoExchange.Net.Sockets
         /// <returns></returns>
         public async Task WaitAsync(TimeSpan timeout, CancellationToken ct) => await _event.WaitAsync(timeout, ct).ConfigureAwait(false);
 
-        /// <inheritdoc />
-        public virtual CallResult<object> Deserialize(IMessageAccessor message, Type type) => message.Deserialize(type);
-
         /// <summary>
         /// Mark request as timeout
         /// </summary>
@@ -159,11 +151,6 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         /// <param name="error"></param>
         public abstract void Fail(Error error);
-
-        /// <summary>
-        /// Handle a response message
-        /// </summary>
-        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check);
 
         /// <summary>
         /// Handle a response message
@@ -222,35 +209,6 @@ namespace CryptoExchange.Net.Sockets
 
             return Result ?? CallResult.SuccessResult;
         }
-
-        /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageHandlerLink check)
-        {
-            if (!PreCheckMessage(connection, message))
-                return CallResult.SuccessResult;
-
-            CurrentResponses++;
-            if (CurrentResponses == RequiredResponses)            
-                Response = message;
-
-            if (Result?.Success != false)
-                // If an error result is already set don't override that
-                Result = check.Handle(connection, receiveTime, originalData, message);
-
-            if (CurrentResponses == RequiredResponses)
-            {
-                Completed = true;
-                _event.Set();
-                OnComplete?.Invoke();
-            }
-
-            return Result;
-        }
-
-        /// <summary>
-        /// Validate if a message is actually processable by this query
-        /// </summary>
-        public virtual bool PreCheckMessage(SocketConnection connection, object message) => true;
 
         /// <inheritdoc />
         public override void Timeout()

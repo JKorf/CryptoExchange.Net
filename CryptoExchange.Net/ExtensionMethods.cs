@@ -293,122 +293,6 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Create a new uri with the provided parameters as query
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="baseUri"></param>
-        /// <param name="arraySerialization"></param>
-        /// <returns></returns>
-        public static Uri SetParameters(this Uri baseUri, IDictionary<string, object> parameters, ArrayParametersSerialization arraySerialization)
-        {
-            var uriBuilder = new UriBuilder();
-            uriBuilder.Scheme = baseUri.Scheme;
-            uriBuilder.Host = baseUri.Host;
-            uriBuilder.Port = baseUri.Port;
-            uriBuilder.Path = baseUri.AbsolutePath;
-            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Value.GetType().IsArray)
-                {
-                    if (arraySerialization == ArrayParametersSerialization.JsonArray)
-                    {
-                        httpValueCollection.Add(parameter.Key, $"[{string.Join(",", (object[])parameter.Value)}]");
-                    }
-                    else
-                    {
-                        foreach (var item in (object[])parameter.Value)
-                        {
-                            if (arraySerialization == ArrayParametersSerialization.Array)
-                            {
-                                httpValueCollection.Add(parameter.Key + "[]", item.ToString());
-                            }
-                            else
-                            {
-                                httpValueCollection.Add(parameter.Key, item.ToString());
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
-                }
-            }
-
-            uriBuilder.Query = httpValueCollection.ToString();
-            return uriBuilder.Uri;
-        }
-
-        /// <summary>
-        /// Create a new uri with the provided parameters as query
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="baseUri"></param>
-        /// <param name="arraySerialization"></param>
-        /// <returns></returns>
-        public static Uri SetParameters(this Uri baseUri, IOrderedEnumerable<KeyValuePair<string, object>> parameters, ArrayParametersSerialization arraySerialization)
-        {
-            var uriBuilder = new UriBuilder();
-            uriBuilder.Scheme = baseUri.Scheme;
-            uriBuilder.Host = baseUri.Host;
-            uriBuilder.Port = baseUri.Port;
-            uriBuilder.Path = baseUri.AbsolutePath;
-            var httpValueCollection = HttpUtility.ParseQueryString(string.Empty);
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Value.GetType().IsArray)
-                {
-                    if (arraySerialization == ArrayParametersSerialization.JsonArray)
-                    {
-                        httpValueCollection.Add(parameter.Key, $"[{string.Join(",", (object[])parameter.Value)}]");
-                    }
-                    else
-                    {
-                        foreach (var item in (object[])parameter.Value)
-                        {
-                            if (arraySerialization == ArrayParametersSerialization.Array)
-                            {
-                                httpValueCollection.Add(parameter.Key + "[]", item.ToString());
-                            }
-                            else
-                            {
-                                httpValueCollection.Add(parameter.Key, item.ToString());
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    httpValueCollection.Add(parameter.Key, parameter.Value.ToString());
-                }
-            }
-
-            uriBuilder.Query = httpValueCollection.ToString();
-            return uriBuilder.Uri;
-        }
-
-        /// <summary>
-        /// Add parameter to URI
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static Uri AddQueryParameter(this Uri uri, string name, string value)
-        {
-            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
-
-            httpValueCollection.Remove(name);
-            httpValueCollection.Add(name, value);
-
-            var ub = new UriBuilder(uri);
-            ub.Query = httpValueCollection.ToString();
-
-            return ub.Uri;
-        }
-
-        /// <summary>
         /// Decompress using GzipStream
         /// </summary>
         public static ReadOnlySpan<byte> DecompressGzip(this ReadOnlySpan<byte> data)
@@ -422,20 +306,6 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Decompress using GzipStream
         /// </summary>
-        public static ReadOnlyMemory<byte> DecompressGzip(this ReadOnlyMemory<byte> data)
-        {
-            using var decompressedStream = new MemoryStream();
-            using var dataStream = MemoryMarshal.TryGetArray(data, out var arraySegment)
-                ? new MemoryStream(arraySegment.Array!, arraySegment.Offset, arraySegment.Count)
-                : new MemoryStream(data.ToArray());
-            using var deflateStream = new GZipStream(dataStream, CompressionMode.Decompress);
-            deflateStream.CopyTo(decompressedStream);
-            return new ReadOnlyMemory<byte>(decompressedStream.GetBuffer(), 0, (int)decompressedStream.Length);
-        }
-
-        /// <summary>
-        /// Decompress using GzipStream
-        /// </summary>
         public static ReadOnlySpan<byte> Decompress(this ReadOnlySpan<byte> input)
         {
             using var output = new MemoryStream();
@@ -443,22 +313,6 @@ namespace CryptoExchange.Net
             using var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress);
             decompressor.CopyTo(output);
             return new ReadOnlySpan<byte>(output.GetBuffer(), 0, (int)output.Length);
-        }
-
-        /// <summary>
-        /// Decompress using DeflateStream
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public static ReadOnlyMemory<byte> Decompress(this ReadOnlyMemory<byte> input)
-        {
-            var output = new MemoryStream();
-
-            using var compressStream = new MemoryStream(input.ToArray());
-            using var decompressor = new DeflateStream(compressStream, CompressionMode.Decompress);
-            decompressor.CopyTo(output);
-            output.Position = 0;
-            return new ReadOnlyMemory<byte>(output.GetBuffer(), 0, (int)output.Length);
         }
 
         /// <summary>
