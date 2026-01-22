@@ -66,6 +66,13 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.3.0 - 22 Jan 2026
+    * Added PlatformInfo class for specifying platform metadata
+    * Added better handling for enabling AutoTimestamp in client options when not implemented in the API
+    * Fixed state handling for subscriptions where queries do not get a response
+    * Fixed HandleSubQueryResponse not getting called
+    * Removed legacy websocket message handling and the corresponding UseUpdatedDeserialization client option
+
 * Version 10.2.5 - 19 Jan 2026
     * Updated SymbolOrderBook.WaitUntilFirstUpdateBufferedAsync
     * Added GetRestOffsets and GetWebsocketOffsets to TimeOffsetManager
