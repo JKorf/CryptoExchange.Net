@@ -632,12 +632,12 @@ namespace CryptoExchange.Net.Sockets.Default
                             || route.TopicFilter == null 
                             || route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
                         {
+                            processed = true;
+
                             if (isQuery && query!.Completed)
                                 continue;
 
-                            processed = true;
                             processor.Handle(this, receiveTime, originalData, result, route);
-
                             if (isQuery && !route.MultipleReaders)
                             {
                                 complete = true;
@@ -653,8 +653,11 @@ namespace CryptoExchange.Net.Sockets.Default
 
             if (!processed)
             {
-                _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, topicFilter!,
-                    string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                lock (_listenersLock)
+                {
+                    _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, topicFilter!,
+                        string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                }
             }
         }
 
