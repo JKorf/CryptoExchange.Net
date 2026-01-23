@@ -179,6 +179,11 @@ namespace CryptoExchange.Net.Sockets.Default
         public DateTime? DisconnectTime { get; set; }
 
         /// <summary>
+        /// Last timestamp something was received from the server
+        /// </summary>
+        public DateTime? LastReceiveTime => _socket.LastReceiveTime;
+
+        /// <summary>
         /// Tag for identification
         /// </summary>
         public string Tag { get; set; }

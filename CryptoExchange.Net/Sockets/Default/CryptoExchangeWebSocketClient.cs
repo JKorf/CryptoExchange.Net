@@ -49,7 +49,6 @@ namespace CryptoExchange.Net.Sockets.Default
         private int _reconnectAttempt;
         private readonly int _receiveBufferSize;
 
-        private const int _defaultReceiveBufferSize = 1048576;
         private const int _sendBufferSize = 4096;
 
         private int _bytesReceived = 0;
@@ -71,7 +70,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// The timestamp this socket has been active for the last time
         /// </summary>
-        public DateTime LastActionTime { get; private set; }
+        public DateTime? LastReceiveTime { get; private set; }
         
         /// <inheritdoc />
         public Uri Uri => Parameters.Uri;
@@ -623,6 +622,7 @@ namespace CryptoExchange.Net.Sockets.Default
                             break;
                         }
 
+                        LastReceiveTime = DateTime.UtcNow;
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed
@@ -773,6 +773,7 @@ namespace CryptoExchange.Net.Sockets.Default
                             break;
                         }
 
+                        LastReceiveTime = DateTime.UtcNow;
                         if (receiveResult.MessageType == WebSocketMessageType.Close)
                         {
                             // Connection closed
@@ -881,7 +882,6 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <returns></returns>
         protected void ProcessDataNew(WebSocketMessageType type, ReadOnlySpan<byte> data)
         {
-            LastActionTime = DateTime.UtcNow;
             _connection.HandleStreamMessage2(type, data);
         }
 
@@ -892,7 +892,7 @@ namespace CryptoExchange.Net.Sockets.Default
         protected async Task CheckTimeoutAsync()
         {
             _logger.SocketStartingTaskForNoDataReceivedCheck(Id, Parameters.Timeout);
-            LastActionTime = DateTime.UtcNow;
+            LastReceiveTime = DateTime.UtcNow;
             try 
             { 
                 while (true)
@@ -900,7 +900,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     if (_ctsSource.IsCancellationRequested)
                         return;
 
-                    if (DateTime.UtcNow - LastActionTime > Parameters.Timeout)
+                    if (DateTime.UtcNow - LastReceiveTime > Parameters.Timeout)
                     {
                         _logger.SocketNoDataReceiveTimoutReconnect(Id, Parameters.Timeout);
                         _ = ReconnectAsync().ConfigureAwait(false);

@@ -110,6 +110,16 @@ namespace CryptoExchange.Net.Objects.Sockets
         public int Id => _subscription.Id;
 
         /// <summary>
+        /// The last timestamp anything was received from the server
+        /// </summary>
+        public DateTime? LastReceiveTime => _connection.LastReceiveTime;
+
+        /// <summary>
+        /// The current websocket status
+        /// </summary>
+        public SocketStatus Status => _connection.Status;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="connection">The socket connection the subscription is on</param>
