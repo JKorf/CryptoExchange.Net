@@ -30,5 +30,9 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// Whether to poll for data initially when starting the tracker.
         /// </summary>
         public bool PollAtStart { get; set; } = true;
+        /// <summary>
+        /// Whether to track order trades, can lead to increased requests when polling
+        /// </summary>
+        public bool TrackTrades { get; set; } = true;
     }
 }

@@ -48,6 +48,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         private TimeSpan _pollIntervalDisconnected;
         private bool _pollAtStart;
         private bool _onlyTrackProvidedSymbols;
+        private bool _trackTrades = true;
 
         // Subscriptions
         private UpdateSubscription? _balanceSubscription;
@@ -106,6 +107,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             _symbols = config.Symbols?.ToList() ?? [];
             _onlyTrackProvidedSymbols = config.OnlyTrackProvidedSymbols;
             _pollAtStart = config.PollAtStart;
+            _trackTrades = config.TrackTrades;
 
             UserIdentifier = userIdentifier;
         }
@@ -160,7 +162,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             _orderSubscription = subOrderResult.Data;
             subOrderResult.Data.SubscriptionStatusChanged += OrderSubscriptionStatusChanged;
 
-            if (_userTradeSocketClient != null)
+            if (_userTradeSocketClient != null && _trackTrades)
             {
                 var subTradeResult = await _userTradeSocketClient.SubscribeToUserTradeUpdatesAsync(new SubscribeUserTradeRequest(listenKey), x => HandleTradeUpdate(UpdateSource.Push, x.Data), ct: _cts.Token).ConfigureAwait(false);
                 if (!subOrderResult)
@@ -604,22 +606,25 @@ namespace CryptoExchange.Net.Trackers.UserData
                             HandleOrderUpdate(UpdateSource.Poll, relevantOrders);
                     }
 
-                    var fromTimeTrades = _lastDataTimeTradesBeforeDisconnect ?? _lastPollTimeTrades ?? _startTime;
-                    var tradesResult = await _spotOrderRestClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades)).ConfigureAwait(false);
-                    if (!tradesResult.Success)
+                    if (_trackTrades)
                     {
-                        // .. ?
-                        anyError = true;
-                    }
-                    else
-                    {
-                        _lastDataTimeTradesBeforeDisconnect = null;
-                        _lastPollTimeTrades = updatedPollTime;
+                        var fromTimeTrades = _lastDataTimeTradesBeforeDisconnect ?? _lastPollTimeTrades ?? _startTime;
+                        var tradesResult = await _spotOrderRestClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades)).ConfigureAwait(false);
+                        if (!tradesResult.Success)
+                        {
+                            // .. ?
+                            anyError = true;
+                        }
+                        else
+                        {
+                            _lastDataTimeTradesBeforeDisconnect = null;
+                            _lastPollTimeTrades = updatedPollTime;
 
-                        // Filter trades to only include where timestamp is after the start time OR it's part of an order we're tracking
-                        var relevantTrades = tradesResult.Data.Where(x => x.Timestamp >= _startTime || _orderStore.ContainsKey(x.OrderId)).ToArray();
-                        if (relevantTrades.Length > 0)
-                            HandleTradeUpdate(UpdateSource.Poll, tradesResult.Data);
+                            // Filter trades to only include where timestamp is after the start time OR it's part of an order we're tracking
+                            var relevantTrades = tradesResult.Data.Where(x => x.Timestamp >= _startTime || _orderStore.ContainsKey(x.OrderId)).ToArray();
+                            if (relevantTrades.Length > 0)
+                                HandleTradeUpdate(UpdateSource.Poll, tradesResult.Data);
+                        }
                     }
                 }
 
