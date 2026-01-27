@@ -67,6 +67,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.3.1 - 27 Jan 2026
+    * Fixed potential collection modified exception upon logging message not handled in websocket message handling
+
 * Version 10.3.0 - 22 Jan 2026
     * Added PlatformInfo class for specifying platform metadata
     * Added better handling for enabling AutoTimestamp in client options when not implemented in the API
