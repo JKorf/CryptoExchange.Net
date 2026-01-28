@@ -45,10 +45,6 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// </summary>
         protected bool _changed = false;
         /// <summary>
-        /// The kline interval
-        /// </summary>
-        protected readonly SharedKlineInterval _interval;
-        /// <summary>
         /// Whether the snapshot has been set
         /// </summary>
         protected bool _snapshotSet;
@@ -66,6 +62,10 @@ namespace CryptoExchange.Net.Trackers.Klines
         /// </summary>
         protected DateTime? _firstTimestamp;
 
+        /// <summary>
+        /// The kline interval
+        /// </summary>
+        public SharedKlineInterval Interval { get; }
         /// <inheritdoc/>
         public SyncStatus Status
         {
@@ -165,7 +165,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             Exchange = restClient.Exchange;
             Limit = limit;
             Period = period;
-            _interval = interval;
+            Interval = interval;
             _socketClient = socketClient;
             _restClient = restClient;
         }
@@ -180,7 +180,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             Status = SyncStatus.Syncing;
             _logger.KlineTrackerStarting(SymbolName);
 
-            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(Symbol, _interval),
+            var subResult = await _socketClient.SubscribeToKlineUpdatesAsync(new SubscribeKlineRequest(Symbol, Interval),
                  update =>
                  {
                      AddOrUpdate(update.Data);
@@ -237,7 +237,7 @@ namespace CryptoExchange.Net.Trackers.Klines
 
             var limit = Math.Min(_restClient.GetKlinesOptions.MaxLimit, Limit ?? 100);
 
-            var request = new GetKlinesRequest(Symbol, _interval, startTime, DateTime.UtcNow, limit: limit);
+            var request = new GetKlinesRequest(Symbol, Interval, startTime, DateTime.UtcNow, limit: limit);
             var data = new List<SharedKline>();
             await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
             {

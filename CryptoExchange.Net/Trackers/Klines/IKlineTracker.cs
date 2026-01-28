@@ -56,6 +56,11 @@ namespace CryptoExchange.Net.Trackers.Klines
         SharedKline? Last { get; }
 
         /// <summary>
+        /// The kline interval
+        /// </summary>
+        public SharedKlineInterval Interval { get; }
+
+        /// <summary>
         /// Event for when a new kline is added
         /// </summary>
         event Func<SharedKline, Task>? OnAdded;
