@@ -40,6 +40,11 @@ namespace CryptoExchange.Net.Clients
         public string Exchange { get; }
 
         /// <summary>
+        /// Whether client is disposed
+        /// </summary>
+        public bool Disposed { get; private set; }
+
+        /// <summary>
         /// Api clients in this client
         /// </summary>
         internal List<BaseApiClient> ApiClients { get; } = new List<BaseApiClient>();
@@ -125,6 +130,8 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public virtual void Dispose()
         {
+            Disposed = true;
+
             foreach (var client in ApiClients)
                 client.Dispose();
         }

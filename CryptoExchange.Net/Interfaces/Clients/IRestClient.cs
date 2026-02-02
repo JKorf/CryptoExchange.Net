@@ -22,5 +22,10 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// The exchange name
         /// </summary>
         string Exchange { get; }
+
+        /// <summary>
+        /// Whether client is disposed
+        /// </summary>
+        bool Disposed { get; }
     }
 }
