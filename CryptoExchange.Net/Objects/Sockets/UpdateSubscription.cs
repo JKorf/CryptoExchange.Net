@@ -120,6 +120,11 @@ namespace CryptoExchange.Net.Objects.Sockets
         public SocketStatus Status => _connection.Status;
 
         /// <summary>
+        /// The current subscription status
+        /// </summary>
+        public SubscriptionStatus SubscriptionStatus => _subscription.Status;
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="connection">The socket connection the subscription is on</param>

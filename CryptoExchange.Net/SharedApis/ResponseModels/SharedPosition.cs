@@ -20,6 +20,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedPositionSide PositionSide { get; set; }
         /// <summary>
+        /// Whether the position is one way mode
+        /// </summary>
+        public SharedPositionMode PositionMode { get; set; }
+        /// <summary>
         /// Average open price
         /// </summary>
         public decimal? AverageOpenPrice { get; set; }
