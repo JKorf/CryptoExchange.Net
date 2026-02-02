@@ -38,6 +38,17 @@ namespace CryptoExchange.Net.SharedApis
             Exchange = exchange;
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ExchangeResult(
+            string exchange,
+            T result) :
+            base(result, null, null)
+        {
+            Exchange = exchange;
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{Exchange} - " + base.ToString();
     }
