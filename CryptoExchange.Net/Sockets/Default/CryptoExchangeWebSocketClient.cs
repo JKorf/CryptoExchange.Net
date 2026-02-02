@@ -487,7 +487,6 @@ namespace CryptoExchange.Net.Sockets.Default
             _disposed = true;
             _socket.Dispose();
             _ctsSource?.Dispose();
-            _sendEvent.Dispose();
             _logger.SocketDisposed(Id);
         }
 
