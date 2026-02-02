@@ -33,6 +33,66 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
+        /// Whether the specific topic has been cached
+        /// </summary>
+        /// <param name="topicId">Id</param>
+        public static bool HasCached(string topicId)
+        {
+            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+                return false;
+
+            return exchangeInfo.Symbols.Count > 0;
+        }
+
+        /// <summary>
+        /// Whether a specific exchange(topic) support the provided symbol
+        /// </summary>
+        /// <param name="topicId">Id for the provided data</param>
+        /// <param name="symbolName">The symbol name</param>
+        public static bool SupportsSymbol(string topicId, string symbolName)
+        {
+            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+                return false;
+
+            if (!exchangeInfo.Symbols.TryGetValue(symbolName, out var symbolInfo))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Whether a specific exchange(topic) support the provided symbol
+        /// </summary>
+        /// <param name="topicId">Id for the provided data</param>
+        /// <param name="symbol">The symbol info</param>
+        public static bool SupportsSymbol(string topicId, SharedSymbol symbol)
+        {
+            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+                return false;
+
+            return exchangeInfo.Symbols.Any(x => 
+                x.Value.TradingMode == symbol.TradingMode 
+                && x.Value.BaseAsset == symbol.BaseAsset 
+                && x.Value.QuoteAsset == symbol.QuoteAsset);
+        }
+
+        /// <summary>
+        /// Get all symbols for a specific base asset
+        /// </summary>
+        /// <param name="topicId">Id for the provided data</param>
+        /// <param name="baseAsset">Base asset name</param>
+        public static SharedSymbol[] GetSymbolsForBaseAsset(string topicId, string baseAsset)
+        {
+            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+                return [];
+
+            return exchangeInfo.Symbols
+                .Where(x => x.Value.BaseAsset.Equals(baseAsset, StringComparison.InvariantCultureIgnoreCase))
+                .Select(x => x.Value)
+                .ToArray();
+        }
+
+        /// <summary>
         /// Parse a symbol name to a SharedSymbol
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
