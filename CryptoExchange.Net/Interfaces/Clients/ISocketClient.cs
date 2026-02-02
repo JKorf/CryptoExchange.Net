@@ -36,6 +36,11 @@ namespace CryptoExchange.Net.Interfaces.Clients
         public int CurrentSubscriptions { get; }
 
         /// <summary>
+        /// Whether client is disposed
+        /// </summary>
+        bool Disposed { get; }
+
+        /// <summary>
         /// Unsubscribe from a stream using the subscription id received when starting the subscription
         /// </summary>
         /// <param name="subscriptionId">The id of the subscription to unsubscribe</param>
