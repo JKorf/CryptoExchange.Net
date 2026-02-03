@@ -4,6 +4,7 @@ using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.UnitTests
@@ -134,6 +135,18 @@ namespace CryptoExchange.Net.UnitTests
             var evnt = new AsyncResetEvent(false, true);
 
             var waiter1 = evnt.WaitAsync(TimeSpan.FromMilliseconds(100));
+
+            var result1 = await waiter1;
+
+            ClassicAssert.False(result1);
+        }
+
+        [Test]
+        public async Task CancellingWait_Should_ReturnFalse()
+        {
+            var evnt = new AsyncResetEvent(false, true);
+
+            var waiter1 = evnt.WaitAsync(ct: new CancellationTokenSource(50).Token);
 
             var result1 = await waiter1;
 
