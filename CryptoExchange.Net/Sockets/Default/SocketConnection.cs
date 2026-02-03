@@ -792,7 +792,6 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             Status = SocketStatus.Disposed;
             periodicEvent?.Set();
-            periodicEvent?.Dispose();
             _socket.Dispose();
         }
 

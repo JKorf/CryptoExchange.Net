@@ -233,7 +233,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         {
             Status = SocketStatus.Disposed;
             periodicEvent?.Set();
-            periodicEvent?.Dispose();
             _socket.Dispose();
         }
 
