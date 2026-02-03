@@ -1,4 +1,4 @@
-﻿namespace CryptoExchange.Net.Trackers.UserData
+﻿namespace CryptoExchange.Net.Trackers.UserData.Objects
 {
     /// <summary>
     /// User data update

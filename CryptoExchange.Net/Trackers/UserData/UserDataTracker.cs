@@ -1,211 +1,107 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
+using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData
 {
+    /// <summary>
+    /// User data tracker
+    /// </summary>
     public abstract class UserDataTracker
     {
+#warning max age for data?
+        /// <summary>
+        /// Logger
+        /// </summary>
         protected readonly ILogger _logger;
-
-        // State management
-        protected DateTime? _startTime = null;
-        protected DateTime? _lastPollAttempt = null;
-        protected bool _lastPollSuccessful = false;
-        protected DateTime? _lastPollTimeOrders = null;
-        protected DateTime? _lastPollTimeTrades = null;
-        protected DateTime? _lastDataTimeOrdersBeforeDisconnect = null;
-        protected DateTime? _lastDataTimeTradesBeforeDisconnect = null;
-        protected bool _firstPollDone = false;
-        protected bool _wasDisconnected = false;
-
-        // Config
-        protected List<SharedSymbol> _symbols = new List<SharedSymbol>();
-        protected TimeSpan _pollIntervalConnected;
-        protected TimeSpan _pollIntervalDisconnected;
-        protected bool _pollAtStart;
-        protected bool _onlyTrackProvidedSymbols;
-        protected bool _trackTrades = true;
-
-
-        protected AsyncResetEvent _pollWaitEvent = new AsyncResetEvent(false, true);
-        protected Task? _pollTask;
-        protected CancellationTokenSource? _cts;
-        protected object _symbolLock = new object();
-
+        /// <summary>
+        /// Listen key to use for subscriptions
+        /// </summary>
+        protected string? _listenKey;
+        /// <summary>
+        /// List of data trackers
+        /// </summary>
+        protected abstract UserDataItemTracker[] DataTrackers { get; }
 
         /// <inheritdoc />
         public string? UserIdentifier { get; }
-        /// <inheritdoc />
-        public IEnumerable<SharedSymbol> TrackedSymbols => _symbols.AsEnumerable();
 
-        private bool _connected;
-        /// <inheritdoc />
-        public bool Connected
-        {
-            get => _connected;
-            protected set
-            {
-                if (_connected == value)
-                    return;
+        /// <summary>
+        /// Connected status changed
+        /// </summary>
+        public event Action<UserDataType, bool>? OnConnectedChange;
 
-                _connected = value;
-                if (!_connected)
-                    _wasDisconnected = true;
-                else
-                    _pollWaitEvent.Set();
+        /// <summary>
+        /// Whether all trackers are full connected
+        /// </summary>
+        public bool Connected => DataTrackers.All(x => x.Connected);
 
-                InvokeConnectedStatusChanged();
-            }
-        }
-
-        /// <inheritdoc />
-        public event Action<bool>? OnConnectedStatusChange;
-
-        public UserDataTracker(ILogger logger, UserDataTrackerConfig config, string? userIdentifier)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public UserDataTracker(
+            ILogger logger,
+            UserDataTrackerConfig config,
+            string? userIdentifier)
         {
             if (config.OnlyTrackProvidedSymbols && !config.TrackedSymbols.Any())
                 throw new ArgumentException(nameof(config.TrackedSymbols), "Conflicting options; `OnlyTrackProvidedSymbols` but no symbols specific in `TrackedSymbols`");
 
             _logger = logger;
 
-            _pollIntervalConnected = config.PollIntervalConnected;
-            _pollIntervalDisconnected = config.PollIntervalDisconnected;
-            _symbols = config.TrackedSymbols?.ToList() ?? [];
-            _onlyTrackProvidedSymbols = config.OnlyTrackProvidedSymbols;
-            _pollAtStart = config.PollAtStart;
-            _trackTrades = config.TrackTrades;
-
             UserIdentifier = userIdentifier;
         }
 
-        protected void InvokeConnectedStatusChanged()
-        {
-            OnConnectedStatusChange?.Invoke(Connected);            
-        }
-    
+        /// <summary>
+        /// Start the data tracker
+        /// </summary>
         public async Task<CallResult> StartAsync()
         {
-            _startTime = DateTime.UtcNow;
-            _cts = new CancellationTokenSource();
+            foreach(var tracker in DataTrackers)
+                tracker.OnConnectedChange += (x) => OnConnectedChange?.Invoke(tracker.DataType, x);            
 
-            var start = await DoStartAsync().ConfigureAwait(false);
-            if (!start)
-                return start;
+            var result = await DoStartAsync().ConfigureAwait(false);
+            if (!result)
+                return result;
 
-            Connected = true;
+            var tasks = new List<Task<CallResult>>();
+            foreach (var dataTracker in DataTrackers)
+            {
+                tasks.Add(dataTracker.StartAsync(_listenKey));
+            }
 
-            _pollTask = PollAsync();
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            if (!tasks.All(x => x.Result.Success))
+            {
+                await Task.WhenAll(DataTrackers.Select(x => x.StopAsync())).ConfigureAwait(false);
+                return tasks.First(x => !x.Result.Success).Result;
+            }
+
             return CallResult.SuccessResult;
         }
 
+        /// <summary>
+        /// Implementation specific start logic
+        /// </summary>
         protected abstract Task<CallResult> DoStartAsync();
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Stop the data tracker
+        /// </summary>
         public async Task StopAsync()
         {
             _logger.LogDebug("Stopping UserDataTracker");
-            _cts?.Cancel();
+            var tasks = new List<Task>();
+            foreach (var dataTracker in DataTrackers)
+                tasks.Add(dataTracker.StopAsync());
 
-            if (_pollTask != null)
-                await _pollTask.ConfigureAwait(false);
-
+            await Task.WhenAll(tasks).ConfigureAwait(false);
             _logger.LogDebug("Stopped UserDataTracker");
-        }
-
-        private TimeSpan? GetNextPollDelay()
-        {
-            if (!_firstPollDone && _pollAtStart)
-                // First polling should be done immediately
-                return TimeSpan.Zero;
-
-            if (!Connected)
-            {
-                if (_pollIntervalDisconnected == TimeSpan.Zero)
-                    // No polling interval
-                    return null;
-
-                return _pollIntervalDisconnected;
-            }
-
-            if (_pollIntervalConnected == TimeSpan.Zero)
-                // No polling interval
-                return null;
-
-            // Wait for next poll
-            return _pollIntervalConnected;
-        }
-
-        public async Task PollAsync()
-        {
-            while (!_cts!.IsCancellationRequested)
-            {
-                var delayForNextPoll = GetNextPollDelay();
-                if (delayForNextPoll != TimeSpan.Zero)
-                {
-                    try
-                    {
-                        if (delayForNextPoll != null)
-                            _logger.LogTrace("Delay for next polling: {Delay}", delayForNextPoll);
-
-                        await _pollWaitEvent.WaitAsync(delayForNextPoll, _cts.Token).ConfigureAwait(false);
-                    }
-                    catch { }
-                }
-
-                _firstPollDone = true;
-                if (_cts.IsCancellationRequested)
-                    break;
-
-                if (_lastPollAttempt != null
-                    && (DateTime.UtcNow - _lastPollAttempt.Value) < TimeSpan.FromSeconds(2)
-                    && !(Connected && _wasDisconnected))
-                {
-                    if (_lastPollSuccessful)
-                        // If last poll was less than 2 seconds ago and it was successful don't bother immediately polling again
-                        continue;
-                }
-
-                if (Connected)
-                    _wasDisconnected = false;
-
-                _lastPollSuccessful = false;
-
-                try
-                {
-                    var anyError = await DoPollAsync().ConfigureAwait(false);
-
-                    _lastPollAttempt = DateTime.UtcNow;
-                    _lastPollSuccessful = !anyError;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "UserDataTracker polling exception");
-                }
-            }
-        }
-
-        protected abstract Task<bool> DoPollAsync();
-
-        protected void UpdateSymbolsList(IEnumerable<SharedSymbol> symbols)
-        {
-            lock (_symbolLock)
-            {
-                foreach (var symbol in symbols.Distinct())
-                {
-                    if (!_symbols.Any(x => x.TradingMode == symbol.TradingMode && x.BaseAsset == symbol.BaseAsset && x.QuoteAsset == symbol.QuoteAsset))
-                    {
-                        _symbols.Add(symbol);
-                        _logger.LogDebug("Adding {BaseAsset}/{QuoteAsset} to symbol tracking list", symbol.BaseAsset, symbol.QuoteAsset);
-                    }
-                }
-            }
         }
     }
 }
