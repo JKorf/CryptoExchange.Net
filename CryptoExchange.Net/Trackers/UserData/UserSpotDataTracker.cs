@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         private readonly IListenKeyRestClient? _listenKeyRestClient;
         private readonly ISpotSymbolRestClient _spotSymbolRestClient;
         private readonly IBalanceRestClient _balanceRestClient;
-        private readonly IBalanceSocketClient _balanceSocketClient;
+        private readonly IBalanceSocketClient? _balanceSocketClient;
         private readonly ISpotOrderRestClient _spotOrderRestClient;
         private readonly ISpotOrderSocketClient _spotOrderSocketClient;
         private readonly IUserTradeSocketClient? _userTradeSocketClient;
@@ -66,9 +66,9 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             _spotSymbolRestClient = (ISpotSymbolRestClient)restClient;
             _balanceRestClient = (IBalanceRestClient)restClient;
-            _balanceSocketClient = (IBalanceSocketClient)socketClient;
             _spotOrderRestClient = (ISpotOrderRestClient)restClient;
             _spotOrderSocketClient = (ISpotOrderSocketClient)socketClient;
+            _balanceSocketClient = socketClient as IBalanceSocketClient;
             _listenKeyRestClient = restClient as IListenKeyRestClient;
             _userTradeSocketClient = socketClient as IUserTradeSocketClient;
         }
@@ -98,17 +98,20 @@ namespace CryptoExchange.Net.Trackers.UserData
                 listenKey = lkResult.Data;
             }
 
-            var subBalanceResult = await ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
+            if (_balanceSocketClient != null)
+            {
+                var subBalanceResult = await ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
                 async handler => await _balanceSocketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleBalanceUpdateAsync(UpdateSource.Push, x.Data)).ConfigureAwait(false);
-            if (!subBalanceResult)
-            {
-                _logger.LogWarning("Failed to start UserDataTracker; failed to subscribe to balance stream: {Error}", subBalanceResult.Error!.Message);
-                return subBalanceResult;
-            }
+                if (!subBalanceResult)
+                {
+                    _logger.LogWarning("Failed to start UserDataTracker; failed to subscribe to balance stream: {Error}", subBalanceResult.Error!.Message);
+                    return subBalanceResult;
+                }
 
-            _balanceSubscription = subBalanceResult.Data;
-            subBalanceResult.Data.SubscriptionStatusChanged += BalanceSubscriptionStatusChanged;
+                _balanceSubscription = subBalanceResult.Data;
+                subBalanceResult.Data.SubscriptionStatusChanged += BalanceSubscriptionStatusChanged;
+            }
 
             var subOrderResult = await ExchangeHelpers.ProcessQueuedAsync<SharedSpotOrder[]>(
                 async handler => await _spotOrderSocketClient.SubscribeToSpotOrderUpdatesAsync(new SubscribeSpotOrderRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
@@ -266,7 +269,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
         private void CheckConnectedChanged()
         {
-            Connected = _balanceSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed
+            Connected = (_balanceSubscription == null || _balanceSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed)
                 && _orderSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed
                 && (_tradeSubscription == null || _tradeSubscription.SubscriptionStatus == SubscriptionStatus.Subscribed);
         }

@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         private readonly IListenKeyRestClient? _listenKeyRestClient;
         private readonly IFuturesSymbolRestClient _futuresSymbolRestClient;
         private readonly IBalanceRestClient _balanceRestClient;
-        private readonly IBalanceSocketClient _balanceSocketClient;
+        private readonly IBalanceSocketClient? _balanceSocketClient;
         private readonly IFuturesOrderRestClient _futuresOrderRestClient;
         private readonly IFuturesOrderSocketClient _futuresOrderSocketClient;
         private readonly IPositionSocketClient _positionSocketClient;
@@ -79,10 +79,10 @@ namespace CryptoExchange.Net.Trackers.UserData
             _exchangeParameters = exchangeParameters;
             _futuresSymbolRestClient = (IFuturesSymbolRestClient)restClient;
             _balanceRestClient = (IBalanceRestClient)restClient;
-            _balanceSocketClient = (IBalanceSocketClient)socketClient;
             _futuresOrderRestClient = (IFuturesOrderRestClient)restClient;
             _futuresOrderSocketClient = (IFuturesOrderSocketClient)socketClient;
             _positionSocketClient = (IPositionSocketClient)socketClient;
+            _balanceSocketClient = socketClient as IBalanceSocketClient;
             _listenKeyRestClient = restClient as IListenKeyRestClient;
             _userTradeSocketClient = socketClient as IUserTradeSocketClient;
         }
@@ -113,17 +113,20 @@ namespace CryptoExchange.Net.Trackers.UserData
                 listenKey = lkResult.Data;
             }
 
-            var subBalanceResult = await ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
+            if (_balanceSocketClient != null)
+            {
+                var subBalanceResult = await ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
                 async handler => await _balanceSocketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleBalanceUpdateAsync(UpdateSource.Push, x.Data)).ConfigureAwait(false);
-            if (!subBalanceResult)
-            {
-                _logger.LogWarning("Failed to start UserFuturesDataTracker; failed to subscribe to balance stream: {Error}", subBalanceResult.Error!.Message);
-                return subBalanceResult;
-            }
+                if (!subBalanceResult)
+                {
+                    _logger.LogWarning("Failed to start UserFuturesDataTracker; failed to subscribe to balance stream: {Error}", subBalanceResult.Error!.Message);
+                    return subBalanceResult;
+                }
 
-            _balanceSubscription = subBalanceResult.Data;
-            subBalanceResult.Data.SubscriptionStatusChanged += BalanceSubscriptionStatusChanged;
+                _balanceSubscription = subBalanceResult.Data;
+                subBalanceResult.Data.SubscriptionStatusChanged += BalanceSubscriptionStatusChanged;
+            }
 
             var subOrderResult = await ExchangeHelpers.ProcessQueuedAsync<SharedFuturesOrder[]>(
                 async handler => await _futuresOrderSocketClient.SubscribeToFuturesOrderUpdatesAsync(new SubscribeFuturesOrderRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
@@ -352,7 +355,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
         private void CheckConnectedChanged()
         {
-            Connected = _balanceSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed
+            Connected = (_balanceSubscription == null || _balanceSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed)
                 && _orderSubscription?.SubscriptionStatus == SubscriptionStatus.Subscribed
                 && (_tradeSubscription == null || _tradeSubscription.SubscriptionStatus == SubscriptionStatus.Subscribed)
                 && (_positionSubscription == null || _positionSubscription.SubscriptionStatus == SubscriptionStatus.Subscribed);
