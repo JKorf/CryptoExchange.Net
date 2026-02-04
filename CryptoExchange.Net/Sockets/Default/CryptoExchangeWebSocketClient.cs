@@ -295,6 +295,9 @@ namespace CryptoExchange.Net.Sockets.Default
                     await (OnReconnecting?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);                    
                 }
 
+#warning debug
+                await Task.Delay(10000).ConfigureAwait(false);
+
                 // Delay here to prevent very rapid looping when a connection to the server is accepted and immediately disconnected
                 var initialDelay = GetReconnectDelay();
                 await Task.Delay(initialDelay).ConfigureAwait(false);

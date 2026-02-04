@@ -15,6 +15,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly IBalanceRestClient _restClient;
         private readonly IBalanceSocketClient? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
+        private readonly SharedAccountType _accountType;
 
         /// <summary>
         /// ctor
@@ -23,6 +24,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             ILogger logger,
             IBalanceRestClient restClient,
             IBalanceSocketClient? socketClient,
+            SharedAccountType accountType,
             TrackerItemConfig config,
             ExchangeParameters? exchangeParameters = null
             ) : base(logger, UserDataType.Balances, config, false, null)
@@ -30,6 +32,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
+            _accountType = accountType;
         }
 
         /// <inheritdoc />
@@ -52,7 +55,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        protected override string GetKey(SharedBalance item) => item.Asset;
+        protected override string GetKey(SharedBalance item) => item.Asset + item.IsolatedMarginSymbol;
 
         /// <inheritdoc />
         protected override bool? CheckIfUpdateShouldBeApplied(SharedBalance existingItem, SharedBalance updateItem) => true;
@@ -63,15 +66,20 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (_socketClient == null)
                 return Task.FromResult(new CallResult<UpdateSubscription?>(data: null));
 
+            var accountType = _accountType == SharedAccountType.Spot ? TradingMode.Spot :
+                              _accountType == SharedAccountType.PerpetualInverseFutures ? TradingMode.PerpetualInverse :
+                              _accountType == SharedAccountType.DeliveryLinearFutures ? TradingMode.DeliveryLinear :
+                              _accountType == SharedAccountType.DeliveryInverseFutures ? TradingMode.DeliveryInverse :
+                              TradingMode.PerpetualLinear;
             return ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
-                async handler => await _socketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
+                async handler => await _socketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(listenKey, accountType, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }
 
         /// <inheritdoc />
         protected override async Task<bool> DoPollAsync()
         {
-            var balances = await _restClient.GetBalancesAsync(new GetBalancesRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+            var balances = await _restClient.GetBalancesAsync(new GetBalancesRequest(accountType: _accountType, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
             if (balances.Success)
                 await HandleUpdateAsync(UpdateSource.Poll, balances.Data).ConfigureAwait(false);
 

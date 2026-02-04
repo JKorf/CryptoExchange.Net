@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
     /// <summary>
     /// User data tracker configuration
     /// </summary>
-    public record UserDataTrackerConfig
+    public abstract record UserDataTrackerConfig
     {
         /// <summary>
         /// Symbols to initially track, used when polling data. Other symbols will get tracked when updates are received for orders or trades on a new symbol and when there are open orders or positions on a new symbol. To only track the symbols specified here set `OnlyTrackProvidedSymbols` to true.

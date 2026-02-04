@@ -200,7 +200,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
         /// <inheritdoc />
         protected override string GetKey(SharedPosition item) =>
-            item.Id ?? item.Symbol + item.PositionMode + (item.PositionMode != SharedPositionMode.OneWay ? item.PositionSide.ToString() : "");
+            item.SharedSymbol!.TradingMode + item.SharedSymbol.BaseAsset + item.SharedSymbol.QuoteAsset + item.PositionMode + (item.PositionMode != SharedPositionMode.OneWay ? item.PositionSide.ToString() : "");
 
         /// <inheritdoc />
         protected override bool? CheckIfUpdateShouldBeApplied(SharedPosition existingItem, SharedPosition updateItem) => true;

@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, SharedAccountType.Spot, config.BalancesConfig, exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             var symbolResult = await _symbolClient.GetSpotSymbolsAsync(new GetSymbolsRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
             if (!symbolResult)
             {
-                _logger.LogWarning("Failed to start UserSpotDataTracker; symbols request failed: {Error}", symbolResult.Error!.Message);
+                _logger.LogWarning("Failed to start UserSpotDataTracker; symbols request failed: {Error}", symbolResult.Error);
                 return symbolResult;
             }
 
@@ -87,7 +87,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!lkResult)
                 {
-                    _logger.LogWarning("Failed to start UserSpotDataTracker; listen key request failed: {Error}", lkResult.Error!.Message);
+                    _logger.LogWarning("Failed to start UserSpotDataTracker; listen key request failed: {Error}", lkResult.Error);
                     return lkResult;
                 }
 

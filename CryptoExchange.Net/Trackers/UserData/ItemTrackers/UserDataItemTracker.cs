@@ -183,7 +183,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Data store
         /// </summary>
-        protected ConcurrentDictionary<string, T> _store = new ConcurrentDictionary<string, T>();
+        protected ConcurrentDictionary<string, T> _store = new ConcurrentDictionary<string, T>(StringComparer.InvariantCultureIgnoreCase);
         /// <summary>
         /// Tracked symbols list
         /// </summary>
@@ -409,6 +409,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     catch { }
                 }
 
+                var currentlyFirstPoll = !_firstPollDone;
                 _firstPollDone = true;
                 if (_cts.IsCancellationRequested)
                     break;
@@ -433,6 +434,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
                     _lastPollAttempt = DateTime.UtcNow;
                     _lastPollSuccess = !anyError;
+
+                    if (anyError && currentlyFirstPoll && _pollAtStart)
+                    {
+                        // This is the initial polling at start and it failed, should this be a start error?
+
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -232,6 +232,24 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                         || x.CreateTime == null && x.UpdateTime == null // Unknown time
                     ).ToArray();
 
+                    // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
+                    var openOrdersNotReturned = Values.Where(x =>
+                        x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset // Orders for the same symbol
+                        && x.QuantityFilled?.IsZero == true // With no filled value
+                        && !openOrdersResult.Data.Any(r => r.OrderId == x.OrderId) // Not returned in open orders
+                        && !relevantOrders.Any(r => r.OrderId == x.OrderId) // Not return in closed orders
+                        ).ToList();
+
+                    var additionalUpdates = new List<SharedFuturesOrder>();
+                    foreach (var order in openOrdersNotReturned)
+                    {
+                        additionalUpdates.Add(order with
+                        {
+                            Status = SharedOrderStatus.Canceled
+                        });
+                    }
+
+                    relevantOrders = relevantOrders.Concat(additionalUpdates).ToArray();
                     if (relevantOrders.Length > 0)
                         await HandleUpdateAsync(UpdateSource.Poll, relevantOrders).ConfigureAwait(false);
                 }
