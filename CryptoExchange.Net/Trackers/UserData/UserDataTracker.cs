@@ -14,7 +14,6 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public abstract class UserDataTracker
     {
-#warning max age for data?
         /// <summary>
         /// Logger
         /// </summary>
@@ -37,6 +36,11 @@ namespace CryptoExchange.Net.Trackers.UserData
         public event Action<UserDataType, bool>? OnConnectedChange;
 
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        public string Exchange { get; }
+
+        /// <summary>
         /// Whether all trackers are full connected
         /// </summary>
         public bool Connected => DataTrackers.All(x => x.Connected);
@@ -46,6 +50,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserDataTracker(
             ILogger logger,
+            string exchange,
             UserDataTrackerConfig config,
             string? userIdentifier)
         {
@@ -54,6 +59,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             _logger = logger;
 
+            Exchange = exchange;
             UserIdentifier = userIdentifier;
         }
 
@@ -71,9 +77,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var tasks = new List<Task<CallResult>>();
             foreach (var dataTracker in DataTrackers)
-            {
                 tasks.Add(dataTracker.StartAsync(_listenKey));
-            }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
             if (!tasks.All(x => x.Result.Success))

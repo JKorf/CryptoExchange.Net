@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             string? userIdentifier,
             FuturesUserDataTrackerConfig config,
             SharedAccountType? accountType = null,
-            ExchangeParameters? exchangeParameters = null) : base(logger, config, userIdentifier)
+            ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
         {
             // create trackers
             _symbolClient = symbolRestClient;

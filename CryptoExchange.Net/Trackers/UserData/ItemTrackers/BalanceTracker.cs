@@ -27,8 +27,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             SharedAccountType accountType,
             TrackerItemConfig config,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Balances, config, false, null)
+            ) : base(logger, UserDataType.Balances, restClient.Exchange, config, false, null)
         {
+            if (_socketClient == null)
+                config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
@@ -82,8 +85,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var balances = await _restClient.GetBalancesAsync(new GetBalancesRequest(accountType: _accountType, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
             if (balances.Success)
                 await HandleUpdateAsync(UpdateSource.Poll, balances.Data).ConfigureAwait(false);
+            else
+                _initialPollingError ??= balances.Error;
 
-            return balances.Success;
+            return !balances.Success;
         }
     }
 }

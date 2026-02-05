@@ -36,11 +36,15 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             bool onlyTrackProvidedSymbols,
             bool websocketPositionUpdatesAreFullSnapshots,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Positions, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, UserDataType.Positions, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
         {
+            if (_socketClient == null)
+                config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
+
             WebsocketPositionUpdatesAreFullSnapshots = websocketPositionUpdatesAreFullSnapshots;
         }
 
@@ -190,11 +194,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (updatedItems.Count > 0)
             {
                 await InvokeUpdate(
-                    new UserDataUpdate<SharedPosition[]>
-                    {
-                        Source = source,
-                        Data = _store.Where(x => updatedItems.Contains(x.Key)).Select(x => x.Value).ToArray()
-                    }).ConfigureAwait(false);
+                    new UserDataUpdate<SharedPosition[]>(source, _exchange, _store.Where(x => updatedItems.Contains(x.Key)).Select(x => x.Value).ToArray())).ConfigureAwait(false);
             }
         }
 
@@ -220,16 +220,18 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override async Task<bool> DoPollAsync()
         {
             var anyError = false;
-            var openOrdersResult = await _restClient.GetPositionsAsync(new GetPositionsRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-            if (!openOrdersResult.Success)
+            var positionsResult = await _restClient.GetPositionsAsync(new GetPositionsRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+            if (!positionsResult.Success)
             {
-                // .. ?
-
                 anyError = true;
+
+                _initialPollingError ??= positionsResult.Error;
+                if (!_firstPollDone)
+                    return anyError;
             }
             else
             {
-                await HandleUpdateAsync(UpdateSource.Poll, openOrdersResult.Data).ConfigureAwait(false);
+                await HandleUpdateAsync(UpdateSource.Poll, positionsResult.Data).ConfigureAwait(false);
             }
 
             return anyError;

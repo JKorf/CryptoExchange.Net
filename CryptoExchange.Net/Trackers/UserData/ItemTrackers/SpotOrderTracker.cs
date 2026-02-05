@@ -18,6 +18,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly ISpotOrderRestClient _restClient;
         private readonly ISpotOrderSocketClient? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
+        private readonly bool _requiresSymbolParameterOpenOrders;
 
         internal event Func<UpdateSource, SharedUserTrade[], Task>? OnTradeUpdate;
 
@@ -32,11 +33,16 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Orders, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, UserDataType.Orders, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
         {
+            if (_socketClient == null)
+                config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
+
+            _requiresSymbolParameterOpenOrders = restClient.GetOpenSpotOrdersOptions.RequiredOptionalParameters.Any(x => x.Name == "Symbol");
         }
 
         /// <inheritdoc />
@@ -124,6 +130,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
         /// <inheritdoc />
         protected override string GetKey(SharedSpotOrder item) => item.OrderId;
+        /// <inheritdoc />
+        protected override TimeSpan GetAge(DateTime time, SharedSpotOrder item) => item.Status == SharedOrderStatus.Open ? TimeSpan.Zero : time - (item.UpdateTime ?? item.CreateTime ?? time);
 
         /// <inheritdoc />
         protected override bool? CheckIfUpdateShouldBeApplied(SharedSpotOrder existingItem, SharedSpotOrder updateItem)
@@ -207,17 +215,48 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override async Task<bool> DoPollAsync()
         {
             var anyError = false;
-            var openOrdersResult = await _restClient.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-            if (!openOrdersResult.Success)
-            {
-                // .. ?
+            List<SharedSpotOrder> openOrders = new List<SharedSpotOrder>();
 
-                anyError = true;
+            if (!_requiresSymbolParameterOpenOrders)
+            {
+                var openOrdersResult = await _restClient.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                if (!openOrdersResult.Success)
+                {
+                    anyError = true;
+
+                    _initialPollingError ??= openOrdersResult.Error;
+                    if (!_firstPollDone)
+                        return anyError;
+                }
+                else
+                {
+                    openOrders.AddRange(openOrdersResult.Data);
+                    await HandleUpdateAsync(UpdateSource.Poll, openOrdersResult.Data).ConfigureAwait(false);
+                }
             }
             else
             {
-                await HandleUpdateAsync(UpdateSource.Poll, openOrdersResult.Data).ConfigureAwait(false);
+                foreach (var symbol in _symbols.ToList())
+                {
+                    var openOrdersResult = await _restClient.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(symbol, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                    if (!openOrdersResult.Success)
+                    {
+                        anyError = true;
+
+                        _initialPollingError ??= openOrdersResult.Error;
+                        if (!_firstPollDone)
+                            break;
+                    }
+                    else
+                    {
+                        openOrders.AddRange(openOrdersResult.Data);
+                        await HandleUpdateAsync(UpdateSource.Poll, openOrdersResult.Data).ConfigureAwait(false);
+                    }
+                }
             }
+
+            if (!_firstPollDone && anyError)
+                return anyError;
 
             foreach (var symbol in _symbols.ToList())
             {
@@ -226,9 +265,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 var closedOrdersResult = await _restClient.GetClosedSpotOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!closedOrdersResult.Success)
                 {
-                    // .. ?
-
                     anyError = true;
+
+                    _initialPollingError ??= closedOrdersResult.Error;
+                    if (!_firstPollDone)
+                        break;
                 }
                 else
                 {
@@ -243,10 +284,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     ).ToArray();
 
                     // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
-                    var openOrdersNotReturned = Values.Where(x => 
+                    var openOrdersNotReturned = Values.Where(x =>
                         x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset // Orders for the same symbol
                         && x.QuantityFilled?.IsZero == true // With no filled value
-                        && !openOrdersResult.Data.Any(r => r.OrderId == x.OrderId) // Not returned in open orders
+                        && !openOrders.Any(r => r.OrderId == x.OrderId) // Not returned in open orders
                         && !relevantOrders.Any(r => r.OrderId == x.OrderId) // Not return in closed orders
                         ).ToList();
 
@@ -255,7 +296,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     {
                         additionalUpdates.Add(order with
                         {
-                            Status = SharedOrderStatus.Canceled                            
+                            Status = SharedOrderStatus.Canceled
                         });
                     }
 

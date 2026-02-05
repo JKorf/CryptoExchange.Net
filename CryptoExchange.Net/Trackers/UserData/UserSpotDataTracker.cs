@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             IUserTradeSocketClient? userTradeSocketClient,
             string? userIdentifier,
             SpotUserDataTrackerConfig config,
-            ExchangeParameters? exchangeParameters = null) : base(logger, config, userIdentifier)
+            ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
         {
             // create trackers
             _symbolClient = symbolRestClient;

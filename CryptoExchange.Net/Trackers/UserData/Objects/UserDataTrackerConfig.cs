@@ -35,11 +35,11 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
         /// <summary>
         /// Order tracking config
         /// </summary>
-        public TrackerItemConfig OrdersConfig { get; set; } = new TrackerItemConfig(true, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        public TrackerTimedItemConfig OrdersConfig { get; set; } = new TrackerTimedItemConfig(true, TimeSpan.Zero, TimeSpan.FromSeconds(30), TimeSpan.MaxValue);
         /// <summary>
         /// Trade tracking config
         /// </summary>
-        public TrackerItemConfig UserTradesConfig { get; set; } = new TrackerItemConfig(false, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        public TrackerTimedItemConfig UserTradesConfig { get; set; } = new TrackerTimedItemConfig(false, TimeSpan.Zero, TimeSpan.FromSeconds(30), TimeSpan.MaxValue);
     }
 
 
@@ -55,11 +55,11 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
         /// <summary>
         /// Order tracking config
         /// </summary>
-        public TrackerItemConfig OrdersConfig { get; set; } = new TrackerItemConfig(true, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        public TrackerTimedItemConfig OrdersConfig { get; set; } = new TrackerTimedItemConfig(true, TimeSpan.Zero, TimeSpan.FromSeconds(30), TimeSpan.MaxValue);
         /// <summary>
         /// Trade tracking config
         /// </summary>
-        public TrackerItemConfig UserTradesConfig { get; set; } = new TrackerItemConfig(false, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+        public TrackerTimedItemConfig UserTradesConfig { get; set; } = new TrackerTimedItemConfig(false, TimeSpan.Zero, TimeSpan.FromSeconds(30), TimeSpan.MaxValue);
         /// <summary>
         /// Position tracking config
         /// </summary>

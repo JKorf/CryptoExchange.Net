@@ -32,8 +32,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Trades, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, UserDataType.Trades, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
         {
+            if (_socketClient == null)
+                config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
+
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
@@ -45,6 +48,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override bool? CheckIfUpdateShouldBeApplied(SharedUserTrade existingItem, SharedUserTrade updateItem) => false;
         /// <inheritdoc />
         protected override bool Update(SharedUserTrade existingItem, SharedUserTrade updateItem) => false; // trades are never updated
+        /// <inheritdoc />
+        protected override TimeSpan GetAge(DateTime time, SharedUserTrade item) => time - item.Timestamp;
 
         /// <inheritdoc />
         protected override async Task<bool> DoPollAsync()
@@ -57,8 +62,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 var tradesResult = await _restClient.GetFuturesUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
                 {
-                    // .. ?
                     anyError = true;
+
+                    _initialPollingError ??= tradesResult.Error;
+                    if (!_firstPollDone)
+                        break;
                 }
                 else
                 {

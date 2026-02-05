@@ -29,6 +29,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         protected AsyncResetEvent _pollWaitEvent = new AsyncResetEvent(false, true);
         /// <summary>
+        /// Initial polling done event
+        /// </summary>
+        protected AsyncResetEvent _initialPollDoneEvent = new AsyncResetEvent(false, false);
+        /// <summary>
+        /// The error from the initial polling;
+        /// </summary>
+        protected Error? _initialPollingError;
+        /// <summary>
         /// Polling task
         /// </summary>
         protected Task? _pollTask;
@@ -81,6 +89,15 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         protected TimeSpan _pollIntervalDisconnected;
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        protected string _exchange;
+        /// <summary>
+        /// Time completed data is retained
+        /// </summary>
+        public TimeSpan _retentionTime;
+
+        /// <summary>
         /// Data type
         /// </summary>
         public UserDataType DataType { get; }
@@ -102,9 +119,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// ctor
         /// </summary>
-        public UserDataItemTracker(ILogger logger, UserDataType dataType)
+        public UserDataItemTracker(ILogger logger, UserDataType dataType, string exchange)
         {
             _logger = logger;
+            _exchange = exchange;
 
             DataType = dataType;
         }
@@ -196,9 +214,30 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// Only track provided symbols setting
         /// </summary>
         protected bool _onlyTrackProvidedSymbols;
+        /// <summary>
+        /// Is SharedSymbol model
+        /// </summary>
+        protected bool _isSymbolModel;
 
         /// <inheritdoc />
-        public T[] Values => _store.Values.ToArray();
+        public T[] Values
+        {
+            get
+            {
+                if (_retentionTime != TimeSpan.MaxValue)
+                {
+                    var timestamp = DateTime.UtcNow;
+                    foreach (var value in _store.Values)
+                    {
+                        if (GetAge(timestamp, value) > _retentionTime)
+                            _store.TryRemove(GetKey(value), out _);
+                    }
+                }
+
+                return _store.Values.ToArray();
+            }
+        }
+
         /// <inheritdoc />
         public event Func<UserDataUpdate<T[]>, Task>? OnUpdate;
         /// <inheritdoc />
@@ -207,7 +246,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// ctor
         /// </summary>
-        public UserDataItemTracker(ILogger logger, UserDataType dataType, TrackerItemConfig config, bool onlyTrackProvidedSymbols, IEnumerable<SharedSymbol>? symbols) : base(logger, dataType)
+        public UserDataItemTracker(ILogger logger, UserDataType dataType, string exchange, TrackerItemConfig config, bool onlyTrackProvidedSymbols, IEnumerable<SharedSymbol>? symbols) : base(logger, dataType, exchange)
         {
             _onlyTrackProvidedSymbols = onlyTrackProvidedSymbols;
             _symbols = symbols?.ToList() ?? [];
@@ -215,6 +254,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _pollIntervalDisconnected = config.PollIntervalDisconnected;
             _pollIntervalConnected = config.PollIntervalConnected;
             _pollAtStart = config.PollAtStart;
+            _retentionTime = config is TrackerTimedItemConfig timeConfig ? timeConfig.RetentionTime : TimeSpan.MaxValue;
+            _isSymbolModel = typeof(T).IsSubclassOf(typeof(SharedSymbolModel));
         }
 
         /// <summary>
@@ -241,6 +282,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             Connected = true;
 
             _pollTask = PollAsync();
+
+            await _initialPollDoneEvent.WaitAsync().ConfigureAwait(false);
+            if (_initialPollingError != null)
+            {
+                await StopAsync().ConfigureAwait(false);
+                return new CallResult(_initialPollingError);
+            }
+
             return CallResult.SuccessResult;
         }
 
@@ -281,6 +330,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// Update an existing item with an update
         /// </summary>
         protected abstract bool Update(T existingItem, T updateItem);
+        /// <summary>
+        /// Get the age of an item
+        /// </summary>
+        protected virtual TimeSpan GetAge(DateTime time, T item) => TimeSpan.Zero;
 
         /// <summary>
         /// Update the tracked symbol list with potential new symbols
@@ -308,7 +361,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         {
             LastUpdateTime = DateTime.UtcNow;
 
-            if (typeof(T) == typeof(SharedSymbolModel))
+            if (_isSymbolModel)
             {
                 List<T>? toRemove = null;
                 foreach (var item in @event)
@@ -376,11 +429,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (updatedItems.Count > 0 && OnUpdate != null)
             {
                 await OnUpdate.Invoke(
-                    new UserDataUpdate<T[]>
-                    {
-                        Source = source,
-                        Data = _store.Where(x => updatedItems.Contains(x.Key)).Select(x => x.Value).ToArray()
-                    }).ConfigureAwait(false);
+                    new UserDataUpdate<T[]>(source, _exchange, _store.Where(x => updatedItems.Contains(x.Key)).Select(x => x.Value).ToArray())).ConfigureAwait(false);
             }
         }
 
@@ -432,13 +481,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 {
                     var anyError = await DoPollAsync().ConfigureAwait(false);
 
+                    _initialPollDoneEvent.Set();
                     _lastPollAttempt = DateTime.UtcNow;
                     _lastPollSuccess = !anyError;
 
                     if (anyError && currentlyFirstPoll && _pollAtStart)
                     {
-                        // This is the initial polling at start and it failed, should this be a start error?
-
+                        if (_initialPollingError == null)
+                            throw new Exception("Error in initial polling but error not set");
                     }
                 }
                 catch (Exception ex)
@@ -469,7 +519,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 // managing to do a poll we don't want to override the time since we still need to request that earlier data
 
                 if (_lastDataTimeBeforeDisconnect == null)
+                {
                     _lastDataTimeBeforeDisconnect = _subscription!.LastReceiveTime;
+
+                    // When changing to pending (disconnected) trigger polling to start checking
+                    _pollWaitEvent.Set();
+                }
             }
 
             Connected = newState == SubscriptionStatus.Subscribed;

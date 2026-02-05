@@ -22,6 +22,11 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         bool Connected { get; }
 
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        public string Exchange { get; }
+
+        /// <summary>
         /// Balances tracker
         /// </summary>
         IUserDataTracker<SharedBalance> Balances { get; }
