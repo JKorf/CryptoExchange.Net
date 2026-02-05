@@ -95,6 +95,10 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public void Set()
         {
+            if (!_autoReset && _signaled)
+                // Already signaled and not resetting
+                return;
+
             lock (_waitersLock)
             {
                 if (_autoReset)

@@ -69,6 +69,10 @@ namespace CryptoExchange.Net.Sockets.Default.Interfaces
         /// </summary>
         bool IsOpen { get; }
         /// <summary>
+        /// Last timestamp something was received from the server
+        /// </summary>
+        DateTime? LastReceiveTime { get; }
+        /// <summary>
         /// Connect the socket
         /// </summary>
         /// <returns></returns>

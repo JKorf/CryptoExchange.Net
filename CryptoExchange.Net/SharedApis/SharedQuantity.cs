@@ -22,6 +22,11 @@ namespace CryptoExchange.Net.SharedApis
         public decimal? QuantityInContracts { get; set; }
 
         /// <summary>
+        /// Whether all values are null or zero
+        /// </summary>
+        public bool IsZero => !(QuantityInBaseAsset > 0) && !(QuantityInQuoteAsset > 0) && !(QuantityInContracts > 0);
+
+        /// <summary>
         /// ctor
         /// </summary>
         internal SharedQuantityReference(decimal? baseAssetQuantity, decimal? quoteAssetQuantity, decimal? contractQuantity)

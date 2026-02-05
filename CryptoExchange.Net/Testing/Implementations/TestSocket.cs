@@ -39,6 +39,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         public Func<Task<Uri?>>? GetReconnectionUrl { get; set; }
 
         public static int lastId = 0;
+        public DateTime? LastReceiveTime { get; }
 #if NET9_0_OR_GREATER
         public static readonly Lock lastIdLock = new Lock();
 #else

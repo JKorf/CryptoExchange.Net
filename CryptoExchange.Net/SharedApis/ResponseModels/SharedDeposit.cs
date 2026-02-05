@@ -45,14 +45,20 @@ namespace CryptoExchange.Net.SharedApis
         public bool Completed { get; set; }
 
         /// <summary>
+        /// Status of the deposit
+        /// </summary>
+        public SharedTransferStatus Status { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public SharedDeposit(string asset, decimal quantity, bool completed, DateTime timestamp)
+        public SharedDeposit(string asset, decimal quantity, bool completed, DateTime timestamp, SharedTransferStatus status)
         {
             Asset = asset;
             Quantity = quantity;
             Timestamp = timestamp;
             Completed = completed;
+            Status = status;
         }
     }
 
