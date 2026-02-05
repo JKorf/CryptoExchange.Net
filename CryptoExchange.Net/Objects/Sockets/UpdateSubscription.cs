@@ -117,7 +117,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The current websocket status
         /// </summary>
-        public SocketStatus Status => _connection.Status;
+        public SocketStatus SocketStatus => _connection.Status;
 
         /// <summary>
         /// The current subscription status

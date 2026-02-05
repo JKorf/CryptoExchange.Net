@@ -47,7 +47,6 @@ namespace CryptoExchange.Net.Sockets.Default
 
                 _status = value;
                 StatusChanged?.Invoke(value);
-                //Task.Run(() => StatusChanged?.Invoke(value));
             }
         }
 
