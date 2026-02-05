@@ -518,11 +518,14 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         protected DateTime GetTimestamp(SocketApiClient apiClient, bool includeOneSecondOffset = true)
         {
-            var result = TimeProvider.GetTime().Add(TimeOffsetManager.GetSocketOffset(apiClient.ClientName) ?? TimeSpan.Zero)!;
-            if (includeOneSecondOffset)
-                result = result.AddSeconds(-1);
+            var timestamp = TimeProvider.GetTime();
+            if(apiClient.ApiOptions.AutoTimestamp ?? apiClient.ClientOptions.AutoTimestamp)
+                timestamp = timestamp.Add(-TimeOffsetManager.GetSocketOffset(apiClient.ClientName) ?? TimeSpan.Zero)!;
 
-            return result;
+            if (includeOneSecondOffset)
+                timestamp = timestamp.AddSeconds(-1);
+
+            return timestamp;
         }
 
         /// <summary>

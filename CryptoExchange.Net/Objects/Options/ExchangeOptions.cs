@@ -9,6 +9,10 @@ namespace CryptoExchange.Net.Objects.Options
     public class ExchangeOptions
     {
         /// <summary>
+        /// Whether or not to automatically sync the local time with the server time
+        /// </summary>
+        public bool AutoTimestamp { get; set; }
+        /// <summary>
         /// Proxy settings
         /// </summary>
         public ApiProxy? Proxy { get; set; }

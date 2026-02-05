@@ -27,6 +27,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.ApiCredentials = ApiCredentials?.Copy();
             item.OutputOriginalData = OutputOriginalData;
             item.SocketNoDataTimeout = SocketNoDataTimeout;
+            item.AutoTimestamp = AutoTimestamp;
             item.MaxSocketConnections = MaxSocketConnections;
             return item;
         }

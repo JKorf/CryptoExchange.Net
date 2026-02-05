@@ -76,6 +76,15 @@ namespace CryptoExchange.Net.Objects.Options
         public int? ReceiveBufferSize { get; set; }
 
         /// <summary>
+        /// ctor
+        /// </summary>
+        public SocketExchangeOptions()
+        {
+            // Enable auto timestamping by default for sockets
+            AutoTimestamp = true;
+        }
+
+        /// <summary>
         /// Create a copy of this options
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -83,6 +92,7 @@ namespace CryptoExchange.Net.Objects.Options
         public T Set<T>(T item) where T : SocketExchangeOptions, new()
         {
             item.ApiCredentials = ApiCredentials?.Copy();
+            item.AutoTimestamp = AutoTimestamp;
             item.OutputOriginalData = OutputOriginalData;
             item.ReconnectPolicy = ReconnectPolicy;
             item.DelayAfterConnect = DelayAfterConnect;

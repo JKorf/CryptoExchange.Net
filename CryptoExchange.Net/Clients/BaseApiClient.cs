@@ -13,7 +13,10 @@ namespace CryptoExchange.Net.Clients
     /// </summary>
     public abstract class BaseApiClient : IDisposable, IBaseApiClient
     {
-        private string? _clientName;
+        /// <summary>
+        /// Client name
+        /// </summary>
+        protected string? _clientName;
 
         /// <summary>
         /// Logger
