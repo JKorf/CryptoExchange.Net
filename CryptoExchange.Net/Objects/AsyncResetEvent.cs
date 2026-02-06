@@ -53,41 +53,57 @@ namespace CryptoExchange.Net.Objects
                 _waiters.Enqueue(tcs);
             }
 
-            if (timeout.HasValue || ct.CanBeCanceled)
+            CancellationTokenSource? delayCts = null;
+
+            try
             {
-                // Wait for either timeout, cancellation token or set result
-                var delayTask = Task.Delay(timeout ?? Timeout.InfiniteTimeSpan, ct);
-                var completedTask = await Task.WhenAny(tcs.Task, delayTask).ConfigureAwait(false);
-
-                if (completedTask != tcs.Task)
+                if (timeout.HasValue || ct.CanBeCanceled)
                 {
-                    // This was a timeout or cancellation, need to remove tcs from waiters
-                    // if the tcs was set instead it will be removed in the Set method
+                    delayCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-                    if (tcs.TrySetResult(false))
+                    var delayTask = Task.Delay(
+                        timeout ?? Timeout.InfiniteTimeSpan,
+                        delayCts.Token);
+
+                    var completedTask =
+                        await Task.WhenAny(tcs.Task, delayTask)
+                                  .ConfigureAwait(false);
+
+                    if (completedTask != tcs.Task)
                     {
-                        lock (_waitersLock)
+                        // This was a timeout or cancellation, need to remove tcs from waiters
+                        // if the tcs was set instead it will be removed in the Set method
+                        if (tcs.TrySetResult(false))
                         {
-                            // Dequeue and put in the back of the queue again except for the one we need to remove
-                            int count = _waiters.Count;
-                            for (int i = 0; i < count; i++)
+                            lock (_waitersLock)
                             {
-                                var w = _waiters.Dequeue();
-                                if (w != tcs)
-                                    _waiters.Enqueue(w);
+                                // Dequeue and put in the back of the queue again except for the one we need to remove
+                                int count = _waiters.Count;
+                                for (int i = 0; i < count; i++)
+                                {
+                                    var w = _waiters.Dequeue();
+                                    if (w != tcs)
+                                        _waiters.Enqueue(w);
+                                }
                             }
                         }
+
+                        return false;
                     }
-
-                    return false;
                 }
-            }
-            else
-            {
-                await tcs.Task.ConfigureAwait(false);
-            }
+                else
+                {
+                    await tcs.Task.ConfigureAwait(false);
+                }
 
-            return true;
+                return true;
+            }
+            finally
+            {
+                // Actively stop the delay if tcs.Task won
+                delayCts?.Cancel();
+                delayCts?.Dispose();
+            }
         }
 
         /// <summary>
