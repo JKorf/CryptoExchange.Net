@@ -132,7 +132,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 @event = @event.Except(toRemove).ToArray();
 
             if (!_onlyTrackProvidedSymbols)
-                UpdateSymbolsList(@event.OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
+                UpdateSymbolsList(@event.Where(x => x.PositionSize > 0).OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
             
 
             // Update local store

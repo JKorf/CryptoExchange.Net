@@ -411,7 +411,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                         }
                         else
                         {
-                            _logger.LogDebug("Updated {DataType} {Item}", DataType, key);
+                            _logger.LogTrace("Updated {DataType} {Item}", DataType, key);
                             LastChangeTime = DateTime.UtcNow;
                         }
                     }
@@ -421,7 +421,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
                 if (!existed)
                 {
-                    _logger.LogDebug("Added {DataType} {Item}", DataType, GetKey(item));
+                    _logger.LogTrace("Added {DataType} {Item}", DataType, GetKey(item));
                     LastChangeTime = DateTime.UtcNow;
                 }
             }
