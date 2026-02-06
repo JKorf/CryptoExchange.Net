@@ -67,6 +67,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.4.1 - 06 Feb 2026
+    * Updated UserDataTracker to only track symbol when position size > 0
+    * Update UserDataTracker log verbosity
+
 * Version 10.4.0 - 06 Feb 2026
     * Added user data tracking logic
     * Added LastReceiveTime, SocketStatus and SubscriptionStatus properties to UpdateSubscription
