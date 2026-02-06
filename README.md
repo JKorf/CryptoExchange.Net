@@ -67,6 +67,22 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.4.0 - 06 Feb 2026
+    * Added user data tracking logic
+    * Added LastReceiveTime, SocketStatus and SubscriptionStatus properties to UpdateSubscription
+    * Added SharedTransferStatus Enum and property to SharedDeposit
+    * Added PositionMode property to SharedPosition model
+    * Added IsZero property to SharedQuantity
+    * Added additional methods for requesting supported symbols to Shared ISpotSymbolRestClient/IFuturesSymbolRestClient interfaces
+    * Added Disposed property on BaseClient and IRestClient/ISocketClient interfaces
+    * Added AutoTimestamp option for socket client
+    * Renamed IWebSocket LastActionTime to LastReceiveTime
+    * Refactored AsyncResetEvent implementation
+    * Updated CryptoExchangeWebsocketClient LastReceiveTime logic
+    * Updated Subscription status change event handler to run sync instead of separate task
+    * Updated Interval property access on KlineTracker to public
+    * Fixed socket client timestamp offset bug
+
 * Version 10.3.1 - 27 Jan 2026
     * Fixed potential collection modified exception upon logging message not handled in websocket message handling
 
