@@ -7,6 +7,7 @@ using System.Linq;
 using CryptoExchange.Net.Trackers.UserData.Interfaces;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
+using System;
 
 namespace CryptoExchange.Net.Trackers.UserData
 {
@@ -18,6 +19,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         private readonly ISpotSymbolRestClient _symbolClient;
         private readonly IListenKeyRestClient? _listenKeyClient;
         private readonly ExchangeParameters? _exchangeParameters;
+        private Task? _lkKeepAliveTask;
 
         /// <inheritdoc />
         protected override UserDataItemTracker[] DataTrackers { get; } 
@@ -91,10 +93,39 @@ namespace CryptoExchange.Net.Trackers.UserData
                     return lkResult;
                 }
 
+                _lkKeepAliveTask = KeepAliveListenKeyAsync();
+
                 _listenKey = lkResult.Data;
             }
 
             return CallResult.SuccessResult;
+        }
+
+        /// <inheritdoc />
+        protected override async Task DoStopAsync()
+        {
+            if (_lkKeepAliveTask != null)
+                await _lkKeepAliveTask.ConfigureAwait(false);
+        }
+
+        private async Task KeepAliveListenKeyAsync()
+        {
+            var interval = TimeSpan.FromMinutes(30);
+            while (!_cts!.IsCancellationRequested)
+            {
+                try { await Task.Delay(interval, _cts.Token).ConfigureAwait(false); } 
+                catch (Exception)
+                {
+                    break;
+                }
+
+                var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, TradingMode.Spot)).ConfigureAwait(false);
+                if (!result)
+                    _logger.LogWarning("Listen key keep alive failed: " + result.Error);
+
+                // If failed shorten the delay to allow a couple more retries
+                interval = result ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
+            }
         }
     }
 }

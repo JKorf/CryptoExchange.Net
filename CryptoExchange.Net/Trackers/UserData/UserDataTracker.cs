@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData
@@ -22,6 +23,11 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// Listen key to use for subscriptions
         /// </summary>
         protected string? _listenKey;
+        /// <summary>
+        /// Cts
+        /// </summary>
+        protected CancellationTokenSource? _cts;
+
         /// <summary>
         /// List of data trackers
         /// </summary>
@@ -68,6 +74,8 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public async Task<CallResult> StartAsync()
         {
+            _cts = new CancellationTokenSource();
+
             foreach(var tracker in DataTrackers)
                 tracker.OnConnectedChange += (x) => OnConnectedChange?.Invoke(tracker.DataType, x);            
 
@@ -100,12 +108,21 @@ namespace CryptoExchange.Net.Trackers.UserData
         public async Task StopAsync()
         {
             _logger.LogDebug("Stopping UserDataTracker");
+            _cts?.Cancel();
+
             var tasks = new List<Task>();
             foreach (var dataTracker in DataTrackers)
                 tasks.Add(dataTracker.StopAsync());
 
+            await DoStopAsync().ConfigureAwait(false);
             await Task.WhenAll(tasks).ConfigureAwait(false);
             _logger.LogDebug("Stopped UserDataTracker");
         }
+
+        /// <summary>
+        /// Stop implementation
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Task DoStopAsync() => Task.CompletedTask;
     }
 }
