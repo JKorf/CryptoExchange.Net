@@ -663,8 +663,7 @@ namespace CryptoExchange.Net.Sockets.Default
                         {
                             complete = true;
                             break;
-                        }
-                        
+                        }                        
                     }
 
                     if (complete)
@@ -676,8 +675,11 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 lock (_listenersLock)
                 {
-                    _logger.ReceivedMessageNotMatchedToAnyListener(SocketId, topicFilter!,
-                        string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                    _logger.ReceivedMessageNotMatchedToAnyListener(
+                        SocketId,
+                        typeIdentifier,
+                        topicFilter!,
+                        string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Where(x => x.TypeIdentifier == typeIdentifier).Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
                 }
             }
         }
