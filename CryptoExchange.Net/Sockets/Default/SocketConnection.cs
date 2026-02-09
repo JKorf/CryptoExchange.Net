@@ -633,22 +633,38 @@ namespace CryptoExchange.Net.Sockets.Default
                         if (route.TypeIdentifier != typeIdentifier)
                             continue;
 
-                        if (topicFilter == null
-                            || route.TopicFilter == null 
-                            || route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
+                        // Forward message rules:
+                        // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
+                        // |       N       |          N         |      -       |    Y    | No topic filter applied
+                        // |       N       |          Y         |      -       |    N    | Route only listens to specific topic
+                        // |       Y       |          N         |      -       |    Y    | Route listens to all message regardless of topic
+                        // |       Y       |          Y         |      Y       |    Y    | Route listens to specific message topic
+                        // |       Y       |          Y         |      N       |    N    | Route listens to different topic
+                        if (topicFilter == null)
                         {
-                            processed = true;
-
-                            if (isQuery && query!.Completed)
+                            if (route.TopicFilter != null)
+                                // No topic on message, but route is filtering on topic
                                 continue;
-
-                            processor.Handle(this, receiveTime, originalData, result, route);
-                            if (isQuery && !route.MultipleReaders)
-                            {
-                                complete = true;
-                                break;
-                            }
                         }
+                        else
+                        {
+                            if (route.TopicFilter != null && !route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
+                                // Message has a topic, and the route has a filter for another topic
+                                continue;
+                        }
+
+                        processed = true;
+
+                        if (isQuery && query!.Completed)
+                            continue;
+
+                        processor.Handle(this, receiveTime, originalData, result, route);
+                        if (isQuery && !route.MultipleReaders)
+                        {
+                            complete = true;
+                            break;
+                        }
+                        
                     }
 
                     if (complete)
