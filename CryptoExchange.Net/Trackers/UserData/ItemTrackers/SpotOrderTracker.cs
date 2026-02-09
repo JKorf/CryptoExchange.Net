@@ -140,6 +140,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 // status changed from open to not open
                 return true;
 
+            if (existingItem.Status != SharedOrderStatus.Open 
+                && updateItem.Status != SharedOrderStatus.Open 
+                && existingItem.Status != updateItem.Status)
+            {
+                _logger.LogWarning("Invalid order update detected for order {OrderId}; current status: {OldStatus}, new status: {NewStatus}", existingItem.OrderId, existingItem.Status, updateItem.Status);
+                return false;
+            }
+
             if (existingItem.Status != SharedOrderStatus.Open && updateItem.Status == SharedOrderStatus.Open)
                 // status changed from not open to open; stale
                 return false;
@@ -278,9 +286,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
                     // Filter orders to only include where close time is after the start time
                     var relevantOrders = closedOrdersResult.Data.Where(x =>
-                        x.UpdateTime != null && x.UpdateTime >= _startTime // Updated after the tracker start time
-                        || x.CreateTime != null && x.CreateTime >= _startTime // Created after the tracker start time
-                        || x.CreateTime == null && x.UpdateTime == null // Unknown time
+                        (x.UpdateTime != null && x.UpdateTime >= _startTime) // Updated after the tracker start time
+                        || (x.CreateTime != null && x.CreateTime >= _startTime) // Created after the tracker start time
+                        || (x.CreateTime == null && x.UpdateTime == null) // Unknown time
                     ).ToArray();
 
                     // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
