@@ -87,7 +87,8 @@ namespace CryptoExchange.Net.Sockets.Default
             get
             {
                 UpdateReceivedMessages();
-                return Math.Round(_prevSlotBytesReceived * (_lastBytesReceivedUpdate - _prevSlotBytesReceivedUpdate).TotalSeconds / 1000);
+                var seconds = (_lastBytesReceivedUpdate - _prevSlotBytesReceivedUpdate).TotalSeconds;
+                return seconds > 0 ? Math.Round(_prevSlotBytesReceived / seconds / 1000) : 0;
             }
         }
 

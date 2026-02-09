@@ -930,7 +930,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     return SendStringAsync(requestId, str, weight);
 
                 str = stringSerializer.Serialize(obj);
-                return SendAsync(requestId, str, weight);
+                return SendStringAsync(requestId, str, weight);
             }
 
             throw new Exception("Unknown serializer when sending message");
