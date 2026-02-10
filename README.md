@@ -67,6 +67,14 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.5.0 - 10 Feb 2026
+    * Added keep alive for listenkeys to UserDataTracker
+    * Updated logging unmatched websocket message
+    * Updated websocket message forwarding logic
+    * Fixed bug in IncomingKbps calculation
+    * Fixed bug in SendAsync in SocketConnection
+    * Fixed bug in UserDataTracker orders logic incorrectly setting order to canceled status
+
 * Version 10.4.1 - 06 Feb 2026
     * Updated UserDataTracker to only track symbol when position size > 0
     * Update UserDataTracker log verbosity
