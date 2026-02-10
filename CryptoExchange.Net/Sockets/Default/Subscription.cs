@@ -174,6 +174,14 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             ConnectionInvocations++;
             TotalInvocations++;
+            if (SubscriptionQuery != null && !SubscriptionQuery.Completed && SubscriptionQuery.TimeoutBehavior == TimeoutBehavior.Succeed)
+            {
+                // The subscription query is one where it is successful if there is no error returned
+                // Since we've received a data update for the subscription we can assume the subscribe query was successful
+                // Call timeout to complete 
+                SubscriptionQuery.Timeout();
+            }
+
             return route.Handle(connection, receiveTime, originalData, data);
         }
 
