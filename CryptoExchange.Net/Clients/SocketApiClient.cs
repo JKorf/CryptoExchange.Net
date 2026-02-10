@@ -304,55 +304,9 @@ namespace CryptoExchange.Net.Clients
                 return new CallResult<UpdateSubscription>(new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
             }
 
-            void HandleSubscriptionComplete(bool success, object? response)
-            {
-                if (!success)
-                    return;
-
-                subscription.HandleSubQueryResponse(socketConnection, response);
-                subscription.Status = SubscriptionStatus.Subscribed;
-                if (ct != default)
-                {
-                    subscription.CancellationTokenRegistration = ct.Register(async () =>
-                    {
-                        _logger.CancellationTokenSetClosingSubscription(socketConnection.SocketId, subscription.Id);
-                        await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
-                    }, false);
-                }
-            }
-
-            subscription.Status = SubscriptionStatus.Subscribing;
-            var subQuery = subscription.CreateSubscriptionQuery(socketConnection);
-            if (subQuery != null)
-            {
-                subQuery.OnComplete = () => HandleSubscriptionComplete(subQuery.Result?.Success ?? false, subQuery.Response);
-
-                // Send the request and wait for answer
-                var subResult = await socketConnection.SendAndWaitQueryAsync(subQuery, ct).ConfigureAwait(false);
-                if (!subResult)
-                {
-                    var isTimeout = subResult.Error is CancellationRequestedError;
-                    if (isTimeout && subscription.Status == SubscriptionStatus.Subscribed)
-                    {
-                        // No response received, but the subscription did receive updates. We'll assume success
-                    }
-                    else
-                    {
-                        _logger.FailedToSubscribe(socketConnection.SocketId, subResult.Error?.ToString());
-                        // If this was a server process error we still might need to send an unsubscribe to prevent messages coming in later
-                        subscription.Status = SubscriptionStatus.Pending;
-                        await socketConnection.CloseAsync(subscription).ConfigureAwait(false);
-                        return new CallResult<UpdateSubscription>(subResult.Error!);
-                    }
-                }
-
-                if (!subQuery.ExpectsResponse)
-                    HandleSubscriptionComplete(true, null);
-            }
-            else 
-            {
-                HandleSubscriptionComplete(true, null);
-            }
+            var subscribeResult = await socketConnection.TrySubscribeAsync(subscription, true, ct).ConfigureAwait(false);
+            if (!subscribeResult)
+                return new CallResult<UpdateSubscription>(subscribeResult.Error!);
 
             _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
             return new CallResult<UpdateSubscription>(new UpdateSubscription(socketConnection, subscription));

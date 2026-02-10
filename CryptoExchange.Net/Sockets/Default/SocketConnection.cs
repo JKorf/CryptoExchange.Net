@@ -1082,40 +1082,8 @@ namespace CryptoExchange.Net.Sockets.Default
                 var taskList = new List<Task<CallResult>>();
                 foreach (var subscription in subList)
                 {
-                    subscription.ConnectionInvocations = 0;
-                    if (!subscription.Active)
-                        // Can be closed during resubscribing
-                        continue;
-
-                    subscription.Status = SubscriptionStatus.Subscribing;
-                    var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
-                    if (!result)
-                    {
-                        _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
-                        subscription.Status = SubscriptionStatus.Pending;
-                        return result;
-                    }
-
-                    var subQuery = subscription.CreateSubscriptionQuery(this);
-                    if (subQuery == null)
-                    {
-                        subscription.Status = SubscriptionStatus.Subscribed;
-                        continue;
-                    }
-                    subQuery.OnComplete = () =>
-                    {
-                        subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
-                        subscription.HandleSubQueryResponse(this, subQuery.Response);
-                    };
-
-                    taskList.Add(SendAndWaitQueryAsync(subQuery));
-
-                    if (!subQuery.ExpectsResponse)
-                    {
-                        // If there won't be an answer we can immediately set this
-                        subscription.Status = SubscriptionStatus.Subscribed;
-                        subscription.HandleSubQueryResponse(this, null);
-                    }
+                    var subscribeTask = TrySubscribeAsync(subscription, false, default);
+                    taskList.Add(subscribeTask);
                 }
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
@@ -1130,6 +1098,61 @@ namespace CryptoExchange.Net.Sockets.Default
 
             _logger.AllSubscriptionResubscribed(SocketId);
             return CallResult.SuccessResult;
+        }
+
+        protected internal async Task<CallResult> TrySubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
+        {
+            subscription.ConnectionInvocations = 0;
+
+            if (!newSubscription)
+            {
+                if (!subscription.Active)
+                    // Can be closed during resubscribing
+                    return CallResult.SuccessResult;
+
+                var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
+                if (!result)
+                {
+                    _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
+                    subscription.Status = SubscriptionStatus.Pending;
+                    return result;
+                }
+            }
+
+            subscription.Status = SubscriptionStatus.Subscribing;
+            var subQuery = subscription.CreateSubscriptionQuery(this);
+            if (subQuery == null)
+            {
+                // No sub query, so successful
+                subscription.Status = SubscriptionStatus.Subscribed;
+                return CallResult.SuccessResult;
+            }
+
+            subQuery.OnComplete = () =>
+            {
+                subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
+                subscription.HandleSubQueryResponse(this, subQuery.Response);
+                if (newSubscription && subQuery.Result.Success && subCancelToken != default)
+                {
+                    subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
+                    {
+                        _logger.CancellationTokenSetClosingSubscription(SocketId, subscription.Id);
+                        await CloseAsync(subscription).ConfigureAwait(false);
+                    }, false);
+                }
+            };
+
+            var subQueryResult = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
+            if (!subQueryResult)
+            {
+                _logger.FailedToSubscribe(SocketId, subQueryResult.Error?.ToString());
+                // If this was a server process error or timeout we still send an unsubscribe to prevent messages coming in later
+                if (newSubscription)
+                    await CloseAsync(subscription).ConfigureAwait(false);
+                return new CallResult<UpdateSubscription>(subQueryResult.Error!);
+            }
+
+            return subQueryResult;
         }
 
         internal async Task UnsubscribeAsync(Subscription subscription)
