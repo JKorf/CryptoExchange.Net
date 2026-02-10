@@ -673,13 +673,16 @@ namespace CryptoExchange.Net.Sockets.Default
 
             if (!processed)
             {
-                lock (_listenersLock)
+                if (!ApiClient.HandleUnhandledMessage(this, typeIdentifier, data))
                 {
-                    _logger.ReceivedMessageNotMatchedToAnyListener(
-                        SocketId,
-                        typeIdentifier,
-                        topicFilter!,
-                        string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Where(x => x.TypeIdentifier == typeIdentifier).Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                    lock (_listenersLock)
+                    {
+                        _logger.ReceivedMessageNotMatchedToAnyListener(
+                            SocketId,
+                            typeIdentifier,
+                            topicFilter!,
+                            string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Where(x => x.TypeIdentifier == typeIdentifier).Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                    }
                 }
             }
         }
