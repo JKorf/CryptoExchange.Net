@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         private readonly IFuturesSymbolRestClient _symbolClient;
         private readonly IListenKeyRestClient? _listenKeyClient;
         private readonly ExchangeParameters? _exchangeParameters;
+        private readonly TradingMode _tradingMode;
         private Task? _lkKeepAliveTask;
 
         /// <inheritdoc />
@@ -69,10 +70,14 @@ namespace CryptoExchange.Net.Trackers.UserData
             _listenKeyClient = listenKeyRestClient;
             _exchangeParameters = exchangeParameters;
 
+            _tradingMode = accountType == SharedAccountType.PerpetualInverseFutures ? TradingMode.PerpetualInverse :
+                              accountType == SharedAccountType.DeliveryLinearFutures ? TradingMode.DeliveryLinear :
+                              accountType == SharedAccountType.DeliveryInverseFutures ? TradingMode.DeliveryInverse :
+                              TradingMode.PerpetualLinear;
+
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceAccountType = accountType ?? SharedAccountType.PerpetualLinearFutures;
-            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, balanceAccountType, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
@@ -100,7 +105,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// <inheritdoc />
         protected override async Task<CallResult> DoStartAsync()
         {
-            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(_tradingMode, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
             if (!symbolResult)
             {
                 _logger.LogWarning("Failed to start UserFuturesDataTracker; symbols request failed: {Error}", symbolResult.Error);
@@ -109,7 +114,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             if (_listenKeyClient != null)
             {
-                var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(_tradingMode, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!lkResult)
                 {
                     _logger.LogWarning("Failed to start UserFuturesDataTracker; listen key request failed: {Error}", lkResult.Error);
@@ -141,7 +146,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                     break;
                 }
 
-                var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, TradingMode.Spot)).ConfigureAwait(false);
+                var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, _tradingMode)).ConfigureAwait(false);
                 if (!result)
                     _logger.LogWarning("Listen key keep alive failed: " + result.Error);
 
