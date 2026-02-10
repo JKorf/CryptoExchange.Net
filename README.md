@@ -67,6 +67,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.5.2 - 10 Feb 2026
+    * Added check for subscribe queries with TimeoutBehavior.Success to complete when subscription has received update
+    * Added call to ApiClient.HandleUnhandledMessage when no websocket message processor is found based on topic to allow additional processing
+    * Combined websocket connection subscribe and re-subscribe logic
+    * Set websocket query completed after setting Result
+
 * Version 10.5.1 - 10 Feb 2026
     * Fixed trading mode selection for futures listen key methods in FuturesUserDataTracker
 
