@@ -67,6 +67,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.5.1 - 10 Feb 2026
+    * Fixed trading mode selection for futures listen key methods in FuturesUserDataTracker
+
 * Version 10.5.0 - 10 Feb 2026
     * Added keep alive for listenkeys to UserDataTracker
     * Updated logging unmatched websocket message
