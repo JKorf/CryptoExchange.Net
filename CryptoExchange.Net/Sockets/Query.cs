@@ -127,8 +127,8 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
-                Completed = true;
                 Result = CallResult.SuccessResult;
+                Completed = true;
                 _event.Set();
             }
         }
@@ -216,12 +216,12 @@ namespace CryptoExchange.Net.Sockets
             if (Completed)
                 return;
                         
-            Completed = true;
             if (TimeoutBehavior == TimeoutBehavior.Fail)
                 Result = new CallResult<THandlerResponse>(new TimeoutError());
             else
                 Result = new CallResult<THandlerResponse>(default, null, default);
 
+            Completed = true;
             _event.Set();
             OnComplete?.Invoke();
         }
@@ -234,6 +234,7 @@ namespace CryptoExchange.Net.Sockets
 
             Result = new CallResult<THandlerResponse>(error);
             Completed = true;
+
             _event.Set();
             OnComplete?.Invoke();
         }
