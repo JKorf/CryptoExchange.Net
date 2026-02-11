@@ -168,7 +168,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     if (!_unknownValuesWarned.Contains(stringValue))
                     {
                         _unknownValuesWarned.Add(stringValue!);
-                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.FullName}, Value: {stringValue}, Known values: {string.Join(", ", _mappingToEnum!.Select(m => m.Value))}. If you think {stringValue} should added please open an issue on the Github repo");
+                        LibraryHelpers.StaticLogger?.LogWarning($"Cannot map enum value. EnumType: {enumType.FullName}, Value: {stringValue}, Known values: [{string.Join(", ", _mappingToEnum!.Select(m => $"{m.StringValue}: {m.Value}"))}]. If you think {stringValue} should added please open an issue on the Github repo");
                     }
                 }
 
@@ -246,6 +246,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             {
                 // If no explicit mapping is found try to parse string
                 result = (T)Enum.Parse(objectType, value, true);
+                if (!Enum.IsDefined(objectType, result))
+                {
+                    result = default;
+                    return false;
+                }
+
                 return true;
             }
             catch (Exception)
