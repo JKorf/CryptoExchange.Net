@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly IFuturesOrderSocketClient? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
+        private readonly Dictionary<string, int> _openOrderNotReturnedTimes = new();
 
         internal event Func<UpdateSource, SharedUserTrade[], Task>? OnTradeUpdate;
 
@@ -251,10 +252,38 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     }
                 }
             }
-                
+
+            if (!_firstPollDone && anyError)
+                return anyError;
+
+            // Check all current open orders
+            // Keep track of the orders no longer returned in the open list
+            // Order should be set to canceled state when it's no longer returned in the open list
+            // but also is not returned in the closed list
+            foreach (var order in Values.Where(x => x.Status == SharedOrderStatus.Open))
+            {
+                if (openOrders.Any(x => x.OrderId == order.OrderId))
+                    continue;
+
+                if (!_openOrderNotReturnedTimes.ContainsKey(order.OrderId))
+                    _openOrderNotReturnedTimes[order.OrderId] = 0;
+
+                _openOrderNotReturnedTimes[order.OrderId] += 1;
+            }
+
             foreach (var symbol in _symbols.ToList())
             {
+                // Determine the timestamp from which we need to check order status
+                // Use the timestamp we last know the correct state of the data
                 var fromTimeOrders = _lastDataTimeBeforeDisconnect ?? _lastPollTime ?? _startTime;
+                // If we're tracking open orders with a create time before this time we need to use that timestamp to make sure that order is included in the response
+                var trackedOrdersMinOpenTime = Values
+                    .Where(x => x.Status == SharedOrderStatus.Open && x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
+                    .OrderBy(x => x.CreateTime)
+                    .FirstOrDefault()?.CreateTime;
+                if (trackedOrdersMinOpenTime != null && trackedOrdersMinOpenTime < fromTimeOrders)
+                    fromTimeOrders = trackedOrdersMinOpenTime.Value.AddMilliseconds(-1);
+
                 var updatedPollTime = DateTime.UtcNow;
                 var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!closedOrdersResult.Success)
@@ -279,10 +308,16 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
                     // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
                     var openOrdersNotReturned = Values.Where(x =>
-                        x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset // Orders for the same symbol
-                        && x.QuantityFilled?.IsZero == true // With no filled value
-                        && !openOrders.Any(r => r.OrderId == x.OrderId) // Not returned in open orders
-                        && !relevantOrders.Any(r => r.OrderId == x.OrderId) // Not return in closed orders
+                        // Orders for the same symbol
+                        x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset
+                        // With no filled value
+                        && x.QuantityFilled?.IsZero == true
+                        // Not returned in open orders
+                        && !openOrders.Any(r => r.OrderId == x.OrderId)
+                        // Not returned in closed orders
+                        && !relevantOrders.Any(r => r.OrderId == x.OrderId)
+                        // Open order has not been returned in the open list at least 2 times
+                        && (_openOrderNotReturnedTimes.TryGetValue(x.OrderId, out var notReturnedTimes) ? notReturnedTimes >= 2 : false)
                         ).ToList();
 
                     var additionalUpdates = new List<SharedFuturesOrder>();
