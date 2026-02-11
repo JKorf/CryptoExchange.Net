@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
@@ -98,6 +99,9 @@ namespace CryptoExchange.Net.SharedApis
             var val = _parameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCulture) && x.Name.Equals(name, StringComparison.InvariantCulture));
             if (val == null)
                 return default;
+
+            if (val.Value is T typeVal)
+                return typeVal;
 
             try
             {
