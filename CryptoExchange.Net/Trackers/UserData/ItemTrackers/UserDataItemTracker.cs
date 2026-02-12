@@ -372,6 +372,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                         {
                             toRemove ??= new List<T>();
                             toRemove.Add(item);
+                            _logger.LogWarning("Ignoring {DataType} update for {Key}, no SharedSymbol set", DataType, GetKey(item));
                         }
                         else if (_onlyTrackProvidedSymbols
                             && !_symbols.Any(y => y.TradingMode == symbolModel.SharedSymbol!.TradingMode && y.BaseAsset == symbolModel.SharedSymbol.BaseAsset && y.QuoteAsset == symbolModel.SharedSymbol.QuoteAsset))

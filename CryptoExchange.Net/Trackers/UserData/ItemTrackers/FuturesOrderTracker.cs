@@ -271,20 +271,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 _openOrderNotReturnedTimes[order.OrderId] += 1;
             }
 
+            var updatedPollTime = DateTime.UtcNow;
             foreach (var symbol in _symbols.ToList())
             {
-                // Determine the timestamp from which we need to check order status
-                // Use the timestamp we last know the correct state of the data
-                var fromTimeOrders = _lastDataTimeBeforeDisconnect ?? _lastPollTime ?? _startTime;
-                // If we're tracking open orders with a create time before this time we need to use that timestamp to make sure that order is included in the response
-                var trackedOrdersMinOpenTime = Values
-                    .Where(x => x.Status == SharedOrderStatus.Open && x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
-                    .OrderBy(x => x.CreateTime)
-                    .FirstOrDefault()?.CreateTime;
-                if (trackedOrdersMinOpenTime != null && trackedOrdersMinOpenTime < fromTimeOrders)
-                    fromTimeOrders = trackedOrdersMinOpenTime.Value.AddMilliseconds(-1);
+                DateTime? fromTimeOrders = GetClosedOrdersRequestStartTime(symbol);
 
-                var updatedPollTime = DateTime.UtcNow;
                 var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!closedOrdersResult.Success)
                 {
@@ -296,14 +287,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 }
                 else
                 {
-                    _lastDataTimeBeforeDisconnect = null;
-                    _lastPollTime = updatedPollTime;
-
                     // Filter orders to only include where close time is after the start time
                     var relevantOrders = closedOrdersResult.Data.Where(x =>
                         (x.UpdateTime != null && x.UpdateTime >= _startTime) // Updated after the tracker start time
                         || (x.CreateTime != null && x.CreateTime >= _startTime) // Created after the tracker start time
                         || (x.CreateTime == null && x.UpdateTime == null) // Unknown time
+                        || (Values.Any(e => e.OrderId == x.OrderId && x.Status == SharedOrderStatus.Open)) // Or we're currently tracking this open order
                     ).ToArray();
 
                     // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
@@ -335,7 +324,57 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 }
             }
 
+            if (!anyError)
+            {
+                _lastPollTime = updatedPollTime;
+                _lastDataTimeBeforeDisconnect = null;
+            }
+
             return anyError;
+        }
+
+        private DateTime? GetClosedOrdersRequestStartTime(SharedSymbol symbol)
+        {
+            // Determine the timestamp from which we need to check order status
+            // Use the timestamp we last know the correct state of the data
+            DateTime? fromTime = null;
+            string? source = null;
+
+            // Use the last timestamp we we received data from the websocket as state should be correct at that time. 1 seconds buffer
+            if (_lastDataTimeBeforeDisconnect.HasValue && (fromTime == null || fromTime > _lastDataTimeBeforeDisconnect.Value))
+            {
+                fromTime = _lastDataTimeBeforeDisconnect.Value.AddSeconds(-1);
+                source = "LastDataTimeBeforeDisconnect";
+            }
+
+            // If we've previously polled use that timestamp to request data from
+            if (_lastPollTime.HasValue && (fromTime == null || _lastPollTime.Value > fromTime))
+            {
+                fromTime = _lastPollTime;
+                source = "LastPollTime";
+            }
+
+                // If we known open orders with a create time before this time we need to use that timestamp to make sure that order is included in the response
+            var trackedOrdersMinOpenTime = Values
+                .Where(x => x.Status == SharedOrderStatus.Open && x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
+                .OrderBy(x => x.CreateTime)
+                .FirstOrDefault()?.CreateTime;
+            if (trackedOrdersMinOpenTime.HasValue && (fromTime == null || trackedOrdersMinOpenTime.Value < fromTime))
+            {
+                // Could be improved by only requesting the specific open orders if there are only a few that would be better than trying to request a long
+                // history if the open order is far back
+                fromTime = trackedOrdersMinOpenTime.Value.AddMilliseconds(-1);
+                source = "OpenOrder";
+            }
+
+            if (fromTime == null)
+            {
+                fromTime = _startTime;
+                source = "StartTime";
+            }
+
+            _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);
+            return fromTime!.Value;
         }
     }
 }

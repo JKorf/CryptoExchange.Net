@@ -55,10 +55,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override async Task<bool> DoPollAsync()
         {
             var anyError = false;
+            var fromTimeTrades = GetTradesRequestStartTime();
+            var updatedPollTime = DateTime.UtcNow;
             foreach (var symbol in _symbols)
             {
-                var fromTimeTrades = _lastDataTimeBeforeDisconnect ?? _lastPollTime ?? _startTime;
-                var updatedPollTime = DateTime.UtcNow;
                 var tradesResult = await _restClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
                 {
@@ -70,8 +70,6 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 }
                 else
                 {
-                    _lastDataTimeBeforeDisconnect = null;
-                    _lastPollTime = updatedPollTime;
 
                     // Filter trades to only include where timestamp is after the start time OR it's part of an order we're tracking
                     var relevantTrades = tradesResult.Data.Where(x => x.Timestamp >= _startTime || (GetTrackedOrderIds?.Invoke() ?? []).Any(o => o == x.OrderId)).ToArray();
@@ -80,7 +78,44 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 }
             }
 
+            if (!anyError)
+            {
+                _lastDataTimeBeforeDisconnect = null;
+                _lastPollTime = updatedPollTime;
+            }
+
             return anyError;
+        }
+
+        private DateTime? GetTradesRequestStartTime()
+        {
+            // Determine the timestamp from which we need to check order status
+            // Use the timestamp we last know the correct state of the data
+            DateTime? fromTime = null;
+            string? source = null;
+
+            // Use the last timestamp we we received data from the websocket as state should be correct at that time. 1 seconds buffer
+            if (_lastDataTimeBeforeDisconnect.HasValue && (fromTime == null || fromTime > _lastDataTimeBeforeDisconnect.Value))
+            {
+                fromTime = _lastDataTimeBeforeDisconnect.Value.AddSeconds(-1);
+                source = "LastDataTimeBeforeDisconnect";
+            }
+
+            // If we've previously polled use that timestamp to request data from
+            if (_lastPollTime.HasValue && (fromTime == null || _lastPollTime.Value > fromTime))
+            {
+                fromTime = _lastPollTime;
+                source = "LastPollTime";
+            }
+            
+            if (fromTime == null)
+            {
+                fromTime = _startTime;
+                source = "StartTime";
+            }
+
+            _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);
+            return fromTime!.Value;
         }
 
         /// <inheritdoc />
