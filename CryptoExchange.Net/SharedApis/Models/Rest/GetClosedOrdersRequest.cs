@@ -20,6 +20,8 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public int? Limit { get; }
 
+        public PageDirection? Direction { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>

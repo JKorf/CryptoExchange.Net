@@ -387,7 +387,8 @@ namespace CryptoExchange.Net
         public static (DateTime? startTime, DateTime? endTime, long? fromId) ApplyPaginationRequestFilters(
             PaginationFilterType? ascendingFilterType,
             PaginationFilterType? descendingFilterType,
-            PageDirection direction,
+            PageDirection defaultDirection,
+            PageDirection requestDirection,
             DateTime? userFilterStartTime,
             DateTime? userFilterEndTime,
             DateTime? paginationStartTime,
@@ -395,25 +396,65 @@ namespace CryptoExchange.Net
             TimeSpan? maxTimePeriod,
             string? paginationFromId)
         {
-            // TODO this only is applicable for Ascending FromId / Descending EndTime filtering
-            // Can we apply logic per direction?
-            var filterType = direction == PageDirection.Ascending ? ascendingFilterType : descendingFilterType;
+            if (requestDirection == PageDirection.Ascending && userFilterStartTime == null)
+                throw new InvalidOperationException("Ascending without start time");
+
+            var filterType = requestDirection == PageDirection.Ascending ? ascendingFilterType : descendingFilterType;
             if (filterType == PaginationFilterType.FromId)
             {
                 long? fromId = ApplyFromId(paginationFromId);
-                return (fromId == null ? userFilterStartTime : null, fromId == null ? userFilterEndTime : null, fromId);
+                DateTime? startTime = fromId == null ? userFilterStartTime : null;
+                DateTime? endTime = fromId == null ? userFilterEndTime : null;
+
+                if (defaultDirection != requestDirection
+                    && fromId == null
+                    && startTime == null)
+                {
+                    if (requestDirection == PageDirection.Ascending)
+                    {
+                        // If user requests in ASC order but the default is DESC order and user provides no parameters
+                        // set startTime to a specific date to search data from that time forward
+                        if (endTime == null)
+                        {
+                            startTime = DateTime.UtcNow.AddYears(-1);
+                        }
+                        else
+                        {
+                            startTime = endTime?.AddYears(-1);
+                            endTime = null;
+                        }
+                    }
+                    else
+                    {
+                        // If user requests in DESC order but the default is ASC order and user provides no parameters
+                        // set endTime to now to search data from now back
+
+                        // Need same structure as ascending?
+                        endTime = DateTime.UtcNow;
+                    }
+                }
+
+                if (fromId == null && startTime != null && endTime != null)
+                {
+                    // If we're not filtering by fromId we don't want to specify bot start and end time to prevent limitations in time period
+                    if (requestDirection == PageDirection.Ascending) endTime = null;
+                    if (requestDirection == PageDirection.Descending) startTime = null;
+                }
+
+                return (startTime, endTime, fromId);
             }
             else // Time
             {
-                DateTime? startTime = direction == PageDirection.Descending ? null : ApplyTime(userFilterStartTime, paginationStartTime);
-                DateTime? endTime = (direction == PageDirection.Ascending && paginationStartTime != null) ? null : ApplyTime(userFilterEndTime, paginationEndTime);
+                DateTime? startTime = requestDirection == PageDirection.Descending ? null : ApplyTime(userFilterStartTime, paginationStartTime);
+                DateTime? endTime = (requestDirection == PageDirection.Ascending && paginationStartTime != null) ? null : ApplyTime(userFilterEndTime, paginationEndTime);
                 if (maxTimePeriod.HasValue && endTime - startTime > maxTimePeriod.Value)
                 {
-                    if (direction == PageDirection.Ascending)
+                    if (requestDirection == PageDirection.Ascending)
                         endTime = startTime.Value.Add(maxTimePeriod.Value);
                     else
                         startTime = endTime.Value.Add(-maxTimePeriod.Value);
                 }
+
                 return (startTime, endTime, null);
             }
         }
