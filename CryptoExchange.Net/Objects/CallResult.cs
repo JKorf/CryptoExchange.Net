@@ -543,6 +543,20 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="exchange">The exchange</param>
+        /// <param name="tradeMode">Trade mode the result applies to</param>
+        /// <param name="data">Data</param>
+        /// <param name="nextPageToken">Next page token</param>
+        /// <returns></returns>
+        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, PageRequest? nextPageRequest)
+        {
+            return new ExchangeWebResult<K>(exchange, tradeMode, As<K>(data), nextPageRequest);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="exchange">The exchange</param>
         /// <param name="tradeModes">Trade modes the result applies to</param>
         /// <param name="data">Data</param>
         /// <param name="nextPageToken">Next page token</param>

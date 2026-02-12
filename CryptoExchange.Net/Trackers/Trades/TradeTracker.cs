@@ -256,21 +256,21 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             if (_historyRestClient != null)
             {
-                var startTime = Period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-Period.Value);
-                var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow);
-                var data = new List<SharedTrade>();
-                await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
-                {
-                    if (!result)
-                        return result;
+                //var startTime = Period == null ? DateTime.UtcNow.AddMinutes(-5) : DateTime.UtcNow.Add(-Period.Value);
+                //var request = new GetTradeHistoryRequest(Symbol, startTime, DateTime.UtcNow);
+                //var data = new List<SharedTrade>();
+                //await foreach(var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
+                //{
+                //    if (!result)
+                //        return result;
                     
-                    if (Limit != null && data.Count > Limit)
-                        break;
+                //    if (Limit != null && data.Count > Limit)
+                //        break;
 
-                    data.AddRange(result.Data);
-                }
+                //    data.AddRange(result.Data);
+                //}
 
-                SetInitialData(data);
+                //SetInitialData(data);
             }
             else if (_recentRestClient != null)
             {

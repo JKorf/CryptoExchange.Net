@@ -29,6 +29,11 @@ namespace CryptoExchange.Net.SharedApis
         public INextPageToken? NextPageToken { get; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public PageRequest? NextPageRequest { get; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public ExchangeWebResult(
@@ -93,6 +98,62 @@ namespace CryptoExchange.Net.SharedApis
             DataTradeMode = dataTradeModes;
             Exchange = exchange;
             NextPageToken = nextPageToken;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ExchangeWebResult(
+            string exchange,
+            TradingMode dataTradeMode,
+            WebCallResult<T> result,
+            PageRequest? nextPageToken) :
+            base(result.ResponseStatusCode,
+                result.HttpVersion,
+                result.ResponseHeaders,
+                result.ResponseTime,
+                result.ResponseLength,
+                result.OriginalData,
+                result.RequestId,
+                result.RequestUrl,
+                result.RequestBody,
+                result.RequestMethod,
+                result.RequestHeaders,
+                result.DataSource,
+                result.Data,
+                result.Error)
+        {
+            DataTradeMode = new[] { dataTradeMode };
+            Exchange = exchange;
+            NextPageRequest = nextPageToken;
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ExchangeWebResult(
+            string exchange,
+            TradingMode[]? dataTradeModes,
+            WebCallResult<T> result,
+            PageRequest? nextPageRequest) :
+            base(result.ResponseStatusCode,
+                result.HttpVersion,
+                result.ResponseHeaders,
+                result.ResponseTime,
+                result.ResponseLength,
+                result.OriginalData,
+                result.RequestId,
+                result.RequestUrl,
+                result.RequestBody,
+                result.RequestMethod,
+                result.RequestHeaders,
+                result.DataSource,
+                result.Data,
+                result.Error)
+        {
+            DataTradeMode = dataTradeModes;
+            Exchange = exchange;
+            NextPageRequest = nextPageRequest;
         }
 
         /// <summary>

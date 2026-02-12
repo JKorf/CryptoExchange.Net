@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetWithdrawalsOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit) : base(paginationType, timeFilterSupported, maxLimit, true)
+        public GetWithdrawalsOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit) : base(timeFilterSupported, maxLimit, true)
         {
             TimeFilterSupported = timeFilterSupported;
         }

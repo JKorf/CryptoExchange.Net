@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(paginationType, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(paginationType, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = intervals;
         }

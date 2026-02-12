@@ -4,6 +4,7 @@ using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
@@ -327,6 +328,109 @@ namespace CryptoExchange.Net
                 if (nextPageToken == null)
                     break;
             }
+        }
+
+        public static IEnumerable<T> ApplyFilter<T>(
+            IEnumerable<T> data,
+            Func<T, DateTime> timeSelector,
+            DateTime? startTime,
+            DateTime? endTime,
+            PageDirection direction)
+        {
+            if (direction == PageDirection.Ascending)
+                data = data.OrderBy(timeSelector);
+            else
+                data = data.OrderByDescending(timeSelector);
+
+            if (startTime != null)
+                data = data.Where(x => timeSelector(x) >= startTime.Value);
+
+            if (endTime != null)
+                data = data.Where(x => timeSelector(x) < endTime.Value);
+
+            return data;
+        }
+
+        public static bool CheckForNextPage(
+            int resultCount,
+            IEnumerable<DateTime> timestamps,
+            DateTime? startTime,
+            DateTime? endTime,
+            int limit,
+            PageDirection paginationDirection)
+        {
+            if (resultCount < limit)
+                return false;
+
+            if (paginationDirection == PageDirection.Ascending)
+            {
+                if (timestamps.Max() >= endTime)
+                    return false;
+
+                return true;
+            }
+            else
+            {
+                if (timestamps.Min() < startTime)
+                    return false;
+
+                return true;
+            }
+        }
+
+        public enum PaginationFilterType
+        {
+            FromId,
+            Time,
+        }
+
+        public static (DateTime? startTime, DateTime? endTime, long? fromId) ApplyPaginationRequestFilters(
+            PaginationFilterType? ascendingFilterType,
+            PaginationFilterType? descendingFilterType,
+            PageDirection direction,
+            DateTime? userFilterStartTime,
+            DateTime? userFilterEndTime,
+            DateTime? paginationStartTime,
+            DateTime? paginationEndTime,
+            TimeSpan? maxTimePeriod,
+            string? paginationFromId)
+        {
+            // TODO this only is applicable for Ascending FromId / Descending EndTime filtering
+            // Can we apply logic per direction?
+            var filterType = direction == PageDirection.Ascending ? ascendingFilterType : descendingFilterType;
+            if (filterType == PaginationFilterType.FromId)
+            {
+                long? fromId = ApplyFromId(paginationFromId);
+                return (fromId == null ? userFilterStartTime : null, fromId == null ? userFilterEndTime : null, fromId);
+            }
+            else // Time
+            {
+                DateTime? startTime = direction == PageDirection.Descending ? null : ApplyTime(userFilterStartTime, paginationStartTime);
+                DateTime? endTime = (direction == PageDirection.Ascending && paginationStartTime != null) ? null : ApplyTime(userFilterEndTime, paginationEndTime);
+                if (maxTimePeriod.HasValue && endTime - startTime > maxTimePeriod.Value)
+                {
+                    if (direction == PageDirection.Ascending)
+                        endTime = startTime.Value.Add(maxTimePeriod.Value);
+                    else
+                        startTime = endTime.Value.Add(-maxTimePeriod.Value);
+                }
+                return (startTime, endTime, null);
+            }
+        }
+
+        private static DateTime? ApplyTime(DateTime? userFilterTime, DateTime? paginationTime)
+        {
+            return paginationTime ?? userFilterTime;
+        }
+
+        //private static DateTime? ApplyTimeIfFromIdNull(string? fromId, DateTime? userFilterTime, DateTime? paginationTime)
+        //{
+        //    return fromId != null ? null: paginationTime ?? userFilterTime;
+        //}
+
+        private static long? ApplyFromId(string? paginationFromId)
+        {
+            return paginationFromId == null ? null : long.Parse(paginationFromId);
         }
 
         /// <summary>

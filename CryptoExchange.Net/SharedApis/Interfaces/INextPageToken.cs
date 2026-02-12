@@ -78,7 +78,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public FromIdToken(int fromToken)
+        public FromIdToken(long fromToken)
         {
             FromToken = fromToken.ToString();
         }
