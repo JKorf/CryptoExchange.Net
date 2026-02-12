@@ -7,6 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public interface INextPageToken
     {
+
     }
 
     /// <summary>
@@ -26,6 +27,8 @@ namespace CryptoExchange.Net.SharedApis
         {
             LastTime = timestamp;
         }
+
+        public DateTimeToken GetNextToken(DateTime nextTime) => this with { LastTime = nextTime };
     }
 
     /// <summary>
@@ -50,6 +53,8 @@ namespace CryptoExchange.Net.SharedApis
             Page = page;
             PageSize = pageSize;
         }
+
+        public PageToken GetNextToken() => this with { Page = Page + 1 };
     }
 
     /// <summary>
@@ -69,6 +74,17 @@ namespace CryptoExchange.Net.SharedApis
         {
             FromToken = fromToken;
         }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public FromIdToken(int fromToken)
+        {
+            FromToken = fromToken.ToString();
+        }
+
+        public FromIdToken GetNextToken(string nextToken) => this with { FromToken = nextToken };
+        public FromIdToken GetNextToken(long nextToken) => this with { FromToken = nextToken.ToString() };
     }
 
     /// <summary>
@@ -88,6 +104,8 @@ namespace CryptoExchange.Net.SharedApis
         {
             Cursor = cursor;
         }
+
+        public CursorToken GetNextToken(string nextCursor) => this with { Cursor = nextCursor };
     }
 
     /// <summary>
@@ -107,5 +125,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             Offset = offset;
         }
+
+        public OffsetToken GetNextToken() => this with { Offset = Offset + Offset };
     }
 }

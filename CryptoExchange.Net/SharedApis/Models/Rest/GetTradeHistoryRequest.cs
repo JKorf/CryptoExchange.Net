@@ -10,15 +10,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Filter by start time
         /// </summary>
-        public DateTime StartTime { get; }
+        public DateTime StartTime { get; set; }
         /// <summary>
         /// Filter by end time
         /// </summary>
-        public DateTime EndTime { get; }
+        public DateTime EndTime { get; set; }
         /// <summary>
         /// Max number of results
         /// </summary>
-        public int? Limit { get; }
+        public int? Limit { get; set; }
 
         /// <summary>
         /// ctor
