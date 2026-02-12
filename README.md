@@ -67,6 +67,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.5.4 - 12 Feb 2026
+    * Fixed type check ExchangeParameters GetValue
+    * Fixed bug in polling time filter for UserDataTracker item
+
 * Version 10.5.3 - 11 Feb 2026
     * Fixed orders getting incorrectly set to canceled state for UserDataTracker spot and futures orders
     * Added check EnumConverter to detect undefined int value parsing
