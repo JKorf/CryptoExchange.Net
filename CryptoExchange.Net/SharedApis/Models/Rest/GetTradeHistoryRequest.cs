@@ -19,8 +19,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Max number of results
         /// </summary>
         public int? Limit { get; set; }
-
-        public PageDirection? Direction { get; set; }
+        /// <summary>
+        /// Data direction
+        /// </summary>
+        public DataDirection? Direction { get; set; }
 
         /// <summary>
         /// ctor
@@ -29,12 +31,14 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="startTime">Filter by start time</param>
         /// <param name="endTime">Filter by end time</param>
         /// <param name="limit">Max number of results</param>
+        /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetTradeHistoryRequest(SharedSymbol symbol, DateTime startTime, DateTime endTime, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        public GetTradeHistoryRequest(SharedSymbol symbol, DateTime startTime, DateTime endTime, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
         {
             StartTime = startTime;
             EndTime = endTime;
             Limit = limit;
+            Direction = direction;
         }
     }
 }

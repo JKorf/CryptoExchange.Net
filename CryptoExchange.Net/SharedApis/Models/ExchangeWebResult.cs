@@ -24,11 +24,6 @@ namespace CryptoExchange.Net.SharedApis
         public TradingMode[]? DataTradeMode { get; }
 
         /// <summary>
-        /// Token to retrieve the next page with
-        /// </summary>
-        public INextPageToken? NextPageToken { get; }
-
-        /// <summary>
         /// 
         /// </summary>
         public PageRequest? NextPageRequest { get; }
@@ -51,63 +46,7 @@ namespace CryptoExchange.Net.SharedApis
             string exchange,
             TradingMode dataTradeMode,
             WebCallResult<T> result,
-            INextPageToken? nextPageToken = null) :
-            base(result.ResponseStatusCode,
-                result.HttpVersion,
-                result.ResponseHeaders,
-                result.ResponseTime,
-                result.ResponseLength,
-                result.OriginalData,
-                result.RequestId,
-                result.RequestUrl,
-                result.RequestBody,
-                result.RequestMethod,
-                result.RequestHeaders,
-                result.DataSource,
-                result.Data,
-                result.Error)
-        {
-            DataTradeMode = new[] { dataTradeMode };
-            Exchange = exchange;
-            NextPageToken = nextPageToken;
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public ExchangeWebResult(
-            string exchange,
-            TradingMode[]? dataTradeModes,
-            WebCallResult<T> result,
-            INextPageToken? nextPageToken = null) :
-            base(result.ResponseStatusCode,
-                result.HttpVersion,
-                result.ResponseHeaders,
-                result.ResponseTime,
-                result.ResponseLength,
-                result.OriginalData,
-                result.RequestId,
-                result.RequestUrl,
-                result.RequestBody,
-                result.RequestMethod,
-                result.RequestHeaders,
-                result.DataSource,
-                result.Data,
-                result.Error)
-        {
-            DataTradeMode = dataTradeModes;
-            Exchange = exchange;
-            NextPageToken = nextPageToken;
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public ExchangeWebResult(
-            string exchange,
-            TradingMode dataTradeMode,
-            WebCallResult<T> result,
-            PageRequest? nextPageToken) :
+            PageRequest? nextPageToken = null) :
             base(result.ResponseStatusCode,
                 result.HttpVersion,
                 result.ResponseHeaders,
@@ -135,7 +74,7 @@ namespace CryptoExchange.Net.SharedApis
             string exchange,
             TradingMode[]? dataTradeModes,
             WebCallResult<T> result,
-            PageRequest? nextPageRequest) :
+            PageRequest? nextPageRequest = null) :
             base(result.ResponseStatusCode,
                 result.HttpVersion,
                 result.ResponseHeaders,
@@ -176,7 +115,7 @@ namespace CryptoExchange.Net.SharedApis
             ResultDataSource dataSource,
             [AllowNull] T data,
             Error? error,
-            INextPageToken? nextPageToken = null) : base(
+            PageRequest? nextPageToken = null) : base(
                 code,
                 httpVersion,
                 responseHeaders,
@@ -194,7 +133,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             DataTradeMode = dataTradeModes;
             Exchange = exchange;
-            NextPageToken = nextPageToken;
+            NextPageRequest = nextPageToken;
         }
 
         /// <summary>
@@ -205,7 +144,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public new ExchangeWebResult<K> As<K>([AllowNull] K data)
         {
-            return new ExchangeWebResult<K>(Exchange, DataTradeMode, ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, Error, NextPageToken);
+            return new ExchangeWebResult<K>(Exchange, DataTradeMode, ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, Error, NextPageRequest);
         }
 
         /// <inheritdoc />

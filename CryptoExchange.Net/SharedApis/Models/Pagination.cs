@@ -6,32 +6,37 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
 
-    public enum PageDirection
+    public enum DataDirection
     {
         Ascending, // Old to new
         Descending // New to old
     }
 
+    public record PaginationParameters
+    {
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+        public string? FromId { get; set; }
+        public int? Offset { get; set; }
+    }
     public class PageRequest
     {
-        public string? NextCursor { get; set; }
-        public int? NextPage { get; set; }
-        public int? NextOffset { get; set; }
-        public string? NextFromId { get; set; }
-        public DateTime? NextStartTime { get; set; }
-        public DateTime? NextEndTime { get; set; }
+        public string? Cursor { get; set; }
+        public int? Page { get; set; }
+        public int? Offset { get; set; }
+        public string? FromId { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
     
 
-        public static PageRequest FromNextCursor(string nextCursor) => new PageRequest { NextCursor = nextCursor };
-        public static PageRequest FromNextPage(int nextPage) => new PageRequest { NextPage = nextPage };
-        public static PageRequest FromNextOffset(int nextOffset) => new PageRequest { NextOffset = nextOffset };
+        public static PageRequest NextCursor(string nextCursor) => new PageRequest { Cursor = nextCursor };
+        public static PageRequest NextPage(int nextPage) => new PageRequest { Page = nextPage };
+        public static PageRequest NextOffset(int nextOffset) => new PageRequest { Offset = nextOffset };
 
-        public static PageRequest FromNextFromIdAsc(IEnumerable<long> idSelector) => new PageRequest { NextFromId = (idSelector.Max() + 1).ToString() };
-        public static PageRequest FromNextFromIdDesc(IEnumerable<long> idSelector) => new PageRequest { NextFromId = (idSelector.Min() - 1).ToString() };
-        public static PageRequest FromNextStartTimeAsc(IEnumerable<DateTime> timestampSelector) => new PageRequest { NextStartTime = timestampSelector.Max().AddMilliseconds(1) };
-        public static PageRequest FromNextStartTimeDesc(IEnumerable<DateTime> timestampSelector) => new PageRequest { NextStartTime = timestampSelector.Min().AddMilliseconds(-1) };
-        public static PageRequest FromNextEndTimeAsc(IEnumerable<DateTime> timestampSelector) => new PageRequest { NextEndTime = timestampSelector.Max().AddMilliseconds(1) };
-        public static PageRequest FromNextEndTimeDesc(IEnumerable<DateTime> timestampSelector) => new PageRequest { NextEndTime = timestampSelector.Min().AddMilliseconds(-1) };
+        public static PageRequest NextFromIdAsc(IEnumerable<long> idSelector) => new PageRequest { FromId = (idSelector.Max() + 1).ToString() };
+        public static PageRequest NextFromIdDesc(IEnumerable<long> idSelector) => new PageRequest { FromId = (idSelector.Min() - 1).ToString() };
+        public static PageRequest NextStartTimeAsc(IEnumerable<DateTime> timestampSelector) => new PageRequest { StartTime = timestampSelector.Max().AddMilliseconds(1) };
+        public static PageRequest NextEndTimeDesc(IEnumerable<DateTime> timestampSelector) => new PageRequest { EndTime = timestampSelector.Min().AddMilliseconds(-1) };
     }
 
 }

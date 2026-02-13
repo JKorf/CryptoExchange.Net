@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFuturesOrder[]>> GetClosedFuturesOrdersAsync(GetClosedOrdersRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedFuturesOrder[]>> GetClosedFuturesOrdersAsync(GetClosedOrdersRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
 
         /// <summary>
         /// Futures get order trades request options
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedUserTrade[]>> GetFuturesUserTradesAsync(GetUserTradesRequest request, INextPageToken? nextPageToken = null, CancellationToken ct = default);
+        Task<ExchangeWebResult<SharedUserTrade[]>> GetFuturesUserTradesAsync(GetUserTradesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
 
         /// <summary>
         /// Futures cancel order request options

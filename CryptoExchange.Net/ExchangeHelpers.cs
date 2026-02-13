@@ -311,11 +311,11 @@ namespace CryptoExchange.Net
         /// <param name="request">The request parameters</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async IAsyncEnumerable<ExchangeWebResult<T[]>> ExecutePages<T, U>(Func<U, INextPageToken?, CancellationToken, Task<ExchangeWebResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
+        public static async IAsyncEnumerable<ExchangeWebResult<T[]>> ExecutePages<T, U>(Func<U, PageRequest?, CancellationToken, Task<ExchangeWebResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
         {
             var result = new List<T>();
             ExchangeWebResult<T[]> batch;
-            INextPageToken? nextPageToken = null;
+            PageRequest? nextPageToken = null;
             while (true)
             {
                 batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
@@ -324,7 +324,7 @@ namespace CryptoExchange.Net
                     break;
 
                 result.AddRange(batch.Data);
-                nextPageToken = batch.NextPageToken;
+                nextPageToken = batch.NextPageRequest;
                 if (nextPageToken == null)
                     break;
             }
@@ -335,9 +335,9 @@ namespace CryptoExchange.Net
             Func<T, DateTime> timeSelector,
             DateTime? startTime,
             DateTime? endTime,
-            PageDirection direction)
+            DataDirection direction)
         {
-            if (direction == PageDirection.Ascending)
+            if (direction == DataDirection.Ascending)
                 data = data.OrderBy(timeSelector);
             else
                 data = data.OrderByDescending(timeSelector);
@@ -357,12 +357,15 @@ namespace CryptoExchange.Net
             DateTime? startTime,
             DateTime? endTime,
             int limit,
-            PageDirection paginationDirection)
+            DataDirection paginationDirection)
         {
             if (resultCount < limit)
                 return false;
 
-            if (paginationDirection == PageDirection.Ascending)
+            if (!timestamps.Any())
+                return false;
+
+            if (paginationDirection == DataDirection.Ascending)
             {
                 if (timestamps.Max() >= endTime)
                     return false;
@@ -382,13 +385,230 @@ namespace CryptoExchange.Net
         {
             FromId,
             Time,
+            Offset
+        }
+
+        public enum TimeParameterSetType
+        {
+            None,
+            OnlyMatchingDirection,
+            Both
+        }
+
+        // 1.1 Apply moving time filter, set the startTime to new startTime in future (asc) or endTime to new endTime in the past (desc), while setting other time parameter to null
+        // 1.2 Apply moving time filter, set the startTime to new startTime in future (asc) or endTime to new endTime in the past (desc), set the other time parameter to a max period offset value
+        // 2. Apply fromId filter, set the fromId to the new fromId (direction depends on id filter direction)
+        // 3. Apply offset filter, set the offset to the new offset (direction depends on id filter direction)
+
+
+
+        public static PaginationParameters ApplyFromIdFilter(PageRequest pageRequest)
+        {
+            if (pageRequest.FromId == null)
+                throw new Exception();
+
+            return new PaginationParameters { FromId = pageRequest.FromId };
+        }
+
+        public static PaginationParameters ApplyOffsetFilter(PageRequest pageRequest)
+        {
+            if (pageRequest.Offset == null)
+                throw new Exception();
+
+            return new PaginationParameters { Offset = pageRequest.Offset };
+        }
+
+        public static PaginationParameters ApplyAscendingMovingStartTimeFilter(PageRequest pageRequest)
+        {
+            if (pageRequest.StartTime == null)
+                throw new Exception();
+
+            return new PaginationParameters
+            {
+                StartTime = pageRequest.StartTime,
+            };
+        }
+
+        public static PaginationParameters ApplyDescendingMovingEndTimeFilter(PageRequest pageRequest)
+        {
+            if (pageRequest.EndTime == null)
+                throw new Exception();
+
+            return new PaginationParameters
+            {
+                EndTime = pageRequest.EndTime,
+            };
+        }
+
+        public static PageRequest? GetNextPageRequest(
+            Func<PageRequest> normalNextPageCallback,
+            int responseLength,
+            IEnumerable<DateTime> timeSelector,
+            int limit,
+            PageRequest? previousPageRequest,
+            TimeParameterSetType parameterSetType,
+            DateTime? currentRequestStartTime,
+            DataDirection direction,
+            DateTime? requestStartTime,
+            DateTime? requestEndTime,
+            TimeSpan? maxTimePeriodPerRequest = null
+            )
+        {
+            if (CheckForNextPage(responseLength, timeSelector, previousPageRequest?.StartTime ?? requestStartTime, previousPageRequest?.EndTime ?? requestEndTime, limit, direction))
+            {
+                var result = normalNextPageCallback();
+                if (parameterSetType == TimeParameterSetType.OnlyMatchingDirection)
+                {
+                    if (direction == DataDirection.Ascending)
+                        result.StartTime ??= previousPageRequest?.StartTime ?? requestStartTime;
+                    else
+                        result.EndTime ??= previousPageRequest?.EndTime ?? requestEndTime;
+                }
+                else if (parameterSetType == TimeParameterSetType.Both)
+                {
+                    result.StartTime ??= previousPageRequest?.StartTime ?? requestStartTime;
+                    result.EndTime ??= previousPageRequest?.EndTime ?? requestEndTime;
+                }
+
+                //if (previousPageRequest != null && result.StartTime == null && result.EndTime == null)
+                //{
+                //    result.StartTime = previousPageRequest.StartTime;
+                //    result.EndTime = previousPageRequest.EndTime;
+                //}
+
+                return result;
+            }
+
+            if (maxTimePeriodPerRequest == null)
+                return null;
+
+            if (requestEndTime == null)
+                requestEndTime = DateTime.UtcNow;
+
+#warning this is only for DESC?
+            // No next page, for this set, but we might have split for multiple time periods
+            PageRequest? nextPageRequest = null;
+            if (requestStartTime.HasValue
+                && previousPageRequest?.StartTime != requestStartTime
+                && (requestEndTime - requestStartTime) > maxTimePeriodPerRequest)
+            {
+                var currentStartTime = (currentRequestStartTime ?? (requestEndTime.Value.Add(-maxTimePeriodPerRequest.Value)));
+                var nextPeriod = currentStartTime.Add(-maxTimePeriodPerRequest.Value);
+                var nextStartTime = nextPeriod < requestStartTime ? requestStartTime : nextPeriod;
+                if (currentStartTime - nextStartTime > TimeSpan.FromSeconds(1))
+                {
+                    nextPageRequest = new PageRequest
+                    {
+                        Offset = 0,
+                        EndTime = currentStartTime,
+                        StartTime = nextStartTime
+                    };
+                }
+            }
+
+            return nextPageRequest;
+        }
+
+        public static PaginationParameters ApplyPaginationParameters(
+            DataDirection direction,
+            PageRequest? pageRequest,
+            PaginationFilterType? filterTypeAsc,
+            PaginationFilterType? filterTypeDec,
+            TimeParameterSetType parameterSetType,
+            DateTime? requestStartTime,
+            DateTime? requestEndTime,
+            TimeSpan? maxTimePeriodPerRequest = null)
+        {
+            var filterType = direction == DataDirection.Ascending ? filterTypeAsc : filterTypeDec;
+            if (filterType == null)
+                throw new Exception();
+
+            if (requestEndTime == null)
+                requestEndTime = DateTime.UtcNow;
+
+            if (pageRequest == null)
+            {
+                // No pagination data yet, initial request
+                var result = new PaginationParameters
+                {
+                    StartTime = ShouldSet(parameterSetType, direction, true) ? requestStartTime : null,
+                    EndTime = ShouldSet(parameterSetType, direction, false) ? requestEndTime : null
+                };
+
+                ApplyMaxTimePeriodPerRequest(maxTimePeriodPerRequest, direction, result);
+                return result;
+            }
+
+            if (filterType == PaginationFilterType.FromId)
+                // From id doesn't need any other parameters
+                return ApplyFromIdFilter(pageRequest);
+
+            if (filterType == PaginationFilterType.Offset)
+            {
+                var result = ApplyOffsetFilter(pageRequest);
+                result.StartTime = pageRequest.StartTime ?? requestStartTime;
+                result.EndTime = pageRequest.EndTime ?? requestEndTime;
+                ApplyMaxTimePeriodPerRequest(maxTimePeriodPerRequest, direction, result);
+                return result;
+            }
+
+            if (filterType == PaginationFilterType.Time)
+            {
+                var result = direction == DataDirection.Ascending 
+                    ? ApplyAscendingMovingStartTimeFilter(pageRequest) 
+                    : ApplyDescendingMovingEndTimeFilter(pageRequest);
+
+                if (parameterSetType == TimeParameterSetType.Both)
+                {
+                    if (direction == DataDirection.Ascending)
+                        result.EndTime = requestEndTime;
+                    else
+                        result.StartTime = requestStartTime; 
+
+                    ApplyMaxTimePeriodPerRequest(maxTimePeriodPerRequest, direction, result);
+                }
+
+                return result;
+            }
+
+            throw new Exception();
+        }
+
+        private static void ApplyMaxTimePeriodPerRequest(TimeSpan? maxTimePeriodPerRequest, DataDirection direction, PaginationParameters parameters)
+        {
+            if (maxTimePeriodPerRequest != null
+                && parameters.StartTime.HasValue
+                && parameters.EndTime.HasValue
+                && (parameters.EndTime - parameters.StartTime) > maxTimePeriodPerRequest)
+            {
+                if (direction == DataDirection.Ascending)
+                    parameters.EndTime = parameters.StartTime.Value.Add(maxTimePeriodPerRequest.Value);
+                else
+                    parameters.StartTime = parameters.EndTime.Value.Add(-maxTimePeriodPerRequest.Value);
+            }
+        }
+
+        private static bool ShouldSet(TimeParameterSetType type, DataDirection direction, bool startTime)
+        {
+            if (type == TimeParameterSetType.None)
+                return false;
+
+            if (type == TimeParameterSetType.Both)
+                return true;
+
+            if (direction == DataDirection.Ascending)
+                // If ascending startTime is the moving
+                return startTime;
+
+            // If descending startTime is the opposite
+            return !startTime;
         }
 
         public static (DateTime? startTime, DateTime? endTime, long? fromId) ApplyPaginationRequestFilters(
             PaginationFilterType? ascendingFilterType,
             PaginationFilterType? descendingFilterType,
-            PageDirection defaultDirection,
-            PageDirection requestDirection,
+            DataDirection defaultDirection,
+            DataDirection requestDirection,
             DateTime? userFilterStartTime,
             DateTime? userFilterEndTime,
             DateTime? paginationStartTime,
@@ -396,10 +616,10 @@ namespace CryptoExchange.Net
             TimeSpan? maxTimePeriod,
             string? paginationFromId)
         {
-            if (requestDirection == PageDirection.Ascending && userFilterStartTime == null)
+            if (requestDirection == DataDirection.Ascending && userFilterStartTime == null)
                 throw new InvalidOperationException("Ascending without start time");
 
-            var filterType = requestDirection == PageDirection.Ascending ? ascendingFilterType : descendingFilterType;
+            var filterType = requestDirection == DataDirection.Ascending ? ascendingFilterType : descendingFilterType;
             if (filterType == PaginationFilterType.FromId)
             {
                 long? fromId = ApplyFromId(paginationFromId);
@@ -410,7 +630,7 @@ namespace CryptoExchange.Net
                     && fromId == null
                     && startTime == null)
                 {
-                    if (requestDirection == PageDirection.Ascending)
+                    if (requestDirection == DataDirection.Ascending)
                     {
                         // If user requests in ASC order but the default is DESC order and user provides no parameters
                         // set startTime to a specific date to search data from that time forward
@@ -437,19 +657,19 @@ namespace CryptoExchange.Net
                 if (fromId == null && startTime != null && endTime != null)
                 {
                     // If we're not filtering by fromId we don't want to specify bot start and end time to prevent limitations in time period
-                    if (requestDirection == PageDirection.Ascending) endTime = null;
-                    if (requestDirection == PageDirection.Descending) startTime = null;
+                    if (requestDirection == DataDirection.Ascending) endTime = null;
+                    if (requestDirection == DataDirection.Descending) startTime = null;
                 }
 
                 return (startTime, endTime, fromId);
             }
             else // Time
             {
-                DateTime? startTime = requestDirection == PageDirection.Descending ? null : ApplyTime(userFilterStartTime, paginationStartTime);
-                DateTime? endTime = (requestDirection == PageDirection.Ascending && paginationStartTime != null) ? null : ApplyTime(userFilterEndTime, paginationEndTime);
+                DateTime? startTime = requestDirection == DataDirection.Descending ? null : ApplyTime(userFilterStartTime, paginationStartTime);
+                DateTime? endTime = (requestDirection == DataDirection.Ascending && paginationStartTime != null) ? null : ApplyTime(userFilterEndTime, paginationEndTime);
                 if (maxTimePeriod.HasValue && endTime - startTime > maxTimePeriod.Value)
                 {
-                    if (requestDirection == PageDirection.Ascending)
+                    if (requestDirection == DataDirection.Ascending)
                         endTime = startTime.Value.Add(maxTimePeriod.Value);
                     else
                         startTime = endTime.Value.Add(-maxTimePeriod.Value);

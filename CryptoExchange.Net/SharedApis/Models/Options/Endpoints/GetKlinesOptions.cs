@@ -26,7 +26,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
+            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -50,7 +51,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) : base(timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
+            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = intervals;
         }
@@ -67,6 +69,9 @@ namespace CryptoExchange.Net.SharedApis
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), "Interval not supported");
+
+            if (!TimePeriodFilterSupport && request.StartTime != null)
+                return ArgumentError.Invalid(nameof(GetDepositsRequest.StartTime), $"Time filter is not supported");
 
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} klines are available");
@@ -93,6 +98,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
+            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
             if (MaxAge != null)
                 sb.AppendLine($"Max age of data: {MaxAge}");

@@ -17,7 +17,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetTradeHistoryOptions(bool timeFilterSupported, int maxLimit, bool needsAuthentication) : base(timeFilterSupported, maxLimit, needsAuthentication)
+        public GetTradeHistoryOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
+            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
         {
         }
 

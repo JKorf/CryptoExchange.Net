@@ -27,6 +27,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Max number of results
         /// </summary>
         public int? Limit { get; set; }
+        /// <summary>
+        /// Data direction
+        /// </summary>
+        public DataDirection? Direction { get; set; }
 
         /// <summary>
         /// ctor
@@ -35,13 +39,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="startTime">Filter by start time</param>
         /// <param name="endTime">Filter by end time</param>
         /// <param name="limit">Max number of results</param>
+        /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             Symbol = symbol;
             StartTime = startTime;
             EndTime = endTime;
             Limit = limit;
+            Direction = direction;
         }
 
         /// <summary>
@@ -51,13 +57,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="startTime">Filter by start time</param>
         /// <param name="endTime">Filter by end time</param>
         /// <param name="limit">Max number of results</param>
+        /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionHistoryRequest(TradingMode? tradeMode = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionHistoryRequest(TradingMode? tradeMode = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
         {
             TradingMode = tradeMode;
             StartTime = startTime;
             EndTime = endTime;
             Limit = limit;
+            Direction = direction;
         }
     }
 }

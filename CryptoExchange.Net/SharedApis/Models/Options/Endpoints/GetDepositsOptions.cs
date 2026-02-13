@@ -9,22 +9,17 @@ namespace CryptoExchange.Net.SharedApis
     public class GetDepositsOptions : PaginatedEndpointOptions<GetDepositsRequest>
     {
         /// <summary>
-        /// Whether the start/end time filter is supported
-        /// </summary>
-        public bool TimeFilterSupported { get; set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
-        public GetDepositsOptions(SharedPaginationSupport paginationType, bool timeFilterSupported, int maxLimit) : base(timeFilterSupported, maxLimit, true)
+        public GetDepositsOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
+            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
         {
-            TimeFilterSupported = timeFilterSupported;
         }
 
         /// <inheritdoc />
         public override Error? ValidateRequest(string exchange, GetDepositsRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
-            if (!TimeFilterSupported && request.StartTime != null)
+            if (!TimePeriodFilterSupport && request.StartTime != null)
                 return ArgumentError.Invalid(nameof(GetDepositsRequest.StartTime), $"Time filter is not supported");
 
             return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
@@ -34,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString(string exchange)
         {
             var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Time filter supported: {TimeFilterSupported}");
+            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             return sb.ToString();
         }
     }
