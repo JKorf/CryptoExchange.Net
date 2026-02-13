@@ -28,13 +28,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         public SpotOrderTracker(
             ILogger logger,
+            UserDataSymbolTracker symbolTracker,
             ISpotOrderRestClient restClient,
             ISpotOrderSocketClient? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Orders, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, symbolTracker, UserDataType.Orders, restClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
@@ -245,7 +246,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             }
             else
             {
-                foreach (var symbol in _symbols.ToList())
+                foreach (var symbol in _symbolTracker.GetTrackedSymbols())
                 {
                     var openOrdersResult = await _restClient.GetOpenSpotOrdersAsync(new GetOpenOrdersRequest(symbol, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                     if (!openOrdersResult.Success)
@@ -283,7 +284,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             }
 
             var updatedPollTime = DateTime.UtcNow;
-            foreach (var symbol in _symbols.ToList())
+            foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
                 DateTime? fromTimeOrders = GetClosedOrdersRequestStartTime(symbol);
 
@@ -385,7 +386,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 source = "StartTime";
             }
 
-            _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);
+            if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
+            {
+                // Set it to at least a seconds in the past to prevent issues
+                fromTime = DateTime.UtcNow.AddSeconds(-1);
+            }
+
+            _logger.LogTrace("{DataType}.{Symbol} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}",
+                DataType, $"{symbol.BaseAsset}/{symbol.QuoteAsset}", source, fromTime);
             return fromTime!.Value;
         }
     }

@@ -29,6 +29,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         public PositionTracker(
             ILogger logger,
+            UserDataSymbolTracker symbolTracker,
             IFuturesOrderRestClient restClient,
             IPositionSocketClient? socketClient,
             TrackerItemConfig config,
@@ -36,7 +37,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             bool onlyTrackProvidedSymbols,
             bool websocketPositionUpdatesAreFullSnapshots,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Positions, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, symbolTracker, UserDataType.Positions, restClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
@@ -118,9 +119,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     {
                         toRemove ??= new List<SharedPosition>();
                         toRemove.Add(item);
+                        _logger.LogWarning("Ignoring {DataType} update for {Key}, no SharedSymbol set", DataType, GetKey(item));
                     }
-                    else if (_onlyTrackProvidedSymbols
-                        && !_symbols.Any(y => y.TradingMode == symbolModel.SharedSymbol!.TradingMode && y.BaseAsset == symbolModel.SharedSymbol.BaseAsset && y.QuoteAsset == symbolModel.SharedSymbol.QuoteAsset))
+                    else if (!_symbolTracker.ShouldProcess(symbolModel.SharedSymbol))
                     {
                         toRemove ??= new List<SharedPosition>();
                         toRemove.Add(item);
@@ -131,8 +132,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (toRemove != null)
                 @event = @event.Except(toRemove).ToArray();
 
-            if (!_onlyTrackProvidedSymbols)
-                UpdateSymbolsList(@event.Where(x => x.PositionSize > 0).OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
+            _symbolTracker.UpdateTrackedSymbols(@event.Where(x => x.PositionSize > 0).OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
             
 
             // Update local store

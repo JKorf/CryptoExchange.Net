@@ -26,13 +26,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         public SpotUserTradeTracker(
             ILogger logger,
+            UserDataSymbolTracker symbolTracker,
             ISpotOrderRestClient restClient,
             IUserTradeSocketClient? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Trades, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, symbolTracker, UserDataType.Trades, restClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
@@ -57,7 +58,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var anyError = false;
             var fromTimeTrades = GetTradesRequestStartTime();
             var updatedPollTime = DateTime.UtcNow;
-            foreach (var symbol in _symbols)
+            foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
                 var tradesResult = await _restClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
@@ -112,6 +113,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             {
                 fromTime = _startTime;
                 source = "StartTime";
+            }
+
+            if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
+            {
+                // Set it to at least a seconds in the past to prevent issues
+                fromTime = DateTime.UtcNow.AddSeconds(-1);
             }
 
             _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);

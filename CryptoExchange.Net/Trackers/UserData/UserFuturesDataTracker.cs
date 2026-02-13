@@ -77,21 +77,21 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(logger, SymbolTracker, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new FuturesOrderTracker(logger, futuresOrderRestClient, futuresOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new FuturesOrderTracker(logger, SymbolTracker, futuresOrderRestClient, futuresOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
-            var positionTracker = new PositionTracker(logger, futuresOrderRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
+            var positionTracker = new PositionTracker(logger, SymbolTracker, futuresOrderRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
             Positions = positionTracker;
             trackers.Add(positionTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new FuturesUserTradeTracker(logger, futuresOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new FuturesUserTradeTracker(logger, SymbolTracker, futuresOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

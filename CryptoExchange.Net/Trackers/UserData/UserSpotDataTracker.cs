@@ -53,17 +53,17 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, SharedAccountType.Spot, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(logger, SymbolTracker, balanceRestClient, balanceSocketClient, SharedAccountType.Spot, config.BalancesConfig, exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new SpotOrderTracker(logger, spotOrderRestClient, spotOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, spotOrderRestClient, spotOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new SpotUserTradeTracker(logger, spotOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, spotOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 
