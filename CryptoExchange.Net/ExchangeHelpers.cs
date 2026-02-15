@@ -351,6 +351,7 @@ namespace CryptoExchange.Net
             return data;
         }
 
+
         public static bool CheckForNextPage(
             int resultCount,
             IEnumerable<DateTime> timestamps,
@@ -359,7 +360,7 @@ namespace CryptoExchange.Net
             int limit,
             DataDirection paginationDirection)
         {
-            if (resultCount < limit)
+            if (limit <= resultCount)
                 return false;
 
             if (!timestamps.Any())
@@ -385,7 +386,8 @@ namespace CryptoExchange.Net
         {
             FromId,
             Time,
-            Offset
+            Offset,
+            Page
         }
 
         public enum TimeParameterSetType
@@ -408,6 +410,14 @@ namespace CryptoExchange.Net
                 throw new Exception();
 
             return new PaginationParameters { FromId = pageRequest.FromId };
+        }
+
+        public static PaginationParameters ApplyPageFilter(PageRequest? pageRequest)
+        {
+            if (pageRequest?.Page == null || pageRequest.Page == 0)
+                return new PaginationParameters() { Page = 1 };
+
+            return new PaginationParameters { Page = pageRequest.Page };
         }
 
         public static PaginationParameters ApplyOffsetFilter(PageRequest pageRequest)
@@ -438,6 +448,20 @@ namespace CryptoExchange.Net
             {
                 EndTime = pageRequest.EndTime,
             };
+        }
+
+        // Without date/time filter
+        public static PageRequest? GetNextPageRequestPageSimple(
+            PageRequest? currentPageRequest,
+            bool hasNextPage,
+            IEnumerable<DateTime> timeSelector,
+            DateTime? requestStartTime,
+            DateTime? requestEndTime
+            )
+        {
+            if (CheckForNextPage(timeSelector, requestStartTime, requestEndTime, limit, direction))
+            {
+            }
         }
 
         public static PageRequest? GetNextPageRequest(
@@ -538,6 +562,9 @@ namespace CryptoExchange.Net
                 ApplyMaxTimePeriodPerRequest(maxTimePeriodPerRequest, direction, result);
                 return result;
             }
+
+            if (filterType == PaginationFilterType.Page)
+                return ApplyPageFilter(pageRequest);
 
             if (filterType == PaginationFilterType.FromId)
                 // From id doesn't need any other parameters

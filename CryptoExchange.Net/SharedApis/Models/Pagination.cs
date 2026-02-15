@@ -18,6 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         public DateTime? EndTime { get; set; }
         public string? FromId { get; set; }
         public int? Offset { get; set; }
+        public int? Page { get; set; }
     }
     public class PageRequest
     {
