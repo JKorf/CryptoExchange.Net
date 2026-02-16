@@ -448,6 +448,9 @@ namespace CryptoExchange.Net.OrderBook
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
+            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+                throw new InvalidOperationException("Trying to set snapshot while book is not working");
+
             _processQueue.Enqueue(
                 new OrderBookSnapshot
                 {
@@ -475,6 +478,9 @@ namespace CryptoExchange.Net.OrderBook
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
+            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+                throw new InvalidOperationException("Trying to update order book while book is not working");
+
             _processQueue.Enqueue(
                 new OrderBookUpdate
                 { 
@@ -505,6 +511,9 @@ namespace CryptoExchange.Net.OrderBook
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
+            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+                throw new InvalidOperationException("Trying to update order book while book is not working");
+
             _processQueue.Enqueue(
                 new OrderBookUpdate
                 {
@@ -531,6 +540,9 @@ namespace CryptoExchange.Net.OrderBook
             DateTime? serverDataTime = null,
             DateTime? localDataTime = null)
         {
+            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+                throw new InvalidOperationException("Trying to update order book while book is not working");
+
             var highest = Math.Max(bids.Any() ? bids.Max(b => b.Sequence) : 0, asks.Any() ? asks.Max(a => a.Sequence) : 0);
             var lowest = Math.Min(bids.Any() ? bids.Min(b => b.Sequence) : long.MaxValue, asks.Any() ? asks.Min(a => a.Sequence) : long.MaxValue);
 
@@ -554,6 +566,9 @@ namespace CryptoExchange.Net.OrderBook
         /// <param name="sequenceNumber">The sequence number of the message if it's a separate message with separate number</param>
         protected void AddChecksum(int checksum, long? sequenceNumber = null)
         {
+            if (Status == OrderBookStatus.Disposed || Status == OrderBookStatus.Disconnected)
+                throw new InvalidOperationException("Trying to add checksum while book is not working");
+
             _processQueue.Enqueue(new OrderBookChecksum() { Checksum = checksum, SequenceNumber = sequenceNumber });
             _queueEvent.Set();
         }
