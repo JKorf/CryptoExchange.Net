@@ -67,6 +67,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.6.0 - 16 Feb 2026
+    * Updated symbol tracking logic on UserDataTracker, now is per UserDataTracker instead of per topic
+    * Added check for startTime filter for polling being to close to current time which can cause issues if time isn't in sync with server
+    * Added AddTrackedSymbolsAsync and RemoveTrackedSymbolAsync methods to UserDataTracker
+    * Added check SymbolOrderBook is still alive when trying to add updates to prevent unnoticed growing in the background when subscription isn't closed while book is
+
 * Version 10.5.4 - 12 Feb 2026
     * Fixed type check ExchangeParameters GetValue
     * Fixed bug in polling time filter for UserDataTracker item
