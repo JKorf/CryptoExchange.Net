@@ -150,7 +150,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             SymbolTracker.RemoveTrackedSymbol(symbol);
 
             ((SpotOrderTracker)Orders).ClearDataForSymbol(symbol);
-            ((SpotUserTradeTracker)Trades).ClearDataForSymbol(symbol);
+            ((SpotUserTradeTracker?)Trades)?.ClearDataForSymbol(symbol);
         }
     }
 }

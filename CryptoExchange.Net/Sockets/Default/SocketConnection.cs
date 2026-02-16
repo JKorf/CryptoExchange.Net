@@ -1103,6 +1103,12 @@ namespace CryptoExchange.Net.Sockets.Default
             return CallResult.SuccessResult;
         }
 
+        /// <summary>
+        /// Try to subscribe a new subscription by sending the subscribe query and wait for the result as needed
+        /// </summary>
+        /// <param name="subscription">The subscription</param>
+        /// <param name="newSubscription">Whether this is a new subscription, or an existing subscription (resubscribing on reconnected socket)</param>
+        /// <param name="subCancelToken">Cancellation token</param>
         protected internal async Task<CallResult> TrySubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
         {
             subscription.ConnectionInvocations = 0;

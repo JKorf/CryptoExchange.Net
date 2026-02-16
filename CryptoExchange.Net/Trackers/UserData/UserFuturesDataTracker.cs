@@ -177,7 +177,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             SymbolTracker.RemoveTrackedSymbol(symbol);
 
             ((FuturesOrderTracker)Orders).ClearDataForSymbol(symbol);
-            ((FuturesUserTradeTracker)Trades).ClearDataForSymbol(symbol);
+            ((FuturesUserTradeTracker?)Trades)?.ClearDataForSymbol(symbol);
         }
     }
 }

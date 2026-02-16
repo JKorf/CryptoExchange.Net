@@ -7,6 +7,9 @@ using System.Text;
 
 namespace CryptoExchange.Net.Trackers.UserData.Objects
 {
+    /// <summary>
+    /// Tracker for symbols used in UserDataTracker
+    /// </summary>
     public class UserDataSymbolTracker
     {
         private readonly ILogger _logger;
@@ -14,6 +17,9 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
         private readonly bool _onlyTrackProvidedSymbols;
         private readonly object _symbolLock = new object();
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         public UserDataSymbolTracker(ILogger logger, UserDataTrackerConfig config)
         {
             _logger = logger;
@@ -21,12 +27,19 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
             _onlyTrackProvidedSymbols = config.OnlyTrackProvidedSymbols;
         }
 
+        /// <summary>
+        /// Get currently tracked symbols
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<SharedSymbol> GetTrackedSymbols()
         {
             lock (_symbolLock)            
                 return _trackedSymbols.ToList();            
         }
 
+        /// <summary>
+        /// Check whether a symbol is in the tracked symbols list and should be processed
+        /// </summary>
         public bool ShouldProcess(SharedSymbol symbol)
         {
             if (!_onlyTrackProvidedSymbols)
