@@ -332,7 +332,6 @@ namespace CryptoExchange.Net.OrderBook
         public async Task StopAsync()
         {
             _logger.OrderBookStopping(Api, Symbol);
-            Status = OrderBookStatus.Disconnected;
             _cts?.Cancel();
             _queueEvent.Set();
             if (_processTask != null)
@@ -345,6 +344,7 @@ namespace CryptoExchange.Net.OrderBook
                 _subscription.ConnectionRestored -= HandleConnectionRestored;
             }
 
+            Status = OrderBookStatus.Disconnected;
             _logger.OrderBookStopped(Api, Symbol);
         }
 
