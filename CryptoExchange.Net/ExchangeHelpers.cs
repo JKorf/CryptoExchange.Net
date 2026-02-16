@@ -450,20 +450,6 @@ namespace CryptoExchange.Net
             };
         }
 
-        // Without date/time filter
-        public static PageRequest? GetNextPageRequestPageSimple(
-            PageRequest? currentPageRequest,
-            bool hasNextPage,
-            IEnumerable<DateTime> timeSelector,
-            DateTime? requestStartTime,
-            DateTime? requestEndTime
-            )
-        {
-            if (CheckForNextPage(timeSelector, requestStartTime, requestEndTime, limit, direction))
-            {
-            }
-        }
-
         public static PageRequest? GetNextPageRequest(
             Func<PageRequest> normalNextPageCallback,
             int responseLength,
