@@ -67,6 +67,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.6.1 - 16 Feb 2026
+    * Fixed exception when stopping SymbolOrderBook instance when update is received while closing
+
 * Version 10.6.0 - 16 Feb 2026
     * Updated symbol tracking logic on UserDataTracker, now is per UserDataTracker instead of per topic
     * Added check for startTime filter for polling being to close to current time which can cause issues if time isn't in sync with server
