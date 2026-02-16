@@ -77,21 +77,21 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var trackers = new List<UserDataItemTracker>();
 
-            var balanceTracker = new BalanceTracker(logger, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
+            var balanceTracker = new BalanceTracker(logger, SymbolTracker, balanceRestClient, balanceSocketClient, accountType ?? SharedAccountType.PerpetualLinearFutures, config.BalancesConfig, exchangeParameters);
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new FuturesOrderTracker(logger, futuresOrderRestClient, futuresOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new FuturesOrderTracker(logger, SymbolTracker, futuresOrderRestClient, futuresOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
-            var positionTracker = new PositionTracker(logger, futuresOrderRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
+            var positionTracker = new PositionTracker(logger, SymbolTracker, futuresOrderRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
             Positions = positionTracker;
             trackers.Add(positionTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new FuturesUserTradeTracker(logger, futuresOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new FuturesUserTradeTracker(logger, SymbolTracker, futuresOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 
@@ -153,6 +153,31 @@ namespace CryptoExchange.Net.Trackers.UserData
                 // If failed shorten the delay to allow a couple more retries
                 interval = result ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
             }
+        }
+
+        /// <summary>
+        /// Add symbols to the list of symbols for which data is being tracked
+        /// </summary>
+        /// <param name="symbols">Symbols to add</param>
+        public void AddTrackedSymbolsAsync(IEnumerable<SharedSymbol> symbols)
+        {
+            if (symbols.Any(x => x.TradingMode == TradingMode.Spot))
+                throw new ArgumentException("Spot symbol not allowed in futures tracker", nameof(symbols));
+
+            SymbolTracker.UpdateTrackedSymbols(symbols, true);
+        }
+
+        /// <summary>
+        /// Remove a symbol from the list of symbols for which data is being tracked. 
+        /// Note that the symbol will be added again if new data for that symbol is received, unless the OnlyTrackProvidedSymbols option has been set to true.
+        /// </summary>
+        /// <param name="symbol">Symbol to remove</param>
+        public void RemoveTrackedSymbolAsync(SharedSymbol symbol)
+        {
+            SymbolTracker.RemoveTrackedSymbol(symbol);
+
+            ((FuturesOrderTracker)Orders).ClearDataForSymbol(symbol);
+            ((FuturesUserTradeTracker?)Trades)?.ClearDataForSymbol(symbol);
         }
     }
 }

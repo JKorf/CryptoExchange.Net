@@ -203,21 +203,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         protected ConcurrentDictionary<string, T> _store = new ConcurrentDictionary<string, T>(StringComparer.InvariantCultureIgnoreCase);
         /// <summary>
-        /// Tracked symbols list
-        /// </summary>
-        protected readonly List<SharedSymbol> _symbols;
-        /// <summary>
-        /// Symbol lock
-        /// </summary>
-        protected object _symbolLock = new object();
-        /// <summary>
-        /// Only track provided symbols setting
-        /// </summary>
-        protected bool _onlyTrackProvidedSymbols;
-        /// <summary>
         /// Is SharedSymbol model
         /// </summary>
         protected bool _isSymbolModel;
+        /// <summary>
+        /// Symbol tracker
+        /// </summary>
+
+        protected readonly UserDataSymbolTracker _symbolTracker;
 
         /// <inheritdoc />
         public T[] Values
@@ -240,22 +233,23 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
         /// <inheritdoc />
         public event Func<UserDataUpdate<T[]>, Task>? OnUpdate;
-        /// <inheritdoc />
-        public IEnumerable<SharedSymbol> TrackedSymbols => _symbols;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public UserDataItemTracker(ILogger logger, UserDataType dataType, string exchange, TrackerItemConfig config, bool onlyTrackProvidedSymbols, IEnumerable<SharedSymbol>? symbols) : base(logger, dataType, exchange)
+        public UserDataItemTracker(
+            ILogger logger,
+            UserDataSymbolTracker symbolTracker,
+            UserDataType dataType,
+            string exchange,
+            TrackerItemConfig config) : base(logger, dataType, exchange)
         {
-            _onlyTrackProvidedSymbols = onlyTrackProvidedSymbols;
-            _symbols = symbols?.ToList() ?? [];
-
             _pollIntervalDisconnected = config.PollIntervalDisconnected;
             _pollIntervalConnected = config.PollIntervalConnected;
             _pollAtStart = config.PollAtStart;
             _retentionTime = config is TrackerTimedItemConfig timeConfig ? timeConfig.RetentionTime : TimeSpan.MaxValue;
             _isSymbolModel = typeof(T).IsSubclassOf(typeof(SharedSymbolModel));
+            _symbolTracker = symbolTracker;
         }
 
         /// <summary>
@@ -334,26 +328,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// Get the age of an item
         /// </summary>
         protected virtual TimeSpan GetAge(DateTime time, T item) => TimeSpan.Zero;
-
-        /// <summary>
-        /// Update the tracked symbol list with potential new symbols
-        /// </summary>
-        /// <param name="symbols"></param>
-        protected void UpdateSymbolsList(IEnumerable<SharedSymbol> symbols)
-        {
-            lock (_symbolLock)
-            {
-                foreach (var symbol in symbols.Distinct())
-                {
-                    if (!_symbols.Any(x => x.TradingMode == symbol.TradingMode && x.BaseAsset == symbol.BaseAsset && x.QuoteAsset == symbol.QuoteAsset))
-                    {
-                        _symbols.Add(symbol);
-                        _logger.LogDebug("Adding {BaseAsset}/{QuoteAsset} to symbol tracking list", symbol.BaseAsset, symbol.QuoteAsset);
-                    }
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Handle an update
         /// </summary>
@@ -374,8 +349,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                             toRemove.Add(item);
                             _logger.LogWarning("Ignoring {DataType} update for {Key}, no SharedSymbol set", DataType, GetKey(item));
                         }
-                        else if (_onlyTrackProvidedSymbols
-                            && !_symbols.Any(y => y.TradingMode == symbolModel.SharedSymbol!.TradingMode && y.BaseAsset == symbolModel.SharedSymbol.BaseAsset && y.QuoteAsset == symbolModel.SharedSymbol.QuoteAsset))
+                        else if (!_symbolTracker.ShouldProcess(symbolModel.SharedSymbol))
                         {
                             toRemove ??= new List<T>();
                             toRemove.Add(item);
@@ -386,8 +360,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 if (toRemove != null)
                     @event = @event.Except(toRemove).ToArray();
 
-                if (!_onlyTrackProvidedSymbols)
-                    UpdateSymbolsList(@event.OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
+                _symbolTracker.UpdateTrackedSymbols(@event.OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
             }
 
             // Update local store

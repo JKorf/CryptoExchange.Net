@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
@@ -33,6 +34,11 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         protected abstract UserDataItemTracker[] DataTrackers { get; }
 
+        /// <summary>
+        /// Symbol tracker
+        /// </summary>
+        protected internal UserDataSymbolTracker SymbolTracker { get; }
+
         /// <inheritdoc />
         public string? UserIdentifier { get; }
 
@@ -52,6 +58,11 @@ namespace CryptoExchange.Net.Trackers.UserData
         public bool Connected => DataTrackers.All(x => x.Connected);
 
         /// <summary>
+        /// Currently tracked symbols
+        /// </summary>
+        public IEnumerable<SharedSymbol> TrackedSymbols => SymbolTracker.GetTrackedSymbols();
+
+        /// <summary>
         /// ctor
         /// </summary>
         public UserDataTracker(
@@ -65,6 +76,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             _logger = logger;
 
+            SymbolTracker = new UserDataSymbolTracker(logger, config);
             Exchange = exchange;
             UserIdentifier = userIdentifier;
         }

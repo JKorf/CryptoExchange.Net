@@ -26,13 +26,14 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         public SpotUserTradeTracker(
             ILogger logger,
+            UserDataSymbolTracker symbolTracker,
             ISpotOrderRestClient restClient,
             IUserTradeSocketClient? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Trades, restClient.Exchange, config, onlyTrackProvidedSymbols, symbols)
+            ) : base(logger, symbolTracker, UserDataType.Trades, restClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
@@ -40,6 +41,19 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _restClient = restClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
+        }
+
+        internal void ClearDataForSymbol(SharedSymbol symbol)
+        {
+            foreach (var trade in _store)
+            {
+                if (trade.Value.SharedSymbol!.TradingMode == symbol.TradingMode
+                    && trade.Value.SharedSymbol.BaseAsset == symbol.BaseAsset
+                    && trade.Value.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
+                {
+                    _store.TryRemove(trade.Key, out _);
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -57,7 +71,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var anyError = false;
             var fromTimeTrades = GetTradesRequestStartTime();
             var updatedPollTime = DateTime.UtcNow;
-            foreach (var symbol in _symbols)
+            foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
                 var tradesResult = await _restClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
@@ -112,6 +126,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             {
                 fromTime = _startTime;
                 source = "StartTime";
+            }
+
+            if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
+            {
+                // Set it to at least 5 seconds in the past to prevent issues when local time isn't in sync
+                fromTime = DateTime.UtcNow.AddSeconds(-5);
             }
 
             _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);

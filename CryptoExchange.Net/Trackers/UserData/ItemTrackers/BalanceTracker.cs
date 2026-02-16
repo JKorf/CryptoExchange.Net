@@ -22,12 +22,13 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// </summary>
         public BalanceTracker(
             ILogger logger,
+            UserDataSymbolTracker symbolTracker,
             IBalanceRestClient restClient,
             IBalanceSocketClient? socketClient,
             SharedAccountType accountType,
             TrackerItemConfig config,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, UserDataType.Balances, restClient.Exchange, config, false, null)
+            ) : base(logger, symbolTracker, UserDataType.Balances, restClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };

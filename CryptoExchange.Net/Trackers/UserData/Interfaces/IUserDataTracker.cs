@@ -17,13 +17,6 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         bool Connected { get; }
 
         /// <summary>
-        /// Currently tracked symbols. Data for these symbols will be requested when polling. 
-        /// Websocket updates will be available for all symbols regardless.
-        /// When new data is received for a symbol which is not yet being tracked it will be added to this list and polled in the future unless the `OnlyTrackProvidedSymbols` option is set in the configuration.
-        /// </summary>
-        IEnumerable<SharedSymbol> TrackedSymbols { get; }
-
-        /// <summary>
         /// On connection status change. Might trigger multiple times with the same status depending on the underlying subscriptions.
         /// </summary>
         event Action<bool>? OnConnectedChange;
