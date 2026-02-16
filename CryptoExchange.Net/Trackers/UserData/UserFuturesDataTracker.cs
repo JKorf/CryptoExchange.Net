@@ -154,5 +154,30 @@ namespace CryptoExchange.Net.Trackers.UserData
                 interval = result ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
             }
         }
+
+        /// <summary>
+        /// Add symbols to the list of symbols for which data is being tracked
+        /// </summary>
+        /// <param name="symbols">Symbols to add</param>
+        public void AddTrackedSymbolsAsync(IEnumerable<SharedSymbol> symbols)
+        {
+            if (symbols.Any(x => x.TradingMode == TradingMode.Spot))
+                throw new ArgumentException("Spot symbol not allowed in futures tracker", nameof(symbols));
+
+            SymbolTracker.UpdateTrackedSymbols(symbols, true);
+        }
+
+        /// <summary>
+        /// Remove a symbol from the list of symbols for which data is being tracked. 
+        /// Note that the symbol will be added again if new data for that symbol is received, unless the OnlyTrackProvidedSymbols option has been set to true.
+        /// </summary>
+        /// <param name="symbol">Symbol to remove</param>
+        public void RemoveTrackedSymbolAsync(SharedSymbol symbol)
+        {
+            SymbolTracker.RemoveTrackedSymbol(symbol);
+
+            ((FuturesOrderTracker)Orders).ClearDataForSymbol(symbol);
+            ((FuturesUserTradeTracker)Trades).ClearDataForSymbol(symbol);
+        }
     }
 }

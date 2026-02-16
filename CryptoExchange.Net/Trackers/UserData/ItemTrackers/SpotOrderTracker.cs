@@ -47,6 +47,19 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _requiresSymbolParameterOpenOrders = restClient.GetOpenSpotOrdersOptions.RequiredOptionalParameters.Any(x => x.Name == "Symbol");
         }
 
+        internal void ClearDataForSymbol(SharedSymbol symbol)
+        {
+            foreach(var order in _store)
+            {
+                if (order.Value.SharedSymbol!.TradingMode == symbol.TradingMode
+                    && order.Value.SharedSymbol.BaseAsset == symbol.BaseAsset
+                    && order.Value.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
+                {
+                    _store.TryRemove(order.Key, out _);
+                }
+            }
+        }
+
         /// <inheritdoc />
         protected override bool Update(SharedSpotOrder existingItem, SharedSpotOrder updateItem)
         {
@@ -388,8 +401,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
             if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
             {
-                // Set it to at least a seconds in the past to prevent issues
-                fromTime = DateTime.UtcNow.AddSeconds(-1);
+                // Set it to at least 5 seconds in the past to prevent issues when local time isn't in sync
+                fromTime = DateTime.UtcNow.AddSeconds(-5);
             }
 
             _logger.LogTrace("{DataType}.{Symbol} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}",

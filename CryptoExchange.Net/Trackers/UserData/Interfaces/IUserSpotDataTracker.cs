@@ -61,5 +61,18 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// </summary>
         /// <returns></returns>
         Task StopAsync();
+
+        /// <summary>
+        /// Add symbols to the list of symbols for which data is being tracked
+        /// </summary>
+        /// <param name="symbols">Symbols to add</param>
+        void AddTrackedSymbolsAsync(IEnumerable<SharedSymbol> symbols);
+
+        /// <summary>
+        /// Remove a symbol from the list of symbols for which data is being tracked. 
+        /// Note that the symbol will be added again if new data for that symbol is received, unless the OnlyTrackProvidedSymbols option has been set to true.
+        /// </summary>
+        /// <param name="symbol">Symbol to remove</param>
+        void RemoveTrackedSymbolAsync(SharedSymbol symbol);
     }
 }

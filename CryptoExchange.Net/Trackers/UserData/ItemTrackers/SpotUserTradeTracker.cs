@@ -43,6 +43,19 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _exchangeParameters = exchangeParameters;
         }
 
+        internal void ClearDataForSymbol(SharedSymbol symbol)
+        {
+            foreach (var trade in _store)
+            {
+                if (trade.Value.SharedSymbol!.TradingMode == symbol.TradingMode
+                    && trade.Value.SharedSymbol.BaseAsset == symbol.BaseAsset
+                    && trade.Value.SharedSymbol.QuoteAsset == symbol.QuoteAsset)
+                {
+                    _store.TryRemove(trade.Key, out _);
+                }
+            }
+        }
+
         /// <inheritdoc />
         protected override string GetKey(SharedUserTrade item) => item.Id;
         /// <inheritdoc />
@@ -117,8 +130,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
             if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
             {
-                // Set it to at least a seconds in the past to prevent issues
-                fromTime = DateTime.UtcNow.AddSeconds(-1);
+                // Set it to at least 5 seconds in the past to prevent issues when local time isn't in sync
+                fromTime = DateTime.UtcNow.AddSeconds(-5);
             }
 
             _logger.LogTrace("{DataType} UserDataTracker poll startTime filter based on {Source}: {Time:yyyy-MM-dd HH:mm:ss.fff}", DataType, source, fromTime);

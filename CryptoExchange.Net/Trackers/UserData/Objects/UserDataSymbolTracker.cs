@@ -38,10 +38,9 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
         /// <summary>
         /// Update the tracked symbol list with potential new symbols
         /// </summary>
-        /// <param name="symbols"></param>
-        public void UpdateTrackedSymbols(IEnumerable<SharedSymbol> symbols)
+        public void UpdateTrackedSymbols(IEnumerable<SharedSymbol> symbols, bool addByUser = false)
         {
-            if (_onlyTrackProvidedSymbols)
+            if (!addByUser && _onlyTrackProvidedSymbols)
                 return;
 
             lock (_symbolLock)
@@ -54,6 +53,19 @@ namespace CryptoExchange.Net.Trackers.UserData.Objects
                         _logger.LogDebug("Adding {TradingMode}.{BaseAsset}/{QuoteAsset} to symbol tracking list", symbol.TradingMode, symbol.BaseAsset, symbol.QuoteAsset);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Remove a symbol from the list
+        /// </summary>
+        public void RemoveTrackedSymbol(SharedSymbol symbol)
+        {
+            lock (_symbolLock)
+            {
+                var symbolToRemove = _trackedSymbols.SingleOrDefault(x => x.TradingMode == symbol.TradingMode && x.BaseAsset == symbol.BaseAsset && x.QuoteAsset == symbol.QuoteAsset);
+                if (symbolToRemove != null)
+                    _trackedSymbols.Remove(symbolToRemove);
             }
         }
     }

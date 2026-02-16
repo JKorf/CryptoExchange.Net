@@ -119,7 +119,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     {
                         toRemove ??= new List<SharedPosition>();
                         toRemove.Add(item);
-                        _logger.LogWarning("Ignoring {DataType} update for {Key}, no SharedSymbol set", DataType, GetKey(item));
+                        _logger.LogTrace("Ignoring {DataType} update for {Key}, no SharedSymbol set", DataType, item.Symbol);
                     }
                     else if (!_symbolTracker.ShouldProcess(symbolModel.SharedSymbol))
                     {
