@@ -71,9 +71,6 @@ namespace CryptoExchange.Net.Trackers.UserData
             UserDataTrackerConfig config,
             string? userIdentifier)
         {
-            if (config.OnlyTrackProvidedSymbols && !config.TrackedSymbols.Any())
-                throw new ArgumentException(nameof(config.TrackedSymbols), "Conflicting options; `OnlyTrackProvidedSymbols` but no symbols specific in `TrackedSymbols`");
-
             _logger = logger;
 
             SymbolTracker = new UserDataSymbolTracker(logger, config);
