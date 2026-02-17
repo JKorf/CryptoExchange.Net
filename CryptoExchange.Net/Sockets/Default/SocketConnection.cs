@@ -1137,7 +1137,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 return CallResult.SuccessResult;
             }
 
-            subQuery.OnComplete = () =>
+            var subCompleteHandler = () =>
             {
                 subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
                 subscription.HandleSubQueryResponse(this, subQuery.Response);
@@ -1150,6 +1150,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     }, false);
                 }
             };
+            subQuery.OnComplete = subCompleteHandler;
 
             var subQueryResult = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             if (!subQueryResult)
@@ -1160,6 +1161,9 @@ namespace CryptoExchange.Net.Sockets.Default
                     await CloseAsync(subscription).ConfigureAwait(false);
                 return new CallResult<UpdateSubscription>(subQueryResult.Error!);
             }
+
+            if (!subQuery.ExpectsResponse)
+                subCompleteHandler();
 
             return subQueryResult;
         }
