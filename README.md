@@ -67,6 +67,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.6.2 - 17 Feb 2026
+    * Fix for websocket queries which don't expects response getting stuck in subscribing state
+
 * Version 10.6.1 - 16 Feb 2026
     * Fixed exception when stopping SymbolOrderBook instance when update is received while closing
 
