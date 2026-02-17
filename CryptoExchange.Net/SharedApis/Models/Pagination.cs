@@ -93,7 +93,13 @@ namespace CryptoExchange.Net.SharedApis
             )
         {
             if (HasNextPage(resultCount, timestamps, requestStartTime, requestEndTime, limit, direction))
-                return nextPageRequest();
+            {
+                var result = nextPageRequest();
+#warning correct?
+                result.StartTime ??= lastPaginationData.StartTime;
+                result.EndTime ??= lastPaginationData.EndTime;
+                return result;
+            }
 
             if (maxTimespan != null)
             {
@@ -143,7 +149,7 @@ namespace CryptoExchange.Net.SharedApis
 
         public static PageRequest NextPageFromPage(PaginationParameters lastPaginationData)
         {
-            return new PageRequest { Page = lastPaginationData.Page + 1 };
+            return new PageRequest { Page = (lastPaginationData.Page ?? 1) + 1 };
         }
         public static PageRequest NextPageFromOffset(PaginationParameters lastPaginationData, int resultCount)
         {
@@ -161,7 +167,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             return new PageRequest { FromId = nextFromId };
         }
-        public static PageRequest NextPageFromTime(PaginationParameters lastPaginationData, DateTime lastTimestamp, bool setOtherTimeLimiter)
+        public static PageRequest NextPageFromTime(PaginationParameters lastPaginationData, DateTime lastTimestamp, bool setOtherTimeLimiter = true)
         {
             if (lastPaginationData.Direction == DataDirection.Ascending)
                 return new PageRequest { StartTime = lastTimestamp.AddMilliseconds(1), EndTime = setOtherTimeLimiter ? lastPaginationData.EndTime : null  };
