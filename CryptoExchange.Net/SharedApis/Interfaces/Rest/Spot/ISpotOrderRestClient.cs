@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get closed orders request options
         /// </summary>
-        PaginatedEndpointOptions<GetClosedOrdersRequest> GetClosedSpotOrdersOptions { get; }
+        GetClosedOrdersOptions GetClosedSpotOrdersOptions { get; }
         /// <summary>
         /// Get info on closed spot orders
         /// </summary>
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot user trades request options
         /// </summary>
-        PaginatedEndpointOptions<GetUserTradesRequest> GetSpotUserTradesOptions { get; }
+        GetUserTradesOptions GetSpotUserTradesOptions { get; }
         /// <summary>
         /// Get spot user trade records
         /// </summary>

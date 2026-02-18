@@ -60,9 +60,15 @@ namespace CryptoExchange.Net.SharedApis
                 if (direction == DataDirection.Ascending)
                 {
                     if (startTime == null)
+                    {
                         startTime = endTime.Add(-maxPeriod.Value);
+                    }
                     else
+                    {
                         endTime = startTime.Value.Add(maxPeriod.Value);
+                        if (endTime > DateTime.UtcNow)
+                            endTime = DateTime.UtcNow;
+                    }
                 }
                 else
                 {
@@ -196,10 +202,11 @@ namespace CryptoExchange.Net.SharedApis
             }
             else
             {
+                var lastPageStartTime = lastPaginationParameters.StartTime ?? lastPaginationParameters.EndTime!.Value.Add(-period);
                 if (requestStartTime != null)
-                    return (lastPaginationParameters.StartTime!.Value - requestStartTime.Value).TotalSeconds > 1;
+                    return (lastPageStartTime - requestStartTime.Value).TotalSeconds > 1;
                 else
-                    return (lastPaginationParameters.StartTime!.Value - (lastPaginationParameters.EndTime!.Value - period)).TotalSeconds > 1;
+                    return (lastPageStartTime - (lastPaginationParameters.EndTime!.Value - period)).TotalSeconds > 1;
             }
         }
 
