@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         public string? FromId { get; set; }
         public int? Offset { get; set; }
         public int? Page { get; set; }
+        public string? Cursor { get; set; }
     }
     public class PageRequest
     {
@@ -76,12 +77,13 @@ namespace CryptoExchange.Net.SharedApis
                 Direction = direction,
                 FromId = paginationRequest?.FromId,
                 Offset = paginationRequest?.Offset,
-                Page = paginationRequest?.Page
+                Page = paginationRequest?.Page,
+                Cursor = paginationRequest?.Cursor
             };
         }
 
         public static PageRequest? GetNextPageRequest(
-            Func<PageRequest> nextPageRequest,
+            Func<PageRequest?> nextPageRequest,
             int resultCount,
             IEnumerable<DateTime> timestamps,
             DateTime? requestStartTime,
@@ -95,10 +97,13 @@ namespace CryptoExchange.Net.SharedApis
             if (HasNextPage(resultCount, timestamps, requestStartTime, requestEndTime, limit, direction))
             {
                 var result = nextPageRequest();
+                if (result != null) 
+                {
 #warning correct?
-                result.StartTime ??= lastPaginationData.StartTime;
-                result.EndTime ??= lastPaginationData.EndTime;
-                return result;
+                    result.StartTime ??= lastPaginationData.StartTime;
+                    result.EndTime ??= lastPaginationData.EndTime;
+                    return result;
+                }
             }
 
             if (maxTimespan != null)
@@ -153,7 +158,7 @@ namespace CryptoExchange.Net.SharedApis
         }
         public static PageRequest NextPageFromOffset(PaginationParameters lastPaginationData, int resultCount)
         {
-            return new PageRequest { Offset = lastPaginationData.Offset + resultCount };
+            return new PageRequest { Offset = (lastPaginationData.Offset ?? 0) + resultCount };
         }
         public static PageRequest NextPageFromCursor(string nextCursor)
         {
