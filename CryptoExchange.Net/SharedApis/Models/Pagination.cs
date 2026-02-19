@@ -21,6 +21,8 @@ namespace CryptoExchange.Net.SharedApis
         public int? Offset { get; set; }
         public int? Page { get; set; }
         public string? Cursor { get; set; }
+
+        public int Limit { get; set; }
     }
     public class PageRequest
     {
@@ -46,6 +48,7 @@ namespace CryptoExchange.Net.SharedApis
     {
         public static PaginationParameters GetPaginationParameters(
             DataDirection direction,
+            int limit,
             DateTime? requestStartTime,
             DateTime requestEndTime,
             PageRequest? paginationRequest, 
@@ -78,6 +81,7 @@ namespace CryptoExchange.Net.SharedApis
 
             return new PaginationParameters
             {
+                Limit = limit,
                 StartTime = direction == DataDirection.Ascending || setOtherTimeLimiter ? startTime : null,
                 EndTime = direction == DataDirection.Descending || setOtherTimeLimiter ? endTime : null,
                 Direction = direction,
@@ -94,13 +98,11 @@ namespace CryptoExchange.Net.SharedApis
             IEnumerable<DateTime> timestamps,
             DateTime? requestStartTime,
             DateTime requestEndTime,
-            int limit,
-            DataDirection direction,
             PaginationParameters lastPaginationData,
             TimeSpan? maxTimespan = null
             )
         {
-            if (HasNextPage(resultCount, timestamps, requestStartTime, requestEndTime, limit, direction))
+            if (HasNextPage(resultCount, timestamps, requestStartTime, requestEndTime, lastPaginationData.Limit, lastPaginationData.Direction))
             {
                 var result = nextPageRequest();
                 if (result != null) 
@@ -114,9 +116,9 @@ namespace CryptoExchange.Net.SharedApis
 
             if (maxTimespan != null)
             {
-                if (HasNextPeriod(requestStartTime, requestEndTime, direction, lastPaginationData, maxTimespan.Value))
+                if (HasNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value))
                 {
-                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, direction, lastPaginationData, maxTimespan.Value);
+                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value);
                     return new PageRequest
                     {
                         StartTime = startTime,
