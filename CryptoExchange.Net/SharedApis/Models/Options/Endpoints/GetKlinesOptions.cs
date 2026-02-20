@@ -80,7 +80,7 @@ namespace CryptoExchange.Net.SharedApis
             {
                 // When going descending we can still allow startTime filter to limit the results
                 var now = DateTime.UtcNow;
-                if ((request.Direction != DataDirection.Descending && request.StartTime != null)
+                if ((request.Direction == DataDirection.Ascending && request.StartTime != null)
                     || (request.EndTime != null && now - request.EndTime > TimeSpan.FromSeconds(5)))
                 {
                     return ArgumentError.Invalid(nameof(GetDepositsRequest.StartTime), $"Time filter is not supported");
