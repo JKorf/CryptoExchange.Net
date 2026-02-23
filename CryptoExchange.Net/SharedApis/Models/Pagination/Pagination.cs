@@ -1,51 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
 {
-
-    public enum DataDirection
-    {
-        Ascending, // Old to new
-        Descending // New to old
-    }
-
-    public record PaginationParameters
-    {
-        public DataDirection Direction { get; set; }
-        public DateTime? StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
-        public string? FromId { get; set; }
-        public int? Offset { get; set; }
-        public int? Page { get; set; }
-        public string? Cursor { get; set; }
-
-        public int Limit { get; set; }
-    }
-    public class PageRequest
-    {
-        public string? Cursor { get; set; }
-        public int? Page { get; set; }
-        public int? Offset { get; set; }
-        public string? FromId { get; set; }
-        public DateTime? StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
-    
-
-        public static PageRequest NextCursor(string nextCursor) => new PageRequest { Cursor = nextCursor };
-        public static PageRequest NextPage(int nextPage) => new PageRequest { Page = nextPage };
-        public static PageRequest NextOffset(int nextOffset) => new PageRequest { Offset = nextOffset };
-
-        public static PageRequest NextFromIdAsc(IEnumerable<long> idSelector) => new PageRequest { FromId = (idSelector.Max() + 1).ToString() };
-        public static PageRequest NextFromIdDesc(IEnumerable<long> idSelector) => new PageRequest { FromId = (idSelector.Min() - 1).ToString() };
-        public static PageRequest NextStartTimeAsc(IEnumerable<DateTime> timestampSelector) => new PageRequest { StartTime = timestampSelector.Max().AddMilliseconds(1) };
-        public static PageRequest NextEndTimeDesc(IEnumerable<DateTime> timestampSelector) => new PageRequest { EndTime = timestampSelector.Min().AddMilliseconds(-1) };
-    }
-    
+    /// <summary>
+    /// Pagination methods
+    /// </summary>
     public static class Pagination
     {
+        /// <summary>
+        /// Get pagination parameters
+        /// </summary>
+        /// <param name="direction">The data direction</param>
+        /// <param name="limit">Result limit</param>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="paginationRequest">Provided page request</param>
+        /// <param name="setOtherTimeLimiter">Whether to set start time if direction is descending, or end time if direction is ascending</param>
+        /// <param name="maxPeriod">Max period the time filters can span</param>
+        /// <returns></returns>
         public static PaginationParameters GetPaginationParameters(
             DataDirection direction,
             int limit,
@@ -92,6 +66,17 @@ namespace CryptoExchange.Net.SharedApis
             };
         }
 
+        /// <summary>
+        /// Get the next page request parameters from result kline data
+        /// </summary>
+        /// <param name="nextPageRequest">Callback for returning the next page request</param>
+        /// <param name="resultCount">Number of results in data</param>
+        /// <param name="timestamps">Timestamps of the result data</param>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="lastPaginationData">The last used pagination data</param>
+        /// <param name="interval">Kline interval</param>
+        /// <returns></returns>
         public static PageRequest? GetNextPageRequestKlines(
             Func<PageRequest?> nextPageRequest,
             int resultCount,
@@ -116,6 +101,18 @@ namespace CryptoExchange.Net.SharedApis
             return null;
         }
 
+        /// <summary>
+        /// Get the next page request parameters from result data
+        /// </summary>
+        /// <param name="nextPageRequest">Callback for returning the next page request</param>
+        /// <param name="resultCount">Number of results in data</param>
+        /// <param name="timestamps">Timestamps of the result data</param>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="lastPaginationData">The last used pagination data</param>
+        /// <param name="maxPeriod">Max period the time filters can span</param>
+        /// <param name="maxAge">Max age of the data</param>
+        /// <returns></returns>
         public static PageRequest? GetNextPageRequest(
             Func<PageRequest?> nextPageRequest,
             int resultCount,
@@ -123,7 +120,7 @@ namespace CryptoExchange.Net.SharedApis
             DateTime? requestStartTime,
             DateTime requestEndTime,
             PaginationParameters lastPaginationData,
-            TimeSpan? maxTimespan = null,
+            TimeSpan? maxPeriod = null,
             TimeSpan? maxAge = null
             )
         {
@@ -138,11 +135,11 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            if (maxTimespan != null)
+            if (maxPeriod != null)
             {
-                if (HasNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value, maxAge))
+                if (HasNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxPeriod.Value, maxAge))
                 {
-                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value, maxAge);
+                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxPeriod.Value, maxAge);
                     return new PageRequest
                     {
                         StartTime = startTime,
@@ -154,6 +151,17 @@ namespace CryptoExchange.Net.SharedApis
             return null;
         }
 
+        /// <summary>
+        /// Check whether there is (potentially) another page available 
+        /// </summary>
+        /// <param name="resultCount">Number of result entries</param>
+        /// <param name="timestamps">Timestamps</param>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="limit">Max number of results requested</param>
+        /// <param name="direction">Data direction</param>
+        /// <param name="interval">Kline interval</param>
+        /// <returns></returns>
         public static bool HasNextPageKlines(
             int resultCount,
             IEnumerable<DateTime> timestamps,
@@ -183,6 +191,16 @@ namespace CryptoExchange.Net.SharedApis
             }
         }
 
+        /// <summary>
+        /// Check whether there is (potentially) another page available 
+        /// </summary>
+        /// <param name="resultCount">Number of result entries</param>
+        /// <param name="timestamps">Timestamps</param>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="limit">Max number of results requested</param>
+        /// <param name="direction">Data direction</param>
+        /// <returns></returns>
         public static bool HasNextPage(
             int resultCount,
             IEnumerable<DateTime> timestamps,
@@ -194,7 +212,7 @@ namespace CryptoExchange.Net.SharedApis
             if (resultCount < limit)
                 return false;
 
-            if (!timestamps.Any()) //?
+            if (!timestamps.Any())
                 return false;
 
             if (direction == DataDirection.Ascending)
@@ -213,26 +231,44 @@ namespace CryptoExchange.Net.SharedApis
             }
         }
 
+        /// <summary>
+        /// Get the next page PageRequest
+        /// </summary>
         public static PageRequest NextPageFromPage(PaginationParameters lastPaginationData)
         {
             return new PageRequest { Page = (lastPaginationData.Page ?? 1) + 1 };
         }
+        /// <summary>
+        /// Get the next offset PageRequest
+        /// </summary>
         public static PageRequest NextPageFromOffset(PaginationParameters lastPaginationData, int resultCount)
         {
             return new PageRequest { Offset = (lastPaginationData.Offset ?? 0) + resultCount };
         }
+        /// <summary>
+        /// Get the next page cursor PageRequest
+        /// </summary>
         public static PageRequest NextPageFromCursor(string nextCursor)
         {
             return new PageRequest { Cursor = nextCursor };
         }
+        /// <summary>
+        /// Get the next id PageRequest
+        /// </summary>
         public static PageRequest NextPageFromId(long nextFromId)
         {
             return new PageRequest { FromId = nextFromId.ToString() };
         }
+        /// <summary>
+        /// Get the next id PageRequest
+        /// </summary>
         public static PageRequest NextPageFromId(string nextFromId)
         {
             return new PageRequest { FromId = nextFromId };
         }
+        /// <summary>
+        /// Get the next start/end time PageRequest
+        /// </summary>
         public static PageRequest NextPageFromTime(PaginationParameters lastPaginationData, DateTime lastTimestamp, bool setOtherTimeLimiter = true)
         {
             if (lastPaginationData.Direction == DataDirection.Ascending)
@@ -241,6 +277,9 @@ namespace CryptoExchange.Net.SharedApis
                 return new PageRequest { EndTime = lastTimestamp.AddMilliseconds(-1), StartTime = setOtherTimeLimiter ? lastPaginationData.StartTime : null };
         }
 
+        /// <summary>
+        /// Get the next start/end time klines PageRequest
+        /// </summary>
         public static PageRequest NextPageFromTimeKlines(DataDirection direction, GetKlinesRequest request, DateTime lastTimestamp, int limit)
         {
             if (direction == DataDirection.Ascending)
@@ -264,6 +303,15 @@ namespace CryptoExchange.Net.SharedApis
             }
         }
 
+        /// <summary>
+        /// Whether another time period is to be requested 
+        /// </summary>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="direction">Data direction</param>
+        /// <param name="lastPaginationParameters">Pagination parameters used</param>
+        /// <param name="period">Max time period a request can span</param>
+        /// <param name="maxAge">Max age of data that can be requested</param>
         public static bool HasNextPeriod(
             DateTime? requestStartTime,
             DateTime requestEndTime,
@@ -273,7 +321,7 @@ namespace CryptoExchange.Net.SharedApis
             TimeSpan? maxAge)
         {
             if (direction == DataDirection.Ascending && lastPaginationParameters.StartTime == null)
-                throw new Exception();
+                throw new InvalidOperationException("Invalid pagination data; no start time for ascending pagination");
 
             if (direction == DataDirection.Ascending)
             {
@@ -303,6 +351,15 @@ namespace CryptoExchange.Net.SharedApis
             }
         }
 
+        /// <summary>
+        /// Get the start/end time for the next data period
+        /// </summary>
+        /// <param name="requestStartTime">User request start time</param>
+        /// <param name="requestEndTime">User request end time</param>
+        /// <param name="direction">Data direction</param>
+        /// <param name="lastPaginationParameters">Pagination parameters used</param>
+        /// <param name="period">Max time period a request can span</param>
+        /// <param name="maxAge">Max age of data that can be requested</param>
         public static (DateTime? startTime, DateTime? endTime) GetNextPeriod(
             DateTime? requestStartTime,
             DateTime requestEndTime,

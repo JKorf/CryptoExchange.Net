@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.UnitTests
             // assert
             ClassicAssert.IsFalse(result.Success);
             Assert.That(result.Error != null);
-            Assert.That(result.Error is ServerError);
+            Assert.That(result.Error is DeserializeError);
             Assert.That(result.Error.Message.Contains(response));
         }
 

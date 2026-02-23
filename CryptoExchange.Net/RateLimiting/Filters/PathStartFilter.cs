@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.RateLimiting.Filters
         /// <param name="path"></param>
         public PathStartFilter(string path)
         {
-            _path = path;
+            _path = path.TrimStart('/');
         }
 
         /// <inheritdoc />
