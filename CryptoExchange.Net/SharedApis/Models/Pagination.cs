@@ -92,6 +92,31 @@ namespace CryptoExchange.Net.SharedApis
             };
         }
 
+        public static PageRequest? GetNextPageRequestKlines(
+            Func<PageRequest?> nextPageRequest,
+            int resultCount,
+            IEnumerable<DateTime> timestamps,
+            DateTime? requestStartTime,
+            DateTime requestEndTime,
+            PaginationParameters lastPaginationData,
+            SharedKlineInterval interval
+            )
+        {
+            if (HasNextPageKlines(resultCount, timestamps, requestStartTime, requestEndTime, lastPaginationData.Limit, lastPaginationData.Direction, interval))
+            {
+                var result = nextPageRequest();
+                if (result != null)
+                {
+#warning correct?
+                    result.StartTime ??= lastPaginationData.StartTime;
+                    result.EndTime ??= lastPaginationData.EndTime;
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         public static PageRequest? GetNextPageRequest(
             Func<PageRequest?> nextPageRequest,
             int resultCount,
@@ -128,6 +153,35 @@ namespace CryptoExchange.Net.SharedApis
             }
 
             return null;
+        }
+
+        public static bool HasNextPageKlines(
+            int resultCount,
+            IEnumerable<DateTime> timestamps,
+            DateTime? requestStartTime,
+            DateTime requestEndTime,
+            int limit,
+            DataDirection direction,
+            SharedKlineInterval interval
+            )
+        {
+            if (resultCount < limit)
+                return false;
+
+            if (direction == DataDirection.Ascending)
+            {
+                if (timestamps.Max().AddSeconds((int)interval) >= requestEndTime)
+                    return false;
+
+                return true;
+            }
+            else
+            {
+                if (timestamps.Min().AddSeconds((int)interval) < requestStartTime)
+                    return false;
+
+                return true;
+            }
         }
 
         public static bool HasNextPage(
@@ -186,6 +240,29 @@ namespace CryptoExchange.Net.SharedApis
                 return new PageRequest { StartTime = lastTimestamp.AddMilliseconds(1), EndTime = setOtherTimeLimiter ? lastPaginationData.EndTime : null  };
             else
                 return new PageRequest { EndTime = lastTimestamp.AddMilliseconds(-1), StartTime = setOtherTimeLimiter ? lastPaginationData.StartTime : null };
+        }
+
+        public static PageRequest NextPageFromTimeKlines(DataDirection direction, GetKlinesRequest request, DateTime lastTimestamp, int limit)
+        {
+            if (direction == DataDirection.Ascending)
+            {
+                var nextStartTime = lastTimestamp.AddSeconds((int)request.Interval);
+                var endTime = nextStartTime.AddSeconds(limit * (int)request.Interval);
+                var requestEndTime = request.EndTime ?? DateTime.UtcNow;
+                if (endTime > requestEndTime)
+                    endTime = requestEndTime;
+
+                return new PageRequest { StartTime = nextStartTime, EndTime = endTime };
+            }
+            else
+            {
+                var nextEndTime = lastTimestamp.AddSeconds(-(int)request.Interval);
+                var startTime = nextEndTime.AddSeconds(-(limit * (int)request.Interval));
+                var requestStartTime = request.StartTime ?? DateTime.UtcNow;
+                if (startTime < requestStartTime)
+                    startTime = requestStartTime;
+                return new PageRequest { StartTime = startTime, EndTime = nextEndTime };
+            }
         }
 
         public static bool HasNextPeriod(
