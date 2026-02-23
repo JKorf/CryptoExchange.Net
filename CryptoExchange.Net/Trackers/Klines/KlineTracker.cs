@@ -332,7 +332,8 @@ namespace CryptoExchange.Net.Trackers.Klines
                     _data.Add(item.OpenTime, item);
                 }
 
-                _firstTimestamp = _data.Min(v => v.Key);
+                _firstTimestamp = _data.Count == 0 ? null : _data.Min(v => v.Key);
+
                 ApplyWindow(false);
                 _logger.KlineTrackerInitialDataSet(SymbolName, _data.Last().Key);
             }
@@ -375,7 +376,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                     }
                 }
 
-                _firstTimestamp = _data.Min(x => x.Key);
+                _firstTimestamp = _data.Count == 0 ? null : _data.Min(x => x.Key);
                 _changed = true;
 
                 SetSyncStatus();

@@ -77,7 +77,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Get info on closed spot orders
         /// </summary>
         /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
+        /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         Task<ExchangeWebResult<SharedSpotOrder[]>> GetClosedSpotOrdersAsync(GetClosedOrdersRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
 
@@ -100,7 +100,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Get spot user trade records
         /// </summary>
         /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination token from the previous request to continue pagination</param>
+        /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         Task<ExchangeWebResult<SharedUserTrade[]>> GetSpotUserTradesAsync(GetUserTradesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
 

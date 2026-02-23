@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         public TradingMode[]? DataTradeMode { get; }
 
         /// <summary>
-        /// 
+        /// Next page request, can be passed to the next request on the same endpoint to get the next page
         /// </summary>
         public PageRequest? NextPageRequest { get; }
 
