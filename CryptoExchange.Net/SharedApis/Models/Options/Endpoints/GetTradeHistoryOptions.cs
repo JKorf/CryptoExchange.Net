@@ -10,11 +10,6 @@ namespace CryptoExchange.Net.SharedApis
     public class GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest>
     {
         /// <summary>
-        /// The max age of data that can be requested
-        /// </summary>
-        public TimeSpan? MaxAge { get; set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
         public GetTradeHistoryOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
@@ -32,18 +27,9 @@ namespace CryptoExchange.Net.SharedApis
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Descending direction is not supported");
 
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
-                return ArgumentError.Invalid(nameof(GetTradeHistoryRequest.StartTime), $"Only the most recent {MaxAge} trades are available");
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} period data is available");
 
             return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
-        }
-
-        /// <inheritdoc />
-        public override string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            if (MaxAge != null)
-                sb.AppendLine($"Max age of data: {MaxAge}");
-            return sb.ToString();
         }
     }
 }

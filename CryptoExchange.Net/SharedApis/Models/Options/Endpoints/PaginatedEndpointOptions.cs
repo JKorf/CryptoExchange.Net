@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
@@ -33,6 +34,11 @@ namespace CryptoExchange.Net.SharedApis
         public int MaxLimit { get; set; }
 
         /// <summary>
+        /// Max age of data that can be requested
+        /// </summary>
+        public TimeSpan? MaxAge { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public PaginatedEndpointOptions(
@@ -56,6 +62,7 @@ namespace CryptoExchange.Net.SharedApis
             sb.AppendLine($"Descending retrieval supported: {SupportsDescending}");
             sb.AppendLine($"Time period filter support: {TimePeriodFilterSupport}");
             sb.AppendLine($"Max limit: {MaxLimit}");
+            sb.AppendLine($"Max age: {MaxAge}");
             return sb.ToString();
         }
     }

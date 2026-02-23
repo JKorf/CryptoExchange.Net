@@ -26,6 +26,9 @@ namespace CryptoExchange.Net.SharedApis
             if (!SupportsDescending && request.Direction == DataDirection.Descending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Descending direction is not supported");
 
+            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} period data is available");
+
             if (!TimePeriodFilterSupport)
             {
                 // When going descending we can still allow startTime filter to limit the results

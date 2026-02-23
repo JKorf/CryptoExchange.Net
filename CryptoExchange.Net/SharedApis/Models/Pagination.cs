@@ -107,7 +107,6 @@ namespace CryptoExchange.Net.SharedApis
                 var result = nextPageRequest();
                 if (result != null)
                 {
-#warning correct?
                     result.StartTime ??= lastPaginationData.StartTime;
                     result.EndTime ??= lastPaginationData.EndTime;
                     return result;
@@ -124,7 +123,8 @@ namespace CryptoExchange.Net.SharedApis
             DateTime? requestStartTime,
             DateTime requestEndTime,
             PaginationParameters lastPaginationData,
-            TimeSpan? maxTimespan = null
+            TimeSpan? maxTimespan = null,
+            TimeSpan? maxAge = null
             )
         {
             if (HasNextPage(resultCount, timestamps, requestStartTime, requestEndTime, lastPaginationData.Limit, lastPaginationData.Direction))
@@ -132,7 +132,6 @@ namespace CryptoExchange.Net.SharedApis
                 var result = nextPageRequest();
                 if (result != null) 
                 {
-#warning correct?
                     result.StartTime ??= lastPaginationData.StartTime;
                     result.EndTime ??= lastPaginationData.EndTime;
                     return result;
@@ -141,9 +140,9 @@ namespace CryptoExchange.Net.SharedApis
 
             if (maxTimespan != null)
             {
-                if (HasNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value))
+                if (HasNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value, maxAge))
                 {
-                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value);
+                    var (startTime, endTime) = GetNextPeriod(requestStartTime, requestEndTime, lastPaginationData.Direction, lastPaginationData, maxTimespan.Value, maxAge);
                     return new PageRequest
                     {
                         StartTime = startTime,
@@ -270,7 +269,8 @@ namespace CryptoExchange.Net.SharedApis
             DateTime requestEndTime,
             DataDirection direction,
             PaginationParameters lastPaginationParameters,
-            TimeSpan period)
+            TimeSpan period,
+            TimeSpan? maxAge)
         {
             if (direction == DataDirection.Ascending && lastPaginationParameters.StartTime == null)
                 throw new Exception();
@@ -283,9 +283,23 @@ namespace CryptoExchange.Net.SharedApis
             {
                 var lastPageStartTime = lastPaginationParameters.StartTime ?? lastPaginationParameters.EndTime!.Value.Add(-period);
                 if (requestStartTime != null)
-                    return (lastPageStartTime - requestStartTime.Value).TotalSeconds > 1;
+                {
+                    var nextPeriodDuration = lastPageStartTime - requestStartTime.Value;
+                    return nextPeriodDuration.TotalSeconds > 1;
+                }
                 else
-                    return (lastPageStartTime - (lastPaginationParameters.EndTime!.Value - period)).TotalSeconds > 1;
+                {
+                    var nextStartTime = lastPageStartTime - period;
+                    if (maxAge != null)
+                    {
+                        var minStartTime = DateTime.UtcNow - maxAge.Value;
+                        if ((nextStartTime.Add(period) - minStartTime).TotalSeconds < 1)
+                            return false;
+                    }
+
+                    var nextPeriodDuration = lastPageStartTime - nextStartTime;
+                    return (nextPeriodDuration).TotalSeconds > 1;
+                }
             }
         }
 
@@ -294,7 +308,8 @@ namespace CryptoExchange.Net.SharedApis
             DateTime requestEndTime,
             DataDirection direction,
             PaginationParameters lastPaginationParameters,
-            TimeSpan period
+            TimeSpan period,
+            TimeSpan? maxAge
             )
         {
             DateTime? nextStartTime = null;
@@ -316,6 +331,13 @@ namespace CryptoExchange.Net.SharedApis
 
             if (nextStartTime != null && nextStartTime < requestStartTime)
                 nextStartTime = requestStartTime;
+
+            if (nextStartTime != null && maxAge != null && nextStartTime < DateTime.UtcNow - maxAge)
+            {
+                nextStartTime = DateTime.UtcNow.Add(-maxAge.Value);
+                // Add 30 seconds to max sure the client/server time offset and latency doesn't push the timestamp over the limit
+                nextStartTime = nextStartTime.Value.Add(TimeSpan.FromSeconds(30));
+            }
 
             if (nextEndTime != null && nextEndTime > requestEndTime)
                 nextEndTime = requestEndTime;

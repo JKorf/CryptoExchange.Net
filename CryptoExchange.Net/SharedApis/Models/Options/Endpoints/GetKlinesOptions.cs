@@ -18,10 +18,6 @@ namespace CryptoExchange.Net.SharedApis
         /// Max number of data points which can be requested
         /// </summary>
         public int? MaxTotalDataPoints { get; set; }
-        /// <summary>
-        /// The max age of the data that can be requested
-        /// </summary>
-        public TimeSpan? MaxAge { get; set; }
 
         /// <summary>
         /// ctor
@@ -76,6 +72,12 @@ namespace CryptoExchange.Net.SharedApis
             if (!SupportsDescending && request.Direction == DataDirection.Descending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Descending direction is not supported");
 
+            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} klines are available");
+
+            if (request.Limit > MaxLimit)
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only {MaxLimit} klines can be retrieved per request");
+
             if (!TimePeriodFilterSupport)
             {
                 // When going descending we can still allow startTime filter to limit the results
@@ -86,12 +88,6 @@ namespace CryptoExchange.Net.SharedApis
                     return ArgumentError.Invalid(nameof(GetDepositsRequest.StartTime), $"Time filter is not supported");
                 }
             }
-
-            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
-                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} klines are available");
-
-            if (request.Limit > MaxLimit)
-                return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only {MaxLimit} klines can be retrieved per request");
 
             if (MaxTotalDataPoints.HasValue)
             {
