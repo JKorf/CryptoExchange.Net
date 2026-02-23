@@ -437,23 +437,19 @@ namespace CryptoExchange.Net.Clients
                 responseStream = await response.GetResponseStreamAsync(cancellationToken).ConfigureAwait(false);
                 string? originalData = null;
                 var outputOriginalData = ApiOptions.OutputOriginalData ?? ClientOptions.OutputOriginalData;
-                if (outputOriginalData || MessageHandler.RequiresSeekableStream)
+                if (outputOriginalData || MessageHandler.RequiresSeekableStream || !response.IsSuccessStatusCode)
                 {
-                    // If we want to return the original string data from the stream, but still want to process it
-                    // we'll need to copy it as the stream isn't seekable, and thus we can only read it once
-                    var memoryStream = new MemoryStream();
-                    await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
-                    using var reader = new StreamReader(memoryStream, Encoding.UTF8, false, 4096, true);
-                    if (outputOriginalData) 
+                    // Create a seekable stream from the response stream if:
+                    // 1. We need to output the original data
+                    // 2. The message handler requires a seekable stream
+                    // 3. The response indicates error and we want to output (part of) the returned data
+                    responseStream = await CopyStreamAsync(responseStream).ConfigureAwait(false);
+                    using var reader = new StreamReader(responseStream, Encoding.UTF8, false, 4096, true);
+                    if (outputOriginalData)
                     {
-                        memoryStream.Position = 0;
                         originalData = await reader.ReadToEndAsync().ConfigureAwait(false);
+                        responseStream.Position = 0;
                     }
-
-                    // Continue processing from the memory stream since the response stream is already read and we can't seek it
-                    responseStream.Close();
-                    memoryStream.Position = 0;
-                    responseStream = memoryStream;
                 }
 
                 if (!response.IsSuccessStatusCode && !requestDefinition.TryParseOnNonSuccess)
@@ -479,13 +475,12 @@ namespace CryptoExchange.Net.Clients
                     else
                     {
                         // Handle a 'normal' error response. Can still be either a json error message or some random HTML or other string
-
                         try
                         {
                             error = await MessageHandler.ParseErrorResponse(
-                            (int)response.StatusCode,
-                            response.ResponseHeaders,
-                            responseStream).ConfigureAwait(false);
+                                (int)response.StatusCode,
+                                response.ResponseHeaders,
+                                responseStream).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {
@@ -767,6 +762,15 @@ namespace CryptoExchange.Net.Clients
             {
                 TimeOffsetManager.Release(ClientName);
             }
+        }
+
+        private async Task<Stream> CopyStreamAsync(Stream responseStream)
+        {
+            var memoryStream = new MemoryStream();
+            await responseStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+            responseStream.Close();
+            memoryStream.Position = 0;
+            return memoryStream;
         }
 
         private bool ShouldCache(RequestDefinition definition)

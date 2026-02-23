@@ -211,7 +211,15 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
-        public DeserializeError(string? message = null, Exception? exception = null) : base(null, _errorInfo with { Message = (message?.Length > 0 ? _errorInfo.Message + ": " + message : _errorInfo.Message) }, exception) { }
+        public DeserializeError(string? message = null, Exception? exception = null) 
+            : base(null, 
+                  _errorInfo with 
+                  {
+                      Message = message?.Length > 0 
+                        ? message
+                        : _errorInfo.Message
+                  },
+                  exception) { }
     }
 
     /// <summary>

@@ -165,6 +165,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
             return null;
         }
 
+        /// <summary>
+        /// Return type identifier for non-json messages
+        /// </summary>
+        protected virtual string? GetTypeIdentifierNonJson(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
+        {
+            return null;
+        }
+
         /// <inheritdoc />
         public virtual string? GetTypeIdentifier(ReadOnlySpan<byte> data, WebSocketMessageType? webSocketMessageType)
         {
@@ -173,6 +181,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
             int? arrayIndex = null;
 
             _searchResult.Clear();
+            if (data[0] != 0x5B && data[0] != 0x7B)
+            {
+                // Message doesn't start with `{` or `[`, not valid for processing as json
+                return GetTypeIdentifierNonJson(data, webSocketMessageType);
+            }
+
             var reader = new Utf8JsonReader(data);
             while (reader.Read())
             {

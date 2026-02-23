@@ -18,6 +18,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
     public abstract class JsonRestMessageHandler : IRestMessageHandler
     {
         private static MediaTypeWithQualityHeaderValue _acceptJsonContent = new MediaTypeWithQualityHeaderValue(Constants.JsonContentHeader);
+        private const int _errorResponseSnippetLimit = 128;
 
         /// <summary>
         /// Empty rate limit error
@@ -80,7 +81,20 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
             }
             catch (Exception ex)
             {
-                return (new ServerError(new ErrorInfo(ErrorType.DeserializationFailed, false, "Deserialization failed, invalid JSON"), ex), null);
+                var errorMsg = "Deserialization failed, invalid JSON";
+                if (stream.CanSeek)
+                {
+                    var dataSnippet = new char[_errorResponseSnippetLimit];
+                    stream.Seek(0, SeekOrigin.Begin);
+                    var written = new StreamReader(stream).ReadBlock(dataSnippet, 0, _errorResponseSnippetLimit);
+                    var data = new string(dataSnippet, 0, written);
+                    errorMsg += $": {data}";
+                    if (data.Length == _errorResponseSnippetLimit)
+                        errorMsg += " (truncated)";
+                }
+
+                var error = new DeserializeError(errorMsg, ex);
+                return (error, null);
             }
         }
 

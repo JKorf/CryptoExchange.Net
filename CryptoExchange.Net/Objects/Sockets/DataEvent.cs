@@ -170,6 +170,6 @@ namespace CryptoExchange.Net.Objects.Sockets
         }
 
         /// <inheritdoc />
-        public override string ToString() => base.ToString().TrimEnd('-') + Data?.ToString();
+        public override string ToString() => base.ToString().TrimEnd(' ', '-') + " - " + Data?.ToString();
     }
 }

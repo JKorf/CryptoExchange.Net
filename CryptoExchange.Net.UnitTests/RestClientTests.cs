@@ -81,6 +81,25 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(result.Error is ServerError);
         }
 
+
+        [TestCase]
+        public async Task ReceivingErrorAndNotParsingErrorAndInvalidJson_Should_ContainData()
+        {
+            // arrange
+            var client = new TestRestClient();
+            var response = "<html>...</html>";
+            client.SetErrorWithResponse(response, System.Net.HttpStatusCode.BadRequest);
+
+            // act
+            var result = await client.Api1.Request<TestObject>();
+
+            // assert
+            ClassicAssert.IsFalse(result.Success);
+            Assert.That(result.Error != null);
+            Assert.That(result.Error is ServerError);
+            Assert.That(result.Error.Message.Contains(response));
+        }
+
         [TestCase]
         public async Task ReceivingErrorAndParsingError_Should_ResultInParsedError()
         {

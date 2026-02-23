@@ -19,11 +19,14 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         private ErrorMapping _errorMapping = new ErrorMapping([]);
         public override JsonSerializerOptions Options => new JsonSerializerOptions();
 
-        public override ValueTask<Error> ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, Stream responseStream)
+        public override async ValueTask<Error> ParseErrorResponse(int httpStatusCode, HttpResponseHeaders responseHeaders, Stream responseStream)
         {
-            var errorData = JsonSerializer.Deserialize<TestError>(responseStream);
+            var result = await GetJsonDocument(responseStream).ConfigureAwait(false);
+            if (result.Item1 != null)
+                return result.Item1;
 
-            return new ValueTask<Error>(new ServerError(errorData.ErrorCode, _errorMapping.GetErrorInfo(errorData.ErrorCode.ToString(), errorData.ErrorMessage)));
+            var errorData = result.Item2.Deserialize<TestError>();
+            return new ServerError(errorData.ErrorCode, _errorMapping.GetErrorInfo(errorData.ErrorCode.ToString(), errorData.ErrorMessage));
         }
     }
 }
