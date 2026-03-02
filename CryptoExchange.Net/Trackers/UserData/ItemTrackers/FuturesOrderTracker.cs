@@ -20,6 +20,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
         private readonly Dictionary<string, int> _openOrderNotReturnedTimes = new();
+        private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
 
         internal event Func<UpdateSource, SharedUserTrade[], Task>? OnTradeUpdate;
 
@@ -355,17 +356,17 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             DateTime? fromTime = null;
             string? source = null;
 
-            // Use the last timestamp we we received data from the websocket as state should be correct at that time. 1 seconds buffer
+            // Use the last timestamp we we received data from the websocket as state should be correct at that time
             if (_lastDataTimeBeforeDisconnect.HasValue && (fromTime == null || fromTime > _lastDataTimeBeforeDisconnect.Value))
             {
-                fromTime = _lastDataTimeBeforeDisconnect.Value.AddSeconds(-1);
+                fromTime = _lastDataTimeBeforeDisconnect.Value.Add(-_pollOverlapPeriod);
                 source = "LastDataTimeBeforeDisconnect";
             }
 
             // If we've previously polled use that timestamp to request data from
             if (_lastPollTime.HasValue && (fromTime == null || _lastPollTime.Value > fromTime))
             {
-                fromTime = _lastPollTime;
+                fromTime = _lastPollTime.Value.Add(-_pollOverlapPeriod);
                 source = "LastPollTime";
             }
 
@@ -378,7 +379,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             {
                 // Could be improved by only requesting the specific open orders if there are only a few that would be better than trying to request a long
                 // history if the open order is far back
-                fromTime = trackedOrdersMinOpenTime.Value.AddMilliseconds(-1);
+                fromTime = trackedOrdersMinOpenTime.Value.AddSeconds(-1);
                 source = "OpenOrder";
             }
 
@@ -388,7 +389,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 source = "StartTime";
             }
 
-            if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(1))
+            if (DateTime.UtcNow - fromTime < TimeSpan.FromSeconds(5))
             {
                 // Set it to at least 5 seconds in the past to prevent issues when local time isn't in sync
                 fromTime = DateTime.UtcNow.AddSeconds(-5);
