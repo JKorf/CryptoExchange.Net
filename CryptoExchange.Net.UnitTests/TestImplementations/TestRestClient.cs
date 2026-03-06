@@ -56,7 +56,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             var request = new Mock<IRequest>();
             request.Setup(c => c.Uri).Returns(new Uri("http://www.test.com"));
             request.Setup(c => c.GetResponseAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(response.Object));
-            request.Setup(c => c.SetContent(It.IsAny<string>(), It.IsAny<string>())).Callback(new Action<string, string>((content, type) => { request.Setup(r => r.Content).Returns(content); }));
+            request.Setup(c => c.SetContent(It.IsAny<string>(), It.IsAny<Encoding>(), It.IsAny<string>())).Callback(new Action<string, Encoding, string>((content, encoding, type) => { request.Setup(r => r.Content).Returns(content); }));
             request.Setup(c => c.AddHeader(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((key, val) => headers.Add(key, new string[] { val }));
             request.Setup(c => c.GetHeaders()).Returns(() => headers);
 

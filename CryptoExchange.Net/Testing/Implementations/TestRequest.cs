@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.Testing.Implementations
             Content = Encoding.UTF8.GetString(data);
         }
 
-        public void SetContent(string data, string contentType)
+        public void SetContent(string data, Encoding? encoding, string contentType)
         {
             Content = data;
         }

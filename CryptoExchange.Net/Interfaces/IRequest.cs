@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,9 +44,7 @@ namespace CryptoExchange.Net.Interfaces
         /// <summary>
         /// Set string content
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="contentType"></param>
-        void SetContent(string data, string contentType);
+        void SetContent(string data, Encoding? encoding, string contentType);
 
         /// <summary>
         /// Add a header to the request

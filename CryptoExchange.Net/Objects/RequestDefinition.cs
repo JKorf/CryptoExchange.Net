@@ -73,6 +73,11 @@ namespace CryptoExchange.Net.Objects
         public int? ConnectionId { get; set; }
 
         /// <summary>
+        /// Whether the endpoint path should always include the trailing `/`
+        /// </summary>
+        public bool? ForcePathEndWithSlash { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="path"></param>

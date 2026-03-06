@@ -77,6 +77,16 @@ namespace CryptoExchange.Net.Clients
             { new HttpMethod("Patch"), HttpMethodParameterPosition.InBody },
         };
 
+        /// <summary>
+        /// Encoding/charset for the ContentType header
+        /// </summary>
+        protected Encoding? RequestBodyContentEncoding { get; set; } = Encoding.UTF8;
+
+        /// <summary>
+        /// Whether to omit the ContentType header if there is no content
+        /// </summary>
+        protected bool OmitContentTypeHeaderWithoutContent { get; set; } = false;
+
         /// <inheritdoc />
         public new RestExchangeOptions ClientOptions => (RestExchangeOptions)base.ClientOptions;
 
@@ -374,7 +384,11 @@ namespace CryptoExchange.Net.Clients
             if (!string.IsNullOrEmpty(queryString) && !queryString.StartsWith("?"))
                 queryString = $"?{queryString}";
 
-            var uri = new Uri(baseAddress.AppendPath(definition.Path) + queryString);
+            var path = baseAddress.AppendPath(definition.Path);
+            if (definition.ForcePathEndWithSlash == true && !path.EndsWith("/"))
+                path += "/";
+
+            var uri = new Uri(path + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
             request.Accept = MessageHandler.AcceptHeader;
 
@@ -398,14 +412,14 @@ namespace CryptoExchange.Net.Clients
                 var bodyContent = requestConfiguration.GetBodyContent();
                 if (bodyContent != null)
                 {
-                    request.SetContent(bodyContent, contentType);
+                    request.SetContent(bodyContent, RequestBodyContentEncoding, contentType);
                 }
                 else
                 {
                     if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
-                    else
-                        request.SetContent(RequestBodyEmptyContent, contentType);
+                    else if (OmitContentTypeHeaderWithoutContent != true)
+                        request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);                    
                 }
             }
 
@@ -646,13 +660,13 @@ namespace CryptoExchange.Net.Clients
                     stringData = stringSerializer.Serialize(value);
                 else
                     stringData = stringSerializer.Serialize(parameters);
-                request.SetContent(stringData, contentType);
+                request.SetContent(stringData, RequestBodyContentEncoding, contentType);
             }
             else if (contentType == Constants.FormContentHeader)
             {
                 // Write the parameters as form data in the body
                 var stringData = parameters.ToFormData();
-                request.SetContent(stringData, contentType);
+                request.SetContent(stringData, RequestBodyContentEncoding, contentType);
             }
         }
 

@@ -19,9 +19,6 @@ namespace CryptoExchange.Net.Requests
         /// <summary>
         /// Create request object for web request
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="client"></param>        
-        /// <param name="requestId"></param>        
         public Request(HttpRequestMessage request, HttpClient client, int requestId)
         {
             _httpClient = client;
@@ -55,10 +52,12 @@ namespace CryptoExchange.Net.Requests
         public int RequestId { get; }
 
         /// <inheritdoc />
-        public void SetContent(string data, string contentType)
+        public void SetContent(string data, Encoding? encoding, string contentType)
         {
             Content = data;
-            _request.Content = new StringContent(data, Encoding.UTF8, contentType);
+            _request.Content = new StringContent(data, encoding ?? Encoding.UTF8, contentType);
+            if (encoding == null)
+                _request.Content.Headers.ContentType!.CharSet = null;
         }
 
         /// <inheritdoc />
