@@ -67,6 +67,11 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 10.8.0 - 06 Mar 2026
+    * Added `RequestBodyContentEncoding` and `OmitContentTypeHeaderWithoutContent` config to RestApiClient
+    * Added `ForcePathEndWithSlash` setting to RequestDefinition
+    * Added `encoding` parameter to SetContent on REST Request
+
 * Version 10.7.2 - 02 Mar 2026
     * Added small overlap in UserDataTracker polling logic to account for API endpoints not immediately having the data available
 
