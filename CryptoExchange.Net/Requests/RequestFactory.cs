@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;

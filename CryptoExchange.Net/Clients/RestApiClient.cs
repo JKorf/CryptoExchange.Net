@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Caching;
 using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
@@ -111,10 +112,16 @@ namespace CryptoExchange.Net.Clients
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(ILogger logger, HttpClient? httpClient, string baseAddress, RestExchangeOptions options, RestApiOptions apiOptions)
+        public RestApiClient(ILogger logger,
+            HttpClient? httpClient,
+            string baseAddress,
+            RestExchangeOptions options,
+            RestApiOptions apiOptions,
+            bool outputOriginalData, 
+            ApiCredentials? credentials)
             : base(logger,
-                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
-                  apiOptions.ApiCredentials ?? options.ApiCredentials,
+                  outputOriginalData,
+                  credentials,
                   baseAddress,
                   options,
                   apiOptions)
@@ -690,7 +697,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void SetOptions(UpdateOptions options)
+        public override void SetOptions(UpdateOptions<ApiCredentials> options)
         {
             base.SetOptions(options);
 
@@ -792,5 +799,32 @@ namespace CryptoExchange.Net.Clients
             && definition.Method == HttpMethod.Get
             && !definition.PreventCaching;
 
+    }
+
+    public abstract class RestApiClient<TApiCredentials> : RestApiClient
+        where TApiCredentials : ApiCredentials
+    {
+
+        /// <inheritdoc />
+        public new RestExchangeOptions<TApiCredentials> ClientOptions => (RestExchangeOptions<TApiCredentials>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public new RestApiOptions<TApiCredentials> ApiOptions => (RestApiOptions<TApiCredentials>)base.ApiOptions;
+
+        protected RestApiClient(
+            ILogger logger, 
+            HttpClient? httpClient,
+            string baseAddress,
+            RestExchangeOptions<TApiCredentials> options, 
+            RestApiOptions<TApiCredentials> apiOptions) : base(
+                logger, 
+                httpClient,
+                baseAddress,
+                options, 
+                apiOptions,
+                apiOptions.OutputOriginalData ?? options.OutputOriginalData,
+                apiOptions.ApiCredentials ?? options.ApiCredentials)
+        {
+        }
     }
 }

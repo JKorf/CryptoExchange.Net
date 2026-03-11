@@ -1,3 +1,4 @@
+using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Interfaces.Clients;
@@ -19,6 +20,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -150,10 +152,16 @@ namespace CryptoExchange.Net.Clients
         /// <param name="options">Client options</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>
-        public SocketApiClient(ILogger logger, string baseAddress, SocketExchangeOptions options, SocketApiOptions apiOptions)
+        public SocketApiClient(
+            ILogger logger, 
+            string baseAddress, 
+            SocketExchangeOptions options,
+            SocketApiOptions apiOptions,
+            bool outputOriginalData,
+            ApiCredentials? credentials)
             : base(logger,
-                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
-                  apiOptions.ApiCredentials ?? options.ApiCredentials,
+                  outputOriginalData,
+                  credentials,
                   baseAddress,
                   options,
                   apiOptions)
@@ -913,7 +921,7 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <inheritdoc />
-        public override void SetOptions(UpdateOptions options)
+        public override void SetOptions(UpdateOptions<ApiCredentials> options)
         {
             var previousProxyIsSet = ClientOptions.Proxy != null;
             base.SetOptions(options);
@@ -1039,5 +1047,30 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <returns></returns>
         public abstract ISocketMessageHandler CreateMessageConverter(WebSocketMessageType messageType);
+    }
+
+    public abstract class SocketApiClient<TApiCredentials> : SocketApiClient
+        where TApiCredentials : ApiCredentials
+    {
+
+        /// <inheritdoc />
+        public new SocketExchangeOptions<TApiCredentials> ClientOptions => (SocketExchangeOptions<TApiCredentials>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public new SocketApiOptions<TApiCredentials> ApiOptions => (SocketApiOptions<TApiCredentials>)base.ApiOptions;
+
+        protected SocketApiClient(
+            ILogger logger,
+            string baseAddress,
+            SocketExchangeOptions<TApiCredentials> options,
+            SocketApiOptions<TApiCredentials> apiOptions) : base(
+                logger,
+                baseAddress,
+                options,
+                apiOptions,
+                apiOptions.OutputOriginalData ?? options.OutputOriginalData,
+                apiOptions.ApiCredentials ?? options.ApiCredentials)
+        {
+        }
     }
 }

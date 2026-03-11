@@ -39,6 +39,6 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// Set new options. Note that when using a proxy this should be provided in the options even when already set before or it will be reset.
         /// </summary>
         /// <param name="options">Options to set</param>
-        void SetOptions(UpdateOptions options);
+        void SetOptions(UpdateOptions<ApiCredentials> options);
     }
 }

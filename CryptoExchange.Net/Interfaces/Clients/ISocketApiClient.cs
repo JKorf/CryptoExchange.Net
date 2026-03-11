@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets.Default.Interfaces;
@@ -10,7 +11,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
     /// <summary>
     /// Socket API client
     /// </summary>
-    public interface ISocketApiClient: IBaseApiClient
+    public interface ISocketApiClient : IBaseApiClient
     {
         /// <summary>
         /// The current amount of socket connections on the API client

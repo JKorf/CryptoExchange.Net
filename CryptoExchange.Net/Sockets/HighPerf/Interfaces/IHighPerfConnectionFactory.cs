@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Clients;
+﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets.Default.Interfaces;
 using Microsoft.Extensions.Logging;

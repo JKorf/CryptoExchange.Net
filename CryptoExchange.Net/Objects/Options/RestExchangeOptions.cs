@@ -1,12 +1,14 @@
-﻿using System;
+﻿using CryptoExchange.Net.Authentication;
+using System;
 
 namespace CryptoExchange.Net.Objects.Options
 {
     /// <summary>
     /// Options for a rest exchange client
     /// </summary>
-    public class RestExchangeOptions: ExchangeOptions
+    public class RestExchangeOptions : ExchangeOptions
     {
+
         /// <summary>
         /// How often the timestamp adjustment between client and server is recalculated. If you need a very small TimeSpan here you're probably better of syncing your server time more often
         /// </summary>
@@ -63,7 +65,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.OutputOriginalData = OutputOriginalData;
             item.AutoTimestamp = AutoTimestamp;
             item.TimestampRecalculationInterval = TimestampRecalculationInterval;
-            item.ApiCredentials = ApiCredentials?.Copy();
+            //item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
             item.Proxy = Proxy;
             item.RequestTimeout = RequestTimeout;
             item.RateLimiterEnabled = RateLimiterEnabled;
@@ -82,11 +84,38 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
+    public class RestExchangeOptions<TApiCredentials> : RestExchangeOptions
+        where TApiCredentials : ApiCredentials
+    {
+
+        /// <summary>
+        /// The api credentials used for signing requests to this API.
+        /// </summary>        
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public T Set<T>(T item) where T : RestExchangeOptions<TApiCredentials>, new()
+        {
+            base.Set(item);
+            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
+            return item;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
+        }
+    }
+
     /// <summary>
     /// Options for a rest exchange client
     /// </summary>
-    /// <typeparam name="TEnvironment"></typeparam>
-    public class RestExchangeOptions<TEnvironment> : RestExchangeOptions where TEnvironment : TradeEnvironment
+    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TApiCredentials>
+        where TEnvironment : TradeEnvironment
+        where TApiCredentials : ApiCredentials
     {
         /// <summary>
         /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
@@ -99,7 +128,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
+        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment, TApiCredentials>, new()
         {
             base.Set(target);
             target.Environment = Environment;

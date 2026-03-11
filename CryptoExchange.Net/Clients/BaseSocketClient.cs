@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Interfaces.Clients;
+﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.Objects.Sockets;
@@ -132,6 +133,29 @@ namespace CryptoExchange.Net.Clients
             }
 
             return result;
+        }
+    }
+
+    public abstract class BaseSocketClient<TApiCredentials> : BaseSocketClient, ISocketClient<TApiCredentials>
+        where TApiCredentials : ApiCredentials
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="loggerFactory">Logger factory</param>
+        /// <param name="name">The name of the API this client is for</param>
+        protected BaseSocketClient(ILoggerFactory? loggerFactory, string name) : base(loggerFactory, name)
+        {
+        }
+
+        /// <summary>
+        /// Set the API credentials for this client. All Api clients in this client will use the new credentials, regardless of earlier set options.
+        /// </summary>
+        /// <param name="credentials">The credentials to set</param>
+        public void SetApiCredentials(TApiCredentials credentials)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetApiCredentials(credentials);
         }
     }
 }

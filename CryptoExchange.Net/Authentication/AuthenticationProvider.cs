@@ -516,4 +516,14 @@ namespace CryptoExchange.Net.Authentication
                 return stringSerializer.Serialize(parameters);
         }
     }
+
+
+    public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider
+        where TApiCredentials : ApiCredentials
+    {
+        protected AuthenticationProvider(TApiCredentials credentials, Type? validationType = null) : base(credentials, validationType)
+        {
+        }
+    }
+
 }

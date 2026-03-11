@@ -7,8 +7,8 @@ namespace CryptoExchange.Net.Objects.Options
     /// Library options
     /// </summary>
     public class LibraryOptions<TRestOptions, TSocketOptions, TApiCredentials, TEnvironment>
-        where TRestOptions: RestExchangeOptions, new()
-        where TSocketOptions: SocketExchangeOptions, new()
+        where TRestOptions: RestExchangeOptions<TApiCredentials>, new()
+        where TSocketOptions: SocketExchangeOptions<TApiCredentials>, new()
         where TApiCredentials: ApiCredentials
         where TEnvironment: TradeEnvironment
     {

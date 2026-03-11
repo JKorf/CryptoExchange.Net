@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.Objects.Options
     /// <summary>
     /// Options to update
     /// </summary>
-    public class UpdateOptions
+    public class UpdateOptions<TApiCredentials> where TApiCredentials : ApiCredentials
     {
         /// <summary>
         /// Proxy setting. Note that if this is not provided any previously set proxy will be reset
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Api credentials
         /// </summary>
-        public ApiCredentials? ApiCredentials { get; set; }
+        public TApiCredentials? ApiCredentials { get; set; }
         /// <summary>
         /// Request timeout
         /// </summary>

@@ -105,7 +105,13 @@ namespace CryptoExchange.Net.Clients
         /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
-        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions)
+        protected BaseApiClient(
+            ILogger logger,
+            bool outputOriginalData,
+            ApiCredentials? apiCredentials,
+            string baseAddress,
+            ExchangeOptions clientOptions,
+            ApiOptions apiOptions)
         {
             _logger = logger;
 
@@ -144,12 +150,12 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <inheritdoc />
-        public virtual void SetOptions(UpdateOptions options)
+        public virtual void SetOptions(UpdateOptions<ApiCredentials> options)
         {
             ClientOptions.Proxy = options.Proxy;
             ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
 
-            ApiCredentials = options.ApiCredentials?.Copy() ?? ApiCredentials;
+            ApiCredentials = (ApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
             if (ApiCredentials != null)
                 _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }

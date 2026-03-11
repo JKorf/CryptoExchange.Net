@@ -17,10 +17,5 @@ namespace CryptoExchange.Net.Objects.Options
         /// Note that this comes at a performance cost
         /// </summary>
         public bool? OutputOriginalData { get; set; }
-
-        /// <summary>
-        /// The api credentials used for signing requests to this API. Overrides API credentials provided in the client options
-        /// </summary>        
-        public ApiCredentials? ApiCredentials { get; set; }
     }
 }
