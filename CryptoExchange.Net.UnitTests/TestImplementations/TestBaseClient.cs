@@ -74,8 +74,8 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
         
-        public string GetKey() => _credentials.Key;
-        public string GetSecret() => _credentials.Secret;
+        public string GetKey() => ((HMACCredential)Credential).Key;
+        public string GetSecret() => ((HMACCredential)Credential).Secret;
     }
 
     public class TestEnvironment : TradeEnvironment

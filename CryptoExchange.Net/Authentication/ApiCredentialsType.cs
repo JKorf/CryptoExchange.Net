@@ -6,20 +6,24 @@
     public enum ApiCredentialsType
     {
         /// <summary>
-        /// Hmac keys credentials
+        /// HMAC credentials
         /// </summary>
         Hmac,
         /// <summary>
-        /// Rsa keys credentials in xml format
+        /// RSA credentials
         /// </summary>
-        RsaXml,
+        Rsa,
         /// <summary>
-        /// Rsa keys credentials in pem/base64 format. Only available for .NetStandard 2.1 and up, use xml format for lower.
+        /// ED25519 credentials
         /// </summary>
-        RsaPem,
+        Ed25519,
         /// <summary>
-        /// Ed25519 keys credentials
+        /// ECDSA credentials
         /// </summary>
-        Ed25519
+        Ecdsa,
+        /// <summary>
+        /// Custom / exchange specific
+        /// </summary>
+        Custom
     }
 }

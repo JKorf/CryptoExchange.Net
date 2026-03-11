@@ -33,15 +33,12 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// <summary>
         /// Set the API credentials for this API client
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="credentials"></param>
-        void SetApiCredentials<T>(T credentials) where T : ApiCredentials;
+        void SetApiCredentials(ApiCredentials credentials);
 
         /// <summary>
         /// Set new options. Note that when using a proxy this should be provided in the options even when already set before or it will be reset.
         /// </summary>
-        /// <typeparam name="T">Api credentials type</typeparam>
         /// <param name="options">Options to set</param>
-        void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials;
+        void SetOptions(UpdateOptions options);
     }
 }

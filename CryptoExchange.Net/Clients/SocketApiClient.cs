@@ -913,7 +913,7 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <inheritdoc />
-        public override void SetOptions<T>(UpdateOptions<T> options)
+        public override void SetOptions(UpdateOptions options)
         {
             var previousProxyIsSet = ClientOptions.Proxy != null;
             base.SetOptions(options);

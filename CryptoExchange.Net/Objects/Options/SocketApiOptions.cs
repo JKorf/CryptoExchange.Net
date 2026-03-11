@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Authentication;
-using System;
+﻿using System;
 
 namespace CryptoExchange.Net.Objects.Options
 {
@@ -30,22 +29,6 @@ namespace CryptoExchange.Net.Objects.Options
             item.AutoTimestamp = AutoTimestamp;
             item.MaxSocketConnections = MaxSocketConnections;
             return item;
-        }
-    }
-
-    /// <summary>
-    /// Socket API options
-    /// </summary>
-    /// <typeparam name="TApiCredentials"></typeparam>
-    public class SocketApiOptions<TApiCredentials> : SocketApiOptions where TApiCredentials : ApiCredentials
-    {
-        /// <summary>
-        /// The api credentials used for signing requests to this API.
-        /// </summary>        
-        public new TApiCredentials? ApiCredentials
-        {
-            get => (TApiCredentials?)base.ApiCredentials;
-            set => base.ApiCredentials = value;
         }
     }
 }

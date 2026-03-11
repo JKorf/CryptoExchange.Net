@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.UnitTests
             // act
             // assert
             Assert.Throws(typeof(ArgumentException),
-                () => new RestExchangeOptions<TestEnvironment, ApiCredentials>() { ApiCredentials = new ApiCredentials(key, secret) });
+                () => new RestExchangeOptions<TestEnvironment>() { ApiCredentials = new ApiCredentials(key, secret) });
         }
 
         [Test]
@@ -44,8 +44,8 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.That(options.ReceiveWindow == TimeSpan.FromSeconds(10));
-            Assert.That(options.ApiCredentials.Key == "123");
-            Assert.That(options.ApiCredentials.Secret == "456");
+            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
+            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
         }
 
         [Test]
@@ -57,10 +57,10 @@ namespace CryptoExchange.Net.UnitTests
             options.Api2Options.ApiCredentials = new ApiCredentials("789", "101");
 
             // assert
-            Assert.That(options.Api1Options.ApiCredentials.Key == "123");
-            Assert.That(options.Api1Options.ApiCredentials.Secret == "456");
-            Assert.That(options.Api2Options.ApiCredentials.Key == "789");
-            Assert.That(options.Api2Options.ApiCredentials.Secret == "101");
+            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
+            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
+            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Key == "789");
+            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "101");
         }
 
         [Test]
@@ -125,7 +125,7 @@ namespace CryptoExchange.Net.UnitTests
         }
     }
 
-    public class TestClientOptions: RestExchangeOptions<TestEnvironment, ApiCredentials>
+    public class TestClientOptions: RestExchangeOptions<TestEnvironment>
     {
         /// <summary>
         /// Default options for the futures client

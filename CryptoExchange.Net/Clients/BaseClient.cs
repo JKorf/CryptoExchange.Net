@@ -96,10 +96,19 @@ namespace CryptoExchange.Net.Clients
         /// Set the API credentials for this client. All Api clients in this client will use the new credentials, regardless of earlier set options.
         /// </summary>
         /// <param name="credentials">The credentials to set</param>
-        protected virtual void SetApiCredentials<T>(T credentials) where T : ApiCredentials
+        public virtual void SetApiCredentials(ApiCredentials credentials)
         {
             foreach (var apiClient in ApiClients)
                 apiClient.SetApiCredentials(credentials);
+        }
+
+        /// <summary>
+        /// Update options
+        /// </summary>
+        public virtual void SetOptions(UpdateOptions options)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetOptions(options);
         }
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Authentication;
-using System;
+﻿using System;
 
 namespace CryptoExchange.Net.Objects.Options
 {
@@ -105,23 +104,6 @@ namespace CryptoExchange.Net.Objects.Options
             base.Set(target);
             target.Environment = Environment;
             return target;
-        }
-    }
-
-    /// <summary>
-    /// Options for a rest exchange client
-    /// </summary>
-    /// <typeparam name="TEnvironment"></typeparam>
-    /// <typeparam name="TApiCredentials"></typeparam>
-    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TEnvironment> where TEnvironment : TradeEnvironment where TApiCredentials : ApiCredentials
-    {
-        /// <summary>
-        /// The api credentials used for signing requests to this API.
-        /// </summary>        
-        public new TApiCredentials? ApiCredentials
-        {
-            get => (TApiCredentials?)base.ApiCredentials;
-            set => base.ApiCredentials = value;
         }
     }
 }

@@ -43,10 +43,27 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
+        private bool _authProviderInitialized = false;
+
+        private AuthenticationProvider? _authenticationProvider;
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public AuthenticationProvider? AuthenticationProvider { get; private set; }
+        public AuthenticationProvider? AuthenticationProvider
+        {
+            get
+            {
+                if (!_authProviderInitialized)
+                {
+                    if (ApiCredentials != null)
+                        _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+                    _authProviderInitialized = true;
+                }
+
+                return _authenticationProvider;
+            }
+        }
 
         /// <summary>
         /// The environment this client communicates to
@@ -97,9 +114,6 @@ namespace CryptoExchange.Net.Clients
             OutputOriginalData = outputOriginalData;
             BaseAddress = baseAddress;
             ApiCredentials = apiCredentials?.Copy();
-
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <summary>
@@ -123,22 +137,21 @@ namespace CryptoExchange.Net.Clients
         public ErrorInfo GetErrorInfo(string code, string? message = null) => ErrorMapping.GetErrorInfo(code.ToString(), message);
 
         /// <inheritdoc />
-        public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
+        public void SetApiCredentials(ApiCredentials credentials)
         {
-            ApiCredentials = credentials?.Copy();
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+            ApiCredentials = credentials.Copy();
+            _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <inheritdoc />
-        public virtual void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials
+        public virtual void SetOptions(UpdateOptions options)
         {
             ClientOptions.Proxy = options.Proxy;
             ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
 
             ApiCredentials = options.ApiCredentials?.Copy() ?? ApiCredentials;
             if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+                _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
         }
 
         /// <summary>

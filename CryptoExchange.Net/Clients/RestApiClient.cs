@@ -319,7 +319,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, host, AuthenticationProvider?._credentials.Key, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, host, AuthenticationProvider?.Credential.PublicIdentifier, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return limitResult.Error!;
                 }
@@ -334,7 +334,7 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RateLimiterEnabled)
                 {
                     var singleRequestWeight = weightSingleLimiter ?? 1;
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, host, AuthenticationProvider?._credentials.Key, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, host, AuthenticationProvider?.Credential.PublicIdentifier, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return limitResult.Error!;
                 }
@@ -690,7 +690,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void SetOptions<T>(UpdateOptions<T> options)
+        public override void SetOptions(UpdateOptions options)
         {
             base.SetOptions(options);
 

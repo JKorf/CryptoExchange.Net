@@ -31,50 +31,18 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Provided credentials
         /// </summary>
-        protected internal readonly ApiCredentials _credentials;
-
-        /// <summary>
-        /// Byte representation of the secret
-        /// </summary>
-        protected byte[] _sBytes;
-
-#if NET8_0_OR_GREATER
-        /// <summary>
-        /// The Ed25519 private key
-        /// </summary>
-        protected Key? Ed25519Key;
-#endif
-
-        /// <summary>
-        /// Get the API key of the current credentials
-        /// </summary>
-        public string ApiKey => _credentials.Key!;
-        /// <summary>
-        /// Get the Passphrase of the current credentials
-        /// </summary>
-        public string? Pass => _credentials.Pass;
+        public CredentialPair Credential { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="credentials"></param>
-        protected AuthenticationProvider(ApiCredentials credentials)
+        protected AuthenticationProvider(ApiCredentials credentials, Type? validationType = null)
         {
-            if (credentials.Key == null || credentials.Secret == null)
-                throw new ArgumentException("ApiKey/Secret needed");
+            Credential = credentials.CredentialPairs.FirstOrDefault(x => SupportedCredentialTypes.Contains(x.CredentialType))
+                ?? throw new ArgumentException($"Required credential type(s): [{string.Join(", ", SupportedCredentialTypes)}], provided: [{string.Join(", ", credentials.CredentialPairs.Select(x => x.CredentialType))}]"); ;
 
-            if (!SupportedCredentialTypes.Any(x => x == credentials.CredentialType))
-                throw new ArgumentException($"Credential type {credentials.CredentialType} not supported");
-
-            if (credentials.CredentialType == ApiCredentialsType.Ed25519)
-            {
-#if !NET8_0_OR_GREATER
-                throw new ArgumentException($"Credential type Ed25519 only supported on Net8.0 or newer");
-#endif
-            }
-
-            _credentials = credentials;
-            _sBytes = Encoding.UTF8.GetBytes(credentials.Secret);
+            if (validationType != null && Credential.GetType() != validationType)
+                throw new ArgumentException($"Provided credential should be of type {validationType.Name}, but was {Credential.GetType().Name}");
         }
 
         /// <summary>
@@ -290,7 +258,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA256(byte[] data, SignOutputType? outputType = null)
         {
-            using var encryptor = new HMACSHA256(_sBytes);
+            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+                throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
+
+            using var encryptor = new HMACSHA256(((HMACCredential)Credential).GetSBytes());
             var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
@@ -312,7 +283,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA384(byte[] data, SignOutputType? outputType = null)
         {
-            using var encryptor = new HMACSHA384(_sBytes);
+            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+                throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
+
+            using var encryptor = new HMACSHA384(((HMACCredential)Credential).GetSBytes());
             var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
@@ -334,7 +308,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA512(byte[] data, SignOutputType? outputType = null)
         {
-            using var encryptor = new HMACSHA512(_sBytes);
+            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+                throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
+
+            using var encryptor = new HMACSHA512(((HMACCredential)Credential).GetSBytes());
             var resultBytes = encryptor.ComputeHash(data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
         }
@@ -347,7 +324,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA256(byte[] data, SignOutputType? outputType = null)
         {
-            using var rsa = CreateRSA();
+            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+                throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
+
+            var rsa = ((RSACredential)Credential).GetSigner();
             using var sha256 = SHA256.Create();
             var hash = sha256.ComputeHash(data);
             var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
@@ -362,7 +342,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA384(byte[] data, SignOutputType? outputType = null)
         {
-            using var rsa = CreateRSA();
+            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+                throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
+
+            var rsa = ((RSACredential)Credential).GetSigner();
             using var sha384 = SHA384.Create();
             var hash = sha384.ComputeHash(data);
             var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA384, RSASignaturePadding.Pkcs1);
@@ -377,7 +360,10 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA512(byte[] data, SignOutputType? outputType = null)
         {
-            using var rsa = CreateRSA();
+            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+                throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
+
+            var rsa = ((RSACredential)Credential).GetSigner();
             using var sha512 = SHA512.Create();
             var hash = sha512.ComputeHash(data);
             var resultBytes = rsa.SignHash(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
@@ -395,55 +381,16 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         public string SignEd25519(byte[] data, SignOutputType? outputType = null)
         {
-#if NET8_0_OR_GREATER
-            if (Ed25519Key == null)
-            {
-                var key = _credentials.Secret!
-                        .Replace("\n", "")
-                        .Replace("-----BEGIN PRIVATE KEY-----", "")
-                        .Replace("-----END PRIVATE KEY-----", "")
-                        .Trim();
-                var keyBytes = Convert.FromBase64String(key);
-                Ed25519Key = Key.Import(SignatureAlgorithm.Ed25519, keyBytes, KeyBlobFormat.PkixPrivateKey);
-            }
+            if (Credential.CredentialType != ApiCredentialsType.Ed25519)
+                throw new InvalidOperationException($"Invalid ED25519 signing without Ed25519 credentials provided");
 
-            var resultBytes = SignatureAlgorithm.Ed25519.Sign(Ed25519Key, data);
+#if NET8_0_OR_GREATER
+            var signKey = ((ED25519Credential)Credential).GetSigningKey();
+            var resultBytes = SignatureAlgorithm.Ed25519.Sign(signKey, data);
             return outputType == SignOutputType.Base64 ? BytesToBase64String(resultBytes) : BytesToHexString(resultBytes);
 #else
             throw new InvalidOperationException();
 #endif
-        }
-
-        private RSA CreateRSA()
-        {
-            var rsa = RSA.Create();
-            if (_credentials.CredentialType == ApiCredentialsType.RsaPem)
-            {
-#if NETSTANDARD2_1_OR_GREATER || NET9_0_OR_GREATER
-                // Read from pem private key
-                var key = _credentials.Secret!
-                        .Replace("\n", "")
-                        .Replace("-----BEGIN PRIVATE KEY-----", "")
-                        .Replace("-----END PRIVATE KEY-----", "")
-                        .Trim();
-                rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(
-                    key)
-                    , out _);
-#else
-                throw new Exception("Pem format not supported when running from .NetStandard2.0. Convert the private key to xml format.");
-#endif
-            }
-            else if (_credentials.CredentialType == ApiCredentialsType.RsaXml)
-            {
-                // Read from xml private key format
-                rsa.FromXmlString(_credentials.Secret!);
-            }
-            else
-            {
-                throw new Exception("Invalid credentials type");
-            }
-
-            return rsa;
         }
 
         /// <summary>
@@ -567,21 +514,6 @@ namespace CryptoExchange.Net.Authentication
                 return stringSerializer.Serialize(value);
             else
                 return stringSerializer.Serialize(parameters);
-        }
-    }
-
-    /// <inheritdoc />
-    public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider where TApiCredentials : ApiCredentials
-    {
-        /// <inheritdoc />
-        protected new TApiCredentials _credentials => (TApiCredentials)base._credentials;
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="credentials"></param>
-        protected AuthenticationProvider(TApiCredentials credentials) : base(credentials)
-        {
         }
     }
 }

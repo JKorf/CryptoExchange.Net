@@ -6,10 +6,6 @@ namespace CryptoExchange.Net.Objects.Options
     /// <summary>
     /// Library options
     /// </summary>
-    /// <typeparam name="TRestOptions"></typeparam>
-    /// <typeparam name="TSocketOptions"></typeparam>
-    /// <typeparam name="TApiCredentials"></typeparam>
-    /// <typeparam name="TEnvironment"></typeparam>
     public class LibraryOptions<TRestOptions, TSocketOptions, TApiCredentials, TEnvironment>
         where TRestOptions: RestExchangeOptions, new()
         where TSocketOptions: SocketExchangeOptions, new()
