@@ -84,38 +84,8 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
-    public class RestExchangeOptions<TApiCredentials> : RestExchangeOptions
-        where TApiCredentials : ApiCredentials
-    {
-
-        /// <summary>
-        /// The api credentials used for signing requests to this API.
-        /// </summary>        
-        public TApiCredentials? ApiCredentials { get; set; }
-
-        /// <summary>
-        /// Set the values of this options on the target options
-        /// </summary>
-        public T Set<T>(T item) where T : RestExchangeOptions<TApiCredentials>, new()
-        {
-            base.Set(item);
-            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
-            return item;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
-        }
-    }
-
-    /// <summary>
-    /// Options for a rest exchange client
-    /// </summary>
-    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TApiCredentials>
+    public class RestExchangeOptions<TEnvironment> : RestExchangeOptions
         where TEnvironment : TradeEnvironment
-        where TApiCredentials : ApiCredentials
     {
         /// <summary>
         /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
@@ -128,11 +98,42 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment, TApiCredentials>, new()
+        public T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
         {
             base.Set(target);
             target.Environment = Environment;
             return target;
         }
+    }
+
+    /// <summary>
+    /// Options for a rest exchange client
+    /// </summary>
+    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TEnvironment>
+        where TEnvironment : TradeEnvironment
+        where TApiCredentials : ApiCredentials
+    {
+
+        /// <summary>
+        /// The api credentials used for signing requests to this API.
+        /// </summary>        
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public new T Set<T>(T item) where T : RestExchangeOptions<TEnvironment, TApiCredentials>, new()
+        {
+            base.Set(item);
+            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
+            return item;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
+        }
+
     }
 }

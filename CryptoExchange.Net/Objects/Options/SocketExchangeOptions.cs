@@ -110,38 +110,10 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
-    public class SocketExchangeOptions<TApiCredentials> : SocketExchangeOptions
-        where TApiCredentials : ApiCredentials
-    {
-        /// <summary>
-        /// The api credentials used for signing requests to this API.
-        /// </summary>        
-        public TApiCredentials? ApiCredentials { get; set; }
-
-        /// <summary>
-        /// Set the values of this options on the target options
-        /// </summary>
-        public T Set<T>(T item) where T : SocketExchangeOptions<TApiCredentials>, new()
-        {
-            base.Set(item);
-            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
-            return item;
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
-        }
-    }
-
-    /// <summary>
-    /// Options for a socket exchange client
-    /// </summary>
-    public class SocketExchangeOptions<TEnvironment, TApiCredentials> : SocketExchangeOptions<TApiCredentials>
+    public class SocketExchangeOptions<TEnvironment> : SocketExchangeOptions
         where TEnvironment : TradeEnvironment
-        where TApiCredentials : ApiCredentials
     {
+
         /// <summary>
         /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
         /// the exchange's environment list or create a custom environment using either `[Exchange]Environment.CreateCustom()` or `[Exchange]Environment.[Environment]`, for example `KucoinEnvironment.TestNet` or `BinanceEnvironment.Live`
@@ -153,11 +125,40 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment, TApiCredentials>, new()
+        public new T Set<T>(T target) where T : SocketExchangeOptions<TEnvironment>, new()
         {
             base.Set(target);
             target.Environment = Environment;
             return target;
+        }
+    }
+
+    /// <summary>
+    /// Options for a socket exchange client
+    /// </summary>
+    public class SocketExchangeOptions<TEnvironment, TApiCredentials> : SocketExchangeOptions<TEnvironment>
+        where TEnvironment : TradeEnvironment
+        where TApiCredentials : ApiCredentials
+    {
+        /// <summary>
+        /// The api credentials used for signing requests to this API.
+        /// </summary>        
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public new T Set<T>(T item) where T : SocketExchangeOptions<TEnvironment, TApiCredentials>, new()
+        {
+            base.Set(item);
+            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
+            return item;
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
         }
     }
 }

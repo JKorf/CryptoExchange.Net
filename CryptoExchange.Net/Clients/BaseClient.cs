@@ -93,15 +93,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Update options
-        /// </summary>
-        public virtual void SetOptions(UpdateOptions<ApiCredentials> options)
-        {
-            foreach (var apiClient in ApiClients)
-                apiClient.SetOptions(options);
-        }
-
-        /// <summary>
         /// Register an API client
         /// </summary>
         /// <param name="apiClient">The client</param>

@@ -43,28 +43,6 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
-        private bool _authProviderInitialized = false;
-
-        private AuthenticationProvider? _authenticationProvider;
-        /// <summary>
-        /// The authentication provider for this API client. (null if no credentials are set)
-        /// </summary>
-        public AuthenticationProvider? AuthenticationProvider
-        {
-            get
-            {
-                if (!_authProviderInitialized)
-                {
-                    if (ApiCredentials != null)
-                        _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-
-                    _authProviderInitialized = true;
-                }
-
-                return _authenticationProvider;
-            }
-        }
-
         /// <summary>
         /// The environment this client communicates to
         /// </summary>
@@ -74,12 +52,6 @@ namespace CryptoExchange.Net.Clients
         /// Output the original string data along with the deserialized object
         /// </summary>
         public bool OutputOriginalData { get; }
-
-        /// <inheritdoc />
-        public bool Authenticated => ApiCredentials != null;
-
-        /// <inheritdoc />
-        public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
         /// Api options
@@ -108,7 +80,6 @@ namespace CryptoExchange.Net.Clients
         protected BaseApiClient(
             ILogger logger,
             bool outputOriginalData,
-            ApiCredentials? apiCredentials,
             string baseAddress,
             ExchangeOptions clientOptions,
             ApiOptions apiOptions)
@@ -119,15 +90,7 @@ namespace CryptoExchange.Net.Clients
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;
             BaseAddress = baseAddress;
-            ApiCredentials = apiCredentials?.Copy();
         }
-
-        /// <summary>
-        /// Create an AuthenticationProvider implementation instance based on the provided credentials
-        /// </summary>
-        /// <param name="credentials"></param>
-        /// <returns></returns>
-        protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <inheritdoc />
         public abstract string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
@@ -141,24 +104,6 @@ namespace CryptoExchange.Net.Clients
         /// Get error info for a response code
         /// </summary>
         public ErrorInfo GetErrorInfo(string code, string? message = null) => ErrorMapping.GetErrorInfo(code.ToString(), message);
-
-        /// <inheritdoc />
-        public void SetApiCredentials(ApiCredentials credentials)
-        {
-            ApiCredentials = credentials.Copy();
-            _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-        }
-
-        /// <inheritdoc />
-        public virtual void SetOptions(UpdateOptions<ApiCredentials> options)
-        {
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
-
-            ApiCredentials = (ApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
-            if (ApiCredentials != null)
-                _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-        }
 
         /// <summary>
         /// Dispose

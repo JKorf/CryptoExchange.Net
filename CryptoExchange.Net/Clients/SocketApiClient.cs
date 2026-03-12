@@ -143,6 +143,8 @@ namespace CryptoExchange.Net.Clients
         /// Whether or not to enforce that sequence number updates are always (lastSequenceNumber + 1)
         /// </summary>
         public bool EnforceSequenceNumbers { get; set; }
+
+        public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
         #endregion
 
         /// <summary>
@@ -156,12 +158,9 @@ namespace CryptoExchange.Net.Clients
             ILogger logger, 
             string baseAddress, 
             SocketExchangeOptions options,
-            SocketApiOptions apiOptions,
-            bool outputOriginalData,
-            ApiCredentials? credentials)
+            SocketApiOptions apiOptions)
             : base(logger,
-                  outputOriginalData,
-                  credentials,
+                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   baseAddress,
                   options,
                   apiOptions)
@@ -243,7 +242,7 @@ namespace CryptoExchange.Net.Clients
             if (_disposing)
                 return new CallResult<UpdateSubscription>(new InvalidOperationError("Client disposed, can't subscribe"));
 
-            if (subscription.Authenticated && AuthenticationProvider == null)
+            if (subscription.Authenticated && GetAuthenticationProvider() == null)
             {
                 _logger.LogWarning("Failed to subscribe, private subscription but no API credentials set");
                 return new CallResult<UpdateSubscription>(new NoApiCredentialsError());
@@ -523,7 +522,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         public virtual async Task<CallResult> AuthenticateSocketAsync(SocketConnection socket)
         {
-            if (AuthenticationProvider == null)
+            if (GetAuthenticationProvider() == null)
                 return new CallResult(new NoApiCredentialsError());
 
             _logger.AttemptingToAuthenticate(socket.SocketId);
@@ -554,7 +553,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <returns></returns>
         protected internal virtual Task<Query?> GetAuthenticationRequestAsync(SocketConnection connection) => 
-            Task.FromResult(AuthenticationProvider!.GetAuthenticationQuery(this, connection));
+            Task.FromResult(GetAuthenticationProvider()!.GetAuthenticationQuery(this, connection));
 
         /// <summary>
         /// Adds a system subscription. Used for example to reply to ping requests
@@ -920,25 +919,6 @@ namespace CryptoExchange.Net.Clients
             return CallResult.SuccessResult;
         }
 
-        /// <inheritdoc />
-        public override void SetOptions(UpdateOptions<ApiCredentials> options)
-        {
-            var previousProxyIsSet = ClientOptions.Proxy != null;
-            base.SetOptions(options);
-
-            if ((!previousProxyIsSet && options.Proxy == null)
-                || _socketConnections.IsEmpty)
-            {
-                return;
-            }
-
-            _logger.LogInformation("Reconnecting websockets to apply proxy");
-
-            // Update proxy, also triggers reconnect
-            foreach (var connection in _socketConnections)
-                _ = connection.Value.UpdateProxy(options.Proxy);
-        }
-
         /// <summary>
         /// Log the current state of connections and subscriptions
         /// </summary>
@@ -1049,28 +1029,114 @@ namespace CryptoExchange.Net.Clients
         public abstract ISocketMessageHandler CreateMessageConverter(WebSocketMessageType messageType);
     }
 
-    public abstract class SocketApiClient<TApiCredentials> : SocketApiClient
+    public abstract class SocketApiClient<TEnvironment> : SocketApiClient, ISocketApiClient
+       where TEnvironment : TradeEnvironment
+    {
+        protected SocketApiClient(
+            ILogger logger,
+            string baseAddress,
+            SocketExchangeOptions<TEnvironment> options,
+            SocketApiOptions apiOptions) : base(
+                logger,
+                baseAddress,
+                options,
+                apiOptions)
+        {
+        }
+    }
+
+    public abstract class SocketApiClient<TEnvironment, TApiCredentials> : SocketApiClient<TEnvironment>, ISocketApiClient<TApiCredentials>
         where TApiCredentials : ApiCredentials
+        where TEnvironment : TradeEnvironment
     {
 
+        private bool _authProviderInitialized = false;
+        private AuthenticationProvider<TApiCredentials>? _authenticationProvider;
+        /// <summary>
+        /// The authentication provider for this API client. (null if no credentials are set)
+        /// </summary>
+        public AuthenticationProvider<TApiCredentials>? AuthenticationProvider
+        {
+            get
+            {
+                if (!_authProviderInitialized)
+                {
+                    if (ApiCredentials != null)
+                        _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+                    _authProviderInitialized = true;
+                }
+
+                return _authenticationProvider;
+            }
+            internal set => _authenticationProvider = value;
+        }
+
         /// <inheritdoc />
-        public new SocketExchangeOptions<TApiCredentials> ClientOptions => (SocketExchangeOptions<TApiCredentials>)base.ClientOptions;
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <inheritdoc />
+        public bool Authenticated => ApiCredentials != null;
+
+        /// <inheritdoc />
+        public new SocketExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (SocketExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
         /// <inheritdoc />
         public new SocketApiOptions<TApiCredentials> ApiOptions => (SocketApiOptions<TApiCredentials>)base.ApiOptions;
 
+        /// <inheritdoc />
+        public override AuthenticationProvider? GetAuthenticationProvider() => AuthenticationProvider;
+
         protected SocketApiClient(
             ILogger logger,
             string baseAddress,
-            SocketExchangeOptions<TApiCredentials> options,
+            SocketExchangeOptions<TEnvironment, TApiCredentials> options,
             SocketApiOptions<TApiCredentials> apiOptions) : base(
                 logger,
                 baseAddress,
                 options,
-                apiOptions,
-                apiOptions.OutputOriginalData ?? options.OutputOriginalData,
-                apiOptions.ApiCredentials ?? options.ApiCredentials)
+                apiOptions)
         {
+            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+        }
+
+        /// <summary>
+        /// Create an AuthenticationProvider implementation instance based on the provided credentials
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <returns></returns>
+        protected abstract AuthenticationProvider<TApiCredentials> CreateAuthenticationProvider(TApiCredentials credentials);
+
+        /// <inheritdoc />
+        public void SetApiCredentials(TApiCredentials credentials)
+        {
+            ApiCredentials = (TApiCredentials)credentials.Copy();
+            AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+        }
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        {
+            var previousProxyIsSet = ClientOptions.Proxy != null;
+
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+            if (ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+            if ((!previousProxyIsSet && options.Proxy == null)
+                || _socketConnections.IsEmpty)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Reconnecting websockets to apply proxy");
+
+            // Update proxy, also triggers reconnect
+            foreach (var connection in _socketConnections)
+                _ = connection.Value.UpdateProxy(options.Proxy);
         }
     }
 }

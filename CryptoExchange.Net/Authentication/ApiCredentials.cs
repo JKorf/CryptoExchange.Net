@@ -100,6 +100,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="pass"></param>
         /// <param name="credentialType"></param>
         /// <exception cref="NotImplementedException"></exception>
+        #warning Can be removed?
         public ApiCredentials(string key, string secret, string? pass = null, ApiCredentialsType credentialType = ApiCredentialsType.Hmac)
         {
             if (credentialType == ApiCredentialsType.Hmac)
@@ -145,9 +146,9 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Create API credentials using the provided credential pairs
         /// </summary>
-        public ApiCredentials(params IEnumerable<CredentialPair> credentials)
+        public ApiCredentials(params IEnumerable<CredentialPair?> credentials)
         {
-            CredentialPairs = credentials.ToArray();
+            CredentialPairs = credentials.Where(x => x != null).ToArray()!;
         }
 
         /// <summary>

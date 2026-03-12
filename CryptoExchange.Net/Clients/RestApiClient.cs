@@ -103,7 +103,10 @@ namespace CryptoExchange.Net.Clients
         /// The message handler
         /// </summary>
         protected abstract IRestMessageHandler MessageHandler { get; }
-        
+
+
+        public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -116,12 +119,9 @@ namespace CryptoExchange.Net.Clients
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions options,
-            RestApiOptions apiOptions,
-            bool outputOriginalData, 
-            ApiCredentials? credentials)
+            RestApiOptions apiOptions)
             : base(logger,
-                  outputOriginalData,
-                  credentials,
+                  apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   baseAddress,
                   options,
                   apiOptions)
@@ -221,7 +221,7 @@ namespace CryptoExchange.Net.Clients
             string? rateLimitKeySuffix = null)
         {
             var requestId = ExchangeHelpers.NextId();
-            if (definition.Authenticated && AuthenticationProvider == null)
+            if (definition.Authenticated && GetAuthenticationProvider() == null)
             {
                 _logger.RestApiNoApiCredentials(requestId, definition.Path);
                 return new WebCallResult<T>(new NoApiCredentialsError());
@@ -326,7 +326,7 @@ namespace CryptoExchange.Net.Clients
 
                 if (ClientOptions.RateLimiterEnabled)
                 {
-                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, host, AuthenticationProvider?.Credential.PublicIdentifier, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessAsync(_logger, requestId, RateLimitItemType.Request, definition, host, GetAuthenticationProvider()?.PublicIdentifier, requestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return limitResult.Error!;
                 }
@@ -341,7 +341,7 @@ namespace CryptoExchange.Net.Clients
                 if (ClientOptions.RateLimiterEnabled)
                 {
                     var singleRequestWeight = weightSingleLimiter ?? 1;
-                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, host, AuthenticationProvider?.Credential.PublicIdentifier, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
+                    var limitResult = await definition.RateLimitGate.ProcessSingleAsync(_logger, requestId, definition.LimitGuard, RateLimitItemType.Request, definition, host, GetAuthenticationProvider()?.PublicIdentifier, singleRequestWeight, ClientOptions.RateLimitingBehaviour, rateLimitKeySuffix, cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return limitResult.Error!;
                 }
@@ -380,7 +380,7 @@ namespace CryptoExchange.Net.Clients
 
             try
             {
-                AuthenticationProvider?.ProcessRequest(this, requestConfiguration);
+                GetAuthenticationProvider()?.ProcessRequest(this, requestConfiguration);
             }
             catch (Exception ex)
             {
@@ -696,14 +696,6 @@ namespace CryptoExchange.Net.Clients
         /// <returns>Server time</returns>
         protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
-        /// <inheritdoc />
-        public override void SetOptions(UpdateOptions<ApiCredentials> options)
-        {
-            base.SetOptions(options);
-
-            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
-        }
-
         private async ValueTask CheckTimeSync(int requestId, RequestDefinition definition)
         {
             if (!definition.Authenticated)
@@ -801,30 +793,106 @@ namespace CryptoExchange.Net.Clients
 
     }
 
-    public abstract class RestApiClient<TApiCredentials> : RestApiClient
+    public abstract class RestApiClient<TEnvironment> : RestApiClient, IRestApiClient
+        where TEnvironment : TradeEnvironment
+    {
+        protected RestApiClient(
+            ILogger logger,
+            HttpClient? httpClient,
+            string baseAddress,
+            RestExchangeOptions options,
+            RestApiOptions apiOptions) : base(
+                logger,
+                httpClient,
+                baseAddress,
+                options,
+                apiOptions)
+        {
+        }
+    }
+
+    public abstract class RestApiClient<TEnvironment, TApiCredentials> : RestApiClient<TEnvironment>, IRestApiClient<TApiCredentials>
         where TApiCredentials : ApiCredentials
+        where TEnvironment : TradeEnvironment
     {
 
+        private bool _authProviderInitialized = false;
+        private AuthenticationProvider<TApiCredentials>? _authenticationProvider;
+        /// <summary>
+        /// The authentication provider for this API client. (null if no credentials are set)
+        /// </summary>
+        public AuthenticationProvider<TApiCredentials>? AuthenticationProvider
+        {
+            get
+            {
+                if (!_authProviderInitialized)
+                {
+                    if (ApiCredentials != null)
+                        _authenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+                    _authProviderInitialized = true;
+                }
+
+                return _authenticationProvider;
+            }
+            internal set => _authenticationProvider = value;
+        }
+
         /// <inheritdoc />
-        public new RestExchangeOptions<TApiCredentials> ClientOptions => (RestExchangeOptions<TApiCredentials>)base.ClientOptions;
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <inheritdoc />
+        public bool Authenticated => ApiCredentials != null;
+
+        /// <inheritdoc />
+        public new RestExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (RestExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
         /// <inheritdoc />
         public new RestApiOptions<TApiCredentials> ApiOptions => (RestApiOptions<TApiCredentials>)base.ApiOptions;
+
+        /// <inheritdoc />
+        public override AuthenticationProvider? GetAuthenticationProvider() => AuthenticationProvider;
 
         protected RestApiClient(
             ILogger logger, 
             HttpClient? httpClient,
             string baseAddress,
-            RestExchangeOptions<TApiCredentials> options, 
+            RestExchangeOptions<TEnvironment, TApiCredentials> options, 
             RestApiOptions<TApiCredentials> apiOptions) : base(
                 logger, 
                 httpClient,
                 baseAddress,
                 options, 
-                apiOptions,
-                apiOptions.OutputOriginalData ?? options.OutputOriginalData,
-                apiOptions.ApiCredentials ?? options.ApiCredentials)
+                apiOptions)
         {
+            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+        }
+
+        /// <inheritdoc />
+        public void SetApiCredentials(TApiCredentials credentials)
+        {
+            ApiCredentials = (TApiCredentials)credentials.Copy();
+            AuthenticationProvider = CreateAuthenticationProvider(credentials);
+        }
+
+        /// <summary>
+        /// Create an AuthenticationProvider implementation instance based on the provided credentials
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <returns></returns>
+        protected abstract AuthenticationProvider<TApiCredentials> CreateAuthenticationProvider(TApiCredentials credentials);
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        {
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+            if (ApiCredentials != null)
+                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
     }
 }
