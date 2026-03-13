@@ -15,6 +15,7 @@ namespace CryptoExchange.Net.Authentication
         /// The credential pairs contained in these API credentials. This can contain multiple credential pairs when the API requires different credentials for different endpoints.
         /// </summary>
         public CredentialPair[] CredentialPairs { get; protected set; } = Array.Empty<CredentialPair>();
+
         /// <summary>
         /// HMAC credentials
         /// </summary>
@@ -93,49 +94,6 @@ namespace CryptoExchange.Net.Authentication
         public ApiCredentials() { }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="secret"></param>
-        /// <param name="pass"></param>
-        /// <param name="credentialType"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        #warning Can be removed?
-        public ApiCredentials(string key, string secret, string? pass = null, ApiCredentialsType credentialType = ApiCredentialsType.Hmac)
-        {
-            if (credentialType == ApiCredentialsType.Hmac)
-            {
-                CredentialPairs = new[] { new HMACCredential(key, secret, pass) };
-            }
-            else if (credentialType == ApiCredentialsType.Rsa)
-            {
-                if (key.StartsWith("<"))
-                    CredentialPairs = new[] { new RSAXmlCredential(key, secret) };
-#if NETSTANDARD2_1_OR_GREATER || NET7_0_OR_GREATER
-                else
-                    CredentialPairs = new[] { new RSAPemCredential(key, secret) };
-#else
-                else
-                    throw new NotImplementedException("Unknown RSA key format");
-#endif
-            }
-#if NET8_0_OR_GREATER
-            else if (credentialType == ApiCredentialsType.Ed25519)
-            {
-                CredentialPairs = new[] { new ED25519Credential(key, secret) };
-            }
-#endif
-            else if (credentialType == ApiCredentialsType.Ecdsa)
-            {
-                CredentialPairs = new[] { new ECDSACredential(key, secret) };
-            }
-            else
-            {
-                throw new NotImplementedException("Unknown API credentials type");
-            }
-        }
-
-        /// <summary>
         /// Create API credentials using the provided credential pair
         /// </summary>
         public ApiCredentials(CredentialPair credential)
@@ -149,22 +107,6 @@ namespace CryptoExchange.Net.Authentication
         public ApiCredentials(params IEnumerable<CredentialPair?> credentials)
         {
             CredentialPairs = credentials.Where(x => x != null).ToArray()!;
-        }
-
-        /// <summary>
-        /// Is any of the credential types in these credentials supported by the API client
-        /// </summary>
-        public bool IsAnySupported(ApiCredentialsType[] credentialTypes)
-        {
-            return CredentialPairs.Any(c => credentialTypes.Contains(c.CredentialType));
-        }
-
-        /// <summary>
-        /// Get credential of a specific type
-        /// </summary>
-        public CredentialPair? GetCredential(ApiCredentialsType credentialType)
-        {
-            return CredentialPairs.SingleOrDefault(c => c.CredentialType == credentialType);
         }
 
         /// <summary>
@@ -234,8 +176,5 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <returns></returns>
         public abstract ApiCredentials Copy();
-        //{
-        //    return new ApiCredentials(CredentialPairs);
-        //}
     }
 }

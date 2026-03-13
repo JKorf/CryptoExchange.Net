@@ -25,23 +25,14 @@ namespace CryptoExchange.Net.Authentication
         internal IAuthTimeProvider TimeProvider { get; set; } = new AuthTimeProvider();
 
         /// <summary>
-        /// The supported credential types
+        /// The public identifier for the provided credentials
         /// </summary>
-        public abstract ApiCredentialsType[] SupportedCredentialTypes { get; }
-
         public abstract string PublicIdentifier { get; }
 
         /// <summary>
-        /// ctor
+        /// The supported credential types
         /// </summary>
-        protected AuthenticationProvider(ApiCredentials credentials, Type? validationType = null)
-        {
-            //Credential = credentials.CredentialPairs.FirstOrDefault(x => SupportedCredentialTypes.Contains(x.CredentialType))
-            //    ?? throw new ArgumentException($"Required credential type(s): [{string.Join(", ", SupportedCredentialTypes)}], provided: [{string.Join(", ", credentials.CredentialPairs.Select(x => x.CredentialType))}]"); ;
-
-            //if (validationType != null && Credential.GetType() != validationType)
-            //    throw new ArgumentException($"Provided credential should be of type {validationType.Name}, but was {Credential.GetType().Name}");
-        }
+        public abstract ApiCredentialsType[] SupportedCredentialTypes { get; }
 
         /// <summary>
         /// Authenticate a REST request
@@ -492,29 +483,44 @@ namespace CryptoExchange.Net.Authentication
         }
     }
 
-
+    /// <inheritdoc />
     public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider
         where TApiCredentials : ApiCredentials
     {
+        /// <summary>
+        /// API credentials used for signing requests
+        /// </summary>
         public TApiCredentials ApiCredentials { get; set; }
 
-        protected AuthenticationProvider(TApiCredentials credentials, Type? validationType = null) : base(credentials, validationType)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected AuthenticationProvider(TApiCredentials credentials)
         {
             ApiCredentials = credentials;
         }
     }
 
+    /// <inheritdoc />
     public abstract class AuthenticationProvider<TApiCredentials, TCredentialType> : AuthenticationProvider<TApiCredentials>
         where TApiCredentials : ApiCredentials
         where TCredentialType : CredentialPair
     {
+        /// <summary>
+        /// The specific credential type used for signing requests.
+        /// </summary>
         public TCredentialType Credential { get; set; }
 
+        /// <inheritdoc />
         public override string PublicIdentifier => Credential.PublicIdentifier;
 
-        protected AuthenticationProvider(TApiCredentials credentials) : base(credentials, null)
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected AuthenticationProvider(TApiCredentials credentials) : base(credentials)
         {
-            Credential = credentials.GetCredential<TCredentialType>() ?? throw new Exception($"Credential type {typeof(TCredentialType).Name} needed but not provided");
+            Credential = credentials.GetCredential<TCredentialType>() 
+                ?? throw new Exception($"Credential type {typeof(TCredentialType).Name} needed but not provided");
         }
         
         /// <summary>
