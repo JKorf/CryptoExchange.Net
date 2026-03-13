@@ -22,6 +22,10 @@
         /// </summary>
         Ecdsa,
         /// <summary>
+        /// API key credentials
+        /// </summary>
+        ApiKey,
+        /// <summary>
         /// Custom / exchange specific
         /// </summary>
         Custom

@@ -75,6 +75,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
         Task<CallResult> PrepareConnectionsAsync();
     }
 
+    /// <inheritdoc />
     public interface ISocketApiClient<TApiCredentials> : ISocketApiClient
         where TApiCredentials : ApiCredentials
     {

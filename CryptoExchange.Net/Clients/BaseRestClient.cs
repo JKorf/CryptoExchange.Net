@@ -31,6 +31,7 @@ namespace CryptoExchange.Net.Clients
 
     }
 
+    /// <inheritdoc />
     public abstract class BaseRestClient<TEnvironment, TApiCredentials> : BaseRestClient, IRestClient<TApiCredentials>
         where TEnvironment : TradeEnvironment
         where TApiCredentials : ApiCredentials

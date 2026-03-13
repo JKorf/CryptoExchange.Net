@@ -32,6 +32,7 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
+    /// <inheritdoc />
     public class SocketApiOptions<TApiCredentials> : SocketApiOptions where TApiCredentials : ApiCredentials
     {
         /// <summary>
@@ -42,7 +43,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public T Set<T>(T item) where T : SocketApiOptions<TApiCredentials>, new()
+        public new T Set<T>(T item) where T : SocketApiOptions<TApiCredentials>, new()
         {
             base.Set(item);
             item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();

@@ -17,12 +17,26 @@ namespace CryptoExchange.Net.Authentication
         public CredentialPair[] CredentialPairs { get; protected set; } = Array.Empty<CredentialPair>();
 
         /// <summary>
+        /// The public key/identifier for the provided credentials
+        /// </summary>
+        public string PublicKey => CredentialPairs.First().PublicKey;
+
+        /// <summary>
         /// HMAC credentials
         /// </summary>
         public HMACCredential? Hmac
         {
             get => (HMACCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Hmac);
             set => AddOrRemoveCredential(ApiCredentialsType.Hmac, value);
+        }
+
+        /// <summary>
+        /// RSA credentials in XML format
+        /// </summary>
+        public RSACredential? Rsa
+        {
+            get => (RSACredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Rsa);
+            set => AddOrRemoveCredential(ApiCredentialsType.Rsa, value);
         }
 
         /// <summary>
@@ -62,6 +76,15 @@ namespace CryptoExchange.Net.Authentication
         {
             get => (ECDSACredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Ecdsa);
             set => AddOrRemoveCredential(ApiCredentialsType.Ecdsa, value);
+        }
+
+        /// <summary>
+        /// API key credentials
+        /// </summary>
+        public ApiKeyCredential? ApiKey
+        {
+            get => (ApiKeyCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.ApiKey);
+            set => AddOrRemoveCredential(ApiCredentialsType.ApiKey, value);
         }
 
         /// <summary>
@@ -164,6 +187,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Load a key from a file
         /// </summary>
+        #warning check
         public static string ReadFromFile(string path)
         {
             using var fileStream = File.OpenRead(path);

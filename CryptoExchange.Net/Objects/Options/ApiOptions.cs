@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.Authentication;
-
-namespace CryptoExchange.Net.Objects.Options
+﻿namespace CryptoExchange.Net.Objects.Options
 {
     /// <summary>
     /// Options for API usage

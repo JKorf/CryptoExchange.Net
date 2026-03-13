@@ -104,7 +104,9 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected abstract IRestMessageHandler MessageHandler { get; }
 
-
+        /// <summary>
+        /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
+        /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
 
         /// <summary>
@@ -332,7 +334,7 @@ namespace CryptoExchange.Net.Clients
                         RateLimitItemType.Request,
                         definition,
                         host,
-                        GetAuthenticationProvider()?.PublicIdentifier,
+                        GetAuthenticationProvider()?.PublicKey,
                         requestWeight, 
                         ClientOptions.RateLimitingBehaviour,
                         rateLimitKeySuffix,
@@ -358,7 +360,7 @@ namespace CryptoExchange.Net.Clients
                         RateLimitItemType.Request,
                         definition,
                         host, 
-                        GetAuthenticationProvider()?.PublicIdentifier,
+                        GetAuthenticationProvider()?.PublicKey,
                         singleRequestWeight,
                         ClientOptions.RateLimitingBehaviour,
                         rateLimitKeySuffix,
@@ -814,9 +816,13 @@ namespace CryptoExchange.Net.Clients
 
     }
 
+    /// <inheritdoc />
     public abstract class RestApiClient<TEnvironment> : RestApiClient, IRestApiClient
         where TEnvironment : TradeEnvironment
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
         protected RestApiClient(
             ILogger logger,
             HttpClient? httpClient,
@@ -832,17 +838,71 @@ namespace CryptoExchange.Net.Clients
         }
     }
 
+    /// <inheritdoc />
     public abstract class RestApiClient<TEnvironment, TApiCredentials> : RestApiClient<TEnvironment>, IRestApiClient<TApiCredentials>
         where TApiCredentials : ApiCredentials
         where TEnvironment : TradeEnvironment
     {
+        /// <inheritdoc />
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <inheritdoc />
+        public bool Authenticated => ApiCredentials != null;
+
+        /// <inheritdoc />
+        public new RestExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (RestExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public new RestApiOptions<TApiCredentials> ApiOptions => (RestApiOptions<TApiCredentials>)base.ApiOptions;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected RestApiClient(
+            ILogger logger,
+            HttpClient? httpClient,
+            string baseAddress,
+            RestExchangeOptions<TEnvironment, TApiCredentials> options,
+            RestApiOptions<TApiCredentials> apiOptions) : base(
+                logger,
+                httpClient,
+                baseAddress,
+                options,
+                apiOptions)
+        {
+            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+        }
+
+        /// <inheritdoc />
+        public virtual void SetApiCredentials(TApiCredentials credentials)
+        {
+            ApiCredentials = (TApiCredentials)credentials.Copy();
+        }
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        {
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
+        }
+    }
+
+    /// <inheritdoc />
+    public abstract class RestApiClient<TEnvironment, TAuthenticationProvider, TApiCredentials> : RestApiClient<TEnvironment, TApiCredentials>
+        where TApiCredentials : ApiCredentials
+        where TAuthenticationProvider : AuthenticationProvider<TApiCredentials>
+        where TEnvironment : TradeEnvironment
+    {
 
         private bool _authProviderInitialized = false;
-        private AuthenticationProvider<TApiCredentials>? _authenticationProvider;
+        private TAuthenticationProvider? _authenticationProvider;
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public AuthenticationProvider<TApiCredentials>? AuthenticationProvider
+        public TAuthenticationProvider? AuthenticationProvider
         {
             get
             {
@@ -860,20 +920,11 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <inheritdoc />
-        public TApiCredentials? ApiCredentials { get; set; }
-
-        /// <inheritdoc />
-        public bool Authenticated => ApiCredentials != null;
-
-        /// <inheritdoc />
-        public new RestExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (RestExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
-
-        /// <inheritdoc />
-        public new RestApiOptions<TApiCredentials> ApiOptions => (RestApiOptions<TApiCredentials>)base.ApiOptions;
-
-        /// <inheritdoc />
         public override AuthenticationProvider? GetAuthenticationProvider() => AuthenticationProvider;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         protected RestApiClient(
             ILogger logger, 
             HttpClient? httpClient,
@@ -886,14 +937,6 @@ namespace CryptoExchange.Net.Clients
                 options, 
                 apiOptions)
         {
-            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
-        }
-
-        /// <inheritdoc />
-        public void SetApiCredentials(TApiCredentials credentials)
-        {
-            ApiCredentials = (TApiCredentials)credentials.Copy();
-            AuthenticationProvider = CreateAuthenticationProvider(credentials);
         }
 
         /// <summary>
@@ -901,19 +944,21 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="credentials"></param>
         /// <returns></returns>
-        protected abstract AuthenticationProvider<TApiCredentials> CreateAuthenticationProvider(TApiCredentials credentials);
+        protected abstract TAuthenticationProvider CreateAuthenticationProvider(TApiCredentials credentials);
 
         /// <inheritdoc />
-        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        public override void SetApiCredentials(TApiCredentials credentials)
         {
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+            base.SetApiCredentials(credentials);
+            AuthenticationProvider = CreateAuthenticationProvider(credentials);
+        }
 
-            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+        /// <inheritdoc />
+        public override void SetOptions(UpdateOptions<TApiCredentials> options)
+        {
+            base.SetOptions(options);
             if (ApiCredentials != null)
                 AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-
-            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
     }
 }

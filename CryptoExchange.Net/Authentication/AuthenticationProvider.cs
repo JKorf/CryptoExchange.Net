@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// The public identifier for the provided credentials
         /// </summary>
-        public abstract string PublicIdentifier { get; }
+        public abstract string PublicKey { get; }
 
         /// <summary>
         /// The supported credential types
@@ -233,18 +233,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// HMACSHA256 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA256(HMACCredential credential, string data, SignOutputType? outputType = null)
             => SignHMACSHA256(credential,Encoding.UTF8.GetBytes(data), outputType);
 
         /// <summary>
         /// HMACSHA256 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA256(HMACCredential credential, byte[] data, SignOutputType? outputType = null)
         {
             using var encryptor = new HMACSHA256(credential.GetSBytes());
@@ -255,18 +249,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// HMACSHA384 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA384(HMACCredential credential, string data, SignOutputType? outputType = null)
             => SignHMACSHA384(credential, Encoding.UTF8.GetBytes(data), outputType);
 
         /// <summary>
         /// HMACSHA384 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA384(HMACCredential credential, byte[] data, SignOutputType? outputType = null)
         {
             using var encryptor = new HMACSHA384(credential.GetSBytes());
@@ -277,18 +265,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// HMACSHA512 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA512(HMACCredential credential, string data, SignOutputType? outputType = null)
             => SignHMACSHA512(credential, Encoding.UTF8.GetBytes(data), outputType);
 
         /// <summary>
         /// HMACSHA512 sign the data and return the hash
         /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <param name="outputType">String type</param>
-        /// <returns></returns>
         protected string SignHMACSHA512(HMACCredential credential, byte[] data, SignOutputType? outputType = null)
         {
             using var encryptor = new HMACSHA512(credential.GetSBytes());
@@ -299,9 +281,6 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// SHA256 sign the data
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="outputType"></param>
-        /// <returns></returns>
         protected string SignRSASHA256(RSACredential credential, byte[] data, SignOutputType? outputType = null)
         {
             var rsa = credential.GetSigner();
@@ -314,9 +293,6 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// SHA384 sign the data
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="outputType"></param>
-        /// <returns></returns>
         protected string SignRSASHA384(RSACredential credential, byte[] data, SignOutputType? outputType = null)
         {
             var rsa = credential.GetSigner();
@@ -329,9 +305,6 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// SHA512 sign the data
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="outputType"></param>
-        /// <returns></returns>
         protected string SignRSASHA512(RSACredential credential, byte[] data, SignOutputType? outputType = null)
         {
             var rsa = credential.GetSigner();
@@ -512,7 +485,7 @@ namespace CryptoExchange.Net.Authentication
         public TCredentialType Credential { get; set; }
 
         /// <inheritdoc />
-        public override string PublicIdentifier => Credential.PublicIdentifier;
+        public override string PublicKey => Credential.PublicKey;
 
         /// <summary>
         /// ctor

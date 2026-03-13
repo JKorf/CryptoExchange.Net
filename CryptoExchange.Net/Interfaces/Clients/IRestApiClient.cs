@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
         int TotalRequestsMade { get; set; }
     }
 
+    /// <inheritdoc />
     public interface IRestApiClient<TApiCredentials> : IRestApiClient
         where TApiCredentials : ApiCredentials
     {

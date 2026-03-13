@@ -62,6 +62,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
         Task UnsubscribeAllAsync();
     }
 
+    /// <inheritdoc />
     public interface ISocketClient<TApiCredentials> : ISocketClient where TApiCredentials : ApiCredentials
     {
 

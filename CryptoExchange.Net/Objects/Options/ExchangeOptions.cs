@@ -43,10 +43,4 @@ namespace CryptoExchange.Net.Objects.Options
             return $"RequestTimeout: {RequestTimeout}, Proxy: {(Proxy == null ? "-" : "set")}";
         }
     }
-
-    public class ExchangeOptions<TApiCredentials> : ExchangeOptions
-        where TApiCredentials : ApiCredentials
-    {
-
-    }
 }

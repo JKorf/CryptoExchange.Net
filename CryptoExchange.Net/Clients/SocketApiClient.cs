@@ -144,6 +144,9 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         public bool EnforceSequenceNumbers { get; set; }
 
+        /// <summary>
+        /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
+        /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
         #endregion
 
@@ -1029,9 +1032,13 @@ namespace CryptoExchange.Net.Clients
         public abstract ISocketMessageHandler CreateMessageConverter(WebSocketMessageType messageType);
     }
 
+    /// <inheritdoc />
     public abstract class SocketApiClient<TEnvironment> : SocketApiClient, ISocketApiClient
        where TEnvironment : TradeEnvironment
     {
+        /// <summary>
+        /// ctor
+        /// </summary>
         protected SocketApiClient(
             ILogger logger,
             string baseAddress,
@@ -1045,17 +1052,82 @@ namespace CryptoExchange.Net.Clients
         }
     }
 
+    /// <inheritdoc />
     public abstract class SocketApiClient<TEnvironment, TApiCredentials> : SocketApiClient<TEnvironment>, ISocketApiClient<TApiCredentials>
+        where TApiCredentials : ApiCredentials
+        where TEnvironment : TradeEnvironment
+    {
+        /// <inheritdoc />
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <inheritdoc />
+        public bool Authenticated => ApiCredentials != null;
+
+        /// <inheritdoc />
+        public new SocketExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (SocketExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public new SocketApiOptions<TApiCredentials> ApiOptions => (SocketApiOptions<TApiCredentials>)base.ApiOptions;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        protected SocketApiClient(
+            ILogger logger,
+            string baseAddress,
+            SocketExchangeOptions<TEnvironment, TApiCredentials> options,
+            SocketApiOptions<TApiCredentials> apiOptions) : base(
+                logger,
+                baseAddress,
+                options,
+                apiOptions)
+        {
+            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+        }
+
+        /// <inheritdoc />
+        public virtual void SetApiCredentials(TApiCredentials credentials)
+        {
+            ApiCredentials = (TApiCredentials)credentials.Copy();
+        }
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        {
+            var previousProxyIsSet = ClientOptions.Proxy != null;
+
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+
+            if ((!previousProxyIsSet && options.Proxy == null)
+                || _socketConnections.IsEmpty)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Reconnecting websockets to apply proxy");
+
+            // Update proxy, also triggers reconnect
+            foreach (var connection in _socketConnections)
+                _ = connection.Value.UpdateProxy(options.Proxy);
+        }
+    }
+
+    /// <inheritdoc />
+    public abstract class SocketApiClient<TEnvironment, TAuthenticationProvider, TApiCredentials> : SocketApiClient<TEnvironment, TApiCredentials>
+        where TAuthenticationProvider : AuthenticationProvider<TApiCredentials>
         where TApiCredentials : ApiCredentials
         where TEnvironment : TradeEnvironment
     {
 
         private bool _authProviderInitialized = false;
-        private AuthenticationProvider<TApiCredentials>? _authenticationProvider;
+        private TAuthenticationProvider? _authenticationProvider;
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public AuthenticationProvider<TApiCredentials>? AuthenticationProvider
+        public TAuthenticationProvider? AuthenticationProvider
         {
             get
             {
@@ -1073,20 +1145,11 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <inheritdoc />
-        public TApiCredentials? ApiCredentials { get; set; }
-
-        /// <inheritdoc />
-        public bool Authenticated => ApiCredentials != null;
-
-        /// <inheritdoc />
-        public new SocketExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (SocketExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
-
-        /// <inheritdoc />
-        public new SocketApiOptions<TApiCredentials> ApiOptions => (SocketApiOptions<TApiCredentials>)base.ApiOptions;
-
-        /// <inheritdoc />
         public override AuthenticationProvider? GetAuthenticationProvider() => AuthenticationProvider;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
         protected SocketApiClient(
             ILogger logger,
             string baseAddress,
@@ -1097,7 +1160,6 @@ namespace CryptoExchange.Net.Clients
                 options,
                 apiOptions)
         {
-            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
         }
 
         /// <summary>
@@ -1105,38 +1167,21 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <param name="credentials"></param>
         /// <returns></returns>
-        protected abstract AuthenticationProvider<TApiCredentials> CreateAuthenticationProvider(TApiCredentials credentials);
+        protected abstract TAuthenticationProvider CreateAuthenticationProvider(TApiCredentials credentials);
 
         /// <inheritdoc />
-        public void SetApiCredentials(TApiCredentials credentials)
+        public override void SetApiCredentials(TApiCredentials credentials)
         {
-            ApiCredentials = (TApiCredentials)credentials.Copy();
-            AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+            AuthenticationProvider = CreateAuthenticationProvider(credentials);
+            base.SetApiCredentials(credentials);
         }
 
         /// <inheritdoc />
-        public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
+        public override void SetOptions(UpdateOptions<TApiCredentials> options)
         {
-            var previousProxyIsSet = ClientOptions.Proxy != null;
-
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
-
-            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
             if (ApiCredentials != null)
                 AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-
-            if ((!previousProxyIsSet && options.Proxy == null)
-                || _socketConnections.IsEmpty)
-            {
-                return;
-            }
-
-            _logger.LogInformation("Reconnecting websockets to apply proxy");
-
-            // Update proxy, also triggers reconnect
-            foreach (var connection in _socketConnections)
-                _ = connection.Value.UpdateProxy(options.Proxy);
+            base.SetOptions(options);
         }
     }
 }

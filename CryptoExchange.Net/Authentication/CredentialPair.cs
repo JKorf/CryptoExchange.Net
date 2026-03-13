@@ -15,11 +15,38 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// API credentials identifier
         /// </summary>
-        public abstract string PublicIdentifier { get; }
+        public string PublicKey { get; set; }
         /// <summary>
         /// Type of credentials
         /// </summary>
         public abstract ApiCredentialsType CredentialType { get; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public CredentialPair(string publicKey)
+        {
+            PublicKey = publicKey;
+        }
+    }
+
+    /// <summary>
+    /// Api key credentials
+    /// </summary>
+    public class ApiKeyCredential : CredentialPair
+    {
+        /// <inheritdoc />
+        public override ApiCredentialsType CredentialType => ApiCredentialsType.ApiKey;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="key">Api key</param>
+        public ApiKeyCredential(string key) : base(key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentException("Key can't be null/empty");
+        }
     }
 
     /// <summary>
@@ -29,10 +56,6 @@ namespace CryptoExchange.Net.Authentication
     {
         private byte[]? _sBytes;
 
-        /// <summary>
-        /// API key/label
-        /// </summary>
-        public string Key { get; set; }
         /// <summary>
         /// API secret
         /// </summary>
@@ -44,8 +67,6 @@ namespace CryptoExchange.Net.Authentication
 
         /// <inheritdoc />
         public override ApiCredentialsType CredentialType => ApiCredentialsType.Hmac;
-        /// <inheritdoc />
-        public override string PublicIdentifier => Key;
 
         /// <summary>
         /// ctor
@@ -53,12 +74,11 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="key">Api key/label</param>
         /// <param name="secret">Api secret</param>
         /// <param name="pass">Optional passphrase</param>
-        public HMACCredential(string key, string secret, string? pass = null)
+        public HMACCredential(string key, string secret, string? pass = null) : base(key)
         {
             if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
                 throw new ArgumentException("Key and secret can't be null/empty");
 
-            Key = key;
             Secret = secret;
             Pass = pass;
         }
@@ -79,31 +99,30 @@ namespace CryptoExchange.Net.Authentication
     public abstract class RSACredential : CredentialPair
     {
         /// <summary>
-        /// Public key
-        /// </summary>
-        public string PublicKey { get; set; }
-        /// <summary>
         /// Private key
         /// </summary>
         public string PrivateKey { get; set; }
+        /// <summary>
+        /// Passphrase
+        /// </summary>
+        public string? Passphrase { get; set; }
 
         /// <inheritdoc />
         public override ApiCredentialsType CredentialType => ApiCredentialsType.Rsa;
-        /// <inheritdoc />
-        public override string PublicIdentifier => PublicKey;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="publicKey">Public key</param>
         /// <param name="privateKey">Private key</param>
-        public RSACredential(string publicKey, string privateKey)
+        /// <param name="passphrase">Passphrase</param>
+        public RSACredential(string publicKey, string privateKey, string? passphrase = null) : base(publicKey)
         {
             if (string.IsNullOrEmpty(publicKey) || string.IsNullOrEmpty(privateKey))
                 throw new ArgumentException("Public and private key can't be null/empty");
 
-            PublicKey = publicKey;
             PrivateKey = privateKey;
+            Passphrase = passphrase;
         }
 
         /// <summary>
@@ -123,7 +142,8 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="publicKey">Public key</param>
         /// <param name="privateKey">Private key</param>
-        public RSAPemCredential(string publicKey, string privateKey): base(publicKey, privateKey)
+        /// <param name="passphrase">Passphrase</param>
+        public RSAPemCredential(string publicKey, string privateKey, string? passphrase = null) : base(publicKey, privateKey, passphrase)
         {
         }
 
@@ -157,7 +177,8 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         /// <param name="publicKey">Public key</param>
         /// <param name="privateKey">Private key</param>
-        public RSAXmlCredential(string publicKey, string privateKey) : base(publicKey, privateKey)
+        /// <param name="passphrase">Passphrase</param>
+        public RSAXmlCredential(string publicKey, string privateKey, string? passphrase = null) : base(publicKey, privateKey, passphrase)
         {
         }
 
@@ -181,28 +202,27 @@ namespace CryptoExchange.Net.Authentication
         private Key? _signKey;
 
         /// <summary>
-        /// Public key
-        /// </summary>
-        public string PublicKey { get; set; }
-        /// <summary>
         /// Private key
         /// </summary>
         public string PrivateKey { get; set; }
+        /// <summary>
+        /// Passphrase
+        /// </summary>
+        public string? Passphrase { get; set; }
 
         /// <inheritdoc />
         public override ApiCredentialsType CredentialType => ApiCredentialsType.Ed25519;
-        /// <inheritdoc />
-        public override string PublicIdentifier => PublicKey;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="publicKey">Public key</param>
         /// <param name="privateKey">Private key</param>
-        public ED25519Credential(string publicKey, string privateKey)
+        /// <param name="passphrase">Passphrase</param>
+        public ED25519Credential(string publicKey, string privateKey, string? passphrase = null) : base(publicKey)
         {
-            PublicKey = publicKey;
             PrivateKey = privateKey;
+            Passphrase = passphrase;
         }
 
         /// <summary>
@@ -231,28 +251,27 @@ namespace CryptoExchange.Net.Authentication
     public class ECDSACredential : CredentialPair
     {
         /// <summary>
-        /// Public key
-        /// </summary>
-        public string PublicKey { get; set; }
-        /// <summary>
         /// Private key
         /// </summary>
         public string PrivateKey { get; set; }
+        /// <summary>
+        /// Passphrase
+        /// </summary>
+        public string? Passphrase { get; set; }
 
         /// <inheritdoc />
         public override ApiCredentialsType CredentialType => ApiCredentialsType.Ecdsa;
-        /// <inheritdoc />
-        public override string PublicIdentifier => PublicKey;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="publicKey">Public key</param>
         /// <param name="privateKey">Private key</param>
-        public ECDSACredential(string publicKey, string privateKey)
+        /// <param name="passphrase">Passphrase</param>
+        public ECDSACredential(string publicKey, string privateKey, string? passphrase = null) : base(publicKey)
         {
-            PublicKey = publicKey;
             PrivateKey = privateKey;
+            Passphrase = passphrase;
         }
     }
 }

@@ -65,7 +65,6 @@ namespace CryptoExchange.Net.Objects.Options
             item.OutputOriginalData = OutputOriginalData;
             item.AutoTimestamp = AutoTimestamp;
             item.TimestampRecalculationInterval = TimestampRecalculationInterval;
-            //item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
             item.Proxy = Proxy;
             item.RequestTimeout = RequestTimeout;
             item.RateLimiterEnabled = RateLimiterEnabled;
@@ -84,6 +83,7 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
+    /// <inheritdoc />
     public class RestExchangeOptions<TEnvironment> : RestExchangeOptions
         where TEnvironment : TradeEnvironment
     {
@@ -98,7 +98,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <summary>
         /// Set the values of this options on the target options
         /// </summary>
-        public T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
+        public new T Set<T>(T target) where T : RestExchangeOptions<TEnvironment>, new()
         {
             base.Set(target);
             target.Environment = Environment;
@@ -106,9 +106,7 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
-    /// <summary>
-    /// Options for a rest exchange client
-    /// </summary>
+    /// <inheritdoc />
     public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TEnvironment>
         where TEnvironment : TradeEnvironment
         where TApiCredentials : ApiCredentials

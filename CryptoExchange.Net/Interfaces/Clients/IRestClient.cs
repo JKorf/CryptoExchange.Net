@@ -30,6 +30,7 @@ namespace CryptoExchange.Net.Interfaces.Clients
         bool Disposed { get; }
     }
 
+    /// <inheritdoc />
     public interface IRestClient<TApiCredentials> : IRestClient where TApiCredentials : ApiCredentials
     {
         /// <summary>
@@ -38,10 +39,10 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// <param name="credentials">The credentials to set</param>
         void SetApiCredentials(TApiCredentials credentials);
 
-        ///// <summary>
-        ///// Update specific options
-        ///// </summary>
-        ///// <param name="options">Options to update. Only specific options are changeable after the client has been created</param>
-        //void SetOptions(UpdateOptions<TApiCredentials> options);
+        /// <summary>
+        /// Update specific options
+        /// </summary>
+        /// <param name="options">Options to update. Only specific options are changeable after the client has been created</param>
+        void SetOptions(UpdateOptions<TApiCredentials> options);
     }
 }

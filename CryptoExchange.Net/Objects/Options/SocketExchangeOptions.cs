@@ -110,6 +110,7 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
+    /// <inheritdoc />
     public class SocketExchangeOptions<TEnvironment> : SocketExchangeOptions
         where TEnvironment : TradeEnvironment
     {

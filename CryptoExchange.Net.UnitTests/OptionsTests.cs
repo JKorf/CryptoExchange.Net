@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.UnitTests
             // act
             // assert
             Assert.Throws(typeof(ArgumentException),
-                () => new RestExchangeOptions<TestEnvironment>() { ApiCredentials = new ApiCredentials(key, secret) });
+                () => new RestExchangeOptions<TestEnvironment, TestCredentials>() { ApiCredentials = new TestCredentials(key, secret) });
         }
 
         [Test]
@@ -38,13 +38,13 @@ namespace CryptoExchange.Net.UnitTests
             // arrange, act
             var options = new TestClientOptions
             {
-                ApiCredentials = new ApiCredentials("123", "456"),
+                ApiCredentials = new TestCredentials("123", "456"),
                 ReceiveWindow = TimeSpan.FromSeconds(10)
             };
 
             // assert
             Assert.That(options.ReceiveWindow == TimeSpan.FromSeconds(10));
-            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
+            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "123");
             Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
         }
 
@@ -53,13 +53,13 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange, act
             var options = new TestClientOptions();
-            options.Api1Options.ApiCredentials = new ApiCredentials("123", "456");
-            options.Api2Options.ApiCredentials = new ApiCredentials("789", "101");
+            options.Api1Options.ApiCredentials = new TestCredentials("123", "456");
+            options.Api2Options.ApiCredentials = new TestCredentials("789", "101");
 
             // assert
-            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
+            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "123");
             Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
-            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Key == "789");
+            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "789");
             Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "101");
         }
 
@@ -67,8 +67,8 @@ namespace CryptoExchange.Net.UnitTests
         public void TestClientUsesCorrectOptions()
         {
             var client = new TestRestClient(options => {
-                options.Api1Options.ApiCredentials = new ApiCredentials("111", "222");
-                options.ApiCredentials = new ApiCredentials("333", "444");
+                options.Api1Options.ApiCredentials = new TestCredentials("111", "222");
+                options.ApiCredentials = new TestCredentials("333", "444");
             });
 
             var authProvider1 = (TestAuthProvider)client.Api1.AuthenticationProvider;
@@ -82,8 +82,8 @@ namespace CryptoExchange.Net.UnitTests
         [Test]
         public void TestClientUsesCorrectOptionsWithDefault()
         {
-            TestClientOptions.Default.ApiCredentials = new ApiCredentials("123", "456");
-            TestClientOptions.Default.Api1Options.ApiCredentials = new ApiCredentials("111", "222");
+            TestClientOptions.Default.ApiCredentials = new TestCredentials("123", "456");
+            TestClientOptions.Default.Api1Options.ApiCredentials = new TestCredentials("111", "222");
 
             var client = new TestRestClient();
 
@@ -102,17 +102,17 @@ namespace CryptoExchange.Net.UnitTests
         [Test]
         public void TestClientUsesCorrectOptionsWithOverridingDefault()
         {
-            TestClientOptions.Default.ApiCredentials = new ApiCredentials("123", "456");
-            TestClientOptions.Default.Api1Options.ApiCredentials = new ApiCredentials("111", "222");
+            TestClientOptions.Default.ApiCredentials = new TestCredentials("123", "456");
+            TestClientOptions.Default.Api1Options.ApiCredentials = new TestCredentials("111", "222");
 
             var client = new TestRestClient(options =>
             {
-                options.Api1Options.ApiCredentials = new ApiCredentials("333", "444");
+                options.Api1Options.ApiCredentials = new TestCredentials("333", "444");
                 options.Environment = new TestEnvironment("Test", "https://test.test");
             });
 
-            var authProvider1 = (TestAuthProvider)client.Api1.AuthenticationProvider;
-            var authProvider2 = (TestAuthProvider)client.Api2.AuthenticationProvider;
+            var authProvider1 = client.Api1.AuthenticationProvider;
+            var authProvider2 = client.Api2.AuthenticationProvider;
             Assert.That(authProvider1.GetKey() == "333");
             Assert.That(authProvider1.GetSecret() == "444");
             Assert.That(authProvider2.GetKey() == "123");
@@ -125,7 +125,7 @@ namespace CryptoExchange.Net.UnitTests
         }
     }
 
-    public class TestClientOptions: RestExchangeOptions<TestEnvironment>
+    public class TestClientOptions: RestExchangeOptions<TestEnvironment, TestCredentials>
     {
         /// <summary>
         /// Default options for the futures client
@@ -148,9 +148,9 @@ namespace CryptoExchange.Net.UnitTests
         /// </summary>
         public TimeSpan ReceiveWindow { get; set; } = TimeSpan.FromSeconds(5);
 
-        public RestApiOptions Api1Options { get; private set; } = new RestApiOptions();
+        public RestApiOptions<TestCredentials> Api1Options { get; private set; } = new RestApiOptions<TestCredentials>();
 
-        public RestApiOptions Api2Options { get; set; } = new RestApiOptions();
+        public RestApiOptions<TestCredentials> Api2Options { get; set; } = new RestApiOptions<TestCredentials>();
 
         internal TestClientOptions Set(TestClientOptions targetOptions)
         {

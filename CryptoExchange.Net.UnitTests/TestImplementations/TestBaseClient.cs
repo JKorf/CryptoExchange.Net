@@ -26,14 +26,14 @@ namespace CryptoExchange.Net.UnitTests
             var options = new TestClientOptions();
             _logger = NullLogger.Instance;
             Initialize(options);
-            SubClient = AddApiClient(new TestSubClient(options, new RestApiOptions()));
+            SubClient = AddApiClient(new TestSubClient(options, new RestApiOptions<TestCredentials>()));
         }
 
         public TestBaseClient(TestClientOptions exchangeOptions) : base(null, "Test")
         {
             _logger = NullLogger.Instance;
             Initialize(exchangeOptions);
-            SubClient = AddApiClient(new TestSubClient(exchangeOptions, new RestApiOptions()));
+            SubClient = AddApiClient(new TestSubClient(exchangeOptions, new RestApiOptions<TestCredentials>()));
         }
 
         public void Log(LogLevel verbosity, string data)
@@ -42,11 +42,11 @@ namespace CryptoExchange.Net.UnitTests
         }
     }
 
-    public class TestSubClient : RestApiClient
+    public class TestSubClient : RestApiClient<TestEnvironment, TestAuthProvider, TestCredentials>
     {
         protected override IRestMessageHandler MessageHandler => throw new NotImplementedException();
 
-        public TestSubClient(RestExchangeOptions<TestEnvironment> options, RestApiOptions apiOptions) : base(new TraceLogger(), null, "https://localhost:123", options, apiOptions)
+        public TestSubClient(RestExchangeOptions<TestEnvironment, TestCredentials> options, RestApiOptions<TestCredentials> apiOptions) : base(new TraceLogger(), null, "https://localhost:123", options, apiOptions)
         {
         }
 
@@ -58,24 +58,24 @@ namespace CryptoExchange.Net.UnitTests
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
         protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
-        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
+        protected override TestAuthProvider CreateAuthenticationProvider(TestCredentials credentials) => throw new NotImplementedException();
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
     }
 
-    public class TestAuthProvider : AuthenticationProvider
+    public class TestAuthProvider : AuthenticationProvider<TestCredentials, HMACCredential>
     {
         public override ApiCredentialsType[] SupportedCredentialTypes => [ApiCredentialsType.Hmac];
 
-        public TestAuthProvider(ApiCredentials credentials) : base(credentials)
+        public TestAuthProvider(TestCredentials credentials) : base(credentials)
         {
         }
 
         public override void ProcessRequest(RestApiClient apiClient, RestRequestConfiguration requestConfig)
         {
         }
-        
-        public string GetKey() => ((HMACCredential)Credential).Key;
-        public string GetSecret() => ((HMACCredential)Credential).Secret;
+
+        public string GetKey() => Credential.PublicKey;
+        public string GetSecret() => Credential.Secret;
     }
 
     public class TestEnvironment : TradeEnvironment
@@ -86,5 +86,15 @@ namespace CryptoExchange.Net.UnitTests
         {
             TestAddress = url;
         }
+    }
+
+    public class TestCredentials : ApiCredentials
+    {
+        public TestCredentials(string apiKey, string secret) : this(new HMACCredential(apiKey, secret)) { }
+
+        public TestCredentials(HMACCredential credential) : base(credential) { }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new TestCredentials(Hmac!);
     }
 }

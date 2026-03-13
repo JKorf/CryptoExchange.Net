@@ -1,5 +1,4 @@
 using System;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
@@ -74,7 +73,6 @@ namespace CryptoExchange.Net.Clients
         /// <param name="logger">Logger</param>
         /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
-        /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
         protected BaseApiClient(
