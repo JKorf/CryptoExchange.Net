@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// The public identifier for the provided credentials
         /// </summary>
-        public abstract string PublicKey { get; }
+        public abstract string Key { get; }
 
         /// <summary>
         /// The supported credential types
@@ -485,7 +485,7 @@ namespace CryptoExchange.Net.Authentication
         public TCredentialType Credential { get; set; }
 
         /// <inheritdoc />
-        public override string PublicKey => Credential.PublicKey;
+        public override string Key => Credential.Key;
 
         /// <summary>
         /// ctor
