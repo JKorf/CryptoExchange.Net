@@ -8,19 +8,19 @@
         /// <summary>
         /// HMAC credentials
         /// </summary>
-        Hmac,
+        HMAC,
         /// <summary>
         /// RSA credentials
         /// </summary>
-        Rsa,
+        RSA,
         /// <summary>
-        /// ED25519 credentials
+        /// Ed25519 credentials
         /// </summary>
         Ed25519,
         /// <summary>
-        /// ECDSA credentials
+        /// ECDsa credentials
         /// </summary>
-        Ecdsa,
+        ECDsa,
         /// <summary>
         /// API key credentials
         /// </summary>

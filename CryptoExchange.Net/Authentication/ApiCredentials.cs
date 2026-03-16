@@ -22,58 +22,58 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// HMAC credentials
         /// </summary>
-        public HMACCredential? Hmac
+        public HMACCredential? HMAC
         {
-            get => (HMACCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Hmac);
-            set => AddOrRemoveCredential(ApiCredentialsType.Hmac, value);
+            get => (HMACCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.HMAC);
+            set => AddOrRemoveCredential(ApiCredentialsType.HMAC, value);
         }
 
         /// <summary>
         /// RSA credentials
         /// </summary>
-        public RSACredential? Rsa
+        public RSACredential? RSA
         {
-            get => (RSACredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Rsa);
-            set => AddOrRemoveCredential(ApiCredentialsType.Rsa, value);
+            get => (RSACredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.RSA);
+            set => AddOrRemoveCredential(ApiCredentialsType.RSA, value);
         }
 
         /// <summary>
         /// RSA credentials in XML format
         /// </summary>
-        public RSAXmlCredential? RsaXml
+        public RSAXmlCredential? RSAXml
         {
-            get => (RSAXmlCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Rsa);
-            set => AddOrRemoveCredential(ApiCredentialsType.Rsa, value);
+            get => (RSAXmlCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.RSA);
+            set => AddOrRemoveCredential(ApiCredentialsType.RSA, value);
         }
 
 #if NETSTANDARD2_1_OR_GREATER || NET7_0_OR_GREATER
         /// <summary>
         /// RSA credentials in PEM/Base64 format
         /// </summary>
-        public RSAPemCredential? RsaPem
+        public RSAPemCredential? RSAPem
         {
-            get => (RSAPemCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Rsa);
-            set => AddOrRemoveCredential(ApiCredentialsType.Rsa, value);
+            get => (RSAPemCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.RSA);
+            set => AddOrRemoveCredential(ApiCredentialsType.RSA, value);
         }
 #endif
 
 #if NET8_0_OR_GREATER
         /// <summary>
-        /// ED25519 credentials
+        /// Ed25519 credentials
         /// </summary>
-        public ED25519Credential? Ed25519
+        public Ed25519Credential? Ed25519
         {
-            get => (ED25519Credential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Ed25519);
+            get => (Ed25519Credential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Ed25519);
             set => AddOrRemoveCredential(ApiCredentialsType.Ed25519, value);
         }
 #endif
         /// <summary>
-        /// ECDSA credentials
+        /// ECDsa credentials
         /// </summary>
-        public ECDSACredential? Ecdsa
+        public ECDsaCredential? ECDsa
         {
-            get => (ECDSACredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.Ecdsa);
-            set => AddOrRemoveCredential(ApiCredentialsType.Ecdsa, value);
+            get => (ECDsaCredential?)CredentialPairs.SingleOrDefault(x => x.CredentialType == ApiCredentialsType.ECDsa);
+            set => AddOrRemoveCredential(ApiCredentialsType.ECDsa, value);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// DI constructor
         /// </summary>
-        [Obsolete("Parameterless constructor is only for deserialization purposes and should not be used directly. Use static ApiCredentials.HmacCredentials or similar instead.")]
+        [Obsolete("Parameterless constructor is only for deserialization purposes and should not be used directly.")]
         public ApiCredentials() { }
 
         /// <summary>

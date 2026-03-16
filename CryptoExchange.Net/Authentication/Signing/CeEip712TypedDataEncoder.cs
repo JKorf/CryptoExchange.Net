@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Authentication.Signing
     {
         /// <summary>
         /// Encode EIP712 typed data according to the specification, with the provided primary type, domain fields and message fields.
-        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDSA secp256k1 to produce a signature that can be verified on chain with EIP712.
+        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDsa secp256k1 to produce a signature that can be verified on chain with EIP712.
         /// Note that this implementation does not support all possible EIP712 types, but it should cover most common use cases
         /// </summary>
         public static byte[] EncodeEip721(
@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.Authentication.Signing
 
         /// <summary>
         /// Encode EIP712 typed data according to the specification, with the provided primary type, domain fields and message fields.
-        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDSA secp256k1 to produce a signature that can be verified on chain with EIP712.
+        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDsa secp256k1 to produce a signature that can be verified on chain with EIP712.
         /// Note that this implementation does not support all possible EIP712 types, but it should cover most common use cases
         /// </summary>
         public static byte[] EncodeTypedDataRaw(CeTypedDataRaw typedData)

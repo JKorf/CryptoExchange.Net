@@ -318,13 +318,13 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// Ed25519 sign the data 
         /// </summary>
-        public string SignEd25519(ED25519Credential credential, string data, SignOutputType? outputType = null)
+        public string SignEd25519(Ed25519Credential credential, string data, SignOutputType? outputType = null)
             => SignEd25519(credential, Encoding.ASCII.GetBytes(data), outputType);
 
         /// <summary>
         /// Ed25519 sign the data 
         /// </summary>
-        public string SignEd25519(ED25519Credential credential, byte[] data, SignOutputType? outputType = null)
+        public string SignEd25519(Ed25519Credential credential, byte[] data, SignOutputType? outputType = null)
         {
             var signKey = credential.GetSigningKey();
             var resultBytes = SignatureAlgorithm.Ed25519.Sign(signKey, data);
@@ -513,7 +513,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA256(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+            if (Credential.CredentialType != ApiCredentialsType.HMAC)
                 throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
 
             return SignHMACSHA256((Credential as HMACCredential)!, data, outputType);
@@ -536,7 +536,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA384(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+            if (Credential.CredentialType != ApiCredentialsType.HMAC)
                 throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
 
             return SignHMACSHA384((Credential as HMACCredential)!, data, outputType);
@@ -559,7 +559,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignHMACSHA512(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Hmac)
+            if (Credential.CredentialType != ApiCredentialsType.HMAC)
                 throw new InvalidOperationException($"Invalid HMAC signing without HMAC credentials provided");
 
             return SignHMACSHA512((Credential as HMACCredential)!, data, outputType);
@@ -573,7 +573,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA256(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+            if (Credential.CredentialType != ApiCredentialsType.RSA)
                 throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
 
             return SignRSASHA256((Credential as RSACredential)!, data, outputType);
@@ -587,7 +587,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA384(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+            if (Credential.CredentialType != ApiCredentialsType.RSA)
                 throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
 
             return SignRSASHA384((Credential as RSACredential)!, data, outputType);
@@ -601,7 +601,7 @@ namespace CryptoExchange.Net.Authentication
         /// <returns></returns>
         protected string SignRSASHA512(byte[] data, SignOutputType? outputType = null)
         {
-            if (Credential.CredentialType != ApiCredentialsType.Rsa)
+            if (Credential.CredentialType != ApiCredentialsType.RSA)
                 throw new InvalidOperationException($"Invalid RSA signing without RSA credentials provided");
 
             return SignRSASHA512((Credential as RSACredential)!, data, outputType);
@@ -620,9 +620,9 @@ namespace CryptoExchange.Net.Authentication
         public string SignEd25519(byte[] data, SignOutputType? outputType = null)
         {
             if (Credential.CredentialType != ApiCredentialsType.Ed25519)
-                throw new InvalidOperationException($"Invalid ED25519 signing without Ed25519 credentials provided");
+                throw new InvalidOperationException($"Invalid Ed25519 signing without Ed25519 credentials provided");
 
-            return SignEd25519((Credential as ED25519Credential)!, data, outputType);
+            return SignEd25519((Credential as Ed25519Credential)!, data, outputType);
         }
 #endif
     }

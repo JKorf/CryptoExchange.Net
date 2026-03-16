@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Authentication
         public string? Pass { get; set; }
 
         /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.Hmac;
+        public override ApiCredentialsType CredentialType => ApiCredentialsType.HMAC;
 
         /// <summary>
         /// ctor
@@ -105,7 +105,7 @@ namespace CryptoExchange.Net.Authentication
         public string? Pass { get; set; }
 
         /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.Rsa;
+        public override ApiCredentialsType CredentialType => ApiCredentialsType.RSA;
 
         /// <summary>
         /// ctor
@@ -192,9 +192,9 @@ namespace CryptoExchange.Net.Authentication
 
 #if NET8_0_OR_GREATER
     /// <summary>
-    /// Credentials in ED25519 format
+    /// Credentials in Ed25519 format
     /// </summary>
-    public class ED25519Credential : CredentialPair
+    public class Ed25519Credential : CredentialPair
     {
         private NSec.Cryptography.Key? _signKey;
 
@@ -216,7 +216,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="key">Public key</param>
         /// <param name="privateKey">Private key</param>
         /// <param name="pass">Passphrase</param>
-        public ED25519Credential(string key, string privateKey, string? pass = null) : base(key)
+        public Ed25519Credential(string key, string privateKey, string? pass = null) : base(key)
         {
             PrivateKey = privateKey;
             Pass = pass;
@@ -243,9 +243,9 @@ namespace CryptoExchange.Net.Authentication
 #endif
 
     /// <summary>
-    /// Credentials in ECDSA format
+    /// Credentials in ECDsa format
     /// </summary>
-    public class ECDSACredential : CredentialPair
+    public class ECDsaCredential : CredentialPair
     {
         /// <summary>
         /// Private key
@@ -257,7 +257,7 @@ namespace CryptoExchange.Net.Authentication
         public string? Pass { get; set; }
 
         /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.Ecdsa;
+        public override ApiCredentialsType CredentialType => ApiCredentialsType.ECDsa;
 
         /// <summary>
         /// ctor
@@ -265,7 +265,7 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="key">Public key</param>
         /// <param name="privateKey">Private key</param>
         /// <param name="pass">Passphrase</param>
-        public ECDSACredential(string key, string privateKey, string? pass = null) : base(key)
+        public ECDsaCredential(string key, string privateKey, string? pass = null) : base(key)
         {
             PrivateKey = privateKey;
             Pass = pass;
