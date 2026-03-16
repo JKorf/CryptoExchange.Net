@@ -155,9 +155,9 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("three", TestEnum.Three)]
         [TestCase("Four", TestEnum.Four)]
         [TestCase("four", TestEnum.Four)]
-        [TestCase("Four1", TestEnum.One)]
-        [TestCase(null, TestEnum.One)]
-        public void TestEnumConverterNotNullableDeserializeTests(string value, TestEnum? expected)
+        [TestCase("Four1", (TestEnum)(-1))]
+        [TestCase(null, (TestEnum)(-1))]
+        public void TestEnumConverterNotNullableDeserializeTests(string value, TestEnum expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJEnumObject>($"{{ \"Value\": {val} }}");
@@ -339,7 +339,7 @@ namespace CryptoExchange.Net.UnitTests
 
     public class STJDecimalObject
     {
-        [JsonConverter(typeof(DecimalConverter))]
+        [JsonConverter(typeof(NullableDecimalConverter))]
         [JsonPropertyName("test")]
         public decimal? Test { get; set; }
     }

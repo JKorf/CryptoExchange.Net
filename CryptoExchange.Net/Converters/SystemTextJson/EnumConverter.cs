@@ -120,20 +120,16 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
-            if (t == null)
-            {
-                if (isEmptyString && !_unknownValuesWarned.Contains(null))
-                {
-                    // We received an empty string and have no mapping for it, and the property isn't nullable
-                    LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
-                }
-
-                return new T(); // return default value
-            }
-            else
-            {
+            if (t != null)
                 return t.Value;
+            
+            if (isEmptyString && !_unknownValuesWarned.Contains(null))
+            {
+                // We received an empty string and have no mapping for it, and the property isn't nullable
+                LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
             }
+
+            return (T)Enum.ToObject(typeof(T), -1);
         }
 
         private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)
