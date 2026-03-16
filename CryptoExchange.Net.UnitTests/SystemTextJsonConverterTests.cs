@@ -339,7 +339,7 @@ namespace CryptoExchange.Net.UnitTests
 
     public class STJDecimalObject
     {
-        [JsonConverter(typeof(NullableDecimalConverter))]
+        [JsonConverter(typeof(DecimalConverter))]
         [JsonPropertyName("test")]
         public decimal? Test { get; set; }
     }
