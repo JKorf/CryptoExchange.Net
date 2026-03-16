@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <summary>
-        /// RSA credentials in XML format
+        /// RSA credentials
         /// </summary>
         public RSACredential? Rsa
         {

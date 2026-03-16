@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.That(options.ReceiveWindow == TimeSpan.FromSeconds(10));
-            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "123");
+            Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
             Assert.That(options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
         }
 
@@ -57,9 +57,9 @@ namespace CryptoExchange.Net.UnitTests
             options.Api2Options.ApiCredentials = new TestCredentials("789", "101");
 
             // assert
-            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "123");
+            Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Key == "123");
             Assert.That(options.Api1Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "456");
-            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().PublicKey == "789");
+            Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Key == "789");
             Assert.That(options.Api2Options.ApiCredentials.GetCredential<HMACCredential>().Secret == "101");
         }
 

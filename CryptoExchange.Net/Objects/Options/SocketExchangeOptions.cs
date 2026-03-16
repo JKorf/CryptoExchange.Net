@@ -91,7 +91,6 @@ namespace CryptoExchange.Net.Objects.Options
         /// <returns></returns>
         public T Set<T>(T item) where T : SocketExchangeOptions, new()
         {
-            //item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
             item.AutoTimestamp = AutoTimestamp;
             item.OutputOriginalData = OutputOriginalData;
             item.ReconnectPolicy = ReconnectPolicy;

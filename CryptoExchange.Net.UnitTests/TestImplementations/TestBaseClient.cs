@@ -74,7 +74,7 @@ namespace CryptoExchange.Net.UnitTests
         {
         }
 
-        public string GetKey() => Credential.PublicKey;
+        public string GetKey() => Credential.Key;
         public string GetSecret() => Credential.Secret;
     }
 
