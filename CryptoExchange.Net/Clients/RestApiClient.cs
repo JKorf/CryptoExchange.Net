@@ -852,9 +852,6 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public new RestExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (RestExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
-        /// <inheritdoc />
-        public new RestApiOptions<TApiCredentials> ApiOptions => (RestApiOptions<TApiCredentials>)base.ApiOptions;
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -863,14 +860,14 @@ namespace CryptoExchange.Net.Clients
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options,
-            RestApiOptions<TApiCredentials> apiOptions) : base(
+            RestApiOptions apiOptions) : base(
                 logger,
                 httpClient,
                 baseAddress,
                 options,
                 apiOptions)
         {
-            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+            ApiCredentials =  options.ApiCredentials;
         }
 
         /// <inheritdoc />
@@ -930,7 +927,7 @@ namespace CryptoExchange.Net.Clients
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options, 
-            RestApiOptions<TApiCredentials> apiOptions) : base(
+            RestApiOptions apiOptions) : base(
                 logger, 
                 httpClient,
                 baseAddress,

@@ -167,8 +167,8 @@ namespace CryptoExchange.Net
         /// </summary>
         public static void ValidateCredentials(ApiCredentials? credentials)
         {
-            if (credentials != null && credentials.CredentialPairs.Length == 0)
-                throw new ArgumentException("ApiCredentials configuration invalid");
+            //if (credentials != null && credentials.CredentialPairs.Length == 0)
+            //    throw new ArgumentException("ApiCredentials configuration invalid");
         }
     }
 }

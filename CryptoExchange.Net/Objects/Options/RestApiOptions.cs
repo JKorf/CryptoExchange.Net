@@ -24,23 +24,4 @@ namespace CryptoExchange.Net.Objects.Options
             return item;
         }
     }
-
-    /// <inheritdoc />
-    public class RestApiOptions<TApiCredentials> : RestApiOptions where TApiCredentials : ApiCredentials
-    {
-        /// <summary>
-        /// The api credentials used for signing requests to this API. Overrides API credentials provided in the client options
-        /// </summary>        
-        public TApiCredentials? ApiCredentials { get; set; }
-
-        /// <summary>
-        /// Set the values of this options on the target options
-        /// </summary>
-        public new T Set<T>(T item) where T : RestApiOptions<TApiCredentials>, new()
-        {
-            base.Set(item);
-            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
-            return item;
-        }
-    }
 }

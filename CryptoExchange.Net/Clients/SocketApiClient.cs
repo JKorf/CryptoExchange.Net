@@ -1066,9 +1066,6 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public new SocketExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (SocketExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
-        /// <inheritdoc />
-        public new SocketApiOptions<TApiCredentials> ApiOptions => (SocketApiOptions<TApiCredentials>)base.ApiOptions;
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -1076,13 +1073,13 @@ namespace CryptoExchange.Net.Clients
             ILogger logger,
             string baseAddress,
             SocketExchangeOptions<TEnvironment, TApiCredentials> options,
-            SocketApiOptions<TApiCredentials> apiOptions) : base(
+            SocketApiOptions apiOptions) : base(
                 logger,
                 baseAddress,
                 options,
                 apiOptions)
         {
-            ApiCredentials = apiOptions.ApiCredentials ?? options.ApiCredentials;
+            ApiCredentials = options.ApiCredentials;
         }
 
         /// <inheritdoc />
@@ -1154,7 +1151,7 @@ namespace CryptoExchange.Net.Clients
             ILogger logger,
             string baseAddress,
             SocketExchangeOptions<TEnvironment, TApiCredentials> options,
-            SocketApiOptions<TApiCredentials> apiOptions) : base(
+            SocketApiOptions apiOptions) : base(
                 logger,
                 baseAddress,
                 options,

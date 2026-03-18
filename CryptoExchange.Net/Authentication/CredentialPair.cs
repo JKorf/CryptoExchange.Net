@@ -7,16 +7,12 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Credential pair base class
     /// </summary>
-    public abstract class CredentialPair
+    public abstract class CredentialPair : ApiCredentials
     {
         /// <summary>
         /// The (public) key/identifier for this credential pair
         /// </summary>
         public string Key { get; set; }
-        /// <summary>
-        /// Type of credentials
-        /// </summary>
-        public abstract ApiCredentialsType CredentialType { get; }
 
         /// <summary>
         /// ctor
@@ -32,9 +28,6 @@ namespace CryptoExchange.Net.Authentication
     /// </summary>
     public class ApiKeyCredential : CredentialPair
     {
-        /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.ApiKey;
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -44,6 +37,9 @@ namespace CryptoExchange.Net.Authentication
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentException("Key can't be null/empty");
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new ApiKeyCredential(Key);
     }
 
     /// <summary>
@@ -61,9 +57,6 @@ namespace CryptoExchange.Net.Authentication
         /// Passphrase, not needed on all exchanges
         /// </summary>
         public string? Pass { get; set; }
-
-        /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.HMAC;
 
         /// <summary>
         /// ctor
@@ -88,6 +81,9 @@ namespace CryptoExchange.Net.Authentication
         {
             return _sBytes ??= Encoding.UTF8.GetBytes(Secret);
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new HMACCredential(Key, Secret, Pass);
     }
 
     /// <summary>
@@ -103,9 +99,6 @@ namespace CryptoExchange.Net.Authentication
         /// Passphrase
         /// </summary>
         public string? Pass { get; set; }
-
-        /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.RSA;
 
         /// <summary>
         /// ctor
@@ -161,6 +154,9 @@ namespace CryptoExchange.Net.Authentication
 
             return rsa;
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new RSAPemCredential(Key, PrivateKey, Pass);
     }
 #endif
 
@@ -188,6 +184,9 @@ namespace CryptoExchange.Net.Authentication
             rsa.FromXmlString(PrivateKey);
             return rsa;
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new RSAXmlCredential(Key, PrivateKey, Pass);
     }
 
 #if NET8_0_OR_GREATER
@@ -206,9 +205,6 @@ namespace CryptoExchange.Net.Authentication
         /// Passphrase
         /// </summary>
         public string? Pass { get; set; }
-
-        /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.Ed25519;
 
         /// <summary>
         /// ctor
@@ -239,6 +235,9 @@ namespace CryptoExchange.Net.Authentication
             _signKey = NSec.Cryptography.Key.Import(NSec.Cryptography.SignatureAlgorithm.Ed25519, keyBytes, NSec.Cryptography.KeyBlobFormat.PkixPrivateKey);
             return _signKey;
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new Ed25519Credential(Key, PrivateKey, Pass);
     }
 #endif
 
@@ -256,9 +255,6 @@ namespace CryptoExchange.Net.Authentication
         /// </summary>
         public string? Pass { get; set; }
 
-        /// <inheritdoc />
-        public override ApiCredentialsType CredentialType => ApiCredentialsType.ECDsa;
-
         /// <summary>
         /// ctor
         /// </summary>
@@ -270,5 +266,8 @@ namespace CryptoExchange.Net.Authentication
             PrivateKey = privateKey;
             Pass = pass;
         }
+
+        /// <inheritdoc />
+        public override ApiCredentials Copy() => new ECDsaCredential(Key, PrivateKey, Pass);
     }
 }
