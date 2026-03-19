@@ -161,14 +161,5 @@ namespace CryptoExchange.Net
             return httpHandler;
 #endif
         }
-
-        /// <summary>
-        /// Validate the provided credentials, throw an exception if invalid
-        /// </summary>
-        public static void ValidateCredentials(ApiCredentials? credentials)
-        {
-            //if (credentials != null && credentials.CredentialPairs.Length == 0)
-            //    throw new ArgumentException("ApiCredentials configuration invalid");
-        }
     }
 }
