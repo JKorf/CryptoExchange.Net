@@ -453,43 +453,33 @@ namespace CryptoExchange.Net.Authentication
 
     /// <inheritdoc />
     public abstract class AuthenticationProvider<TApiCredentials> : AuthenticationProvider
+        where TApiCredentials: ApiCredentials
     {
         /// <summary>
         /// API credentials used for signing requests
         /// </summary>
         public TApiCredentials ApiCredentials { get; set; }
 
-        public CredentialPair? Credential { get; set; }
-
         /// <summary>
         /// ctor
         /// </summary>
         protected AuthenticationProvider(TApiCredentials credentials)
         {
-            ApiCredentials = credentials;
-        }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        protected AuthenticationProvider(TApiCredentials credentials, CredentialPair? credentialPair)
-        {
-            if (credentialPair == null)
-                throw new ArgumentNullException(nameof(credentialPair), $"Credential pair needed but not provided");
+            credentials.Validate();
 
             ApiCredentials = credentials;
-            Credential = credentialPair;
         }
     }
 
     /// <inheritdoc />
     public abstract class AuthenticationProvider<TApiCredentials, TCredentialType> : AuthenticationProvider<TApiCredentials>
+        where TApiCredentials : ApiCredentials
         where TCredentialType : CredentialPair
     {
         /// <summary>
         /// The specific credential type used for signing requests.
         /// </summary>
-        public new TCredentialType Credential => (TCredentialType)base.Credential!;
+        public TCredentialType Credential { get; }
 
         /// <inheritdoc />
         public override string Key => Credential.Key;
@@ -497,8 +487,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// ctor
         /// </summary>
-        protected AuthenticationProvider(TApiCredentials credentials, TCredentialType? credential) : base(credentials, credential)
+        protected AuthenticationProvider(TApiCredentials credentials, TCredentialType? credential) : base(credentials)
         {
+            if (credential == null)
+                throw new ArgumentException("Missing required credentials");
+
+            Credential = credential;
         }
         
         /// <summary>
