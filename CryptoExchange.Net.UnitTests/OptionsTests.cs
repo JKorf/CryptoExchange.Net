@@ -29,7 +29,13 @@ namespace CryptoExchange.Net.UnitTests
             // act
             // assert
             Assert.Throws(typeof(ArgumentException),
-                () => new RestExchangeOptions<TestEnvironment, HMACCredential>() { ApiCredentials = new HMACCredential(key, secret) });
+                () => {
+                    var opts = new RestExchangeOptions<TestEnvironment, HMACCredential>()
+                    {
+                        ApiCredentials = new HMACCredential(key, secret)
+                    };
+                    opts.ApiCredentials.Validate();
+                });
         }
 
         [Test]
