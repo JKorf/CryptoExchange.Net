@@ -148,6 +148,11 @@ namespace CryptoExchange.Net.Clients
         /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
         /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
+
+        /// <summary>
+        /// Configured environment name
+        /// </summary>
+        public abstract string EnvironmentName { get; }
         #endregion
 
         /// <summary>
@@ -1036,6 +1041,12 @@ namespace CryptoExchange.Net.Clients
     public abstract class SocketApiClient<TEnvironment> : SocketApiClient, ISocketApiClient
        where TEnvironment : TradeEnvironment
     {
+        /// <inheritdoc />
+        public new SocketExchangeOptions<TEnvironment> ClientOptions => (SocketExchangeOptions<TEnvironment>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public override string EnvironmentName => ClientOptions.Environment.Name;
+
         /// <summary>
         /// ctor
         /// </summary>

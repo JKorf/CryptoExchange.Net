@@ -108,6 +108,11 @@ namespace CryptoExchange.Net.Clients
         /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
         /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
+        
+        /// <summary>
+        /// Configured environment name
+        /// </summary>
+        public abstract string EnvironmentName { get; }
 
         /// <summary>
         /// ctor
@@ -820,6 +825,12 @@ namespace CryptoExchange.Net.Clients
     public abstract class RestApiClient<TEnvironment> : RestApiClient, IRestApiClient
         where TEnvironment : TradeEnvironment
     {
+        /// <inheritdoc />
+        public new RestExchangeOptions<TEnvironment> ClientOptions => (RestExchangeOptions<TEnvironment>)base.ClientOptions;
+
+        /// <inheritdoc />
+        public override string EnvironmentName => ClientOptions.Environment.Name;
+
         /// <summary>
         /// ctor
         /// </summary>
