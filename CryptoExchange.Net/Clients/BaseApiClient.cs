@@ -28,6 +28,11 @@ namespace CryptoExchange.Net.Clients
         protected bool _disposing;
 
         /// <summary>
+        /// Whether a proxy is configured
+        /// </summary>
+        protected bool _proxyConfigured;
+
+        /// <summary>
         /// Name of the client
         /// </summary>
         protected internal string ClientName
@@ -88,6 +93,8 @@ namespace CryptoExchange.Net.Clients
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;
             BaseAddress = baseAddress;
+
+            _proxyConfigured = ClientOptions.Proxy != null;
         }
 
         /// <inheritdoc />

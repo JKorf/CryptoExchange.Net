@@ -474,7 +474,7 @@ namespace CryptoExchange.Net.Authentication
     /// <inheritdoc />
     public abstract class AuthenticationProvider<TApiCredentials, TCredentialType> : AuthenticationProvider<TApiCredentials>
         where TApiCredentials : ApiCredentials
-        where TCredentialType : CredentialPair
+        where TCredentialType : CredentialSet
     {
         /// <summary>
         /// The specific credential type used for signing requests.

@@ -890,6 +890,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
         {
+            _proxyConfigured = options.Proxy != null;
             ClientOptions.Proxy = options.Proxy;
             ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
 
@@ -958,15 +959,23 @@ namespace CryptoExchange.Net.Clients
         public override void SetApiCredentials(TApiCredentials credentials)
         {
             base.SetApiCredentials(credentials);
-            AuthenticationProvider = CreateAuthenticationProvider(credentials);
+
+            AuthenticationProvider = null;
+            _authProviderInitialized = false;
+            ApiCredentials = credentials;
         }
 
         /// <inheritdoc />
         public override void SetOptions(UpdateOptions<TApiCredentials> options)
         {
             base.SetOptions(options);
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+
+            if (options.ApiCredentials != null)
+            {
+                AuthenticationProvider = null;
+                _authProviderInitialized = false;
+                ApiCredentials = options.ApiCredentials;
+            }
         }
     }
 }

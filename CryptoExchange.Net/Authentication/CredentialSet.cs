@@ -7,9 +7,9 @@ using System.Text;
 namespace CryptoExchange.Net.Authentication
 {
     /// <summary>
-    /// Credential pair base class
+    /// Base class for a set of credentials
     /// </summary>
-    public abstract class CredentialPair : ApiCredentials
+    public abstract class CredentialSet : ApiCredentials
     {
         /// <summary>
         /// The (public) key/identifier for this credential pair
@@ -19,12 +19,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// ctor
         /// </summary>
-        public CredentialPair() { }
+        public CredentialSet() { }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public CredentialPair(string key)
+        public CredentialSet(string key)
         {
             Key = key;
         }
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Api key credentials
     /// </summary>
-    public class ApiKeyCredential : CredentialPair
+    public class ApiKeyCredential : CredentialSet
     {
         /// <summary>
         /// ctor
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// HMAC credentials
     /// </summary>
-    public class HMACCredential : CredentialPair
+    public class HMACCredential : CredentialSet
     {
         private byte[]? _sBytes;
 
@@ -151,7 +151,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// RSA credentials
     /// </summary>
-    public abstract class RSACredential : CredentialPair
+    public abstract class RSACredential : CredentialSet
     {
         /// <summary>
         /// Private key
@@ -399,7 +399,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Credentials in Ed25519 format
     /// </summary>
-    public class Ed25519Credential : CredentialPair
+    public class Ed25519Credential : CredentialSet
     {
         private NSec.Cryptography.Key? _signKey;
 
@@ -499,7 +499,7 @@ namespace CryptoExchange.Net.Authentication
     /// <summary>
     /// Credentials in ECDsa format
     /// </summary>
-    public class ECDsaCredential : CredentialPair
+    public class ECDsaCredential : CredentialSet
     {
         /// <summary>
         /// Private key
