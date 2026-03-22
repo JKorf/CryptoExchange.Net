@@ -16,6 +16,11 @@
         /// <summary>
         /// Order has been canceled
         /// </summary>
-        Canceled
+        Canceled,
+
+        /// <summary>
+        /// Unknown/unmapped status
+        /// </summary>
+        Unknown
     }
 }

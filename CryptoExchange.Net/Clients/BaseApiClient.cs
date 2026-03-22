@@ -1,5 +1,4 @@
 using System;
-using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces.Clients;
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
@@ -29,6 +28,11 @@ namespace CryptoExchange.Net.Clients
         protected bool _disposing;
 
         /// <summary>
+        /// Whether a proxy is configured
+        /// </summary>
+        protected bool _proxyConfigured;
+
+        /// <summary>
         /// Name of the client
         /// </summary>
         protected internal string ClientName
@@ -44,11 +48,6 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// The authentication provider for this API client. (null if no credentials are set)
-        /// </summary>
-        public AuthenticationProvider? AuthenticationProvider { get; private set; }
-
-        /// <summary>
         /// The environment this client communicates to
         /// </summary>
         public string BaseAddress { get; }
@@ -57,12 +56,6 @@ namespace CryptoExchange.Net.Clients
         /// Output the original string data along with the deserialized object
         /// </summary>
         public bool OutputOriginalData { get; }
-
-        /// <inheritdoc />
-        public bool Authenticated => ApiCredentials != null;
-
-        /// <inheritdoc />
-        public ApiCredentials? ApiCredentials { get; set; }
 
         /// <summary>
         /// Api options
@@ -85,10 +78,14 @@ namespace CryptoExchange.Net.Clients
         /// <param name="logger">Logger</param>
         /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
-        /// <param name="apiCredentials">Api credentials</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
-        protected BaseApiClient(ILogger logger, bool outputOriginalData, ApiCredentials? apiCredentials, string baseAddress, ExchangeOptions clientOptions, ApiOptions apiOptions)
+        protected BaseApiClient(
+            ILogger logger,
+            bool outputOriginalData,
+            string baseAddress,
+            ExchangeOptions clientOptions,
+            ApiOptions apiOptions)
         {
             _logger = logger;
 
@@ -96,18 +93,9 @@ namespace CryptoExchange.Net.Clients
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;
             BaseAddress = baseAddress;
-            ApiCredentials = apiCredentials?.Copy();
 
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
+            _proxyConfigured = ClientOptions.Proxy != null;
         }
-
-        /// <summary>
-        /// Create an AuthenticationProvider implementation instance based on the provided credentials
-        /// </summary>
-        /// <param name="credentials"></param>
-        /// <returns></returns>
-        protected abstract AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials);
 
         /// <inheritdoc />
         public abstract string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
@@ -121,25 +109,6 @@ namespace CryptoExchange.Net.Clients
         /// Get error info for a response code
         /// </summary>
         public ErrorInfo GetErrorInfo(string code, string? message = null) => ErrorMapping.GetErrorInfo(code.ToString(), message);
-
-        /// <inheritdoc />
-        public void SetApiCredentials<T>(T credentials) where T : ApiCredentials
-        {
-            ApiCredentials = credentials?.Copy();
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-        }
-
-        /// <inheritdoc />
-        public virtual void SetOptions<T>(UpdateOptions<T> options) where T : ApiCredentials
-        {
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
-
-            ApiCredentials = options.ApiCredentials?.Copy() ?? ApiCredentials;
-            if (ApiCredentials != null)
-                AuthenticationProvider = CreateAuthenticationProvider(ApiCredentials);
-        }
 
         /// <summary>
         /// Dispose

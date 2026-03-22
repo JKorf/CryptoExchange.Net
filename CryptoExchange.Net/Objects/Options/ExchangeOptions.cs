@@ -29,11 +29,6 @@ namespace CryptoExchange.Net.Objects.Options
         public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(20);
 
         /// <summary>
-        /// The api credentials used for signing requests to this API.
-        /// </summary>        
-        public ApiCredentials? ApiCredentials { get; set; }
-
-        /// <summary>
         /// Whether or not client side rate limiting should be applied
         /// </summary>
         public bool RateLimiterEnabled { get; set; } = true;
@@ -45,7 +40,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"RequestTimeout: {RequestTimeout}, Proxy: {(Proxy == null ? "-" : "set")}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
+            return $"RequestTimeout: {RequestTimeout}, Proxy: {(Proxy == null ? "-" : "set")}";
         }
     }
 }

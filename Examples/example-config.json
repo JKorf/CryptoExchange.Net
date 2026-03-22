@@ -3,9 +3,11 @@
 	"ExchangeApiOptions": {
 		// API credentials for both REST and Websocket client
 		"ApiCredentials": {
-			"Key": "APIKEY",
-			"Secret": "SECRET",
-			"PassPhrase": "Phrase" // Optional passphrase for exchanges which need it
+			"HMAC": {
+				"Key": "APIKEY",
+				"Secret": "SECRET",
+				"PassPhrase": "Phrase" // Optional passphrase for exchanges which need it
+			}
 		},
 		// Set the environment by name
 		"Environment": {

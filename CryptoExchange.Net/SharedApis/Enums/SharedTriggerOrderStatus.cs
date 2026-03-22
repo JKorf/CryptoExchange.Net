@@ -20,6 +20,11 @@
         /// <summary>
         /// Trigger order has been triggered. Resulting order might be filled or not.
         /// </summary>
-        Triggered
+        Triggered,
+
+        /// <summary>
+        /// Unknown/unmapped status
+        /// </summary>
+        Unknown
     }
 }

@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartArray)
-                throw new Exception("");
+                throw new Exception("Invalid JSON structure");
 
             reader.Read(); // Start array
             var baseQuantity = reader.TokenType == JsonTokenType.Null ? (decimal?)null : reader.GetDecimal();
@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             reader.Read();
 
             if (reader.TokenType != JsonTokenType.EndArray)
-                throw new Exception("");
+                throw new Exception("Invalid JSON structure");
 
             reader.Read(); // End array
 

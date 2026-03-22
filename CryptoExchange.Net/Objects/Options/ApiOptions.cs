@@ -1,6 +1,4 @@
-﻿using CryptoExchange.Net.Authentication;
-
-namespace CryptoExchange.Net.Objects.Options
+﻿namespace CryptoExchange.Net.Objects.Options
 {
     /// <summary>
     /// Options for API usage
@@ -17,10 +15,5 @@ namespace CryptoExchange.Net.Objects.Options
         /// Note that this comes at a performance cost
         /// </summary>
         public bool? OutputOriginalData { get; set; }
-
-        /// <summary>
-        /// The api credentials used for signing requests to this API. Overrides API credentials provided in the client options
-        /// </summary>        
-        public ApiCredentials? ApiCredentials { get; set; }
     }
 }

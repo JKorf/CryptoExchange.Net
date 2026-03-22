@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Authentication.Signing
     {
         /// <summary>
         /// Encode EIP712 typed data according to the specification, with the provided primary type, domain fields and message fields.
-        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDSA secp256k1 to produce a signature that can be verified on chain with EIP712.
+        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDsa secp256k1 to produce a signature that can be verified on chain with EIP712.
         /// Note that this implementation does not support all possible EIP712 types, but it should cover most common use cases
         /// </summary>
         public static byte[] EncodeEip721(
@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.Authentication.Signing
 
         /// <summary>
         /// Encode EIP712 typed data according to the specification, with the provided primary type, domain fields and message fields.
-        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDSA secp256k1 to produce a signature that can be verified on chain with EIP712.
+        /// The resulting byte array is the 0x19 0x01 prefix followed by the hash of the domain and the hash of the message, which can be signed with ECDsa secp256k1 to produce a signature that can be verified on chain with EIP712.
         /// Note that this implementation does not support all possible EIP712 types, but it should cover most common use cases
         /// </summary>
         public static byte[] EncodeTypedDataRaw(CeTypedDataRaw typedData)
@@ -152,7 +152,7 @@ namespace CryptoExchange.Net.Authentication.Signing
                             if (memberValue.Value is string v)
                             {
                                 if (!BigInteger.TryParse(v, out BigInteger parsedOutput))
-                                    throw new Exception("");
+                                    throw new Exception($"Failed to encode BigInteger string {v}");
 
                                 writer.Write(CeAbiEncoder.AbiValueEncodeBigInteger(memberValue.TypeName[0] != 'u', parsedOutput));
                             }
@@ -186,19 +186,11 @@ namespace CryptoExchange.Net.Authentication.Signing
                             }
                             else
                             {
-                                throw new Exception();
+                                throw new Exception("Unknown number value");
                             }
                         }
                         else if (memberValue.TypeName.StartsWith("bytes"))
                         {
-                            // Applicable?
-                            //if (memberValue.Value is string v)
-                            //    writer.Write(AbiEncoder.AbiValueEncodeHexBytes(v));
-                            //else if (memberValue.Value is byte[] b)
-                            //    writer.Write(AbiEncoder.AbiValueEncodeBytes(b));
-                            //else
-                            //    throw new Exception("Unknown byte value type");
-
                             var length = memberValue.TypeName.Length == 5 ? 32 : int.Parse(memberValue.TypeName.Substring(5));
                             writer.Write(CeAbiEncoder.AbiValueEncodeBytes(length, (byte[])memberValue.Value));
                         }

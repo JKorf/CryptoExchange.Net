@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,7 +21,7 @@ namespace CryptoExchange.Net
         public static ILogger? StaticLogger
         {
             get => _staticLogger;
-            internal set  
+            internal set
             {
                 if (_staticLogger != null)
                     return;
