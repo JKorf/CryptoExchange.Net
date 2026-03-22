@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override SharedSymbol? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartArray)
-                throw new Exception("");
+                throw new Exception("Invalid JSON structure");
 
             reader.Read(); // Start array
             var tradingMode = (TradingMode)Enum.Parse(typeof(TradingMode), reader.GetString()!);
@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             reader.Read();
 
             if (reader.TokenType != JsonTokenType.EndArray)
-                throw new Exception("");
+                throw new Exception("Invalid JSON structure");
 
             reader.Read(); // End array
 

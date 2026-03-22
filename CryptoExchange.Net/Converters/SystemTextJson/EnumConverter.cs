@@ -88,6 +88,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
         private NullableEnumConverter? _nullableEnumConverter = null;
 
+        private static T? _undefinedEnumValue;
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
 
         internal class NullableEnumConverter : JsonConverter<T?>
@@ -129,7 +130,23 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
             }
 
-            return (T)Enum.ToObject(typeof(T), -1);
+            return GetUndefinedEnumValue();
+        }
+
+        private T GetUndefinedEnumValue()
+        {
+            if (_undefinedEnumValue != null)
+                return _undefinedEnumValue.Value;
+
+            var type = typeof(T);
+            if (!Enum.IsDefined(type, -9))
+                _undefinedEnumValue = (T)Enum.ToObject(type, -9);
+            else if (!Enum.IsDefined(type, -99))
+                _undefinedEnumValue = (T)Enum.ToObject(type, -99);
+            else
+                _undefinedEnumValue = (T)Enum.ToObject(type, -999);
+
+            return (T)_undefinedEnumValue;
         }
 
         private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)

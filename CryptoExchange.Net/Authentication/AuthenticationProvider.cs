@@ -487,10 +487,12 @@ namespace CryptoExchange.Net.Authentication
         /// <summary>
         /// ctor
         /// </summary>
-        protected AuthenticationProvider(TApiCredentials credentials, TCredentialType? credential) : base(credentials)
+        protected AuthenticationProvider(
+            TApiCredentials credentials,
+            TCredentialType? credential) : base(credentials)
         {
             if (credential == null)
-                throw new ArgumentException("Missing required credentials");
+                throw new ArgumentException($"Missing \"{typeof(TCredentialType).Name}\" credentials on \"{credentials.GetType().Name}\"");
 
             Credential = credential;
         }

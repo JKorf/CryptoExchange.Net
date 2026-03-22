@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.Authentication
         public override void Validate()
         {
             if (string.IsNullOrEmpty(Key))
-                throw new ArgumentException("Key unset", nameof(Key));
+                throw new ArgumentException($"Key not set on {GetType().Name}", nameof(Key));
         }
     }
 
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(Secret))
-                throw new ArgumentException("Secret unset", nameof(Secret));
+                throw new ArgumentException($"Secret not set on {GetType().Name}", nameof(Secret));
         }
     }
 
@@ -144,7 +144,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(Pass))
-                throw new ArgumentException("Pass unset", nameof(Pass));
+                throw new ArgumentException($"Pass not set on {GetType().Name}", nameof(Pass));
         }
     }
 
@@ -185,7 +185,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(PrivateKey))
-                throw new ArgumentException("PrivateKey unset", nameof(PrivateKey));
+                throw new ArgumentException($"PrivateKey not set on {GetType().Name}", nameof(PrivateKey));
         }
     }
 
@@ -223,7 +223,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(Pass))
-                throw new ArgumentException("Pass unset", nameof(Pass));
+                throw new ArgumentException($"PrivateKey not set on {GetType().Name}", nameof(PrivateKey));
         }
     }
 
@@ -268,15 +268,7 @@ namespace CryptoExchange.Net.Authentication
         }
 
         /// <inheritdoc />
-        public override ApiCredentials Copy() => new RSAPemCredential(Key, PrivateKey);
-        
-        /// <inheritdoc />
-        public override void Validate()
-        {
-            base.Validate();
-            if (string.IsNullOrEmpty(PrivateKey))
-                throw new ArgumentException("PrivateKey unset", nameof(PrivateKey));
-        }
+        public override ApiCredentials Copy() => new RSAPemCredential(Key, PrivateKey);        
     }
 
     /// <summary>
@@ -451,7 +443,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(PrivateKey))
-                throw new ArgumentException("PrivateKey unset", nameof(PrivateKey));
+                throw new ArgumentException($"PrivateKey not set on {GetType().Name}", nameof(PrivateKey));
         }
     }
 
@@ -491,7 +483,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(Pass))
-                throw new ArgumentException("Pass unset", nameof(Pass));
+                throw new ArgumentException($"Pass not set on {GetType().Name}", nameof(Pass));
         }
     }
 #endif
@@ -531,7 +523,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(PrivateKey))
-                throw new ArgumentException("PrivateKey unset", nameof(PrivateKey));
+                throw new ArgumentException($"PrivateKey not set on {GetType().Name}", nameof(PrivateKey));
         }
     }
 
@@ -571,7 +563,7 @@ namespace CryptoExchange.Net.Authentication
         {
             base.Validate();
             if (string.IsNullOrEmpty(Pass))
-                throw new ArgumentException("Pass unset", nameof(Pass));
+                throw new ArgumentException($"Pass not set on {GetType().Name}", nameof(Pass));
         }
     }
 }

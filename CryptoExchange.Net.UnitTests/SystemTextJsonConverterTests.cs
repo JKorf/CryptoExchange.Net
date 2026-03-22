@@ -155,13 +155,20 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase("three", TestEnum.Three)]
         [TestCase("Four", TestEnum.Four)]
         [TestCase("four", TestEnum.Four)]
-        [TestCase("Four1", (TestEnum)(-1))]
-        [TestCase(null, (TestEnum)(-1))]
+        [TestCase("Four1", (TestEnum)(-9))]
+        [TestCase(null, (TestEnum)(-9))]
         public void TestEnumConverterNotNullableDeserializeTests(string value, TestEnum expected)
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJEnumObject>($"{{ \"Value\": {val} }}");
             Assert.That(output.Value == expected);
+        }
+
+        [Test]
+        public void TestEnumConverterMapsUndefinedValueCorrectlyIfDefaultIsDefined()
+        {
+            var output = JsonSerializer.Deserialize<TestEnum2>($"\"TestUndefined\"");
+            Assert.That((int)output == -99);
         }
 
         [TestCase("1", TestEnum.One)]
@@ -416,6 +423,20 @@ namespace CryptoExchange.Net.UnitTests
     [JsonConverter(typeof(EnumConverter<TestEnum>))]
     public enum TestEnum
     {
+        [Map("1")]
+        One,
+        [Map("2")]
+        Two,
+        [Map("three", "3")]
+        Three,
+        Four
+    }
+
+    [JsonConverter(typeof(EnumConverter<TestEnum2>))]
+    public enum TestEnum2
+    {
+        [Map("-9")]
+        Minus9 = -9,
         [Map("1")]
         One,
         [Map("2")]
