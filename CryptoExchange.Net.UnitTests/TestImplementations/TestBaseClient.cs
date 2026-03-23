@@ -42,11 +42,11 @@ namespace CryptoExchange.Net.UnitTests
         }
     }
 
-    public class TestSubClient : RestApiClient
+    public class TestSubClient : RestApiClient<TestEnvironment, TestAuthProvider, HMACCredential>
     {
         protected override IRestMessageHandler MessageHandler => throw new NotImplementedException();
 
-        public TestSubClient(RestExchangeOptions<TestEnvironment> options, RestApiOptions apiOptions) : base(new TraceLogger(), null, "https://localhost:123", options, apiOptions)
+        public TestSubClient(RestExchangeOptions<TestEnvironment, HMACCredential> options, RestApiOptions apiOptions) : base(new TraceLogger(), null, "https://localhost:123", options, apiOptions)
         {
         }
 
@@ -58,24 +58,22 @@ namespace CryptoExchange.Net.UnitTests
         /// <inheritdoc />
         public override string FormatSymbol(string baseAsset, string quoteAsset, TradingMode futuresType, DateTime? deliverDate = null) => $"{baseAsset.ToUpperInvariant()}{quoteAsset.ToUpperInvariant()}";
         protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(new System.Text.Json.JsonSerializerOptions());
-        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials) => throw new NotImplementedException();
+        protected override TestAuthProvider CreateAuthenticationProvider(HMACCredential credentials) => throw new NotImplementedException();
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
     }
 
-    public class TestAuthProvider : AuthenticationProvider
+    public class TestAuthProvider : AuthenticationProvider<HMACCredential, HMACCredential>
     {
-        public override ApiCredentialsType[] SupportedCredentialTypes => [ApiCredentialsType.Hmac];
-
-        public TestAuthProvider(ApiCredentials credentials) : base(credentials)
+        public TestAuthProvider(HMACCredential credentials) : base(credentials, credentials)
         {
         }
 
         public override void ProcessRequest(RestApiClient apiClient, RestRequestConfiguration requestConfig)
         {
         }
-        
-        public string GetKey() => _credentials.Key;
-        public string GetSecret() => _credentials.Secret;
+
+        public string GetKey() => Credential.Key;
+        public string GetSecret() => Credential.Secret;
     }
 
     public class TestEnvironment : TradeEnvironment

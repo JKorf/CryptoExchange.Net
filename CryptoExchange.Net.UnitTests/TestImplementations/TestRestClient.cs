@@ -130,7 +130,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
     }
 
-    public class TestRestApi1Client : RestApiClient
+    public class TestRestApi1Client : RestApiClient<TestEnvironment, TestAuthProvider, HMACCredential>
     {
         protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
 
@@ -159,7 +159,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
             ParameterPositions[method] = position;
         }
 
-        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+        protected override TestAuthProvider CreateAuthenticationProvider(HMACCredential credentials)
             => new TestAuthProvider(credentials);
 
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync()
@@ -168,7 +168,7 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         }
     }
 
-    public class TestRestApi2Client : RestApiClient
+    public class TestRestApi2Client : RestApiClient<TestEnvironment, TestAuthProvider, HMACCredential>
     {
         protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
 
@@ -186,8 +186,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             return await SendAsync<T>("http://www.test.com", new RequestDefinition("/", HttpMethod.Get) { Weight = 0 }, null, ct);
         }
-        
-        protected override AuthenticationProvider CreateAuthenticationProvider(ApiCredentials credentials)
+
+        protected override TestAuthProvider CreateAuthenticationProvider(HMACCredential credentials)
             => new TestAuthProvider(credentials);
 
         protected override Task<WebCallResult<DateTime>> GetServerTimestampAsync()

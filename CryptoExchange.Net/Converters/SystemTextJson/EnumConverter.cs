@@ -88,6 +88,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
         private NullableEnumConverter? _nullableEnumConverter = null;
 
+        private static T? _undefinedEnumValue;
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
 
         internal class NullableEnumConverter : JsonConverter<T?>
@@ -120,20 +121,32 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
-            if (t == null)
-            {
-                if (isEmptyString && !_unknownValuesWarned.Contains(null))
-                {
-                    // We received an empty string and have no mapping for it, and the property isn't nullable
-                    LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
-                }
-
-                return new T(); // return default value
-            }
-            else
-            {
+            if (t != null)
                 return t.Value;
+            
+            if (isEmptyString && !_unknownValuesWarned.Contains(null))
+            {
+                // We received an empty string and have no mapping for it, and the property isn't nullable
+                LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
             }
+
+            return GetUndefinedEnumValue();
+        }
+
+        private T GetUndefinedEnumValue()
+        {
+            if (_undefinedEnumValue != null)
+                return _undefinedEnumValue.Value;
+
+            var type = typeof(T);
+            if (!Enum.IsDefined(type, -9))
+                _undefinedEnumValue = (T)Enum.ToObject(type, -9);
+            else if (!Enum.IsDefined(type, -99))
+                _undefinedEnumValue = (T)Enum.ToObject(type, -99);
+            else
+                _undefinedEnumValue = (T)Enum.ToObject(type, -999);
+
+            return (T)_undefinedEnumValue;
         }
 
         private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)

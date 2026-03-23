@@ -6,8 +6,9 @@ namespace CryptoExchange.Net.Objects.Options
     /// <summary>
     /// Options for a rest exchange client
     /// </summary>
-    public class RestExchangeOptions: ExchangeOptions
+    public class RestExchangeOptions : ExchangeOptions
     {
+
         /// <summary>
         /// How often the timestamp adjustment between client and server is recalculated. If you need a very small TimeSpan here you're probably better of syncing your server time more often
         /// </summary>
@@ -64,7 +65,6 @@ namespace CryptoExchange.Net.Objects.Options
             item.OutputOriginalData = OutputOriginalData;
             item.AutoTimestamp = AutoTimestamp;
             item.TimestampRecalculationInterval = TimestampRecalculationInterval;
-            item.ApiCredentials = ApiCredentials?.Copy();
             item.Proxy = Proxy;
             item.RequestTimeout = RequestTimeout;
             item.RateLimiterEnabled = RateLimiterEnabled;
@@ -83,11 +83,9 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
-    /// <summary>
-    /// Options for a rest exchange client
-    /// </summary>
-    /// <typeparam name="TEnvironment"></typeparam>
-    public class RestExchangeOptions<TEnvironment> : RestExchangeOptions where TEnvironment : TradeEnvironment
+    /// <inheritdoc />
+    public class RestExchangeOptions<TEnvironment> : RestExchangeOptions
+        where TEnvironment : TradeEnvironment
     {
         /// <summary>
         /// Trade environment. Contains info about URL's to use to connect to the API. To swap environment select another environment for
@@ -108,20 +106,32 @@ namespace CryptoExchange.Net.Objects.Options
         }
     }
 
-    /// <summary>
-    /// Options for a rest exchange client
-    /// </summary>
-    /// <typeparam name="TEnvironment"></typeparam>
-    /// <typeparam name="TApiCredentials"></typeparam>
-    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TEnvironment> where TEnvironment : TradeEnvironment where TApiCredentials : ApiCredentials
+    /// <inheritdoc />
+    public class RestExchangeOptions<TEnvironment, TApiCredentials> : RestExchangeOptions<TEnvironment>
+        where TEnvironment : TradeEnvironment
+        where TApiCredentials : ApiCredentials
     {
+
         /// <summary>
         /// The api credentials used for signing requests to this API.
         /// </summary>        
-        public new TApiCredentials? ApiCredentials
+        public TApiCredentials? ApiCredentials { get; set; }
+
+        /// <summary>
+        /// Set the values of this options on the target options
+        /// </summary>
+        public new T Set<T>(T item) where T : RestExchangeOptions<TEnvironment, TApiCredentials>, new()
         {
-            get => (TApiCredentials?)base.ApiCredentials;
-            set => base.ApiCredentials = value;
+            base.Set(item);
+            item.ApiCredentials = (TApiCredentials?)ApiCredentials?.Copy();
+            return item;
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
+        }
+
     }
 }

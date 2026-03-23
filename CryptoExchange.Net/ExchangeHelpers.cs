@@ -531,5 +531,50 @@ namespace CryptoExchange.Net
             // Unknown decimal format, return null
             return null;
         }
+
+        /// <summary>
+        /// Convert byte array to hex string
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <returns></returns>
+        public static string BytesToHexString(byte[] buff)
+            => BytesToHexString(new ArraySegment<byte>(buff));
+
+        /// <summary>
+        /// Convert byte array to hex string
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <returns></returns>
+        public static string BytesToHexString(ArraySegment<byte> buff)
+        {
+#if NET9_0_OR_GREATER
+            return Convert.ToHexString(buff);
+#else
+            var result = string.Empty;
+            foreach (var t in buff)
+                result += t.ToString("X2");
+            return result;
+#endif
+        }
+
+        /// <summary>
+        /// Convert a hex encoded string to byte array
+        /// </summary>
+        /// <param name="hexString"></param>
+        /// <returns></returns>
+        public static byte[] HexToBytesString(string hexString)
+        {
+            if (hexString.StartsWith("0x"))
+                hexString = hexString.Substring(2);
+
+            byte[] bytes = new byte[hexString.Length / 2];
+            for (int i = 0; i < hexString.Length; i += 2)
+            {
+                string hexSubstring = hexString.Substring(i, 2);
+                bytes[i / 2] = Convert.ToByte(hexSubstring, 16);
+            }
+
+            return bytes;
+        }
     }
 }

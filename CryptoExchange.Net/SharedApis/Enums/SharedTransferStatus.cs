@@ -16,6 +16,11 @@
         /// <summary>
         /// Completed
         /// </summary>
-        Completed
+        Completed,
+
+        /// <summary>
+        /// Unknown/unmapped status
+        /// </summary>
+        Unknown
     }
 }
