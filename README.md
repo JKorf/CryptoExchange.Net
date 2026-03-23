@@ -68,6 +68,26 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.0.0 - 23 Mar 2026
+    * Updated API credential logic, exchange implementation are expected to provide their own credentials implementation with ApiCredentials as base class
+    * Removed ApiCredentials implementation used by most exchanges
+    * Removed ApiCredentialsType Enum
+    * Added CredentialSet base class and implementations for defining different API credentials
+    * Added optional type param to AuthenticationProvider for the specific API credential type to improve type safety
+    * Moved AuthenticationProvider/ApiCredentials from BaseApiClient to RestApiClient/SocketApiClient base classes
+    * Added optional type params to RestApiClient/SocketApiClient base class to specify the AuthenticationProvider type and credentials type to improve type safety
+    * Moved SetOptions/SetApiCredentials from BaseApiClient to RestApiClient/SocketApiClient
+    * Extracted LibraryOptions<TRestOptions, TSocketOptions, TEnvironment> without TApiCredentials for libraries without API credentials
+    * Removed ApiCredentials from ApiOptions, credentials can only be configured at library, rest or socket level
+    * Added EnvironmentName property to RestApiClient/SocketApiClient
+    * Added Unknown enum value to Shared interfaces SharedOrderStatus, SharedTransferStatus and SharedTriggerOrderStatus enums
+    * Updated Enum converter to map value to an undefined Enum value instead of the first Enum value
+    * Added support for checking for missing fields on RestIntegrationTest
+    * Added Web3 signing utilities
+    * Added BytesToHexString and HexToBytesString to ExchangeHelpers static class
+    * Fixed bug where WebSocket connections are not reconnected when configuring Proxy with SetUpdates
+    * Removed legacy CryptoBaseClient, CryptoRestClient and CryptoSocketClient
+
 * Version 10.8.0 - 06 Mar 2026
     * Added `RequestBodyContentEncoding` and `OmitContentTypeHeaderWithoutContent` config to RestApiClient
     * Added `ForcePathEndWithSlash` setting to RequestDefinition
