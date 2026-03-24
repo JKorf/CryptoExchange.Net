@@ -75,7 +75,7 @@ namespace CryptoExchange.Net
                     if (serializationType == ArrayParametersSerialization.Array)
                     {
                         bool firstArrayValue = true;
-                        foreach (var entry in (object[])parameter.Value)
+                        foreach (var entry in (Array)parameter.Value)
                         {
                             if (!firstArrayValue)
                                 uriString.Append('&');
@@ -92,7 +92,7 @@ namespace CryptoExchange.Net
                     else if (serializationType == ArrayParametersSerialization.MultipleValues)
                     {
                         bool firstArrayValue = true;
-                        foreach (var entry in (object[])parameter.Value)
+                        foreach (var entry in (Array)parameter.Value)
                         {
                             if (!firstArrayValue)
                                 uriString.Append('&');
@@ -109,7 +109,7 @@ namespace CryptoExchange.Net
                     {
                         uriString.Append('[');
                         var firstArrayEntry = true;
-                        foreach (var entry in (object[])parameter.Value)
+                        foreach (var entry in (Array)parameter.Value)
                         {
                             if (!firstArrayEntry)
                                 uriString.Append(',');                            
