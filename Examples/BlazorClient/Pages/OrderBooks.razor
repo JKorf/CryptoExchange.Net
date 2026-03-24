@@ -21,6 +21,7 @@
 @using HTX.Net.Interfaces
 @using HyperLiquid.Net.Interfaces
 @using Kraken.Net.Interfaces
+@using Kucoin.Net
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
 @using Mexc.Net.Interfaces
@@ -83,7 +84,7 @@
         // Since the Kucoin order book stream needs authentication we will need to provide API credentials beforehand
         KucoinRestClient.SetDefaultOptions(options =>
         {
-            options.ApiCredentials = new ApiCredentials("KEY", "SECRET", "PASSPHRASE");
+            options.ApiCredentials = new KucoinCredentials("KEY", "SECRET", "PASSPHRASE");
         });
 
         _books = new Dictionary<string, ISymbolOrderBook>

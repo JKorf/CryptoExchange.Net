@@ -1,3 +1,4 @@
+using Binance.Net;
 using CryptoExchange.Net.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +31,7 @@ namespace BlazorClient
             // Register the clients, options can be provided in the callback parameter
             services.AddBinance(restOptions =>
             {
-                restOptions.ApiCredentials = new ApiCredentials("KEY", "SECRET");
+                restOptions.ApiCredentials = new BinanceCredentials("KEY", "SECRET");
             });
 
             services.AddAster();
