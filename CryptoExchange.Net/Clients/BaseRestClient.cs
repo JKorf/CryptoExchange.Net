@@ -14,6 +14,11 @@ namespace CryptoExchange.Net.Clients
     /// </summary>
     public abstract class BaseRestClient : BaseClient, IRestClient
     {
+        /// <summary>
+        /// Api clients in this client
+        /// </summary>
+        internal new List<RestApiClient> ApiClients => base.ApiClients.OfType<RestApiClient>().ToList();
+
         /// <inheritdoc />
         public int TotalRequestsMade => ApiClients.OfType<RestApiClient>().Sum(s => s.TotalRequestsMade);
 
@@ -29,6 +34,14 @@ namespace CryptoExchange.Net.Clients
             LibraryHelpers.StaticLogger = loggerFactory?.CreateLogger("CryptoExchange");
         }
 
+        /// <summary>
+        /// Update options
+        /// </summary>
+        public virtual void SetOptions(UpdateOptions options)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetOptions(options);
+        }
     }
 
     /// <inheritdoc />
@@ -40,6 +53,11 @@ namespace CryptoExchange.Net.Clients
         /// Api clients in this client
         /// </summary>
         internal new List<RestApiClient<TEnvironment, TApiCredentials>> ApiClients => base.ApiClients.OfType<RestApiClient<TEnvironment, TApiCredentials>>().ToList();
+
+        /// <summary>
+        /// Provided client options
+        /// </summary>
+        public new RestExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (RestExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
         /// <summary>
         /// ctor

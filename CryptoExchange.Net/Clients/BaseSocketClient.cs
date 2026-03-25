@@ -22,6 +22,11 @@ namespace CryptoExchange.Net.Clients
         #region fields
 
         /// <summary>
+        /// Api clients in this client
+        /// </summary>
+        internal new List<SocketApiClient> ApiClients => base.ApiClients.OfType<SocketApiClient>().ToList();
+
+        /// <summary>
         /// If client is disposing
         /// </summary>
         protected bool _disposing;
@@ -135,6 +140,15 @@ namespace CryptoExchange.Net.Clients
 
             return result;
         }
+
+        /// <summary>
+        /// Update options
+        /// </summary>
+        public virtual void SetOptions(UpdateOptions options)
+        {
+            foreach (var apiClient in ApiClients)
+                apiClient.SetOptions(options);
+        }
     }
 
     /// <inheritdoc />
@@ -146,6 +160,11 @@ namespace CryptoExchange.Net.Clients
         /// Api clients in this client
         /// </summary>
         internal new List<SocketApiClient<TEnvironment, TApiCredentials>> ApiClients => base.ApiClients.OfType<SocketApiClient<TEnvironment, TApiCredentials>>().ToList();
+
+        /// <summary>
+        /// Provided client options
+        /// </summary>
+        public new SocketExchangeOptions<TEnvironment, TApiCredentials> ClientOptions => (SocketExchangeOptions<TEnvironment, TApiCredentials>)base.ClientOptions;
 
         /// <summary>
         /// ctor

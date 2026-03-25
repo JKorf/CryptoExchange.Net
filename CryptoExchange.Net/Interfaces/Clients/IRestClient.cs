@@ -28,6 +28,12 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// Whether client is disposed
         /// </summary>
         bool Disposed { get; }
+
+        /// <summary>
+        /// Update specific options
+        /// </summary>
+        /// <param name="options">Options to update. Only specific options are changeable after the client has been created</param>
+        void SetOptions(UpdateOptions options);
     }
 
     /// <inheritdoc />

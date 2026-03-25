@@ -819,6 +819,16 @@ namespace CryptoExchange.Net.Clients
             && definition.Method == HttpMethod.Get
             && !definition.PreventCaching;
 
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions options)
+        {
+            _proxyConfigured = options.Proxy != null;
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
+        }
     }
 
     /// <inheritdoc />
@@ -890,12 +900,9 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
         {
-            _proxyConfigured = options.Proxy != null;
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+            base.SetOptions(options);
 
             ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
-            RequestFactory.UpdateSettings(options.Proxy, options.RequestTimeout ?? ClientOptions.RequestTimeout, ClientOptions.HttpKeepAliveInterval);
         }
     }
 

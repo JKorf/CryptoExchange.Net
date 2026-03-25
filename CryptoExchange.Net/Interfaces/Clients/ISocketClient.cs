@@ -60,6 +60,12 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// </summary>
         /// <returns></returns>
         Task UnsubscribeAllAsync();
+
+        /// <summary>
+        /// Update specific options
+        /// </summary>
+        /// <param name="options">Options to update. Only specific options are changeable after the client has been created</param>
+        void SetOptions(UpdateOptions options);
     }
 
     /// <inheritdoc />

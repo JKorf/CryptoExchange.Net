@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
@@ -54,6 +55,63 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(options.ApiCredentials.Secret == "456");
         }
 
+        [Test]
+        public void TestSetOptionsRest()
+        {
+            var client = new TestRestClient();
+            client.SetOptions(new UpdateOptions
+            {
+                RequestTimeout = TimeSpan.FromSeconds(2),
+                Proxy = new ApiProxy("http://testproxy", 1234)
+            });
+
+            Assert.That(client.Api1.ClientOptions.Proxy, Is.Not.Null);
+            Assert.That(client.Api1.ClientOptions.Proxy.Host, Is.EqualTo("http://testproxy"));
+            Assert.That(client.Api1.ClientOptions.Proxy.Port, Is.EqualTo(1234));
+            Assert.That(client.Api1.ClientOptions.RequestTimeout, Is.EqualTo(TimeSpan.FromSeconds(2)));
+        }
+
+        [Test]
+        public void TestSetOptionsRestWithCredentials()
+        {
+            var client = new TestRestClient();
+            client.SetOptions(new UpdateOptions<HMACCredential>
+            {
+                ApiCredentials = new HMACCredential("123", "456"),
+                RequestTimeout = TimeSpan.FromSeconds(2),
+                Proxy = new ApiProxy("http://testproxy", 1234)
+            });
+
+            Assert.That(client.Api1.ApiCredentials, Is.Not.Null);
+            Assert.That(client.Api1.ApiCredentials.Key, Is.EqualTo("123"));
+            Assert.That(client.Api1.ClientOptions.Proxy, Is.Not.Null);
+            Assert.That(client.Api1.ClientOptions.Proxy.Host, Is.EqualTo("http://testproxy"));
+            Assert.That(client.Api1.ClientOptions.Proxy.Port, Is.EqualTo(1234));
+            Assert.That(client.Api1.ClientOptions.RequestTimeout, Is.EqualTo(TimeSpan.FromSeconds(2)));
+        }
+
+        [Test]
+        public void TestWhenUpdatingSettingsExistingClientsAreNotAffected()
+        {
+            TestClientOptions.Default = new TestClientOptions
+            {
+                ApiCredentials = new HMACCredential("111", "222"),
+                RequestTimeout = TimeSpan.FromSeconds(1),
+            };
+
+            var client1 = new TestRestClient();
+
+            Assert.That(client1.ClientOptions.RequestTimeout, Is.EqualTo(TimeSpan.FromSeconds(1)));
+            Assert.That(client1.ClientOptions.ApiCredentials.Key, Is.EqualTo("111"));
+
+            TestClientOptions.Default.ApiCredentials = new HMACCredential("333", "444");
+            TestClientOptions.Default.RequestTimeout = TimeSpan.FromSeconds(2);
+
+            var client2 = new TestRestClient();
+
+            Assert.That(client2.ClientOptions.RequestTimeout, Is.EqualTo(TimeSpan.FromSeconds(2)));
+            Assert.That(client2.ClientOptions.ApiCredentials.Key, Is.EqualTo("333"));
+        }
     }
 
     public class TestClientOptions: RestExchangeOptions<TestEnvironment, HMACCredential>

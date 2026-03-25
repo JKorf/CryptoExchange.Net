@@ -1035,6 +1035,28 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         /// <returns></returns>
         public abstract ISocketMessageHandler CreateMessageConverter(WebSocketMessageType messageType);
+
+        /// <inheritdoc />
+        public virtual void SetOptions(UpdateOptions options)
+        {
+            var previousProxyIsSet = _proxyConfigured;
+
+            ClientOptions.Proxy = options.Proxy;
+            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
+
+            _proxyConfigured = options.Proxy != null;
+            if ((!previousProxyIsSet && options.Proxy == null)
+                || _socketConnections.IsEmpty)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Reconnecting websockets to apply proxy");
+
+            // Update proxy, also triggers reconnect
+            foreach (var connection in _socketConnections)
+                _ = connection.Value.UpdateProxy(options.Proxy);
+        }
     }
 
     /// <inheritdoc />
@@ -1102,25 +1124,7 @@ namespace CryptoExchange.Net.Clients
         /// <inheritdoc />
         public virtual void SetOptions(UpdateOptions<TApiCredentials> options)
         {
-            var previousProxyIsSet = _proxyConfigured;
-
-            ClientOptions.Proxy = options.Proxy;
-            ClientOptions.RequestTimeout = options.RequestTimeout ?? ClientOptions.RequestTimeout;
-
-            ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
-
-            _proxyConfigured = options.Proxy != null;
-            if ((!previousProxyIsSet && options.Proxy == null)
-                || _socketConnections.IsEmpty)
-            {
-                return;
-            }
-
-            _logger.LogInformation("Reconnecting websockets to apply proxy");
-
-            // Update proxy, also triggers reconnect
-            foreach (var connection in _socketConnections)
-                _ = connection.Value.UpdateProxy(options.Proxy);
+            base.SetOptions(options);
         }
     }
 

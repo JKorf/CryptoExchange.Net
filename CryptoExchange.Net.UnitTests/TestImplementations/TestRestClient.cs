@@ -23,7 +23,7 @@ using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 
 namespace CryptoExchange.Net.UnitTests.TestImplementations
 {
-    public class TestRestClient: BaseRestClient
+    public class TestRestClient: BaseRestClient<TestEnvironment, HMACCredential>
     {
         public TestRestApi1Client Api1 { get; }
         public TestRestApi2Client Api2 { get; }
@@ -37,8 +37,8 @@ namespace CryptoExchange.Net.UnitTests.TestImplementations
         {
             Initialize(options.Value);
 
-            Api1 = new TestRestApi1Client(options.Value);
-            Api2 = new TestRestApi2Client(options.Value);
+            Api1 = AddApiClient(new TestRestApi1Client(options.Value));
+            Api2 = AddApiClient(new TestRestApi2Client(options.Value));
         }
 
         public void SetResponse(string responseData, out IRequest requestObj)
