@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Binance.Net;
 using Binance.Net.Clients;
+using Bybit.Net;
 using Bybit.Net.Clients;
 using ConsoleClient.Exchanges;
 using CryptoExchange.Net.Authentication;
@@ -15,19 +17,19 @@ namespace ConsoleClient
     {
         static Dictionary<string, IExchange> _exchanges = new Dictionary<string, IExchange>
         {
-            { "Binance", new BinanceExchange() },
-            { "Bybit", new BybitExchange() }
+            { "Binance", new Exchanges.BinanceExchange() },
+            { "Bybit", new Exchanges.BybitExchange() }
         };
 
         static async Task Main(string[] args)
         {
             BinanceRestClient.SetDefaultOptions(options =>
             {
-                options.ApiCredentials = new ApiCredentials("APIKEY", "APISECRET");
+                options.ApiCredentials = new BinanceCredentials("APIKEY", "APISECRET");
             });
             BybitRestClient.SetDefaultOptions(options =>
             {
-                options.ApiCredentials = new ApiCredentials("APIKEY", "APISECRET");
+                options.ApiCredentials = new BybitCredentials("APIKEY", "APISECRET");
             });
 
             while (true)
