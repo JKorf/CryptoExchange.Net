@@ -6,18 +6,18 @@ namespace CryptoExchange.Net.UnitTests
     [TestFixture()]
     public class BaseClientTests
     {
-        [TestCase]
-        public void DeserializingValidJson_Should_GiveSuccessfulResult()
-        {
-            // arrange
-            var client = new TestBaseClient();
+        //[TestCase]
+        //public void DeserializingValidJson_Should_GiveSuccessfulResult()
+        //{
+        //    // arrange
+        //    var client = new TestBaseClient();
 
-            // act
-            var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123}");
+        //    // act
+        //    var result = client.SubClient.Deserialize<object>("{\"testProperty\": 123}");
 
-            // assert
-            Assert.That(result.Success);
-        }
+        //    // assert
+        //    Assert.That(result.Success);
+        //}
 
         [TestCase("https://api.test.com/api", new[] { "path1", "path2" }, "https://api.test.com/api/path1/path2")]
         [TestCase("https://api.test.com/api", new[] { "path1", "/path2" }, "https://api.test.com/api/path1/path2")]

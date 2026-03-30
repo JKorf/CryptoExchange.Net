@@ -13,6 +13,7 @@ using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using System.Text.Json;
+using CryptoExchange.Net.UnitTests.Implementations;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -20,15 +21,16 @@ namespace CryptoExchange.Net.UnitTests
     public class RestClientTests
     {
         [TestCase]
-        public void RequestingData_Should_ResultInData()
+        public async Task RequestingData_Should_ResultInData()
         {
             // arrange
             var client = new TestRestClient();
             var expected = new TestObject() { DecimalData = 1.23M, IntData = 10, StringData = "Some data" };
-            client.SetResponse(JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() }), out _);
+            var strData = JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() }), out _);
+            client.ApiClient1.SetNextResponse(strData, 200);
 
             // act
-            var result = client.Api1.Request<TestObject>().Result;
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             Assert.That(result.Success);
