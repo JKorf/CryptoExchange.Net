@@ -120,13 +120,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <inheritdoc />
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyString);
+            var t = ReadNullable(ref reader, typeToConvert, options, out var isEmptyStringOrNull);
             if (t != null)
                 return t.Value;
             
-            if (isEmptyString && !_unknownValuesWarned.Contains(null))
+            if (isEmptyStringOrNull && !_unknownValuesWarned.Contains(null))
             {
                 // We received an empty string and have no mapping for it, and the property isn't nullable
+                _unknownValuesWarned.Add(null!);
                 LibraryHelpers.StaticLogger?.LogWarning($"Received null or empty enum value, but property type is not a nullable enum. EnumType: {typeof(T).FullName}. If you think {typeof(T).FullName} should be nullable please open an issue on the Github repo");
             }
 
@@ -149,9 +150,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return (T)_undefinedEnumValue;
         }
 
-        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyString)
+        private T? ReadNullable(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, out bool isEmptyStringOrNull)
         {
-            isEmptyString = false;
+            isEmptyStringOrNull = false;
             var enumType = typeof(T);
             if (_mappingToEnum == null)
                 CreateMapping();
@@ -167,13 +168,16 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             };
 
             if (stringValue is null)
+            {
+                isEmptyStringOrNull = true;
                 return null;
+            }
 
             if (!GetValue(enumType, stringValue, out var result))
             {
                 if (string.IsNullOrWhiteSpace(stringValue))
                 {
-                    isEmptyString = true;
+                    isEmptyStringOrNull = true;
                 }
                 else
                 {

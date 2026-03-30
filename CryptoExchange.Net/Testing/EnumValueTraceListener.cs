@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.Testing
             if (message.Contains("Cannot map"))
                 throw new Exception("Enum value error: " + message);
 
-            if (message.Contains("Received null enum value"))
+            if (message.Contains("Received null or empty enum value"))
                 throw new Exception("Enum null error: " + message);
         }
 
@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.Testing
             if (message.Contains("Cannot map"))
                 throw new Exception("Enum value error: " + message);
 
-            if (message.Contains("Received null enum value"))
+            if (message.Contains("Received null or empty enum value"))
                 throw new Exception("Enum null error: " + message);
         }
     }

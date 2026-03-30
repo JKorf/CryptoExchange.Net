@@ -1,11 +1,15 @@
 ﻿using CryptoExchange.Net.Attributes;
+using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Converters.SystemTextJson;
-using System.Text.Json;
+using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Testing;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using System;
+using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using CryptoExchange.Net.Converters;
-using CryptoExchange.Net.SharedApis;
 
 namespace CryptoExchange.Net.UnitTests
 {
@@ -183,6 +187,30 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = EnumConverter.ParseString<TestEnum>(value);
             Assert.That(result == expected);
+        }
+
+        [Test]
+        public void TestEnumConverterParseNullOnNonNullableOnlyLogsOnce()
+        {
+            LibraryHelpers.StaticLogger = new TraceLogger();
+            var listener = new EnumValueTraceListener();
+            Trace.Listeners.Add(listener);
+            try
+            {
+                Assert.Throws<Exception>(() =>
+                {
+                    var result = JsonSerializer.Deserialize<NotNullableSTJEnumObject>("{\"Value\": null}", SerializerOptions.WithConverters(new SerializationContext()));
+                });
+
+                Assert.DoesNotThrow(() =>
+                {
+                    var result2 = JsonSerializer.Deserialize<NotNullableSTJEnumObject>("{\"Value\": null}", SerializerOptions.WithConverters(new SerializationContext()));
+                });
+            }
+            finally
+            {
+                Trace.Listeners.Remove(listener);
+            }
         }
 
         [TestCase("1", true)]
