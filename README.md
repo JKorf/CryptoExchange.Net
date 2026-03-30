@@ -68,6 +68,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.0.3 - 30 Mar 2026
+    * Updated Enum converter to only warn once per type for null/empty value for non-nullable enum property
+
 * Version 11.0.2 - 26 Mar 2026
     * Updated SetOptions logic to allow calling on client without credentials
 
