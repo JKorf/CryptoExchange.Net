@@ -309,6 +309,12 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 #endif
         }
 
+        internal static void Reset()
+        {
+            _undefinedEnumValue = null;
+            _unknownValuesWarned = new ConcurrentBag<string>();
+        }
+
         /// <summary>
         /// Get the string value for an enum value using the MapAttribute mapping. When multiple values are mapped for a enum entry the first value will be returned
         /// </summary>

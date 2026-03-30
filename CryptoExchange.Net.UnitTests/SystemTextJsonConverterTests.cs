@@ -195,6 +195,7 @@ namespace CryptoExchange.Net.UnitTests
             LibraryHelpers.StaticLogger = new TraceLogger();
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
+            EnumConverter<TestEnum>.Reset();
             try
             {
                 Assert.Throws<Exception>(() =>
