@@ -154,6 +154,9 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public CallResult AsDataless()
         {
+            if (Error != null )
+                return new CallResult(Error);
+
             return SuccessResult;
         }
 
