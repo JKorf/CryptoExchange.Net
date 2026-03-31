@@ -3,7 +3,6 @@ using CryptoExchange.Net.Objects.Errors;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 

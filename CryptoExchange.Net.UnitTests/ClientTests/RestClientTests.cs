@@ -2,8 +2,6 @@
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
@@ -14,8 +12,9 @@ using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Interfaces;
 using System.Text.Json;
 using CryptoExchange.Net.UnitTests.Implementations;
+using CryptoExchange.Net.Testing;
 
-namespace CryptoExchange.Net.UnitTests
+namespace CryptoExchange.Net.UnitTests.ClientTests
 {
     [TestFixture()]
     public class RestClientTests
@@ -26,8 +25,8 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var client = new TestRestClient();
             var expected = new TestObject() { DecimalData = 1.23M, IntData = 10, StringData = "Some data" };
-            var strData = JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() }), out _);
-            client.ApiClient1.SetNextResponse(strData, 200);
+            var strData = JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() });
+            client.ApiClient1.SetNextResponse(strData, System.Net.HttpStatusCode.OK);
 
             // act
             var result = await client.ApiClient1.GetResponseAsync<TestObject>();
@@ -38,14 +37,14 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [TestCase]
-        public void ReceivingInvalidData_Should_ResultInError()
+        public async Task ReceivingInvalidData_Should_ResultInError()
         {
             // arrange
             var client = new TestRestClient();
-            client.SetResponse("{\"property\": 123", out _);
+            client.ApiClient1.SetNextResponse("{\"property\": 123", System.Net.HttpStatusCode.OK);
 
             // act
-            var result = client.Api1.Request<TestObject>().Result;
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             ClassicAssert.IsFalse(result.Success);
@@ -57,10 +56,10 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var client = new TestRestClient();
-            client.SetErrorWithoutResponse(System.Net.HttpStatusCode.BadRequest, "Invalid request");
+            client.ApiClient1.SetNextResponse("Invalid request", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Api1.Request<TestObject>();
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             ClassicAssert.IsFalse(result.Success);
@@ -72,10 +71,10 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var client = new TestRestClient();
-            client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
+            client.ApiClient1.SetNextResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Api1.Request<TestObject>();
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             ClassicAssert.IsFalse(result.Success);
@@ -83,17 +82,16 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(result.Error is ServerError);
         }
 
-
         [TestCase]
         public async Task ReceivingErrorAndNotParsingErrorAndInvalidJson_Should_ContainData()
         {
             // arrange
             var client = new TestRestClient();
             var response = "<html>...</html>";
-            client.SetErrorWithResponse(response, System.Net.HttpStatusCode.BadRequest);
+            client.ApiClient1.SetNextResponse(response, System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Api1.Request<TestObject>();
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             ClassicAssert.IsFalse(result.Success);
@@ -106,11 +104,11 @@ namespace CryptoExchange.Net.UnitTests
         public async Task ReceivingErrorAndParsingError_Should_ResultInParsedError()
         {
             // arrange
-            var client = new ParseErrorTestRestClient();
-            client.SetErrorWithResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
+            var client = new TestRestClient();
+            client.ApiClient1.SetNextResponse("{\"errorMessage\": \"Invalid request\", \"errorCode\": 123}", System.Net.HttpStatusCode.BadRequest);
 
             // act
-            var result = await client.Api2.Request<TestObject>();
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>();
 
             // assert
             ClassicAssert.IsFalse(result.Success);
@@ -118,23 +116,6 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(result.Error is ServerError);
             Assert.That(result.Error.ErrorCode == "123");
             Assert.That(result.Error.Message == "Invalid request");
-        }
-
-        [TestCase]
-        public void SettingOptions_Should_ResultInOptionsSet()
-        {
-            // arrange
-            // act
-            var options = new TestClientOptions();
-            options.Api1Options.TimestampRecalculationInterval = TimeSpan.FromMinutes(10);
-            options.Api1Options.OutputOriginalData = true;
-            options.RequestTimeout = TimeSpan.FromMinutes(1);
-            var client = new TestBaseClient(options);
-
-            // assert
-            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.TimestampRecalculationInterval == TimeSpan.FromMinutes(10));
-            Assert.That(((TestClientOptions)client.ClientOptions).Api1Options.OutputOriginalData == true);
-            Assert.That(((TestClientOptions)client.ClientOptions).RequestTimeout == TimeSpan.FromMinutes(1));
         }
 
         [TestCase("GET", HttpMethodParameterPosition.InUri)] // No need to test InBody for GET since thats not valid
@@ -150,28 +131,22 @@ namespace CryptoExchange.Net.UnitTests
             // act
             var client = new TestRestClient();
 
-            client.Api1.SetParameterPosition(new HttpMethod(method), pos);
+            var httpMethod = new HttpMethod(method);
+            client.ApiClient1.SetParameterPosition(httpMethod, pos);
+            client.ApiClient1.SetNextResponse("{}", System.Net.HttpStatusCode.OK);
 
-            client.SetResponse("{}", out var request);
-
-            await client.Api1.RequestWithParams<TestObject>(new HttpMethod(method), new ParameterCollection
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>(httpMethod, new ParameterCollection
             {
                 { "TestParam1", "Value1" },
                 { "TestParam2", 2 },
-            },
-            new Dictionary<string, string>
-            {
-                { "TestHeader", "123" }
             });
 
             // assert
-            Assert.That(request.Method == new HttpMethod(method));
-            Assert.That((request.Content?.Contains("TestParam1") == true) == (pos == HttpMethodParameterPosition.InBody));
-            Assert.That((request.Uri.ToString().Contains("TestParam1")) == (pos == HttpMethodParameterPosition.InUri));
-            Assert.That((request.Content?.Contains("TestParam2") == true) == (pos == HttpMethodParameterPosition.InBody));
-            Assert.That((request.Uri.ToString().Contains("TestParam2")) == (pos == HttpMethodParameterPosition.InUri));
-            Assert.That(request.GetHeaders().First().Key == "TestHeader");
-            Assert.That(request.GetHeaders().First().Value.Contains("123"));
+            Assert.That(result.RequestMethod == new HttpMethod(method));
+            Assert.That(result.RequestBody?.Contains("TestParam1") == true == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((result.RequestUrl?.ToString().Contains("TestParam1")) == (pos == HttpMethodParameterPosition.InUri));
+            Assert.That(result.RequestBody?.Contains("TestParam2") == true == (pos == HttpMethodParameterPosition.InBody));
+            Assert.That((result.RequestUrl?.ToString().Contains("TestParam2")) == (pos == HttpMethodParameterPosition.InUri));
         }
 
 
@@ -190,12 +165,12 @@ namespace CryptoExchange.Net.UnitTests
 
             for (var i = 0; i < requests + 1; i++)
             {
-                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);             
-                Assert.That(i == requests? triggered : !triggered);
+                var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
+                Assert.That(i == requests ? triggered : !triggered);
             }
             triggered = false;
             await Task.Delay((int)Math.Round(perSeconds * 1000) + 10);
-            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1,  RateLimitingBehaviour.Wait, null, default);
+            var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
             Assert.That(!triggered);
         }
 
@@ -216,7 +191,7 @@ namespace CryptoExchange.Net.UnitTests
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? (expectLimiting ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
+                bool expected = i == 1 ? expectLimiting ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -273,7 +248,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var rateLimiter = new RateLimitGate("Test");
             rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathFilter("/sapi/test"), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
-            
+
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
             RateLimitEvent evnt = null;
@@ -281,7 +256,7 @@ namespace CryptoExchange.Net.UnitTests
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
+                bool expected = i == 1 ? expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -301,7 +276,7 @@ namespace CryptoExchange.Net.UnitTests
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? (expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null) : evnt == null;
+                bool expected = i == 1 ? expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }

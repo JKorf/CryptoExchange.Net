@@ -2,7 +2,6 @@
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.UnitTests.Implementations;
-using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
 using System;
 
@@ -76,7 +75,7 @@ namespace CryptoExchange.Net.UnitTests
         public void TestSetOptionsRestWithCredentials()
         {
             var client = new TestRestClient();
-            client.SetOptions(new UpdateOptions<HMACCredential>
+            client.SetOptions(new UpdateOptions<TestCredentials>
             {
                 ApiCredentials = new TestCredentials("123", "456"),
                 RequestTimeout = TimeSpan.FromSeconds(2),

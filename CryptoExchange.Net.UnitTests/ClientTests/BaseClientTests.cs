@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
-namespace CryptoExchange.Net.UnitTests
+namespace CryptoExchange.Net.UnitTests.ClientTests
 {
     [TestFixture()]
     public class BaseClientTests

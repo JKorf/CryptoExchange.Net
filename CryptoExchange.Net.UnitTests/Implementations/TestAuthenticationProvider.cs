@@ -1,9 +1,7 @@
 ﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Objects;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CryptoExchange.Net.UnitTests.Implementations
 {

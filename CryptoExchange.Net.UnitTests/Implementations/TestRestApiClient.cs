@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
+using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
@@ -16,7 +17,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
 {
     internal class TestRestApiClient : RestApiClient<TestEnvironment, TestAuthenticationProvider, TestCredentials>
     {
-        protected override IRestMessageHandler MessageHandler => throw new NotImplementedException();
+        protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
 
         public TestRestApiClient(ILogger logger, HttpClient? httpClient, TestRestOptions options) 
             : base(logger, httpClient, options.Environment.RestClientAddress, options, options.ExchangeOptions)
@@ -30,7 +31,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         protected override TestAuthenticationProvider CreateAuthenticationProvider(TestCredentials credentials) =>
             new TestAuthenticationProvider(credentials);
 
-        protected override IMessageSerializer CreateSerializer() => throw new NotImplementedException();
+        protected override IMessageSerializer CreateSerializer() => new SystemTextJsonMessageSerializer(SerializerOptions.WithConverters(new TestSerializerContext()));
 
         internal void SetNextResponse(string data, HttpStatusCode code)
         {
@@ -46,12 +47,18 @@ namespace CryptoExchange.Net.UnitTests.Implementations
             RequestFactory = factory;
         }
 
-        internal async Task<WebCallResult<T>> GetResponseAsync<T>()
+        internal async Task<WebCallResult<T>> GetResponseAsync<T>(HttpMethod? httpMethod = null, ParameterCollection? collection = null)
         {
-            var definition = new RequestDefinition("/path", HttpMethod.Get)
+            var definition = new RequestDefinition("/path", httpMethod ?? HttpMethod.Get)
             {
+                Weight = 0
             };
-            return await SendAsync<T>(BaseAddress, definition, new ParameterCollection(), default);
+            return await SendAsync<T>(BaseAddress, definition, collection ?? new ParameterCollection(), default);
+        }
+
+        internal void SetParameterPosition(HttpMethod httpMethod, HttpMethodParameterPosition pos)
+        {
+            ParameterPositions[httpMethod] = pos;
         }
     }
 }
