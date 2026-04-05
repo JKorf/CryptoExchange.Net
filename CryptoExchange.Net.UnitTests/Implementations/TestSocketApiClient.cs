@@ -36,9 +36,9 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         protected override TestAuthenticationProvider CreateAuthenticationProvider(TestCredentials credentials) =>
             new TestAuthenticationProvider(credentials);
 
-        public async Task<CallResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, CancellationToken ct)
+        public async Task<CallResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, bool subQuery, CancellationToken ct)
         {
-            return await base.SubscribeAsync(new TestSubscription<T>(_logger, handler, false), ct);
+            return await base.SubscribeAsync(new TestSubscription<T>(_logger, handler, subQuery, false), ct);
         }
     }
 }

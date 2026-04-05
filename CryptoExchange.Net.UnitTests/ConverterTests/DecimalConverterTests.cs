@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDecimalConverterString(string value, decimal? expected)
         {
             var result = JsonSerializer.Deserialize<STJDecimalObject>("{ \"test\": \"" + value + "\"}");
-            Assert.That(result.Test, Is.EqualTo(expected == -999 ? decimal.MinValue : expected == 999 ? decimal.MaxValue : expected));
+            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MinValue : expected == 999 ? decimal.MaxValue : expected));
         }
 
         [TestCase("1", 1)]
@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDecimalConverterNumber(string value, decimal? expected)
         {
             var result = JsonSerializer.Deserialize<STJDecimalObject>("{ \"test\": " + value + "}");
-            Assert.That(result.Test, Is.EqualTo(expected == -999 ? decimal.MaxValue : expected));
+            Assert.That(result!.Test, Is.EqualTo(expected == -999 ? decimal.MaxValue : expected));
         }
     }
 

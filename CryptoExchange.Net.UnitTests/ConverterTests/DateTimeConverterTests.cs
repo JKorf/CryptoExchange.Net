@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDateTimeConverterString(string input, bool expectNull = false)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": \"{input}\" }}");
-            Assert.That(output.Time == (expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
+            Assert.That(output!.Time == (expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
         }
 
         [TestCase(1620777600.000)]
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDateTimeConverterDouble(double input)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": {input} }}");
-            Assert.That(output.Time == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
+            Assert.That(output!.Time == new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc));
         }
 
         [TestCase(1620777600)]
@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDateTimeConverterLong(long input, bool expectNull = false)
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": {input} }}");
-            Assert.That(output.Time == (expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
+            Assert.That(output!.Time == (expectNull ? null : new DateTime(2021, 05, 12, 0, 0, 0, DateTimeKind.Utc)));
         }
 
         [TestCase(1620777600)]
@@ -106,7 +106,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         public void TestDateTimeConverterNull()
         {
             var output = JsonSerializer.Deserialize<STJTimeObject>($"{{ \"time\": null }}");
-            Assert.That(output.Time == null);
+            Assert.That(output!.Time == null);
         }
     }
 

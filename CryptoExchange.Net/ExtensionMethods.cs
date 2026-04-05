@@ -107,7 +107,7 @@ namespace CryptoExchange.Net
                     }
                     else
                     {
-                        uriString.Append('[');
+                        uriString.Append($"{parameter.Key}=[");
                         var firstArrayEntry = true;
                         foreach (var entry in (Array)parameter.Value)
                         {

@@ -15,8 +15,15 @@ namespace CryptoExchange.Net.UnitTests.Implementations
 
         protected override MessageTypeDefinition[] TypeEvaluators { get; } = [
 
-            new MessageTypeDefinition {
+             new MessageTypeDefinition {
                 ForceIfFound = true,
+                Fields = [
+                    new PropertyFieldReference("id")
+                ],
+                TypeIdentifierCallback = (doc) => doc.FieldValue("id")!
+            },
+
+            new MessageTypeDefinition {
                 Fields = [
                 ],
                 StaticIdentifier = "test"

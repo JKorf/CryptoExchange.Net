@@ -4,6 +4,7 @@ using CryptoExchange.Net.UnitTests.Implementations;
 using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,24 @@ namespace CryptoExchange.Net.UnitTests
             Assert.That(1 == client.ApiClient1.ApiOptions.MaxSocketConnections);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task ConnectSocket_Should_ReturnConnectionResult(bool canConnect)
+        {
+            //arrange
+            var client = new TestSocketClient();
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            socket.CanConnect = canConnect;
+
+            //act
+            var connectResult = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, false, default);
+
+            //assert
+            Assert.That(connectResult.Success == canConnect);
+        }
+
         [TestCase]
-        public async Task Test()
+        public async Task SocketMessages_Should_BeProcessedInDataHandlers()
         {
             var client = new TestSocketClient();
             var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
@@ -43,209 +60,119 @@ namespace CryptoExchange.Net.UnitTests
             {
                 received = x.Data;
                 resetEvent.Set();
-            }, default);
+            }, false, default);
 
             socket.InvokeMessage(strData);
-
             await resetEvent.WaitAsync(TimeSpan.FromSeconds(1));
 
             Assert.That(received != null);
         }
 
-        //[TestCase(true)]
-        //[TestCase(false)]
-        //public void ConnectSocket_Should_ReturnConnectionResult(bool canConnect)
-        //{
-        //    //arrange
-        //    var client = new TestSocketClient();
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = canConnect;
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
+        {
+            // arrange
+            var client = new TestSocketClient(options =>
+            {
+                options.ReconnectInterval = TimeSpan.Zero;
+                options.ExchangeOptions.OutputOriginalData = enabled;
+            });
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var expected = new TestObject() { DecimalData = 1.23M, IntData = 10, StringData = "Some data" };
+            var strData = JsonSerializer.Serialize(expected, new JsonSerializerOptions { TypeInfoResolver = new TestSerializerContext() });
 
-        //    //act
-        //    var connectResult = client.SubClient.ConnectSocketSub(
-        //        new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
+            string? originalData = null;
+            var resetEvent = new AsyncResetEvent(false);
 
-        //    //assert
-        //    Assert.That(connectResult.Success == canConnect);
-        //}
+            await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x =>
+            {
+                originalData = x.OriginalData;
+                resetEvent.Set();
+            }, false, default);
 
-        //[TestCase]
-        //public void SocketMessages_Should_BeProcessedInDataHandlers()
-        //{
-        //    // arrange
-        //    var client = new TestSocketClient(options =>
-        //    {
-        //        options.ReconnectInterval = TimeSpan.Zero;
-        //    });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = true;
-        //    var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
-        //    var rstEvent = new ManualResetEvent(false);
-        //    Dictionary<string, string> result = null;
+            socket.InvokeMessage(strData);
+            await resetEvent.WaitAsync(TimeSpan.FromSeconds(1));
 
-        //    client.SubClient.ConnectSocketSub(sub);
+            // assert
+            Assert.That(originalData == (enabled ? strData : null));
+        }
 
-        //    var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
-        //    {
-        //        result = messageEvent.Data;
-        //        rstEvent.Set();
-        //    });
-        //    sub.AddSubscription(subObj);
+        [TestCase()]
+        public async Task UnsubscribingStream_Should_CloseTheSocket()
+        {
+            // arrange
+            var client = new TestSocketClient(options =>
+            {
+                options.ReconnectInterval = TimeSpan.Zero;
+            });
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
 
-        //    // act
-        //    socket.InvokeMessage("{\"property\": \"123\", \"action\": \"update\", \"topic\": \"topic\"}");
-        //    rstEvent.WaitOne(1000);
+            var result = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => {}, false, default);
 
-        //    // assert
-        //    Assert.That(result["property"] == "123");
-        //}
+            // act
+            await client.UnsubscribeAsync(result.Data);
 
-        //[TestCase(false)]
-        //[TestCase(true)]
-        //public void SocketMessages_Should_ContainOriginalDataIfEnabled(bool enabled)
-        //{
-        //    // arrange
-        //    var client = new TestSocketClient(options =>
-        //    {
-        //        options.ReconnectInterval = TimeSpan.Zero;
-        //        options.SubOptions.OutputOriginalData = enabled;
-        //    });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = true;
-        //    var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
-        //    var rstEvent = new ManualResetEvent(false);
-        //    string original = null;
+            // assert
+            Assert.That(socket.Connected == false);
+        }
 
-        //    client.SubClient.ConnectSocketSub(sub);
-        //    var subObj = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) =>
-        //    {
-        //        original = messageEvent.OriginalData;
-        //        rstEvent.Set();
-        //    });
-        //    sub.AddSubscription(subObj);
-        //    var msgToSend = JsonSerializer.Serialize(new { topic = "topic", action = "update", property = "123" });
+        [TestCase()]
+        public async Task UnsubscribingAll_Should_CloseAllSockets()
+        {
+            // arrange
+            var client = new TestSocketClient(options =>
+            {
+                options.ReconnectInterval = TimeSpan.Zero;
+            });
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var result = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, false, default);
 
-        //    // act
-        //    socket.InvokeMessage(msgToSend);
-        //    rstEvent.WaitOne(1000);
+            var socket2 = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var result2 = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, false, default);
 
-        //    // assert
-        //    Assert.That(original == (enabled ? msgToSend : null));
-        //}
+            // act
+            await client.UnsubscribeAllAsync();
 
-        //[TestCase()]
-        //public void UnsubscribingStream_Should_CloseTheSocket()
-        //{
-        //    // arrange
-        //    var client = new TestSocketClient(options =>
-        //    {
-        //        options.ReconnectInterval = TimeSpan.Zero;
-        //    });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = true;
-        //    var sub = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
-        //    client.SubClient.ConnectSocketSub(sub);
+            // assert
+            Assert.That(socket.Connected == false);
+            Assert.That(socket2.Connected == false);
+        }
 
-        //    var subscription = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
-        //    var ups = new UpdateSubscription(sub, subscription);
-        //    sub.AddSubscription(subscription);
+        [TestCase()]
+        public async Task ErrorResponse_ShouldNot_ConfirmSubscription()
+        {
+            // arrange
+            var client = new TestSocketClient(opt =>
+            {
+                opt.OutputOriginalData = true;
+            });
 
-        //    // act
-        //    client.UnsubscribeAsync(ups).Wait();
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var subTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, true, default);
 
-        //    // assert
-        //    Assert.That(socket.Connected == false);
-        //}
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "ErrorWithSub" }));
 
-        //[TestCase()]
-        //public void UnsubscribingAll_Should_CloseAllSockets()
-        //{
-        //    // arrange
-        //    var client = new TestSocketClient(options => { options.ReconnectInterval = TimeSpan.Zero; });
-        //    var socket1 = client.CreateSocket();
-        //    var socket2 = client.CreateSocket();
-        //    socket1.CanConnect = true;
-        //    socket2.CanConnect = true;
-        //    var sub1 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket1), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
-        //    var sub2 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket2), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
-        //    client.SubClient.ConnectSocketSub(sub1);
-        //    client.SubClient.ConnectSocketSub(sub2);
-        //    var subscription1 = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
-        //    var subscription2 = new TestSubscription<Dictionary<string, string>>(Mock.Of<ILogger>(), (messageEvent) => { });
+            var result = await subTask;
 
-        //    sub1.AddSubscription(subscription1);
-        //    sub2.AddSubscription(subscription2);
-        //    var ups1 = new UpdateSubscription(sub1, subscription1);
-        //    var ups2 = new UpdateSubscription(sub2, subscription2);
+            // assert
+            Assert.That(result.Success == false);
+            Assert.That(result.Error!.Message!.Contains("ErrorWithSub"));
+        }
 
-        //    // act
-        //    client.UnsubscribeAllAsync().Wait();
+        [TestCase()]
+        public async Task SuccessResponse_Should_ConfirmSubscription()
+        {
+            var client = new TestSocketClient();
+            var socket = TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            var subTask = client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, true, default);
 
-        //    // assert
-        //    Assert.That(socket1.Connected == false);
-        //    Assert.That(socket2.Connected == false);
-        //}
+            socket.InvokeMessage(JsonSerializer.Serialize(new TestSocketMessage { Id = 1, Data = "OK" }));
 
-        //[TestCase()]
-        //public void FailingToConnectSocket_Should_ReturnError()
-        //{
-        //    // arrange
-        //    var client = new TestSocketClient(options => { options.ReconnectInterval = TimeSpan.Zero; });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = false;
-        //    var sub1 = new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, "");
+            var result = await subTask;
 
-        //    // act
-        //    var connectResult = client.SubClient.ConnectSocketSub(sub1);
-
-        //    // assert
-        //    ClassicAssert.IsFalse(connectResult.Success);
-        //}
-
-        //[TestCase()]
-        //public async Task ErrorResponse_ShouldNot_ConfirmSubscription()
-        //{
-        //    // arrange
-        //    var channel = "trade_btcusd";
-        //    var client = new TestSocketClient(opt =>
-        //    {
-        //        opt.OutputOriginalData = true;
-        //        opt.SocketSubscriptionsCombineTarget = 1;
-        //    });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = true;
-        //    client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
-
-        //    // act
-        //    var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => { }, ct: default);
-        //    socket.InvokeMessage(JsonSerializer.Serialize(new { channel, action = "subscribe", status = "error" }));
-        //    await sub;
-
-        //    // assert
-        //    ClassicAssert.IsTrue(client.SubClient.TestSubscription.Status != SubscriptionStatus.Subscribed);
-        //}
-
-        //[TestCase()]
-        //public async Task SuccessResponse_Should_ConfirmSubscription()
-        //{
-        //    // arrange
-        //    var channel = "trade_btcusd";
-        //    var client = new TestSocketClient(opt =>
-        //    {
-        //        opt.OutputOriginalData = true;
-        //        opt.SocketSubscriptionsCombineTarget = 1;
-        //    });
-        //    var socket = client.CreateSocket();
-        //    socket.CanConnect = true;
-        //    client.SubClient.ConnectSocketSub(new SocketConnection(new TraceLogger(), new TestWebsocketFactory(socket), new WebSocketParameters(new Uri("https://localhost/"), ReconnectPolicy.Disabled), client.SubClient, ""));
-
-        //    // act
-        //    var sub = client.SubClient.SubscribeToSomethingAsync(channel, onUpdate => { }, ct: default);
-        //    socket.InvokeMessage(JsonSerializer.Serialize(new { channel, action = "subscribe", status = "confirmed" }));
-        //    await sub;
-
-        //    // assert
-        //    Assert.That(client.SubClient.TestSubscription.Status == SubscriptionStatus.Subscribed);
-        //}
+            var subscription = client.ApiClient1._socketConnections.Single().Value.Subscriptions.Single();
+            Assert.That(subscription.Status == SubscriptionStatus.Subscribed);
+        }
     }
 }

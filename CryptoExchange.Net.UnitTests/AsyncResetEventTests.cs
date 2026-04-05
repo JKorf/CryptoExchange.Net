@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.UnitTests
                 waiters.Add(evnt.WaitAsync());
             }
 
-            List<bool> results = null;
+            List<bool>? results = null;
             var resultsWaiter = Task.Run(async () =>
             {
                 await Task.WhenAll(waiters);
@@ -112,7 +112,7 @@ namespace CryptoExchange.Net.UnitTests
 
             await resultsWaiter;
 
-            Assert.That(10 == results.Count(r => r));
+            Assert.That(10 == results?.Count(r => r));
         }
 
         [Test]

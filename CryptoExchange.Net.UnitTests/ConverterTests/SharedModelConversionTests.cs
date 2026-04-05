@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.UnitTests
             var serialized = JsonSerializer.Serialize(symbol);
             var restored = JsonSerializer.Deserialize<SharedSymbol>(serialized);
 
-            Assert.That(restored.TradingMode, Is.EqualTo(symbol.TradingMode));
+            Assert.That(restored!.TradingMode, Is.EqualTo(symbol.TradingMode));
             Assert.That(restored.BaseAsset, Is.EqualTo(symbol.BaseAsset));
             Assert.That(restored.QuoteAsset, Is.EqualTo(symbol.QuoteAsset));
             Assert.That(restored.DeliverTime, Is.EqualTo(symbol.DeliverTime));
@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.UnitTests
             var serialized = JsonSerializer.Serialize(symbol);
             var restored = JsonSerializer.Deserialize<SharedOrderQuantity>(serialized);
 
-            Assert.That(restored.QuantityInBaseAsset, Is.EqualTo(symbol.QuantityInBaseAsset));
+            Assert.That(restored!.QuantityInBaseAsset, Is.EqualTo(symbol.QuantityInBaseAsset));
             Assert.That(restored.QuantityInQuoteAsset, Is.EqualTo(symbol.QuantityInQuoteAsset));
             Assert.That(restored.QuantityInContracts, Is.EqualTo(symbol.QuantityInContracts));
         }

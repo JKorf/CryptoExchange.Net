@@ -279,6 +279,35 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Add key as comma separated values
+        /// </summary>
+#if NET5_0_OR_GREATER
+        public void AddCommaSeparated<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, IEnumerable<T> values)
+#else
+        public void AddCommaSeparated<T>(string key, IEnumerable<T> values)
+#endif
+            where T : struct, Enum
+        {
+            base.Add(key, string.Join(",", values.Select(x => EnumConverter.GetString(x))));
+        }
+
+        /// <summary>
+        /// Add key as comma separated values if there are values provided
+        /// </summary>
+#if NET5_0_OR_GREATER
+        public void AddOptionalCommaSeparated<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, IEnumerable<T>? values)
+#else
+        public void AddOptionalCommaSeparated<T>(string key, IEnumerable<T>? values)
+#endif
+            where T : struct, Enum
+        {
+            if (values == null || !values.Any())
+                return;
+
+            base.Add(key, string.Join(",", values.Select(x => EnumConverter.GetString(x))));
+        }
+
+        /// <summary>
         /// Add key as boolean lower case value
         /// </summary>
         public void AddBoolString(string key, bool value)

@@ -326,7 +326,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // assert
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.BaseAsset, Is.EqualTo("BTC"));
+            Assert.That(result!.BaseAsset, Is.EqualTo("BTC"));
             Assert.That(result.QuoteAsset, Is.EqualTo("USDT"));
             Assert.That(result.TradingMode, Is.EqualTo(TradingMode.Spot));
             Assert.That(result.SymbolName, Is.EqualTo("BTCUSDT"));

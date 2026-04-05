@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new TestSerializerContext()));
-            Assert.That(output.Value == expected);
+            Assert.That(output!.Value == expected);
         }
 
         [TestCase("1", true)]
@@ -41,7 +41,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new TestSerializerContext()));
-            Assert.That(output.Value == expected);
+            Assert.That(output!.Value == expected);
         }
     }
 

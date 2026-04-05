@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<STJEnumObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new TestSerializerContext()));
-            Assert.That(output.Value == expected);
+            Assert.That(output!.Value == expected);
         }
 
         [TestCase("1", TestEnum.One)]
@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         {
             var val = value == null ? "null" : $"\"{value}\"";
             var output = JsonSerializer.Deserialize<NotNullableSTJEnumObject>($"{{ \"Value\": {val} }}");
-            Assert.That(output.Value == expected);
+            Assert.That(output!.Value == expected);
         }
 
         [Test]

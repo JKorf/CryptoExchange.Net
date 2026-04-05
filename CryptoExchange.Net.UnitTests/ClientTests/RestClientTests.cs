@@ -97,7 +97,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             ClassicAssert.IsFalse(result.Success);
             Assert.That(result.Error != null);
             Assert.That(result.Error is DeserializeError);
-            Assert.That(result.Error.Message.Contains(response));
+            Assert.That(result.Error!.Message!.Contains(response));
         }
 
         [TestCase]
@@ -114,7 +114,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             ClassicAssert.IsFalse(result.Success);
             Assert.That(result.Error != null);
             Assert.That(result.Error is ServerError);
-            Assert.That(result.Error.ErrorCode == "123");
+            Assert.That(result.Error!.ErrorCode == "123");
             Assert.That(result.Error.Message == "Invalid request");
         }
 
@@ -186,12 +186,12 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
 
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? expectLimiting ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
+                bool expected = i == 1 ? expectLimiting ? evnt?.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -208,7 +208,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get);
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
@@ -251,12 +251,12 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
 
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
+                bool expected = i == 1 ? expectLimited ? evnt?.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -271,12 +271,12 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerEndpoint, new ExactPathsFilter(new[] { "/sapi/test", "/sapi/test2" }), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
             var requestDefinition = new RequestDefinition(endpoint, HttpMethod.Get);
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             for (var i = 0; i < 2; i++)
             {
                 var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
-                bool expected = i == 1 ? expectLimited ? evnt.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
+                bool expected = i == 1 ? expectLimited ? evnt?.DelayTime > TimeSpan.Zero : evnt == null : evnt == null;
                 Assert.That(expected);
             }
         }
@@ -295,7 +295,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get) { Authenticated = key1 != null };
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = key2 != null };
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", key1, 1, RateLimitingBehaviour.Wait, null, default);
@@ -314,7 +314,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, "https://test.com", "123", 1, RateLimitingBehaviour.Wait, null, default);
@@ -334,7 +334,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var requestDefinition1 = new RequestDefinition(endpoint1, HttpMethod.Get);
             var requestDefinition2 = new RequestDefinition(endpoint2, HttpMethod.Get) { Authenticated = true };
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, requestDefinition1, host1, "123", 1, RateLimitingBehaviour.Wait, null, default);
@@ -351,7 +351,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var rateLimiter = new RateLimitGate("Test");
             rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(0.1), RateLimitWindowType.Fixed));
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
 
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Connection, new RequestDefinition("1", HttpMethod.Get), host1, "123", 1, RateLimitingBehaviour.Wait, null, default);
@@ -366,7 +366,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var rateLimiter = new RateLimitGate("Test");
             rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Connection), 1, TimeSpan.FromSeconds(10), RateLimitWindowType.Fixed));
 
-            RateLimitEvent evnt = null;
+            RateLimitEvent? evnt = null;
             rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
             var ct = new CancellationTokenSource(TimeSpan.FromSeconds(0.2));
 
