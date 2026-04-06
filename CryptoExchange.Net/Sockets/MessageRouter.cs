@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Interfaces;
 using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
@@ -9,6 +10,44 @@ using System.Linq;
 
 namespace CryptoExchange.Net.Sockets
 {
+    public class RouteTable
+    {
+        private Dictionary<string, RouteTableEntry> _routeTableEntries;
+
+        public RouteTable(IEnumerable<IMessageProcessor> processors)
+        {
+            _routeTableEntries = new Dictionary<string, RouteTableEntry>();
+            foreach (var entry in processors)
+            {
+                foreach(var route in entry.MessageRouter.Routes)
+                {
+                    if (!_routeTableEntries.ContainsKey(route.TypeIdentifier)) {
+                        _routeTableEntries.Add(route.TypeIdentifier, new RouteTableEntry()
+                        {
+                            RouteType = route.DeserializationType,
+                            Handlers = new List<IMessageProcessor>()
+                        });
+                    }
+
+                    _routeTableEntries[route.TypeIdentifier].Handlers.Add(entry);
+                }
+
+            }
+        }
+
+        public RouteTableEntry? GetRouteTableEntry(string typeIdentifier)
+        {
+            return _routeTableEntries.TryGetValue(typeIdentifier, out var entry) ? entry : null;
+        }
+    }
+
+    public record RouteTableEntry
+    {
+        public Type RouteType { get; set; }
+        public  List<IMessageProcessor> Handlers { get; set; }
+
+    }
+
     public record RouteMapEntry
     {
         public Type RouteType { get; }

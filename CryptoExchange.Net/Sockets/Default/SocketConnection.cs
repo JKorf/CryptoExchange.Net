@@ -9,6 +9,9 @@ using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -263,6 +266,10 @@ namespace CryptoExchange.Net.Sockets.Default
 #else
         private readonly object _listenersLock = new object();
 #endif
+
+
+        private RouteTable _routeTable = new RouteTable([]);
+
         private ReadOnlyCollection<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
         private SocketStatus _status;
@@ -530,31 +537,22 @@ namespace CryptoExchange.Net.Sockets.Default
                 return;
             }
 
-            Type? deserializationType = null;
-            foreach (var listener in _listeners)
-            {
-                var routes = listener.MessageRouter[typeIdentifier];
-                deserializationType = routes?.RouteType;
-                if (deserializationType != null)
-                    break;                
-            }
-
-            if (deserializationType == null)
+            var routingEntry = _routeTable.GetRouteTableEntry(typeIdentifier);
+            if (routingEntry == null)
             {
                 if (!ApiClient.HandleUnhandledMessage(this, typeIdentifier, data))
                 {
                     // No handler found for identifier either, can't process
                     _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", typeIdentifier, Encoding.UTF8.GetString(data.ToArray()));
                 }
-                    
+
                 return;
             }
-            
 
             object result;
             try
             {
-                if (deserializationType == typeof(string))
+                if (routingEntry.RouteType == typeof(string))
                 {
 #if NETSTANDARD2_0
                     result = Encoding.UTF8.GetString(data.ToArray());
@@ -564,7 +562,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
                 else
                 {
-                    result = messageConverter.Deserialize(data, deserializationType);
+                    result = messageConverter.Deserialize(data, routingEntry.RouteType);
                 }
             }
             catch(Exception ex)
@@ -581,22 +579,12 @@ namespace CryptoExchange.Net.Sockets.Default
             }
 
             var topicFilter = messageConverter.GetTopicFilter(result);
-
-            bool processed = false;
-            foreach (var listener in _listeners)
+            var processed = false;
+            foreach (var handler in routingEntry.Handlers)
             {
-                var routeMap = listener.MessageRouter[typeIdentifier];
-                if (routeMap != null)
-                {
-                    // Could be null if listeners was updated while handling message
-                    var handled = listener.Handle(topicFilter, this, receiveTime, originalData, result, routeMap);
-                    if (!processed)
-                    processed = handled;
-
-                    if (!routeMap.MultipleReaders)
-                        // If this was a response to a query and there are no other routes expecting this message we can break here
-                        break;
-                }
+                var thisHandled = handler.Handle(typeIdentifier, topicFilter, this, receiveTime, originalData, result);
+                if (thisHandled)
+                    processed = true;
             }
 
             if (!processed)
@@ -1163,7 +1151,9 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Add(processor);
+                _routeTable = new RouteTable(updatedList);
                 _listeners = updatedList.AsReadOnly();
+
             }
         }
 
@@ -1173,6 +1163,7 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Remove(processor);
+                _routeTable = new RouteTable(updatedList);
                 _listeners = updatedList.AsReadOnly();
             }
         }
@@ -1184,6 +1175,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 foreach (var processor in processors)
                     updatedList.Remove(processor);
+                _routeTable = new RouteTable(updatedList);
                 _listeners = updatedList.AsReadOnly();
             }
         }

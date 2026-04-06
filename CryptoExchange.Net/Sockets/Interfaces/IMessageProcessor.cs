@@ -21,6 +21,7 @@ namespace CryptoExchange.Net.Sockets.Interfaces
         /// <summary>
         /// Handle a message
         /// </summary>
-        bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object result, RouteMapEntry route);
+        //bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object result, MessageRoute route);
+        bool Handle(string typeIdentifier, string? topicFilter, SocketConnection socketConnection, DateTime receiveTime, string? originalData, object result);
     }
 }

@@ -164,7 +164,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message, RouteMapEntry routeMap);
+        public abstract bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message);
 
     }
 
@@ -194,7 +194,7 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message, RouteMapEntry routeMap)
+        public override bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message)
         {
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
@@ -203,7 +203,7 @@ namespace CryptoExchange.Net.Sockets
             if (Result?.Success != false)
             {
                 // If an error result is already set don't override that
-                routeMap.Handle(topicFilter, connection, receiveTime, originalData, message, out var result);
+                MessageRouter[typeIdentifier].Handle(topicFilter, connection, receiveTime, originalData, message, out var result);
                 Result = result;
                 if (Result == null)
                     // Null from Handle means it wasn't actually for this query

@@ -180,7 +180,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, RouteMapEntry routeMap)
+        public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data)
         {
             ConnectionInvocations++;
             TotalInvocations++;
@@ -193,7 +193,9 @@ namespace CryptoExchange.Net.Sockets.Default
                 SubscriptionQuery.Timeout();
             }
 
-            return routeMap.Handle(topicFilter, connection, receiveTime, originalData, data, out _);
+            return MessageRouter[typeIdentifier].Handle(topicFilter, connection, receiveTime, originalData, data, out _);
+
+            //return routeMap.Handle(topicFilter, connection, receiveTime, originalData, data, out _);
         }
 
         /// <summary>
