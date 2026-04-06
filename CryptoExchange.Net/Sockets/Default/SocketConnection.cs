@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
@@ -489,6 +490,14 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         protected internal virtual void HandleStreamMessage2(WebSocketMessageType type, ReadOnlySpan<byte> data)
         {
+            // Forward message rules:
+            // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
+            // |       N       |          N         |      -       |    Y    | No topic filter applied
+            // |       N       |          Y         |      -       |    N    | Route only listens to specific topic
+            // |       Y       |          N         |      -       |    Y    | Route listens to all message regardless of topic
+            // |       Y       |          Y         |      Y       |    Y    | Route listens to specific message topic
+            // |       Y       |          Y         |      N       |    N    | Route listens to different topic
+
             var receiveTime = DateTime.UtcNow;
 
             // 1. Decrypt/Preprocess if necessary
@@ -525,10 +534,9 @@ namespace CryptoExchange.Net.Sockets.Default
             foreach (var listener in _listeners)
             {
                 var routes = listener.MessageRouter[typeIdentifier];
-                if (routes.Count > 0) {
-                    deserializationType = routes[0].DeserializationType;
-                    break;
-                }
+                deserializationType = routes?.RouteType;
+                if (deserializationType != null)
+                    break;                
             }
 
             if (deserializationType == null)
@@ -577,55 +585,18 @@ namespace CryptoExchange.Net.Sockets.Default
             bool processed = false;
             foreach (var listener in _listeners)
             {
-                var routes = listener.MessageRouter[typeIdentifier];
-
-                bool isQuery = false;
-                Query? query = null;
-                if (listener is Query cquery)
+                var routeMap = listener.MessageRouter[typeIdentifier];
+                if (routeMap != null)
                 {
-                    isQuery = true;
-                    query = cquery;
-                }
+                    // Could be null if listeners was updated while handling message
+                    var handled = listener.Handle(topicFilter, this, receiveTime, originalData, result, routeMap);
+                    if (!processed)
+                    processed = handled;
 
-                var complete = false;
-
-                foreach (var route in routes)
-                {
-                    // Forward message rules:
-                    // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
-                    // |       N       |          N         |      -       |    Y    | No topic filter applied
-                    // |       N       |          Y         |      -       |    N    | Route only listens to specific topic
-                    // |       Y       |          N         |      -       |    Y    | Route listens to all message regardless of topic
-                    // |       Y       |          Y         |      Y       |    Y    | Route listens to specific message topic
-                    // |       Y       |          Y         |      N       |    N    | Route listens to different topic
-                    if (topicFilter == null)
-                    {
-                        if (route.TopicFilter != null)
-                            // No topic on message, but route is filtering on topic
-                            continue;
-                    }
-                    else
-                    {
-                        if (route.TopicFilter != null && !route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
-                            // Message has a topic, and the route has a filter for another topic
-                            continue;
-                    }
-
-                    processed = true;
-
-                    if (isQuery && query!.Completed)
-                        continue;
-
-                    listener.Handle(this, receiveTime, originalData, result, route);
-                    if (isQuery && !route.MultipleReaders)
-                    {
-                        complete = true;
+                    if (!routeMap.MultipleReaders)
+                        // If this was a response to a query and there are no other routes expecting this message we can break here
                         break;
-                    }                        
                 }
-
-                if (complete)
-                    break;
             }
 
             if (!processed)

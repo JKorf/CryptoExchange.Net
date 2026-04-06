@@ -9,6 +9,82 @@ using System.Linq;
 
 namespace CryptoExchange.Net.Sockets
 {
+    public record RouteMapEntry
+    {
+        public Type RouteType { get; }
+        public bool MultipleReaders { get; private set; }
+
+        private List<MessageRoute> _routesWithoutTopicFilter;
+        private Dictionary<string, List<MessageRoute>> _routesWithTopicFilter;
+
+        public RouteMapEntry(Type routeType)
+        {
+            _routesWithoutTopicFilter = new List<MessageRoute>();
+            _routesWithTopicFilter = new Dictionary<string, List<MessageRoute>>();
+
+            RouteType = routeType;
+        }
+
+        public void AddRoute(string? topicFilter, MessageRoute route)
+        {
+            if (string.IsNullOrEmpty(topicFilter))
+            {
+                _routesWithoutTopicFilter.Add(route);
+            }
+            else
+            {
+                if (!_routesWithTopicFilter.TryGetValue(topicFilter!, out var list))
+                {
+                    list = new List<MessageRoute>();
+                    _routesWithTopicFilter.Add(topicFilter!, list);
+                }
+
+                list.Add(route);
+            }
+
+            if (route.MultipleReaders)
+                MultipleReaders = true;
+        }
+
+        internal bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
+        {
+            result = null;
+
+            // Routes without topic filter handle both when the message topic is empty and when it is not, so we always call them
+            var handled = false;
+            foreach (var route in _routesWithoutTopicFilter)
+            {
+                var thisResult = route.Handle(connection, receiveTime, originalData, data);
+                if (thisResult != null)
+                    result ??= thisResult;
+
+                handled = true;
+            }
+
+            // Forward to routes with matching topic filter, if any
+            if (topicFilter != null)
+            {
+                _routesWithTopicFilter.TryGetValue(topicFilter, out var matchingTopicRoutes);
+                foreach (var route in matchingTopicRoutes ?? [])
+                {
+                    var thisResult = route.Handle(connection, receiveTime, originalData, data);
+                    handled = true;
+
+                    if (thisResult != null)
+                    {
+                        result ??= thisResult;
+
+                        if (!MultipleReaders)
+                            break;
+                    }
+
+                }
+            }
+
+            return handled;
+        }
+    }
+
     /// <summary>
     /// Message router
     /// </summary>
@@ -20,9 +96,10 @@ namespace CryptoExchange.Net.Sockets
         public MessageRoute[] Routes { get; }
 
 #if NET8_0_OR_GREATER
-        private FrozenDictionary<string, List<MessageRoute>>? _routeMap;
+        // Used for mapping a type identifier to the routes matching it
+        private FrozenDictionary<string, RouteMapEntry>? _routeMap;
 #else
-        private Dictionary<string, List<MessageRoute>>? _routeMap;
+        private Dictionary<string, RouteMapEntry>? _routeMap;
 #endif
 
         /// <summary>
@@ -38,12 +115,16 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public void BuildRouteMap()
         {
-            var newMap = new Dictionary<string, List<MessageRoute>>();
+            var newMap = new Dictionary<string, RouteMapEntry>();
             foreach (var route in Routes)
             {
-                if (!newMap.ContainsKey(route.TypeIdentifier))
-                    newMap.Add(route.TypeIdentifier, new List<MessageRoute>());
-                newMap[route.TypeIdentifier].Add(route);
+                if (!newMap.TryGetValue(route.TypeIdentifier, out var typeMap))
+                {
+                    typeMap = new RouteMapEntry(route.DeserializationType);
+                    newMap.Add(route.TypeIdentifier, typeMap);
+                }
+
+                typeMap.AddRoute(route.TopicFilter, route);
             }
 
 #if NET8_0_OR_GREATER
@@ -56,9 +137,9 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Get routes matching the type identifier
         /// </summary>
-        public List<MessageRoute> this[string identifier]
+        public RouteMapEntry? this[string identifier]
         {
-            get => (_routeMap ?? throw new InvalidOperationException("Route map not initialized before use")).TryGetValue(identifier, out var routes) ? routes: [];
+            get => (_routeMap ?? throw new InvalidOperationException("Route map not initialized before use")).TryGetValue(identifier, out var routes) ? routes: null;
         }
 
         /// <summary>

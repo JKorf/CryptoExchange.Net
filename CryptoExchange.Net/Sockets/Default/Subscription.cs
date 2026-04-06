@@ -180,10 +180,11 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
+        public bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, RouteMapEntry routeMap)
         {
             ConnectionInvocations++;
             TotalInvocations++;
+
             if (SubscriptionQuery != null && !SubscriptionQuery.Completed && SubscriptionQuery.TimeoutBehavior == TimeoutBehavior.Succeed)
             {
                 // The subscription query is one where it is successful if there is no error returned
@@ -192,7 +193,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 SubscriptionQuery.Timeout();
             }
 
-            return route.Handle(connection, receiveTime, originalData, data);
+            return routeMap.Handle(topicFilter, connection, receiveTime, originalData, data, out _);
         }
 
         /// <summary>
