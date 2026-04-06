@@ -1,6 +1,9 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default;
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,12 +19,46 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public MessageRoute[] Routes { get; }
 
+#if NET8_0_OR_GREATER
+        private FrozenDictionary<string, List<MessageRoute>>? _routeMap;
+#else
+        private Dictionary<string, List<MessageRoute>>? _routeMap;
+#endif
+
         /// <summary>
         /// ctor
         /// </summary>
         private MessageRouter(params MessageRoute[] routes)
         {
             Routes = routes;
+        }
+
+        /// <summary>
+        /// Build the route mapping
+        /// </summary>
+        public void BuildRouteMap()
+        {
+            var newMap = new Dictionary<string, List<MessageRoute>>();
+            foreach (var route in Routes)
+            {
+                if (!newMap.ContainsKey(route.TypeIdentifier))
+                    newMap.Add(route.TypeIdentifier, new List<MessageRoute>());
+                newMap[route.TypeIdentifier].Add(route);
+            }
+
+#if NET8_0_OR_GREATER
+            _routeMap = newMap.ToFrozenDictionary();
+#else
+            _routeMap = newMap;
+#endif
+        }
+
+        /// <summary>
+        /// Get routes matching the type identifier
+        /// </summary>
+        public List<MessageRoute> this[string identifier]
+        {
+            get => (_routeMap ?? throw new InvalidOperationException("Route map not initialized before use")).TryGetValue(identifier, out var routes) ? routes: [];
         }
 
         /// <summary>

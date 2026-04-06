@@ -522,19 +522,13 @@ namespace CryptoExchange.Net.Sockets.Default
             }
 
             Type? deserializationType = null;
-            foreach (var subscription in _listeners)
+            foreach (var listener in _listeners)
             {
-                foreach (var route in subscription.MessageRouter.Routes)
-                {
-                    if (!route.TypeIdentifier.Equals(typeIdentifier, StringComparison.Ordinal))
-                        continue;
-
-                    deserializationType = route.DeserializationType;
+                var routes = listener.MessageRouter[typeIdentifier];
+                if (routes.Count > 0) {
+                    deserializationType = routes[0].DeserializationType;
                     break;
                 }
-
-                if (deserializationType != null)
-                    break;
             }
 
             if (deserializationType == null)
@@ -581,11 +575,13 @@ namespace CryptoExchange.Net.Sockets.Default
             var topicFilter = messageConverter.GetTopicFilter(result);
 
             bool processed = false;
-            foreach (var processor in _listeners)
+            foreach (var listener in _listeners)
             {
+                var routes = listener.MessageRouter[typeIdentifier];
+
                 bool isQuery = false;
                 Query? query = null;
-                if (processor is Query cquery)
+                if (listener is Query cquery)
                 {
                     isQuery = true;
                     query = cquery;
@@ -593,11 +589,8 @@ namespace CryptoExchange.Net.Sockets.Default
 
                 var complete = false;
 
-                foreach (var route in processor.MessageRouter.Routes)
+                foreach (var route in routes)
                 {
-                    if (route.TypeIdentifier != typeIdentifier)
-                        continue;
-
                     // Forward message rules:
                     // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
                     // |       N       |          N         |      -       |    Y    | No topic filter applied
@@ -623,7 +616,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     if (isQuery && query!.Completed)
                         continue;
 
-                    processor.Handle(this, receiveTime, originalData, result, route);
+                    listener.Handle(this, receiveTime, originalData, result, route);
                     if (isQuery && !route.MultipleReaders)
                     {
                         complete = true;

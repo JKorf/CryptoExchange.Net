@@ -70,10 +70,20 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public bool Authenticated { get; }
 
+
+        private MessageRouter _router;
         /// <summary>
         /// Router for this subscription
         /// </summary>
-        public MessageRouter MessageRouter { get; set; }
+        public MessageRouter MessageRouter
+        {
+            get => _router;
+            set
+            {
+                _router = value;
+                _router.BuildRouteMap();
+            }
+        }
 
         /// <summary>
         /// Cancellation token registration

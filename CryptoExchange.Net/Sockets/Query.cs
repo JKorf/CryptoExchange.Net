@@ -59,10 +59,19 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public object? Response { get; set; }
 
+        private MessageRouter _router;
         /// <summary>
-        /// Router for this query
+        /// Router for this subscription
         /// </summary>
-        public MessageRouter MessageRouter { get; set; }
+        public MessageRouter MessageRouter
+        {
+            get => _router;
+            set
+            {
+                _router = value;
+                _router.BuildRouteMap();
+            }
+        }
 
         /// <summary>
         /// The query request object
