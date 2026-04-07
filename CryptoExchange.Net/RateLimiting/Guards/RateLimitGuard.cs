@@ -3,6 +3,7 @@ using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.RateLimiting.Trackers;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
 {
@@ -36,6 +37,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         private readonly double? _decayRate;
         private readonly int? _connectionWeight;
         private readonly Func<RequestDefinition, string, string?, string> _keySelector;
+        private readonly SemaphoreSlim? _sharedGuardSemaphore;
 
         /// <inheritdoc />
         public string Name => "RateLimitGuard";
@@ -53,6 +55,11 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public TimeSpan TimeSpan { get; }
 
         /// <summary>
+        /// Whether this guard is shared between multiple gates
+        /// </summary>
+        public bool SharedGuard { get; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="keySelector">The rate limit key selector</param>
@@ -62,8 +69,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="windowType">Type of rate limit window</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
-        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
-            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight)
+        /// <param name="shared">Whether this guard is shared between multiple gates</param>
+        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IGuardFilter filter, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
+            : this(keySelector, new[] { filter }, limit, timeSpan, windowType, decayPerTimeSpan, connectionWeight, shared)
         {
         }
 
@@ -77,22 +85,27 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <param name="windowType">Type of rate limit window</param>
         /// <param name="decayPerTimeSpan">The decay per timespan if windowType is DecayWindowTracker</param>
         /// <param name="connectionWeight">The weight of a new connection</param>
-        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null)
+        /// <param name="shared">Whether this guard is shared between multiple gates</param>
+        public RateLimitGuard(Func<RequestDefinition, string, string?, string> keySelector, IEnumerable<IGuardFilter> filters, int limit, TimeSpan timeSpan, RateLimitWindowType windowType, double? decayPerTimeSpan = null, int? connectionWeight = null, bool shared = false)
         {
             _filters = filters;
             _trackers = new Dictionary<string, IWindowTracker>();
             _windowType = windowType;
             Limit = limit;
             TimeSpan = timeSpan;
+            SharedGuard = shared;
             _keySelector = keySelector;
             _decayRate = decayPerTimeSpan;
             _connectionWeight = connectionWeight;
+
+            if (SharedGuard)
+                _sharedGuardSemaphore = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc />
         public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
         {
-            foreach(var filter in _filters)
+            foreach (var filter in _filters)
             {
                 if (!filter.Passes(type, definition, host, apiKey))
                     return LimitCheck.NotApplicable;
@@ -101,18 +114,30 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type == RateLimitItemType.Connection)
                 requestWeight = _connectionWeight ?? requestWeight;
 
-            var key = _keySelector(definition, host, apiKey) + keySuffix;
-            if (!_trackers.TryGetValue(key, out var tracker))
+            if (SharedGuard)
+                _sharedGuardSemaphore!.Wait();
+
+            try
             {
-                tracker = CreateTracker();
-                _trackers.Add(key, tracker);
+                var key = _keySelector(definition, host, apiKey) + keySuffix;
+                if (!_trackers.TryGetValue(key, out var tracker))
+                {
+                    tracker = CreateTracker();
+                    _trackers.Add(key, tracker);
+                }
+
+
+                var delay = tracker.GetWaitTime(requestWeight);
+                if (delay == default)
+                    return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
+
+                return LimitCheck.Needed(delay, Limit, TimeSpan, tracker.Current);
             }
-
-            var delay = tracker.GetWaitTime(requestWeight);
-            if (delay == default)
-                return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
-
-            return LimitCheck.Needed(delay, Limit, TimeSpan, tracker.Current);
+            finally
+            {
+                if (SharedGuard)
+                    _sharedGuardSemaphore!.Release();
+            }
         }
 
         /// <inheritdoc />
@@ -127,9 +152,23 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             if (type == RateLimitItemType.Connection)
                 requestWeight = _connectionWeight ?? requestWeight;
 
+
             var key = _keySelector(definition, host, apiKey) + keySuffix;
             var tracker = _trackers[key];
-            tracker.ApplyWeight(requestWeight);
+
+            if (SharedGuard)
+                _sharedGuardSemaphore!.Wait();
+
+            try 
+            {
+                tracker.ApplyWeight(requestWeight);
+            }
+            finally
+            {
+                if (SharedGuard)
+                    _sharedGuardSemaphore!.Release();
+            }
+
             return RateLimitState.Applied(Limit, TimeSpan, tracker.Current);
         }
 
