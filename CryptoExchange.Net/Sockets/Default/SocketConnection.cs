@@ -5,13 +5,11 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -267,8 +265,7 @@ namespace CryptoExchange.Net.Sockets.Default
         private readonly object _listenersLock = new object();
 #endif
 
-
-        private RouteTable _routeTable = new RouteTable([]);
+        private RoutingTable _routeTable = new RoutingTable([]);
 
         private ReadOnlyCollection<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
@@ -552,7 +549,7 @@ namespace CryptoExchange.Net.Sockets.Default
             object result;
             try
             {
-                if (routingEntry.RouteType == typeof(string))
+                if (routingEntry.IsStringOutput)
                 {
 #if NETSTANDARD2_0
                     result = Encoding.UTF8.GetString(data.ToArray());
@@ -562,7 +559,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
                 else
                 {
-                    result = messageConverter.Deserialize(data, routingEntry.RouteType);
+                    result = messageConverter.Deserialize(data, routingEntry.DeserializationType);
                 }
             }
             catch(Exception ex)
@@ -1145,15 +1142,32 @@ namespace CryptoExchange.Net.Sockets.Default
             });
         }
 
+        private void BuildRoutingTable()
+        {
+            _routeTable = new RoutingTable(_listeners);
+        }
+
         private void AddMessageProcessor(IMessageProcessor processor)
         {
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Add(processor);
-                _routeTable = new RouteTable(updatedList);
+                processor.OnMessageRouterUpdated += () =>
+                {
+                    BuildRoutingTable();
+#if DEBUG
+                    _logger.LogTrace("MessageRouter updated, new routing table:\r\n" + _routeTable.ToString());
+#endif
+                };
                 _listeners = updatedList.AsReadOnly();
-
+                if (processor.MessageRouter.Routes.Length > 0)
+                {
+                    BuildRoutingTable();
+#if DEBUG
+                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routeTable.ToString());
+#endif
+                }
             }
         }
 
@@ -1162,9 +1176,15 @@ namespace CryptoExchange.Net.Sockets.Default
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
-                updatedList.Remove(processor);
-                _routeTable = new RouteTable(updatedList);
+                if (!updatedList.Remove(processor))
+                    return; // If nothing removed nothing has changed
+
+                processor.OnMessageRouterUpdated -= BuildRoutingTable;
                 _listeners = updatedList.AsReadOnly();
+                BuildRoutingTable();
+#if DEBUG
+                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routeTable.ToString());
+#endif
             }
         }
 
@@ -1173,13 +1193,24 @@ namespace CryptoExchange.Net.Sockets.Default
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
+                var anyRemoved = false;
                 foreach (var processor in processors)
-                    updatedList.Remove(processor);
-                _routeTable = new RouteTable(updatedList);
+                {
+                    processor.OnMessageRouterUpdated -= BuildRoutingTable;
+                    if (updatedList.Remove(processor))
+                        anyRemoved = true;
+                }
+
+                if (!anyRemoved)
+                    return; // If nothing removed nothing has changed
+
                 _listeners = updatedList.AsReadOnly();
+                BuildRoutingTable();
+#if DEBUG
+                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routeTable.ToString());
+#endif
             }
         }
-
     }
 }
 

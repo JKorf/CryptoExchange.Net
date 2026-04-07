@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using System;
 
 namespace CryptoExchange.Net.Sockets.Interfaces
@@ -18,6 +19,10 @@ namespace CryptoExchange.Net.Sockets.Interfaces
         /// The message router for this processor
         /// </summary>
         public MessageRouter MessageRouter { get; }
+        /// <summary>
+        /// Event when the message router for this processor has been changed
+        /// </summary>
+        public event Action OnMessageRouterUpdated;
         /// <summary>
         /// Handle a message
         /// </summary>

@@ -171,6 +171,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return resultOptimistic.Value;
             }
 
+            var isNumber = reader.TokenType == JsonTokenType.Number;
             var stringValue = reader.TokenType switch
             {
                 JsonTokenType.String => reader.GetString(),
@@ -207,7 +208,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return null;
             }
 
-            if (RunOptimistic)
+            if (RunOptimistic && !isNumber)
             {
                 if (!_unknownValuesWarned.Contains(stringValue))
                 {

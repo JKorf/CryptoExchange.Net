@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -82,6 +83,7 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 _router = value;
                 _router.BuildRouteMap();
+                OnMessageRouterUpdated?.Invoke();
             }
         }
 
@@ -118,6 +120,9 @@ namespace CryptoExchange.Net.Sockets.Default
         /// The number of individual streams in this subscription
         /// </summary>
         public int IndividualSubscriptionCount { get; set; } = 1;
+
+        /// <inheritdoc />
+        public event Action? OnMessageRouterUpdated;
 
         /// <summary>
         /// ctor
@@ -193,9 +198,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 SubscriptionQuery.Timeout();
             }
 
-            return MessageRouter[typeIdentifier].Handle(topicFilter, connection, receiveTime, originalData, data, out _);
-
-            //return routeMap.Handle(topicFilter, connection, receiveTime, originalData, data, out _);
+            return MessageRouter[typeIdentifier]?.Handle(topicFilter, connection, receiveTime, originalData, data, out _) ?? false;
         }
 
         /// <summary>

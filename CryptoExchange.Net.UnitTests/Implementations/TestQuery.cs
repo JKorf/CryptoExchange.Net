@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Sockets;
 using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using System;
 
 namespace CryptoExchange.Net.UnitTests.Implementations
