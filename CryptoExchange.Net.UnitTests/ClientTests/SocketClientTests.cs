@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.UnitTests
+namespace CryptoExchange.Net.UnitTests.ClientTests
 {
     [TestFixture]
     public class SocketClientTests

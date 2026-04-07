@@ -98,6 +98,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static T? _undefinedEnumValue;
         private static bool _hasFlagsAttribute = _enumType.IsDefined(typeof(FlagsAttribute));
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
+        private static ConcurrentBag<string> _notOptimalValuesWarned = new ConcurrentBag<string>();
 
         internal class NullableEnumConverter : JsonConverter<T?>
         {
@@ -210,9 +211,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             if (RunOptimistic && !isNumber)
             {
-                if (!_unknownValuesWarned.Contains(stringValue))
+                if (!_notOptimalValuesWarned.Contains(stringValue))
                 {
-                    _unknownValuesWarned.Add(stringValue!);
+                    _notOptimalValuesWarned.Add(stringValue!);
                     LibraryHelpers.StaticLogger?.LogTrace($"Enum mapping sub-optimal. EnumType: {_enumType.FullName}, Value: {stringValue}, Known values: [{string.Join(", ", _mappingToEnum!.Select(m => $"{m.StringValue}: {m.Value}"))}]");
                 }
             }
