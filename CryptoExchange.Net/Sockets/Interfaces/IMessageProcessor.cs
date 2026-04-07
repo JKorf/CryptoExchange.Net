@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.Sockets.Interfaces
         /// <summary>
         /// Event when the message router for this processor has been changed
         /// </summary>
-        public event Action OnMessageRouterUpdated;
+        public event Action? OnMessageRouterUpdated;
         /// <summary>
         /// Handle a message
         /// </summary>

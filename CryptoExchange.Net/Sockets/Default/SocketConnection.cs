@@ -9,11 +9,8 @@ using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -1153,13 +1150,7 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Add(processor);
-                processor.OnMessageRouterUpdated += () =>
-                {
-                    BuildRoutingTable();
-#if DEBUG
-                    _logger.LogTrace("MessageRouter updated, new routing table:\r\n" + _routeTable.ToString());
-#endif
-                };
+                processor.OnMessageRouterUpdated += BuildRoutingTable;
                 _listeners = updatedList.AsReadOnly();
                 if (processor.MessageRouter.Routes.Length > 0)
                 {

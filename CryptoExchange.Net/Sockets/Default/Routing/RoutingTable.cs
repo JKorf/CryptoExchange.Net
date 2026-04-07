@@ -25,7 +25,8 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
                     if (!_routeTableEntries.ContainsKey(route.TypeIdentifier))
                         _routeTableEntries.Add(route.TypeIdentifier, new RoutingTableEntry(route.DeserializationType));                    
 
-                    _routeTableEntries[route.TypeIdentifier].Handlers.Add(entry);
+                    if (!_routeTableEntries[route.TypeIdentifier].Handlers.Contains(entry))
+                        _routeTableEntries[route.TypeIdentifier].Handlers.Add(entry);
                 }
             }
         }

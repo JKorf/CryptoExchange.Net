@@ -335,7 +335,9 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             var mappingStringToEnum = new List<EnumMapping>();
             var mappingEnumToString = new Dictionary<T, string>();
 
+#pragma warning disable IL2080
             var enumMembers = _enumType.GetFields();
+#pragma warning restore IL2080
             foreach (var member in enumMembers)
             {
                 var maps = member.GetCustomAttributes(typeof(MapAttribute), false);
