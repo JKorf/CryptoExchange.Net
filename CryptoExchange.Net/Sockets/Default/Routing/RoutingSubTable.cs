@@ -57,7 +57,6 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         private List<MessageRoute> _routesWithoutTopicFilter;
         private Dictionary<string, List<MessageRoute>> _routesWithTopicFilter;
 #if NET8_0_OR_GREATER
-        // Used for mapping a type identifier to the routes matching it
         private FrozenDictionary<string, List<MessageRoute>>? _routesWithTopicFilterFrozen;
 #endif
 
@@ -129,6 +128,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
                     {
                         result ??= thisResult;
 
+#warning MultipleReaders is only for queries, subscriptions should always have multiple readers = true. Maybe create different RoutingSubTable implementations for Queries and Subscriptions?
                         if (!MultipleReaders)
                             break;
                     }
