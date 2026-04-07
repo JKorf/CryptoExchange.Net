@@ -201,6 +201,9 @@ namespace CryptoExchange.Net.Sockets
         /// <inheritdoc />
         public override bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message)
         {
+            if (Completed)
+                return false;
+
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
                 Response = message;
