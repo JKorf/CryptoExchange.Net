@@ -22,8 +22,12 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public Error? Validate(GetRecentTradesRequest request)
+        public override Error? ValidateRequest(string exchange, GetRecentTradesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
+            var baseError = base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            if (baseError != null)
+                return baseError;
+
             if (request.Limit > MaxLimit)
                 return ArgumentError.Invalid(nameof(GetRecentTradesRequest.Limit), $"Only the most recent {MaxLimit} trades are available");
 
