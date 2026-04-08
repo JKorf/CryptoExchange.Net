@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         { }
 
         /// <summary>
-        /// Get the CryptoCom environment by name
+        /// Get the environment by name
         /// </summary>
         public static TestEnvironment? GetEnvironmentByName(string? name)
          => name switch

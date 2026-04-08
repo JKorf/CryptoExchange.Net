@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.UnitTests
         }
 
         [Test]
-        public void AddingBasicNullValue_ThrowExecption()
+        public void AddingBasicNullValue_ThrowsException()
         {
             var parameters = new ParameterCollection();
             Assert.Throws<ArgumentNullException>(() =>  parameters.Add("test", null!));

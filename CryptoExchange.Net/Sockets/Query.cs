@@ -62,7 +62,7 @@ namespace CryptoExchange.Net.Sockets
 
         private MessageRouter _router;
         /// <summary>
-        /// Router for this subscription
+        /// Router for this query
         /// </summary>
         public MessageRouter MessageRouter
         {
@@ -208,12 +208,14 @@ namespace CryptoExchange.Net.Sockets
             if (CurrentResponses == RequiredResponses)
                 Response = message;
 
+            var handled = false;
             if (Result?.Success != false)
             {
                 // If an error result is already set don't override that
                 MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, message, out var result);
                 Result = result;
-                if (Result == null)
+                handled = Result != null;
+                if (!handled)
                     // Null from Handle means it wasn't actually for this query
                     CurrentResponses -= 1;
             }
@@ -225,7 +227,7 @@ namespace CryptoExchange.Net.Sockets
                 OnComplete?.Invoke();
             }
 
-            return true;
+            return handled;
         }
 
         /// <inheritdoc />

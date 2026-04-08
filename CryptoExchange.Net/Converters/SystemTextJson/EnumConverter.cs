@@ -230,7 +230,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
         /// <summary>
         /// Try to get the enum value based on the string value using the Utf8JsonReader's ValueTextEquals method. 
-        /// This is an optimization to avoid string allocations when possible, but can only match case insensitively
+        /// This is an optimization to avoid string allocations when possible, but can only match case sensitively
         /// </summary>
         private static T? GetValueOptimistic(ref Utf8JsonReader reader)
         {
