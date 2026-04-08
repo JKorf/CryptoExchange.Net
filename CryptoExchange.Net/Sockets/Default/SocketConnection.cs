@@ -5,13 +5,12 @@ using CryptoExchange.Net.Logging.Extensions;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Sockets.Default.Interfaces;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -262,6 +261,9 @@ namespace CryptoExchange.Net.Sockets.Default
 #else
         private readonly object _listenersLock = new object();
 #endif
+
+        private RoutingTable _routingTable = new RoutingTable();
+
         private ReadOnlyCollection<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
         private SocketStatus _status;
@@ -489,6 +491,14 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         protected internal virtual void HandleStreamMessage2(WebSocketMessageType type, ReadOnlySpan<byte> data)
         {
+            // Forward message rules:
+            // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
+            // |       N       |          N         |      -       |    Y    | No topic filter applied
+            // |       N       |          Y         |      -       |    N    | Route only listens to specific topic
+            // |       Y       |          N         |      -       |    Y    | Route listens to all message regardless of topic
+            // |       Y       |          Y         |      Y       |    Y    | Route listens to specific message topic
+            // |       Y       |          Y         |      N       |    N    | Route listens to different topic
+
             var receiveTime = DateTime.UtcNow;
 
             // 1. Decrypt/Preprocess if necessary
@@ -521,38 +531,22 @@ namespace CryptoExchange.Net.Sockets.Default
                 return;
             }
 
-            Type? deserializationType = null;
-            foreach (var subscription in _listeners)
-            {
-                foreach (var route in subscription.MessageRouter.Routes)
-                {
-                    if (!route.TypeIdentifier.Equals(typeIdentifier, StringComparison.Ordinal))
-                        continue;
-
-                    deserializationType = route.DeserializationType;
-                    break;
-                }
-
-                if (deserializationType != null)
-                    break;
-            }
-
-            if (deserializationType == null)
+            var routingEntry = _routingTable.GetRouteTableEntry(typeIdentifier);
+            if (routingEntry == null)
             {
                 if (!ApiClient.HandleUnhandledMessage(this, typeIdentifier, data))
                 {
                     // No handler found for identifier either, can't process
                     _logger.LogWarning("Failed to determine message type for identifier {Identifier}. Data: {Message}", typeIdentifier, Encoding.UTF8.GetString(data.ToArray()));
                 }
-                    
+
                 return;
             }
-            
 
             object result;
             try
             {
-                if (deserializationType == typeof(string))
+                if (routingEntry.IsStringOutput)
                 {
 #if NETSTANDARD2_0
                     result = Encoding.UTF8.GetString(data.ToArray());
@@ -562,7 +556,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
                 else
                 {
-                    result = messageConverter.Deserialize(data, deserializationType);
+                    result = messageConverter.Deserialize(data, routingEntry.DeserializationType);
                 }
             }
             catch(Exception ex)
@@ -579,60 +573,12 @@ namespace CryptoExchange.Net.Sockets.Default
             }
 
             var topicFilter = messageConverter.GetTopicFilter(result);
-
-            bool processed = false;
-            foreach (var processor in _listeners)
+            var processed = false;
+            foreach (var handler in routingEntry.Handlers)
             {
-                bool isQuery = false;
-                Query? query = null;
-                if (processor is Query cquery)
-                {
-                    isQuery = true;
-                    query = cquery;
-                }
-
-                var complete = false;
-
-                foreach (var route in processor.MessageRouter.Routes)
-                {
-                    if (route.TypeIdentifier != typeIdentifier)
-                        continue;
-
-                    // Forward message rules:
-                    // | Message Topic | Route Topic Filter | Topics Match | Forward | Description
-                    // |       N       |          N         |      -       |    Y    | No topic filter applied
-                    // |       N       |          Y         |      -       |    N    | Route only listens to specific topic
-                    // |       Y       |          N         |      -       |    Y    | Route listens to all message regardless of topic
-                    // |       Y       |          Y         |      Y       |    Y    | Route listens to specific message topic
-                    // |       Y       |          Y         |      N       |    N    | Route listens to different topic
-                    if (topicFilter == null)
-                    {
-                        if (route.TopicFilter != null)
-                            // No topic on message, but route is filtering on topic
-                            continue;
-                    }
-                    else
-                    {
-                        if (route.TopicFilter != null && !route.TopicFilter.Equals(topicFilter, StringComparison.Ordinal))
-                            // Message has a topic, and the route has a filter for another topic
-                            continue;
-                    }
-
+                var thisHandled = handler.Handle(typeIdentifier, topicFilter, this, receiveTime, originalData, result);
+                if (thisHandled)
                     processed = true;
-
-                    if (isQuery && query!.Completed)
-                        continue;
-
-                    processor.Handle(this, receiveTime, originalData, result, route);
-                    if (isQuery && !route.MultipleReaders)
-                    {
-                        complete = true;
-                        break;
-                    }                        
-                }
-
-                if (complete)
-                    break;
             }
 
             if (!processed)
@@ -1193,13 +1139,26 @@ namespace CryptoExchange.Net.Sockets.Default
             });
         }
 
+        private void UpdateRoutingTable()
+        {
+            _routingTable.Update(_listeners);
+        }
+
         private void AddMessageProcessor(IMessageProcessor processor)
         {
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Add(processor);
+                processor.OnMessageRouterUpdated += UpdateRoutingTable;
                 _listeners = updatedList.AsReadOnly();
+                if (processor.MessageRouter.Routes.Length > 0)
+                {
+                    UpdateRoutingTable();
+#if DEBUG
+                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
+#endif
+                }
             }
         }
 
@@ -1208,8 +1167,15 @@ namespace CryptoExchange.Net.Sockets.Default
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
-                updatedList.Remove(processor);
+                processor.OnMessageRouterUpdated -= UpdateRoutingTable;
+                if (!updatedList.Remove(processor))
+                    return; // If nothing removed nothing has changed
+
                 _listeners = updatedList.AsReadOnly();
+                UpdateRoutingTable();
+#if DEBUG
+                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
+#endif
             }
         }
 
@@ -1218,12 +1184,24 @@ namespace CryptoExchange.Net.Sockets.Default
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
+                var anyRemoved = false;
                 foreach (var processor in processors)
-                    updatedList.Remove(processor);
+                {
+                    processor.OnMessageRouterUpdated -= UpdateRoutingTable;
+                    if (updatedList.Remove(processor))
+                        anyRemoved = true;
+                }
+
+                if (!anyRemoved)
+                    return; // If nothing removed nothing has changed
+
                 _listeners = updatedList.AsReadOnly();
+                UpdateRoutingTable();
+#if DEBUG
+                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
+#endif
             }
         }
-
     }
 }
 

@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (string.IsNullOrEmpty(value))
                 return default;
 
-            return (T?)JsonDocument.Parse(value!).Deserialize(typeof(T), options);
+            return JsonDocument.Parse(value!).Deserialize<T>(options);
         }
 
         /// <inheritdoc />

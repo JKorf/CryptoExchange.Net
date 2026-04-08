@@ -1,6 +1,5 @@
 using CryptoExchange.Net.SharedApis;
 using NUnit.Framework;
-using System;
 
 namespace CryptoExchange.Net.UnitTests
 {

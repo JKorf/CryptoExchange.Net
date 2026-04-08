@@ -3,7 +3,6 @@ using CryptoExchange.Net.Objects.Errors;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 
@@ -17,7 +16,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new CallResult(new ServerError("TestError", ErrorInfo.Unknown));
 
-            ClassicAssert.AreSame(result.Error.ErrorCode, "TestError");
+            ClassicAssert.AreSame(result.Error!.ErrorCode, "TestError");
             ClassicAssert.IsFalse(result);
             ClassicAssert.IsFalse(result.Success);
         }
@@ -37,7 +36,7 @@ namespace CryptoExchange.Net.UnitTests
         {
             var result = new CallResult<object>(new ServerError("TestError", ErrorInfo.Unknown));
 
-            ClassicAssert.AreSame(result.Error.ErrorCode, "TestError");
+            ClassicAssert.AreSame(result.Error!.ErrorCode, "TestError");
             ClassicAssert.IsNull(result.Data);
             ClassicAssert.IsFalse(result);
             ClassicAssert.IsFalse(result.Success);
@@ -74,7 +73,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.As<TestObject2>(default);
 
             ClassicAssert.IsNotNull(asResult.Error);
-            ClassicAssert.AreSame(asResult.Error.ErrorCode, "TestError");
+            ClassicAssert.AreSame(asResult.Error!.ErrorCode, "TestError");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -87,7 +86,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2", ErrorInfo.Unknown));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            ClassicAssert.AreSame(asResult.Error.ErrorCode, "TestError2");
+            ClassicAssert.AreSame(asResult.Error!.ErrorCode, "TestError2");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -100,7 +99,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2", ErrorInfo.Unknown));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            ClassicAssert.AreSame(asResult.Error.ErrorCode, "TestError2");
+            ClassicAssert.AreSame(asResult.Error!.ErrorCode, "TestError2");
             ClassicAssert.IsNull(asResult.Data);
             ClassicAssert.IsFalse(asResult);
             ClassicAssert.IsFalse(asResult.Success);
@@ -127,7 +126,7 @@ namespace CryptoExchange.Net.UnitTests
             var asResult = result.AsError<TestObject2>(new ServerError("TestError2", ErrorInfo.Unknown));
 
             ClassicAssert.IsNotNull(asResult.Error);
-            Assert.That(asResult.Error.ErrorCode == "TestError2");
+            Assert.That(asResult.Error!.ErrorCode == "TestError2");
             Assert.That(asResult.ResponseStatusCode == System.Net.HttpStatusCode.OK);
             Assert.That(asResult.ResponseTime == TimeSpan.FromSeconds(1));
             Assert.That(asResult.RequestUrl == "https://test.com/api");

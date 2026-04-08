@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Error? ValidateRequest(string exchange, GetOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
         {
             if (request.Limit == null)
-                return null;
+                return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
 
             if (MaxLimit.HasValue && request.Limit.Value > MaxLimit)
                 return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Max limit is {MaxLimit}");

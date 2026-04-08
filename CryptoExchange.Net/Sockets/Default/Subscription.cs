@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -70,10 +71,21 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public bool Authenticated { get; }
 
+
+        private MessageRouter _router;
         /// <summary>
         /// Router for this subscription
         /// </summary>
-        public MessageRouter MessageRouter { get; set; }
+        public MessageRouter MessageRouter
+        {
+            get => _router;
+            set
+            {
+                _router = value;
+                _router.BuildSubscriptionRouter();
+                OnMessageRouterUpdated?.Invoke();
+            }
+        }
 
         /// <summary>
         /// Cancellation token registration
@@ -108,6 +120,9 @@ namespace CryptoExchange.Net.Sockets.Default
         /// The number of individual streams in this subscription
         /// </summary>
         public int IndividualSubscriptionCount { get; set; } = 1;
+
+        /// <inheritdoc />
+        public event Action? OnMessageRouterUpdated;
 
         /// <summary>
         /// ctor
@@ -170,10 +185,11 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Handle an update message
         /// </summary>
-        public CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data, MessageRoute route)
+        public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data)
         {
             ConnectionInvocations++;
             TotalInvocations++;
+
             if (SubscriptionQuery != null && !SubscriptionQuery.Completed && SubscriptionQuery.TimeoutBehavior == TimeoutBehavior.Succeed)
             {
                 // The subscription query is one where it is successful if there is no error returned
@@ -182,7 +198,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 SubscriptionQuery.Timeout();
             }
 
-            return route.Handle(connection, receiveTime, originalData, data);
+            return MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, data, out _);
         }
 
         /// <summary>

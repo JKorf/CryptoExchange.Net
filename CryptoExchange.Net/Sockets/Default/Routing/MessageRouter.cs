@@ -1,16 +1,17 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Sockets.Default;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CryptoExchange.Net.Sockets
+namespace CryptoExchange.Net.Sockets.Default.Routing
 {
     /// <summary>
     /// Message router
     /// </summary>
     public class MessageRouter
     {
+        private ProcessorRouter? _routingTable;
+
         /// <summary>
         /// The routes registered for this router
         /// </summary>
@@ -25,11 +26,39 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <summary>
+        /// Build the route mapping
+        /// </summary>
+        public void BuildQueryRouter()
+        {
+            _routingTable = new QueryRouter(Routes);
+        }
+
+        /// <summary>
+        /// Build the route mapping
+        /// </summary>
+        public void BuildSubscriptionRouter()
+        {
+            _routingTable = new SubscriptionRouter(Routes);
+        }
+
+        /// <summary>
+        /// Handle message
+        /// </summary>
+        public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
+        {
+            var routeCollection = (_routingTable ?? throw new NullReferenceException("Routing table not build before handling")).GetRoutes(typeIdentifier);
+            if (routeCollection == null)
+                throw new InvalidOperationException($"No routes for {typeIdentifier} message type");
+
+            return routeCollection.Handle(topicFilter, connection, receiveTime, originalData, data, out result);
+        }
+
+        /// <summary>
         /// Create message router without specific message handler
         /// </summary>
         public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier, bool multipleReaders = false)
         {
-            return new MessageRouter(new MessageRoute<T>(typeIdentifier, (string?)null, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null), multipleReaders));
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, null, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null), multipleReaders));
         }
 
         /// <summary>
@@ -165,104 +194,4 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public bool ContainsCheck(MessageRoute route) => Routes.Any(x => x.TypeIdentifier == route.TypeIdentifier && x.TopicFilter == route.TopicFilter);
     }
-
-    /// <summary>
-    /// Message route
-    /// </summary>
-    public abstract class MessageRoute
-    {
-        /// <summary>
-        /// Type identifier
-        /// </summary>
-        public string TypeIdentifier { get; set; }
-        /// <summary>
-        /// Optional topic filter
-        /// </summary>
-        public string? TopicFilter { get; set; }
-
-        /// <summary>
-        /// Whether responses to this route might be read by multiple listeners
-        /// </summary>
-        public bool MultipleReaders { get; set; } = false;
-
-        /// <summary>
-        /// Deserialization type
-        /// </summary>
-        public abstract Type DeserializationType { get; }
-        
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public MessageRoute(string typeIdentifier, string? topicFilter)
-        {
-            TypeIdentifier = typeIdentifier;
-            TopicFilter = topicFilter;
-        }
-
-        /// <summary>
-        /// Message handler
-        /// </summary>
-        public abstract CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data);
-    }
-
-    /// <summary>
-    /// Message route
-    /// </summary>
-    public class MessageRoute<TMessage> : MessageRoute
-    {
-        private Func<SocketConnection, DateTime, string?, TMessage, CallResult?> _handler;
-
-        /// <inheritdoc />
-        public override Type DeserializationType { get; } = typeof(TMessage);
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        internal MessageRoute(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
-            : base(typeIdentifier, topicFilter)
-        {
-            _handler = handler;
-            MultipleReaders = multipleReaders;
-        }
-
-        /// <summary>
-        /// Create route without topic filter
-        /// </summary>
-        public static MessageRoute<TMessage> CreateWithoutTopicFilter(string typeIdentifier, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
-        {
-            return new MessageRoute<TMessage>(typeIdentifier, null, handler)
-            {
-                MultipleReaders = multipleReaders
-            };
-        }
-
-        /// <summary>
-        /// Create route with optional topic filter
-        /// </summary>
-        public static MessageRoute<TMessage> CreateWithOptionalTopicFilter(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
-        {
-            return new MessageRoute<TMessage>(typeIdentifier, topicFilter, handler)
-            {
-                MultipleReaders = multipleReaders
-            };
-        }
-
-        /// <summary>
-        /// Create route with topic filter
-        /// </summary>
-        public static MessageRoute<TMessage> CreateWithTopicFilter(string typeIdentifier, string topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
-        {
-            return new MessageRoute<TMessage>(typeIdentifier, topicFilter, handler)
-            {
-                MultipleReaders = multipleReaders
-            };
-        }
-
-        /// <inheritdoc />
-        public override CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data)
-        {
-            return _handler(connection, receiveTime, originalData, (TMessage)data);
-        }
-    }
-
 }

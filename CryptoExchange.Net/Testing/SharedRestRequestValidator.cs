@@ -48,6 +48,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="methodInvoke">Method invocation</param>
         /// <param name="name">Method name for looking up json test values</param>
         /// <param name="endpointOptions">Request options</param>
+        /// <param name="validation">Callback to validate the response model</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public Task ValidateAsync<TResponse>(
@@ -65,6 +66,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="methodInvoke">Method invocation</param>
         /// <param name="name">Method name for looking up json test values</param>
         /// <param name="endpointOptions">Request options</param>
+        /// <param name="validation">Callback to validate the response model</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse, TActualResponse>(

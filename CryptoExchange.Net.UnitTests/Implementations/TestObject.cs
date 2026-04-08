@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.UnitTests.TestImplementations
+namespace CryptoExchange.Net.UnitTests.Implementations
 {
     public class TestObject
     {
         [JsonPropertyName("other")]
-        public string StringData { get; set; }
+        public string StringData { get; set; } = string.Empty;
         [JsonPropertyName("intData")]
         public int IntData { get; set; }
         [JsonPropertyName("decimalData")]

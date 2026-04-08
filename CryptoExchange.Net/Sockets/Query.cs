@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default;
+using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using System;
 using System.Threading;
@@ -59,10 +60,20 @@ namespace CryptoExchange.Net.Sockets
         /// </summary>
         public object? Response { get; set; }
 
+        private MessageRouter _router;
         /// <summary>
         /// Router for this query
         /// </summary>
-        public MessageRouter MessageRouter { get; set; }
+        public MessageRouter MessageRouter
+        {
+            get => _router;
+            set
+            {
+                _router = value;
+                _router.BuildQueryRouter();
+                OnMessageRouterUpdated?.Invoke();
+            }
+        }
 
         /// <summary>
         /// The query request object
@@ -98,6 +109,9 @@ namespace CryptoExchange.Net.Sockets
         /// On complete callback
         /// </summary>
         public Action? OnComplete { get; set; }
+
+        /// <inheritdoc />
+        public event Action? OnMessageRouterUpdated;
 
         /// <summary>
         /// ctor
@@ -155,7 +169,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Handle a response message
         /// </summary>
-        public abstract CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route);
+        public abstract bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message);
 
     }
 
@@ -185,17 +199,23 @@ namespace CryptoExchange.Net.Sockets
         }
 
         /// <inheritdoc />
-        public override CallResult Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object message, MessageRoute route)
+        public override bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object message)
         {
+            if (Completed)
+                return false;
+
             CurrentResponses++;
             if (CurrentResponses == RequiredResponses)
                 Response = message;
 
+            var handled = false;
             if (Result?.Success != false)
             {
                 // If an error result is already set don't override that
-                Result = route.Handle(connection, receiveTime, originalData, message);
-                if (Result == null)
+                MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, message, out var result);
+                Result = result;
+                handled = Result != null;
+                if (!handled)
                     // Null from Handle means it wasn't actually for this query
                     CurrentResponses -= 1;
             }
@@ -207,7 +227,7 @@ namespace CryptoExchange.Net.Sockets
                 OnComplete?.Invoke();
             }
 
-            return Result ?? CallResult.SuccessResult;
+            return handled;
         }
 
         /// <inheritdoc />
