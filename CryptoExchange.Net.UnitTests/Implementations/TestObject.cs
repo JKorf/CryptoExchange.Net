@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CryptoExchange.Net.UnitTests.TestImplementations
+namespace CryptoExchange.Net.UnitTests.Implementations
 {
     public class TestObject
     {

@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Sockets
             set
             {
                 _router = value;
-                _router.BuildQueryRouteMap();
+                _router.BuildQueryRouter();
                 OnMessageRouterUpdated?.Invoke();
             }
         }

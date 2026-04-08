@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
 using System;
 using System.Net.Http;

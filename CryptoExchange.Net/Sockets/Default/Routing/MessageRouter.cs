@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <summary>
         /// Build the route mapping
         /// </summary>
-        public void BuildQueryRouteMap()
+        public void BuildQueryRouter()
         {
             _routingTable = new QueryRouter(Routes);
         }
@@ -36,14 +36,17 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <summary>
         /// Build the route mapping
         /// </summary>
-        public void BuildSubscriptionRouteMap()
+        public void BuildSubscriptionRouter()
         {
             _routingTable = new SubscriptionRouter(Routes);
         }
 
+        /// <summary>
+        /// Handle message
+        /// </summary>
         public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
         {
-            var routeCollection = _routingTable.GetRoutes(typeIdentifier);
+            var routeCollection = (_routingTable ?? throw new NullReferenceException("Routing table not build before handling")).GetRoutes(typeIdentifier);
             if (routeCollection == null)
                 throw new InvalidOperationException($"No routes for {typeIdentifier} message type");
 

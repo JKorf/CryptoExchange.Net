@@ -1,10 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
-using System.Text;
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 
 namespace CryptoExchange.Net.Sockets.Default.Routing
 {
@@ -67,25 +63,24 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             }
 
             // Forward to routes with matching topic filter, if any
-            if (topicFilter != null)
+            if (topicFilter == null)
+                return handled;
+            
+            var matchingTopicRoutes = GetRoutesWithMatchingTopicFilter(topicFilter);
+            if (matchingTopicRoutes == null)
+                return handled;
+            
+            foreach (var route in matchingTopicRoutes)
             {
-#if NET8_0_OR_GREATER
-                _routesWithTopicFilterFrozen!.TryGetValue(topicFilter, out var matchingTopicRoutes);
-#else
-                _routesWithTopicFilter.TryGetValue(topicFilter, out var matchingTopicRoutes);
-#endif
-                foreach (var route in matchingTopicRoutes ?? [])
+                var thisResult = route.Handle(connection, receiveTime, originalData, data);
+                handled = true;
+
+                if (thisResult != null)
                 {
-                    var thisResult = route.Handle(connection, receiveTime, originalData, data);
-                    handled = true;
+                    result ??= thisResult;
 
-                    if (thisResult != null)
-                    {
-                        result ??= thisResult;
-
-                        if (!MultipleReaders)
-                            break;
-                    }
+                    if (!MultipleReaders)
+                        break;
                 }
             }
 

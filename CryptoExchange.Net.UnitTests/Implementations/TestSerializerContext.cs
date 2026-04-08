@@ -1,6 +1,5 @@
 ﻿using CryptoExchange.Net.UnitTests.ConverterTests;
 using CryptoExchange.Net.UnitTests.Implementations;
-using CryptoExchange.Net.UnitTests.TestImplementations;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 

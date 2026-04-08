@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 
 namespace CryptoExchange.Net.Sockets.Default.Routing
 {
@@ -10,40 +13,51 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
     /// </summary>
     public class RoutingTable
     {
-        private Dictionary<string, RoutingTableEntry> _routeTableEntries;
+#if NET8_0_OR_GREATER
+        private FrozenDictionary<string, TypeRoutingCollection> _typeRoutingCollections = new Dictionary<string, TypeRoutingCollection>().ToFrozenDictionary();
+#else
+        private Dictionary<string, TypeRoutingCollection> _typeRoutingCollections = new();
+#endif
 
         /// <summary>
-        /// Create routing table for provided processors
+        /// Update the routing table
         /// </summary>
-        public RoutingTable(IEnumerable<IMessageProcessor> processors)
+        /// <param name="processors"></param>
+        public void Update(IEnumerable<IMessageProcessor> processors)
         {
-            _routeTableEntries = new Dictionary<string, RoutingTableEntry>();
+            var newTypeMap = new Dictionary<string, TypeRoutingCollection>();
             foreach (var entry in processors)
             {
                 foreach (var route in entry.MessageRouter.Routes)
                 {
-                    if (!_routeTableEntries.ContainsKey(route.TypeIdentifier))
-                        _routeTableEntries.Add(route.TypeIdentifier, new RoutingTableEntry(route.DeserializationType));                    
+                    if (!newTypeMap.ContainsKey(route.TypeIdentifier))
+                        newTypeMap.Add(route.TypeIdentifier, new TypeRoutingCollection(route.DeserializationType));
 
-                    if (!_routeTableEntries[route.TypeIdentifier].Handlers.Contains(entry))
-                        _routeTableEntries[route.TypeIdentifier].Handlers.Add(entry);
+                    if (!newTypeMap[route.TypeIdentifier].Handlers.Contains(entry))
+                        newTypeMap[route.TypeIdentifier].Handlers.Add(entry);
                 }
             }
+
+#if NET8_0_OR_GREATER
+            _typeRoutingCollections = newTypeMap.ToFrozenDictionary();
+#else
+            _typeRoutingCollections = newTypeMap;
+#endif
         }
 
         /// <summary>
         /// Get route table entry for a type identifier
         /// </summary>
-        public RoutingTableEntry? GetRouteTableEntry(string typeIdentifier)
+        public TypeRoutingCollection? GetRouteTableEntry(string typeIdentifier)
         {
-            return _routeTableEntries.TryGetValue(typeIdentifier, out var entry) ? entry : null;
+            return _typeRoutingCollections.TryGetValue(typeIdentifier, out var entry) ? entry : null;
         }
 
         /// <inheritdoc />
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var entry in _routeTableEntries)
+            foreach (var entry in _typeRoutingCollections)
             {
                 sb.AppendLine($"{entry.Key}, {entry.Value.DeserializationType.Name}");
                 foreach(var item in entry.Value.Handlers)
@@ -69,7 +83,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
     /// <summary>
     /// Routing table entry
     /// </summary>
-    public record RoutingTableEntry
+    public record TypeRoutingCollection
     {
         /// <summary>
         /// Whether the deserialization type is string
@@ -87,7 +101,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <summary>
         /// ctor
         /// </summary>
-        public RoutingTableEntry(Type deserializationType)
+        public TypeRoutingCollection(Type deserializationType)
         {
             IsStringOutput = deserializationType == typeof(string);
             DeserializationType = deserializationType;

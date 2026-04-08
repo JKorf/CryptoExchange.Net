@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Testing;
 using CryptoExchange.Net.UnitTests.Implementations;
-using CryptoExchange.Net.UnitTests.TestImplementations;
 using NUnit.Framework;
 using System;
 using System.Linq;

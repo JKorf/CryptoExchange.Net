@@ -101,14 +101,4 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             return _handler(connection, receiveTime, originalData, (TMessage)data);
         }
     }
-
-    //public class SubscriptionRoute<TMessage> : MessageRoute<TMessage>
-    //{
-
-    //}
-
-    //public class QuertyRoute<TMessage> : MessageRoute<TMessage>
-    //{
-
-    //}
 }

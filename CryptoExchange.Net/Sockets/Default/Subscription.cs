@@ -82,7 +82,7 @@ namespace CryptoExchange.Net.Sockets.Default
             set
             {
                 _router = value;
-                _router.BuildSubscriptionRouteMap();
+                _router.BuildSubscriptionRouter();
                 OnMessageRouterUpdated?.Invoke();
             }
         }

@@ -1,10 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
-using System.Text;
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 
 namespace CryptoExchange.Net.Sockets.Default.Routing
 {
@@ -43,31 +39,28 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
 
         public override bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
         {
-            result = null;
+            result = CallResult.SuccessResult;
 
             // Routes without topic filter handle both when the message topic is empty and when it is not, so we always call them
             var handled = false;
             foreach (var route in _routesWithoutTopicFilter)
             {
-                var thisResult = route.Handle(connection, receiveTime, originalData, data);
-                if (thisResult != null)
-                    result ??= thisResult;
-
+                route.Handle(connection, receiveTime, originalData, data);
                 handled = true;
             }
 
             // Forward to routes with matching topic filter, if any
-            if (topicFilter != null)
-            {
-                var matchingTopicRoutes = GetRoutesWithMatchingTopicFilter(topicFilter);
-                foreach (var route in matchingTopicRoutes ?? [])
-                {
-                    var thisResult = route.Handle(connection, receiveTime, originalData, data);
-                    handled = true;
+            if (topicFilter == null)
+                return handled;
 
-                    if (thisResult != null)                    
-                        result ??= thisResult;
-                }
+            var matchingTopicRoutes = GetRoutesWithMatchingTopicFilter(topicFilter);
+            if (matchingTopicRoutes == null)
+                return handled;
+                        
+            foreach (var route in matchingTopicRoutes)
+            {
+                route.Handle(connection, receiveTime, originalData, data);
+                handled = true;
             }
 
             return handled;

@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Text.Json;
 
-namespace CryptoExchange.Net.UnitTests
+namespace CryptoExchange.Net.UnitTests.ConverterTests
 {
     [TestFixture()]
     public class SharedModelConversionTests

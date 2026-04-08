@@ -262,7 +262,7 @@ namespace CryptoExchange.Net.Sockets.Default
         private readonly object _listenersLock = new object();
 #endif
 
-        private RoutingTable _routeTable = new RoutingTable([]);
+        private RoutingTable _routingTable = new RoutingTable();
 
         private ReadOnlyCollection<IMessageProcessor> _listeners;
         private readonly ILogger _logger;
@@ -531,7 +531,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 return;
             }
 
-            var routingEntry = _routeTable.GetRouteTableEntry(typeIdentifier);
+            var routingEntry = _routingTable.GetRouteTableEntry(typeIdentifier);
             if (routingEntry == null)
             {
                 if (!ApiClient.HandleUnhandledMessage(this, typeIdentifier, data))
@@ -1139,9 +1139,9 @@ namespace CryptoExchange.Net.Sockets.Default
             });
         }
 
-        private void BuildRoutingTable()
+        private void UpdateRoutingTable()
         {
-            _routeTable = new RoutingTable(_listeners);
+            _routingTable.Update(_listeners);
         }
 
         private void AddMessageProcessor(IMessageProcessor processor)
@@ -1150,13 +1150,13 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
                 updatedList.Add(processor);
-                processor.OnMessageRouterUpdated += BuildRoutingTable;
+                processor.OnMessageRouterUpdated += UpdateRoutingTable;
                 _listeners = updatedList.AsReadOnly();
                 if (processor.MessageRouter.Routes.Length > 0)
                 {
-                    BuildRoutingTable();
+                    UpdateRoutingTable();
 #if DEBUG
-                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routeTable.ToString());
+                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
 #endif
                 }
             }
@@ -1167,14 +1167,14 @@ namespace CryptoExchange.Net.Sockets.Default
             lock (_listenersLock)
             {
                 var updatedList = new List<IMessageProcessor>(_listeners);
+                processor.OnMessageRouterUpdated -= UpdateRoutingTable;
                 if (!updatedList.Remove(processor))
                     return; // If nothing removed nothing has changed
 
-                processor.OnMessageRouterUpdated -= BuildRoutingTable;
                 _listeners = updatedList.AsReadOnly();
-                BuildRoutingTable();
+                UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routeTable.ToString());
+                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }
@@ -1187,7 +1187,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 var anyRemoved = false;
                 foreach (var processor in processors)
                 {
-                    processor.OnMessageRouterUpdated -= BuildRoutingTable;
+                    processor.OnMessageRouterUpdated -= UpdateRoutingTable;
                     if (updatedList.Remove(processor))
                         anyRemoved = true;
                 }
@@ -1196,9 +1196,9 @@ namespace CryptoExchange.Net.Sockets.Default
                     return; // If nothing removed nothing has changed
 
                 _listeners = updatedList.AsReadOnly();
-                BuildRoutingTable();
+                UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routeTable.ToString());
+                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }
