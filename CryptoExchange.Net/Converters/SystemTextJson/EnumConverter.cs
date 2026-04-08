@@ -100,6 +100,8 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private static ConcurrentBag<string> _unknownValuesWarned = new ConcurrentBag<string>();
         private static ConcurrentBag<string> _notOptimalValuesWarned = new ConcurrentBag<string>();
 
+        private const int _optimisticValueCountThreshold = 6;
+
         internal class NullableEnumConverter : JsonConverter<T?>
         {
             private readonly EnumConverter<T> _enumConverter;
@@ -165,9 +167,10 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (_mappingToEnum == null)
                 CreateMapping();
 
+            bool optimisticCheckDone = false;
             if (RunOptimistic)
             {
-                var resultOptimistic = GetValueOptimistic(ref reader);
+                var resultOptimistic = GetValueOptimistic(ref reader, ref optimisticCheckDone);
                 if (resultOptimistic != null)
                     return resultOptimistic.Value;
             }
@@ -189,7 +192,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return null;
             }
 
-            if (!GetValue(stringValue, out var result))
+            if (!GetValue(stringValue, optimisticCheckDone, out var result))
             {
                 // Note: checking this here and before the GetValue seems redundant but it allows enum mapping for empty strings
                 if (string.IsNullOrWhiteSpace(stringValue))
@@ -209,7 +212,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 return null;
             }
 
-            if (RunOptimistic && !isNumber)
+            if (optimisticCheckDone)
             {
                 if (!_notOptimalValuesWarned.Contains(stringValue))
                 {
@@ -232,11 +235,21 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// Try to get the enum value based on the string value using the Utf8JsonReader's ValueTextEquals method. 
         /// This is an optimization to avoid string allocations when possible, but can only match case sensitively
         /// </summary>
-        private static T? GetValueOptimistic(ref Utf8JsonReader reader)
+        private static T? GetValueOptimistic(ref Utf8JsonReader reader, ref bool optimisticCheckDone)
         {
             if (reader.TokenType != JsonTokenType.String)
+            {
+                optimisticCheckDone = false;
                 return null;
+            }
 
+            if (_mappingToEnum!.Count >= _optimisticValueCountThreshold)
+            {
+                optimisticCheckDone = false;
+                return null;
+            }
+
+            optimisticCheckDone = true;
             foreach (var item in _mappingToEnum!)
             {
                 if (reader.ValueTextEquals(item.StringValue))
@@ -246,13 +259,13 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             return null;
         }
 
-        private static bool GetValue(string value, out T? result)
+        private static bool GetValue(string value, bool optimisticCheckDone, out T? result)
         {
             if (_mappingToEnum != null)
             {
                 EnumMapping? mapping = null;
                 // If we tried the optimistic path first we already know its not case match
-                if (!RunOptimistic) 
+                if (!optimisticCheckDone) 
                 {
                     // Try match on full equals
                     foreach (var item in _mappingToEnum)
