@@ -82,7 +82,7 @@ namespace CryptoExchange.Net.Sockets.Default
             set
             {
                 _router = value;
-                _router.BuildRouteMap();
+                _router.BuildSubscriptionRouteMap();
                 OnMessageRouterUpdated?.Invoke();
             }
         }
@@ -198,7 +198,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 SubscriptionQuery.Timeout();
             }
 
-            return MessageRouter[typeIdentifier]?.Handle(topicFilter, connection, receiveTime, originalData, data, out _) ?? false;
+            return MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, data, out _);
         }
 
         /// <summary>

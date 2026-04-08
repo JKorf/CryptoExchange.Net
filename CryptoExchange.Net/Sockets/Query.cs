@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Sockets
             set
             {
                 _router = value;
-                _router.BuildRouteMap();
+                _router.BuildQueryRouteMap();
                 OnMessageRouterUpdated?.Invoke();
             }
         }
@@ -211,7 +211,7 @@ namespace CryptoExchange.Net.Sockets
             if (Result?.Success != false)
             {
                 // If an error result is already set don't override that
-                MessageRouter[typeIdentifier]!.Handle(topicFilter, connection, receiveTime, originalData, message, out var result);
+                MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, message, out var result);
                 Result = result;
                 if (Result == null)
                     // Null from Handle means it wasn't actually for this query

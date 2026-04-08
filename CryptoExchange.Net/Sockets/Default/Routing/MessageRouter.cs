@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
     /// </summary>
     public class MessageRouter
     {
-        private RoutingSubTable? _routingTable;
+        private ProcessorRouter? _routingTable;
 
         /// <summary>
         /// The routes registered for this router
@@ -28,17 +28,26 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <summary>
         /// Build the route mapping
         /// </summary>
-        public void BuildRouteMap()
+        public void BuildQueryRouteMap()
         {
-            _routingTable = new RoutingSubTable(Routes);
+            _routingTable = new QueryRouter(Routes);
         }
 
         /// <summary>
-        /// Get routes matching the type identifier
+        /// Build the route mapping
         /// </summary>
-        internal RoutingSubTableEntry? this[string identifier]
+        public void BuildSubscriptionRouteMap()
         {
-            get => (_routingTable ?? throw new InvalidOperationException("Route map not initialized before use"))[identifier];
+            _routingTable = new SubscriptionRouter(Routes);
+        }
+
+        public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
+        {
+            var routeCollection = _routingTable.GetRoutes(typeIdentifier);
+            if (routeCollection == null)
+                throw new InvalidOperationException($"No routes for {typeIdentifier} message type");
+
+            return routeCollection.Handle(topicFilter, connection, receiveTime, originalData, data, out result);
         }
 
         /// <summary>
