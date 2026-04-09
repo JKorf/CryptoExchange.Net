@@ -68,6 +68,16 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.1.0 - 09 Apr 2026
+    * Updated WebSocket message routing improving performance for scenarios with multiple different subscriptions and topics
+    * Added AddCommaSeparated helper for Enum value arrays to ParameterCollection
+    * Added SharedRestRequestValidator for testing Shared interface implementations
+    * Improved EnumConverter performance and removed string allocation for happy path
+    * Fixed concurrency issue when using rate limit guard for multiple gates
+    * Fixed CreateParamString extension method for ArrayParametersSerialization.Json
+    * Fixed Shared GetOrderBookOptions and GetRecentTradeOptions base validations not being called
+    * Fixed CallResult returning success result in AsDataless even if Error is set
+
 * Version 11.0.3 - 30 Mar 2026
     * Updated Enum converter to only warn once per type for null/empty value for non-nullable enum property
 
