@@ -3,6 +3,7 @@ using CryptoExchange.Net.RateLimiting.Interfaces;
 using CryptoExchange.Net.RateLimiting.Trackers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace CryptoExchange.Net.RateLimiting.Guards
@@ -126,7 +127,6 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                     _trackers.Add(key, tracker);
                 }
 
-
                 var delay = tracker.GetWaitTime(requestWeight);
                 if (delay == default)
                     return LimitCheck.NotNeeded(Limit, TimeSpan, tracker.Current);
@@ -170,6 +170,27 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             }
 
             return RateLimitState.Applied(Limit, TimeSpan, tracker.Current);
+        }
+
+        /// <inheritdoc />
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
+        {
+            if (SharedGuard)
+                _sharedGuardSemaphore!.Wait();
+
+            try
+            {
+                var key = _keySelector(definition, host, apiKey) + keySuffix;
+                if (!_trackers.TryGetValue(key, out var tracker))
+                    return;
+
+                tracker.Reset();
+            }
+            finally
+            {
+                if (SharedGuard)
+                    _sharedGuardSemaphore!.Release();
+            }
         }
 
         /// <summary>

@@ -30,5 +30,9 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// </summary>
         /// <param name="weight">Request weight</param>
         void ApplyWeight(int weight);
+        /// <summary>
+        /// Reset the limit counter for this tracker
+        /// </summary>
+        void Reset();
     }
 }

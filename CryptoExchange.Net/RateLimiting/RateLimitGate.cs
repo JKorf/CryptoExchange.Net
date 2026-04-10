@@ -192,5 +192,27 @@ namespace CryptoExchange.Net.RateLimiting
                 _semaphore.Release();
             }
         }
+
+
+        /// <inheritdoc />
+        public async Task ResetAsync(
+            RateLimitItemType type,
+            RequestDefinition definition,
+            string host,
+            string? apiKey,
+            string? keySuffix,
+            CancellationToken ct)
+        {
+            await _semaphore.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                foreach (var guard in _guards)
+                    guard.Reset(type, definition, host, apiKey, keySuffix);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
     }
 }

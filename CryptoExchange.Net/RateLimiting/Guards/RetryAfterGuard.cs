@@ -65,5 +65,11 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// </summary>
         /// <param name="after"></param>
         public void UpdateAfter(DateTime after) => After = after;
+
+        /// <inheritdoc />
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
+        {
+            After = DateTime.UtcNow;
+        }
     }
 }

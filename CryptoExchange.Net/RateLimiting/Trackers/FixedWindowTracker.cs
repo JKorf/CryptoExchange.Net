@@ -29,6 +29,13 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
+        public void Reset()
+        {
+            _entries.Clear();
+            _currentWeight = 0;
+        }
+
+        /// <inheritdoc />
         public TimeSpan GetWaitTime(int weight)
         {
             // Remove requests no longer in time period from the history

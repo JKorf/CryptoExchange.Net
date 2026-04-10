@@ -27,6 +27,13 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
+        public void Reset()
+        {
+            _currentWeight = 0;
+            _lastDecrease = DateTime.UtcNow;
+        }
+
+        /// <inheritdoc />
         public TimeSpan GetWaitTime(int weight)
         {
             // Decrease the counter based on the last update time and decay rate

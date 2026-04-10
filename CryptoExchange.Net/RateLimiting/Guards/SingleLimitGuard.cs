@@ -88,5 +88,15 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                 : _windowType == RateLimitWindowType.Fixed ? new FixedWindowTracker(_limit, _period) :
                 new DecayWindowTracker(_limit, _period, _decayRate ?? throw new InvalidOperationException("Decay rate not provided"));
         }
+
+        /// <inheritdoc />
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
+        {
+            var key = _keySelector(definition, host, apiKey) + keySuffix;
+            if (!_trackers.TryGetValue(key, out var tracker))
+                return;
+
+            tracker.Reset();
+        }
     }
 }
