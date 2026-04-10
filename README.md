@@ -68,6 +68,10 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.1.1 - 10 Apr 2026
+    * Added Reset functionality to rate limiter implementation
+    * Added reset of rate limit per connection when connection is disconnected
+
 * Version 11.1.0 - 09 Apr 2026
     * Updated WebSocket message routing improving performance for scenarios with multiple different subscriptions and topics
     * Added AddCommaSeparated helper for Enum value arrays to ParameterCollection
