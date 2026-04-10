@@ -175,6 +175,12 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <inheritdoc />
         public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
         {
+            foreach (var filter in _filters)
+            {
+                if (!filter.Passes(type, definition, host, apiKey))
+                    return;
+            }
+
             if (SharedGuard)
                 _sharedGuardSemaphore!.Wait();
 
