@@ -55,7 +55,7 @@ namespace CryptoExchange.Net
             { "Kucoin.SpotKey", "f8ae62cb-2b3d-420c-8c98-e1c17dd4e30a" },
             { "Mexc", "EASYT" },
             { "OKX", "1425d83a94fbBCDE" },
-            { "Weex", "WEEX111124" },
+            { "Weex", "b-WEEX111124-" },
             { "XT", "4XWeqN10M1fcoI5L" },
         };
 
