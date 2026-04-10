@@ -28,6 +28,7 @@
 @using OKX.Net.Interfaces;
 @using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
+@using Weex.Net.Interfaces
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
 @inject IAsterOrderBookFactory asterFactory
@@ -53,6 +54,7 @@
 @inject IOKXOrderBookFactory okxFactory
 @inject IToobitOrderBookFactory toobitFactory
 @inject IUpbitOrderBookFactory upbitFactory
+@inject IWeexOrderBookFactory weexFactory
 @inject IWhiteBitOrderBookFactory whitebitFactory
 @inject IXTOrderBookFactory xtFactory
 @implements IDisposable
@@ -112,6 +114,7 @@
                 { "OKX", okxFactory.Create("ETH-BTC") },
                 { "Toobit", toobitFactory.CreateSpot("ETHUSDT") },
                 { "Upbit", upbitFactory.CreateSpot("BTC-ETH") },
+                { "Weex", weexFactory.CreateSpot("ETHUSDT") },
                 { "WhiteBit", whitebitFactory.CreateV4("ETH_BTC") },
                 { "XT", xtFactory.CreateSpot("eth_btc") },
             };

@@ -22,6 +22,7 @@
 @inject IOKXRestClient okxClient
 @inject IToobitRestClient toobitClient
 @inject IUpbitRestClient upbitClient
+@inject IWeexRestClient weexClient
 @inject IWhiteBitRestClient whitebitClient
 @inject IXTRestClient xtClient
 
@@ -59,6 +60,7 @@
         var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var toobitTask = toobitClient.SpotApi.ExchangeData.GetTickersAsync("BTCUSDT");
         var upbitTask = upbitClient.SpotApi.ExchangeData.GetTickerAsync("USDT-BTC");
+        var weexTask = weexClient.SpotApi.ExchangeData.GetTickersAsync(["BTCUSDT"]);
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
         var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
@@ -140,6 +142,9 @@
 
         if (upbitTask.Result.Success)
             _prices.Add("Upbit", upbitTask.Result.Data.LastPrice ?? 0);
+
+        if (weexTask.Result.Success)
+            _prices.Add("Weex", weexTask.Result.Data.Single().LastPrice);
 
         if (whitebitTask.Result.Success){
             // WhiteBit API doesn't offer an endpoint to filter for a specific ticker, so we have to filter client side

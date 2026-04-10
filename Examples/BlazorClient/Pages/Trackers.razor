@@ -28,6 +28,7 @@
 @using OKX.Net.Interfaces;
 @using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
+@using Weex.Net.Interfaces
 @using WhiteBit.Net.Interfaces
 @using XT.Net.Interfaces
 @inject IAsterTrackerFactory asterFactory
@@ -53,6 +54,7 @@
 @inject IOKXTrackerFactory okxFactory
 @inject IToobitTrackerFactory toobitFactory
 @inject IUpbitTrackerFactory upbitFactory
+@inject IWeexTrackerFactory weexFactory
 @inject IWhiteBitTrackerFactory whitebitFactory
 @inject IXTTrackerFactory xtFactory
 @implements IDisposable
@@ -105,6 +107,7 @@
                 { okxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { toobitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { upbitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { weexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { whitebitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { xtFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
             };

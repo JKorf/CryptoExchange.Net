@@ -56,6 +56,7 @@ namespace BlazorClient
             services.AddOKX();
             services.AddToobit();
             services.AddUpbit();
+            services.AddWeex();
             services.AddWhiteBit();
             services.AddXT();
         }
