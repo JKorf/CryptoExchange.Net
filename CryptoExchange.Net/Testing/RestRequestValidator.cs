@@ -3,11 +3,17 @@ using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Testing.Comparers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace CryptoExchange.Net.Testing
 {
@@ -105,8 +111,27 @@ namespace CryptoExchange.Net.Testing
             var expectedMethod = reader.ReadLine();
             var expectedPath = reader.ReadLine();
             var expectedAuth = bool.Parse(reader.ReadLine()!);
-            var response = reader.ReadToEnd();
+            var paramsAndResponseBody = reader.ReadToEnd();
+            var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
+            var uriParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("UriParams: "));
+            Dictionary<string, object>? expectedUriParams = null;
+            var bodyParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("BodyParams: "));
+            Dictionary<string, object>? expectedBodyParams = null;
+            var response = string.Join("\r\n", paramsAndResponseBodySplit.Where(x => !x.StartsWith("UriParams: ") && !x.StartsWith("BodyParams: ")));
+
+            if (uriParamsLine != null)
+            {
+                var expectedUriParamsJson = uriParamsLine.Substring(11);
+                expectedUriParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedUriParamsJson)!;
+            }
+
+            if (bodyParamsLine != null)
+            {
+                var expectedBodyParamsJson = bodyParamsLine.Substring(12);
+                expectedBodyParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedBodyParamsJson)!;
+            }
+            
             TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
             var result = await methodInvoke(_client).ConfigureAwait(false);
 
@@ -120,6 +145,35 @@ namespace CryptoExchange.Net.Testing
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
                 throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
 
+            if (expectedUriParams != null)
+            {
+                // Validate request parameters
+                var urlParamsSplit = result.RequestUrl!.Split(new char[] { '?' });
+                var urlParametersString = urlParamsSplit.Length > 1 ? urlParamsSplit[1] : null;
+                var urlParameters = (urlParametersString != null
+                    ? urlParametersString.Split('&').ToDictionary(x => x.Split('=')[0], x => (object)x.Split('=')[1])
+                    : new());
+
+                CompareParameters(expectedUriParams, urlParameters);
+            }
+
+            if (expectedBodyParams != null)
+            {
+                // Validate request body
+                Dictionary<string, object> bodyParameters;
+                if (result.RequestBody.StartsWith("{") || result.RequestBody.StartsWith("["))
+                {
+                    bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!);
+                }
+                else
+                {
+                    var splitKvp = result.RequestBody.Split('&');
+                    bodyParameters = splitKvp.Select(x => x.Split('=')).ToDictionary(x => x[0], x => (object)x[1]);
+                }
+
+                CompareParameters(expectedBodyParams, bodyParameters);
+            }
+
             if (!skipResponseValidation)
             {
                 // Check response data
@@ -128,6 +182,21 @@ namespace CryptoExchange.Net.Testing
             }
 
             Trace.Listeners.Remove(listener);
+        }
+
+        private void CompareParameters(Dictionary<string, object> expectedUrlParameters, Dictionary<string, object> parameters)
+        {
+            if (expectedUrlParameters.Count > parameters.Count)
+                throw new Exception($"Url parameters count not matched. Expected: {expectedUrlParameters.Count}, Actual: {parameters.Count}");
+
+            foreach (var kvp in expectedUrlParameters)
+            {
+                if (!parameters.TryGetValue(kvp.Key, out var value))
+                    throw new Exception($"Url parameter {kvp.Key} not found in actual parameters");
+
+                if (Convert.ToString(kvp.Value, CultureInfo.InvariantCulture) != Convert.ToString(value, CultureInfo.InvariantCulture))
+                    throw new Exception($"Url parameter {kvp.Key} value not matched. Expected: {kvp.Value}, Actual: {value}");
+            }
         }
 
         /// <summary>
