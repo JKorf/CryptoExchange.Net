@@ -15,7 +15,8 @@
         /// </summary>
         /// <param name="listenKey">Listen key, needed for some exchanges. Can be obtained by the StartListenKeyAsync on the shared rest client</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeSpotOrderRequest(string? listenKey = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SubscribeSpotOrderRequest(string? listenKey = null, ExchangeParameters? exchangeParameters = null) 
+            : base(SharedApis.TradingMode.Spot, exchangeParameters)
         {
             ListenKey = listenKey;
         }

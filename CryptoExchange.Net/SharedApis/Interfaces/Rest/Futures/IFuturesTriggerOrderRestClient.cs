@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get trigger order request options
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetFuturesTriggerOrderOptions { get; }
+        EndpointOptions<GetOrderRequest, IFuturesTriggerOrderRestClient> GetFuturesTriggerOrderOptions { get; }
         /// <summary>
         /// Get info on a specific trigger order
         /// </summary>
@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Cancel trigger order request options
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelFuturesTriggerOrderOptions { get; }
+        EndpointOptions<CancelOrderRequest, IFuturesTriggerOrderRestClient> CancelFuturesTriggerOrderOptions { get; }
         /// <summary>
         /// Cancel a trigger order
         /// </summary>

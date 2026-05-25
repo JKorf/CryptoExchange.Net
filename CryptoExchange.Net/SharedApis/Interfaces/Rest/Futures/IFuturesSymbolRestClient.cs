@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures symbol request options
         /// </summary>
-        EndpointOptions<GetSymbolsRequest> GetFuturesSymbolsOptions { get; }
+        EndpointOptions<GetSymbolsRequest, IFuturesSymbolRestClient> GetFuturesSymbolsOptions { get; }
 
         /// <summary>
         /// Get all futures symbols for a specific base asset

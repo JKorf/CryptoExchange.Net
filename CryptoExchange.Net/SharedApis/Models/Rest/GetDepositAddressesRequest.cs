@@ -20,7 +20,8 @@
         /// <param name="asset">Asset name to get address for</param>
         /// <param name="network">Network name</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetDepositAddressesRequest(string asset, string? network = null, ExchangeParameters? exchangeParameters = null): base(exchangeParameters)
+        public GetDepositAddressesRequest(string asset, string? network = null, ExchangeParameters? exchangeParameters = null)
+            : base(null, exchangeParameters)
         {
             Asset = asset;
             Network = network;

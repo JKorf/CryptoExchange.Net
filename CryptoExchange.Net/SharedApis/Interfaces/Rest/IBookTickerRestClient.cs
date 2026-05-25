@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Book ticker request options
         /// </summary>
-        EndpointOptions<GetBookTickerRequest> GetBookTickerOptions { get; }
+        EndpointOptions<GetBookTickerRequest, IBookTickerRestClient> GetBookTickerOptions { get; }
 
         /// <summary>
         /// Get the best ask/bid info for a symbol

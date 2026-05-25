@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get order request options
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetFuturesOrderOptions { get; }
+        EndpointOptions<GetOrderRequest, IFuturesOrderRestClient> GetFuturesOrderOptions { get; }
         /// <summary>
         /// Get info on a specific futures order
         /// </summary>
@@ -62,7 +62,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get open orders request options
         /// </summary>
-        EndpointOptions<GetOpenOrdersRequest> GetOpenFuturesOrdersOptions { get; }
+        EndpointOptions<GetOpenOrdersRequest, IFuturesOrderRestClient> GetOpenFuturesOrdersOptions { get; }
         /// <summary>
         /// Get info on a open futures orders
         /// </summary>
@@ -73,7 +73,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get closed orders request options
         /// </summary>
-        GetClosedOrdersOptions GetClosedFuturesOrdersOptions { get; }
+        GetFuturesClosedOrdersOptions GetClosedFuturesOrdersOptions { get; }
         /// <summary>
         /// Get info on closed futures orders
         /// </summary>
@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get order trades request options
         /// </summary>
-        EndpointOptions<GetOrderTradesRequest> GetFuturesOrderTradesOptions { get; }
+        EndpointOptions<GetOrderTradesRequest, IFuturesOrderRestClient> GetFuturesOrderTradesOptions { get; }
         /// <summary>
         /// Get trades for a specific futures order
         /// </summary>
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures user trades request options
         /// </summary>
-        GetUserTradesOptions GetFuturesUserTradesOptions { get; }
+        GetFuturesUserTradesOptions GetFuturesUserTradesOptions { get; }
         /// <summary>
         /// Get futures user trade records
         /// </summary>
@@ -108,7 +108,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures cancel order request options
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelFuturesOrderOptions { get; }
+        EndpointOptions<CancelOrderRequest, IFuturesOrderRestClient> CancelFuturesOrderOptions { get; }
         /// <summary>
         /// Cancel a futures order
         /// </summary>
@@ -119,7 +119,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Positions request options
         /// </summary>
-        EndpointOptions<GetPositionsRequest> GetPositionsOptions { get; }
+        EndpointOptions<GetPositionsRequest, IFuturesOrderRestClient> GetPositionsOptions { get; }
         /// <summary>
         /// Get open position info
         /// </summary>
@@ -130,7 +130,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Close position order request options
         /// </summary>
-        EndpointOptions<ClosePositionRequest> ClosePositionOptions { get; }
+        EndpointOptions<ClosePositionRequest, IFuturesOrderRestClient> ClosePositionOptions { get; }
         /// <summary>
         /// Close a currently open position
         /// </summary>

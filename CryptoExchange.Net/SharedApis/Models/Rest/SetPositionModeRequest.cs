@@ -10,10 +10,6 @@
         /// </summary>
         public SharedSymbol? Symbol { get; set; }
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
-        /// <summary>
         /// Position mode to change to
         /// </summary>
         public SharedPositionMode PositionMode { get; set; }
@@ -24,7 +20,8 @@
         /// <param name="positionMode">Position mode to change to</param>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SetPositionModeRequest(SharedPositionMode positionMode, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SetPositionModeRequest(SharedPositionMode positionMode, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) 
+            : base(tradingMode, exchangeParameters)
         {
             TradingMode = tradingMode;
             PositionMode = positionMode;
@@ -36,7 +33,8 @@
         /// <param name="symbol">Symbol to change to position mode for</param>
         /// <param name="positionMode">Position mode to change to</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SetPositionModeRequest(SharedSymbol symbol, SharedPositionMode positionMode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SetPositionModeRequest(SharedSymbol symbol, SharedPositionMode positionMode, ExchangeParameters? exchangeParameters = null)
+            : base(symbol.TradingMode, exchangeParameters)
         {
             PositionMode = positionMode;
             Symbol = symbol;

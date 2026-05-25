@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class TransferOptions : EndpointOptions<TransferRequest>
+    public class TransferOptions : EndpointOptions<TransferRequest, ITransferRestClient>
     {
         /// <summary>
         /// Supported account types
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public TransferOptions(SharedAccountType[] accountTypes) : base(true)
+        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true)
         {
             SupportedAccountTypes = accountTypes;
         }
@@ -24,11 +24,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public new Error? ValidateRequest(
-            string exchange,
+        public override Error? ValidateRequest(
             TransferRequest request,
-            TradingMode? tradingMode,
-            TradingMode[] supportedApiTypes)
+            ITransferRestClient client)
         {
             if (!SupportedAccountTypes.Contains(request.FromAccountType))
                 return ArgumentError.Invalid(nameof(request.FromAccountType), "Invalid FromAccountType");
@@ -36,7 +34,7 @@ namespace CryptoExchange.Net.SharedApis
             if (!SupportedAccountTypes.Contains(request.ToAccountType))
                 return ArgumentError.Invalid(nameof(request.FromAccountType), "Invalid ToAccountType");
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
     }
 }

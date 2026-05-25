@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot orders subscription options
         /// </summary>
-        EndpointOptions<SubscribeSpotOrderRequest> SubscribeSpotOrderOptions { get; }
+        EndpointOptions<SubscribeSpotOrderRequest, ISpotOrderSocketClient> SubscribeSpotOrderOptions { get; }
 
         /// <summary>
         /// Subscribe to user spot order updates

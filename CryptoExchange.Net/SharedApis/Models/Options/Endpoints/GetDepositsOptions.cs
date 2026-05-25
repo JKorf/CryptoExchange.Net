@@ -7,18 +7,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting deposits
     /// </summary>
-    public class GetDepositsOptions : PaginatedEndpointOptions<GetDepositsRequest>
+    public class GetDepositsOptions : PaginatedEndpointOptions<GetDepositsRequest, IDepositRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetDepositsOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+        public GetDepositsOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetDepositsRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetDepositsRequest request, IDepositRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");
@@ -40,13 +40,13 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
+            var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             return sb.ToString();
         }

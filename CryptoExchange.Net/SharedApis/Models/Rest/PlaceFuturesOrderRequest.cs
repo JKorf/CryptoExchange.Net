@@ -59,7 +59,6 @@
         /// ctor
         /// </summary>
         /// <param name="symbol">Symbol to place the order on</param>
-
         /// <param name="side">Side of the order</param>
         /// <param name="orderType">Type of the order</param>
         /// <param name="quantity">Quantity of the order</param>

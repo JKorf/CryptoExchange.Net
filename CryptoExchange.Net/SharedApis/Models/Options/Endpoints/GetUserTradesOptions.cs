@@ -7,27 +7,28 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetUserTradesOptions : PaginatedEndpointOptions<GetUserTradesRequest>
+    public class GetUserTradesOptions<TClient> : PaginatedEndpointOptions<GetUserTradesRequest, TClient>
+        where TClient : ISharedClient
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetUserTradesOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+        public GetUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetUserTradesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetUserTradesRequest request, TClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
-                return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");
+                return ArgumentError.Invalid(nameof(GetUserTradesRequest.Direction), $"Ascending direction is not supported");
 
             if (!SupportsDescending && request.Direction == DataDirection.Descending)
-                return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Descending direction is not supported");
+                return ArgumentError.Invalid(nameof(GetUserTradesRequest.Direction), $"Descending direction is not supported");
 
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
-                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} period data is available");
+                return ArgumentError.Invalid(nameof(GetUserTradesRequest.StartTime), $"Only the most recent {MaxAge} period data is available");
 
             if (!TimePeriodFilterSupport)
             {
@@ -40,15 +41,43 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
+            var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Options for requesting user trades
+    /// </summary>
+    public class GetSpotUserTradesOptions : GetUserTradesOptions<ISpotOrderRestClient>
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetSpotUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Options for requesting user trades
+    /// </summary>
+    public class GetFuturesUserTradesOptions : GetUserTradesOptions<IFuturesOrderRestClient>
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetFuturesUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
+        {
         }
     }
 }

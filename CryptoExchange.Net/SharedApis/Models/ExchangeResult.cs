@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// A CallResult from an exchange
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ExchangeResult<T> : CallResult<T>
+    public record ExchangeResult<T> : CallResult<T>
     {
         /// <summary>
         /// The exchange

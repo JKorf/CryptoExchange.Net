@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Book ticker subscription options
         /// </summary>
-        EndpointOptions<SubscribeBookTickerRequest> SubscribeBookTickerOptions { get; }
+        EndpointOptions<SubscribeBookTickerRequest, IBookTickerSocketClient> SubscribeBookTickerOptions { get; }
 
         /// <summary>
         /// Subscribe to book ticker (best ask/bid) updates for a symbol

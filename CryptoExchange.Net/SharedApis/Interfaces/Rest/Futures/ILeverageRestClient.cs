@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Leverage request options
         /// </summary>
-        EndpointOptions<GetLeverageRequest> GetLeverageOptions { get; }
+        EndpointOptions<GetLeverageRequest, ILeverageRestClient> GetLeverageOptions { get; }
         /// <summary>
         /// Get the current leverage setting for a symbol
         /// </summary>

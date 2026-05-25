@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting kline/candlestick data
     /// </summary>
-    public class GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest>
+    public class GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IKlineRestClient>
     {
         /// <summary>
         /// The supported kline intervals
@@ -22,8 +22,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = new[]
             {
@@ -47,8 +47,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
         {
             SupportIntervals = intervals;
         }
@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetKlinesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetKlinesRequest request, IKlineRestClient client)
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), "Interval not supported");
@@ -101,13 +101,13 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
+            var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
             if (MaxAge != null)

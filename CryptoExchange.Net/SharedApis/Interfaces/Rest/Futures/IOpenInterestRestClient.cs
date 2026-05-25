@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Open interest request options
         /// </summary>
-        EndpointOptions<GetOpenInterestRequest> GetOpenInterestOptions { get; }
+        EndpointOptions<GetOpenInterestRequest, IOpenInterestRestClient> GetOpenInterestOptions { get; }
         /// <summary>
         /// Get the open interest for a symbol
         /// </summary>

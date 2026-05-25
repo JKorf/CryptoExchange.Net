@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Trade subscription options
         /// </summary>
-        EndpointOptions<SubscribeTradeRequest> SubscribeTradeOptions { get; }
+        EndpointOptions<SubscribeTradeRequest, ITradeSocketClient> SubscribeTradeOptions { get; }
 
         /// <summary>
         /// Subscribe to public trade updates for a symbol

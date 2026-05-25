@@ -9,10 +9,6 @@
         /// The key to stop updates for
         /// </summary>
         public string ListenKey { get; set; }
-        /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
 
         /// <summary>
         /// ctor
@@ -20,7 +16,8 @@
         /// <param name="listenKey">The key to stop updates for</param>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public StopListenKeyRequest(string listenKey, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public StopListenKeyRequest(string listenKey, TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) 
+            : base(tradingMode, exchangeParameters)
         {
             ListenKey = listenKey;
             TradingMode = tradingMode;

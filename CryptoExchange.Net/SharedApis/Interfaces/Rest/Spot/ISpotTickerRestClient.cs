@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot ticker request options
         /// </summary>
-        GetTickerOptions GetSpotTickerOptions { get; }
+        GetSpotTickerOptions GetSpotTickerOptions { get; }
         /// <summary>
         /// Get ticker for a specific spot symbol
         /// </summary>
@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot tickers request options
         /// </summary>
-        GetTickersOptions GetSpotTickersOptions { get; }
+        GetSpotTickersOptions GetSpotTickersOptions { get; }
         /// <summary>
         /// Get tickers for all spot symbols
         /// </summary>

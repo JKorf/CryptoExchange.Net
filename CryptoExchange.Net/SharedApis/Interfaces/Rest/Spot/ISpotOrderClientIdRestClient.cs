@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get order by client order id request options
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetSpotOrderByClientOrderIdOptions { get; }
+        EndpointOptions<GetOrderRequest, ISpotOrderClientIdRestClient> GetSpotOrderByClientOrderIdOptions { get; }
 
         /// <summary>
         /// Get info on a specific spot order using a client order id
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot cancel order by client order id request options
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelSpotOrderByClientOrderIdOptions { get; }
+        EndpointOptions<CancelOrderRequest, ISpotOrderClientIdRestClient> CancelSpotOrderByClientOrderIdOptions { get; }
         /// <summary>
         /// Cancel a spot order using client order id
         /// </summary>

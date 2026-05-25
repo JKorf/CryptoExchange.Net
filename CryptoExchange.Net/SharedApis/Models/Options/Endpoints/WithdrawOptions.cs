@@ -3,12 +3,12 @@
     /// <summary>
     /// Options for requesting a withdrawal
     /// </summary>
-    public class WithdrawOptions : EndpointOptions<WithdrawRequest>
+    public class WithdrawOptions : EndpointOptions<WithdrawRequest, IWithdrawRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public WithdrawOptions() : base(true)
+        public WithdrawOptions(string exchange) : base(exchange, true)
         {
         }
     }

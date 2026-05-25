@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Position subscription options
         /// </summary>
-        EndpointOptions<SubscribePositionRequest> SubscribePositionOptions { get; }
+        EndpointOptions<SubscribePositionRequest, IPositionSocketClient> SubscribePositionOptions { get; }
 
         /// <summary>
         /// Subscribe to user position updates

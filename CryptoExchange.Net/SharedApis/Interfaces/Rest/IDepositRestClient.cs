@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Deposit addresses request options
         /// </summary>
-        EndpointOptions<GetDepositAddressesRequest> GetDepositAddressesOptions { get; }
+        EndpointOptions<GetDepositAddressesRequest, IDepositRestClient> GetDepositAddressesOptions { get; }
 
         /// <summary>
         /// Get deposit addresses for an asset

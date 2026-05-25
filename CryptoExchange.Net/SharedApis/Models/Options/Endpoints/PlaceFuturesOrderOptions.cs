@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new futures order
     /// </summary>
-    public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest>
+    public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest, IFuturesOrderRestClient>
     {
         /// <summary>
         /// Whether or not the API supports setting take profit / stop loss with the order
@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderOptions(bool supportsTpSl) : base(true)
+        public PlaceFuturesOrderOptions(string exchange, bool supportsTpSl) : base(exchange, true)
         {
             SupportsTpSl = supportsTpSl;
         }
@@ -25,14 +25,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public Error? ValidateRequest(
-            string exchange,
+        public override Error? ValidateRequest(
             PlaceFuturesOrderRequest request,
-            TradingMode? tradingMode,
-            TradingMode[] supportedApiTypes,
-            SharedOrderType[] supportedOrderTypes,
-            SharedTimeInForce[] supportedTimeInForce,
-            SharedQuantitySupport quantitySupport)
+            IFuturesOrderRestClient client
+            )
         {
             if (!SupportsTpSl && (request.StopLossPrice != null || request.TakeProfitPrice != null))
                 return ArgumentError.Invalid(nameof(PlaceFuturesOrderRequest.StopLossPrice) + " / " + nameof(PlaceFuturesOrderRequest.TakeProfitPrice), "Tp/Sl parameters not supported");
@@ -40,17 +36,17 @@ namespace CryptoExchange.Net.SharedApis
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
-            if (!supportedOrderTypes.Contains(request.OrderType))
+            if (!client.FuturesSupportedOrderTypes.Contains(request.OrderType))
                 return ArgumentError.Invalid(nameof(PlaceFuturesOrderRequest.OrderType), "Order type not supported");
 
-            if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
+            if (request.TimeInForce != null && !client.FuturesSupportedTimeInForce.Contains(request.TimeInForce.Value))
                 return ArgumentError.Invalid(nameof(PlaceFuturesOrderRequest.TimeInForce), "Order time in force not supported");
 
-            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity);
+            var quantityError = client.FuturesSupportedOrderQuantity.Validate(request.Side, request.OrderType, request.Quantity);
             if (quantityError != null)
                 return quantityError;
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
 
     }

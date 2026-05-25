@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot symbols request options
         /// </summary>
-        EndpointOptions<GetSymbolsRequest> GetSpotSymbolsOptions { get; }
+        EndpointOptions<GetSymbolsRequest, ISpotSymbolRestClient> GetSpotSymbolsOptions { get; }
 
         /// <summary>
         /// Get all spot symbols for a specific base asset

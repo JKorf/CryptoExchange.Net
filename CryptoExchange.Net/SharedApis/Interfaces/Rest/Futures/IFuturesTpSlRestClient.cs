@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Set take profit and/or stop loss options
         /// </summary>
-        EndpointOptions<SetTpSlRequest> SetFuturesTpSlOptions { get; }
+        EndpointOptions<SetTpSlRequest, IFuturesTpSlRestClient> SetFuturesTpSlOptions { get; }
         /// <summary>
         /// Set a take profit and/or stop loss for an open position
         /// </summary>
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Cancel a take profit and/or stop loss options
         /// </summary>
-        EndpointOptions<CancelTpSlRequest> CancelFuturesTpSlOptions { get; }
+        EndpointOptions<CancelTpSlRequest, IFuturesTpSlRestClient> CancelFuturesTpSlOptions { get; }
         /// <summary>
         /// Cancel an active take profit and/or stop loss for an open position
         /// </summary>

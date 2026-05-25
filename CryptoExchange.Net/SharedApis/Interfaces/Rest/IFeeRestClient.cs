@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Fee request options
         /// </summary>
-        EndpointOptions<GetFeeRequest> GetFeeOptions { get; }
+        EndpointOptions<GetFeeRequest, IFeeRestClient> GetFeeOptions { get; }
 
         /// <summary>
         /// Get trading fees for a symbol

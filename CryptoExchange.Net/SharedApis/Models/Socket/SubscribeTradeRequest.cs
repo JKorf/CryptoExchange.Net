@@ -12,7 +12,8 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="symbol">The symbol to subscribe to</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeTradeRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        public SubscribeTradeRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) 
+            : base(symbol, exchangeParameters)
         {
         }
 
@@ -21,7 +22,8 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="symbols">The symbols to subscribe to</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeTradeRequest(IEnumerable<SharedSymbol> symbols, ExchangeParameters? exchangeParameters = null) : base(symbols, exchangeParameters)
+        public SubscribeTradeRequest(IEnumerable<SharedSymbol> symbols, ExchangeParameters? exchangeParameters = null) 
+            : base(symbols, exchangeParameters)
         {
         }
 

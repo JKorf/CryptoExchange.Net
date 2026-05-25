@@ -6,16 +6,12 @@
     public record StartListenKeyRequest : SharedRequest
     {
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public StartListenKeyRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public StartListenKeyRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null)
+            : base(tradingMode, exchangeParameters)
         {
             TradingMode = tradingMode;
         }

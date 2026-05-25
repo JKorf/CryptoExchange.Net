@@ -3,7 +3,7 @@
     /// <summary>
     /// Options for subscribing to ticker updates
     /// </summary>
-    public class SubscribeTickerOptions : EndpointOptions<SubscribeTickerRequest>
+    public class SubscribeTickerOptions : EndpointOptions<SubscribeTickerRequest, ITickerSocketClient>
     {
         /// <summary>
         /// Type of ticker calculation
@@ -13,7 +13,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeTickerOptions(SharedTickerType? tickerCalcType = null) : base(false)
+        public SubscribeTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

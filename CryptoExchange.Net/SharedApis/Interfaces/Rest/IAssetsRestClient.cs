@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Asset request options
         /// </summary>
-        EndpointOptions<GetAssetRequest> GetAssetOptions { get; }
+        EndpointOptions<GetAssetRequest, IAssetsRestClient> GetAssetOptions { get; }
 
         /// <summary>
         /// Get info on a specific asset
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Assets request options
         /// </summary>
-        EndpointOptions<GetAssetsRequest> GetAssetsOptions { get; }
+        EndpointOptions<GetAssetsRequest, IAssetsRestClient> GetAssetsOptions { get; }
 
         /// <summary>
         /// Get info on all assets the exchange supports

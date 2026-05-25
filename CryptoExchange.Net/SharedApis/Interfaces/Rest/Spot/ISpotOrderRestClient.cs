@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get order request options
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetSpotOrderOptions { get; }
+        EndpointOptions<GetOrderRequest, ISpotOrderRestClient> GetSpotOrderOptions { get; }
         /// <summary>
         /// Get info on a specific spot order
         /// </summary>
@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get open orders request options
         /// </summary>
-        EndpointOptions<GetOpenOrdersRequest> GetOpenSpotOrdersOptions { get; }
+        EndpointOptions<GetOpenOrdersRequest, ISpotOrderRestClient> GetOpenSpotOrdersOptions { get; }
         /// <summary>
         /// Get info on a open spot orders
         /// </summary>
@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get closed orders request options
         /// </summary>
-        GetClosedOrdersOptions GetClosedSpotOrdersOptions { get; }
+        GetSpotClosedOrdersOptions GetClosedSpotOrdersOptions { get; }
         /// <summary>
         /// Get info on closed spot orders
         /// </summary>
@@ -84,7 +84,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot get order trades request options
         /// </summary>
-        EndpointOptions<GetOrderTradesRequest> GetSpotOrderTradesOptions { get; }
+        EndpointOptions<GetOrderTradesRequest, ISpotOrderRestClient> GetSpotOrderTradesOptions { get; }
         /// <summary>
         /// Get trades for a specific spot order
         /// </summary>
@@ -95,7 +95,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot user trades request options
         /// </summary>
-        GetUserTradesOptions GetSpotUserTradesOptions { get; }
+        GetSpotUserTradesOptions GetSpotUserTradesOptions { get; }
         /// <summary>
         /// Get spot user trade records
         /// </summary>
@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Spot cancel order request options
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelSpotOrderOptions { get; }
+        EndpointOptions<CancelOrderRequest, ISpotOrderRestClient> CancelSpotOrderOptions { get; }
         /// <summary>
         /// Cancel a spot order
         /// </summary>

@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Start listen key request options
         /// </summary>
-        EndpointOptions<StartListenKeyRequest> StartOptions { get; }
+        EndpointOptions<StartListenKeyRequest, IListenKeyRestClient> StartOptions { get; }
         /// <summary>
         /// Get the listen key which can be used for user data updates on the socket client
         /// </summary>
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Keep-alive listen key request options
         /// </summary>
-        EndpointOptions<KeepAliveListenKeyRequest> KeepAliveOptions { get; }
+        EndpointOptions<KeepAliveListenKeyRequest, IListenKeyRestClient> KeepAliveOptions { get; }
         /// <summary>
         /// Keep-alive the listen key, needs to be called at a regular interval (typically every 30 minutes)
         /// </summary>
@@ -33,7 +33,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Stop listen key request options
         /// </summary>
-        EndpointOptions<StopListenKeyRequest> StopOptions { get; }
+        EndpointOptions<StopListenKeyRequest, IListenKeyRestClient> StopOptions { get; }
         /// <summary>
         /// Stop the listen key, updates will no longer be send to the user data stream for this listen key
         /// </summary>

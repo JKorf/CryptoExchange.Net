@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get ticker request options
         /// </summary>
-        GetTickerOptions GetFuturesTickerOptions { get; }
+        GetFuturesTickerOptions GetFuturesTickerOptions { get; }
         /// <summary>
         /// Get ticker info for a specific futures symbol
         /// </summary>
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get tickers request options
         /// </summary>
-        GetTickersOptions GetFuturesTickersOptions { get; }
+        GetFuturesTickersOptions GetFuturesTickersOptions { get; }
         /// <summary>
         /// Get ticker info for all futures symbols
         /// </summary>

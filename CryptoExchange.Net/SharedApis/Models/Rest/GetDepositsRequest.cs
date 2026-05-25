@@ -37,7 +37,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="limit">Max number of results</param>
         /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetDepositsRequest(string? asset = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetDepositsRequest(string? asset = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null)
+            : base(null, exchangeParameters)
         {
             Asset = asset;
             StartTime = startTime;

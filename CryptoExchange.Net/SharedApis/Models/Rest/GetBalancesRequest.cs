@@ -15,7 +15,8 @@
         /// </summary>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetBalancesRequest(TradingMode tradingMode, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetBalancesRequest(TradingMode tradingMode, ExchangeParameters? exchangeParameters = null) 
+            : base(tradingMode, exchangeParameters)
         {
             AccountType = tradingMode.ToAccountType();
         }
@@ -25,7 +26,8 @@
         /// </summary>
         /// <param name="accountType">Account type</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetBalancesRequest(SharedAccountType? accountType = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetBalancesRequest(SharedAccountType? accountType = null, ExchangeParameters? exchangeParameters = null)
+            : base(null, exchangeParameters)
         {
             AccountType = accountType;
         }

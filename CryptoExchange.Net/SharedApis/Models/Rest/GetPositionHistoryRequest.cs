@@ -8,10 +8,6 @@ namespace CryptoExchange.Net.SharedApis
     public record GetPositionHistoryRequest : SharedRequest
     {
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
-        /// <summary>
         /// Symbol
         /// </summary>
         public SharedSymbol? Symbol { get; set; }
@@ -41,7 +37,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="limit">Max number of results</param>
         /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) 
+            : base(symbol.TradingMode, exchangeParameters)
         {
             Symbol = symbol;
             StartTime = startTime;
@@ -59,7 +56,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="limit">Max number of results</param>
         /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionHistoryRequest(TradingMode? tradeMode = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionHistoryRequest(TradingMode? tradeMode = null, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) 
+            : base(tradeMode, exchangeParameters)
         {
             TradingMode = tradeMode;
             StartTime = startTime;

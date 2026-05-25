@@ -9,7 +9,8 @@
         /// ctor
         /// </summary>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetAssetsRequest(ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetAssetsRequest(ExchangeParameters? exchangeParameters = null) 
+            : base(null, exchangeParameters)
         {
         }
     }

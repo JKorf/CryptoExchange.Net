@@ -9,19 +9,106 @@ using System.Text;
 namespace CryptoExchange.Net.Objects
 {
     /// <summary>
+    /// Call result
+    /// </summary>
+    public interface ICallResult
+    {
+        /// <summary>
+        /// An error if the call didn't succeed, will always be filled if Success = false
+        /// </summary>
+        Error? Error { get; }
+        /// <summary>
+        /// Whether the call was successful
+        /// </summary>
+        bool Success { get; }
+        /// <summary>
+        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
+        /// </summary>
+        public string? OriginalData { get; }
+    }
+
+    public interface ICallResult<T> : ICallResult
+    {
+        /// <summary>
+        /// The data returned by the call, only available when Success = true
+        /// </summary>
+        T? Data { get; }
+    }
+
+    /// <summary>
+    /// Web call result
+    /// </summary>
+    public interface IWebCallResult : ICallResult
+    {
+        /// <summary>
+        /// The request http method
+        /// </summary>
+        HttpMethod? RequestMethod { get; }
+        /// <summary>
+        /// HTTP protocol version
+        /// </summary>
+        Version? HttpVersion { get; }
+        /// <summary>
+        /// The headers sent with the request
+        /// </summary>
+        HttpRequestHeaders? RequestHeaders { get; }
+        /// <summary>
+        /// The request id
+        /// </summary>
+        int? RequestId { get; }
+        /// <summary>
+        /// The url which was requested
+        /// </summary>
+        string? RequestUrl { get; }
+        /// <summary>
+        /// The body of the request
+        /// </summary>
+        string? RequestBody { get; }
+        /// <summary>
+        /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
+        /// </summary>
+        HttpStatusCode? ResponseStatusCode { get; }
+        /// <summary>
+        /// Length in bytes of the response
+        /// </summary>
+        long? ResponseLength { get; }
+        /// <summary>
+        /// The response headers
+        /// </summary>
+        HttpResponseHeaders? ResponseHeaders { get; }
+        /// <summary>
+        /// The time between sending the request and receiving the response
+        /// </summary>
+        TimeSpan? ResponseTime { get; }
+        /// <summary>
+        /// The data source of this result
+        /// </summary>
+        ResultDataSource DataSource { get; }
+    }
+
+    public interface IWebCallResult<T> : IWebCallResult, ICallResult<T>
+    {
+    }
+
+    /// <summary>
     /// The result of an operation
     /// </summary>
-    public class CallResult
+    public record CallResult : ICallResult
     {
         /// <summary>
         /// Static success result
         /// </summary>
-        public static CallResult SuccessResult { get; } = new CallResult(null);
+        public static CallResult SuccessResult { get; } = new CallResult((Error?)null);
 
         /// <summary>
         /// An error if the call didn't succeed, will always be filled if Success = false
         /// </summary>
         public Error? Error { get; internal set; }
+
+        /// <summary>
+        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
+        /// </summary>
+        public string? OriginalData { get; internal set; }
 
         /// <summary>
         /// Whether the call was successful
@@ -57,39 +144,27 @@ namespace CryptoExchange.Net.Objects
     /// The result of an operation
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class CallResult<T>: CallResult
+    public record CallResult<T>: CallResult, ICallResult<T>
     {
         /// <summary>
         /// The data returned by the call, only available when Success = true
         /// </summary>
-        public T Data { get; internal set; }
-
-        /// <summary>
-        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
-        /// </summary>
-        public string? OriginalData { get; internal set; }
+        public T? Data { get; internal set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="originalData"></param>
-        /// <param name="error"></param>
-#pragma warning disable 8618
-        public CallResult([AllowNull]T data, string? originalData, Error? error): base(error)
-#pragma warning restore 8618
+        public CallResult(T? data, string? originalData, Error? error): base(error)
         {
             OriginalData = originalData;
-#pragma warning disable 8601
             Data = data;
-#pragma warning restore 8601
         }
 
         /// <summary>
         /// Create a new data result
         /// </summary>
         /// <param name="data">The data to return</param>
-        public CallResult(T data) : this(data, null, null) { }
+        public CallResult(T? data) : this(data, null, null) { }
 
         /// <summary>
         /// Create a new error result
@@ -138,12 +213,22 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Copy the WebCallResult to a new data type with default value
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <returns></returns>
+        public CallResult<K> As<K>()
+        {
+            return new CallResult<K>(default, OriginalData, Error);
+        }
+
+        /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="data">The data of the new type</param>
         /// <returns></returns>
-        public CallResult<K> As<K>([AllowNull] K data)
+        public CallResult<K> As<K>(K? data)
         {
             return new CallResult<K>(data, OriginalData, Error);
         }
@@ -202,7 +287,7 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// The result of a request
     /// </summary>
-    public class WebCallResult : CallResult
+    public record WebCallResult<T> : CallResult<T>, IWebCallResult
     {
         /// <summary>
         /// The request http method
@@ -235,9 +320,9 @@ namespace CryptoExchange.Net.Objects
         public string? RequestBody { get; set; }
 
         /// <summary>
-        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
+        /// Length in bytes of the response
         /// </summary>
-        public string? OriginalData { get; internal set; }
+        public long? ResponseLength { get; set; }
 
         /// <summary>
         /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
@@ -253,6 +338,10 @@ namespace CryptoExchange.Net.Objects
         /// The time between sending the request and receiving the response
         /// </summary>
         public TimeSpan? ResponseTime { get; set; }
+        /// <summary>
+        /// The data source of this result
+        /// </summary>
+        public ResultDataSource DataSource { get; set; } = ResultDataSource.Server;
 
         /// <summary>
         /// ctor
@@ -262,25 +351,31 @@ namespace CryptoExchange.Net.Objects
             Version? httpVersion,
             HttpResponseHeaders? responseHeaders,
             TimeSpan? responseTime,
+            long? responseLength,
             string? originalData,
             int? requestId,
             string? requestUrl,
             string? requestBody,
             HttpMethod? requestMethod,
             HttpRequestHeaders? requestHeaders,
-            Error? error) : base(error)
+            ResultDataSource dataSource,
+            T? data,
+            Error? error) : base(default, originalData, error)
         {
             ResponseStatusCode = code;
             HttpVersion = httpVersion;
             ResponseHeaders = responseHeaders;
             ResponseTime = responseTime;
+            ResponseLength = responseLength;
             RequestId = requestId;
-            OriginalData = originalData;
 
             RequestUrl = requestUrl;
             RequestBody = requestBody;
             RequestHeaders = requestHeaders;
             RequestMethod = requestMethod;
+
+            DataSource = dataSource;
+            Data = data;
         }
 
         /// <summary>
@@ -294,9 +389,33 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public WebCallResult AsError(Error error)
+        public WebCallResult<T> AsError(Error error)
         {
-            return new WebCallResult(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
+            return this with { Error = error };
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type with default value
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <returns></returns>
+        public WebCallResult<K> As<K>()
+        {
+            return new WebCallResult<K>(
+                ResponseStatusCode, 
+                HttpVersion, 
+                ResponseHeaders, 
+                ResponseTime,
+                ResponseLength,
+                OriginalData,
+                RequestId, 
+                RequestUrl, 
+                RequestBody, 
+                RequestMethod, 
+                RequestHeaders, 
+                DataSource,
+                default,
+                Error);
         }
 
         /// <summary>
@@ -307,33 +426,21 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public WebCallResult<K> As<K>([AllowNull] K data)
         {
-            return new WebCallResult<K>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, 0, null, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Server, data, Error);
-        }
-
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeMode">Trade mode the result applies to</param>
-        /// <param name="data">The data</param>
-        /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data)
-        {
-            return new ExchangeWebResult<K>(exchange, tradeMode, this.As<K>(data));
-        }
-
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeModes">Trade modes the result applies to</param>
-        /// <param name="data">The data</param>
-        /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data)
-        {
-            return new ExchangeWebResult<K>(exchange, tradeModes, this.As<K>(data));
+            return new WebCallResult<K>(
+                ResponseStatusCode,
+                HttpVersion, 
+                ResponseHeaders, 
+                ResponseTime,
+                ResponseLength, 
+                OriginalData,
+                RequestId,
+                RequestUrl, 
+                RequestBody, 
+                RequestMethod, 
+                RequestHeaders,
+                DataSource,
+                data, 
+                Error);
         }
 
         /// <summary>
@@ -344,13 +451,136 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public WebCallResult<K> AsError<K>(Error error)
         {
-            return new WebCallResult<K>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, 0, null, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Server, default, error);
+            return new WebCallResult<K>(
+                ResponseStatusCode,
+                HttpVersion,
+                ResponseHeaders,
+                ResponseTime,
+                ResponseLength,
+                OriginalData,
+                RequestId,
+                RequestUrl,
+                RequestBody,
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                default,
+                error);
         }
+
+        /// <summary>
+        /// Copy as a dataless result
+        /// </summary>
+        /// <returns></returns>
+        public new WebCallResult AsDataless()
+        {
+            return new WebCallResult(
+                ResponseStatusCode, 
+                HttpVersion,
+                ResponseHeaders,
+                ResponseTime,
+                ResponseLength,
+                OriginalData, 
+                RequestId,
+                RequestUrl,
+                RequestBody,
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                Error);
+        }
+
+        /// <summary>
+        /// Copy as a dataless result
+        /// </summary>
+        /// <returns></returns>
+        public new WebCallResult AsDatalessError(Error error)
+        {
+            return new WebCallResult(
+                ResponseStatusCode,
+                HttpVersion, 
+                ResponseHeaders, 
+                ResponseTime,
+                ResponseLength,
+                OriginalData, 
+                RequestId, 
+                RequestUrl,
+                RequestBody,
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                error);
+        }
+
+        /// <summary>
+        /// Return a copy of this result with data source set to cache
+        /// </summary>
+        /// <returns></returns>
+        internal WebCallResult<T> Cached()
+        {
+            return new WebCallResult<T>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Cache, Data, Error);
+        }
+
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeMode">Trade mode the result applies to</param>
+        ///// <param name="data">The data</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, tradeMode, this.As<K>(data));
+        //}
+
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeModes">Trade modes the result applies to</param>
+        ///// <param name="data">The data</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, tradeModes, this.As<K>(data));
+        //}
+
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, (TradingMode)default, this.As<K>(default));
+        //}
+
+        ///// <summary>
+        ///// Create a new exchange result with a specific error
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="error">The error</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, error);
+        //}
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return (Success ? $"Success" : $"Error: {Error}") + $" in {ResponseTime}";
+            var sb = new StringBuilder();
+            sb.Append(Success ? $"Success response" : $"Error response: {Error}");
+            if (ResponseLength != null)
+                sb.Append($", {ResponseLength} bytes");
+            if (ResponseTime != null)
+                sb.Append($", received in {Math.Round(ResponseTime?.TotalMilliseconds ?? 0)}ms");
+
+            return sb.ToString();
         }
     }
 
@@ -358,62 +588,8 @@ namespace CryptoExchange.Net.Objects
     /// The result of a request
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class WebCallResult<T>: CallResult<T>
+    public record WebCallResult : WebCallResult<object>, IWebCallResult<object>
     {
-        /// <summary>
-        /// The request http method
-        /// </summary>
-        public HttpMethod? RequestMethod { get; set; }
-
-        /// <summary>
-        /// HTTP protocol version
-        /// </summary>
-        public Version? HttpVersion { get; set; }
-
-        /// <summary>
-        /// The headers sent with the request
-        /// </summary>
-        public HttpRequestHeaders? RequestHeaders { get; set; }
-
-        /// <summary>
-        /// The request id
-        /// </summary>
-        public int? RequestId { get; set; }
-
-        /// <summary>
-        /// The url which was requested
-        /// </summary>
-        public string? RequestUrl { get; set; }
-
-        /// <summary>
-        /// The body of the request
-        /// </summary>
-        public string? RequestBody { get; set; }
-
-        /// <summary>
-        /// The status code of the response. Note that a OK status does not always indicate success, check the Success parameter for this.
-        /// </summary>
-        public HttpStatusCode? ResponseStatusCode { get; set; }
-
-        /// <summary>
-        /// Length in bytes of the response
-        /// </summary>
-        public long? ResponseLength { get; set; }
-
-        /// <summary>
-        /// The response headers
-        /// </summary>
-        public HttpResponseHeaders? ResponseHeaders { get; set; }
-
-        /// <summary>
-        /// The time between sending the request and receiving the response
-        /// </summary>
-        public TimeSpan? ResponseTime { get; set; }
-
-        /// <summary>
-        /// The data source of this result
-        /// </summary>
-        public ResultDataSource DataSource { get; set; } = ResultDataSource.Server;
 
         /// <summary>
         /// Create a new result
@@ -431,46 +607,30 @@ namespace CryptoExchange.Net.Objects
             HttpMethod? requestMethod,
             HttpRequestHeaders? requestHeaders,
             ResultDataSource dataSource,
-            [AllowNull] T data,
-            Error? error) : base(data, originalData, error)
+            Error? error) : base(
+                code,
+                httpVersion,
+                responseHeaders,
+                responseTime,
+                responseLength,
+                originalData,
+                requestId,
+                requestUrl,
+                requestBody,
+                requestMethod,
+                requestHeaders,
+                dataSource,
+                default,
+                error)
         {
-            HttpVersion = httpVersion;
-            ResponseStatusCode = code;
-            ResponseHeaders = responseHeaders;
-            ResponseTime = responseTime;
-            ResponseLength = responseLength;
-
-            RequestId = requestId;
-            RequestUrl = requestUrl;
-            RequestBody = requestBody;
-            RequestHeaders = requestHeaders;
-            RequestMethod = requestMethod;
-            DataSource = dataSource;
-        }
-
-        /// <summary>
-        /// Copy as a dataless result
-        /// </summary>
-        /// <returns></returns>
-        public new WebCallResult AsDataless()
-        {
-            return new WebCallResult(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, Error);
-        }
-        /// <summary>
-        /// Copy as a dataless result
-        /// </summary>
-        /// <returns></returns>
-        public new WebCallResult AsDatalessError(Error error)
-        {
-            return new WebCallResult(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, error);
         }
 
         /// <summary>
         /// Create a new error result
         /// </summary>
         /// <param name="error">The error</param>
-        public WebCallResult(Error? error) : this(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, default, error) { }
-
+        public WebCallResult(Error? error) : this(null, null, null, null, null, null, null, null, null, null, null, ResultDataSource.Server, error) { }
+                
         /// <summary>
         /// Copy the WebCallResult to a new data type
         /// </summary>
@@ -479,7 +639,21 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> As<K>([AllowNull] K data)
         {
-            return new WebCallResult<K>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, Error);
+            return new WebCallResult<K>(
+                ResponseStatusCode,
+                HttpVersion,
+                ResponseHeaders,
+                ResponseTime,
+                ResponseLength,
+                OriginalData,
+                RequestId,
+                RequestUrl,
+                RequestBody, 
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                data,
+                Error);
         }
 
         /// <summary>
@@ -490,7 +664,21 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> AsError<K>(Error error)
         {
-            return new WebCallResult<K>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, default, error);
+            return new WebCallResult<K>(
+                ResponseStatusCode, 
+                HttpVersion, 
+                ResponseHeaders, 
+                ResponseTime,
+                ResponseLength,
+                OriginalData,
+                RequestId,
+                RequestUrl,
+                RequestBody,
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                default,
+                error);
         }
 
         /// <summary>
@@ -502,91 +690,94 @@ namespace CryptoExchange.Net.Objects
         /// <returns></returns>
         public new WebCallResult<K> AsErrorWithData<K>(Error error, K data)
         {
-            return new WebCallResult<K>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, DataSource, data, error);
+            return new WebCallResult<K>(
+                ResponseStatusCode,
+                HttpVersion,
+                ResponseHeaders,
+                ResponseTime, 
+                ResponseLength,
+                OriginalData,
+                RequestId, 
+                RequestUrl,
+                RequestBody, 
+                RequestMethod, 
+                RequestHeaders,
+                DataSource, 
+                data,
+                error);
         }
 
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeMode">Trade mode the result applies to</param>
-        /// <returns></returns>
-        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode tradeMode)
-        {
-            return new ExchangeWebResult<T>(exchange, tradeMode, this);
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeMode">Trade mode the result applies to</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode tradeMode)
+        //{
+        //    return new ExchangeWebResult<T>(exchange, tradeMode, this);
+        //}
 
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeModes">Trade modes the result applies to</param>
-        /// <returns></returns>
-        public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode[] tradeModes)
-        {
-            return new ExchangeWebResult<T>(exchange, tradeModes, this);
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeModes">Trade modes the result applies to</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<T> AsExchangeResult(string exchange, TradingMode[] tradeModes)
+        //{
+        //    return new ExchangeWebResult<T>(exchange, tradeModes, this);
+        //}
 
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeMode">Trade mode the result applies to</param>
-        /// <param name="data">Data</param>
-        /// <param name="nextPageRequest">Next page request</param>
-        /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, PageRequest? nextPageRequest = null)
-        {
-            return new ExchangeWebResult<K>(exchange, tradeMode, As<K>(data), nextPageRequest);
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, (TradingMode)default, this.As<K>(default));
+        //}
 
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult of a new data type
-        /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="tradeModes">Trade modes the result applies to</param>
-        /// <param name="data">Data</param>
-        /// <param name="nextPageRequest">Next page token</param>
-        /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data, PageRequest? nextPageRequest = null)
-        {
-            return new ExchangeWebResult<K>(exchange, tradeModes, As<K>(data), nextPageRequest);
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeMode">Trade mode the result applies to</param>
+        ///// <param name="data">Data</param>
+        ///// <param name="nextPageRequest">Next page request</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode tradeMode, [AllowNull] K data, PageRequest? nextPageRequest = null)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, tradeMode, As<K>(data), nextPageRequest);
+        //}
 
-        /// <summary>
-        /// Copy the WebCallResult to an ExchangeWebResult with a specific error
-        /// </summary>
-        /// <typeparam name="K">The new type</typeparam>
-        /// <param name="exchange">The exchange</param>
-        /// <param name="error">The error returned</param>
-        /// <returns></returns>
-        public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
-        {
-            return new ExchangeWebResult<K>(exchange, null, AsError<K>(error));
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult of a new data type
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="tradeModes">Trade modes the result applies to</param>
+        ///// <param name="data">Data</param>
+        ///// <param name="nextPageRequest">Next page token</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeResult<K>(string exchange, TradingMode[]? tradeModes, [AllowNull] K data, PageRequest? nextPageRequest = null)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, tradeModes, As<K>(data), nextPageRequest);
+        //}
 
-        /// <summary>
-        /// Return a copy of this result with data source set to cache
-        /// </summary>
-        /// <returns></returns>
-        internal WebCallResult<T> Cached()
-        {
-            return new WebCallResult<T>(ResponseStatusCode, HttpVersion, ResponseHeaders, ResponseTime, ResponseLength, OriginalData, RequestId, RequestUrl, RequestBody, RequestMethod, RequestHeaders, ResultDataSource.Cache, Data, Error);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append(Success ? $"Success response" : $"Error response: {Error}");
-            if (ResponseLength != null)
-                sb.Append($", {ResponseLength} bytes");
-            if (ResponseTime != null)
-                sb.Append($", received in {Math.Round(ResponseTime?.TotalMilliseconds ?? 0)}ms");
-
-            return sb.ToString();
-        }
+        ///// <summary>
+        ///// Copy the WebCallResult to an ExchangeWebResult with a specific error
+        ///// </summary>
+        ///// <typeparam name="K">The new type</typeparam>
+        ///// <param name="exchange">The exchange</param>
+        ///// <param name="error">The error returned</param>
+        ///// <returns></returns>
+        //public ExchangeWebResult<K> AsExchangeError<K>(string exchange, Error error)
+        //{
+        //    return new ExchangeWebResult<K>(exchange, null, AsError<K>(error));
+        //}
     }
 }

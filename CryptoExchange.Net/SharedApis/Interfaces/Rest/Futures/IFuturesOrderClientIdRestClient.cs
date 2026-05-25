@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures get order by client order id request options
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetFuturesOrderByClientOrderIdOptions { get; }
+        EndpointOptions<GetOrderRequest, IFuturesOrderClientIdRestClient> GetFuturesOrderByClientOrderIdOptions { get; }
 
         /// <summary>
         /// Get info on a specific futures order using a client order id
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures cancel order by client order id request options
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelFuturesOrderByClientOrderIdOptions { get; }
+        EndpointOptions<CancelOrderRequest, IFuturesOrderClientIdRestClient> CancelFuturesOrderByClientOrderIdOptions { get; }
         /// <summary>
         /// Cancel a futures order using client order id
         /// </summary>

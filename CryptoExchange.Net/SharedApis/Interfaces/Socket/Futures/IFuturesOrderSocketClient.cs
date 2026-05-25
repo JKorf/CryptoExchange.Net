@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Futures orders subscription options
         /// </summary>
-        EndpointOptions<SubscribeFuturesOrderRequest> SubscribeFuturesOrderOptions { get; }
+        EndpointOptions<SubscribeFuturesOrderRequest, IFuturesOrderSocketClient> SubscribeFuturesOrderOptions { get; }
 
         /// <summary>
         /// Subscribe to user futures order updates

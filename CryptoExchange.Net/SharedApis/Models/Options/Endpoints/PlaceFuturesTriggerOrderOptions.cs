@@ -5,17 +5,17 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceFuturesTriggerOrderOptions : EndpointOptions<PlaceFuturesTriggerOrderRequest>
+    public class PlaceFuturesTriggerOrderOptions : EndpointOptions<PlaceFuturesTriggerOrderRequest, IFuturesOrderRestClient>
     {
         /// <summary>
-        /// When true the API holds the funds until the order is triggered or canceled. When true the funds will only be required when the order is triggered and will fail if the funds are not available at that time.
+        /// When true the API holds the funds until the order is triggered or canceled. When false the funds will only be required when the order is triggered and will fail if the funds are not available at that time.
         /// </summary>
         public bool HoldsFunds { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesTriggerOrderOptions(bool holdsFunds) : base(true)
+        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true)
         {
             HoldsFunds = holdsFunds;
         }
@@ -23,19 +23,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public Error? ValidateRequest(
-            string exchange,
+        public override Error? ValidateRequest(
             PlaceFuturesTriggerOrderRequest request,
-            TradingMode? tradingMode,
-            TradingMode[] supportedApiTypes,
-            SharedOrderSide side,
-            SharedQuantitySupport quantitySupport)
+            IFuturesOrderRestClient client)
         {
-            var quantityError = quantitySupport.Validate(side, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
-            if (quantityError != null)
-                return quantityError;
+            //var quantityError = client.FuturesSupportedOrderQuantity.Validate(request.OrderDirection, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
+            //if (quantityError != null)
+            //    return quantityError;
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
     }
 }

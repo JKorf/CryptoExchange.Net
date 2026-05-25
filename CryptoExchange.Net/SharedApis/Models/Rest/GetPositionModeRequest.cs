@@ -6,10 +6,6 @@
     public record GetPositionModeRequest : SharedRequest
     {
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
-        /// <summary>
         /// Symbol. Some exchanges set position mode per symbol
         /// </summary>
         public SharedSymbol? Symbol { get; set; }
@@ -19,7 +15,8 @@
         /// </summary>
         /// <param name="symbol">Symbol to retrieve position mode for</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionModeRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionModeRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null)
+            : base(symbol.TradingMode, exchangeParameters)
         {
             Symbol = symbol;
         }
@@ -29,9 +26,9 @@
         /// </summary>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetPositionModeRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetPositionModeRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) 
+            : base(tradingMode, exchangeParameters)
         {
-            TradingMode = tradingMode;
         }
     }
 }
