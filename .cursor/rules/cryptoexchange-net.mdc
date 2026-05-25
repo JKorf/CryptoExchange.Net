@@ -1,0 +1,71 @@
+---
+description: Conventions for cross-exchange code using CryptoExchange.Net SharedApis abstractions. Apply when generating C# code that interacts with multiple cryptocurrency exchanges through a unified interface.
+globs:
+  - "**/*.cs"
+  - "**/*.csproj"
+alwaysApply: false
+---
+
+# CryptoExchange.Net Conventions
+
+This codebase uses **CryptoExchange.Net** abstractions for multi-exchange access. Each exchange has its own library (Binance.Net, Bybit.Net, OKX.Net, ...). Use `CryptoExchange.Net.SharedApis` for code that should work across exchanges.
+
+## Multi-exchange pattern
+
+```csharp
+using Binance.Net.Clients;
+using OKX.Net.Clients;
+using CryptoExchange.Net.SharedApis;
+
+ISpotTickerRestClient binance = new BinanceRestClient().SpotApi.SharedClient;
+ISpotTickerRestClient okx     = new OKXRestClient().UnifiedApi.SharedClient;
+
+var symbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
+
+var ticker = await binance.GetSpotTickerAsync(new GetTickerRequest(symbol));
+// ticker.Data.LastPrice — same model regardless of exchange
+```
+
+## Symbol normalization
+
+`SharedSymbol(TradingMode.Spot, "BTC", "USDT")` is portable. Each library translates to its native format internally. Don't pass raw strings like `"BTCUSDT"` to shared methods.
+
+## Result pattern
+
+Same `WebCallResult<T>` / `CallResult<T>` everywhere. Always check `.Success`. `.Exchange` property identifies which exchange responded — useful for logging.
+
+## Available shared interfaces
+
+- REST tickers/symbols/orderbook/klines/trades, orders (spot/futures, regular/trigger/TP-SL), balances, positions, fees, deposits/withdrawals, transfers
+- WebSocket tickers, book tickers, order book, trades, klines, user data
+
+Each exchange documents which it implements. Not every exchange supports every operation.
+
+## Multi-exchange aggregation
+
+Run requests across exchanges concurrently via `Task.WhenAll` — the library is async-safe and concurrent requests are the norm.
+
+```csharp
+var clients = new ISpotTickerRestClient[] { binance, okx, bybit };
+var tasks   = clients.Select(c => c.GetSpotTickerAsync(new GetTickerRequest(symbol)));
+var results = await Task.WhenAll(tasks);
+```
+
+## Hard rules
+
+- ❌ Never install `CryptoExchange.Net` alone and expect to call exchanges — it's a base library; you need exchange-specific packages
+- ❌ Never mix exchange-specific models in cross-exchange code (use `SharedSymbol`, `SharedSpotTicker`, etc.)
+- ❌ Never use `.Result` / `.Wait()` — async-only
+- ❌ Never iterate sequentially when concurrency is fine — `Task.WhenAll` is your friend
+- ❌ Never instantiate clients per-request — reuse via DI
+- ✅ Always use `.SharedClient` for cross-exchange code
+- ✅ Always check `.Success` before reading `.Data`
+- ✅ Always log with `.Exchange` so multi-exchange logs are decipherable
+- ✅ Always handle "not supported on this exchange" errors gracefully
+
+## Reference
+
+- `AGENTS.md` in repo root has fuller examples
+- `llms.txt` for AI context
+- `Examples/ai-friendly/` for compilable examples
+- For single-exchange code, see that exchange's library (e.g., Binance.Net `AGENTS.md`)

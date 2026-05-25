@@ -7,6 +7,23 @@ Note that the CryptoExchange.Net package itself can not be used directly for acc
 
 For more information on what CryptoExchange.Net and it's client libraries offers see the [Documentation](https://cryptoexchange.jkorf.dev/).
 
+### For AI Coding Assistants
+
+This library and the entire CryptoExchange.Net ecosystem provide first-class support for AI coding assistants. The relevant skill files are in this repository:
+
+- **Agents**: `AGENTS.md` (auto-detected at repo root)
+- **Cursor**: `.cursor/rules/cryptoexchange-net.mdc`
+- **GitHub Copilot**: `.github/copilot-instructions.md`
+- **Other tools** (Windsurf, Codex, Continue, Aider, etc.): `llms.txt` at repo root
+- **Compilable examples**: `Examples/ai-friendly/`
+
+For single-exchange code, see also the AI files in each exchange's repository (Binance.Net, Bybit.Net, OKX.Net, ...) — they cover exchange-specific patterns.
+
+**Quick prompt to verify your assistant is using these:**
+> "Show me how to fetch BTC/USDT spot tickers from Binance and OKX concurrently in C# using the SharedApis pattern."
+
+The expected output should use `.SharedClient` properties, `SharedSymbol`, `ISpotTickerRestClient`, and `Task.WhenAll`.
+
 ### CryptoExchange.Net Ecosystem
 Full list of all libraries part of the CryptoExchange.Net ecosystem. Consider using a referral link to support development, as well as potentially get some trading fee discount!
 

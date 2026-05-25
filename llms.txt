@@ -1,0 +1,34 @@
+# CryptoExchange.Net
+
+> Base C#/.NET library for cryptocurrency exchange API client implementations. Provides a standardized abstraction (REST, WebSocket, authentication, rate limiting, error handling, order book management, shared cross-exchange interfaces) that 28+ exchange-specific libraries are built on top of.
+
+CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `WebCallResult<T>` result pattern, same WebSocket subscription model, same DI registration, same shared interfaces across all exchanges. Current version: 11.x. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
+
+The standout feature for cross-exchange code is `CryptoExchange.Net.SharedApis` — a set of interfaces (`ISpotTickerRestClient`, `ISpotOrderRestClient`, `IBalanceRestClient`, etc.) implemented by every exchange library. Same call signature works against any exchange.
+
+## Documentation
+
+- [README](https://github.com/JKorf/CryptoExchange.Net/blob/master/README.md): Overview, full ecosystem table (28+ exchange libraries), installation per exchange, complete release notes
+- [Documentation Site](https://cryptoexchange.jkorf.dev/): Full documentation hub with sections per topic
+- [SharedApis Documentation](https://cryptoexchange.jkorf.dev/CryptoExchange.Net/idocs_shared.html): Cross-exchange shared interface guide
+
+## Examples
+
+- [AI-friendly examples directory](https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples/ai-friendly): Compact, fully runnable examples optimized for AI assistants
+- [Shared Clients Quickstart](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/01-shared-clients-quickstart.cs): Same code calling multiple exchanges via SharedApis
+- [Multi-Exchange Tickers](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/02-multi-exchange-tickers.cs): Aggregating ticker data across N exchanges concurrently
+- [Cross-Exchange Arbitrage Skeleton](https://github.com/JKorf/CryptoExchange.Net/blob/master/Examples/ai-friendly/03-cross-exchange-arbitrage-skeleton.cs): Pattern for building a price difference scanner
+- [Full Examples Repository](https://github.com/JKorf/CryptoExchange.Net/tree/master/Examples): ConsoleClient with multiple exchange exchanges, BlazorClient, SharedClients
+
+## Reference
+
+- [Ecosystem libraries list](https://github.com/JKorf/CryptoExchange.Net#cryptoexchangenet-ecosystem): Aster, Binance, BingX, Bitfinex, Bitget, BitMart, BitMEX, Bitstamp, BloFin, Bybit, Coinbase, CoinEx, CoinW, CoinGecko, Crypto.com, DeepCoin, Gate.io, HTX, HyperLiquid, Kraken, Kucoin, Mexc, OKX, Polymarket, Toobit, Upbit, Weex, WhiteBit, XT
+- [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): Single bundle package for all exchange libraries
+- [CryptoManager.Net](https://github.com/JKorf/CryptoManager.Net): Full demo application using CryptoClients.Net
+- [NuGet Package](https://www.nuget.org/packages/CryptoExchange.Net): Latest stable release on NuGet
+
+## Optional
+
+- [Discord Community](https://discord.gg/MSpeEtSY8t): Maintainer-supported Discord for ecosystem-wide discussion
+- [GitHub Issues](https://github.com/JKorf/CryptoExchange.Net/issues): Bug reports and feature requests
+- [GitHub Sponsors](https://github.com/sponsors/JKorf): Support the maintainer
