@@ -15,6 +15,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+
 namespace CryptoExchange.Net.Testing
 {
     /// <summary>
@@ -131,7 +134,6 @@ namespace CryptoExchange.Net.Testing
                 var expectedBodyParamsJson = bodyParamsLine.Substring(12);
                 expectedBodyParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedBodyParamsJson)!;
             }
-            
             TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
             var result = await methodInvoke(_client).ConfigureAwait(false);
 
@@ -161,9 +163,9 @@ namespace CryptoExchange.Net.Testing
             {
                 // Validate request body
                 Dictionary<string, object> bodyParameters;
-                if (result.RequestBody.StartsWith("{") || result.RequestBody.StartsWith("["))
+                if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
                 {
-                    bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!);
+                    bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!)!;
                 }
                 else
                 {

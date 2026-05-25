@@ -383,8 +383,6 @@ namespace CryptoExchange.Net.Clients
                         released = true;
                     }
 
-                    var needsConnecting = !socketConnection.Connected;
-
                     var connectResult = await ConnectIfNeededAsync(socketConnection, false, ct).ConfigureAwait(false);
                     if (!connectResult)
                         return new CallResult<HighPerfUpdateSubscription>(connectResult.Error!);
