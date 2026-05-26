@@ -333,16 +333,18 @@ namespace CryptoExchange.Net.OrderBook
         {
             _logger.OrderBookStopping(Api, Symbol);
             _cts?.Cancel();
-            _queueEvent.Set();
-            if (_processTask != null)
-                await _processTask.ConfigureAwait(false);
 
-            if (_subscription != null) {
+            if (_subscription != null)
+            {
                 await _subscription.CloseAsync().ConfigureAwait(false);
                 _subscription.ConnectionLost -= HandleConnectionLost;
                 _subscription.ConnectionClosed -= HandleConnectionClosed;
                 _subscription.ConnectionRestored -= HandleConnectionRestored;
             }
+
+            _queueEvent.Set();
+            if (_processTask != null)
+                await _processTask.ConfigureAwait(false);
 
             Status = OrderBookStatus.Disconnected;
             _logger.OrderBookStopped(Api, Symbol);
