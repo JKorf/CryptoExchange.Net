@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         {
             var definition = new RequestDefinition("/path", httpMethod ?? HttpMethod.Get)
             {
-                Weight = 1,
+                Weight = rateLimitGate == null ? 0 : 1,
                 RateLimitGate = rateLimitGate
             };
             return await SendAsync<T>(BaseAddress, definition, collection ?? new ParameterCollection(), default);

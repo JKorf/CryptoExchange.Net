@@ -293,7 +293,7 @@ namespace CryptoExchange.Net.UnitTests
         [TestCase(null, "Group2", false)]
         [TestCase("Group1", "Group2", false)]
         [TestCase("Group3", "Group3", true)]
-        public async Task RateLimiterWithDifferentGroups_Should_AllowNotRateLimit(string? group1, string? group2, bool expectLimited)
+        public async Task RateLimiterWithDifferentGroups_Should_LimitPerGroup(string? group1, string? group2, bool expectLimited)
         {
             // arrange
             var data = JsonSerializer.Serialize(new TestObject { });
