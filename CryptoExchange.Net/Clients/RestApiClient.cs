@@ -342,7 +342,7 @@ namespace CryptoExchange.Net.Clients
                         GetAuthenticationProvider()?.Key,
                         requestWeight, 
                         ClientOptions.RateLimitingBehaviour,
-                        rateLimitKeySuffix,
+                        rateLimitKeySuffix + ClientOptions.RateLimitGroup,
                         cancellationToken).ConfigureAwait(false);
                     if (!limitResult)
                         return limitResult.Error!;

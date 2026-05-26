@@ -3,11 +3,13 @@ using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.RateLimiting.Filters;
 using CryptoExchange.Net.RateLimiting.Guards;
 using CryptoExchange.Net.RateLimiting.Interfaces;
+using CryptoExchange.Net.UnitTests.Implementations;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -284,6 +286,40 @@ namespace CryptoExchange.Net.UnitTests
             
             // assert
             Assert.That(evnt, Is.Not.Null);
+        }
+
+        [TestCase(null, null, true)]
+        [TestCase("Group1", null, false)]
+        [TestCase(null, "Group2", false)]
+        [TestCase("Group1", "Group2", false)]
+        [TestCase("Group3", "Group3", true)]
+        public async Task RateLimiterWithDifferentGroups_Should_AllowNotRateLimit(string? group1, string? group2, bool expectLimited)
+        {
+            // arrange
+            var data = JsonSerializer.Serialize(new TestObject { });
+            var client1 = new TestRestClient(x =>
+            {
+                x.RateLimitGroup = group1;
+            });
+            client1.ApiClient1.SetNextResponse(data, System.Net.HttpStatusCode.OK);
+            var client2 = new TestRestClient(x =>
+            {
+                x.RateLimitGroup = group2;
+            });
+            client2.ApiClient1.SetNextResponse(data, System.Net.HttpStatusCode.OK);
+
+            var rateLimiter = new RateLimitGate("Test");
+            rateLimiter.AddGuard(new RateLimitGuard(RateLimitGuard.PerHost, new LimitItemTypeFilter(RateLimitItemType.Request), 1, TimeSpan.FromSeconds(2), RateLimitWindowType.Fixed));
+
+            RateLimitEvent? evnt = null;
+            rateLimiter.RateLimitTriggered += (x) => { evnt = x; };
+
+            // act
+            var result1 = await client1.ApiClient1.GetResponseAsync<TestObject>(rateLimitGate: rateLimiter);
+            var result2 = await client2.ApiClient1.GetResponseAsync<TestObject>(rateLimitGate: rateLimiter);
+
+            // assert
+            Assert.That(evnt != null, Is.EqualTo(expectLimited));
         }
     }
 }
