@@ -22,6 +22,10 @@ namespace CryptoExchange.Net.Objects.Options
         /// Note that this comes at a performance cost
         /// </summary>
         public bool OutputOriginalData { get; set; } = false;
+        /// <summary>
+        /// A group name to use for client side rate limiting. Requests with the same group name will be counted together for rate limiting purposes. If null all requests will be counted together.
+        /// </summary>
+        public string? RateLimitGroup { get; set; }
 
         /// <summary>
         /// The max time a request is allowed to take

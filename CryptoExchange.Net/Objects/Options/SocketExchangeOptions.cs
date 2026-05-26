@@ -104,6 +104,7 @@ namespace CryptoExchange.Net.Objects.Options
             item.RequestTimeout = RequestTimeout;
             item.RateLimitingBehaviour = RateLimitingBehaviour;
             item.RateLimiterEnabled = RateLimiterEnabled;
+            item.RateLimitGroup = RateLimitGroup;
             item.ReceiveBufferSize = ReceiveBufferSize;
             return item;
         }

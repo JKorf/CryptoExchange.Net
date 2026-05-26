@@ -86,6 +86,12 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.2.0 - 26 May 2026
+    * Added RateLimitGroup client option to allow for specifying different rate limiting groups
+    * Added request parameter checking in RestRequestValidator
+    * Improved EnumConverter initialization performance
+    * Fixed timing issue in SymbolOrderBook stopping
+
 * Version 11.1.1 - 10 Apr 2026
     * Added Reset functionality to rate limiter implementation
     * Added reset of rate limit per connection when connection is disconnected

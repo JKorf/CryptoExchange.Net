@@ -3,6 +3,7 @@ using CryptoExchange.Net.Converters.MessageParsing.DynamicConverters;
 using CryptoExchange.Net.Converters.SystemTextJson;
 using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.RateLimiting;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Testing.Implementations;
 using Microsoft.Extensions.Logging;
@@ -47,11 +48,12 @@ namespace CryptoExchange.Net.UnitTests.Implementations
             RequestFactory = factory;
         }
 
-        internal async Task<WebCallResult<T>> GetResponseAsync<T>(HttpMethod? httpMethod = null, ParameterCollection? collection = null)
+        internal async Task<WebCallResult<T>> GetResponseAsync<T>(HttpMethod? httpMethod = null, ParameterCollection? collection = null, RateLimitGate? rateLimitGate = null)
         {
             var definition = new RequestDefinition("/path", httpMethod ?? HttpMethod.Get)
             {
-                Weight = 0
+                Weight = rateLimitGate == null ? 0 : 1,
+                RateLimitGate = rateLimitGate
             };
             return await SendAsync<T>(BaseAddress, definition, collection ?? new ParameterCollection(), default);
         }
