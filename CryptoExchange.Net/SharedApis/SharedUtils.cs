@@ -18,20 +18,19 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="TClient"></typeparam>
         /// <typeparam name="TRequest">Request type</typeparam>
         /// <typeparam name="TResult">Result type</typeparam>
-        /// <typeparam name="TOptions">Options type</typeparam>
         /// <param name="client">Calling client</param>
-        /// <param name="options">Options object</param>
+        /// <param name="optionsCallback">Options callback</param>
         /// <param name="request">The request</param>
         /// <param name="action">The call execution</param>
-        public static async Task<ExchangeWebResult<TResult>> ExecuteSharedAsync<TRequest, TResult, TOptions, TClient> (
+        public static async Task<ExchangeWebResult<TResult>> ExecuteSharedAsync<TClient, TRequest, TResult> (
             TClient client,
-            TOptions options,
+            Func<TClient, EndpointOptions<TRequest, TClient>> optionsCallback,
             TRequest request,
             Func<Task<SharedExecutionResult<TResult>>> action)
-            where TOptions : EndpointOptions<TRequest, TClient>
             where TRequest : SharedRequest
             where TClient : ISharedClient
         {
+            var options = optionsCallback(client);
             var validationError = options.ValidateRequest(request, client);
             if (validationError != null)
                 return new ExchangeWebResult<TResult>(options.Exchange, validationError);
