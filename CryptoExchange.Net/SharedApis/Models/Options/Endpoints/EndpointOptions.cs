@@ -101,13 +101,33 @@ namespace CryptoExchange.Net.SharedApis
     /// Options for an exchange endpoint
     /// </summary>
     /// <typeparam name="TRequest">Type of data</typeparam>
+#if NET5_0_OR_GREATER
+    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest> : EndpointOptions 
+    where TRequest : SharedRequest
+#else
+    public class EndpointOptions<TRequest> : EndpointOptions
+        where TRequest : SharedRequest
+#endif
+    {
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public EndpointOptions(string exchange, bool needsAuthentication) : base(exchange, typeof(TRequest).Name, needsAuthentication)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Options for an exchange endpoint
+    /// </summary>
+    /// <typeparam name="TRequest">Type of data</typeparam>
     /// <typeparam name="TClient">Type of the client</typeparam>
 #if NET5_0_OR_GREATER
-    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions 
+    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions <TRequest>
     where TRequest : SharedRequest
     where TClient : ISharedClient
 #else
-    public class EndpointOptions<TRequest, TClient> : EndpointOptions
+        public class EndpointOptions<TRequest, TClient> : EndpointOptions<TRequest>
         where TRequest : SharedRequest
         where TClient : ISharedClient
 #endif
@@ -129,7 +149,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EndpointOptions(string exchange, bool needsAuthentication) : base(exchange, typeof(TRequest).Name, needsAuthentication)
+        public EndpointOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication)
         {
         }
 

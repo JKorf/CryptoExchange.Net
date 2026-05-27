@@ -399,7 +399,7 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         /// <typeparam name="K">The new type</typeparam>
         /// <returns></returns>
-        public WebCallResult<K> As<K>()
+        public new WebCallResult<K> As<K>()
         {
             return new WebCallResult<K>(
                 ResponseStatusCode, 
@@ -424,7 +424,7 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="data">The data of the new type</param>
         /// <returns></returns>
-        public WebCallResult<K> As<K>([AllowNull] K data)
+        public new WebCallResult<K> As<K>([AllowNull] K data)
         {
             return new WebCallResult<K>(
                 ResponseStatusCode,
@@ -449,7 +449,7 @@ namespace CryptoExchange.Net.Objects
         /// <typeparam name="K">The new type</typeparam>
         /// <param name="error">The error returned</param>
         /// <returns></returns>
-        public WebCallResult<K> AsError<K>(Error error)
+        public new WebCallResult<K> AsError<K>(Error error)
         {
             return new WebCallResult<K>(
                 ResponseStatusCode,
@@ -465,6 +465,32 @@ namespace CryptoExchange.Net.Objects
                 RequestHeaders,
                 DataSource,
                 default,
+                error);
+        }
+
+        /// <summary>
+        /// Copy the WebCallResult to a new data type
+        /// </summary>
+        /// <typeparam name="K">The new type</typeparam>
+        /// <param name="data">The data</param>
+        /// <param name="error">The error returned</param>
+        /// <returns></returns>
+        public new WebCallResult<K> AsErrorWithData<K>(Error error, K data)
+        {
+            return new WebCallResult<K>(
+                ResponseStatusCode,
+                HttpVersion,
+                ResponseHeaders,
+                ResponseTime,
+                ResponseLength,
+                OriginalData,
+                RequestId,
+                RequestUrl,
+                RequestBody,
+                RequestMethod,
+                RequestHeaders,
+                DataSource,
+                data,
                 error);
         }
 
@@ -587,10 +613,8 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// The result of a request
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public record WebCallResult : WebCallResult<object>, IWebCallResult<object>
     {
-
         /// <summary>
         /// Create a new result
         /// </summary>
