@@ -115,7 +115,7 @@ namespace CryptoExchange.Net.Testing
             var expectedPath = reader.ReadLine();
             var expectedAuth = bool.Parse(reader.ReadLine()!);
             var paramsAndResponseBody = reader.ReadToEnd();
-            var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             var uriParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("UriParams: "));
             Dictionary<string, object>? expectedUriParams = null;
