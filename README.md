@@ -1,6 +1,7 @@
 # ![.CryptoExchange.Net](https://github.com/JKorf/CryptoExchange.Net/blob/ffcb7db8ff597c2f14982d68464015a748815580/CryptoExchange.Net/Icon/icon.png) CryptoExchange.Net  
 
 [![.NET](https://img.shields.io/github/actions/workflow/status/JKorf/CryptoExchange.Net/dotnet.yml?style=for-the-badge)](https://github.com/JKorf/CryptoExchange.Net/actions/workflows/dotnet.yml) [![Nuget downloads](https://img.shields.io/nuget/dt/CryptoExchange.Net.svg?style=for-the-badge)](https://www.nuget.org/packages/CryptoExchange.Net) ![License](https://img.shields.io/github/license/JKorf/CryptoExchange.Net?style=for-the-badge)
+![Since](https://img.shields.io/badge/since-2018-brightgreen?style=for-the-badge)
 
 CryptoExchange.Net is a base library which is used to implement different cryptocurrency (exchange) API's. It provides a standardized way of implementing different API's, which results in a very similar experience for users of the API implementations. 
 Note that the CryptoExchange.Net package itself can not be used directly for accessing API's. Either install a client library from the list below or use [CryptoClients.Net](https://github.com/jkorf/CryptoClients.Net) which includes access to all exchange API's.
