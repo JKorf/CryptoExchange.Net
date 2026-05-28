@@ -235,7 +235,26 @@ namespace CryptoExchange.Net.Testing
             var expectedMethod = reader.ReadLine();
             var expectedPath = reader.ReadLine();
             var expectedAuth = bool.Parse(reader.ReadLine()!);
-            var response = reader.ReadToEnd();
+            var paramsAndResponseBody = reader.ReadToEnd();
+            var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var uriParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("UriParams: "));
+            Dictionary<string, object>? expectedUriParams = null;
+            var bodyParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("BodyParams: "));
+            Dictionary<string, object>? expectedBodyParams = null;
+            var response = string.Join("\r\n", paramsAndResponseBodySplit.Where(x => !x.StartsWith("UriParams: ") && !x.StartsWith("BodyParams: ")));
+
+            if (uriParamsLine != null)
+            {
+                var expectedUriParamsJson = uriParamsLine.Substring(11);
+                expectedUriParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedUriParamsJson)!;
+            }
+
+            if (bodyParamsLine != null)
+            {
+                var expectedBodyParamsJson = bodyParamsLine.Substring(12);
+                expectedBodyParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedBodyParamsJson)!;
+            }
 
             TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
             var result = await methodInvoke(_client).ConfigureAwait(false);
@@ -249,6 +268,35 @@ namespace CryptoExchange.Net.Testing
                 throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
                 throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
+            
+            if (expectedUriParams != null)
+            {
+                // Validate request parameters
+                var urlParamsSplit = result.RequestUrl!.Split(new char[] { '?' });
+                var urlParametersString = urlParamsSplit.Length > 1 ? urlParamsSplit[1] : null;
+                var urlParameters = (urlParametersString != null
+                    ? urlParametersString.Split('&').ToDictionary(x => x.Split('=')[0], x => (object)x.Split('=')[1])
+                    : new());
+
+                CompareParameters(expectedUriParams, urlParameters);
+            }
+
+            if (expectedBodyParams != null)
+            {
+                // Validate request body
+                Dictionary<string, object> bodyParameters;
+                if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
+                {
+                    bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!)!;
+                }
+                else
+                {
+                    var splitKvp = result.RequestBody.Split('&');
+                    bodyParameters = splitKvp.Select(x => x.Split('=')).ToDictionary(x => x[0], x => (object)x[1]);
+                }
+
+                CompareParameters(expectedBodyParams, bodyParameters);
+            }
 
             Trace.Listeners.Remove(listener);
         }
