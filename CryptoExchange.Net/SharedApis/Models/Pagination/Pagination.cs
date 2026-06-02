@@ -296,7 +296,7 @@ namespace CryptoExchange.Net.SharedApis
             {
                 var nextEndTime = lastTimestamp.AddSeconds(-(int)request.Interval);
                 var startTime = nextEndTime.AddSeconds(-(limit * (int)request.Interval));
-                var requestStartTime = request.StartTime ?? DateTime.UtcNow;
+                var requestStartTime = request.StartTime ?? default(DateTime);
                 if (startTime < requestStartTime)
                     startTime = requestStartTime;
                 return new PageRequest { StartTime = startTime, EndTime = nextEndTime };
