@@ -395,9 +395,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (objectValue is bool bl)
                 {
-                    if (bl && (stringValue != "1" && stringValue != "true" && stringValue != "True"))
+                    if (bl && (stringValue != "1" && stringValue != "true" && stringValue != "True" && stringValue != "yes" && stringValue != "YES"))
                         throw new Exception($"{method}: {property} not equal: {stringValue} vs {bl}");
-                    if (!bl && (stringValue != "0" && stringValue != "-1" && stringValue != "false" && stringValue != "False"))
+                    if (!bl && (stringValue != "0" && stringValue != "-1" && stringValue != "false" && stringValue != "False" && stringValue != "no" && stringValue != "NO"))
                         throw new Exception($"{method}: {property} not equal: {stringValue} vs {bl}");
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
