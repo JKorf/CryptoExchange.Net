@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -18,6 +19,34 @@ namespace CryptoExchange.Net
     /// </summary>
     public static class ExtensionMethods
     {
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        public static void AddParameter(this ParameterCollection parameters, string key, string value)
+        {
+            parameters.Add(key, value);
+        }
+
+        /// <summary>
+        /// Add a parameter
+        /// </summary>
+        public static void AddParameter(this ParameterCollection parameters, string key, object value)
+        {
+            parameters.Add(key, value);
+        }
+
+        /// <summary>
+        /// Add an optional parameter. Not added if value is null
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public static void AddOptionalParameter(this ParameterCollection parameters, string key, object? value)
+        {
+            if (value != null)
+                parameters.Add(key, value);
+        }
+
         /// <summary>
         /// Add a parameter
         /// </summary>
@@ -51,6 +80,16 @@ namespace CryptoExchange.Net
             if (value != null)
                 parameters.Add(key, value);
         }
+
+        /// <summary>
+        /// Create a query string of the specified parameters
+        /// </summary>
+        /// <param name="parameters">The parameters to use</param>
+        /// <param name="urlEncodeValues">Whether or not the values should be url encoded</param>
+        /// <param name="serializationType">How to serialize array parameters</param>
+        /// <returns></returns>
+        public static string CreateParamString(this IParameters parameters, bool urlEncodeValues, ArrayParametersSerialization serializationType)
+            => parameters.Dictionary.CreateParamString(urlEncodeValues, serializationType);
 
         /// <summary>
         /// Create a query string of the specified parameters
@@ -136,6 +175,12 @@ namespace CryptoExchange.Net
 
             return uriString.ToString();
         }
+
+        /// <summary>
+        /// Convert a dictionary to formdata string
+        /// </summary>
+        public static string ToFormData(this IParameters parameters)
+            => parameters.Dictionary.ToFormData();
 
         /// <summary>
         /// Convert a dictionary to formdata string

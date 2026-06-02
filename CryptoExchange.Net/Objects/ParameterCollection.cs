@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Attributes;
 using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,8 +12,20 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Parameters collection
     /// </summary>
-    public class ParameterCollection : Dictionary<string, object>
+    public class ParameterCollection : SortedDictionary<string, object>, IParameters
     {
+        /// <inheritdoc />
+        public IDictionary<string, object> Dictionary => this;
+        /// <inheritdoc />
+        public object? BodyValue => TryGetValue(Constants.BodyPlaceHolderKey, out var value) ? value : null;
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public ParameterCollection(IComparer<string>? comparer = null) : base(comparer)
+        {
+        }
+
         /// <inheritdoc />
         public new void Add(string key, object value)
         {
@@ -23,14 +36,24 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Add or update a parameter value
+        /// </summary>
+        public void AddOrUpdate(string key, object value)
+        {
+            this[key] = value;
+        }
+
+        /// <summary>
         /// Add an optional parameter. Not added if value is null
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
         public void AddOptional(string key, object? value)
         {
-            if (value != null)
-                base.Add(key, value);
+            if (value == null)
+                return;
+
+            base.Add(key, value);
         }
 
         /// <summary>

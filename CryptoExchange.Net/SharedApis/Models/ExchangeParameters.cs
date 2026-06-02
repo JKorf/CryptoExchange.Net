@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -183,6 +184,14 @@ namespace CryptoExchange.Net.SharedApis
         public static void ResetStaticExchangeParameters(string exchange)
         {
             _staticParameters.RemoveAll(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public IDictionary<string, object> GetCollection(string exchange)
+        {
+            var collection = new Dictionary<string, object>();
+            foreach (var parameter in _parameters.Where(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase)))
+                collection.Add(parameter.Name, parameter.Value);
+            return collection;
         }
     }
 }

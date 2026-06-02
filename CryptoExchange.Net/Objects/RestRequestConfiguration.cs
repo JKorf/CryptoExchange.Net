@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Interfaces;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects
@@ -30,11 +31,11 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Query parameters
         /// </summary>
-        public IDictionary<string, object>? QueryParameters { get; set; }
+        public IParameters? QueryParameters { get; set; }
         /// <summary>
         /// Body parameters
         /// </summary>
-        public IDictionary<string, object>? BodyParameters { get; set; }
+        public IParameters? BodyParameters { get; set; }
         /// <summary>
         /// Request headers
         /// </summary>
@@ -58,8 +59,8 @@ namespace CryptoExchange.Net.Objects
         public RestRequestConfiguration(
             RequestDefinition requestDefinition,
             string baseAddress,
-            IDictionary<string, object>? queryParams,
-            IDictionary<string, object>? bodyParams,
+            IParameters? queryParams,
+            IParameters? bodyParams,
             IDictionary<string, string>? headers,
             ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parametersPosition,
@@ -84,12 +85,10 @@ namespace CryptoExchange.Net.Objects
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
             {
-                BodyParameters ??= new Dictionary<string, object>();
-                return BodyParameters;
+                return BodyParameters?.Dictionary ?? new Dictionary<string, object>();
             }
 
-            QueryParameters ??= new Dictionary<string, object>();
-            return QueryParameters;
+            return QueryParameters?.Dictionary ?? new Dictionary<string, object>();
         }
 
         /// <summary>
@@ -98,7 +97,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="urlEncode">Whether to URL encode the parameter string if creating new</param>
         public string GetQueryString(bool urlEncode = true)
         {
-            return _queryString ?? QueryParameters?.CreateParamString(urlEncode, ArraySerialization) ?? string.Empty;
+            return _queryString ?? QueryParameters?.Dictionary.CreateParamString(urlEncode, ArraySerialization) ?? string.Empty;
         }
 
         /// <summary>
