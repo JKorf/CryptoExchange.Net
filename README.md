@@ -86,6 +86,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.2.1 - 02 Jun 2026
+    * Fixed some testing logic
+
 * Version 11.2.0 - 26 May 2026
     * Added RateLimitGroup client option to allow for specifying different rate limiting groups
     * Added request parameter checking in RestRequestValidator
