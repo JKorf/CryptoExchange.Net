@@ -13,25 +13,42 @@ namespace CryptoExchange.Net.Objects
     /// <summary>
     /// Set of parameters
     /// </summary>
-    public class Parameters : IParameters
+    public class Parameters : IDictionary<string, object>
     {
         private readonly ParameterSerializationSettings _serializationSettings;
-        private SortedDictionary<string, object> _parameters;
+        private IDictionary<string, object> _parameters;
         private object? _value;
 
         /// <inheritdoc />
-        public IDictionary<string, object> Dictionary => _parameters;
-        /// <inheritdoc />
         public object? BodyValue => _value;
+
+        /// <inheritdoc />
+        public ICollection<string> Keys => _parameters.Keys;
+
+        /// <inheritdoc />
+        public ICollection<object> Values => _parameters.Values;
+
+        /// <inheritdoc />
+        public int Count => _parameters.Count;
+
+        /// <inheritdoc />
+        public bool IsReadOnly => _parameters.IsReadOnly;
+
+        /// <inheritdoc />
+        public object this[string key] { get => _parameters[key]; set => _parameters[key] = value; }
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="serializationSettings">Serialization settings</param>
-        public Parameters(ParameterSerializationSettings serializationSettings, IComparer<string>? comparer = null)
+        public Parameters(ParameterSerializationSettings serializationSettings)
         {
             _serializationSettings = serializationSettings;
-            _parameters = new SortedDictionary<string, object>(comparer);
+            if (_serializationSettings.Sort)
+                _parameters = new SortedDictionary<string, object>(_serializationSettings.SortComparer);
+            else
+                _parameters = new Dictionary<string, object>();
+
         }
 
         /// <summary>
@@ -41,6 +58,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="value">Body value</param>
         public Parameters(object value, ParameterSerializationSettings serializationSettings)
         {
+            _parameters = new Dictionary<string, object>();
             _serializationSettings = serializationSettings;
             _value = value;
         }
@@ -83,6 +101,19 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+        public void AddAsString(string key, long? value)
+        {
+            if (value == null)
+                return;
+
+            AddAsString(key, value.Value);
+        }
+
+        /// <inheritdoc />
+        public void AddAsString(string key, long value)
+        {
+            _parameters.Add(key, value.ToString(CultureInfo.InvariantCulture));
+        }
 
         public void Add(string key, long? value)
         {
@@ -120,6 +151,20 @@ namespace CryptoExchange.Net.Objects
                 _parameters.Add(key, value);
             else
                 throw new ArgumentException("Unknown Decimal serialization setting");
+        }
+
+        public void AddAsString(string key, decimal? value)
+        {
+            if (value == null)
+                return;
+
+            AddAsString(key, value.Value);
+        }
+
+        /// <inheritdoc />
+        public void AddAsString(string key, decimal value)
+        {
+            _parameters.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
         public void Add(string key, double? value)
@@ -190,6 +235,31 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+        public void AddAsInt<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
+#endif
+        T>(string key, T? value)
+            where T : struct, Enum
+
+        {
+            if (value == null)
+                return;
+
+            AddAsInt(key, value.Value);
+        }
+
+        /// <inheritdoc />
+        public void AddAsInt<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
+#endif
+        T>(string key, T value)
+            where T : struct, Enum
+        {
+            _parameters.Add(key, int.Parse(EnumConverter<T>.GetString(value), CultureInfo.InvariantCulture));
+        }
+
         public void Add(string key, DateTime? value)
         {
             if (value == null)
@@ -224,13 +294,44 @@ namespace CryptoExchange.Net.Objects
             _parameters.Add(key, value);
         }
 
-        public void ApplyOptionalParameters(IDictionary<string, object>? additionalParameters)
+        public void AddRaw(string key, object? value)
         {
-            if (additionalParameters == null)
+            if (value == null)
                 return;
 
-            foreach (var kvp in additionalParameters)
+            _parameters.Add(key, value);
+        }
+
+        public void ApplyRawParameters(IDictionary<string, object>? rawParameters)
+        {
+            if (rawParameters == null)
+                return;
+
+            foreach (var kvp in rawParameters)
                 _parameters[kvp.Key] = kvp.Value;
         }
+
+        /// <inheritdoc />
+        public void Add(string key, object value) => _parameters.Add(key, value);
+        /// <inheritdoc />
+        public bool ContainsKey(string key) => _parameters.ContainsKey(key);
+        /// <inheritdoc />
+        public bool Remove(string key) => _parameters.Remove(key);
+        /// <inheritdoc />
+        public bool TryGetValue(string key, out object value) => _parameters.TryGetValue(key, out value);
+        /// <inheritdoc />
+        public void Add(KeyValuePair<string, object> item) => _parameters.Add(item.Key, item.Value);
+        /// <inheritdoc />
+        public void Clear() => _parameters.Clear();
+        /// <inheritdoc />
+        public bool Contains(KeyValuePair<string, object> item) => _parameters.ContainsKey(item.Key) && _parameters[item.Key] == item.Value;
+        /// <inheritdoc />
+        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex) => _parameters.CopyTo(array, arrayIndex);
+        /// <inheritdoc />
+        public bool Remove(KeyValuePair<string, object> item) => _parameters.Remove(item.Key);
+        /// <inheritdoc />
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => _parameters.GetEnumerator();
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

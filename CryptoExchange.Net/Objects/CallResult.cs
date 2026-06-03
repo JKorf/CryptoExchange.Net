@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.SharedApis;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
@@ -20,6 +19,9 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Whether the call was successful
         /// </summary>
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(false, nameof(Error))]
+#endif
         bool Success { get; }
         /// <summary>
         /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
@@ -29,6 +31,11 @@ namespace CryptoExchange.Net.Objects
 
     public interface ICallResult<T> : ICallResult
     {
+        /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(true, nameof(Data))]
+#endif
+        new bool Success { get; }
         /// <summary>
         /// The data returned by the call, only available when Success = true
         /// </summary>
@@ -113,6 +120,9 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Whether the call was successful
         /// </summary>
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(false, nameof(Error))]
+#endif
         public bool Success => Error == null;
 
         /// <summary>
@@ -127,7 +137,9 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
         /// </summary>
-        /// <param name="obj"></param>
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(false, nameof(Error))]
+#endif
         public static implicit operator bool(CallResult obj)
         {
             return obj?.Success == true;
@@ -146,6 +158,19 @@ namespace CryptoExchange.Net.Objects
     /// <typeparam name="T"></typeparam>
     public record CallResult<T>: CallResult, ICallResult<T>
     {
+        /// <inheritdoc />
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(true, nameof(Data))]
+        [MemberNotNullWhen(false, nameof(Error))]
+#endif
+        public new bool Success => base.Success;
+        /// <inheritdoc />
+        public new Error? Error
+        {
+            get => base.Error;
+            internal set => base.Error = value;
+        }
+
         /// <summary>
         /// The data returned by the call, only available when Success = true
         /// </summary>
@@ -182,7 +207,10 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Overwrite bool check so we can use if(callResult) instead of if(callResult.Success)
         /// </summary>
-        /// <param name="obj"></param>
+#if NET5_0_OR_GREATER
+        [MemberNotNullWhen(true, nameof(Data))]
+        [MemberNotNullWhen(false, nameof(Error))]
+#endif
         public static implicit operator bool(CallResult<T> obj)
         {
             return obj?.Success == true;

@@ -105,7 +105,7 @@ namespace CryptoExchange.Net.Testing
             string path,
             Func<IDictionary<string, object>?, IDictionary<string, object>?, IDictionary<string, string>?, string> getSignature,
             string expectedSignature,
-            IParameters? parameters = null,
+            Parameters? parameters = null,
             DateTime? time = null,
             bool compareCase = true,
             string host = "https://test.test-api.com")
@@ -133,7 +133,7 @@ namespace CryptoExchange.Net.Testing
                 requestDefinition
                 );
 
-            var signature = getSignature(requestDefinition.QueryParameters?.Dictionary, requestDefinition.BodyParameters?.Dictionary, requestDefinition.Headers);
+            var signature = getSignature(requestDefinition.QueryParameters, requestDefinition.BodyParameters, requestDefinition.Headers);
 
             if (!string.Equals(signature, expectedSignature, compareCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
                 throw new Exception($"Signatures do not match. Expected: {expectedSignature}, Actual: {signature}");

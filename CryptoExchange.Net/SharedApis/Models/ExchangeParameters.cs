@@ -11,25 +11,59 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class ExchangeParameters
     {
-        private readonly List<ExchangeParameter> _parameters;
-        private readonly static List<ExchangeParameter> _staticParameters = new List<ExchangeParameter>();
+        private readonly static Dictionary<string, Parameters> _staticProcessParameters = new Dictionary<string, Parameters>();
+        private readonly Dictionary<string, Parameters> _processParameters;
+        private readonly Dictionary<string, Parameters> _rawParameters;
 
-        /// <summary>
-        /// ctor
-        /// </summary>
-        /// <param name="parameters">The parameters to add</param>
         public ExchangeParameters(params ExchangeParameter[] parameters)
         {
-            _parameters = parameters.ToList();
+            _processParameters = new Dictionary<string, Parameters>();
+            _rawParameters = new Dictionary<string, Parameters>();
+
+            foreach (var parameter in parameters)
+                AddProcessValue(parameter.Exchange, parameter.Name, parameter.Value);
         }
 
-        /// <summary>
-        /// Add a new parameter value
-        /// </summary>
-        /// <param name="exchangeParameter"></param>
-        public void AddValue(ExchangeParameter exchangeParameter)
+        public Parameters? GetRawParameters(string exchange) => _rawParameters.TryGetValue(exchange, out var value) ? value : null;
+
+        public void AddProcessParameter(ExchangeParameter exchangeParameter)
         {
-            _parameters.Add(exchangeParameter);
+            AddProcessValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
+        }
+
+        public void AddRawParameter(ExchangeParameter exchangeParameter)
+        {
+            AddRawValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
+        }
+
+        public void AddProcessValue(string exchange, string key, object value)
+        {
+            if (!_processParameters.TryGetValue(exchange, out var exchangeParameters))
+            {
+                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
+                _processParameters[exchange] = exchangeParameters;
+            }
+
+            exchangeParameters.AddRaw(key, value);
+        }
+
+        public void AddRawValue(string exchange, string key, object value)
+        {
+            if (!_rawParameters.TryGetValue(exchange, out var exchangeParameters))
+            {
+                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
+                _rawParameters[exchange] = exchangeParameters;
+            }
+
+            exchangeParameters.AddRaw(key, value);
+        }
+
+        private static object? TryGetValue(Dictionary<string, Parameters> list, string exchange, string key)
+        {
+            if (!list.TryGetValue(exchange, out var exchangeParams))
+                return null;
+
+            return exchangeParams.SingleOrDefault(x => x.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Value;
         }
 
         /// <summary>
@@ -41,8 +75,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public bool HasValue(string exchange, string name, Type type)
         {
-            var val = _parameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-            val ??= _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var val = TryGetValue(_processParameters, exchange, name);
+            val ??= TryGetValue(_staticProcessParameters, exchange, name);
 
             if (val == null)
                 return false;
@@ -50,7 +84,7 @@ namespace CryptoExchange.Net.SharedApis
             try
             {
                 Type t = Nullable.GetUnderlyingType(type) ?? type;
-                Convert.ChangeType(val.Value, t);
+                Convert.ChangeType(val, t);
                 return true;
             }
             catch
@@ -73,14 +107,14 @@ namespace CryptoExchange.Net.SharedApis
             if (provided == true)
                 return true;
 
-            var val = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var val = TryGetValue(_staticProcessParameters, exchange, name);
             if (val == null)
                 return false;
 
             try
             {
                 Type t = Nullable.GetUnderlyingType(type) ?? type;
-                Convert.ChangeType(val.Value, t);
+                Convert.ChangeType(val, t);
                 return true;
             }
             catch
@@ -95,19 +129,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="T">Type of the parameter value</typeparam>
         /// <param name="exchange">Exchange name</param>
         /// <param name="name">Parameter name</param>
-        public T? GetValue<T>(string exchange, string name)
+        public T? GetProcessValue<T>(string exchange, string name)
         {
-            var val = _parameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var val = TryGetValue(_processParameters, exchange, name);
+            val ??= TryGetValue(_staticProcessParameters, exchange, name);
             if (val == null)
                 return default;
 
-            if (val.Value is T typeVal)
+            if (val is T typeVal)
                 return typeVal;
 
             try
             {
                 Type t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-                return (T)Convert.ChangeType(val.Value, t);
+                return (T)Convert.ChangeType(val, t);
             }
             catch
             {
@@ -122,34 +157,30 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="exchangeParameters">The request parameters</param>
         /// <param name="exchange">Exchange name</param>
         /// <param name="name">Parameter name</param>
-        public static T? GetValue<T>(ExchangeParameters? exchangeParameters, string exchange, string name)
+        public static T? GetProcessValue<T>(ExchangeParameters? exchangeParameters, string exchange, string name)
         {
-            T? value;
-            if (exchangeParameters == null)
-            {
-                var parameter = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                if (parameter == null)
-                    return default;
+            if (exchangeParameters != null) {
 
-                if (parameter.Value is T val)
-                    return val;
-
-                try
-                {
-                    Type t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-                    return (T)Convert.ChangeType(parameter.Value, t);
-                }
-                catch
-                {
-                    throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, name);
-                }
-            }
-            else
-            {
-                value = exchangeParameters.GetValue<T>(exchange, name);
+                var provided = exchangeParameters.GetProcessValue<T>(exchange, name);
+                if (provided != null)
+                    return provided;
             }
 
-            return value;
+            var val = TryGetValue(_staticProcessParameters, exchange, name);
+            if (val == null)
+                return default;
+
+            try
+            {
+                var type = typeof(T);
+                Type t = Nullable.GetUnderlyingType(type) ?? type;
+                var result = Convert.ChangeType(val, t);
+                return (T)result;
+            }
+            catch
+            {
+                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, name);
+            }
         }
 
         /// <summary>
@@ -160,14 +191,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="value">Parameter value</param>
         public static void SetStaticParameter(string exchange, string key, object value)
         {
-            var existing = _staticParameters.SingleOrDefault(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase) && x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
-            if (existing != null)
-            {
-                existing.Value = value;
-                return;
-            }    
-
-            _staticParameters.Add(new ExchangeParameter(exchange, key, value));
+            // TODO
         }
 
         /// <summary>
@@ -175,7 +199,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public static void ResetStaticParameters()
         {
-            _staticParameters.Clear();
+            _staticProcessParameters.Clear();
         }
 
         /// <summary>
@@ -183,15 +207,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public static void ResetStaticExchangeParameters(string exchange)
         {
-            _staticParameters.RemoveAll(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase));
-        }
-
-        public IDictionary<string, object> GetCollection(string exchange)
-        {
-            var collection = new Dictionary<string, object>();
-            foreach (var parameter in _parameters.Where(x => x.Exchange.Equals(exchange, StringComparison.InvariantCultureIgnoreCase)))
-                collection.Add(parameter.Name, parameter.Value);
-            return collection;
+            _staticProcessParameters.Remove(exchange);
         }
     }
 }

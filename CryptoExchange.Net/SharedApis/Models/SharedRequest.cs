@@ -26,7 +26,6 @@ namespace CryptoExchange.Net.SharedApis
             ExchangeParameters = exchangeParameters;
         }
 
-
         /// <summary>
         /// Get the value of a parameter from this instance or the default values
         /// </summary>
@@ -37,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             foreach (var name in names)
             {
-                var value = ExchangeParameters.GetValue<T>(ExchangeParameters, exchange, name);
+                var value = ExchangeParameters.GetProcessValue<T>(ExchangeParameters, exchange, name);
                 if (value != null)
                     return value;
             }

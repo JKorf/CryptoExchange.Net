@@ -57,16 +57,6 @@ namespace CryptoExchange.Net.Clients
         protected Dictionary<string, string> StandardRequestHeaders { get; set; } = [];
 
         /// <summary>
-        /// Whether parameters need to be ordered
-        /// </summary>
-        protected internal bool OrderParameters { get; set; } = true;
-
-        /// <summary>
-        /// Parameter order comparer
-        /// </summary>
-        protected IComparer<string> ParameterOrderComparer { get; } = new OrderedStringComparer();
-
-        /// <summary>
         /// Where to put the parameters for requests with different Http methods
         /// </summary>
         public Dictionary<HttpMethod, HttpMethodParameterPosition> ParameterPositions { get; set; } = new Dictionary<HttpMethod, HttpMethodParameterPosition>
@@ -157,7 +147,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual async Task<WebCallResult> SendAsync(
             string baseAddress,
             RequestDefinition definition,
-            IParameters? parameters,
+            Parameters? parameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null)
@@ -182,7 +172,7 @@ namespace CryptoExchange.Net.Clients
         protected virtual Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
             RequestDefinition definition,
-            IParameters? parameters,
+            Parameters? parameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
@@ -219,8 +209,8 @@ namespace CryptoExchange.Net.Clients
         protected virtual async Task<WebCallResult<T>> SendAsync<T>(
             string baseAddress,
             RequestDefinition definition,
-            IParameters? uriParameters,
-            IParameters? bodyParameters,
+            Parameters? uriParameters,
+            Parameters? bodyParameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
@@ -237,7 +227,7 @@ namespace CryptoExchange.Net.Clients
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
-                cacheKey = baseAddress + definition + uriParameters?.Dictionary.ToFormData();
+                cacheKey = baseAddress + definition + uriParameters?.ToFormData();
                 _logger.CheckingCache(cacheKey);
                 var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
                 if (cachedValue != null)
@@ -392,8 +382,8 @@ namespace CryptoExchange.Net.Clients
             int requestId,
             string baseAddress,
             RequestDefinition definition,
-            IParameters? uriParameters,
-            IParameters? bodyParameters,
+            Parameters? uriParameters,
+            Parameters? bodyParameters,
             Dictionary<string, string>? additionalHeaders)
         {
             var requestConfiguration = new RestRequestConfiguration(
@@ -451,7 +441,7 @@ namespace CryptoExchange.Net.Clients
                 }
                 else
                 {
-                    if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Dictionary.Count != 0)
+                    if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
                     else if (OmitContentTypeHeaderWithoutContent != true)
                         request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);                    
@@ -681,7 +671,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="request">The request to set the parameters on</param>
         /// <param name="parameters">The parameters to set</param>
         /// <param name="contentType">The content type of the data</param>
-        protected virtual void WriteParamBody(IRequest request, IParameters parameters, string contentType)
+        protected virtual void WriteParamBody(IRequest request, Parameters parameters, string contentType)
         {
             if (contentType == Constants.JsonContentHeader)
             {
@@ -694,13 +684,13 @@ namespace CryptoExchange.Net.Clients
                 if (parameters.BodyValue != null)
                     stringData = stringSerializer.Serialize(parameters.BodyValue);
                 else
-                    stringData = stringSerializer.Serialize(parameters.Dictionary);
+                    stringData = stringSerializer.Serialize(parameters);
                 request.SetContent(stringData, RequestBodyContentEncoding, contentType);
             }
             else if (contentType == Constants.FormContentHeader)
             {
                 // Write the parameters as form data in the body
-                var stringData = parameters.Dictionary.ToFormData();
+                var stringData = parameters.ToFormData();
                 request.SetContent(stringData, RequestBodyContentEncoding, contentType);
             }
         }

@@ -31,11 +31,11 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Query parameters
         /// </summary>
-        public IParameters? QueryParameters { get; set; }
+        public Parameters? QueryParameters { get; set; }
         /// <summary>
         /// Body parameters
         /// </summary>
-        public IParameters? BodyParameters { get; set; }
+        public Parameters? BodyParameters { get; set; }
         /// <summary>
         /// Request headers
         /// </summary>
@@ -59,8 +59,8 @@ namespace CryptoExchange.Net.Objects
         public RestRequestConfiguration(
             RequestDefinition requestDefinition,
             string baseAddress,
-            IParameters? queryParams,
-            IParameters? bodyParams,
+            Parameters? queryParams,
+            Parameters? bodyParams,
             IDictionary<string, string>? headers,
             ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parametersPosition,
@@ -81,14 +81,14 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Get the parameter collection based on the ParameterPosition
         /// </summary>
-        public IDictionary<string, object> GetPositionParameters()
+        public Parameters GetPositionParameters()
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
             {
-                return BodyParameters?.Dictionary ?? new Dictionary<string, object>();
+                return BodyParameters ?? new Parameters(ParameterSerializationSettings.Default);
             }
 
-            return QueryParameters?.Dictionary ?? new Dictionary<string, object>();
+            return QueryParameters ?? new Parameters(ParameterSerializationSettings.Default);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace CryptoExchange.Net.Objects
         /// <param name="urlEncode">Whether to URL encode the parameter string if creating new</param>
         public string GetQueryString(bool urlEncode = true)
         {
-            return _queryString ?? QueryParameters?.Dictionary.CreateParamString(urlEncode, ArraySerialization) ?? string.Empty;
+            return _queryString ?? QueryParameters?.CreateParamString(urlEncode, ArraySerialization) ?? string.Empty;
         }
 
         /// <summary>

@@ -9,6 +9,10 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ParameterSerializationSettings
     {
+        public static ParameterSerializationSettings Default { get; } = new ParameterSerializationSettings();
+
+        public bool Sort { get; set; } = true;
+        public IComparer<string>? SortComparer { get; set; }
         public DecimalSerialization Decimal { get; set; } = DecimalSerialization.Number;
         public DateTimeSerialization DateTimes { get; set; } = DateTimeSerialization.MillisecondsNumber;
         public BoolSerialization Bool { get; set; } = BoolSerialization.Bool;
