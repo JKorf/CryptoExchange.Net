@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -162,6 +163,17 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public double IncomingKbps => _socket.IncomingKbps;
 
+        public string ConnectionUriString
+        {
+            get
+            {
+                if (_connectionUriString != null)
+                    return _connectionUriString;
+
+                _connectionUriString = ConnectionUri.ToString();
+                return _connectionUriString;
+            }
+        }
         /// <summary>
         /// The connection uri
         /// </summary>
@@ -273,6 +285,7 @@ namespace CryptoExchange.Net.Sockets.Default
         private ISocketMessageHandler? _byteMessageConverter;
         private ISocketMessageHandler? _textMessageConverter;
 
+        private string _connectionUriString;
         private long _lastSequenceNumber;
 
         /// <summary>
@@ -407,7 +420,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 try
                 {
                     var reconnectSuccessful = await ProcessReconnectAsync().ConfigureAwait(false);
-                    if (!reconnectSuccessful)
+                    if (!reconnectSuccessful.Success)
                     {
                         _logger.FailedReconnectProcessing(SocketId, reconnectSuccessful.Error!.ToString());
                         _ = Task.Run(() => ResubscribingFailed?.Invoke(reconnectSuccessful.Error));
@@ -760,10 +773,18 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="query">Query to send</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult> SendAndWaitQueryAsync(Query query, CancellationToken ct = default)
+        public virtual async Task<WebSocketResult> SendAndWaitQueryAsync(Query query, CancellationToken ct = default)
         {
+            var sw = Stopwatch.StartNew();
             await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
-            return query.Result ?? new CallResult(new TimeoutError());
+            sw.Stop();
+            if (!query.Completed)
+                return WebSocketResult.Fail(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, new TimeoutError());
+
+            if (!query.Success)
+                return WebSocketResult.Fail(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Error);
+
+            return WebSocketResult.Ok(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString);
         }
 
         /// <summary>
@@ -773,17 +794,25 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="query">Query to send</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<CallResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
+        public virtual async Task<WebSocketResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
         {
+            var sw = Stopwatch.StartNew();
             await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
-            return query.TypedResult ?? new CallResult<THandlerResponse>(new TimeoutError());
+            sw.Stop();
+            if (!query.Completed)
+                return WebSocketResult.Fail<THandlerResponse>(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, new TimeoutError());
+
+            if (!query.Success)
+                return WebSocketResult.Fail<THandlerResponse>(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Error);
+
+            return WebSocketResult.Ok(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Result.Data!);
         }
 
         private async Task SendAndWaitIntAsync(Query query, CancellationToken ct = default)
         {
             AddMessageProcessor(query);
             var sendResult = await SendAsync(query.Id, query.Request, query.Weight).ConfigureAwait(false);
-            if (!sendResult)
+            if (!sendResult.Success)
             {
                 query.Fail(sendResult.Error!);
                 RemoveMessageProcessor(query);
@@ -858,26 +887,26 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
                 _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
-                return new CallResult(new InvalidOperationError(info));
+                return CallResult.Fail(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
                 _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
-                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+                return CallResult.Fail(new WebError("Failed to send message, socket no longer open"));
             }
 
             _logger.SendingByteData(SocketId, requestId, data.Length);
             try
             {
                 if (!_socket.Send(requestId, data, weight))
-                    return new CallResult(new WebError("Failed to send message, connection not open"));
+                    return CallResult.Fail(new WebError("Failed to send message, connection not open"));
 
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
             catch (Exception ex)
             {
-                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
+                return CallResult.Fail(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
         }
 
@@ -893,33 +922,33 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
                 _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] {Info}", SocketId, requestId, info);
-                return new CallResult(new InvalidOperationError(info));
+                return CallResult.Fail(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
                 _logger.LogWarning("[Sckt {SocketId}] [Req {RequestId}] failed to send, socket no longer open", SocketId, requestId);
-                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+                return CallResult.Fail(new WebError("Failed to send message, socket no longer open"));
             }
 
             _logger.SendingData(SocketId, requestId, data);
             try
             {
                 if (!_socket.Send(requestId, data, weight))
-                    return new CallResult(new WebError("Failed to send message, connection not open"));
+                    return CallResult.Fail(new WebError("Failed to send message, connection not open"));
 
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
             catch (Exception ex)
             {
-                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
+                return CallResult.Fail(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
         }
 
         private async Task<CallResult> ProcessReconnectAsync()
         {
             if (!_socket.IsOpen)
-                return new CallResult(new WebError("Socket not connected"));
+                return CallResult.Fail(new WebError("Socket not connected"));
 
             if (!DedicatedRequestConnection.IsDedicatedRequestConnection)
             {
@@ -929,7 +958,7 @@ namespace CryptoExchange.Net.Sockets.Default
                     // No need to resubscribe anything
                     _logger.NothingToResubscribeCloseConnection(SocketId);
                     _ = _socket.CloseAsync();
-                    return CallResult.SuccessResult;
+                    return CallResult.Ok();
                 }
             }
 
@@ -939,7 +968,7 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 // If we reconnected a authenticated connection we need to re-authenticate
                 var authResult = await ApiClient.AuthenticateSocketAsync(this).ConfigureAwait(false);
-                if (!authResult)
+                if (!authResult.Success)
                 {
                     _logger.FailedAuthenticationDisconnectAndRecoonect(SocketId);
                     return authResult;
@@ -955,13 +984,13 @@ namespace CryptoExchange.Net.Sockets.Default
             while (true)
             {
                 if (!_socket.IsOpen)
-                    return new CallResult(new WebError("Socket not connected"));
+                    return CallResult.Fail(new WebError("Socket not connected"));
 
                 var subList = _listeners.OfType<Subscription>().Where(x => x.Active).Skip(batch * batchSize).Take(batchSize).ToList();
                 if (subList.Count == 0)
                     break;
 
-                var taskList = new List<Task<CallResult>>();
+                var taskList = new List<Task<WebSocketResult>>();
                 foreach (var subscription in subList)
                 {
                     var subscribeTask = TrySubscribeAsync(subscription, false, default);
@@ -970,16 +999,19 @@ namespace CryptoExchange.Net.Sockets.Default
 
                 await Task.WhenAll(taskList).ConfigureAwait(false);
                 if (taskList.Any(t => !t.Result.Success))
-                    return taskList.First(t => !t.Result.Success).Result;
+                {
+                    var errorResult = taskList.First(t => !t.Result.Success).Result;
+                    return CallResult.Fail(errorResult.Error!);
+                }
 
                 batch++;
             }
 
             if (!_socket.IsOpen)
-                return new CallResult(new WebError("Socket not connected"));
+                return CallResult.Fail(new WebError("Socket not connected"));
 
             _logger.AllSubscriptionResubscribed(SocketId);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -988,7 +1020,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="subscription">The subscription</param>
         /// <param name="newSubscription">Whether this is a new subscription, or an existing subscription (resubscribing on reconnected socket)</param>
         /// <param name="subCancelToken">Cancellation token</param>
-        protected internal async Task<CallResult> TrySubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
+        protected internal async Task<WebSocketResult> TrySubscribeAsync(Subscription subscription, bool newSubscription, CancellationToken subCancelToken)
         {
             subscription.ConnectionInvocations = 0;
 
@@ -996,14 +1028,14 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (!subscription.Active)
                     // Can be closed during resubscribing
-                    return CallResult.SuccessResult;
+                    return WebSocketResult.Ok(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString);
 
                 var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
-                if (!result)
+                if (!result.Success)
                 {
-                    _logger.FailedRequestRevitalization(SocketId, result.Error?.ToString());
+                    _logger.FailedRequestRevitalization(SocketId, result.Error.ToString());
                     subscription.Status = SubscriptionStatus.Pending;
-                    return result;
+                    return WebSocketResult.Fail(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString, result.Error);
                 }
             }
 
@@ -1013,14 +1045,14 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 // No sub query, so successful
                 subscription.Status = SubscriptionStatus.Subscribed;
-                return CallResult.SuccessResult;
+                return WebSocketResult.Ok(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString);
             }
 
             var subCompleteHandler = () =>
             {
-                subscription.Status = subQuery.Result!.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
+                subscription.Status = subQuery.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
                 subscription.HandleSubQueryResponse(this, subQuery.Response);
-                if (newSubscription && subQuery.Result.Success && subCancelToken != default)
+                if (newSubscription && subQuery.Success && subCancelToken != default)
                 {
                     subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
                     {
@@ -1032,13 +1064,13 @@ namespace CryptoExchange.Net.Sockets.Default
             subQuery.OnComplete = subCompleteHandler;
 
             var subQueryResult = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
-            if (!subQueryResult)
+            if (!subQueryResult.Success)
             {
                 _logger.FailedToSubscribe(SocketId, subQueryResult.Error?.ToString());
                 // If this was a server process error or timeout we still send an unsubscribe to prevent messages coming in later
                 if (newSubscription)
                     await CloseAsync(subscription).ConfigureAwait(false);
-                return new CallResult<UpdateSubscription>(subQueryResult.Error!);
+                return WebSocketResult.Fail(ApiClient.ClientName, subQueryResult.Error!);
             }
 
             if (!subQuery.ExpectsResponse)
@@ -1061,15 +1093,18 @@ namespace CryptoExchange.Net.Sockets.Default
         internal async Task<CallResult> ResubscribeAsync(Subscription subscription)
         {
             if (!_socket.IsOpen)
-                return new CallResult(new WebError("Socket is not connected"));
+                return CallResult.Fail(new WebError("Socket is not connected"));
 
             var subQuery = subscription.CreateSubscriptionQuery(this);
             if (subQuery == null)
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
 
             var result = await SendAndWaitQueryAsync(subQuery).ConfigureAwait(false);
             subscription.HandleSubQueryResponse(this, subQuery.Response);
-            return result;
+            if (!result.Success)
+                return CallResult.Fail(result.Error);
+
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -1097,7 +1132,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
         /// <param name="callback">The callback for processing the response</param>
-        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, CallResult>? callback)
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, BaseWebSocketResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));

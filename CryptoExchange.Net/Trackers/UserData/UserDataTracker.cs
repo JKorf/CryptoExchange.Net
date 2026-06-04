@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 tracker.OnConnectedChange += (x) => OnConnectedChange?.Invoke(tracker.DataType, x);            
 
             var result = await DoStartAsync().ConfigureAwait(false);
-            if (!result)
+            if (!result.Success)
                 return result;
 
             var tasks = new List<Task<CallResult>>();
@@ -103,7 +103,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 return tasks.First(x => !x.Result.Success).Result;
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>

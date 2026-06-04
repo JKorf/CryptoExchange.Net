@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -18,6 +19,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
     }
 }

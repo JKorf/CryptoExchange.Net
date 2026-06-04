@@ -65,10 +65,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override bool? CheckIfUpdateShouldBeApplied(SharedBalance existingItem, SharedBalance updateItem) => true;
 
         /// <inheritdoc />
-        protected override Task<CallResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey)
+        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey)
         {
             if (_socketClient == null)
-                return Task.FromResult(new CallResult<UpdateSubscription?>(data: null));
+                return Task.FromResult(new WebSocketResult<UpdateSubscription?>(default!, default!, default));
 
             var accountType = _accountType == SharedAccountType.Spot ? TradingMode.Spot :
                               _accountType == SharedAccountType.PerpetualInverseFutures ? TradingMode.PerpetualInverse :

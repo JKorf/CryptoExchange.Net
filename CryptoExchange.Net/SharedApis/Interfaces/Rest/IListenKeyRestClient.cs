@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -18,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<string>> StartListenKeyAsync(StartListenKeyRequest request, CancellationToken ct = default);
+        Task<HttpResult<string>> StartListenKeyAsync(StartListenKeyRequest request, CancellationToken ct = default);
         /// <summary>
         /// Keep-alive listen key request options
         /// </summary>
@@ -29,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<string>> KeepAliveListenKeyAsync(KeepAliveListenKeyRequest request, CancellationToken ct = default);
+        Task<HttpResult<string>> KeepAliveListenKeyAsync(KeepAliveListenKeyRequest request, CancellationToken ct = default);
         /// <summary>
         /// Stop listen key request options
         /// </summary>
@@ -40,6 +41,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<string>> StopListenKeyAsync(StopListenKeyRequest request, CancellationToken ct = default);
+        Task<HttpResult<string>> StopListenKeyAsync(StopListenKeyRequest request, CancellationToken ct = default);
     }
 }

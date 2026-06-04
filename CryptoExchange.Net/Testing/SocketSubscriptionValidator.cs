@@ -164,9 +164,9 @@ namespace CryptoExchange.Net.Testing
             }
 
             var res = await Task.WhenAll(task1, task2).ConfigureAwait(false);
-            if (!res[0])
+            if (!res[0].Success)
                 throw new Exception("Subscribe failed: " + res[0].Error!.ToString());
-            if (!res[1])
+            if (!res[1].Success)
                 throw new Exception("Subscribe failed: " + res[1].Error!.ToString());
 
             if (updates1 != 1 || updates2 != 1)
@@ -331,7 +331,7 @@ namespace CryptoExchange.Net.Testing
             }
 
             var res = await task.ConfigureAwait(false);
-            if (!res)
+            if (!res.Success)
                 throw new Exception("Subscribe failed: " + res.Error!.ToString());
 
             await _client.UnsubscribeAllAsync().ConfigureAwait(false);

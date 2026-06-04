@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -22,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedPositionModeResult>> GetPositionModeAsync(GetPositionModeRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Position mode set request options
@@ -33,6 +34,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
     }
 }

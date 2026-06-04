@@ -270,7 +270,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _cts = new CancellationTokenSource();
 
             var start = await SubscribeAsync(listenKey).ConfigureAwait(false);
-            if (!start)
+            if (!start.Success)
                 return start;
 
             Connected = true;
@@ -281,10 +281,10 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (_initialPollingError != null)
             {
                 await StopAsync().ConfigureAwait(false);
-                return new CallResult(_initialPollingError);
+                return CallResult.Fail(_initialPollingError);
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -293,23 +293,23 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public async Task<CallResult> SubscribeAsync(string? listenKey)
         {
             var subscriptionResult = await DoSubscribeAsync(listenKey).ConfigureAwait(false);
-            if (!subscriptionResult)
+            if (!subscriptionResult.Success)
             {
                 // Failed
                 // ..
-                return subscriptionResult;
+                return CallResult.Fail(subscriptionResult.Error);
             }
 
             if (subscriptionResult.Data == null)
             {
                 // No subscription available
                 // ..
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
 
             _subscription = subscriptionResult.Data;
             _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -410,7 +410,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Websocket subscription implementation
         /// </summary>
-        protected abstract Task<CallResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey);
+        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey);
 
         /// <summary>
         /// Polling task

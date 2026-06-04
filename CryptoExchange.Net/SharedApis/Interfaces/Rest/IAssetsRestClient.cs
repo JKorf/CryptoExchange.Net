@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -18,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Assets request options
@@ -30,6 +31,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedAsset[]>> GetAssetsAsync(GetAssetsRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedAsset[]>> GetAssetsAsync(GetAssetsRequest request, CancellationToken ct = default);
     }
 }

@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         public virtual async Task<CallResult> ConnectAsync(CancellationToken ct)
         {
             var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
-            if (!connectResult)
+            if (!connectResult.Success)
                 return connectResult;
             
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
@@ -158,23 +158,23 @@ namespace CryptoExchange.Net.Sockets.HighPerf
                 {
 #if (NET6_0_OR_GREATER)
                     if (_socket!.HttpStatusCode == HttpStatusCode.TooManyRequests)
-                        return new CallResult(new ServerRateLimitError(we.Message, we));
+                        return CallResult.Fail(new ServerRateLimitError(we.Message, we));
 
                     if (_socket.HttpStatusCode == HttpStatusCode.Unauthorized)
-                        return new CallResult(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
+                        return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
 #else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
                     // Try to read 429 from the message instead
                     if (we.Message.Contains("429"))
-                        return new CallResult(new ServerRateLimitError(we.Message, we));
+                        return CallResult.Fail(new ServerRateLimitError(we.Message, we));
 #endif
                 }
 
-                return new CallResult(new CantConnectError(e));
+                return CallResult.Fail(new CantConnectError(e));
             }
 
             _logger.SocketConnected(Id, Uri);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />

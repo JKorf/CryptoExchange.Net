@@ -58,7 +58,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// </summary>
         public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier, bool multipleReaders = false)
         {
-            return new MessageRouter(new MessageRoute<T>(typeIdentifier, null, (con, receiveTime, originalData, msg) => new CallResult<T>(default, null, null), multipleReaders));
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, null, (con, receiveTime, originalData, msg) => CallResult.Ok(), multipleReaders));
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// </summary>
         public static MessageRouter CreateWithoutHandler<T>(string typeIdentifier, string topicFilter, bool multipleReaders = false)
         {
-            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, (con, receiveTime, originalData, msg) => new CallResult<string>(default, null, null), multipleReaders));
+            return new MessageRouter(new MessageRoute<T>(typeIdentifier, topicFilter, (con, receiveTime, originalData, msg) => CallResult.Ok(), multipleReaders));
         }
 
         /// <summary>

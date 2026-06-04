@@ -78,19 +78,19 @@ namespace CryptoExchange.Net.Trackers.UserData
         protected override async Task<CallResult> DoStartAsync()
         {
             var symbolResult = await _symbolClient.GetSpotSymbolsAsync(new GetSymbolsRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-            if (!symbolResult)
+            if (!symbolResult.Success)
             {
                 _logger.LogWarning("Failed to start UserSpotDataTracker; symbols request failed: {Error}", symbolResult.Error);
-                return symbolResult;
+                return CallResult.Fail(symbolResult.Error);
             }
 
             if (_listenKeyClient != null)
             {
                 var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-                if (!lkResult)
+                if (!lkResult.Success)
                 {
                     _logger.LogWarning("Failed to start UserSpotDataTracker; listen key request failed: {Error}", lkResult.Error);
-                    return lkResult;
+                    return CallResult.Fail(lkResult.Error);
                 }
 
                 _lkKeepAliveTask = KeepAliveListenKeyAsync();
@@ -98,7 +98,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 _listenKey = lkResult.Data;
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />
@@ -120,11 +120,11 @@ namespace CryptoExchange.Net.Trackers.UserData
                 }
 
                 var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, TradingMode.Spot)).ConfigureAwait(false);
-                if (!result)
+                if (!result.Success)
                     _logger.LogWarning("Listen key keep alive failed: " + result.Error);
 
                 // If failed shorten the delay to allow a couple more retries
-                interval = result ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
+                interval = result.Success ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
             }
         }
 

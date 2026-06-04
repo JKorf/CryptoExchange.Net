@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -17,25 +18,25 @@ namespace CryptoExchange.Net.SharedApis
         /// Get all futures symbols for a specific base asset
         /// </summary>
         /// <param name="baseAsset">Asset, for example `ETH`</param>
-        Task<ExchangeResult<SharedSymbol[]>> GetFuturesSymbolsForBaseAssetAsync(string baseAsset);
+        Task<ExchangeCallResult<SharedSymbol[]>> GetFuturesSymbolsForBaseAssetAsync(string baseAsset);
 
         /// <summary>
         /// Gets whether the client supports a futures symbol
         /// </summary>
         /// <param name="symbol">The symbol</param>
-        Task<ExchangeResult<bool>> SupportsFuturesSymbolAsync(SharedSymbol symbol);
+        Task<ExchangeCallResult<bool>> SupportsFuturesSymbolAsync(SharedSymbol symbol);
 
         /// <summary>
         /// Gets whether the client supports a futures symbol
         /// </summary>
         /// <param name="symbolName">The symbol name</param>
-        Task<ExchangeResult<bool>> SupportsFuturesSymbolAsync(string symbolName);
+        Task<ExchangeCallResult<bool>> SupportsFuturesSymbolAsync(string symbolName);
 
         /// <summary>
         /// Get info on all futures symbols supported on the exchange
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

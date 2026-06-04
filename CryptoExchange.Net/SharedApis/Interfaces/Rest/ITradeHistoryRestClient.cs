@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -20,6 +21,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedTrade[]>> GetTradeHistoryAsync(GetTradeHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<HttpResult<SharedTrade[]>> GetTradeHistoryAsync(GetTradeHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

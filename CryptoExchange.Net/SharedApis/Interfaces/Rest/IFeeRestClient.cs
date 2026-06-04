@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Threading;
+using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -18,6 +19,6 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
     }
 }

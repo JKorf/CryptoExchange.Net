@@ -22,24 +22,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="optionsCallback">Options callback</param>
         /// <param name="request">The request</param>
         /// <param name="action">The call execution</param>
-        public static async Task<ExchangeWebResult<TResult>> ExecuteSharedAsync<TClient, TRequest, TResult> (
+        public static async Task<HttpResult<TResult>> ExecuteSharedAsync<TClient, TRequest, TResult>(
             TClient client,
             Func<TClient, EndpointOptions<TRequest, TClient>> optionsCallback,
             TRequest request,
-            Func<Task<SharedExecutionResult<TResult>>> action)
+            Func<Task<HttpResult<TResult>>> action)
             where TRequest : SharedRequest
             where TClient : ISharedClient
         {
             var options = optionsCallback(client);
             var validationError = options.ValidateRequest(request, client);
             if (validationError != null)
-                return new ExchangeWebResult<TResult>(options.Exchange, validationError);
+                return HttpResult.Fail<TResult>(options.Exchange, validationError);
 
-            var result = await action().ConfigureAwait(false);
-            if (result.CallResult == null)
-                return new ExchangeWebResult<TResult>(options.Exchange, result.PreCallError!);
-
-            return new ExchangeWebResult<TResult>(options.Exchange, request.TradingMode == null ? null : [request.TradingMode.Value], result.CallResult, result.Data!);
+            return await action().ConfigureAwait(false);
         }
     }
 }

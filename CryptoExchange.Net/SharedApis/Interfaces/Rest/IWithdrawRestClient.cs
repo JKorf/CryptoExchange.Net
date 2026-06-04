@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -19,6 +20,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
     }
 }

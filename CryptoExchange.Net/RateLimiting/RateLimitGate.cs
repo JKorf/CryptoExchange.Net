@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError(tce));
+                return CallResult.Fail(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -85,7 +85,7 @@ namespace CryptoExchange.Net.RateLimiting
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError(tce));
+                return CallResult.Fail(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -110,7 +110,7 @@ namespace CryptoExchange.Net.RateLimiting
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
                     
                     RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
-                    return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
+                    return CallResult.Fail(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }
 
                 if (result.Delay != TimeSpan.Zero)
@@ -149,7 +149,7 @@ namespace CryptoExchange.Net.RateLimiting
                 }
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />

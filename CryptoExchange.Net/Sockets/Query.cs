@@ -25,6 +25,16 @@ namespace CryptoExchange.Net.Sockets
         public bool Completed { get; set; }
 
         /// <summary>
+        /// Whether this query completed successfully
+        /// </summary>
+        public abstract bool Success { get; }
+
+        /// <summary>
+        /// Error result for this query
+        /// </summary>
+        public abstract Error? Error { get; }
+
+        /// <summary>
         /// Timeout for the request
         /// </summary>
         public TimeSpan? RequestTimeout { get; set; }
@@ -49,11 +59,6 @@ namespace CryptoExchange.Net.Sockets
         /// Timestamp of when the request was send
         /// </summary>
         public DateTime RequestTimestamp { get; set; }
-        
-        /// <summary>
-        /// Result
-        /// </summary>
-        public CallResult? Result { get; set; }
         
         /// <summary>
         /// Response
@@ -141,7 +146,6 @@ namespace CryptoExchange.Net.Sockets
             }
             else
             {
-                Result = CallResult.SuccessResult;
                 Completed = true;
                 _event.Set();
             }
@@ -180,9 +184,14 @@ namespace CryptoExchange.Net.Sockets
     public abstract class Query<THandlerResponse> : Query
     {
         /// <summary>
-        /// The typed call result
+        /// Result
         /// </summary>
-        public CallResult<THandlerResponse>? TypedResult => (CallResult<THandlerResponse>?)Result;
+        public CallResult<THandlerResponse>? Result { get; set; }
+
+        /// <inheritdoc />
+        public override bool Success => Result?.Success == true;
+        /// <inheritdoc />
+        public override Error? Error => Result?.Error;
 
         /// <summary>
         /// ctor
@@ -213,7 +222,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 // If an error result is already set don't override that
                 MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, message, out var result);
-                Result = result;
+                Result = (CallResult<THandlerResponse>)(object)result; // TODO
                 handled = Result != null;
                 if (!handled)
                     // Null from Handle means it wasn't actually for this query
@@ -237,9 +246,9 @@ namespace CryptoExchange.Net.Sockets
                 return;
                         
             if (TimeoutBehavior == TimeoutBehavior.Fail)
-                Result = new CallResult<THandlerResponse>(new TimeoutError());
+                Result = CallResult.Fail<THandlerResponse>(new TimeoutError());
             else
-                Result = new CallResult<THandlerResponse>(default, null, default);
+                Result = CallResult.Ok<THandlerResponse>(default!);
 
             Completed = true;
             _event.Set();
@@ -252,7 +261,7 @@ namespace CryptoExchange.Net.Sockets
             if (Completed)
                 return;
 
-            Result = new CallResult<THandlerResponse>(error);
+            Result = CallResult.Fail<THandlerResponse>(error);
             Completed = true;
 
             _event.Set();

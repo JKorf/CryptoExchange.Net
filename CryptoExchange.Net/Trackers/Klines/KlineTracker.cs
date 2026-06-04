@@ -186,11 +186,11 @@ namespace CryptoExchange.Net.Trackers.Klines
                      AddOrUpdate(update.Data);
                  }).ConfigureAwait(false);
 
-            if (!subResult)
+            if (!subResult.Success)
             {
                 _logger.KlineTrackerStartFailed(SymbolName, subResult.Error!.Message ?? subResult.Error!.ErrorDescription!, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
-                return subResult;
+                return CallResult.Fail(subResult.Error!);
             }
 
             _updateSubscription = subResult.Data;
@@ -199,16 +199,16 @@ namespace CryptoExchange.Net.Trackers.Klines
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
 
             var startResult = await DoStartAsync().ConfigureAwait(false);
-            if (!startResult)
+            if (!startResult.Success)
             {
                 _ = subResult.Data.CloseAsync();
                 Status = SyncStatus.Disconnected;                
-                return new CallResult(startResult.Error!);
+                return CallResult.Fail(startResult.Error!);
             }
 
             Status = SyncStatus.Synced;
             _logger.KlineTrackerStarted(SymbolName);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />
@@ -229,7 +229,7 @@ namespace CryptoExchange.Net.Trackers.Klines
         protected virtual async Task<CallResult> DoStartAsync()
         {
             if (!_startWithSnapshot)
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
 
             var startTime = Period == null ? (DateTime?)null : DateTime.UtcNow.Add(-Period.Value);
             if (_restClient.GetKlinesOptions.MaxAge != null && DateTime.UtcNow.Add(-_restClient.GetKlinesOptions.MaxAge.Value) > startTime)
@@ -241,8 +241,8 @@ namespace CryptoExchange.Net.Trackers.Klines
             var data = new List<SharedKline>();
             await foreach (var result in ExchangeHelpers.ExecutePages(_restClient.GetKlinesAsync, request).ConfigureAwait(false))
             {
-                if (!result)
-                    return result;                
+                if (!result.Success)
+                    return CallResult.Fail(result.Error!);
 
                 if (Limit != null && data.Count > Limit)
                     break;
@@ -251,7 +251,7 @@ namespace CryptoExchange.Net.Trackers.Klines
             }
 
             SetInitialData(data);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace CryptoExchange.Net.Trackers.Klines
                     return;
 
                 var resyncResult = await DoStartAsync().ConfigureAwait(false);
-                success = resyncResult;
+                success = resyncResult.Success;
             }
 
             _logger.KlineTrackerConnectionRestored(SymbolName);

@@ -47,6 +47,8 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
+        public string ExchangeName { get; }
+
         /// <summary>
         /// The environment this client communicates to
         /// </summary>
@@ -82,6 +84,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="apiOptions">Api options</param>
         protected BaseApiClient(
             ILogger logger,
+            string exchangeName,
             bool outputOriginalData,
             string baseAddress,
             ExchangeOptions clientOptions,
@@ -89,6 +92,7 @@ namespace CryptoExchange.Net.Clients
         {
             _logger = logger;
 
+            ExchangeName = exchangeName;
             ClientOptions = clientOptions;
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;

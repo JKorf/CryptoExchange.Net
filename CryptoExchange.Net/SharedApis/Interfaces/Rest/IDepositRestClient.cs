@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -19,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
 
         /// <summary>
         /// Deposits request options
@@ -33,6 +34,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedDeposit[]>> GetDepositsAsync(GetDepositsRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<HttpResult<SharedDeposit[]>> GetDepositsAsync(GetDepositsRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

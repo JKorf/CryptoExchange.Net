@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Testing.Implementations
         public Task<CallResult> ConnectAsync(CancellationToken ct)
         {
             Connected = CanConnect;
-            return Task.FromResult(CanConnect ? new CallResult(null) : new CallResult(new CantConnectError()));
+            return Task.FromResult(CanConnect ? CallResult.Fail(null) : CallResult.Fail(new CantConnectError()));
         }
 
         public bool Send(int requestId, string data, int weight)
