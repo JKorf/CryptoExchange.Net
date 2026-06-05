@@ -108,6 +108,7 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
+        /// <param name="exchangeName">The exchange name</param>
         /// <param name="httpClient">HttpClient to use</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
@@ -559,7 +560,7 @@ namespace CryptoExchange.Net.Clients
                     return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, error, deserializeResult);
                 }
 
-                return OkHttpRequest<T>(request, response, sw.Elapsed, originalData, deserializeResult);
+                return OkHttpRequest<T>(request, response, sw.Elapsed, originalData, deserializeResult!);
             }
             catch (HttpRequestException requestException)
             {

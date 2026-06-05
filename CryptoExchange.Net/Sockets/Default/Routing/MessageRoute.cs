@@ -36,11 +36,17 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             TopicFilter = topicFilter;
         }
 
+        /// <summary>
+        /// Create a void handler
+        /// </summary>
         public static MessageRoute CreateVoid<TMessage>(string typeIdentifier)
         {
             return new EventRoute<TMessage>(typeIdentifier, null, (con, time, originalData, msg) => CallResult<TMessage>.Ok(default!));
         }
 
+        /// <summary>
+        /// Create a router for handling event messages
+        /// </summary>
         public static MessageRoute CreateForEvent<TMessage>(string typeIdentifier, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
         {
             return new EventRoute<TMessage>(typeIdentifier, null, handler)
@@ -49,6 +55,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             };
         }
 
+        /// <summary>
+        /// Create a router for handling event messages
+        /// </summary>
         public static MessageRoute CreateForEvent<TMessage>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
         {
             return new EventRoute<TMessage>(typeIdentifier, topicFilter, handler)
@@ -57,6 +66,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             };
         }
 
+        /// <summary>
+        /// Create a router for handling query responses
+        /// </summary>
         public static MessageRoute CreateForQuery<TMessage>(string typeIdentifier, Func<SocketConnection, DateTime, string?, TMessage, CallResult<TMessage>?> handler, bool multipleReaders = false)
         {
             return new QueryRoute<TMessage>(typeIdentifier, null, handler)
@@ -65,6 +77,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             };
         }
 
+        /// <summary>
+        /// Create a router for handling query responses
+        /// </summary>
         public static MessageRoute CreateForQuery<TMessage>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult<TMessage>?> handler, bool multipleReaders = false)
         {
             return new QueryRoute<TMessage>(typeIdentifier, topicFilter, handler)
@@ -73,6 +88,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             };
         }
 
+        /// <summary>
+        /// Create a router for handling query responses
+        /// </summary>
         public static MessageRoute CreateForQuery<TMessage, TResult>(string typeIdentifier, Func<SocketConnection, DateTime, string?, TMessage, CallResult<TResult>?> handler, bool multipleReaders = false)
         {
             return new QueryRoute<TMessage, TResult>(typeIdentifier, null, handler)
@@ -81,6 +99,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             };
         }
 
+        /// <summary>
+        /// Create a router for handling query responses
+        /// </summary>
         public static MessageRoute CreateForQuery<TMessage, TResult>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult<TResult>?> handler, bool multipleReaders = false)
         {
             return new QueryRoute<TMessage, TResult>(typeIdentifier, topicFilter, handler)
@@ -95,6 +116,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         public abstract CallResult? Handle(SocketConnection connection, DateTime receiveTime, string? originalData, object data);
     }
 
+    /// <summary>
+    /// Query route
+    /// </summary>
     public class QueryRoute<TMessage, TResult> : MessageRoute
     {
         private Func<SocketConnection, DateTime, string?, TMessage, CallResult<TResult>?> _handler;
@@ -121,7 +145,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
 
 
     /// <summary>
-    /// Message route
+    /// Query route
     /// </summary>
     public class QueryRoute<TMessage> : QueryRoute<TMessage, TMessage>
     {
@@ -167,9 +191,8 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         }
     }
 
-
     /// <summary>
-    /// Message route
+    /// Event message route
     /// </summary>
     public class EventRoute<TMessage> : MessageRoute
     {

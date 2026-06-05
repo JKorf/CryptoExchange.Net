@@ -159,6 +159,7 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">log</param>
+        /// <param name="exchangeName">Exchange name</param>
         /// <param name="options">Client options</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>

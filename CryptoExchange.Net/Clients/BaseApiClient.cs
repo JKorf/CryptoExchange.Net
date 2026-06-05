@@ -47,6 +47,9 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
+        /// <summary>
+        /// The name of the exchange this client is for
+        /// </summary>
         public string ExchangeName { get; }
 
         /// <summary>
@@ -78,6 +81,7 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
+        /// <param name="exchangeName">The exchange name</param>
         /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="clientOptions">Client options</param>

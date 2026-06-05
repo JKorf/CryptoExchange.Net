@@ -38,10 +38,16 @@ namespace CryptoExchange.Net.SharedApis
                 throw new ArgumentException("All symbols in the symbol list should have the same trading mode");
         }
 
+        /// <summary>
+        /// Get the symbol name using the provided formatter
+        /// </summary>
         public string SymbolName(Func<string, string, TradingMode, DateTime?, string> formatter)
             => Symbol?.GetSymbol(formatter) ?? throw new ArgumentException("Symbol is not set");
 
+        /// <summary>
+        /// Get the symbol names using the provided formatter
+        /// </summary>
         public string[] SymbolNames(Func<string, string, TradingMode, DateTime?, string> formatter)
-            => Symbols?.Select(x => x.GetSymbol(formatter)).ToArray() ?? throw new ArgumentException("Symbol is not set");
+            => Symbols?.Select(x => x.GetSymbol(formatter)).ToArray() ?? (Symbol != null ? new[] { Symbol.GetSymbol(formatter) } : null) ?? throw new ArgumentException("Symbol is not set");
     }
 }

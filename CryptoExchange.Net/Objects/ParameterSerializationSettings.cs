@@ -9,14 +9,38 @@ namespace CryptoExchange.Net.Objects
     /// </summary>
     public class ParameterSerializationSettings
     {
+        /// <summary>
+        /// Default serialization settings
+        /// </summary>
         public static ParameterSerializationSettings Default { get; } = new ParameterSerializationSettings();
 
+        /// <summary>
+        /// Whether to sort the parameters
+        /// </summary>
         public bool Sort { get; set; } = true;
+        /// <summary>
+        /// The parameter comparer when sorting
+        /// </summary>
         public IComparer<string>? SortComparer { get; set; }
+        /// <summary>
+        /// Decimal serialization type
+        /// </summary>
         public DecimalSerialization Decimal { get; set; } = DecimalSerialization.Number;
+        /// <summary>
+        /// DateTime serialization type
+        /// </summary>
         public DateTimeSerialization DateTimes { get; set; } = DateTimeSerialization.MillisecondsNumber;
+        /// <summary>
+        /// Boolean serialization type
+        /// </summary>
         public BoolSerialization Bool { get; set; } = BoolSerialization.Bool;
+        /// <summary>
+        /// Integer serialization type
+        /// </summary>
         public IntegerSerialization Integer { get; set; } = IntegerSerialization.Number;
+        /// <summary>
+        /// Enum serialization type
+        /// </summary>
         public EnumSerialization Enum { get; set; } = EnumSerialization.String;
     }
 

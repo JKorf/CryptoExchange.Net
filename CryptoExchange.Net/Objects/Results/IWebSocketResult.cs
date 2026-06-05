@@ -7,8 +7,14 @@ using System.Text;
 
 namespace CryptoExchange.Net.Objects
 {
+    /// <summary>
+    /// WebSocket call result
+    /// </summary>
     public interface IWebSocketResult : ICallResult
     {
+        /// <summary>
+        /// Exchange name
+        /// </summary>
         string Exchange { get; init; }
 
         /// <summary>
@@ -32,6 +38,10 @@ namespace CryptoExchange.Net.Objects
         public TimeSpan? ResponseTime { get; init; }
     }
 
+    /// <summary>
+    /// WebSocket call result
+    /// </summary>
+    /// <typeparam name="T">Data result type</typeparam>
     public interface IWebSocketResult<T> : IWebSocketResult, ICallResult<T>
     {
 

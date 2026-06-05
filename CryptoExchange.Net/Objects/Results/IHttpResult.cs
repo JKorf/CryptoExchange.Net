@@ -7,9 +7,18 @@ using System.Text;
 
 namespace CryptoExchange.Net.Objects
 {
+    /// <summary>
+    /// HTTP call result
+    /// </summary>
     public interface IHttpResult : ICallResult
     {
+        /// <summary>
+        /// Exchange name
+        /// </summary>
         string Exchange { get; init; }
+        /// <summary>
+        /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
+        /// </summary>
         string? OriginalData { get; init; }
         /// <summary>
         /// The request http method
@@ -66,6 +75,10 @@ namespace CryptoExchange.Net.Objects
         ResultDataSource DataSource { get; init; }
     }
 
+    /// <summary>
+    /// HTTP call result
+    /// </summary>
+    /// <typeparam name="T">Result data type</typeparam>
     public interface IHttpResult<T> : IHttpResult, ICallResult<T>
     {
     }

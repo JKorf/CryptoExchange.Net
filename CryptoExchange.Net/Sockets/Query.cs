@@ -4,6 +4,7 @@ using CryptoExchange.Net.Sockets.Default;
 using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Whether this query completed successfully
         /// </summary>
+        [MemberNotNullWhen(false, nameof(Error))]
         public abstract bool Success { get; }
 
         /// <summary>
@@ -189,6 +191,8 @@ namespace CryptoExchange.Net.Sockets
         public CallResult<THandlerResponse>? Result { get; set; }
 
         /// <inheritdoc />
+        [MemberNotNullWhen(false, nameof(Error))]
+        [MemberNotNullWhen(true, nameof(Result))]
         public override bool Success => Result?.Success == true;
         /// <inheritdoc />
         public override Error? Error => Result?.Error;
@@ -222,7 +226,7 @@ namespace CryptoExchange.Net.Sockets
             {
                 // If an error result is already set don't override that
                 MessageRouter.Handle(typeIdentifier, topicFilter, connection, receiveTime, originalData, message, out var result);
-                Result = (CallResult<THandlerResponse>)(object)result; // TODO
+                Result = (CallResult<THandlerResponse>?)result;
                 handled = Result != null;
                 if (!handled)
                     // Null from Handle means it wasn't actually for this query

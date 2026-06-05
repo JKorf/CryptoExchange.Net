@@ -163,6 +163,9 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public double IncomingKbps => _socket.IncomingKbps;
 
+        /// <summary>
+        /// The connection URI as string
+        /// </summary>
         public string ConnectionUriString
         {
             get
@@ -285,7 +288,7 @@ namespace CryptoExchange.Net.Sockets.Default
         private ISocketMessageHandler? _byteMessageConverter;
         private ISocketMessageHandler? _textMessageConverter;
 
-        private string _connectionUriString;
+        private string? _connectionUriString;
         private long _lastSequenceNumber;
 
         /// <summary>

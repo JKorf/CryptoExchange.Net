@@ -8,9 +8,15 @@ using System.Net.Http.Headers;
 using System.Text;
 
 namespace CryptoExchange.Net.Objects;
+
+/// <summary>
+/// HTTP call result
+/// </summary>
 public record HttpResult : IHttpResult
 {
-    public static HttpResult<T> Fail<T>(string exchange, Error error) => new HttpResult<T>(exchange, default, error);
+    /// <summary>
+    /// Create a new success HTTP result
+    /// </summary>
     public static HttpResult<T> Ok<T>(
         string exchange,
         HttpStatusCode code,
@@ -42,6 +48,9 @@ public record HttpResult : IHttpResult
             DataSource = source,
         };
 
+    /// <summary>
+    /// Create a new success HTTP result
+    /// </summary>
     public static HttpResult<T> Ok<T>(IHttpResult result, T data, PageRequest? pageRequest = null) =>
         new HttpResult<T>(result.Exchange, data, null)
         {
@@ -62,6 +71,14 @@ public record HttpResult : IHttpResult
             NextPageRequest = pageRequest
         };
 
+    /// <summary>
+    /// Create a new error HTTP result
+    /// </summary>
+    public static HttpResult<T> Fail<T>(string exchange, Error error) => new HttpResult<T>(exchange, default, error);
+
+    /// <summary>
+    /// Create a new error HTTP result
+    /// </summary>
     public static HttpResult<T> Fail<T>(IHttpResult result, Error? error = null, T? data = default)
         => new HttpResult<T>(result.Exchange, data, error ?? result.Error)
         {
@@ -79,6 +96,9 @@ public record HttpResult : IHttpResult
             DataSource = result.DataSource,
         };
 
+    /// <summary>
+    /// Create a new error HTTP result
+    /// </summary>
     public static HttpResult<T> Fail<T>(
         string exchange,
         HttpStatusCode? code,
@@ -112,8 +132,10 @@ public record HttpResult : IHttpResult
         };
 
 
-
-    public string Exchange { get; init; }
+    /// <summary>
+    /// Exchange name
+    /// </summary>
+    public string Exchange { get; init; } = string.Empty;
 
     /// <inheritdoc />
     public Error? Error { get; internal set; }
@@ -179,8 +201,13 @@ public record HttpResult : IHttpResult
     public ResultDataSource DataSource { get; init; } = ResultDataSource.Server;
 }
 
+
+/// <inheritdoc />
 public record HttpResult<T> : HttpResult, IHttpResult<T>
 {
+    /// <summary>
+    /// ctor
+    /// </summary>
     public HttpResult(string exchange, T? value, Error? error)
     {
         Exchange = exchange;
@@ -204,5 +231,8 @@ public record HttpResult<T> : HttpResult, IHttpResult<T>
     /// </summary>
     public T? Data { get; init; }
     
+    /// <summary>
+    /// Next page request, only potentially available when using Shared API's
+    /// </summary>
     public PageRequest? NextPageRequest { get; init; }
 }

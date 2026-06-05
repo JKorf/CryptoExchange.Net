@@ -63,6 +63,9 @@ namespace CryptoExchange.Net.Objects
             _value = value;
         }
 
+        /// <summary>
+        /// Add a short value if it is not null
+        /// </summary>
         public void Add(string key, short? value)
         {
             if (value == null)
@@ -71,7 +74,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a short value
+        /// </summary>
         public void Add(string key, short value)
         {
             if (_serializationSettings.Integer == IntegerSerialization.String)
@@ -82,6 +87,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+        /// <summary>
+        /// Add an int value if it is not null
+        /// </summary>
         public void Add(string key, int? value)
         {
             if (value == null)
@@ -90,7 +98,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add an int value
+        /// </summary>
         public void Add(string key, int value)
         {
             if (_serializationSettings.Integer == IntegerSerialization.String)
@@ -101,6 +111,10 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+
+        /// <summary>
+        /// Add a long value as string if it is not null
+        /// </summary>
         public void AddAsString(string key, long? value)
         {
             if (value == null)
@@ -109,12 +123,17 @@ namespace CryptoExchange.Net.Objects
             AddAsString(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a long value as string
+        /// </summary>
         public void AddAsString(string key, long value)
         {
             _parameters.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// Add a long value if it is not null
+        /// </summary>
         public void Add(string key, long? value)
         {
             if (value == null)
@@ -123,7 +142,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a long value
+        /// </summary>
         public void Add(string key, long value)
         {
             if (_serializationSettings.Integer == IntegerSerialization.String)
@@ -134,6 +155,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+        /// <summary>
+        /// Add a decimal value if it is not null
+        /// </summary>
         public void Add(string key, decimal? value)
         {
             if (value == null)
@@ -142,7 +166,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a decimal value
+        /// </summary>
         public void Add(string key, decimal value)
         {
             if (_serializationSettings.Decimal == DecimalSerialization.String)
@@ -153,6 +179,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Decimal serialization setting");
         }
 
+        /// <summary>
+        /// Add a decimal value as string if it is not null
+        /// </summary>
         public void AddAsString(string key, decimal? value)
         {
             if (value == null)
@@ -161,12 +190,17 @@ namespace CryptoExchange.Net.Objects
             AddAsString(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a decimal value as string
+        /// </summary>
         public void AddAsString(string key, decimal value)
         {
             _parameters.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// Add a double value if it is not null
+        /// </summary>
         public void Add(string key, double? value)
         {
             if (value == null)
@@ -175,7 +209,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a double value
+        /// </summary>
         public void Add(string key, double value)
         {
             if (_serializationSettings.Decimal == DecimalSerialization.String)
@@ -186,6 +222,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Decimal serialization setting");
         }
 
+        /// <summary>
+        /// Add a bool value if it is not null
+        /// </summary>
         public void Add(string key, bool? value)
         {
             if (value == null)
@@ -194,7 +233,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a bool value
+        /// </summary>
         public void Add(string key, bool value)
         {
             if (_serializationSettings.Bool == BoolSerialization.String)
@@ -232,6 +273,9 @@ namespace CryptoExchange.Net.Objects
             _parameters.Add(key, string.Join(",", values.Select(x => EnumConverter.GetString(x))));
         }
 
+        /// <summary>
+        /// Add an enum value if it is not null
+        /// </summary>
         public void Add<
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
@@ -246,7 +290,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add a enum value
+        /// </summary>
         public void Add<
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
@@ -262,6 +308,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Integer serialization setting");
         }
 
+        /// <summary>
+        /// Add an enum as int value if it is not null
+        /// </summary>
         public void AddAsInt<
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
@@ -276,7 +325,9 @@ namespace CryptoExchange.Net.Objects
             AddAsInt(key, value.Value);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Add an enum as int value
+        /// </summary>
         public void AddAsInt<
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]
@@ -287,6 +338,9 @@ namespace CryptoExchange.Net.Objects
             _parameters.Add(key, int.Parse(EnumConverter<T>.GetString(value), CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// Add a DateTime value if it is not null
+        /// </summary>
         public void Add(string key, DateTime? value)
         {
             if (value == null)
@@ -295,6 +349,9 @@ namespace CryptoExchange.Net.Objects
             Add(key, value.Value);
         }
 
+        /// <summary>
+        /// Add a DateTime value
+        /// </summary>
         public void Add(string key, DateTime value)
         {
             if (_serializationSettings.DateTimes == DateTimeSerialization.MillisecondsNumber)
@@ -313,6 +370,9 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown DateTime serialization setting");
         }
 
+        /// <summary>
+        /// Add a string value if it is not null
+        /// </summary>
         public void Add(string key, string? value)
         {
             if (value == null)
@@ -321,6 +381,9 @@ namespace CryptoExchange.Net.Objects
             _parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Add a raw object value if it is not null
+        /// </summary>
         public void AddRaw(string key, object? value)
         {
             if (value == null)
@@ -329,6 +392,9 @@ namespace CryptoExchange.Net.Objects
             _parameters.Add(key, value);
         }
 
+        /// <summary>
+        /// Apply a set of raw parameters, overwriting existing ones with the same key
+        /// </summary>
         public void ApplyRawParameters(IDictionary<string, object>? rawParameters)
         {
             if (rawParameters == null)
@@ -345,7 +411,7 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public bool Remove(string key) => _parameters.Remove(key);
         /// <inheritdoc />
-        public bool TryGetValue(string key, out object value) => _parameters.TryGetValue(key, out value);
+        public bool TryGetValue(string key, out object value) => _parameters.TryGetValue(key, out value!);
         /// <inheritdoc />
         public void Add(KeyValuePair<string, object> item) => _parameters.Add(item.Key, item.Value);
         /// <inheritdoc />
