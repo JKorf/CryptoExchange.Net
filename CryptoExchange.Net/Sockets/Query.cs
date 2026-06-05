@@ -246,9 +246,9 @@ namespace CryptoExchange.Net.Sockets
                 return;
                         
             if (TimeoutBehavior == TimeoutBehavior.Fail)
-                Result = CallResult.Fail<THandlerResponse>(new TimeoutError());
+                Result = CallResult<THandlerResponse>.Fail(new TimeoutError());
             else
-                Result = CallResult.Ok<THandlerResponse>(default!);
+                Result = CallResult<THandlerResponse>.Ok(default!);
 
             Completed = true;
             _event.Set();
@@ -261,7 +261,7 @@ namespace CryptoExchange.Net.Sockets
             if (Completed)
                 return;
 
-            Result = CallResult.Fail<THandlerResponse>(error);
+            Result = CallResult<THandlerResponse>.Fail(error);
             Completed = true;
 
             _event.Set();

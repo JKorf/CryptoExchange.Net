@@ -8,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 
 namespace CryptoExchange.Net.Objects;
-public record HttpResult
+public record HttpResult : IHttpResult
 {
     public static HttpResult<T> Fail<T>(string exchange, Error error) => new HttpResult<T>(exchange, default, error);
     public static HttpResult<T> Ok<T>(
@@ -62,8 +62,8 @@ public record HttpResult
             NextPageRequest = pageRequest
         };
 
-    public static HttpResult<T> Fail<T>(IHttpResult result, Error? error = null)
-        => new HttpResult<T>(result.Exchange, default, error ?? result.Error)
+    public static HttpResult<T> Fail<T>(IHttpResult result, Error? error = null, T? data = default)
+        => new HttpResult<T>(result.Exchange, data, error ?? result.Error)
         {
             ResponseStatusCode = result.ResponseStatusCode,
             HttpVersion = result.HttpVersion,
@@ -110,35 +110,20 @@ public record HttpResult
             RequestHeaders = requestHeaders,
             DataSource = source,
         };
-}
 
-public record HttpResult<T> : IHttpResult
-{
-    public HttpResult(string exchange, T? value, Error? error)
-    {
-        Exchange = exchange;
-        Data = value;
-        Error = error;
-    }
+
 
     public string Exchange { get; init; }
 
     /// <inheritdoc />
     public Error? Error { get; internal set; }
     /// <inheritdoc />
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Error))]
-    [MemberNotNullWhen(true, nameof(Data))]
-#endif
     public bool Success => Error == null;
     /// <summary>
     /// The original data returned by the call, only available when `OutputOriginalData` is set to `true` in the client options
     /// </summary>
     public string? OriginalData { get; init; }
-    /// <summary>
-    /// The data returned by the call, only available when Success = true
-    /// </summary>
-    public T? Data { get; init; }
     /// <summary>
     /// The request http method
     /// </summary>
@@ -192,6 +177,32 @@ public record HttpResult<T> : IHttpResult
     /// The data source of this result
     /// </summary>
     public ResultDataSource DataSource { get; init; } = ResultDataSource.Server;
+}
 
+public record HttpResult<T> : HttpResult, IHttpResult<T>
+{
+    public HttpResult(string exchange, T? value, Error? error)
+    {
+        Exchange = exchange;
+        Data = value;
+        Error = error;
+    }
+
+    /// <inheritdoc />
+    public new Error? Error
+    {
+        get => base.Error;
+        internal set => base.Error = value;
+    }
+    /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Error))]
+    [MemberNotNullWhen(true, nameof(Data))]
+    public new bool Success => Error == null;
+    
+    /// <summary>
+    /// The data returned by the call, only available when Success = true
+    /// </summary>
+    public T? Data { get; init; }
+    
     public PageRequest? NextPageRequest { get; init; }
 }

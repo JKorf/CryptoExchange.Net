@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Testing
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse>(
            TClient client,
-           Func<TClient, Task<CallResult<TResponse>>> methodInvoke,
+           Func<TClient, Task<WebSocketResult<TResponse>>> methodInvoke,
            string name,
            Func<TResponse, object>? responseMapper = null,
            string? nestedJsonProperty = null,

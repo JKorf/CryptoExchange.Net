@@ -5,25 +5,20 @@ using System.Text;
 
 namespace CryptoExchange.Net.Objects;
 
-public record CallResult<T> : ICallResult
+public record CallResult : ICallResult
 {
+    private static CallResult _successResult = new CallResult();
+
     /// <inheritdoc />
     public Error? Error { get; init; }
     /// <inheritdoc />
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Error))]
-    [MemberNotNullWhen(true, nameof(Data))]
-#endif
     public bool Success => Error == null;
 
-    /// <summary>
-    /// The data returned by the call, only available when Success = true
-    /// </summary>
-    public T? Data { get; init; }
-
-    public static CallResult<T> Fail(Error error) => new CallResult<T> { Error = error };
-    public static CallResult<T> Ok(T data) => new CallResult<T> { Data = data };
-
+    public static CallResult Fail(Error error) => new CallResult { Error = error };
+    public static CallResult Ok() => _successResult;
+    public static CallResult<T> Ok<T>(T data) => new CallResult<T> { Data = data };
+    public static CallResult<T> Fail<T>(Error error) => new CallResult<T> { Error = error };
     /// <inheritdoc />
     public override string ToString()
     {
@@ -32,14 +27,30 @@ public record CallResult<T> : ICallResult
 }
 
 
-public record CallResult : CallResult<Unit>
+public record CallResult<T> : CallResult, ICallResult<T>
 {
-    private static CallResult _successResult = new CallResult();
 
-    public static CallResult Fail(Error error) => new CallResult { Error = error };
-    public static CallResult<T> Fail<T>(Error error) => new CallResult<T> { Error = error };
-    public static CallResult Ok() => _successResult;
-    public static CallResult<T> Ok<T>(T data) => new CallResult<T> { Data = data };
+    /// <inheritdoc />
+    public new Error? Error
+    {
+        get => base.Error;
+        init => base.Error = value;
+    }
+    /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Error))]
+    [MemberNotNullWhen(true, nameof(Data))]
+    public new bool Success => Error == null;
+
+    /// <summary>
+    /// The data returned by the call, only available when Success = true
+    /// </summary>
+    public T? Data { get; init; }
+
+    public string? OriginalData { get; init; }
+
+
+    public static CallResult<T> Fail(Error error, string? originalData = null) => new CallResult<T> { Error = error, OriginalData = originalData };
+    public static CallResult<T> Ok(T data, string? originalData = null) => new CallResult<T> { Data = data, OriginalData = originalData };
 }
 
 public record ExchangeCallResult<T> : CallResult<T>

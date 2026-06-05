@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Error? ValidateRequest(GetKlinesRequest request, IKlineRestClient client)
         {
             if (!IsSupported(request.Interval))
-                return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), "Interval not supported");
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");
 
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");

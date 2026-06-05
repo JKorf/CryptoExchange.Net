@@ -65,4 +65,8 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         ResultDataSource DataSource { get; init; }
     }
+
+    public interface IHttpResult<T> : IHttpResult, ICallResult<T>
+    {
+    }
 }

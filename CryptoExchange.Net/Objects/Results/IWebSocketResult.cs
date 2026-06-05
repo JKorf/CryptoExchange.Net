@@ -31,4 +31,9 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public TimeSpan? ResponseTime { get; init; }
     }
+
+    public interface IWebSocketResult<T> : IWebSocketResult, ICallResult<T>
+    {
+
+    }
 }

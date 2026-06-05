@@ -208,107 +208,107 @@ namespace CryptoExchange.Net.Testing
             }
         }
 
-        ///// <summary>
-        ///// Validate a request
-        ///// </summary>
-        ///// <param name="methodInvoke">Method invocation</param>
-        ///// <param name="name">Method name for looking up json test values</param>
-        ///// <param name="ignoreParamValidation">Ignore certain parameter validation</param>
-        ///// <returns></returns>
-        ///// <exception cref="Exception"></exception>
-        //public async Task ValidateAsync(
-        //    Func<TClient, Task<HttpResult>> methodInvoke,
-        //    string name,
-        //    List<string>? ignoreParamValidation = null
-        //    )
-        //{
-        //    var listener = new EnumValueTraceListener();
-        //    Trace.Listeners.Add(listener);
+        /// <summary>
+        /// Validate a request
+        /// </summary>
+        /// <param name="methodInvoke">Method invocation</param>
+        /// <param name="name">Method name for looking up json test values</param>
+        /// <param name="ignoreParamValidation">Ignore certain parameter validation</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task ValidateAsync(
+            Func<TClient, Task<HttpResult>> methodInvoke,
+            string name,
+            List<string>? ignoreParamValidation = null
+            )
+        {
+            var listener = new EnumValueTraceListener();
+            Trace.Listeners.Add(listener);
 
-        //    var path = Directory.GetParent(Environment.CurrentDirectory)!.Parent!.Parent!.FullName;
-        //    FileStream file;
-        //    try
-        //    {
-        //        file = File.OpenRead(Path.Combine(path, _folder, $"{name}.txt"));
-        //    }
-        //    catch (FileNotFoundException)
-        //    {
-        //        throw new Exception($"Response file not found for {name}: {path}");
-        //    }
+            var path = Directory.GetParent(Environment.CurrentDirectory)!.Parent!.Parent!.FullName;
+            FileStream file;
+            try
+            {
+                file = File.OpenRead(Path.Combine(path, _folder, $"{name}.txt"));
+            }
+            catch (FileNotFoundException)
+            {
+                throw new Exception($"Response file not found for {name}: {path}");
+            }
 
-        //    var buffer = new byte[file.Length];
-        //    await file.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-        //    file.Close();
+            var buffer = new byte[file.Length];
+            await file.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            file.Close();
 
-        //    var data = Encoding.UTF8.GetString(buffer);
-        //    using var reader = new StringReader(data);
-        //    var expectedMethod = reader.ReadLine();
-        //    var expectedPath = reader.ReadLine();
-        //    var expectedAuth = bool.Parse(reader.ReadLine()!);
-        //    var paramsAndResponseBody = reader.ReadToEnd();
-        //    var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var data = Encoding.UTF8.GetString(buffer);
+            using var reader = new StringReader(data);
+            var expectedMethod = reader.ReadLine();
+            var expectedPath = reader.ReadLine();
+            var expectedAuth = bool.Parse(reader.ReadLine()!);
+            var paramsAndResponseBody = reader.ReadToEnd();
+            var paramsAndResponseBodySplit = paramsAndResponseBody.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-        //    var uriParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("UriParams: "));
-        //    Dictionary<string, object>? expectedUriParams = null;
-        //    var bodyParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("BodyParams: "));
-        //    Dictionary<string, object>? expectedBodyParams = null;
-        //    var response = string.Join("\r\n", paramsAndResponseBodySplit.Where(x => !x.StartsWith("UriParams: ") && !x.StartsWith("BodyParams: ")));
+            var uriParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("UriParams: "));
+            Dictionary<string, object>? expectedUriParams = null;
+            var bodyParamsLine = paramsAndResponseBodySplit.FirstOrDefault(x => x.StartsWith("BodyParams: "));
+            Dictionary<string, object>? expectedBodyParams = null;
+            var response = string.Join("\r\n", paramsAndResponseBodySplit.Where(x => !x.StartsWith("UriParams: ") && !x.StartsWith("BodyParams: ")));
 
-        //    if (uriParamsLine != null)
-        //    {
-        //        var expectedUriParamsJson = uriParamsLine.Substring(11);
-        //        expectedUriParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedUriParamsJson)!;
-        //    }
+            if (uriParamsLine != null)
+            {
+                var expectedUriParamsJson = uriParamsLine.Substring(11);
+                expectedUriParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedUriParamsJson)!;
+            }
 
-        //    if (bodyParamsLine != null)
-        //    {
-        //        var expectedBodyParamsJson = bodyParamsLine.Substring(12);
-        //        expectedBodyParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedBodyParamsJson)!;
-        //    }
+            if (bodyParamsLine != null)
+            {
+                var expectedBodyParamsJson = bodyParamsLine.Substring(12);
+                expectedBodyParams = JsonSerializer.Deserialize<Dictionary<string, object>>(expectedBodyParamsJson)!;
+            }
 
-        //    TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
-        //    var result = await methodInvoke(_client).ConfigureAwait(false);
+            TestHelpers.ConfigureRestClient(_client, response, System.Net.HttpStatusCode.OK);
+            var result = await methodInvoke(_client).ConfigureAwait(false);
 
-        //    // Check request/response properties
-        //    if (result.Error != null)
-        //        throw new Exception(name + " returned error " + result.Error);
-        //    if (_isAuthenticated(result) != expectedAuth)
-        //        throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result)}");
-        //    if (result.RequestMethod != new HttpMethod(expectedMethod!))
-        //        throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
-        //    if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
-        //        throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
-            
-        //    if (expectedUriParams != null)
-        //    {
-        //        // Validate request parameters
-        //        var urlParamsSplit = result.RequestUrl!.Split(new char[] { '?' });
-        //        var urlParametersString = urlParamsSplit.Length > 1 ? urlParamsSplit[1] : null;
-        //        var urlParameters = (urlParametersString != null
-        //            ? urlParametersString.Split('&').ToDictionary(x => x.Split('=')[0], x => (object)x.Split('=')[1])
-        //            : new());
+            // Check request/response properties
+            if (result.Error != null)
+                throw new Exception(name + " returned error " + result.Error);
+            if (_isAuthenticated(result) != expectedAuth)
+                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result)}");
+            if (result.RequestMethod != new HttpMethod(expectedMethod!))
+                throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
+            if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
+                throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
 
-        //        CompareParameters(expectedUriParams, urlParameters, ignoreParamValidation);
-        //    }
+            if (expectedUriParams != null)
+            {
+                // Validate request parameters
+                var urlParamsSplit = result.RequestUrl!.Split(new char[] { '?' });
+                var urlParametersString = urlParamsSplit.Length > 1 ? urlParamsSplit[1] : null;
+                var urlParameters = (urlParametersString != null
+                    ? urlParametersString.Split('&').ToDictionary(x => x.Split('=')[0], x => (object)x.Split('=')[1])
+                    : new());
 
-        //    if (expectedBodyParams != null)
-        //    {
-        //        // Validate request body
-        //        Dictionary<string, object> bodyParameters;
-        //        if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
-        //        {
-        //            bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!)!;
-        //        }
-        //        else
-        //        {
-        //            var splitKvp = result.RequestBody.Split('&');
-        //            bodyParameters = splitKvp.Select(x => x.Split('=')).ToDictionary(x => x[0], x => (object)x[1]);
-        //        }
+                CompareParameters(expectedUriParams, urlParameters, ignoreParamValidation);
+            }
 
-        //        CompareParameters(expectedBodyParams, bodyParameters, ignoreParamValidation);
-        //    }
+            if (expectedBodyParams != null)
+            {
+                // Validate request body
+                Dictionary<string, object> bodyParameters;
+                if (result.RequestBody!.StartsWith("{") || result.RequestBody.StartsWith("["))
+                {
+                    bodyParameters = JsonSerializer.Deserialize<Dictionary<string, object>>(result.RequestBody!)!;
+                }
+                else
+                {
+                    var splitKvp = result.RequestBody.Split('&');
+                    bodyParameters = splitKvp.Select(x => x.Split('=')).ToDictionary(x => x[0], x => (object)x[1]);
+                }
 
-        //    Trace.Listeners.Remove(listener);
-        //}
+                CompareParameters(expectedBodyParams, bodyParameters, ignoreParamValidation);
+            }
+
+            Trace.Listeners.Remove(listener);
+        }
     }
 }

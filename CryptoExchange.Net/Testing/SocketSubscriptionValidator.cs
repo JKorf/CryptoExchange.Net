@@ -48,8 +48,8 @@ namespace CryptoExchange.Net.Testing
         /// <param name="methodInvoke2">Subscription delegate 2</param>
         /// <param name="name">Name</param>
         public async Task ValidateConcurrentAsync<TUpdate>(
-            Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke1,
-            Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke2,
+            Func<TClient, Action<DataEvent<TUpdate>>, Task<WebSocketResult<UpdateSubscription>>> methodInvoke1,
+            Func<TClient, Action<DataEvent<TUpdate>>, Task<WebSocketResult<UpdateSubscription>>> methodInvoke2,
             string name)
         {
             var path = Directory.GetParent(Environment.CurrentDirectory)!.Parent!.Parent!.FullName;
@@ -87,8 +87,8 @@ namespace CryptoExchange.Net.Testing
 
             int updates1 = 0;
             int updates2 = 0;
-            Task<CallResult<UpdateSubscription>> task1;
-            Task<CallResult<UpdateSubscription>> task2;
+            Task<WebSocketResult<UpdateSubscription>> task1;
+            Task<WebSocketResult<UpdateSubscription>> task2;
             // Invoke subscription method
             try
             {
@@ -188,7 +188,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TUpdate>(
-            Func<TClient, Action<DataEvent<TUpdate>>, Task<CallResult<UpdateSubscription>>> methodInvoke,
+            Func<TClient, Action<DataEvent<TUpdate>>, Task<WebSocketResult<UpdateSubscription>>> methodInvoke,
             string name,
             string? nestedJsonProperty = null,
             List<string>? ignoreProperties = null,
@@ -228,7 +228,7 @@ namespace CryptoExchange.Net.Testing
             };
 
             TUpdate? update = default;
-            Task<CallResult<UpdateSubscription>> task;
+            Task<WebSocketResult<UpdateSubscription>> task;
             // Invoke subscription method
             try
             {

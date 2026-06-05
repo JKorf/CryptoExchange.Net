@@ -205,6 +205,33 @@ namespace CryptoExchange.Net.Objects
                 throw new ArgumentException("Unknown Bool serialization setting");
         }
 
+        /// <summary>
+        /// Add key as comma separated values if there are values provided
+        /// </summary>
+        public void AddOptionalCommaSeparated(string key, IEnumerable<string>? values)
+        {
+            if (values == null || !values.Any())
+                return;
+
+            _parameters.Add(key, string.Join(",", values));
+        }
+
+        /// <summary>
+        /// Add key as comma separated values
+        /// </summary>
+#if NET5_0_OR_GREATER
+        public void AddCommaSeparated<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)] T>(string key, IEnumerable<T> values)
+#else
+        public void AddCommaSeparated<T>(string key, IEnumerable<T>? values)
+#endif
+            where T : struct, Enum
+        {
+            if (values == null || !values.Any())
+                return;
+
+            _parameters.Add(key, string.Join(",", values.Select(x => EnumConverter.GetString(x))));
+        }
+
         public void Add<
 #if NET5_0_OR_GREATER
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.PublicFields)]

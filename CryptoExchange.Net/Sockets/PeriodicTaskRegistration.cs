@@ -25,6 +25,6 @@ namespace CryptoExchange.Net.Sockets
         /// <summary>
         /// Callback after query
         /// </summary>
-        public Action<SocketConnection, BaseWebSocketResult>? Callback { get; set; }
+        public Action<SocketConnection, WebSocketResult>? Callback { get; set; }
     }
 }

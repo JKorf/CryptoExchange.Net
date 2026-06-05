@@ -1132,7 +1132,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="interval">How often</param>
         /// <param name="queryDelegate">Method returning the query to send</param>
         /// <param name="callback">The callback for processing the response</param>
-        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, BaseWebSocketResult>? callback)
+        public virtual void QueryPeriodic(string identifier, TimeSpan interval, Func<SocketConnection, Query> queryDelegate, Action<SocketConnection, WebSocketResult>? callback)
         {
             if (queryDelegate == null)
                 throw new ArgumentNullException(nameof(queryDelegate));

@@ -5,39 +5,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.Objects;
 
-public abstract record BaseWebSocketResult: IWebSocketResult
-{
-    public string Exchange { get; init; }
-
-#if NET5_0_OR_GREATER
-    [MemberNotNullWhen(false, nameof(Error))]
-#endif
-    public abstract bool Success { get; }
-    public abstract Error? Error { get; init; }
-
-    /// <summary>
-    /// The request id
-    /// </summary>
-    public int? RequestId { get; init; }
-
-    /// <summary>
-    /// The url which was requested
-    /// </summary>
-    public int? ConnectionId { get; init; }
-
-    /// <summary>
-    /// The websocket url
-    /// </summary>
-    public string? Url { get; init; }
-
-    /// <summary>
-    /// The time between sending the request and receiving the response
-    /// </summary>
-    public TimeSpan? ResponseTime { get; init; }
-
-}
-
-public record WebSocketResult : BaseWebSocketResult
+public record WebSocketResult : IWebSocketResult
 {
     public WebSocketResult(string exchange, Error? error)
     {
@@ -87,8 +55,8 @@ public record WebSocketResult : BaseWebSocketResult
             Data = data
         };
 
-    public static WebSocketResult<T> Fail<T>(IWebSocketResult result, Error? error = null)
-        => new WebSocketResult<T>(result.Exchange, default, error ?? result.Error)
+    public static WebSocketResult<T> Fail<T>(IWebSocketResult result, Error? error = null, T? data = default)
+        => new WebSocketResult<T>(result.Exchange, data, error ?? result.Error)
         {
             ConnectionId = result.ConnectionId,
             Url = result.Url,
@@ -126,33 +94,54 @@ public record WebSocketResult : BaseWebSocketResult
             Url = url
         };
 
+    public string Exchange { get; init; }
     /// <inheritdoc />
-    public override Error? Error { get; init; }
+    public Error? Error { get; init; }
     /// <inheritdoc />
 #if NET5_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Error))]
 #endif
-    public override bool Success => Error == null;
+    public bool Success => Error == null;
+
+    /// <summary>
+    /// The request id
+    /// </summary>
+    public int? RequestId { get; init; }
+
+    /// <summary>
+    /// The url which was requested
+    /// </summary>
+    public int? ConnectionId { get; init; }
+
+    /// <summary>
+    /// The websocket url
+    /// </summary>
+    public string? Url { get; init; }
+
+    /// <summary>
+    /// The time between sending the request and receiving the response
+    /// </summary>
+    public TimeSpan? ResponseTime { get; init; }
 }
 
-public record WebSocketResult<T> : BaseWebSocketResult
+public record WebSocketResult<T> : WebSocketResult, IWebSocketResult<T>
 {
-    public WebSocketResult(string exchange, T? value, Error? error)
+    public WebSocketResult(string exchange, T? value, Error? error): base(exchange, error)
     {
-        Exchange = exchange;
         Data = value;
-        Error = error;
     }
 
 
     /// <inheritdoc />
-    public override Error? Error { get; init; }
+    public new Error? Error
+    {
+        get => base.Error;
+        init => base.Error = value;
+    }
     /// <inheritdoc />
-#if NET5_0_OR_GREATER
     [MemberNotNullWhen(false, nameof(Error))]
     [MemberNotNullWhen(true, nameof(Data))]
-#endif
-    public override bool Success => Error == null;
+    public new bool Success => Error == null;
     /// <summary>
     /// The data returned by the call, only available when Success = true
     /// </summary>
