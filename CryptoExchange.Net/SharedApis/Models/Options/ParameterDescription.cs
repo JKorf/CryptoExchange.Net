@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -8,13 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     public class ParameterDescription
     {
         /// <summary>
-        /// Name of the parameter
+        /// Possible names for the parameter. One of these names can be used to provide the parameter in the ExchangeParameters of the request.
         /// </summary>
-        public string? Name { get; set; }
-        /// <summary>
-        /// Names of the parameters
-        /// </summary>
-        public string[]? Names { get; set; }
+        public string[] Names { get; set; }
         /// <summary>
         /// Type of the value
         /// </summary>
@@ -33,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public ParameterDescription(string parameterName, Type valueType, string description, object exampleValue)
         {
-            Name = parameterName;
+            Names = [parameterName];
             ValueType = valueType;
             Description = description;
             ExampleValue = exampleValue;
@@ -53,9 +50,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString()
         {
-            if (Name != null)
-                return $"[{ValueType.Name}] {Name}: {Description} | example: {ExampleValue}";
-            return $"[{ValueType.Name}] {string.Join(" / ", Names!)}: {Description} | example: {ExampleValue}";
+            return $"[{ValueType.Name}] {string.Join(" / ", Names.Select(x => $"\"{x}\""))}: {Description}";
         }
     }
 }

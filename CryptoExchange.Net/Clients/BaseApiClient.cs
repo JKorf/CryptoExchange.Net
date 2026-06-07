@@ -50,7 +50,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// The name of the exchange this client is for
         /// </summary>
-        public string ExchangeName { get; }
+        public string Exchange { get; }
 
         /// <summary>
         /// The environment this client communicates to
@@ -81,14 +81,14 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="exchangeName">The exchange name</param>
+        /// <param name="exchange">The exchange name</param>
         /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
         protected BaseApiClient(
             ILogger logger,
-            string exchangeName,
+            string exchange,
             bool outputOriginalData,
             string baseAddress,
             ExchangeOptions clientOptions,
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.Clients
         {
             _logger = logger;
 
-            ExchangeName = exchangeName;
+            Exchange = exchange;
             ClientOptions = clientOptions;
             ApiOptions = apiOptions;
             OutputOriginalData = outputOriginalData;

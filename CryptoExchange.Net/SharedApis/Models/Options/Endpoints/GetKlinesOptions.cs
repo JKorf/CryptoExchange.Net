@@ -22,8 +22,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, string? requestName = null)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, requestName)
         {
             SupportIntervals = new[]
             {
@@ -108,10 +108,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
             sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
-            if (MaxAge != null)
-                sb.AppendLine($"Max age of data: {MaxAge}");
             if (MaxTotalDataPoints != null)
                 sb.AppendLine($"Max total data points available: {MaxTotalDataPoints}");
             return sb.ToString();

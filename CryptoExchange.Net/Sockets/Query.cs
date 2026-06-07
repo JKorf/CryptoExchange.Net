@@ -37,6 +37,15 @@ namespace CryptoExchange.Net.Sockets
         public abstract Error? Error { get; }
 
         /// <summary>
+        /// The original data returned by the query, only available when `OutputOriginalData` is set to `true` in the client options
+        /// </summary>
+        public abstract string? OriginalData { get; }
+        /// <summary>
+        /// The request body content
+        /// </summary>
+        public string? RequestBody { get; set; }
+
+        /// <summary>
         /// Timeout for the request
         /// </summary>
         public TimeSpan? RequestTimeout { get; set; }
@@ -196,6 +205,8 @@ namespace CryptoExchange.Net.Sockets
         public override bool Success => Result?.Success == true;
         /// <inheritdoc />
         public override Error? Error => Result?.Error;
+        /// <inheritdoc />
+        public override string? OriginalData => Result?.OriginalData;
 
         /// <summary>
         /// ctor

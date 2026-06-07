@@ -782,12 +782,12 @@ namespace CryptoExchange.Net.Sockets.Default
             await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
             sw.Stop();
             if (!query.Completed)
-                return WebSocketResult.Fail(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, new TimeoutError());
+                return WebSocketResult.Fail(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, ConnectionUriString, new TimeoutError());
 
             if (!query.Success)
-                return WebSocketResult.Fail(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Error);
+                return WebSocketResult.Fail(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Error);
 
-            return WebSocketResult.Ok(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString);
+            return WebSocketResult.Ok(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, ConnectionUriString);
         }
 
         /// <summary>
@@ -797,24 +797,24 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="query">Query to send</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public virtual async Task<WebSocketResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
+        public virtual async Task<QueryResult<THandlerResponse>> SendAndWaitQueryAsync<THandlerResponse>(Query<THandlerResponse> query, CancellationToken ct = default)
         {
             var sw = Stopwatch.StartNew();
             await SendAndWaitIntAsync(query, ct).ConfigureAwait(false);
             sw.Stop();
             if (!query.Completed)
-                return WebSocketResult.Fail<THandlerResponse>(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, new TimeoutError());
+                return QueryResult.Fail<THandlerResponse>(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, query.RequestBody, ConnectionUriString, query.OriginalData, new TimeoutError());
 
             if (!query.Success)
-                return WebSocketResult.Fail<THandlerResponse>(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Error);
+                return QueryResult.Fail<THandlerResponse>(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, query.RequestBody, ConnectionUriString, query.OriginalData, query.Error);
 
-            return WebSocketResult.Ok(ApiClient.ClientName, SocketId, sw.Elapsed, query.Id, ConnectionUriString, query.Result.Data!);
+            return QueryResult.Ok(ApiClient.Exchange, SocketId, sw.Elapsed, query.Id, query.RequestBody, ConnectionUriString, query.OriginalData, query.Result.Data!);
         }
 
         private async Task SendAndWaitIntAsync(Query query, CancellationToken ct = default)
         {
             AddMessageProcessor(query);
-            var sendResult = await SendAsync(query.Id, query.Request, query.Weight).ConfigureAwait(false);
+            var sendResult = await SendAsync(query).ConfigureAwait(false);
             if (!sendResult.Success)
             {
                 query.Fail(sendResult.Error!);
@@ -856,23 +856,24 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Send data over the websocket connection
         /// </summary>
-        /// <typeparam name="T">The type of the object to send</typeparam>
-        /// <param name="requestId">The request id</param>
-        /// <param name="obj">The object to send</param>
-        /// <param name="weight">The weight of the message</param>
-        public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T obj, int weight)
+        /// <param name="query">The query</param>
+        public virtual ValueTask<CallResult> SendAsync(Query query)
         {
             if (_serializer is IByteMessageSerializer byteSerializer)
             {
-                return SendBytesAsync(requestId, byteSerializer.Serialize(obj), weight);
+                return SendBytesAsync(query.Id, byteSerializer.Serialize(query.Request), query.Weight);
             }
             else if (_serializer is IStringMessageSerializer stringSerializer)
             {
-                if (obj is string str)
-                    return SendStringAsync(requestId, str, weight);
+                if (query.Request is string str)
+                {
+                    query.RequestBody = str;
+                    return SendStringAsync(query.Id, str, query.Weight);
+                }
 
-                str = stringSerializer.Serialize(obj);
-                return SendStringAsync(requestId, str, weight);
+                str = stringSerializer.Serialize(query.Request);
+                query.RequestBody = str;
+                return SendStringAsync(query.Id, str, query.Weight);
             }
 
             throw new Exception("Unknown serializer when sending message");
@@ -1031,14 +1032,14 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (!subscription.Active)
                     // Can be closed during resubscribing
-                    return WebSocketResult.Ok(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString);
+                    return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, 0, ConnectionUriString);
 
                 var result = await ApiClient.RevitalizeRequestAsync(subscription).ConfigureAwait(false);
                 if (!result.Success)
                 {
                     _logger.FailedRequestRevitalization(SocketId, result.Error.ToString());
                     subscription.Status = SubscriptionStatus.Pending;
-                    return WebSocketResult.Fail(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString, result.Error);
+                    return WebSocketResult.Fail(ApiClient.Exchange, SocketId, default, 0, ConnectionUriString, result.Error);
                 }
             }
 
@@ -1048,7 +1049,7 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 // No sub query, so successful
                 subscription.Status = SubscriptionStatus.Subscribed;
-                return WebSocketResult.Ok(ApiClient.ClientName, SocketId, default, 0, ConnectionUriString);
+                return WebSocketResult.Ok(ApiClient.Exchange, SocketId, default, 0, ConnectionUriString);
             }
 
             var subCompleteHandler = () =>
@@ -1073,7 +1074,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 // If this was a server process error or timeout we still send an unsubscribe to prevent messages coming in later
                 if (newSubscription)
                     await CloseAsync(subscription).ConfigureAwait(false);
-                return WebSocketResult.Fail(ApiClient.ClientName, subQueryResult.Error!);
+                return WebSocketResult.Fail(ApiClient.Exchange, subQueryResult.Error!);
             }
 
             if (!subQuery.ExpectsResponse)

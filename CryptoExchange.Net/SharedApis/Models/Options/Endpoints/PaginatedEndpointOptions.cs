@@ -50,7 +50,8 @@ namespace CryptoExchange.Net.SharedApis
             bool supportsDescending,
             bool timePeriodSupport,
             int maxLimit,
-            bool needsAuthentication) : base(exchange, needsAuthentication)
+            bool needsAuthentication, 
+            string? requestName = null) : base(exchange, needsAuthentication, requestName)
         {
             SupportsAscending = supportsAscending;
             SupportsDescending = supportsDescending;
@@ -64,9 +65,10 @@ namespace CryptoExchange.Net.SharedApis
             var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Ascending retrieval supported: {SupportsAscending}");
             sb.AppendLine($"Descending retrieval supported: {SupportsDescending}");
-            sb.AppendLine($"Time period filter support: {TimePeriodFilterSupport}");
+            sb.AppendLine($"Time period filter supported: {TimePeriodFilterSupport}");
             sb.AppendLine($"Max limit: {MaxLimit}");
-            sb.AppendLine($"Max age: {MaxAge}");
+            if (MaxAge.HasValue)
+                sb.AppendLine($"Max age: {MaxAge}");
             return sb.ToString();
         }
     }

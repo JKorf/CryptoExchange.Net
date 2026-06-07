@@ -10,7 +10,9 @@ namespace CryptoExchange.Net.SharedApis
     public interface IFuturesSymbolRestClient : ISharedClient
     {
         /// <summary>
-        /// Futures symbol request options
+        /// Futures symbol request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
         EndpointOptions<GetSymbolsRequest, IFuturesSymbolRestClient> GetFuturesSymbolsOptions { get; }
 
@@ -33,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis
         Task<ExchangeCallResult<bool>> SupportsFuturesSymbolAsync(string symbolName);
 
         /// <summary>
-        /// Get info on all futures symbols supported on the exchange
+        /// Get info on all futures symbols supported on the exchange, see <see cref="GetFuturesSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>

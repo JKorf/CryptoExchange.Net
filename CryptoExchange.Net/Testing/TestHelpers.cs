@@ -114,11 +114,10 @@ namespace CryptoExchange.Net.Testing
             var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? parameters : null;
 
             var requestDefinition = new RestRequestConfiguration(
-                    new RequestDefinition(path, method)
+                    new RequestDefinition(host, path, method)
                     {
                         Authenticated = true
                     },
-                    host,
                     uriParams,
                     bodyParams,
                     new Dictionary<string, string>(),

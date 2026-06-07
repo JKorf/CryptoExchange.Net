@@ -23,6 +23,11 @@ namespace CryptoExchange.Net.SharedApis
         bool Authenticated { get; }
 
         /// <summary>
+        /// Options for each shared endpoint or subscription supported by the client.
+        /// </summary>
+        EndpointOptions[] AllOptions { get; }
+
+        /// <summary>
         /// Format a base and quote asset to an exchange accepted symbol 
         /// </summary>
         /// <param name="baseAsset">The base asset</param>
@@ -33,14 +38,15 @@ namespace CryptoExchange.Net.SharedApis
         string FormatSymbol(string baseAsset, string quoteAsset, TradingMode tradingMode, DateTime? deliverDate = null);
 
         /// <summary>
-        /// Set a default exchange parameter. This can be used instead of passing in an ExchangeParameters object which each request.
+        /// Set a default exchange parameter which will be statically set with each request. This can be used instead of passing it in an ExchangeParameters object with each request.<br />
+        /// Default exchange parameters can still be overridden by passing the parameter in the ExchangeParameters of a request.
         /// </summary>
         /// <param name="name">Parameter name</param>
         /// <param name="value">Parameter value</param>
         void SetDefaultExchangeParameter(string name, object value);
 
         /// <summary>
-        /// Reset the default exchange parameters, resets parameters for all exchanges
+        /// Reset previously set default exchange parameters for the exchange.
         /// </summary>
         void ResetDefaultExchangeParameters();
     }

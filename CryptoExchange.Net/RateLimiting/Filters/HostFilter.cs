@@ -20,8 +20,8 @@ namespace CryptoExchange.Net.RateLimiting.Filters
         }
 
         /// <inheritdoc />
-        public bool Passes(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey)
-            => host.Equals(_host, System.StringComparison.InvariantCulture);
+        public bool Passes(RateLimitItemType type, RequestDefinition definition, string? apiKey)
+            => definition.BaseAddress.Equals(_host, System.StringComparison.InvariantCulture);
 
     }
 }

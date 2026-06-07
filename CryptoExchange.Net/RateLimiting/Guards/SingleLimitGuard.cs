@@ -14,19 +14,19 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         /// <summary>
         /// Default endpoint limit
         /// </summary>
-        public static Func<RequestDefinition, string, string?, string> Default { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.Path + def.Method);
+        public static Func<RequestDefinition, string?, string> Default { get; } = new Func<RequestDefinition, string?, string>((def, key) => def.Path + def.Method);
 
         /// <summary>
         /// Endpoint limit per API key
         /// </summary>
-        public static Func<RequestDefinition, string, string?, string> PerApiKey { get; } = new Func<RequestDefinition, string, string?, string>((def, host, key) => def.Path + def.Method + key);
+        public static Func<RequestDefinition, string?, string> PerApiKey { get; } = new Func<RequestDefinition, string?, string>((def, key) => def.Path + def.Method + key);
 
         private readonly Dictionary<string, IWindowTracker> _trackers;
         private readonly RateLimitWindowType _windowType;
         private readonly double? _decayRate;
         private readonly int _limit;
         private readonly TimeSpan _period;
-        private readonly Func<RequestDefinition, string, string?, string> _keySelector;
+        private readonly Func<RequestDefinition, string?, string> _keySelector;
 
         /// <inheritdoc />
         public string Name => "EndpointLimitGuard";
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
             TimeSpan period,
             RateLimitWindowType windowType,
             double? decayRate = null,
-            Func<RequestDefinition, string, string?, string>? keySelector = null)
+            Func<RequestDefinition, string?, string>? keySelector = null)
         {
             _limit = limit;
             _period = period;
@@ -53,9 +53,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
         {
-            var key = _keySelector(definition, host, apiKey) + keySuffix;
+            var key = _keySelector(definition, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
             {
                 tracker = CreateTracker();
@@ -70,9 +70,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
         {
-            var key = _keySelector(definition, host, apiKey) + keySuffix;
+            var key = _keySelector(definition, apiKey) + keySuffix;
             var tracker = _trackers[key];
             tracker.ApplyWeight(requestWeight);
             return RateLimitState.Applied(_limit, _period, tracker.Current);
@@ -90,9 +90,9 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix)
         {
-            var key = _keySelector(definition, host, apiKey) + keySuffix;
+            var key = _keySelector(definition, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
                 return;
 

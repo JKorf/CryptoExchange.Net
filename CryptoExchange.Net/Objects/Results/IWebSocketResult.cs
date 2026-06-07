@@ -46,4 +46,27 @@ namespace CryptoExchange.Net.Objects
     {
 
     }
+
+    /// <summary>
+    /// Query result
+    /// </summary>
+    public interface IQueryResult : IWebSocketResult
+    {
+        /// <summary>
+        /// The original returned data, only available when OutputOriginalData is set to true in the client options
+        /// </summary>
+        public string? OriginalData { get; init; }
+        /// <summary>
+        /// The query request body
+        /// </summary>
+        public string? RequestBody { get; init; }
+    }
+
+    /// <summary>
+    /// Query result
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IQueryResult<T> : IQueryResult, IWebSocketResult<T>
+    {
+    }
 }

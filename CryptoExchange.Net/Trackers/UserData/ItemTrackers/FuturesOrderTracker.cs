@@ -45,7 +45,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
 
-            _requiresSymbolParameterOpenOrders = restClient.GetOpenFuturesOrdersOptions.RequiredOptionalParameters.Any(x => x.Name == "Symbol");
+            _requiresSymbolParameterOpenOrders = restClient.GetOpenFuturesOrdersOptions.RequiredOptionalParameters.Any(x => x.Names.Contains("Symbol"));
         }
 
         internal void ClearDataForSymbol(SharedSymbol symbol)

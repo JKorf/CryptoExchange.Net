@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             foreach (var name in names)
             {
-                var value = ExchangeParameters.GetProcessValue<T>(ExchangeParameters, exchange, name);
+                var value = ExchangeParameters.GetValue<T>(ExchangeParameters, exchange, name);
                 if (value != null)
                     return value;
             }

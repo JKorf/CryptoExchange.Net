@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Ticker time calc type: {TickerType}");
+            sb.AppendLine($"Ticker data calculation type: {TickerType}");
             return sb.ToString();
         }
     }

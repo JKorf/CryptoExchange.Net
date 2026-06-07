@@ -172,7 +172,7 @@ namespace CryptoExchange.Net.Testing
                     await task.ConfigureAwait(false);
                     object? result = task.Result.Data;
                     if (responseMapper != null)
-                        result = responseMapper(task.Result.Data);
+                        result = responseMapper(task.Result.Data!);
 
                     if (!skipResponseValidation)
                         SystemTextJsonComparer.CompareData(name, result, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);

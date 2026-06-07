@@ -13,30 +13,37 @@ namespace CryptoExchange.Net.SharedApis
     {
         private readonly static Dictionary<string, Parameters> _staticProcessParameters = new Dictionary<string, Parameters>();
         private readonly Dictionary<string, Parameters> _processParameters;
-        private readonly Dictionary<string, Parameters> _rawParameters;
 
+        /// <summary>
+        /// Create a new ExchangeParameters instance with the provided parameters set
+        /// </summary>
+        /// <param name="parameters">Exchange parameters</param>
         public ExchangeParameters(params ExchangeParameter[] parameters)
         {
             _processParameters = new Dictionary<string, Parameters>();
-            _rawParameters = new Dictionary<string, Parameters>();
 
             foreach (var parameter in parameters)
-                AddProcessValue(parameter.Exchange, parameter.Name, parameter.Value);
+                AddValue(parameter.Exchange, parameter.Name, parameter.Value);
         }
 
-        public Parameters? GetRawParameters(string exchange) => _rawParameters.TryGetValue(exchange, out var value) ? value : null;
-
-        public void AddProcessParameter(ExchangeParameter exchangeParameter)
+        /// <summary>
+        /// Add a process parameter. Process parameters are used to determine the correct logic to execute, but are not necessarily passed to the API.<br />
+        /// To directly add or override parameters which are passed to the API, use AddRawParameter or AddRawValue instead.
+        /// </summary>
+        /// <param name="exchangeParameter">The exchange parameter to add</param>
+        public void AddValue(ExchangeParameter exchangeParameter)
         {
-            AddProcessValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
+            AddValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
         }
 
-        public void AddRawParameter(ExchangeParameter exchangeParameter)
-        {
-            AddRawValue(exchangeParameter.Exchange, exchangeParameter.Name, exchangeParameter.Value);
-        }
-
-        public void AddProcessValue(string exchange, string key, object value)
+        /// <summary>
+        /// Add a process parameter. Process parameters are used to determine the correct logic to execute, but are not necessarily passed to the API.<br />
+        /// To directly add or override parameters which are passed to the API, use AddRawParameter or AddRawValue instead.
+        /// </summary>
+        /// <param name="exchange">Exchange to apply the parameter for</param>
+        /// <param name="key">Parameter name</param>
+        /// <param name="value">Parameter value</param>
+        public void AddValue(string exchange, string key, object value)
         {
             if (!_processParameters.TryGetValue(exchange, out var exchangeParameters))
             {
@@ -45,25 +52,6 @@ namespace CryptoExchange.Net.SharedApis
             }
 
             exchangeParameters.AddRaw(key, value);
-        }
-
-        public void AddRawValue(string exchange, string key, object value)
-        {
-            if (!_rawParameters.TryGetValue(exchange, out var exchangeParameters))
-            {
-                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
-                _rawParameters[exchange] = exchangeParameters;
-            }
-
-            exchangeParameters.AddRaw(key, value);
-        }
-
-        private static object? TryGetValue(Dictionary<string, Parameters> list, string exchange, string key)
-        {
-            if (!list.TryGetValue(exchange, out var exchangeParams))
-                return null;
-
-            return exchangeParams.SingleOrDefault(x => x.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Value;
         }
 
         /// <summary>
@@ -94,7 +82,7 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <summary>
-        /// Check whether a specific parameter is provided in the default parameters or the provided instance
+        /// Check whether a specific process parameter is provided in the default parameters or the provided instance
         /// </summary>
         /// <param name="exchangeParameters">The provided exchange parameter in the request</param>
         /// <param name="exchange">The exchange name</param>
@@ -129,7 +117,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="T">Type of the parameter value</typeparam>
         /// <param name="exchange">Exchange name</param>
         /// <param name="name">Parameter name</param>
-        public T? GetProcessValue<T>(string exchange, string name)
+        public T? GetValue<T>(string exchange, string name)
         {
             var val = TryGetValue(_processParameters, exchange, name);
             val ??= TryGetValue(_staticProcessParameters, exchange, name);
@@ -157,11 +145,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="exchangeParameters">The request parameters</param>
         /// <param name="exchange">Exchange name</param>
         /// <param name="name">Parameter name</param>
-        public static T? GetProcessValue<T>(ExchangeParameters? exchangeParameters, string exchange, string name)
+        public static T? GetValue<T>(ExchangeParameters? exchangeParameters, string exchange, string name)
         {
             if (exchangeParameters != null) {
 
-                var provided = exchangeParameters.GetProcessValue<T>(exchange, name);
+                var provided = exchangeParameters.GetValue<T>(exchange, name);
                 if (provided != null)
                     return provided;
             }
@@ -191,7 +179,14 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="value">Parameter value</param>
         public static void SetStaticParameter(string exchange, string key, object value)
         {
-            // TODO
+            if (!_staticProcessParameters.TryGetValue(exchange, out var exchangeParameters))
+            {
+                exchangeParameters = new Parameters(ParameterSerializationSettings.Default);
+                _staticProcessParameters[exchange] = exchangeParameters;
+            }
+
+            exchangeParameters.Remove(key);
+            exchangeParameters.AddRaw(key, value);
         }
 
         /// <summary>
@@ -208,6 +203,14 @@ namespace CryptoExchange.Net.SharedApis
         public static void ResetStaticExchangeParameters(string exchange)
         {
             _staticProcessParameters.Remove(exchange);
+        }
+
+        private static object? TryGetValue(Dictionary<string, Parameters> list, string exchange, string key)
+        {
+            if (!list.TryGetValue(exchange, out var exchangeParams))
+                return null;
+
+            return exchangeParams.SingleOrDefault(x => x.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Value;
         }
     }
 }

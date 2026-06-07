@@ -43,14 +43,6 @@ namespace CryptoExchange.Net.SharedApis
 
             return base.ValidateRequest(request, client);
         }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
-            return sb.ToString();
-        }
     }
 
     /// <summary>

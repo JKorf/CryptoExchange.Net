@@ -141,7 +141,6 @@ namespace CryptoExchange.Net.Clients
         /// Send a request to the base address based on the request definition
         /// </summary>
         /// <typeparam name="T">Response type</typeparam>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="parameters">Request parameters</param>
         /// <param name="cancellationToken">Cancellation token</param>
@@ -151,7 +150,6 @@ namespace CryptoExchange.Net.Clients
         /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
         protected virtual Task<HttpResult<T>> SendAsync<T>(
-            string baseAddress,
             RequestDefinition definition,
             Parameters? parameters,
             CancellationToken cancellationToken,
@@ -162,7 +160,6 @@ namespace CryptoExchange.Net.Clients
         {
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             return SendAsync<T>(
-                baseAddress,
                 definition,
                 parameterPosition == HttpMethodParameterPosition.InUri ? parameters : null,
                 parameterPosition == HttpMethodParameterPosition.InBody ? parameters : null,
@@ -177,7 +174,6 @@ namespace CryptoExchange.Net.Clients
         /// Send a request to the base address based on the request definition
         /// </summary>
         /// <typeparam name="T">Response type</typeparam>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="uriParameters">Request query parameters</param>
         /// <param name="bodyParameters">Request body parameters</param>
@@ -188,7 +184,6 @@ namespace CryptoExchange.Net.Clients
         /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
         protected virtual async Task<HttpResult<T>> SendAsync<T>(
-            string baseAddress,
             RequestDefinition definition,
             Parameters? uriParameters,
             Parameters? bodyParameters,
@@ -202,13 +197,13 @@ namespace CryptoExchange.Net.Clients
             if (definition.Authenticated && GetAuthenticationProvider() == null)
             {
                 _logger.RestApiNoApiCredentials(requestId, definition.Path);
-                return HttpResult.Fail<T>(ExchangeName, new NoApiCredentialsError());
+                return HttpResult.Fail<T>(Exchange, new NoApiCredentialsError());
             }
 
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
-                cacheKey = baseAddress + definition + uriParameters?.ToFormData();
+                cacheKey = definition.FullUrl + definition + uriParameters?.ToFormData();
                 _logger.CheckingCache(cacheKey);
                 var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
                 if (cachedValue != null)
@@ -229,7 +224,6 @@ namespace CryptoExchange.Net.Clients
                 await CheckTimeSync(requestId, definition).ConfigureAwait(false);
 
                 var error = await RateLimitAsync(
-                    baseAddress,
                     requestId,
                     definition,
                     weight ?? definition.Weight,
@@ -237,11 +231,10 @@ namespace CryptoExchange.Net.Clients
                     weightSingleLimiter,
                     rateLimitKeySuffix).ConfigureAwait(false);
                 if (error != null)
-                    return HttpResult.Fail<T>(ExchangeName, error);
+                    return HttpResult.Fail<T>(Exchange, error);
 
                 var request = CreateRequest(
                     requestId,
-                    baseAddress,
                     definition,
                     uriParameters,
                     bodyParameters,
@@ -287,7 +280,6 @@ namespace CryptoExchange.Net.Clients
         /// Check rate limits for the request
         /// </summary>
         protected virtual async ValueTask<Error?> RateLimitAsync(
-            string host,
             int requestId,
             RequestDefinition definition,
             int weight,
@@ -309,7 +301,6 @@ namespace CryptoExchange.Net.Clients
                         requestId,
                         RateLimitItemType.Request,
                         definition,
-                        host,
                         GetAuthenticationProvider()?.Key,
                         requestWeight, 
                         ClientOptions.RateLimitingBehaviour,
@@ -335,7 +326,6 @@ namespace CryptoExchange.Net.Clients
                         definition.LimitGuard,
                         RateLimitItemType.Request,
                         definition,
-                        host, 
                         GetAuthenticationProvider()?.Key,
                         singleRequestWeight,
                         ClientOptions.RateLimitingBehaviour,
@@ -353,7 +343,6 @@ namespace CryptoExchange.Net.Clients
         /// Creates a request object
         /// </summary>
         /// <param name="requestId">Id of the request</param>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="uriParameters">The query parameters of the request</param>
         /// <param name="bodyParameters">The body parameters of the request</param>
@@ -361,7 +350,6 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IRequest CreateRequest(
             int requestId,
-            string baseAddress,
             RequestDefinition definition,
             Parameters? uriParameters,
             Parameters? bodyParameters,
@@ -369,7 +357,6 @@ namespace CryptoExchange.Net.Clients
         {
             var requestConfiguration = new RestRequestConfiguration(
                 definition,
-                baseAddress,
                 uriParameters,
                 bodyParameters,
                 additionalHeaders,
@@ -390,11 +377,7 @@ namespace CryptoExchange.Net.Clients
             if (!string.IsNullOrEmpty(queryString) && !queryString.StartsWith("?"))
                 queryString = $"?{queryString}";
 
-            var path = baseAddress.AppendPath(definition.Path);
-            if (definition.ForcePathEndWithSlash == true && !path.EndsWith("/"))
-                path += "/";
-
-            var uri = new Uri(path + queryString);
+            var uri = new Uri(definition.FullUrl + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
             request.Accept = MessageHandler.AcceptHeader;
 
@@ -615,7 +598,7 @@ namespace CryptoExchange.Net.Clients
         private HttpResult<T> OkHttpRequest<T>(IRequest request, IResponse response, TimeSpan elapsed, string? originalData, T result)
         {
             return HttpResult.Ok(
-                ExchangeName,
+                Exchange,
                 response.StatusCode,
                 response.HttpVersion,
                 response.ResponseHeaders,
@@ -634,7 +617,7 @@ namespace CryptoExchange.Net.Clients
         private HttpResult<T> FailHttpRequest<T>(IRequest request, IResponse? response, TimeSpan elapsed, string? originalData, Error error, T? result = default)
         {
             return HttpResult.Fail<T>(
-                ExchangeName,
+                Exchange,
                 response?.StatusCode,
                 response?.HttpVersion,
                 response?.ResponseHeaders,

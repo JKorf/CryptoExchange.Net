@@ -155,7 +155,6 @@ public record WebSocketResult : IWebSocketResult
     public TimeSpan? ResponseTime { get; init; }
 }
 
-
 /// <inheritdoc />
 public record WebSocketResult<T> : WebSocketResult, IWebSocketResult<T>
 {
@@ -181,4 +180,119 @@ public record WebSocketResult<T> : WebSocketResult, IWebSocketResult<T>
     /// The data returned by the call, only available when Success = true
     /// </summary>
     public T? Data { get; init; }    
+}
+
+/// <inheritdoc />
+public record QueryResult
+{
+    /// <summary>
+    /// Create a new success query result
+    /// </summary>
+    public static QueryResult<T> Ok<T>(
+        string exchange,
+        int connectionId,
+        TimeSpan elapsed,
+        int requestId,
+        string? requestBody,
+        string? url,
+        string? originalData,
+        T data) =>
+        new QueryResult<T>(exchange, data, null)
+        {
+            ResponseTime = elapsed,
+            RequestId = requestId,
+            RequestBody = requestBody,
+            ConnectionId = connectionId,
+            Url = url,
+            OriginalData = originalData,
+        };
+    /// <summary>
+    /// Create a new success WebSocket result
+    /// </summary>
+    public static QueryResult<T> Ok<T>(IQueryResult result, T data) =>
+        new QueryResult<T>(result.Exchange, data, null)
+        {
+            ConnectionId = result.ConnectionId,
+            Url = result.Url,
+            RequestId = result.RequestId,
+            RequestBody = result.RequestBody,
+            ResponseTime = result.ResponseTime,
+            Error = result.Error,
+            OriginalData = result.OriginalData,
+            Data = data
+        };
+
+    /// <summary>
+    /// Create a new error WebSocket result
+    /// </summary>
+    public static QueryResult<T> Fail<T>(
+        string exchange,
+        int connectionId,
+        TimeSpan elapsed,
+        int requestId,
+        string? requestBody,
+        string? url,
+        string? originalData,
+        Error error) =>
+        new QueryResult<T>(exchange, default, error)
+        {
+            ResponseTime = elapsed,
+            RequestId = requestId,
+            RequestBody = requestBody,
+            ConnectionId = connectionId,
+            OriginalData = originalData,
+            Url = url
+        };
+    /// <summary>
+    /// Create a new error WebSocket result
+    /// </summary>
+    public static QueryResult<T> Fail<T>(IQueryResult result, Error? error = null, T? data = default)
+        => new QueryResult<T>(result.Exchange, data, error ?? result.Error)
+        {
+            ConnectionId = result.ConnectionId,
+            Url = result.Url,
+            RequestId = result.RequestId,
+            RequestBody = result.RequestBody,
+            OriginalData = result.OriginalData,
+            ResponseTime = result.ResponseTime,
+        };
+    /// <summary>
+    /// Create a new error WebSocket result
+    /// </summary>
+    public static QueryResult<T> Fail<T>(string exchange, Error error) => new QueryResult<T>(exchange, default, error);
+
+}
+
+/// <inheritdoc />
+public record QueryResult<T> : WebSocketResult<T>, IQueryResult<T>
+{
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public QueryResult(string exchange, T? value, Error? error) : base(exchange, value, error)
+    {
+    }
+
+    
+    /// <inheritdoc />
+    public new Error? Error
+    {
+        get => base.Error;
+        init => base.Error = value;
+    }
+    /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Error))]
+    [MemberNotNullWhen(true, nameof(Data))]
+    public new bool Success => Error == null;
+    /// <inheritdoc />
+    public new T? Data
+    {
+        get => base.Data;
+        init => base.Data = value;
+    }
+
+    /// <inheritdoc />
+    public string? OriginalData { get; init; }
+    /// <inheritdoc />
+    public string? RequestBody { get; init; }
 }

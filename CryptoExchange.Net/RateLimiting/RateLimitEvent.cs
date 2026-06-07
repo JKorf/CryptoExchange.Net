@@ -25,10 +25,6 @@ namespace CryptoExchange.Net.RateLimiting
         /// </summary>
         public RequestDefinition RequestDefinition { get; set; }
         /// <summary>
-        /// The host the request is for
-        /// </summary>
-        public string Host { get; set; } = default!;
-        /// <summary>
         /// The current counter value
         /// </summary>
         public int Current { get; set; }
@@ -56,13 +52,12 @@ namespace CryptoExchange.Net.RateLimiting
         /// <summary>
         /// ctor
         /// </summary>
-        public RateLimitEvent(int itemId, string apiLimit, string limitDescription, RequestDefinition definition, string host, int current, int requestWeight, int? limit, TimeSpan? timePeriod, TimeSpan? delayTime, RateLimitingBehaviour behaviour)
+        public RateLimitEvent(int itemId, string apiLimit, string limitDescription, RequestDefinition definition, int current, int requestWeight, int? limit, TimeSpan? timePeriod, TimeSpan? delayTime, RateLimitingBehaviour behaviour)
         {
             ItemId = itemId;
             ApiLimit = apiLimit;
             LimitDescription = limitDescription;
             RequestDefinition = definition;
-            Host = host;
             Current = current;
             RequestWeight = requestWeight;
             Limit = limit;

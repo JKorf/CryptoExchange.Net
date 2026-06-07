@@ -10,11 +10,14 @@ namespace CryptoExchange.Net.SharedApis
     public interface IIndexPriceKlineRestClient : ISharedClient
     {
         /// <summary>
-        /// Index price klines request options
+        /// Index price klines request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
         GetKlinesOptions GetIndexPriceKlinesOptions { get; }
         /// <summary>
-        /// Get index price kline/candlestick data
+        /// Get index price kline/candlestick data, see <see cref="GetIndexPriceKlinesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>

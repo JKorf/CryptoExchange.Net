@@ -11,6 +11,10 @@ namespace CryptoExchange.Net.Interfaces.Clients
     public interface IBaseApiClient
     {
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        string Exchange { get; }
+        /// <summary>
         /// Base address
         /// </summary>
         string BaseAddress { get; }
