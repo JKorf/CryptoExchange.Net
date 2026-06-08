@@ -16,13 +16,26 @@
     {
         var symbol = new SharedSymbol(TradingMode.Spot, "ETH", "BTC");
         var tasks = restClients.Select(x => x.GetSpotTickerAsync(new GetTickerRequest(symbol)));
-        await Task.WhenAll(tasks);
-        foreach (var ticker in tasks.Select(x => x.Result))
+        await foreach (var ticker in ParallelEnumerateAsync(tasks))
         {
             if (ticker.Success)
                 _prices.Add(ticker.Exchange, ticker.Data.LastPrice);
             else
                 Debug.WriteLine($"{ticker.Exchange} failed: {ticker.Error}");
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async IAsyncEnumerable<T> ParallelEnumerateAsync<T>(IEnumerable<Task<T>> tasks)
+    {
+        var remaining = new List<Task<T>>(tasks);
+
+        while (remaining.Count != 0)
+        {
+            var task = await Task.WhenAny(remaining).ConfigureAwait(false);
+            remaining.Remove(task);
+            yield return task.Result;
         }
     }
 

@@ -1,5 +1,6 @@
-﻿using Binance.Net.Clients;
+using Binance.Net.Clients;
 using BitMart.Net.Clients;
+using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using OKX.Net.Clients;
 
@@ -20,11 +21,15 @@ Console.WriteLine();
 Console.WriteLine("Press enter to start websocket");
 Console.ReadLine();
 
-await SubscribeTickerUpdatesAsync(binanceSpotSocketClient, symbol);
-await SubscribeTickerUpdatesAsync(okxSpotSocketClient, symbol);
-await SubscribeTickerUpdatesAsync(bitmartSpotSocketClient, symbol);
+var subscriptions = new List<UpdateSubscription>();
+await SubscribeTickerUpdatesAsync(binanceSpotSocketClient, symbol, subscriptions);
+await SubscribeTickerUpdatesAsync(okxSpotSocketClient, symbol, subscriptions);
+await SubscribeTickerUpdatesAsync(bitmartSpotSocketClient, symbol, subscriptions);
 
+Console.WriteLine("Press enter to stop websocket updates");
 Console.ReadLine();
+foreach (var subscription in subscriptions)
+    await subscription.CloseAsync();
 
 async Task GetLastTradePriceAsync(ISpotTickerRestClient client, SharedSymbol symbol)
 {
@@ -38,7 +43,7 @@ async Task GetLastTradePriceAsync(ISpotTickerRestClient client, SharedSymbol sym
     Console.WriteLine($"{client.Exchange} {result.Data.Symbol}: {result.Data.LastPrice}");
 }
 
-async Task SubscribeTickerUpdatesAsync(ITickerSocketClient client, SharedSymbol symbol)
+async Task SubscribeTickerUpdatesAsync(ITickerSocketClient client, SharedSymbol symbol, ICollection<UpdateSubscription> subscriptions)
 {
     var result = await client.SubscribeToTickerUpdatesAsync(new SubscribeTickerRequest(symbol), update =>
     {
@@ -46,5 +51,10 @@ async Task SubscribeTickerUpdatesAsync(ITickerSocketClient client, SharedSymbol 
     });
 
     if (!result.Success)
+    {
         Console.WriteLine($"Failed to subscribe ticker: {result.Error}");
+        return;
+    }
+
+    subscriptions.Add(result.Data);
 }
