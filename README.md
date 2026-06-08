@@ -87,6 +87,9 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
 ## Release notes
+* Version 11.2.2 - 08 Jun 2026
+    * Fixed timing issue causing websocket connection to possible loop in error state
+
 * Version 11.2.1 - 02 Jun 2026
     * Fixed some testing logic
 

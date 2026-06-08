@@ -584,11 +584,12 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
             var buffer = new ArraySegment<byte>(rentedBuffer);
+            var broken = false;
             try
             {
                 while (true)
                 {
-                    if (_ctsSource.IsCancellationRequested)
+                    if (_ctsSource.IsCancellationRequested || broken)
                         break;
 
                     MemoryStream? multipartStream = null;
@@ -622,6 +623,8 @@ namespace CryptoExchange.Net.Sockets.Default
 
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
+
+                            broken = true;
                             break;
                         }
 
@@ -735,11 +738,12 @@ namespace CryptoExchange.Net.Sockets.Default
         {
             byte[] rentedBuffer = _receiveBufferPool.Rent(_receiveBufferSize);
             var buffer = new Memory<byte>(rentedBuffer);
+            var broken = false;
             try
             {
                 while (true)
                 {
-                    if (_ctsSource.IsCancellationRequested)
+                    if (_ctsSource.IsCancellationRequested || broken)
                         break;
 
                     MemoryStream? multipartStream = null;
@@ -773,6 +777,8 @@ namespace CryptoExchange.Net.Sockets.Default
 
                             if (_closeTask?.IsCompleted != false)
                                 _closeTask = CloseInternalAsync();
+
+                            broken = true;
                             break;
                         }
 
