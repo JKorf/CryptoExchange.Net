@@ -8,7 +8,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public WithdrawOptions(string exchange) : base(exchange, true)
+        public WithdrawOptions(string exchange) : base(exchange, true, nameof(IWithdrawRestClient.WithdrawAsync))
         {
         }
     }

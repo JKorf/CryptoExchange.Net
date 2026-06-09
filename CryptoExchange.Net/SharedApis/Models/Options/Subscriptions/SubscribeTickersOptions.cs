@@ -13,7 +13,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false)
+        public SubscribeTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(ITickersSocketClient.SubscribeToAllTickersUpdatesAsync))
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

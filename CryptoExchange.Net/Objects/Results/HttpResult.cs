@@ -131,6 +131,54 @@ public record HttpResult : IHttpResult
             DataSource = source,
         };
 
+    /// <summary>
+    /// Create a new error HTTP result
+    /// </summary>
+    public static HttpResult Fail(string exchange, Error error) => new HttpResult() { Exchange = exchange, Error = error };
+
+    /// <summary>
+    /// Create a new error HTTP result
+    /// </summary>
+    public static HttpResult Fail(IHttpResult result, Error? error = null)
+        => new HttpResult()
+        {
+            ResponseStatusCode = result.ResponseStatusCode,
+            HttpVersion = result.HttpVersion,
+            ResponseHeaders = result.ResponseHeaders,
+            ResponseTime = result.ResponseTime,
+            ResponseLength = result.ResponseLength,
+            OriginalData = result.OriginalData,
+            RequestId = result.RequestId,
+            RequestUrl = result.RequestUrl,
+            RequestBody = result.RequestBody,
+            RequestMethod = result.RequestMethod,
+            RequestHeaders = result.RequestHeaders,
+            DataSource = result.DataSource,
+            Exchange = result.Exchange,
+            Error = error ?? result.Error
+        };
+
+    /// <summary>
+    /// Create a new success HTTP result
+    /// </summary>
+    public static HttpResult Ok(IHttpResult result)
+        => new HttpResult()
+        {
+            ResponseStatusCode = result.ResponseStatusCode,
+            HttpVersion = result.HttpVersion,
+            ResponseHeaders = result.ResponseHeaders,
+            ResponseTime = result.ResponseTime,
+            ResponseLength = result.ResponseLength,
+            OriginalData = result.OriginalData,
+            RequestId = result.RequestId,
+            RequestUrl = result.RequestUrl,
+            RequestBody = result.RequestBody,
+            RequestMethod = result.RequestMethod,
+            RequestHeaders = result.RequestHeaders,
+            DataSource = result.DataSource,
+            Exchange = result.Exchange,
+        };
+
 
     /// <summary>
     /// Exchange name

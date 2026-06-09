@@ -8,7 +8,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SetLeverageOptions(string exchange) : base(exchange, true)
+        public SetLeverageOptions(string exchange) : base(exchange, true, nameof(ILeverageRestClient.SetLeverageAsync))
         {
         }
     }

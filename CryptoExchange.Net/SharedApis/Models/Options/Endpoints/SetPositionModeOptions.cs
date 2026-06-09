@@ -8,7 +8,7 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SetPositionModeOptions(string exchange) : base(exchange, true)
+        public SetPositionModeOptions(string exchange) : base(exchange, true, nameof(IPositionModeRestClient.SetPositionModeOptions))
         {
         }
     }

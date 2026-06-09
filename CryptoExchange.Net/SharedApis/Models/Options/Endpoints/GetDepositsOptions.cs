@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetDepositsOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IDepositRestClient.GetDepositsAsync))
         {
         }
 

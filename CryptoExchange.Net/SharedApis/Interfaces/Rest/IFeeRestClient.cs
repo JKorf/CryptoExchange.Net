@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetFeeRequest, IFeeRestClient> GetFeeOptions { get; }
+        GetFeeOptions GetFeeOptions { get; }
 
         /// <summary>
         /// Get trading fees for a symbol, see <see cref="GetFeeOptions"/> for request options and exchange specific required/optional parameters. <br />

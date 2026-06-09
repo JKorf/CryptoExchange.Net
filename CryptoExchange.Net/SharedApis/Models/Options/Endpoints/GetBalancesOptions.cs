@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true)
+        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IBalanceRestClient.GetBalancesAsync))
         {
             SupportedAccountTypes = accountTypes;
         }

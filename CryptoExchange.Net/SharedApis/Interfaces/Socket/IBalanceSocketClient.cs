@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Balance subscription options
         /// </summary>
-        EndpointOptions<SubscribeBalancesRequest, IBalanceSocketClient> SubscribeBalanceOptions { get; }
+        SubscribeBalanceOptions SubscribeBalanceOptions { get; }
 
         /// <summary>
         /// Subscribe to user balance updates

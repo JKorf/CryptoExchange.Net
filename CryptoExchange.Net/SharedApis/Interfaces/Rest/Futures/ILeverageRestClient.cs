@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetLeverageRequest, ILeverageRestClient> GetLeverageOptions { get; }
+        GetLeverageOptions GetLeverageOptions { get; }
         /// <summary>
         /// Get the current leverage setting for a symbol, see <see cref="GetLeverageOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

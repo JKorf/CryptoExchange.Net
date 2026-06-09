@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderRequest, IFuturesOrderClientIdRestClient> GetFuturesOrderByClientOrderIdOptions { get; }
+        GetFuturesOrderByClientOrderIdOptions GetFuturesOrderByClientOrderIdOptions { get; }
 
         /// <summary>
         /// Get info on a specific futures order using a client order id, see <see cref="GetFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelOrderRequest, IFuturesOrderClientIdRestClient> CancelFuturesOrderByClientOrderIdOptions { get; }
+        CancelFuturesOrderByClientOrderIdOptions CancelFuturesOrderByClientOrderIdOptions { get; }
         /// <summary>
         /// Cancel a futures order using client order id, see <see cref="CancelFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

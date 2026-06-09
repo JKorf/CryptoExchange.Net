@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceFuturesTriggerOrderOptions : EndpointOptions<PlaceFuturesTriggerOrderRequest, IFuturesOrderRestClient>
+    public class PlaceFuturesTriggerOrderOptions : EndpointOptions<PlaceFuturesTriggerOrderRequest, IFuturesTriggerOrderRestClient>
     {
         /// <summary>
         /// When true the API holds the funds until the order is triggered or canceled. When false the funds will only be required when the order is triggered and will fail if the funds are not available at that time.
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true)
+        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IFuturesTriggerOrderRestClient.PlaceFuturesTriggerOrderAsync))
         {
             HoldsFunds = holdsFunds;
         }
@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             PlaceFuturesTriggerOrderRequest request,
-            IFuturesOrderRestClient client)
+            IFuturesTriggerOrderRestClient client)
         {
             //var quantityError = client.FuturesSupportedOrderQuantity.Validate(request.OrderDirection, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
             //if (quantityError != null)

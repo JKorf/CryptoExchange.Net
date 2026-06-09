@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication)
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(IKlineSocketClient.SubscribeToKlineUpdatesAsync))
         {
             SupportIntervals = new[]
             {
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SubscribeKlineOptions(string exchange, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, needsAuthentication)
+            : base(exchange, needsAuthentication, nameof(IKlineSocketClient.SubscribeToKlineUpdatesAsync))
         {
             SupportIntervals = intervals;
         }

@@ -7,19 +7,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetUserTradesOptions<TClient> : PaginatedEndpointOptions<GetUserTradesRequest, TClient>
-        where TClient : ISharedClient
+    public class GetSpotUserTradesOptions : PaginatedEndpointOptions<GetUserTradesRequest, ISpotOrderRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+        public GetSpotUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(ISpotOrderRestClient.GetSpotUserTradesAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetUserTradesRequest request, TClient client)
+        public override Error? ValidateRequest(GetUserTradesRequest request, ISpotOrderRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetUserTradesRequest.Direction), $"Ascending direction is not supported");
@@ -42,34 +41,6 @@ namespace CryptoExchange.Net.SharedApis
             }
 
             return base.ValidateRequest(request, client);
-        }
-    }
-
-    /// <summary>
-    /// Options for requesting user trades
-    /// </summary>
-    public class GetSpotUserTradesOptions : GetUserTradesOptions<ISpotOrderRestClient>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetSpotUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Options for requesting user trades
-    /// </summary>
-    public class GetFuturesUserTradesOptions : GetUserTradesOptions<IFuturesOrderRestClient>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetFuturesUserTradesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
-        {
         }
     }
 }

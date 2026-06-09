@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true)
+        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(ISpotTriggerOrderRestClient.PlaceSpotTriggerOrderAsync))
         {
             HoldsFunds = holdsFunds;
         }

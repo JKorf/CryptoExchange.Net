@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderOptions(string exchange, bool supportsTpSl) : base(exchange, true)
+        public PlaceFuturesOrderOptions(string exchange, bool supportsTpSl) : base(exchange, true, nameof(IFuturesOrderRestClient.PlaceFuturesOrderAsync))
         {
             SupportsTpSl = supportsTpSl;
         }

@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetAssetRequest, IAssetsRestClient> GetAssetOptions { get; }
+        GetAssetOptions GetAssetOptions { get; }
 
         /// <summary>
         /// Get info on a specific asset, see <see cref="GetAssetOptions"/> for request options and exchange specific required/optional parameters. <br />
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetAssetsRequest, IAssetsRestClient> GetAssetsOptions { get; }
+        GetAssetsOptions GetAssetsOptions { get; }
 
         /// <summary>
         /// Get info on all assets the exchange supports, see <see cref="GetAssetsOptions"/> for request options and exchange specific required/optional parameters. <br />

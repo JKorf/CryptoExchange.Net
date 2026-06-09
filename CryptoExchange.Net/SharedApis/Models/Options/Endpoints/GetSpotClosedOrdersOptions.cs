@@ -7,19 +7,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetClosedOrdersOptions<TClient> : PaginatedEndpointOptions<GetClosedOrdersRequest, TClient>
-        where TClient : ISharedClient
+    public class GetSpotClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, ISpotOrderRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+        public GetSpotClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(ISpotOrderRestClient.GetClosedSpotOrdersAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetClosedOrdersRequest request, TClient client)
+        public override Error? ValidateRequest(GetClosedOrdersRequest request, ISpotOrderRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetClosedOrdersRequest.Direction), $"Ascending direction is not supported");
@@ -42,34 +41,6 @@ namespace CryptoExchange.Net.SharedApis
             }
 
             return base.ValidateRequest(request, client);
-        }
-    }
-
-    /// <summary>
-    /// Options for requesting user trades
-    /// </summary>
-    public class GetSpotClosedOrdersOptions : GetClosedOrdersOptions<ISpotOrderRestClient>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetSpotClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
-        {
-        }
-    }
-
-    /// <summary>
-    /// Options for requesting user trades
-    /// </summary>
-    public class GetFuturesClosedOrdersOptions : GetClosedOrdersOptions<IFuturesOrderRestClient>
-    {
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public GetFuturesClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit)
-        {
         }
     }
 }

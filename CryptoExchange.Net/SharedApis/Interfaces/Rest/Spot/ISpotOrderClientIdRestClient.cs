@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderRequest, ISpotOrderClientIdRestClient> GetSpotOrderByClientOrderIdOptions { get; }
+        GetSpotOrderByClientOrderIdOptions GetSpotOrderByClientOrderIdOptions { get; }
 
         /// <summary>
         /// Get info on a specific spot order using a client order id, see <see cref="GetSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelOrderRequest, ISpotOrderClientIdRestClient> CancelSpotOrderByClientOrderIdOptions { get; }
+        CancelSpotOrderByClientOrderIdOptions CancelSpotOrderByClientOrderIdOptions { get; }
         /// <summary>
         /// Cancel a spot order using client order id, see <see cref="CancelSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

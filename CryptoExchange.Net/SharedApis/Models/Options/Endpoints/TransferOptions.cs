@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true)
+        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true, nameof(ITransferRestClient.TransferAsync))
         {
             SupportedAccountTypes = accountTypes;
         }

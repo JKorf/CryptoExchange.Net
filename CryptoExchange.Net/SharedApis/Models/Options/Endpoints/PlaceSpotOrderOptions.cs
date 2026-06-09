@@ -13,7 +13,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotOrderOptions(string exchange) : base(exchange, true)
+        public PlaceSpotOrderOptions(string exchange) : base(exchange, true, nameof(ISpotOrderRestClient.PlaceSpotOrderAsync))
         {
         }
 

@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication)
+        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(IOrderBookSocketClient.SubscribeToOrderBookUpdatesAsync))
         {
             SupportedLimits = limits;
         }

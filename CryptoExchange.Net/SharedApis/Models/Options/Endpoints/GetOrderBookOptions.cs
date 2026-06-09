@@ -27,7 +27,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOrderBookOptions(string exchange, int minLimit, int maxLimit, bool authenticated) : base(exchange, authenticated)
+        public GetOrderBookOptions(string exchange, int minLimit, int maxLimit, bool authenticated) 
+            : base(exchange, authenticated, nameof(IOrderBookRestClient.GetOrderBookAsync))
         {
             MinLimit = minLimit;
             MaxLimit = maxLimit;
@@ -36,7 +37,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOrderBookOptions(string exchange, int[] supportedLimits, bool authenticated) : base(exchange, authenticated)
+        public GetOrderBookOptions(string exchange, int[] supportedLimits, bool authenticated) 
+            : base(exchange, authenticated, nameof(IOrderBookRestClient.GetOrderBookAsync))
         {
             SupportedLimits = supportedLimits;
         }

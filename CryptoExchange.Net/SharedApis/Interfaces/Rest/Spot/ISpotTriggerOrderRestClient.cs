@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderRequest, ISpotTriggerOrderRestClient> GetSpotTriggerOrderOptions { get; }
+        GetSpotTriggerOrderOptions GetSpotTriggerOrderOptions { get; }
         /// <summary>
         /// Get info on a specific trigger order, see <see cref="GetSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelOrderRequest, ISpotTriggerOrderRestClient> CancelSpotTriggerOrderOptions { get; }
+        CancelSpotTriggerOrderOptions CancelSpotTriggerOrderOptions { get; }
         /// <summary>
         /// Cancel a trigger order, see <see cref="CancelSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

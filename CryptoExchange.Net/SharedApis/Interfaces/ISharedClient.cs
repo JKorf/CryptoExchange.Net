@@ -23,9 +23,9 @@ namespace CryptoExchange.Net.SharedApis
         bool Authenticated { get; }
 
         /// <summary>
-        /// Options for each shared endpoint or subscription supported by the client.
+        /// Get info on the client and supported features
         /// </summary>
-        EndpointOptions[] AllOptions { get; }
+        SharedClientInfo Discover();
 
         /// <summary>
         /// Format a base and quote asset to an exchange accepted symbol 

@@ -859,6 +859,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <param name="query">The query</param>
         public virtual ValueTask<CallResult> SendAsync(Query query)
         {
+
             if (_serializer is IByteMessageSerializer byteSerializer)
             {
                 return SendBytesAsync(query.Id, byteSerializer.Serialize(query.Request), query.Weight);
@@ -874,6 +875,32 @@ namespace CryptoExchange.Net.Sockets.Default
                 str = stringSerializer.Serialize(query.Request);
                 query.RequestBody = str;
                 return SendStringAsync(query.Id, str, query.Weight);
+            }
+
+            throw new Exception("Unknown serializer when sending message");
+        }
+
+        /// <summary>
+        /// Send data over the websocket connection
+        /// </summary>
+        /// <param name="request">The data to send</param>
+        /// <param name="weight">The weight of the message</param>
+        /// <param name="requestId">The id of the request</param>
+        public virtual ValueTask<CallResult> SendAsync<T>(int requestId, T request, int weight = 1)
+        {
+            if (_serializer is IByteMessageSerializer byteSerializer)
+            {
+                return SendBytesAsync(requestId, byteSerializer.Serialize(request), weight);
+            }
+            else if (_serializer is IStringMessageSerializer stringSerializer)
+            {
+                if (request is string str)
+                {
+                    return SendStringAsync(requestId, str, weight);
+                }
+
+                str = stringSerializer.Serialize(request);
+                return SendStringAsync(requestId, str, weight);
             }
 
             throw new Exception("Unknown serializer when sending message");

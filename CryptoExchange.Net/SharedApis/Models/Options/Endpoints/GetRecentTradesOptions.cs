@@ -16,7 +16,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetRecentTradesOptions(string exchange, int limit, bool authenticated) : base(exchange, authenticated)
+        public GetRecentTradesOptions(string exchange, int limit, bool authenticated) 
+            : base(exchange, authenticated, nameof(IRecentTradeRestClient.GetRecentTradesAsync))
         {
             MaxLimit = limit;
         }

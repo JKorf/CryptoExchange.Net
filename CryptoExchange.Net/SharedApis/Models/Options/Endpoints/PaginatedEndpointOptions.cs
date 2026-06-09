@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         where TRequest : SharedRequest
         where TClient : ISharedClient
 #else
-    public class PaginatedEndpointOptions<TRequest, TClient> : EndpointOptions<TRequest, TClient>
+    public abstract class PaginatedEndpointOptions<TRequest, TClient> : EndpointOptions<TRequest, TClient>
         where TRequest : SharedRequest
         where TClient : ISharedClient
 #endif
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
             bool timePeriodSupport,
             int maxLimit,
             bool needsAuthentication, 
-            string? requestName = null) : base(exchange, needsAuthentication, requestName)
+            string requestName) : base(exchange, needsAuthentication, requestName)
         {
             SupportsAscending = supportsAscending;
             SupportsDescending = supportsDescending;

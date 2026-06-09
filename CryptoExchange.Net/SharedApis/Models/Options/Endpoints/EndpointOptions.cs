@@ -85,14 +85,14 @@ namespace CryptoExchange.Net.SharedApis
     public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest> : EndpointOptions 
     where TRequest : SharedRequest
 #else
-    public class EndpointOptions<TRequest> : EndpointOptions
+    public abstract class EndpointOptions<TRequest> : EndpointOptions
         where TRequest : SharedRequest
 #endif
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public EndpointOptions(string exchange, bool needsAuthentication, string? requestName = null) : base(exchange, requestName ?? typeof(TRequest).Name, needsAuthentication)
+        public EndpointOptions(string exchange, bool needsAuthentication, string requestName) : base(exchange, requestName, needsAuthentication)
         {
         }
     }
@@ -103,11 +103,11 @@ namespace CryptoExchange.Net.SharedApis
     /// <typeparam name="TRequest">Type of data</typeparam>
     /// <typeparam name="TClient">Type of the client</typeparam>
 #if NET5_0_OR_GREATER
-    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions <TRequest>
+    public abstract class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions <TRequest>
     where TRequest : SharedRequest
     where TClient : ISharedClient
 #else
-        public class EndpointOptions<TRequest, TClient> : EndpointOptions<TRequest>
+    public abstract class EndpointOptions<TRequest, TClient> : EndpointOptions<TRequest>
         where TRequest : SharedRequest
         where TClient : ISharedClient
 #endif
@@ -131,7 +131,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EndpointOptions(string exchange, bool needsAuthentication, string? requestName = null) : base(exchange, needsAuthentication, requestName)
+        public EndpointOptions(string exchange, bool needsAuthentication, string requestName) : base(exchange, needsAuthentication, requestName)
         {
         }
 

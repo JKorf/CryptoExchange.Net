@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<SetTpSlRequest, IFuturesTpSlRestClient> SetFuturesTpSlOptions { get; }
+        SetFuturesTpSlOptions SetFuturesTpSlOptions { get; }
         /// <summary>
         /// Set a take profit and/or stop loss for an open position, see <see cref="SetFuturesTpSlOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelTpSlRequest, IFuturesTpSlRestClient> CancelFuturesTpSlOptions { get; }
+        CancelFuturesTpSlOptions CancelFuturesTpSlOptions { get; }
         /// <summary>
         /// Cancel an active take profit and/or stop loss for an open position, see <see cref="CancelFuturesTpSlOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderRequest, IFuturesOrderRestClient> GetFuturesOrderOptions { get; }
+        GetFuturesOrderOptions GetFuturesOrderOptions { get; }
         /// <summary>
         /// Get info on a specific futures order, see <see cref="GetFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -68,7 +68,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOpenOrdersRequest, IFuturesOrderRestClient> GetOpenFuturesOrdersOptions { get; }
+        GetOpenFuturesOrdersOptions GetOpenFuturesOrdersOptions { get; }
         /// <summary>
         /// Get info on a open futures orders, see <see cref="GetOpenFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -96,7 +96,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderTradesRequest, IFuturesOrderRestClient> GetFuturesOrderTradesOptions { get; }
+        GetFuturesOrderTradesOptions GetFuturesOrderTradesOptions { get; }
         /// <summary>
         /// Get trades for a specific futures order, see <see cref="GetFuturesOrderTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -124,7 +124,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelOrderRequest, IFuturesOrderRestClient> CancelFuturesOrderOptions { get; }
+        CancelFuturesOrderOptions CancelFuturesOrderOptions { get; }
         /// <summary>
         /// Cancel a futures order, see <see cref="CancelFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -137,7 +137,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetPositionsRequest, IFuturesOrderRestClient> GetPositionsOptions { get; }
+        GetPositionsOptions GetPositionsOptions { get; }
         /// <summary>
         /// Get open position info, see <see cref="GetPositionsOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -150,7 +150,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<ClosePositionRequest, IFuturesOrderRestClient> ClosePositionOptions { get; }
+        ClosePositionOptions ClosePositionOptions { get; }
         /// <summary>
         /// Close a currently open position, see <see cref="ClosePositionOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
