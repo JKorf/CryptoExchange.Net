@@ -305,6 +305,8 @@ namespace CryptoExchange.Net.Objects
                 _parameters.Add(key, DateTimeConverter.ConvertToMicroseconds(value));
             else if (serializationToUse == DateTimeSerialization.MicrosecondsString)
                 _parameters.Add(key, DateTimeConverter.ConvertToMicroseconds(value).Value.ToString(CultureInfo.InvariantCulture));
+            else if (serializationToUse == DateTimeSerialization.Rfc3339String)
+                _parameters.Add(key, value.ToRfc3339String());
             else
                 throw new ArgumentException("Unknown DateTime serialization setting");
         }

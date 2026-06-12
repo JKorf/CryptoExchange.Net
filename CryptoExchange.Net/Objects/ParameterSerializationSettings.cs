@@ -93,6 +93,10 @@ namespace CryptoExchange.Net.Objects
         /// DateTimes should be serialized as microseconds string
         /// </summary>
         MicrosecondsString,
+        /// <summary>
+        /// DateTimes should be serialized as ISO 8601 string
+        /// </summary>
+        Rfc3339String
     }
 
     /// <summary>

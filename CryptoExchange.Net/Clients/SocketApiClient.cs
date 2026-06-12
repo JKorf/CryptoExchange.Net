@@ -214,12 +214,12 @@ namespace CryptoExchange.Net.Clients
         /// <param name="interval"></param>
         /// <param name="queryDelegate"></param>
         /// <param name="callback"></param>
-        protected virtual void RegisterPeriodicQuery<T>(string identifier, TimeSpan interval, Func<ISocketConnection, Query<T>> queryDelegate, Action<SocketConnection, WebSocketResult<T>>? callback)
+        protected virtual void RegisterPeriodicQuery(string identifier, TimeSpan interval, Func<ISocketConnection, Query> queryDelegate, Action<SocketConnection, WebSocketResult>? callback)
         {
             PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
             {
                 Identifier = identifier,
-                Callback = ((connection, result) => callback?.Invoke(connection, (WebSocketResult<T>)result)),
+                Callback = ((connection, result) => callback?.Invoke(connection, result)),
                 Interval = interval,
                 QueryDelegate = queryDelegate
             });
