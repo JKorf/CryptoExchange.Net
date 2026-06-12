@@ -34,7 +34,7 @@ namespace CryptoExchange.Net.Testing
         }
 
         /// <summary>
-        /// Validate a subscription
+        /// Validate a query
         /// </summary>
         /// <typeparam name="TResponse">Expected response type</typeparam>
         /// <param name="client">Client to test</param>
@@ -49,7 +49,7 @@ namespace CryptoExchange.Net.Testing
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse>(
            TClient client,
-           Func<TClient, Task<WebSocketResult<TResponse>>> methodInvoke,
+           Func<TClient, Task<QueryResult<TResponse>>> methodInvoke,
            string name,
            Func<TResponse, object>? responseMapper = null,
            string? nestedJsonProperty = null,

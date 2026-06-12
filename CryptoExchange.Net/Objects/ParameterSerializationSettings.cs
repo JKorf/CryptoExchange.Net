@@ -42,6 +42,10 @@ namespace CryptoExchange.Net.Objects
         /// Enum serialization type
         /// </summary>
         public EnumSerialization Enum { get; set; } = EnumSerialization.String;
+        /// <summary>
+        /// Array serialization type
+        /// </summary>
+        public ArrayParametersSerialization Array { get; set; } = ArrayParametersSerialization.Array;
     }
 
 

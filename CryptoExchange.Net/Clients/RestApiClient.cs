@@ -42,11 +42,6 @@ namespace CryptoExchange.Net.Clients
         protected internal RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
-        /// How to serialize array parameters when making requests
-        /// </summary>
-        protected internal ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
-
-        /// <summary>
         /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
         /// </summary>
         protected internal string RequestBodyEmptyContent = "{}";
@@ -360,7 +355,6 @@ namespace CryptoExchange.Net.Clients
                 uriParameters,
                 bodyParameters,
                 additionalHeaders,
-                definition.ArraySerialization ?? ArraySerialization,
                 definition.ParameterPosition ?? ParameterPositions[definition.Method],
                 definition.RequestBodyFormat ?? RequestBodyFormat);
 
@@ -405,7 +399,7 @@ namespace CryptoExchange.Net.Clients
                 }
                 else
                 {
-                    if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
+                    if (requestConfiguration.BodyParameters != null && (requestConfiguration.BodyParameters.Count != 0 || requestConfiguration.BodyParameters.BodyValue != null))
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
                     else if (OmitContentTypeHeaderWithoutContent != true)
                         request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);                    

@@ -121,7 +121,6 @@ namespace CryptoExchange.Net.Testing
                     uriParams,
                     bodyParams,
                     new Dictionary<string, string>(),
-                    client.ArraySerialization,
                     client.ParameterPositions[method],
                     client.RequestBodyFormat
                     );

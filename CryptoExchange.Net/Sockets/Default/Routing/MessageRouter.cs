@@ -86,6 +86,24 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// <summary>
         /// Create a router for handling event messages
         /// </summary>
+        public static MessageRouter CreateForEvent<TMessage>(IEnumerable<string> typeIdentifier, IEnumerable<string> topicFilters, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
+        {
+            return new MessageRouter(typeIdentifier.SelectMany(x => {
+                var routes = new List<MessageRoute>();
+                foreach (var topicFilter in topicFilters)
+                {
+                    routes.Add(new EventRoute<TMessage>(x, topicFilter, handler)
+                    {
+                        MultipleReaders = multipleReaders
+                    });
+                }
+                return routes;
+            }).ToArray());
+        }
+
+        /// <summary>
+        /// Create a router for handling event messages
+        /// </summary>
         public static MessageRouter CreateForEvent<TMessage>(string typeIdentifier, string? topicFilter, Func<SocketConnection, DateTime, string?, TMessage, CallResult?> handler, bool multipleReaders = false)
         {
             return new MessageRouter(new EventRoute<TMessage>(typeIdentifier, topicFilter, handler)
