@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"RequestTimeout: {RequestTimeout}, Proxy: {(Proxy == null ? "-" : "set")}";
+            return $"Proxy: {(Proxy == null ? "-" : "set")}";
         }
     }
 }

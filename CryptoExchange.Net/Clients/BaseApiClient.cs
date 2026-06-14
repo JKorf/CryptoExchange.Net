@@ -4,6 +4,7 @@ using CryptoExchange.Net.Objects.Errors;
 using CryptoExchange.Net.Objects.Options;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CryptoExchange.Net.Clients
 {
@@ -25,7 +26,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// If we are disposing
         /// </summary>
-        protected bool _disposing;
+        protected bool _disposed;
 
         /// <summary>
         /// Whether a proxy is configured
@@ -80,21 +81,21 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger">Logger</param>
+        /// <param name="loggerFactory">Logger factory</param>
         /// <param name="exchange">The exchange name</param>
         /// <param name="outputOriginalData">Should data from this client include the original data in the call result</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="clientOptions">Client options</param>
         /// <param name="apiOptions">Api options</param>
         protected BaseApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchange,
             bool outputOriginalData,
             string baseAddress,
             ExchangeOptions clientOptions,
             ApiOptions apiOptions)
         {
-            _logger = logger;
+            _logger = loggerFactory?.CreateLogger(exchange + "." + ClientName.Substring(exchange.Length)) ?? NullLogger.Instance;
 
             Exchange = exchange;
             ClientOptions = clientOptions;
@@ -121,9 +122,18 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Dispose
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
-            _disposing = true;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            _disposed = true;
         }
     }
 }

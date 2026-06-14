@@ -654,6 +654,9 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (subscription.CancellationTokenRegistration.HasValue)
                     subscription.CancellationTokenRegistration.Value.Dispose();
+
+                subscription.Status = SubscriptionStatus.Closed;
+                subscription.TokenExpired -= HandleTokenExpired;
             }
 
             await _socket.CloseAsync().ConfigureAwait(false);
@@ -672,6 +675,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 await Task.Delay(50).ConfigureAwait(false);
 
             subscription.Status = SubscriptionStatus.Closing;
+            subscription.TokenExpired -= HandleTokenExpired;
 
             if (Status == SocketStatus.Closing || Status == SocketStatus.Closed || Status == SocketStatus.Disposed)
             {
@@ -741,6 +745,11 @@ namespace CryptoExchange.Net.Sockets.Default
             if (subscription.UserSubscription)
                 _logger.AddingNewSubscription(SocketId, subscription.Id, UserSubscriptionCount);
             return true;
+        }
+
+        private void HandleTokenExpired(Subscription arg1, TokenManagement.TokenInfo arg2)
+        {
+            _ = TriggerReconnectAsync();
         }
 
         /// <summary>
@@ -1083,13 +1092,17 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 subscription.Status = subQuery.Success ? SubscriptionStatus.Subscribed : SubscriptionStatus.Pending;
                 subscription.HandleSubQueryResponse(this, subQuery.Response);
-                if (newSubscription && subQuery.Success && subCancelToken != default)
+                if (newSubscription && subQuery.Success)
                 {
-                    subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
+                    subscription.TokenExpired += HandleTokenExpired;
+                    if (subCancelToken != default)
                     {
-                        _logger.CancellationTokenSetClosingSubscription(SocketId, subscription.Id);
-                        await CloseAsync(subscription).ConfigureAwait(false);
-                    }, false);
+                        subscription.CancellationTokenRegistration = subCancelToken.Register(async () =>
+                        {
+                            _logger.CancellationTokenSetClosingSubscription(SocketId, subscription.Id);
+                            await CloseAsync(subscription).ConfigureAwait(false);
+                        }, false);
+                    }
                 }
             };
             subQuery.OnComplete = subCompleteHandler;
@@ -1222,7 +1235,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 {
                     UpdateRoutingTable();
 #if DEBUG
-                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
+                    //_logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
 #endif
                 }
             }
@@ -1240,7 +1253,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
+                //_logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }
@@ -1264,7 +1277,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
+                //_logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }

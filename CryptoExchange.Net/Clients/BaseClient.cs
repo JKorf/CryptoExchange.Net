@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -89,7 +90,6 @@ namespace CryptoExchange.Net.Clients
                 throw new ArgumentNullException(nameof(options));
 
             ClientOptions = options;
-            _logger.Log(LogLevel.Trace, $"Client configuration: {options}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}");
         }
 
         /// <summary>
@@ -113,6 +113,12 @@ namespace CryptoExchange.Net.Clients
             var opts = new T();
             del?.Invoke(opts);
             return opts;
+        }
+
+        /// <inheritdoc />
+        public override string ToString() 
+        {
+            return $"{GetType().Name}, CryptoExchange.Net: v{CryptoExchangeLibVersion}, {Exchange}.Net: v{ExchangeLibVersion}, configuration: {ClientOptions}";
         }
 
         /// <summary>

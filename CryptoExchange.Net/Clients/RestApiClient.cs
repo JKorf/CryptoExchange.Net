@@ -98,7 +98,7 @@ namespace CryptoExchange.Net.Clients
         /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
         /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
-        
+
         /// <summary>
         /// Configured environment name
         /// </summary>
@@ -107,19 +107,19 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger">Logger</param>
+        /// <param name="loggerFactory">Logger factory</param>
         /// <param name="exchangeName">The exchange name</param>
         /// <param name="httpClient">HttpClient to use</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(ILogger logger,
+        public RestApiClient(ILoggerFactory? loggerFactory,
             string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions options,
             RestApiOptions apiOptions)
-            : base(logger,
+            : base(loggerFactory,
                   exchangeName,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   baseAddress,
@@ -302,7 +302,7 @@ namespace CryptoExchange.Net.Clients
                         RateLimitItemType.Request,
                         definition,
                         GetAuthenticationProvider()?.Key,
-                        requestWeight, 
+                        requestWeight,
                         ClientOptions.RateLimitingBehaviour,
                         rateLimitKeySuffix + ClientOptions.RateLimitGroup,
                         cancellationToken).ConfigureAwait(false);
@@ -322,7 +322,7 @@ namespace CryptoExchange.Net.Clients
                     var singleRequestWeight = weightSingleLimiter ?? 1;
                     var limitResult = await definition.RateLimitGate.ProcessSingleAsync(
                         _logger,
-                        requestId, 
+                        requestId,
                         definition.LimitGuard,
                         RateLimitItemType.Request,
                         definition,
@@ -372,7 +372,7 @@ namespace CryptoExchange.Net.Clients
             {
                 throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
             }
-            
+
             var queryString = requestConfiguration.GetQueryString(true);
             if (!string.IsNullOrEmpty(queryString) && !queryString.StartsWith("?"))
                 queryString = $"?{queryString}";
@@ -381,7 +381,7 @@ namespace CryptoExchange.Net.Clients
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
             request.Accept = MessageHandler.AcceptHeader;
 
-            if (requestConfiguration.Headers != null) 
+            if (requestConfiguration.Headers != null)
             {
                 foreach (var header in requestConfiguration.Headers)
                     request.AddHeader(header.Key, header.Value);
@@ -393,7 +393,7 @@ namespace CryptoExchange.Net.Clients
                 requestConfiguration.Headers ??= new Dictionary<string, string>();
                 if (!requestConfiguration.Headers.ContainsKey(header.Key))
                     request.AddHeader(header.Key, header.Value);
-            }            
+            }
 
             if (requestConfiguration.ParameterPosition == HttpMethodParameterPosition.InBody)
             {
@@ -408,7 +408,7 @@ namespace CryptoExchange.Net.Clients
                     if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
                     else if (OmitContentTypeHeaderWithoutContent != true)
-                        request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);                    
+                        request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);
                 }
             }
 
@@ -493,7 +493,7 @@ namespace CryptoExchange.Net.Clients
                         }
                     }
 
-                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, error);                    
+                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, error);
                 }
 
                 if (typeof(T) == Unit.Type)
@@ -525,7 +525,7 @@ namespace CryptoExchange.Net.Clients
                     responseStream.Position = 0;
 
                 // Try deserialization into the expected type
-                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);                              
+                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);
                 if (deserializeError != null)
                     return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, deserializeError, deserializeResult);
 
@@ -825,13 +825,13 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions options,
             RestApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
                 exchangeName,
                 httpClient,
                 baseAddress,
@@ -859,13 +859,13 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options,
             RestApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
                 exchangeName,
                 httpClient,
                 baseAddress,
@@ -926,13 +926,13 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger, 
+            ILoggerFactory? loggerFactory, 
             string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options, 
             RestApiOptions apiOptions) : base(
-                logger, 
+                loggerFactory, 
                 exchangeName,
                 httpClient,
                 baseAddress,

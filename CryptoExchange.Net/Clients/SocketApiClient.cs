@@ -148,23 +148,25 @@ namespace CryptoExchange.Net.Clients
         /// Configured environment name
         /// </summary>
         public abstract string EnvironmentName { get; }
+
+        private int _isDisposed;
         #endregion
 
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger">log</param>
+        /// <param name="loggerFactory">Logger factory</param>
         /// <param name="exchangeName">Exchange name</param>
         /// <param name="options">Client options</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="apiOptions">The Api client options</param>
         public SocketApiClient(
-            ILogger logger, 
+            ILoggerFactory? loggerFactory, 
             string exchangeName,
             string baseAddress, 
             SocketExchangeOptions options,
             SocketApiOptions apiOptions)
-            : base(logger,
+            : base(loggerFactory,
                   exchangeName,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   baseAddress,
@@ -245,7 +247,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<WebSocketResult<UpdateSubscription>> SubscribeAsync(string url, Subscription subscription, CancellationToken ct)
         {
-            if (_disposing)
+            if (_disposed)
                 return WebSocketResult.Fail<UpdateSubscription>(Exchange, new InvalidOperationError("Client disposed, can't subscribe"));
 
             if (subscription.Authenticated && GetAuthenticationProvider() == null)
@@ -345,7 +347,7 @@ namespace CryptoExchange.Net.Clients
             IHighPerfConnectionFactory connectionFactory,
             CancellationToken ct)
         {
-            if (_disposing)
+            if (_disposed)
                 return WebSocketResult.Fail<HighPerfUpdateSubscription>(Exchange, new InvalidOperationError("Client disposed, can't subscribe"));
 
             HighPerfSocketConnection<TUpdateType> socketConnection;
@@ -453,7 +455,7 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<QueryResult<THandlerResponse>> QueryAsync<THandlerResponse>(string url, Query<THandlerResponse> query, CancellationToken ct = default)
         {
-            if (_disposing)
+            if (_disposed)
                 return QueryResult.Fail<THandlerResponse>(Exchange, new InvalidOperationError("Client disposed, can't query"));
 
             if (ct.IsCancellationRequested)
@@ -884,7 +886,7 @@ namespace CryptoExchange.Net.Clients
 
             _logger.UnsubscribingAll(sum);
             var tasks = new List<Task>();
-            
+
             var socketList = _socketConnections.Values;
             foreach (var connection in socketList)
             {
@@ -1013,23 +1015,28 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Dispose the client
         /// </summary>
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _disposing = true;
-            var tasks = new List<Task>();
+            if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
             {
-                var socketList = _socketConnections.Values.Where(x => x.UserSubscriptionCount > 0 || x.Connected);
-                if (socketList.Any())
-                    _logger.DisposingSocketClient();
+                if (!disposing)
+                    return;
 
-                foreach (var connection in socketList)
+                var tasks = new List<Task>();
                 {
-                    tasks.Add(connection.CloseAsync());
-                }
-            }
+                    var socketList = _socketConnections.Values.Where(x => x.UserSubscriptionCount > 0 || x.Connected);
+                    if (socketList.Any())
+                        _logger.DisposingSocketClient();
 
-            semaphoreSlim?.Dispose();
-            base.Dispose();
+                    foreach (var connection in socketList)
+                    {
+                        tasks.Add(connection.CloseAsync());
+                    }
+                }
+
+                semaphoreSlim?.Dispose();
+                base.Dispose(disposing);
+            }
         }
 
         /// <summary>
@@ -1080,12 +1087,12 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected SocketApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchangeName,
             string baseAddress,
             SocketExchangeOptions<TEnvironment> options,
             SocketApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
                 exchangeName,
                 baseAddress,
                 options,
@@ -1112,12 +1119,12 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected SocketApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchangeName,
             string baseAddress,
             SocketExchangeOptions<TEnvironment, TApiCredentials> options,
             SocketApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
                 exchangeName,
                 baseAddress,
                 options,
@@ -1175,12 +1182,12 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected SocketApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
             string exchangeName,
             string baseAddress,
             SocketExchangeOptions<TEnvironment, TApiCredentials> options,
             SocketApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
                 exchangeName,
                 baseAddress,
                 options,

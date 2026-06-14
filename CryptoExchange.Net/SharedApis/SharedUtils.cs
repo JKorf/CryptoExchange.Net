@@ -55,6 +55,11 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public static class SharedUtils
     {
+        /// <summary>
+        /// Get client information including supported features
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
         public static SharedClientInfo GetClientInfo(ISharedClient client)
         {
             return new SharedClientInfo
@@ -66,6 +71,11 @@ namespace CryptoExchange.Net.SharedApis
             };
         }
 
+        /// <summary>
+        /// Get all supported endpoints for a client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
         public static EndpointOptions[] GetAllEndpointOptions(ISharedClient client)
         {
             var clientType = client.GetType();

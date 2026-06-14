@@ -2,6 +2,7 @@
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default.Routing;
 using CryptoExchange.Net.Sockets.Interfaces;
+using CryptoExchange.Net.TokenManagement;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -46,6 +47,9 @@ namespace CryptoExchange.Net.Sockets.Default
                 if (_status == value)
                     return;
 
+                if (value == SubscriptionStatus.Closed)
+                    _ = TokenLease?.ReleaseAsync();
+
                 _status = value;
                 StatusChanged?.Invoke(value);
             }
@@ -71,6 +75,20 @@ namespace CryptoExchange.Net.Sockets.Default
         /// </summary>
         public bool Authenticated { get; }
 
+        private TokenLease? _tokenLease;
+        /// <summary>
+        /// Current user auth token lease
+        /// </summary>
+        public TokenLease? TokenLease
+        {
+            get => _tokenLease;
+            set
+            {
+                _tokenLease?.Token.Expired -= HandleTokenExpired;
+                _tokenLease = value;
+                _tokenLease?.Token.Expired += HandleTokenExpired;
+            }
+        }
 
         private MessageRouter _router;
         /// <summary>
@@ -125,6 +143,11 @@ namespace CryptoExchange.Net.Sockets.Default
         public event Action? OnMessageRouterUpdated;
 
         /// <summary>
+        /// User token expired
+        /// </summary>
+        public event Action<Subscription, TokenInfo>? TokenExpired;
+
+        /// <summary>
         /// ctor
         /// </summary>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
@@ -148,6 +171,12 @@ namespace CryptoExchange.Net.Sockets.Default
             var query = GetSubQuery(connection);
             SubscriptionQuery = query;
             return query;
+        }
+
+
+        private void HandleTokenExpired(TokenInfo info)
+        {
+            TokenExpired?.Invoke(this, info);
         }
 
         /// <summary>

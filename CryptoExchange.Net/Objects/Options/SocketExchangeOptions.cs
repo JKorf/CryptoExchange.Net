@@ -132,6 +132,12 @@ namespace CryptoExchange.Net.Objects.Options
             target.Environment = Environment;
             return target;
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{base.ToString()} | Environment: {Environment.Name}";
+        }
     }
 
     /// <summary>
@@ -159,7 +165,7 @@ namespace CryptoExchange.Net.Objects.Options
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{base.ToString()}, ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
+            return $"{base.ToString()} | ApiCredentials: {(ApiCredentials == null ? "-" : "set")}";
         }
     }
 }
