@@ -42,6 +42,10 @@ namespace CryptoExchange.Net.Objects
         /// Enum serialization type
         /// </summary>
         public EnumSerialization Enum { get; set; } = EnumSerialization.String;
+        /// <summary>
+        /// Array serialization type
+        /// </summary>
+        public ArrayParametersSerialization Array { get; set; } = ArrayParametersSerialization.Array;
     }
 
 
@@ -89,6 +93,10 @@ namespace CryptoExchange.Net.Objects
         /// DateTimes should be serialized as microseconds string
         /// </summary>
         MicrosecondsString,
+        /// <summary>
+        /// DateTimes should be serialized as ISO 8601 string
+        /// </summary>
+        Rfc3339String
     }
 
     /// <summary>

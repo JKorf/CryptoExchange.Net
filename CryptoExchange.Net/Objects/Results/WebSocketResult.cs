@@ -183,8 +183,33 @@ public record WebSocketResult<T> : WebSocketResult, IWebSocketResult<T>
 }
 
 /// <inheritdoc />
-public record QueryResult
+public record QueryResult : WebSocketResult
 {
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public QueryResult(string exchange, Error? error) : base(exchange, error)
+    {
+    }
+
+    /// <summary>
+    /// Create a new error Query result
+    /// </summary>
+    public new static QueryResult Fail(string exchange, Error error) => new QueryResult(exchange, error);
+
+
+    /// <summary>
+    /// Create a new error WebSocket result
+    /// </summary>
+    public static QueryResult Fail(IQueryResult result, Error? error = null)
+        => new QueryResult(result.Exchange, error ?? result.Error)
+        {
+            ConnectionId = result.ConnectionId,
+            Url = result.Url,
+            RequestId = result.RequestId,
+            ResponseTime = result.ResponseTime,
+        };
+
     /// <summary>
     /// Create a new success query result
     /// </summary>
@@ -259,18 +284,21 @@ public record QueryResult
     /// <summary>
     /// Create a new error WebSocket result
     /// </summary>
-    public static QueryResult<T> Fail<T>(string exchange, Error error) => new QueryResult<T>(exchange, default, error);
+    public new static QueryResult<T> Fail<T>(string exchange, Error error) => new QueryResult<T>(exchange, default, error);
 
+    /// <inheritdoc />
+    public string? RequestBody { get; init; }
 }
 
 /// <inheritdoc />
-public record QueryResult<T> : WebSocketResult<T>, IQueryResult<T>
+public record QueryResult<T> : QueryResult, IQueryResult<T>
 {
     /// <summary>
     /// ctor
     /// </summary>
-    public QueryResult(string exchange, T? value, Error? error) : base(exchange, value, error)
+    public QueryResult(string exchange, T? value, Error? error) : base(exchange, error)
     {
+        Data = value;
     }
 
     
@@ -285,14 +313,8 @@ public record QueryResult<T> : WebSocketResult<T>, IQueryResult<T>
     [MemberNotNullWhen(true, nameof(Data))]
     public new bool Success => Error == null;
     /// <inheritdoc />
-    public new T? Data
-    {
-        get => base.Data;
-        init => base.Data = value;
-    }
+    public T? Data { get; set; }
 
     /// <inheritdoc />
     public string? OriginalData { get; init; }
-    /// <inheritdoc />
-    public string? RequestBody { get; init; }
 }

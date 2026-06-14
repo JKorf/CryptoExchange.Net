@@ -49,7 +49,6 @@ namespace CryptoExchange.Net.Objects
             Parameters? queryParams,
             Parameters? bodyParams,
             IDictionary<string, string>? headers,
-            ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parametersPosition,
             RequestBodyFormat bodyFormat)
         {
@@ -57,7 +56,6 @@ namespace CryptoExchange.Net.Objects
             QueryParameters = queryParams;
             BodyParameters = bodyParams;
             Headers = headers;
-            ArraySerialization = arraySerialization;
             ParameterPosition = parametersPosition;
             BodyFormat = bodyFormat;
         }
