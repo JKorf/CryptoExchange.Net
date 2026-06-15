@@ -19,8 +19,8 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         {
             Initialize(options.Value);
 
-            ApiClient1 = AddApiClient(new TestSocketApiClient(_logger, options.Value));
-            ApiClient2 = AddApiClient(new TestSocketApiClient(_logger, options.Value));
+            ApiClient1 = AddApiClient(new TestSocketApiClient(loggerFactory, options.Value));
+            ApiClient2 = AddApiClient(new TestSocketApiClient(loggerFactory, options.Value));
         }
     }
 }

@@ -298,7 +298,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
 
                 if (Parameters.RateLimiter != null)
-                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, _baseAddress, null, null, default).ConfigureAwait(false);
+                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, null, null, default).ConfigureAwait(false);
 
                 // Delay here to prevent very rapid looping when a connection to the server is accepted and immediately disconnected
                 var initialDelay = GetReconnectDelay();

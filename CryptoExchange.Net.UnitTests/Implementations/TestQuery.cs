@@ -11,15 +11,15 @@ namespace CryptoExchange.Net.UnitTests.Implementations
     {
         public TestQuery(TestSocketMessage request, bool authenticated) : base(request, authenticated, 1)
         {
-            MessageRouter = MessageRouter.CreateWithoutTopicFilter<TestSocketMessage>(request.Id.ToString(), HandleMessage);
+            MessageRouter = MessageRouter.CreateForQuery<TestSocketMessage>(request.Id.ToString(), HandleMessage);
         }
 
-        private CallResult? HandleMessage(SocketConnection connection, DateTime time, string? arg3, TestSocketMessage message)
+        private CallResult<TestSocketMessage>? HandleMessage(SocketConnection connection, DateTime time, string? arg3, TestSocketMessage message)
         {
             if (message.Data != "OK")
-                return new CallResult(new ServerError(ErrorInfo.Unknown with { Message = message.Data }));
+                return CallResult.Fail<TestSocketMessage>(new ServerError(ErrorInfo.Unknown with { Message = message.Data }));
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok(message);
         }
     }
 }

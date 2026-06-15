@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.UnitTests.ConverterTests;
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.UnitTests.ConverterTests;
 using CryptoExchange.Net.UnitTests.Implementations;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -11,6 +12,7 @@ namespace CryptoExchange.Net.UnitTests
     [JsonSerializable(typeof(IDictionary<string, string>))]
     [JsonSerializable(typeof(Dictionary<string, object>))]
     [JsonSerializable(typeof(IDictionary<string, object>))]
+    [JsonSerializable(typeof(Parameters))]
     [JsonSerializable(typeof(TestObject))]
 
     [JsonSerializable(typeof(TestSocketMessage))]

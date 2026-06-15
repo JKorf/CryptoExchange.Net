@@ -330,7 +330,7 @@ namespace CryptoExchange.Net.Objects
             if (values == null || !values.Any())
                 return;
 
-            _parameters.Add(key, values.ToArray());
+            _parameters.Add(key, values is T[] arr ? arr : values.ToArray());
         }
 
         /// <summary>

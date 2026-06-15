@@ -16,9 +16,9 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             // arrange
             var routes = new MessageRoute[]
             {
-                MessageRoute<string>.CreateWithoutTopicFilter("type1", (_, _, _, _) => null),
-                MessageRoute<string>.CreateWithTopicFilter("type1", "topic1", (_, _, _, _) => null),
-                MessageRoute<int>.CreateWithTopicFilter("type2", "topic2", (_, _, _, _) => null)
+                MessageRoute.CreateForEvent<string>("type1", (_, _, _, _) => null),
+                MessageRoute.CreateForEvent<string>("type1", "topic1", (_, _, _, _) => null),
+                MessageRoute.CreateForEvent<int>("type2", "topic2", (_, _, _, _) => null)
             };
 
             var router = new QueryRouter(routes);
@@ -46,10 +46,10 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             var collection = new QueryRouteCollection(typeof(string));
 
             // act
-            collection.AddRoute(null, MessageRoute<string>.CreateWithoutTopicFilter("type", (_, _, _, _) => null));
+            collection.AddRoute(null, MessageRoute.CreateForEvent<string>("type", (_, _, _, _) => null));
             var beforeMultipleReaders = collection.MultipleReaders;
 
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) => null, true));
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) => null, true));
             var afterMultipleReaders = collection.MultipleReaders;
 
             // assert
@@ -63,12 +63,12 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             // arrange
             var calls = new List<string>();
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute(null, MessageRoute<string>.CreateWithoutTopicFilter("type", (_, _, _, _) =>
+            collection.AddRoute(null, MessageRoute.CreateForEvent<string>("type", (_, _, _, _) =>
             {
                 calls.Add("no-topic");
                 return null;
             }));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("topic");
                 return null;
@@ -89,7 +89,7 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
         {
             // arrange
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute("other-topic", MessageRoute<string>.CreateWithTopicFilter("type", "other-topic", (_, _, _, _) => null));
+            collection.AddRoute("other-topic", MessageRoute.CreateForEvent<string>("type", "other-topic", (_, _, _, _) => null));
             collection.Build();
 
             // act
@@ -106,12 +106,12 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             // arrange
             var calls = new List<string>();
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute(null, MessageRoute<string>.CreateWithoutTopicFilter("type", (_, _, _, _) =>
+            collection.AddRoute(null, MessageRoute.CreateForEvent<string>("type", (_, _, _, _) =>
             {
                 calls.Add("no-topic");
                 return null;
             }));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("topic");
                 return null;
@@ -132,17 +132,17 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
         {
             // arrange
             var calls = new List<string>();
-            var expectedResult = CallResult.SuccessResult;
+            var expectedResult = CallResult.Ok();
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("first");
                 return expectedResult;
             }));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("second");
-                return new CallResult(null);
+                return CallResult.Ok();
             }));
             collection.Build();
 
@@ -160,17 +160,17 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
         {
             // arrange
             var calls = new List<string>();
-            var expectedResult = CallResult.SuccessResult;
+            var expectedResult = CallResult.Ok();
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("first");
                 return expectedResult;
             }, true));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("second");
-                return new CallResult(null);
+                return CallResult.Ok();
             }));
             collection.Build();
 
@@ -188,22 +188,22 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
         {
             // arrange
             var calls = new List<string>();
-            var expectedResult = CallResult.SuccessResult;
+            var expectedResult = CallResult.Ok();
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("first");
                 return null;
             }));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("second");
                 return expectedResult;
             }));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) =>
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) =>
             {
                 calls.Add("third");
-                return new CallResult(null);
+                return CallResult.Ok();
             }));
             collection.Build();
 
@@ -221,7 +221,7 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
         {
             // arrange
             var collection = new QueryRouteCollection(typeof(string));
-            collection.AddRoute("topic", MessageRoute<string>.CreateWithTopicFilter("type", "topic", (_, _, _, _) => null));
+            collection.AddRoute("topic", MessageRoute.CreateForEvent<string>("type", "topic", (_, _, _, _) => null));
             collection.Build();
 
             // act

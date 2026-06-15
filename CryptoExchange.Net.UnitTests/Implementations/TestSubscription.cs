@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
             _handler = handler;
             _subQuery = subQuery;
 
-            MessageRouter = MessageRouter.CreateWithoutTopicFilter<T>("test", HandleUpdate);
+            MessageRouter = MessageRouter.CreateForEvent<T>("test", HandleUpdate);
         }
 
         protected override Query? GetSubQuery(SocketConnection connection)
@@ -44,7 +44,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         private CallResult? HandleUpdate(SocketConnection connection, DateTime time, string? originalData, T data)
         {
             _handler(new DataEvent<T>("Test", data, time, originalData));
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
     }
 }

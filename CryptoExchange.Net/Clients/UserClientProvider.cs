@@ -100,7 +100,7 @@ namespace CryptoExchange.Net.Clients
         private TRestClient CreateRestClient(string userIdentifier, TCredentials? credentials, TEnvironment? environment)
         {
             var clientRestOptions = SetRestEnvironment(_restOptions, environment);
-            var client = ConstructRestClient(_httpClient, _loggerFactory, clientRestOptions, credentials, environment);
+            var client = ConstructRestClient(_httpClient, _loggerFactory, clientRestOptions);
             if (credentials != null)
             {
                 _restClients[userIdentifier] = client;
@@ -112,7 +112,7 @@ namespace CryptoExchange.Net.Clients
         private TSocketClient CreateSocketClient(string userIdentifier, TCredentials? credentials, TEnvironment? environment)
         {
             var clientSocketOptions = SetSocketEnvironment(_socketOptions, environment);
-            var client = ConstructSocketClient(_loggerFactory, clientSocketOptions, credentials, environment);
+            var client = ConstructSocketClient(_loggerFactory, clientSocketOptions);
             if (credentials != null)
             {
                 _socketClients[userIdentifier] = client;
@@ -127,9 +127,7 @@ namespace CryptoExchange.Net.Clients
         protected abstract TRestClient ConstructRestClient(
             HttpClient client,
             ILoggerFactory? loggerFactory,
-            IOptions<TRestOptions> options,
-            TCredentials? credentials,
-            TEnvironment? environment);
+            IOptions<TRestOptions> options);
 
 
         /// <summary>
@@ -137,9 +135,7 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected abstract TSocketClient ConstructSocketClient(
             ILoggerFactory? loggerFactory,
-            IOptions<TSocketOptions> options,
-            TCredentials? credentials,
-            TEnvironment? environment);
+            IOptions<TSocketOptions> options);
 
 
         /// <inheritdoc />

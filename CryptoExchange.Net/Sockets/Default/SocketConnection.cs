@@ -1235,7 +1235,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 {
                     UpdateRoutingTable();
 #if DEBUG
-                    //_logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
+                    _logger.LogTrace("Processor added, new routing table:\r\n" + _routingTable.ToString());
 #endif
                 }
             }
@@ -1253,7 +1253,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                //_logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
+                _logger.LogTrace("Processor removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }
@@ -1277,7 +1277,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 _listeners = updatedList.AsReadOnly();
                 UpdateRoutingTable();
 #if DEBUG
-                //_logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
+                _logger.LogTrace("Processors removed, new routing table:\r\n" + _routingTable.ToString());
 #endif
             }
         }

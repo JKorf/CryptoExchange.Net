@@ -20,8 +20,8 @@ namespace CryptoExchange.Net.UnitTests.Implementations
     {
         protected override IRestMessageHandler MessageHandler { get; } = new TestRestMessageHandler();
 
-        public TestRestApiClient(ILogger logger, HttpClient? httpClient, TestRestOptions options) 
-            : base(logger, httpClient, options.Environment.RestClientAddress, options, options.ExchangeOptions)
+        public TestRestApiClient(ILoggerFactory? loggerFactory, HttpClient? httpClient, TestRestOptions options) 
+            : base(loggerFactory, "Test", httpClient, options.Environment.RestClientAddress, options, options.ExchangeOptions)
         {
         }
 
@@ -48,14 +48,14 @@ namespace CryptoExchange.Net.UnitTests.Implementations
             RequestFactory = factory;
         }
 
-        internal async Task<WebCallResult<T>> GetResponseAsync<T>(HttpMethod? httpMethod = null, ParameterCollection? collection = null, RateLimitGate? rateLimitGate = null)
+        internal async Task<HttpResult<T>> GetResponseAsync<T>(HttpMethod? httpMethod = null, Parameters? collection = null, RateLimitGate? rateLimitGate = null)
         {
-            var definition = new RequestDefinition("/path", httpMethod ?? HttpMethod.Get)
+            var definition = new RequestDefinition(BaseAddress, "/path", httpMethod ?? HttpMethod.Get)
             {
                 Weight = rateLimitGate == null ? 0 : 1,
                 RateLimitGate = rateLimitGate
             };
-            return await SendAsync<T>(BaseAddress, definition, collection ?? new ParameterCollection(), default);
+            return await SendAsync<T>(definition, collection ?? new Parameters(new ParameterSerializationSettings()), default);
         }
 
         internal void SetParameterPosition(HttpMethod httpMethod, HttpMethodParameterPosition pos)

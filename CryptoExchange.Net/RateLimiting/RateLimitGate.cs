@@ -197,7 +197,6 @@ namespace CryptoExchange.Net.RateLimiting
         public async Task ResetAsync(
             RateLimitItemType type,
             RequestDefinition definition,
-            string host,
             string? apiKey,
             string? keySuffix,
             CancellationToken ct)
