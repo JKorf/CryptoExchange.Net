@@ -221,7 +221,7 @@ namespace CryptoExchange.Net.Clients
             PeriodicTaskRegistrations.Add(new PeriodicTaskRegistration
             {
                 Identifier = identifier,
-                Callback = ((connection, result) => callback?.Invoke(connection, result)),
+                Callback = callback,
                 Interval = interval,
                 QueryDelegate = queryDelegate
             });
@@ -632,20 +632,19 @@ namespace CryptoExchange.Net.Clients
             string? topic = null,
             int individualSubscriptionCount = 1)
         {
-            var socketQuery = _socketConnections.Where(s => s.Value.Tag.TrimEnd('/') == address.TrimEnd('/')
-                                                      && s.Value.ApiClient.GetType() == GetType()
-                                                      && (AllowTopicsOnTheSameConnection || !s.Value.Topics.Contains(topic)))
-                                                .Select(x => x.Value)
-                                                .ToList();
+            var socketQuery = _socketConnections.Where(s => s.Value.ConnectionUriString.Equals(address, StringComparison.Ordinal)
+                                                         && s.Value.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
+                                                         && (AllowTopicsOnTheSameConnection || !s.Value.Topics.Contains(topic)))
+                                                .Select(x => x.Value); // Don't ToList this so the query is executed again when called
 
             // If all current socket connections are reconnecting or resubscribing wait for that to finish as we can probably use the existing connection
             var delayStart = DateTime.UtcNow;
             var delayed = false;
-            while (socketQuery.Count >= 1 && socketQuery.All(x => x.Status == SocketStatus.Reconnecting || x.Status == SocketStatus.Resubscribing))
+            while (socketQuery.Count() >= 1 && socketQuery.All(x => x.Status == SocketStatus.Reconnecting || x.Status == SocketStatus.Resubscribing))
             {
                 if (DateTime.UtcNow - delayStart > TimeSpan.FromSeconds(10))
                 {
-                    if (socketQuery.Count >= 1 && socketQuery.All(x => x.Status == SocketStatus.Reconnecting || x.Status == SocketStatus.Resubscribing))
+                    if (socketQuery.Count() >= 1 && socketQuery.All(x => x.Status == SocketStatus.Reconnecting || x.Status == SocketStatus.Resubscribing))
                     {
                         // If after this time we still trying to reconnect/reprocess there is some issue in the connection
                         _logger.TimeoutWaitingForReconnectingSocket();
@@ -672,7 +671,10 @@ namespace CryptoExchange.Net.Clients
             SocketConnection? connection;
             if (!dedicatedRequestConnection)
             {
-                connection = socketQuery.Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection).OrderBy(s => s.UserSubscriptionCount).FirstOrDefault();
+                connection = socketQuery
+                    .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
+                    .OrderBy(s => s.UserSubscriptionCount)
+                    .FirstOrDefault();
             }
             else
             {
@@ -720,7 +722,7 @@ namespace CryptoExchange.Net.Clients
                 _logger.ConnectionAddressSetTo(connectionAddress.Data!);
 
             // Create new socket connection
-            var socketConnection = new SocketConnection(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, address);
+            var socketConnection = new SocketConnection(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this);
             socketConnection.ConnectRateLimitedAsync += HandleConnectRateLimitedAsync;
             if (dedicatedRequestConnection)
             {
@@ -764,7 +766,7 @@ namespace CryptoExchange.Net.Clients
                 _logger.ConnectionAddressSetTo(connectionAddress.Data!);
 
             // Create new socket connection
-            var socketConnection = connectionFactory.CreateHighPerfConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this, address);
+            var socketConnection = connectionFactory.CreateHighPerfConnection<TUpdateType>(_logger, SocketFactory, GetWebSocketParameters(connectionAddress.Data!), this);
             foreach (var ptg in PeriodicTaskRegistrations)
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, (con) => ptg.QueryDelegate(con).Request);
 

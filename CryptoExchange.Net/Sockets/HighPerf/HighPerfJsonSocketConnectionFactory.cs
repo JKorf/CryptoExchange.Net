@@ -22,9 +22,9 @@ namespace CryptoExchange.Net.Sockets.HighPerf
 
         /// <inheritdoc />
         public HighPerfSocketConnection<T> CreateHighPerfConnection<T>(
-            ILogger logger, IWebsocketFactory factory, WebSocketParameters parameters, SocketApiClient client, string address)
+            ILogger logger, IWebsocketFactory factory, WebSocketParameters parameters, SocketApiClient client)
         {
-            return new HighPerfJsonSocketConnection<T>(logger, factory, parameters, client, _options, address);
+            return new HighPerfJsonSocketConnection<T>(logger, factory, parameters, client, _options);
         }
     }
 }

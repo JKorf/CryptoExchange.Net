@@ -605,10 +605,9 @@ namespace CryptoExchange.Net.OrderBook
             var listToChange = type == OrderBookEntryType.Ask ? _asks : _bids;
             if (entry.Quantity == 0)
             {
-                if (!listToChange.ContainsKey(entry.Price))
+                if (!listToChange.Remove(entry.Price))
                     return true;
 
-                listToChange.Remove(entry.Price);
                 if (type == OrderBookEntryType.Ask) AskCount--;
                 else BidCount--;
             }
@@ -835,7 +834,7 @@ namespace CryptoExchange.Net.OrderBook
 
                     if (item is OrderBookSnapshot snapshot)
                         ProcessOrderBookSnapshot(snapshot);
-                    if (item is OrderBookUpdate update)
+                    else if (item is OrderBookUpdate update)
                         ProcessQueueItem(update);
                     else if (item is OrderBookChecksum checksum)
                         ProcessChecksum(checksum);
@@ -1056,10 +1055,12 @@ namespace CryptoExchange.Net.OrderBook
 
         private SequenceNumberResult ValidateLiveSequenceNumber(long sequenceNumber)
         {
-            if (sequenceNumber < LastSequenceNumber 
+            if (sequenceNumber < LastSequenceNumber
                 && (_firstUpdateAfterSnapshotDone || !_skipSequenceCheckFirstUpdateAfterSnapshotSet))
+            {
                 // Update is somehow from before the current state
                 return SequenceNumberResult.OutOfSync;
+            }
 
             if (_sequencesAreConsecutive
                 && LastSequenceNumber != 0

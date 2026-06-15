@@ -14,7 +14,7 @@ using System.Text;
 namespace CryptoExchange.Net.Clients
 {
     /// <inheritdoc />
-    public abstract class UserClientProvider<TRestClient, TSocketClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment> : IUserClientProvider<TRestClient, TSocketClient, TCredentials, TEnvironment> 
+    public abstract class UserClientProvider<TRestClient, TSocketClient, TRestOptions, TSocketOptions, TCredentials, TEnvironment>
         where TRestClient : IRestClient<TCredentials>
         where TSocketClient : ISocketClient<TCredentials>
         where TRestOptions : RestExchangeOptions<TEnvironment, TCredentials>, new()

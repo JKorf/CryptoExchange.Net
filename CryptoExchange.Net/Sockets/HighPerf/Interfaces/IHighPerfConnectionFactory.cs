@@ -15,6 +15,6 @@ namespace CryptoExchange.Net.Sockets.HighPerf.Interfaces
         /// Create a new websocket connection
         /// </summary>
         HighPerfSocketConnection<T> CreateHighPerfConnection<T>(
-            ILogger logger, IWebsocketFactory factory, WebSocketParameters parameters, SocketApiClient client, string address);
+            ILogger logger, IWebsocketFactory factory, WebSocketParameters parameters, SocketApiClient client);
     }
 }

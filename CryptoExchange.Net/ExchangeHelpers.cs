@@ -499,7 +499,7 @@ namespace CryptoExchange.Net
                 return null;            
 
             // Try parse, only fails for these reasons:
-            // 1. string is null or empty
+            // 1. string is null or empty (already covered)
             // 2. value is larger or smaller than decimal max/min
             // 3. unparsable format
             if (decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decValue))
@@ -516,7 +516,7 @@ namespace CryptoExchange.Net
             if (string.Equals("Infinity", value, StringComparison.OrdinalIgnoreCase))
                 return decimal.MaxValue;
             else if(string.Equals("-Infinity", value, StringComparison.OrdinalIgnoreCase))
-                    return decimal.MinValue;
+                return decimal.MinValue;
 
             if (value!.Length > 27 && decimal.TryParse(value.Substring(0, 27), out var overflowValue))
             {

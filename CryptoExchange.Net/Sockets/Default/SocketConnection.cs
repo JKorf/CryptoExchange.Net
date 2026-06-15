@@ -200,7 +200,7 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// Tag for identification
         /// </summary>
-        public string Tag { get; set; }
+        public string? Tag { get; set; }
 
         /// <summary>
         /// Additional properties for this connection
@@ -309,11 +309,10 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <summary>
         /// New socket connection
         /// </summary>
-        public SocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
+        public SocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient)
         {
             _logger = logger;
             ApiClient = apiClient;
-            Tag = tag;
             Properties = new Dictionary<string, object>();
 
             _socket = socketFactory.CreateWebsocket(logger, this, parameters);
@@ -401,7 +400,9 @@ namespace CryptoExchange.Net.Sockets.Default
         /// <returns></returns>
         protected virtual async Task<Uri?> GetReconnectionUrlAsync()
         {
-            return await ApiClient.GetReconnectUriAsync(this).ConfigureAwait(false);
+            var result = await ApiClient.GetReconnectUriAsync(this).ConfigureAwait(false);
+            _connectionUriString = null; // Could be changed, reset cached string
+            return result;
         }
 
         /// <summary>

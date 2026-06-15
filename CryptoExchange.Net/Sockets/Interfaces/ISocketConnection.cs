@@ -38,7 +38,7 @@ namespace CryptoExchange.Net.Sockets.Interfaces
         /// <summary>
         /// Tag
         /// </summary>
-        string Tag { get; set; }
+        string? Tag { get; set; }
         /// <summary>
         /// Closed event
         /// </summary>

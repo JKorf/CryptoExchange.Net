@@ -384,9 +384,11 @@ namespace CryptoExchange.Net.Clients
             foreach (var header in StandardRequestHeaders)
             {
                 // Only add it if it isn't overwritten
-                requestConfiguration.Headers ??= new Dictionary<string, string>();
-                if (!requestConfiguration.Headers.ContainsKey(header.Key))
+                if (requestConfiguration.Headers == null
+                    || !requestConfiguration.Headers.ContainsKey(header.Key))
+                {
                     request.AddHeader(header.Key, header.Value);
+                }
             }
 
             if (requestConfiguration.ParameterPosition == HttpMethodParameterPosition.InBody)

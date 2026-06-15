@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// Tag for identification
         /// </summary>
-        public string Tag { get; set; }
+        public string? Tag { get; set; }
 
         /// <summary>
         /// Additional properties for this connection
@@ -128,12 +128,11 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// New socket connection
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient)
         {
             _logger = logger;
             _pipe = new Pipe();
             ApiClient = apiClient;
-            Tag = tag;
             Properties = new Dictionary<string, object>();
 
             _socket = socketFactory.CreateHighPerfWebsocket(logger, parameters, _pipe.Writer);
@@ -404,8 +403,8 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// ctor
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
-            : base(logger, socketFactory, parameters, apiClient, tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient)
+            : base(logger, socketFactory, parameters, apiClient)
         {
             _typedSubscriptions = new List<HighPerfSubscription<T>>();
         }
