@@ -85,7 +85,7 @@ Each exchange documents which interfaces it implements (some exchanges don't sup
 
 ## Core Pattern: Result Handling
 
-Same as exchange-specific libraries — `WebCallResult<T>` (REST) or `CallResult<T>` (WebSocket) with `.Success`, `.Data`, `.Error`. Always check `.Success` first.
+Same as exchange-specific libraries: REST calls return `HttpResult<T>` and websocket subscription calls return `WebSocketResult<UpdateSubscription>`, both with `.Success`, `.Data`, and `.Error`. Always check `.Success` first.
 
 ```csharp
 var result = await sharedClient.GetSpotTickerAsync(new GetTickerRequest(symbol));

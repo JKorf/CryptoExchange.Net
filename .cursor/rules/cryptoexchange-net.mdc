@@ -32,7 +32,7 @@ var ticker = await binance.GetSpotTickerAsync(new GetTickerRequest(symbol));
 
 ## Result pattern
 
-Same `WebCallResult<T>` / `CallResult<T>` everywhere. Always check `.Success`. `.Exchange` property identifies which exchange responded — useful for logging.
+REST methods return `HttpResult<T>` and websocket subscription methods return `WebSocketResult<UpdateSubscription>`. Always check `.Success`. `.Exchange` property identifies which exchange responded — useful for logging.
 
 ## Available shared interfaces
 

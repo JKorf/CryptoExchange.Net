@@ -272,6 +272,8 @@ namespace CryptoExchange.Net.Clients
                 return WebSocketResult.Fail<UpdateSubscription>(Exchange, new CancellationRequestedError(tce));
             }
 
+            url = url.TrimEnd('/');
+
             try
             {
                 while (true)

@@ -125,7 +125,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Parse a string value to datetime
         /// </summary>
-        public static DateTime ParseFromString(string stringValue, string? resolverName)
+        public static DateTime? ParseFromString(string stringValue, string? resolverName)
         {
             if (stringValue!.Length == 12 && stringValue.StartsWith("202", StringComparison.OrdinalIgnoreCase))
             {

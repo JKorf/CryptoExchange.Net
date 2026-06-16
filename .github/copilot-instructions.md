@@ -30,7 +30,7 @@ For Binance-only code, use `BinanceRestClient` directly (see Binance.Net repo `A
 
 ## Result pattern
 
-Every method returns `WebCallResult<T>` or `CallResult<T>`. Check `.Success` before `.Data`. `.Error` has structured info. `.Exchange` on shared clients identifies which exchange responded.
+REST methods return `HttpResult<T>` and websocket subscription methods return `WebSocketResult<UpdateSubscription>`. Check `.Success` before `.Data`. `.Error` has structured info. `.Exchange` on shared clients identifies which exchange responded.
 
 ## Available shared interfaces
 
