@@ -67,10 +67,12 @@ namespace CryptoExchange.Net.Objects
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
             {
-                return BodyParameters ?? new Parameters(ParameterSerializationSettings.Default);
+                BodyParameters ??= new Parameters(ParameterSerializationSettings.Default);
+                return BodyParameters;
             }
 
-            return QueryParameters ?? new Parameters(ParameterSerializationSettings.Default);
+            QueryParameters ??= new Parameters(ParameterSerializationSettings.Default);
+            return QueryParameters;
         }
 
         /// <summary>
