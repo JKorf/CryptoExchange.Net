@@ -60,7 +60,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _unknownExceptionWhileProcessingReconnection = LoggerMessage.Define<int>(
                 LogLevel.Warning,
                 new EventId(2003, "UnknownExceptionWhileProcessingReconnection"),
-                "[Sckt {SocketId}] Unknown exception while processing reconnection, reconnecting again");
+                "[Sckt {SocketId}] unknown exception while processing reconnection, reconnecting again");
 
             _webSocketErrorCodeAndDetails = LoggerMessage.Define<int, WebSocketError, string?>(
                 LogLevel.Warning,

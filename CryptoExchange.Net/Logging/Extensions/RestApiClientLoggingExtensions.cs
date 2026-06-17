@@ -28,67 +28,67 @@ namespace CryptoExchange.Net.Logging.Extensions
             _restApiErrorReceived = LoggerMessage.Define<int?, int?, long, string?, string?>(
                 LogLevel.Warning,
                 new EventId(4000, "RestApiErrorReceived"),
-                "[Req {RequestId}] {ResponseStatusCode} - Error received in {ResponseTime}ms: {ErrorMessage}, Data: {OriginalData}");
+                "[Req {RequestId}] {ResponseStatusCode} - error received in {ResponseTime}ms: {ErrorMessage}, Data: {OriginalData}");
 
             _restApiResponseReceived = LoggerMessage.Define<int?, int?, long, string?>(
                 LogLevel.Debug,
                 new EventId(4001, "RestApiResponseReceived"),
-                "[Req {RequestId}] {ResponseStatusCode} - Response received in {ResponseTime}ms: {OriginalData}");
+                "[Req {RequestId}] {ResponseStatusCode} - response received in {ResponseTime}ms: {OriginalData}");
 
             _restApiFailedToSyncTime = LoggerMessage.Define<int, string>(
                 LogLevel.Debug,
                 new EventId(4002, "RestApiFailedToSyncTime"),
-                "[Req {RequestId}] Failed to sync time, aborting request: {ErrorMessage}");
+                "[Req {RequestId}] failed to sync time, aborting request: {ErrorMessage}");
 
             _restApiNoApiCredentials = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,
                 new EventId(4003, "RestApiNoApiCredentials"),
-                "[Req {RequestId}] Request {RestApiUri} failed because no ApiCredentials were provided");
+                "[Req {RequestId}] request {RestApiUri} failed because no ApiCredentials were provided");
 
             _restApiCreatingRequest = LoggerMessage.Define<int, Uri>(
                 LogLevel.Information,
                 new EventId(4004, "RestApiCreatingRequest"),
-                "[Req {RequestId}] Creating request for {RestApiUri}");
+                "[Req {RequestId}] creating request for {RestApiUri}");
 
             _restApiSendingRequest = LoggerMessage.Define<int, HttpMethod, string, Uri, string>(
                 LogLevel.Trace,
                 new EventId(4005, "RestApiSendingRequest"),
-                "[Req {RequestId}] Sending {Method} {Signed} request to {RestApiUri}{Query}");
+                "[Req {RequestId}] sending {Method} {Signed} request to {RestApiUri}{Query}");
 
             _restApiRateLimitRetry = LoggerMessage.Define<int, DateTime>(
                 LogLevel.Warning,
                 new EventId(4006, "RestApiRateLimitRetry"),
-                "[Req {RequestId}] Received ratelimit error, retrying after {Timestamp}");
+                "[Req {RequestId}] received ratelimit error, retrying after {Timestamp}");
 
             _restApiRateLimitPauseUntil = LoggerMessage.Define<int, DateTime>(
                 LogLevel.Warning,
                 new EventId(4007, "RestApiRateLimitPauseUntil"),
-                "[Req {RequestId}] Ratelimit error from server, pausing requests until {Until}");
+                "[Req {RequestId}] ratelimit error from server, pausing requests until {Until}");
 
             _restApiSendRequest = LoggerMessage.Define<int, RequestDefinition, string?, string, string>(
                 LogLevel.Debug,
                 new EventId(4008, "RestApiSendRequest"),
-                "[Req {RequestId}] Sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}");
+                "[Req {RequestId}] sending {Definition} request with body {Body}, query parameters {Query} and headers {Headers}");
 
             _restApiCheckingCache = LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 new EventId(4009, "RestApiCheckingCache"),
-                "Checking cache for key {Key}");
+                "checking cache for key {Key}");
 
             _restApiCacheHit = LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 new EventId(4010, "RestApiCacheHit"),
-                "Cache hit for key {Key}");
+                "cache hit for key {Key}");
 
             _restApiCacheNotHit = LoggerMessage.Define<string>(
                 LogLevel.Trace,
                 new EventId(4011, "RestApiCacheNotHit"),
-                "Cache not hit for key {Key}");
+                "cache not hit for key {Key}");
 
             _restApiCancellationRequested = LoggerMessage.Define<int?>(
                 LogLevel.Debug,
                 new EventId(4012, "RestApiCancellationRequested"),
-                "[Req {RequestId}] Request cancelled by user");
+                "[Req {RequestId}] request cancelled by user");
             
         }
 

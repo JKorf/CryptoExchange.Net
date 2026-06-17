@@ -18,32 +18,32 @@ namespace CryptoExchange.Net.Logging.Extensions
             _rateLimitRequestFailed = LoggerMessage.Define<int, string, string, string>(
                 LogLevel.Warning,
                 new EventId(6000, "RateLimitRequestFailed"),
-                "[Req {Id}] Call to {Path} failed because of ratelimit guard {Guard}; {Limit}");
+                "[Req {Id}] call to {Path} failed because of ratelimit guard {Guard}; {Limit}");
 
             _rateLimitConnectionFailed = LoggerMessage.Define<int, string, string>(
                 LogLevel.Warning,
                 new EventId(6001, "RateLimitConnectionFailed"),
-                "[Sckt {Id}] Connection failed because of ratelimit guard {Guard}; {Limit}");
+                "[Sckt {Id}] connection failed because of ratelimit guard {Guard}; {Limit}");
 
             _rateLimitDelayingRequest = LoggerMessage.Define<int, string, TimeSpan, string, string>(
                 LogLevel.Warning,
                 new EventId(6002, "RateLimitDelayingRequest"),
-                "[Req {Id}] Delaying call to {Path} by {Delay} because of ratelimit guard {Guard}; {Limit}");
+                "[Req {Id}] delaying call to {Path} by {Delay} because of ratelimit guard {Guard}; {Limit}");
 
             _rateLimitDelayingConnection = LoggerMessage.Define<int, TimeSpan, string, string>(
                 LogLevel.Warning,
                 new EventId(6003, "RateLimitDelayingConnection"),
-                "[Sckt {Id}] Delaying connection by {Delay} because of ratelimit guard {Guard}; {Limit}");
+                "[Sckt {Id}] delaying connection by {Delay} because of ratelimit guard {Guard}; {Limit}");
 
             _rateLimitAppliedConnection = LoggerMessage.Define<int, string, string, int>(
                 LogLevel.Trace,
                 new EventId(6004, "RateLimitDelayingConnection"),
-                "[Sckt {Id}] Connection passed ratelimit guard {Guard}; {Limit}, New count: {Current}");
+                "[Sckt {Id}] connection passed ratelimit guard {Guard}; {Limit}, New count: {Current}");
 
             _rateLimitAppliedRequest = LoggerMessage.Define<int, string, string, string, int>(
                 LogLevel.Trace,
                 new EventId(6005, "RateLimitAppliedRequest"),
-                "[Req {Id}] Call to {Path} passed ratelimit guard {Guard}; {Limit}, New count: {Current}");
+                "[Req {Id}] call to {Path} passed ratelimit guard {Guard}; {Limit}, New count: {Current}");
         }
 
         public static void RateLimitRequestFailed(this ILogger logger, int requestId, string path, string guard, string limit)
