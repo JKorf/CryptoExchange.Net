@@ -173,10 +173,11 @@ namespace CryptoExchange.Net.Sockets.Default
                 if (_connectionUriString != null)
                     return _connectionUriString;
 
-                _connectionUriString = ConnectionUri.ToString().TrimEnd('/');
+                _connectionUriString = ConnectionUri.OriginalString.TrimEnd('/');
                 return _connectionUriString;
             }
         }
+
         /// <summary>
         /// The connection uri
         /// </summary>

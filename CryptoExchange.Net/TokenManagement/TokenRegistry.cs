@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.TokenManagement
             if (string.IsNullOrEmpty(scope.ApiKey))
                 return CallResult.Fail<TokenLease>(new NoApiCredentialsError());
 
-            _logger.LogDebug("Acquiring token lease for scope {Scope}", scope.ToString());
+            _logger.LogTrace("Acquiring token lease for scope {Scope}", scope.ToString());
 
             ManagedToken? existing;
             var ownerId = Guid.NewGuid();
@@ -48,7 +48,7 @@ namespace CryptoExchange.Net.TokenManagement
                     && existing.Info.Status == TokenStatus.Valid
                     && existing.Info.ValidUntil > DateTime.UtcNow)
                 {
-                    _logger.LogDebug("Existing token found for scope {Scope}, now {Count} leases", scope.ToString(), existing.RefCount + 1);
+                    _logger.LogTrace("Existing token found for scope {Scope}, now {Count} leases", scope.ToString(), existing.RefCount + 1);
                     existing.RefCount++;
                     existing.Owners[ownerId] = operations;
 
@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.TokenManagement
                 _tokens[scope.Id] = token;
 
                 EnsureKeepAliveLoop(logger);
-                _logger.LogDebug("Token lease for {Scope}, token {Token} acquired, valid until {ValidUntil}", scope.ToString(), info.Token, info.ValidUntil);
+                _logger.LogTrace("Token lease for {Scope}, token {Token} acquired, valid until {ValidUntil}", scope.ToString(), info.Token, info.ValidUntil);
                 return CallResult.Ok(new TokenLease(this, scope, ownerId, info));
             }
             finally
@@ -139,7 +139,7 @@ namespace CryptoExchange.Net.TokenManagement
                 if (!token.Owners.TryGetValue(lease.OwnerId, out stopOperations))
                     return; // Lease belongs to an old/replaced token; don't touch current token.
 
-                _logger.LogDebug("Releasing token lease for {Scope}, token {Token}. {Count} leases left", lease.Scope.ToString(), lease.Token.Token, token.RefCount - 1);
+                _logger.LogTrace("Releasing token lease for {Scope}, token {Token}. {Count} leases left", lease.Scope.ToString(), lease.Token.Token, token.RefCount - 1);
 
                 token.Owners.Remove(lease.OwnerId);
                 token.RefCount--;
@@ -211,7 +211,7 @@ namespace CryptoExchange.Net.TokenManagement
                     }
 
                     if (dueTokens.Count > 0) 
-                        logger.LogDebug("Keeping alive {Count} tokens", dueTokens.Count);
+                        logger.LogTrace("Keeping alive {Count} tokens", dueTokens.Count);
 
                     var expiredTokens = new List<TokenInfo>();
                     foreach (var item in dueTokens)
@@ -242,12 +242,15 @@ namespace CryptoExchange.Net.TokenManagement
                                     expiredTokens.Add(current.Info);
 
                                     if (_tokens.Count == 0)
+                                    {
+                                        logger.LogDebug("All tokens expired, stopping keep alive loop");
                                         StopKeepAliveLoop();
+                                    }
                                 }
                                 else
                                 {
                                     // TODO Some smarter way to determine next refresh time based on the remaining valid time
-                                    current.Info.NextRefreshTime = DateTime.UtcNow.Add(TimeSpan.FromMinutes(5));
+                                    current.Info.NextRefreshTime = DateTime.UtcNow.AddSeconds(Math.Min(TimeSpan.FromMinutes(5).TotalSeconds, current.Info.RefreshInterval.TotalSeconds));
                                 }
                             }
                         }
@@ -270,7 +273,7 @@ namespace CryptoExchange.Net.TokenManagement
                 }
             }
 
-            logger.LogDebug("Keep alive loop stopped");
+            logger.LogTrace("Keep alive loop stopped");
         }
 
         private sealed class ManagedToken
