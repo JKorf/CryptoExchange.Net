@@ -8,7 +8,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
@@ -284,6 +286,35 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             }
 
             return CallResult.Ok();
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<T> StreamUpdatesAsync([EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var updateQueue = Channel.CreateUnbounded<UserDataUpdate<T[]>>();
+            async Task OnUpdateHandler(UserDataUpdate<T[]> update)
+            {
+                await updateQueue.Writer.WriteAsync(update, ct).ConfigureAwait(false);
+            }
+            OnUpdate += OnUpdateHandler;
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    UserDataUpdate<T[]> update;
+                    try
+                    {
+                        update = await updateQueue.Reader.ReadAsync(ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { break; }
+                    foreach (var item in update.Data)
+                        yield return item;
+                }
+            }
+            finally
+            {
+                OnUpdate -= OnUpdateHandler;
+            }
         }
 
         /// <summary>

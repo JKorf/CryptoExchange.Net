@@ -2,6 +2,8 @@
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.Interfaces
@@ -30,5 +32,11 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// On data update
         /// </summary>
         event Func<UserDataUpdate<T[]>, Task>? OnUpdate;
+
+        /// <summary>
+        /// Stream updates as they are received
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        IAsyncEnumerable<T> StreamUpdatesAsync(CancellationToken ct = default);
     }
 }
