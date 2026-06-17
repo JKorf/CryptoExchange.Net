@@ -6,19 +6,12 @@
     public record SubscribeSpotOrderRequest : SharedRequest
     {
         /// <summary>
-        /// The listen key, needed for some exchanges. Can be obtained by the StartListenKeyAsync on the shared rest client
-        /// </summary>
-        public string? ListenKey { get; set; }
-
-        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="listenKey">Listen key, needed for some exchanges. Can be obtained by the StartListenKeyAsync on the shared rest client</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeSpotOrderRequest(string? listenKey = null, ExchangeParameters? exchangeParameters = null) 
+        public SubscribeSpotOrderRequest(ExchangeParameters? exchangeParameters = null) 
             : base(SharedApis.TradingMode.Spot, exchangeParameters)
         {
-            ListenKey = listenKey;
         }
     }
 }

@@ -130,8 +130,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Start the tracker
         /// </summary>
-        /// <param name="listenKey">Optional listen key</param>
-        public abstract Task<CallResult> StartAsync(string? listenKey);
+        public abstract Task<CallResult> StartAsync();
 
         /// <summary>
         /// Stop the tracker
@@ -264,12 +263,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        public async override Task<CallResult> StartAsync(string? listenKey)
+        public async override Task<CallResult> StartAsync()
         {
             _startTime = DateTime.UtcNow;
             _cts = new CancellationTokenSource();
 
-            var start = await SubscribeAsync(listenKey).ConfigureAwait(false);
+            var start = await SubscribeAsync().ConfigureAwait(false);
             if (!start.Success)
                 return start;
 
@@ -290,9 +289,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Subscribe the websocket
         /// </summary>
-        public async Task<CallResult> SubscribeAsync(string? listenKey)
+        public async Task<CallResult> SubscribeAsync()
         {
-            var subscriptionResult = await DoSubscribeAsync(listenKey).ConfigureAwait(false);
+            var subscriptionResult = await DoSubscribeAsync().ConfigureAwait(false);
             if (!subscriptionResult.Success)
             {
                 // Failed
@@ -410,7 +409,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Websocket subscription implementation
         /// </summary>
-        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey);
+        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync();
 
         /// <summary>
         /// Polling task

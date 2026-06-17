@@ -206,13 +206,13 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override bool? CheckIfUpdateShouldBeApplied(SharedPosition existingItem, SharedPosition updateItem) => true;
 
         /// <inheritdoc />
-        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey)
+        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync()
         {
             if (_socketClient == null)
                 return Task.FromResult(new WebSocketResult<UpdateSubscription?>(_exchange!, default!, default));
 
             return ExchangeHelpers.ProcessQueuedAsync<SharedPosition[]>(
-                async handler => await _socketClient.SubscribeToPositionUpdatesAsync(new SubscribePositionRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
+                async handler => await _socketClient.SubscribeToPositionUpdatesAsync(new SubscribePositionRequest(exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }
 

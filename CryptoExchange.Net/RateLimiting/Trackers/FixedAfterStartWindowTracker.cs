@@ -30,11 +30,27 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
-        public void Reset()
+        public void Reset(int? amount)
         {
-            _entries.Clear();
-            _currentWeight = 0;
-            _nextReset = null;
+            if (amount == null)
+            {
+                _entries.Clear();
+                _currentWeight = 0;
+                _nextReset = null;
+            }
+            else
+            {
+                _currentWeight = Math.Max(0, _currentWeight - amount.Value);
+                var removedWeight = 0;
+                while (true)
+                {
+                    var lastEntry = _entries.Dequeue();
+                    removedWeight += lastEntry.Weight;
+
+                    if (removedWeight >= amount.Value || _entries.Count == 0)
+                        break;
+                }
+            }
         }
 
         public TimeSpan GetWaitTime(int weight)

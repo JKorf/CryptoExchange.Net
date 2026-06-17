@@ -46,12 +46,6 @@ namespace CryptoExchange.Net.SharedApis
             }
             if (client is IKlineRestClient klineClient)
                 result.Add(klineClient.GetKlinesOptions);
-            if (client is IListenKeyRestClient listenKeyClient)
-            {
-                result.Add(listenKeyClient.StartOptions);
-                result.Add(listenKeyClient.KeepAliveOptions);
-                result.Add(listenKeyClient.StopOptions);
-            }
             if (client is IOrderBookRestClient orderBookClient)
                 result.Add(orderBookClient.GetOrderBookOptions);
             if (client is IRecentTradeRestClient recentTradeClient)

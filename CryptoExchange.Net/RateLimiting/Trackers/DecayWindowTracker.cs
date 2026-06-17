@@ -27,10 +27,17 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
-        public void Reset()
+        public void Reset(int? amount)
         {
-            _currentWeight = 0;
-            _lastDecrease = DateTime.UtcNow;
+            if (amount == null)
+            {
+                _lastDecrease = DateTime.UtcNow;
+                _currentWeight = 0;
+            }
+            else
+            {
+                _currentWeight = Math.Max(0, _currentWeight - amount.Value);
+            }
         }
 
         /// <inheritdoc />

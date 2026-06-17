@@ -21,10 +21,6 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         protected readonly ILogger _logger;
         /// <summary>
-        /// Listen key to use for subscriptions
-        /// </summary>
-        protected string? _listenKey;
-        /// <summary>
         /// Cts
         /// </summary>
         protected CancellationTokenSource? _cts;
@@ -94,7 +90,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             var tasks = new List<Task<CallResult>>();
             foreach (var dataTracker in DataTrackers)
-                tasks.Add(dataTracker.StartAsync(_listenKey));
+                tasks.Add(dataTracker.StartAsync());
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
             if (!tasks.All(x => x.Result.Success))

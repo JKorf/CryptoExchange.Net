@@ -173,7 +173,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix)
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix, int? amount)
         {
             foreach (var filter in _filters)
             {
@@ -190,7 +190,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
                 if (!_trackers.TryGetValue(key, out var tracker))
                     return;
 
-                tracker.Reset();
+                tracker.Reset(amount);
             }
             finally
             {

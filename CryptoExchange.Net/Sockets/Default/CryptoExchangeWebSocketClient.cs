@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.Sockets.Default
                         return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
 
-                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
+                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(60));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token, ct);
                 await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
             }
@@ -236,6 +236,15 @@ namespace CryptoExchange.Net.Sockets.Default
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
                         return CallResult.Fail(new ServerRateLimitError(we.Message, we));
+                    }
+
+                    if (_socket.HttpStatusCode == 0)
+                    {
+                        // No HTTP response, so request probably didn't reach the server. Don't count towards rate limit
+                        if (Parameters.RateLimiter != null)
+                        {
+                            await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Connection, _requestDefinition, null, null, 1, default).ConfigureAwait(false);
+                        }
                     }
 
                     if (_socket.HttpStatusCode == HttpStatusCode.Unauthorized)
@@ -298,7 +307,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
 
                 if (Parameters.RateLimiter != null)
-                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, null, null, default).ConfigureAwait(false);
+                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, null, null, null, default).ConfigureAwait(false);
 
                 // Delay here to prevent very rapid looping when a connection to the server is accepted and immediately disconnected
                 var initialDelay = GetReconnectDelay();

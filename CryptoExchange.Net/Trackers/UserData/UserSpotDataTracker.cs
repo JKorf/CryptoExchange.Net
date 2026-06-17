@@ -17,9 +17,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     public class UserSpotDataTracker : UserDataTracker, IUserSpotDataTracker
     {
         private readonly ISpotSymbolRestClient _symbolClient;
-        private readonly IListenKeyRestClient? _listenKeyClient;
         private readonly ExchangeParameters? _exchangeParameters;
-        private Task? _lkKeepAliveTask;
 
         /// <inheritdoc />
         protected override UserDataItemTracker[] DataTrackers { get; } 
@@ -36,7 +34,6 @@ namespace CryptoExchange.Net.Trackers.UserData
         public UserSpotDataTracker(
             ILogger logger,
             ISpotSymbolRestClient symbolRestClient,
-            IListenKeyRestClient? listenKeyRestClient,
             IBalanceRestClient balanceRestClient,
             IBalanceSocketClient? balanceSocketClient,
             ISpotOrderRestClient spotOrderRestClient,
@@ -48,7 +45,6 @@ namespace CryptoExchange.Net.Trackers.UserData
         {
             // create trackers
             _symbolClient = symbolRestClient;
-            _listenKeyClient = listenKeyRestClient;
             _exchangeParameters = exchangeParameters;
 
             var trackers = new List<UserDataItemTracker>();
@@ -84,48 +80,7 @@ namespace CryptoExchange.Net.Trackers.UserData
                 return CallResult.Fail(symbolResult.Error);
             }
 
-            if (_listenKeyClient != null)
-            {
-                var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-                if (!lkResult.Success)
-                {
-                    _logger.LogWarning("Failed to start UserSpotDataTracker; listen key request failed: {Error}", lkResult.Error);
-                    return CallResult.Fail(lkResult.Error);
-                }
-
-                _lkKeepAliveTask = KeepAliveListenKeyAsync();
-
-                _listenKey = lkResult.Data;
-            }
-
             return CallResult.Ok();
-        }
-
-        /// <inheritdoc />
-        protected override async Task DoStopAsync()
-        {
-            if (_lkKeepAliveTask != null)
-                await _lkKeepAliveTask.ConfigureAwait(false);
-        }
-
-        private async Task KeepAliveListenKeyAsync()
-        {
-            var interval = TimeSpan.FromMinutes(30);
-            while (!_cts!.IsCancellationRequested)
-            {
-                try { await Task.Delay(interval, _cts.Token).ConfigureAwait(false); } 
-                catch (Exception)
-                {
-                    break;
-                }
-
-                var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, TradingMode.Spot)).ConfigureAwait(false);
-                if (!result.Success)
-                    _logger.LogWarning("Listen key keep alive failed: " + result.Error);
-
-                // If failed shorten the delay to allow a couple more retries
-                interval = result.Success ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
-            }
         }
 
         /// <summary>

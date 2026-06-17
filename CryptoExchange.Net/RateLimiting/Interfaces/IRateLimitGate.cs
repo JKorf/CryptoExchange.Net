@@ -80,12 +80,14 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <param name="definition">The request definition</param>
         /// <param name="apiKey">The API key</param>
         /// <param name="keySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
+        /// <param name="amount">Amount in weight to reset by, or null to set used rate limit to 0</param>
         /// <param name="ct">Cancelation token</param>
         Task ResetAsync(
             RateLimitItemType type,
             RequestDefinition definition,
             string? apiKey,
             string? keySuffix,
+            int? amount,
             CancellationToken ct);
     }
 }

@@ -65,7 +65,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         protected override bool? CheckIfUpdateShouldBeApplied(SharedBalance existingItem, SharedBalance updateItem) => true;
 
         /// <inheritdoc />
-        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey)
+        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync()
         {
             if (_socketClient == null)
                 return Task.FromResult(new WebSocketResult<UpdateSubscription?>(default!, default!, default));
@@ -76,7 +76,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                               _accountType == SharedAccountType.DeliveryInverseFutures ? TradingMode.DeliveryInverse :
                               TradingMode.PerpetualLinear;
             return ExchangeHelpers.ProcessQueuedAsync<SharedBalance[]>(
-                async handler => await _socketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(listenKey, accountType, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
+                async handler => await _socketClient.SubscribeToBalanceUpdatesAsync(new SubscribeBalancesRequest(accountType, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }
 

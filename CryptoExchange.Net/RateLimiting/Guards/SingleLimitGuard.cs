@@ -90,13 +90,13 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix)
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix, int? amount)
         {
             var key = _keySelector(definition, apiKey) + keySuffix;
             if (!_trackers.TryGetValue(key, out var tracker))
                 return;
 
-            tracker.Reset();
+            tracker.Reset(amount);
         }
     }
 }

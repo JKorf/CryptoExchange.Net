@@ -379,8 +379,6 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IDepositRestClient)client(x)!);
             if (typeof(IKlineRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IKlineRestClient)client(x)!);
-            if (typeof(IListenKeyRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IListenKeyRestClient)client(x)!);
             if (typeof(IOrderBookRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IOrderBookRestClient)client(x)!);
             if (typeof(IRecentTradeRestClient).IsAssignableFrom(typeof(T)))

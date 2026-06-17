@@ -199,13 +199,14 @@ namespace CryptoExchange.Net.RateLimiting
             RequestDefinition definition,
             string? apiKey,
             string? keySuffix,
+            int? amount,
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 foreach (var guard in _guards)
-                    guard.Reset(type, definition, apiKey, keySuffix);
+                    guard.Reset(type, definition, apiKey, keySuffix, amount);
             }
             finally
             {
