@@ -401,7 +401,7 @@ namespace CryptoExchange.Net.Clients
                 }
                 else
                 {
-                    if (requestConfiguration.BodyParameters != null && (requestConfiguration.BodyParameters.Count != 0 || requestConfiguration.BodyParameters.BodyValue != null))
+                    if (requestConfiguration.BodyParameters != null && !requestConfiguration.BodyParameters.Empty)
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
                     else if (OmitContentTypeHeaderWithoutContent != true)
                         request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);

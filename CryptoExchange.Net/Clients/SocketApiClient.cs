@@ -272,8 +272,6 @@ namespace CryptoExchange.Net.Clients
                 return WebSocketResult.Fail<UpdateSubscription>(Exchange, new CancellationRequestedError(tce));
             }
 
-            url = url.TrimEnd('/');
-
             try
             {
                 while (true)
@@ -634,7 +632,7 @@ namespace CryptoExchange.Net.Clients
             string? topic = null,
             int individualSubscriptionCount = 1)
         {
-            var socketQuery = _socketConnections.Where(s => s.Value.ConnectionUriString.Equals(address, StringComparison.Ordinal)
+            var socketQuery = _socketConnections.Where(s => s.Value.ConnectionUriString.Equals(address.TrimEnd('/'), StringComparison.Ordinal)
                                                          && s.Value.ApiClient.ClientName.Equals(ClientName, StringComparison.Ordinal)
                                                          && (AllowTopicsOnTheSameConnection || !s.Value.Topics.Contains(topic)))
                                                 .Select(x => x.Value); // Don't ToList this so the query is executed again when called

@@ -34,6 +34,11 @@ namespace CryptoExchange.Net.Objects
         /// <inheritdoc />
         public bool IsReadOnly => _parameters.IsReadOnly;
 
+        /// <summary>
+        /// Whether any parameters are defined
+        /// </summary>
+        public bool Empty => _parameters.Count == 0 && _value == null;
+
         /// <inheritdoc />
         public object this[string key] { get => _parameters[key]; set => _parameters[key] = value; }
 
