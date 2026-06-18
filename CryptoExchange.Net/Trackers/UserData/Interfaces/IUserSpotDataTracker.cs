@@ -3,6 +3,7 @@ using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.Interfaces
@@ -26,6 +27,11 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// Exchange name
         /// </summary>
         public string Exchange { get; }
+
+        /// <summary>
+        /// Whether the tracker was started
+        /// </summary>
+        public bool Started { get; }
 
         /// <summary>
         /// Currently tracked symbols. Data for these symbols will be requested when polling. 
@@ -55,7 +61,7 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// <summary>
         /// Start tracking user data
         /// </summary>
-        Task<CallResult> StartAsync();
+        Task<CallResult> StartAsync(CancellationToken ct = default);
         /// <summary>
         /// Stop tracking data
         /// </summary>

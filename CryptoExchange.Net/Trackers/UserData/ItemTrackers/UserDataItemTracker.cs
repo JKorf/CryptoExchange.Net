@@ -132,7 +132,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Start the tracker
         /// </summary>
-        public abstract Task<CallResult> StartAsync();
+        public abstract Task<CallResult> StartAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Stop the tracker
@@ -265,12 +265,12 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        public async override Task<CallResult> StartAsync()
+        public async override Task<CallResult> StartAsync(CancellationToken ct = default)
         {
             _startTime = DateTime.UtcNow;
             _cts = new CancellationTokenSource();
 
-            var start = await SubscribeAsync().ConfigureAwait(false);
+            var start = await SubscribeAsync(ct).ConfigureAwait(false);
             if (!start.Success)
                 return start;
 
@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
             _pollTask = PollAsync();
 
-            await _initialPollDoneEvent.WaitAsync().ConfigureAwait(false);
+            await _initialPollDoneEvent.WaitAsync(ct: ct).ConfigureAwait(false);
             if (_initialPollingError != null)
             {
                 await StopAsync().ConfigureAwait(false);
@@ -289,7 +289,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<T> StreamUpdatesAsync([EnumeratorCancellation] CancellationToken ct = default)
+        public async IAsyncEnumerable<UserDataUpdate<T[]>> StreamUpdatesAsync([EnumeratorCancellation] CancellationToken ct = default)
         {
             var updateQueue = Channel.CreateUnbounded<UserDataUpdate<T[]>>();
             async Task OnUpdateHandler(UserDataUpdate<T[]> update)
@@ -307,8 +307,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                         update = await updateQueue.Reader.ReadAsync(ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { break; }
-                    foreach (var item in update.Data)
-                        yield return item;
+                    yield return update;
                 }
             }
             finally
@@ -320,8 +319,11 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Subscribe the websocket
         /// </summary>
-        public async Task<CallResult> SubscribeAsync()
+        public async Task<CallResult> SubscribeAsync(CancellationToken ct = default)
         {
+            if (ct.IsCancellationRequested)
+                return CallResult.Fail(new CancellationRequestedError());
+
             var subscriptionResult = await DoSubscribeAsync().ConfigureAwait(false);
             if (!subscriptionResult.Success)
             {

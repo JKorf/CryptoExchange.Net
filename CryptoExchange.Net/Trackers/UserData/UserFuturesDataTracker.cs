@@ -1,14 +1,15 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Trackers.UserData.Interfaces;
+using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
+using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using System.Linq;
-using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
-using CryptoExchange.Net.Trackers.UserData.Interfaces;
-using CryptoExchange.Net.Trackers.UserData.Objects;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData
 {
@@ -99,9 +100,9 @@ namespace CryptoExchange.Net.Trackers.UserData
         }
 
         /// <inheritdoc />
-        protected override async Task<CallResult> DoStartAsync()
+        protected override async Task<CallResult> DoStartAsync(CancellationToken ct = default)
         {
-            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(_tradingMode, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(_tradingMode, exchangeParameters: _exchangeParameters), ct).ConfigureAwait(false);
             if (!symbolResult.Success)
             {
                 _logger.LogWarning("Failed to start UserFuturesDataTracker; symbols request failed: {Error}", symbolResult.Error);

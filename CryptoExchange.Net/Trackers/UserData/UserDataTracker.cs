@@ -38,6 +38,9 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// <inheritdoc />
         public string? UserIdentifier { get; }
 
+        /// <inheritdoc />
+        public bool Started { get; set; }
+
         /// <summary>
         /// Connected status changed
         /// </summary>
@@ -77,20 +80,24 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// <summary>
         /// Start the data tracker
         /// </summary>
-        public async Task<CallResult> StartAsync()
+        public async Task<CallResult> StartAsync(CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                return CallResult.Fail(new CancellationRequestedError());
+
             _cts = new CancellationTokenSource();
+            Started = true;
 
             foreach(var tracker in DataTrackers)
                 tracker.OnConnectedChange += (x) => OnConnectedChange?.Invoke(tracker.DataType, x);            
 
-            var result = await DoStartAsync().ConfigureAwait(false);
+            var result = await DoStartAsync(ct).ConfigureAwait(false);
             if (!result.Success)
                 return result;
 
             var tasks = new List<Task<CallResult>>();
             foreach (var dataTracker in DataTrackers)
-                tasks.Add(dataTracker.StartAsync());
+                tasks.Add(dataTracker.StartAsync(ct));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
             if (!tasks.All(x => x.Result.Success))
@@ -105,7 +112,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// <summary>
         /// Implementation specific start logic
         /// </summary>
-        protected abstract Task<CallResult> DoStartAsync();
+        protected abstract Task<CallResult> DoStartAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Stop the data tracker

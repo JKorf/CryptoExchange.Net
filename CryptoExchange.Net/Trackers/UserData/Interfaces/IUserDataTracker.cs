@@ -37,6 +37,6 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// Stream updates as they are received
         /// </summary>
         /// <param name="ct">Cancellation token</param>
-        IAsyncEnumerable<T> StreamUpdatesAsync(CancellationToken ct = default);
+        IAsyncEnumerable<UserDataUpdate<T[]>> StreamUpdatesAsync(CancellationToken ct = default);
     }
 }
