@@ -1154,13 +1154,18 @@ namespace CryptoExchange.Net.Clients
         where TApiCredentials : ApiCredentials
         where TEnvironment : TradeEnvironment
     {
-
-        private bool _authProviderInitialized = false;
-        private TAuthenticationProvider? _authenticationProvider;
+        /// <summary>
+        /// Auth provider initialized field
+        /// </summary>
+        protected bool _authProviderInitialized = false;
+        /// <summary>
+        /// Auth provider field
+        /// </summary>
+        protected TAuthenticationProvider? _authenticationProvider;
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public TAuthenticationProvider? AuthenticationProvider
+        public virtual TAuthenticationProvider? AuthenticationProvider
         {
             get
             {
@@ -1174,7 +1179,7 @@ namespace CryptoExchange.Net.Clients
 
                 return _authenticationProvider;
             }
-            internal set => _authenticationProvider = value;
+            protected internal set => _authenticationProvider = value;
         }
 
         /// <inheritdoc />

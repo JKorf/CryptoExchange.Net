@@ -53,15 +53,21 @@ namespace CryptoExchange.Net.SharedApis
         public decimal? Fee { get; set; }
 
         /// <summary>
+        /// Status of the deposit
+        /// </summary>
+        public SharedTransferStatus Status { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        public SharedWithdrawal(string asset, string address, decimal quantity, bool completed, DateTime timestamp)
+        public SharedWithdrawal(string asset, string address, decimal quantity, bool completed, DateTime timestamp, SharedTransferStatus status)
         {
             Asset = asset;
             Address = address;
             Quantity = quantity;
             Completed = completed;
             Timestamp = timestamp;
+            Status = status;
         }
     }
 
