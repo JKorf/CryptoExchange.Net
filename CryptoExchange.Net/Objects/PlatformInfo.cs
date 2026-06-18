@@ -33,11 +33,23 @@
         /// Centralization type
         /// </summary>
         public CentralizationType CentralizationType { get; }
+        /// <summary>
+        /// Supported environments
+        /// </summary>
+        public string[] SupportedEnvironments { get; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public PlatformInfo(string id, string displayName, string logo, string url, string[] apiDocsUrl, PlatformType platformType, CentralizationType centralizationType)
+        public PlatformInfo(
+            string id,
+            string displayName,
+            string logo, 
+            string url, 
+            string[] apiDocsUrl,
+            PlatformType platformType,
+            CentralizationType centralizationType,
+            string[] supportedEnvironments)
         {
             Id = id;
             DisplayName = displayName;
@@ -46,6 +58,7 @@
             ApiDocsUrl = apiDocsUrl;
             PlatformType = platformType;
             CentralizationType = centralizationType;
+            SupportedEnvironments = supportedEnvironments;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Objects;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -10,15 +11,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get client information including supported features
         /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        public static SharedClientInfo GetClientInfo(ISharedClient client)
+        public static SharedClientInfo GetClientInfo(PlatformInfo platformInfo, ISharedClient client)
         {
             return new SharedClientInfo
             {
                 Exchange = client.Exchange,
                 TypeName = client.GetType().Name,
+                SupportedEnvironments = platformInfo.SupportedEnvironments,
                 SupportedTradingModes = client.SupportedTradingModes,
+                CentralizationType = platformInfo.CentralizationType,
                 Features = GetAllEndpointOptions(client)
             };
         }
