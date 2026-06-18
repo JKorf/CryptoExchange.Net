@@ -258,7 +258,7 @@ namespace CryptoExchange.Net.UnitTests
 
             // act
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, definition, null, 1, RateLimitingBehaviour.Fail, null, ct.Token);
-            await rateLimiter.ResetAsync(RateLimitItemType.Request, definition, null, null, default);
+            await rateLimiter.ResetAsync(RateLimitItemType.Request, definition, null, null, null, default);
             var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, definition, null, 1, RateLimitingBehaviour.Fail, null, ct.Token);
             
             // assert
@@ -281,7 +281,7 @@ namespace CryptoExchange.Net.UnitTests
             // act
             var result1 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, definition1, null, 1, RateLimitingBehaviour.Fail, null, default);
             var result2 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, definition2, null, 1, RateLimitingBehaviour.Fail, null, default);
-            await rateLimiter.ResetAsync(RateLimitItemType.Request, definition1, null, null, default);
+            await rateLimiter.ResetAsync(RateLimitItemType.Request, definition1, null, null, null, default);
             var result3 = await rateLimiter.ProcessAsync(new TraceLogger(), 1, RateLimitItemType.Request, definition2, null, 1, RateLimitingBehaviour.Fail, null, default);
             
             // assert
