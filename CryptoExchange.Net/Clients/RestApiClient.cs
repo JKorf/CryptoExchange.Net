@@ -681,7 +681,12 @@ namespace CryptoExchange.Net.Clients
                 // Write the parameters as json in the body
                 string stringData;
                 if (parameters.BodyValue != null)
-                    stringData = stringSerializer.Serialize(parameters.BodyValue);
+                {
+                    if (parameters.BodyValue is string bodyString)
+                        stringData = bodyString;
+                    else
+                        stringData = stringSerializer.Serialize(parameters.BodyValue);
+                }
                 else
                     stringData = stringSerializer.Serialize(parameters);
                 request.SetContent(stringData, RequestBodyContentEncoding, contentType);
