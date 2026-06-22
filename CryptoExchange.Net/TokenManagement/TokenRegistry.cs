@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.TokenManagement
             TimeSpan refreshInterval,
             TimeSpan timeValid,
             TokenOperations operations,
-            bool removeWithoutLease,
+            TokenRetentionPolicy retentionPolicy,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(scope.ApiKey))
@@ -77,7 +77,7 @@ namespace CryptoExchange.Net.TokenManagement
             catch(OperationCanceledException)
             {
                 if (operations.StopToken != null)
-                    _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease), CancellationToken.None);
+                    _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, retentionPolicy), CancellationToken.None);
                 return CallResult.Fail<TokenLease>(new CancellationRequestedError());
             }
             
@@ -95,13 +95,13 @@ namespace CryptoExchange.Net.TokenManagement
                     // The server may have returned the same token. We keep the first tracked instance
                     // and stop the just-created duplicate only if it differs.
                     if (existing.Info.Token != startResult.Data && operations.StopToken != null)
-                        _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease), CancellationToken.None);
+                        _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, retentionPolicy), CancellationToken.None);
 
                     EnsureKeepAliveLoop(logger);
                     return CallResult.Ok(new TokenLease(this, scope, ownerId, existing.Info));
                 }
 
-                var info = new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease)
+                var info = new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, retentionPolicy)
                 {
                     CreateTime = DateTime.UtcNow,
                     NextRefreshTime = DateTime.UtcNow.Add(refreshInterval),
@@ -147,7 +147,7 @@ namespace CryptoExchange.Net.TokenManagement
                 if (token.RefCount > 0)
                     return;
 
-                if (token.Info.RemoveWithoutLease)
+                if (token.Info.RetentionPolicy == TokenRetentionPolicy.RemoveWhenUnused)
                 {
                     _tokens.Remove(lease.Scope.Id);
                     tokenToStop = token;
@@ -197,22 +197,43 @@ namespace CryptoExchange.Net.TokenManagement
                     await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
 
                     List<(ManagedToken Token, TokenOperations Operations)> dueTokens;
+                    List<TokenInfo> expiredIdleTokens;
 
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
                     try
                     {
                         var now = DateTime.UtcNow;
+                        expiredIdleTokens = _tokens.Values
+                            .Where(x => x.RefCount == 0 && x.Info.ValidUntil <= now)
+                            .Select(x => x.Info)
+                            .ToList();
+                        foreach (var expiredToken in expiredIdleTokens)
+                        {
+                            _tokens.Remove(expiredToken.Scope.Id);
+                            expiredToken.MarkExpired();
+                        }
+
+                        if (_tokens.Count == 0)
+                        {
+                            logger.LogDebug("All idle tokens expired, stopping keep alive loop");
+                            StopKeepAliveLoop();
+                        }
+
                         dueTokens = _tokens.Values
                             .Where(x => x.RefCount > 0 && x.Info.NextRefreshTime <= now)
                             .Select(x => (Token: x, Operations: x.Owners.Values.FirstOrDefault(o => o.KeepAliveToken != null)))
                             .Where(x => x.Operations != null)
                             .Select(x => (x.Token, x.Operations!))
                             .ToList();
+
                     }
                     finally
                     {
                         _semaphore.Release();
                     }
+
+                    foreach (var expiredToken in expiredIdleTokens)
+                        expiredToken.InvokeExpired();
 
                     if (dueTokens.Count > 0) 
                         logger.LogTrace("Keeping alive {Count} tokens", dueTokens.Count);
