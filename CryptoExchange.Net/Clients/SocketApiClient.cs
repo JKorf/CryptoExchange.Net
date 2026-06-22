@@ -15,6 +15,7 @@ using CryptoExchange.Net.Sockets.Default.Interfaces;
 using CryptoExchange.Net.Sockets.HighPerf;
 using CryptoExchange.Net.Sockets.HighPerf.Interfaces;
 using CryptoExchange.Net.Sockets.Interfaces;
+using CryptoExchange.Net.TokenManagement;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -247,90 +248,100 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual async Task<WebSocketResult<UpdateSubscription>> SubscribeAsync(string url, Subscription subscription, CancellationToken ct)
         {
-            if (_disposed)
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, new InvalidOperationError("Client disposed, can't subscribe"));
-
-            if (subscription.Authenticated && GetAuthenticationProvider() == null)
-            {
-                _logger.LogWarning("Failed to subscribe, private subscription but no API credentials set");
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, new NoApiCredentialsError());
-            }
-
-            if (subscription.IndividualSubscriptionCount > MaxIndividualSubscriptionsPerConnection)
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, ArgumentError.Invalid("subscriptions", $"Max number of subscriptions in a single call is {MaxIndividualSubscriptionsPerConnection}"));
-
-            SocketConnection socketConnection;
-            var released = false;
-            // Wait for a semaphore here, so we only connect 1 socket at a time.
-            // This is necessary for being able to see if connections can be combined
+            bool successResult = false;
             try
             {
-                await semaphoreSlim.WaitAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException tce)
-            {
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, new CancellationRequestedError(tce));
-            }
+                if (_disposed)
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, new InvalidOperationError("Client disposed, can't subscribe"));
 
-            try
-            {
-                while (true)
+                if (subscription.Authenticated && GetAuthenticationProvider() == null)
                 {
-                    // Get a new or existing socket connection
-                    var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription.Topic, subscription.IndividualSubscriptionCount).ConfigureAwait(false);
-                    if (!socketResult.Success)
-                        return WebSocketResult.Fail<UpdateSubscription>(Exchange, socketResult.Error);
-
-                    socketConnection = socketResult.Data;
-
-                    // Add a subscription on the socket connection
-                    var success = socketConnection.AddSubscription(subscription);
-                    if (!success)
-                    {
-                        _logger.FailedToAddSubscriptionRetryOnDifferentConnection(socketConnection.SocketId);
-                        continue;
-                    }
-
-                    if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
-                    {
-                        // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
-                        semaphoreSlim.Release();
-                        released = true;
-                    }
-
-                    var needsConnecting = !socketConnection.Connected;
-
-                    var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated, ct).ConfigureAwait(false);
-                    if (!connectResult.Success)
-                        return WebSocketResult.Fail<UpdateSubscription>(Exchange, connectResult.Error!);
-
-                    break;
+                    _logger.LogWarning("Failed to subscribe, private subscription but no API credentials set");
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, new NoApiCredentialsError());
                 }
+
+                if (subscription.IndividualSubscriptionCount > MaxIndividualSubscriptionsPerConnection)
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, ArgumentError.Invalid("subscriptions", $"Max number of subscriptions in a single call is {MaxIndividualSubscriptionsPerConnection}"));
+
+                SocketConnection socketConnection;
+                var released = false;
+                // Wait for a semaphore here, so we only connect 1 socket at a time.
+                // This is necessary for being able to see if connections can be combined
+                try
+                {
+                    await semaphoreSlim.WaitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException tce)
+                {
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, new CancellationRequestedError(tce));
+                }
+
+                try
+                {
+                    while (true)
+                    {
+                        // Get a new or existing socket connection
+                        var socketResult = await GetSocketConnection(url, subscription.Authenticated, false, ct, subscription.Topic, subscription.IndividualSubscriptionCount).ConfigureAwait(false);
+                        if (!socketResult.Success)
+                            return WebSocketResult.Fail<UpdateSubscription>(Exchange, socketResult.Error);
+
+                        socketConnection = socketResult.Data;
+
+                        // Add a subscription on the socket connection
+                        var success = socketConnection.AddSubscription(subscription);
+                        if (!success)
+                        {
+                            _logger.FailedToAddSubscriptionRetryOnDifferentConnection(socketConnection.SocketId);
+                            continue;
+                        }
+
+                        if (ClientOptions.SocketSubscriptionsCombineTarget == 1)
+                        {
+                            // Only 1 subscription per connection, so no need to wait for connection since a new subscription will create a new connection anyway
+                            semaphoreSlim.Release();
+                            released = true;
+                        }
+
+                        var needsConnecting = !socketConnection.Connected;
+
+                        var connectResult = await ConnectIfNeededAsync(socketConnection, subscription.Authenticated, ct).ConfigureAwait(false);
+                        if (!connectResult.Success)
+                            return WebSocketResult.Fail<UpdateSubscription>(Exchange, connectResult.Error!);
+
+                        break;
+                    }
+                }
+                finally
+                {
+                    if (!released)
+                        semaphoreSlim.Release();
+                }
+
+                if (socketConnection.PausedActivity)
+                {
+                    _logger.HasBeenPausedCantSubscribeAtThisMoment(socketConnection.SocketId);
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
+                }
+
+                var subscribeResult = await socketConnection.TrySubscribeAsync(subscription, true, ct).ConfigureAwait(false);
+                if (!subscribeResult.Success)
+                    return WebSocketResult.Fail<UpdateSubscription>(Exchange, subscribeResult.Error!);
+
+                successResult = true;
+                _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
+                return WebSocketResult.Ok(
+                    Exchange,
+                    socketConnection.SocketId,
+                    subscribeResult.ResponseTime!.Value,
+                    subscribeResult.RequestId!.Value,
+                    subscribeResult.Url,
+                    new UpdateSubscription(socketConnection, subscription));
             }
             finally
             {
-                if (!released)
-                    semaphoreSlim.Release();
+                if (!successResult && subscription.TokenLease != null)
+                    _ = subscription.TokenLease.ReleaseAsync();
             }
-
-            if (socketConnection.PausedActivity)
-            {
-                _logger.HasBeenPausedCantSubscribeAtThisMoment(socketConnection.SocketId);
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, new ServerError(new ErrorInfo(ErrorType.WebsocketPaused, "Socket is paused")));
-            }
-
-            var subscribeResult = await socketConnection.TrySubscribeAsync(subscription, true, ct).ConfigureAwait(false);
-            if (!subscribeResult.Success)
-                return WebSocketResult.Fail<UpdateSubscription>(Exchange, subscribeResult.Error!);
-
-            _logger.SubscriptionCompletedSuccessfully(socketConnection.SocketId, subscription.Id);
-            return WebSocketResult.Ok(
-                Exchange,
-                socketConnection.SocketId,
-                subscribeResult.ResponseTime!.Value,
-                subscribeResult.RequestId!.Value,
-                subscribeResult.Url,
-                new UpdateSubscription(socketConnection, subscription));
         }
 
         /// <summary>

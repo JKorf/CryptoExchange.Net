@@ -61,6 +61,10 @@ namespace CryptoExchange.Net.TokenManagement
         /// The refresh interval
         /// </summary>
         public TimeSpan RefreshInterval { get; set; }
+        /// <summary>
+        /// Whether to remove the token from cache if there is no lease
+        /// </summary>
+        public bool RemoveWithoutLease { get; set; }
 
         /// <summary>
         /// Expired event
@@ -70,13 +74,14 @@ namespace CryptoExchange.Net.TokenManagement
         /// <summary>
         /// ctor
         /// </summary>
-        public TokenInfo(TokenScope scope, string token, TimeSpan refreshInterval, TimeSpan timeValid)
+        public TokenInfo(TokenScope scope, string token, TimeSpan refreshInterval, TimeSpan timeValid, bool removeWithoutLease)
         {
             Scope = scope;
             ApiKey = scope.ApiKey;
             Token = token;
             RefreshInterval = refreshInterval;
             ValidTime = timeValid;
+            RemoveWithoutLease = removeWithoutLease;
         }
 
         internal void MarkExpired()

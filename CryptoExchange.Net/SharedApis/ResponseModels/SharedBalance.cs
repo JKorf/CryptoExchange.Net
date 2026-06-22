@@ -6,6 +6,10 @@
     public record SharedBalance
     {
         /// <summary>
+        /// Trading modes the balance is for
+        /// </summary>
+        public TradingMode[] TradingModes { get; set; }
+        /// <summary>
         /// Asset name
         /// </summary>
         public string Asset { get; set; }
@@ -26,8 +30,15 @@
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedBalance(string asset, decimal available, decimal total)
+        public SharedBalance(TradingMode tradingMode, string asset, decimal available, decimal total)
+            : this([tradingMode], asset, available, total) { }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public SharedBalance(TradingMode[] tradingMode, string asset, decimal available, decimal total)
         {
+            TradingModes = tradingMode;
             Asset = asset;
             Available = available;
             Total = total;

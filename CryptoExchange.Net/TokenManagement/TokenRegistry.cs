@@ -31,6 +31,7 @@ namespace CryptoExchange.Net.TokenManagement
             TimeSpan refreshInterval,
             TimeSpan timeValid,
             TokenOperations operations,
+            bool removeWithoutLease,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(scope.ApiKey))
@@ -76,7 +77,7 @@ namespace CryptoExchange.Net.TokenManagement
             catch(OperationCanceledException)
             {
                 if (operations.StopToken != null)
-                    _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid), CancellationToken.None);
+                    _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease), CancellationToken.None);
                 return CallResult.Fail<TokenLease>(new CancellationRequestedError());
             }
             
@@ -94,13 +95,13 @@ namespace CryptoExchange.Net.TokenManagement
                     // The server may have returned the same token. We keep the first tracked instance
                     // and stop the just-created duplicate only if it differs.
                     if (existing.Info.Token != startResult.Data && operations.StopToken != null)
-                        _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid), CancellationToken.None);
+                        _ = operations.StopToken(new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease), CancellationToken.None);
 
                     EnsureKeepAliveLoop(logger);
                     return CallResult.Ok(new TokenLease(this, scope, ownerId, existing.Info));
                 }
 
-                var info = new TokenInfo(scope, startResult.Data, refreshInterval, timeValid)
+                var info = new TokenInfo(scope, startResult.Data, refreshInterval, timeValid, removeWithoutLease)
                 {
                     CreateTime = DateTime.UtcNow,
                     NextRefreshTime = DateTime.UtcNow.Add(refreshInterval),
@@ -146,8 +147,11 @@ namespace CryptoExchange.Net.TokenManagement
                 if (token.RefCount > 0)
                     return;
 
-                _tokens.Remove(lease.Scope.Id);
-                tokenToStop = token;
+                if (token.Info.RemoveWithoutLease)
+                {
+                    _tokens.Remove(lease.Scope.Id);
+                    tokenToStop = token;
+                }
 
                 if (_tokens.Count == 0)
                     StopKeepAliveLoop();
