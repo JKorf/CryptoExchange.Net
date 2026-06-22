@@ -95,7 +95,10 @@ namespace CryptoExchange.Net.Clients
             ExchangeOptions clientOptions,
             ApiOptions apiOptions)
         {
-            _logger = loggerFactory?.CreateLogger(exchange + "." + ClientName.Substring(exchange.Length)) ?? NullLogger.Instance;
+            var loggerName = ClientName.StartsWith(exchange, StringComparison.OrdinalIgnoreCase)
+                 ? exchange + "." + ClientName.Substring(exchange.Length).TrimStart('.')
+                 : exchange + "." + ClientName;
+            _logger = loggerFactory?.CreateLogger(loggerName) ?? NullLogger.Instance;
 
             Exchange = exchange;
             ClientOptions = clientOptions;

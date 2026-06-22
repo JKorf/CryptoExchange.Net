@@ -2,7 +2,7 @@
 
 > Base C#/.NET library for cryptocurrency exchange API client implementations. Provides a standardized abstraction (REST, WebSocket, authentication, rate limiting, error handling, order book management, shared cross-exchange interfaces) that 28+ exchange-specific libraries are built on top of.
 
-CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `HttpResult<T>` REST result pattern, same `WebSocketResult<UpdateSubscription>` websocket subscription pattern, same DI registration, same shared interfaces across all exchanges. Current version: 11.x. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
+CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `HttpResult<T>` REST result pattern, same `WebSocketResult<UpdateSubscription>` websocket subscription pattern, same DI registration, same shared interfaces across all exchanges. Current version: 12.x. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
 
 The standout feature for cross-exchange code is `CryptoExchange.Net.SharedApis` — a set of interfaces (`ISpotTickerRestClient`, `ISpotOrderRestClient`, `IBalanceRestClient`, etc.) implemented by every exchange library. Same call signature works against any exchange.
 

@@ -44,11 +44,11 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 var removedWeight = 0;
                 while (true)
                 {
-                    var lastEntry = _entries.Dequeue();
-                    removedWeight += lastEntry.Weight;
-
                     if (removedWeight >= amount.Value || _entries.Count == 0)
                         break;
+
+                    var lastEntry = _entries.Dequeue();
+                    removedWeight += lastEntry.Weight;
                 }
             }
         }

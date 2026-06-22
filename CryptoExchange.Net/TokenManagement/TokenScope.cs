@@ -63,6 +63,6 @@ namespace CryptoExchange.Net.TokenManagement
 
 
         /// <inheritdoc />
-        public override string ToString() => Id;
+        public override string ToString() => $"{Exchange}/{Environment}/{TokenType}/{_maskedKey}/{AdditionalIdentifier}";
     }
 }

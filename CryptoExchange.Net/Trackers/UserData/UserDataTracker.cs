@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.Trackers.UserData
         public string? UserIdentifier { get; }
 
         /// <inheritdoc />
-        public bool Started { get; set; }
+        public bool Started { get; protected set; }
 
         /// <summary>
         /// Connected status changed

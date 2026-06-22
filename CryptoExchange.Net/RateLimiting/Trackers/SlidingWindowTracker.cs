@@ -42,12 +42,12 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
                 var removedWeight = 0;
                 while (true)
                 {
+                    if (removedWeight >= amount.Value || _entries.Count == 0)
+                        break;
+
                     var lastEntry = _entries[_entries.Count - 1];
                     removedWeight += lastEntry.Weight;
                     _entries.Remove(lastEntry);
-
-                    if (removedWeight >= amount.Value || _entries.Count == 0)
-                        break;
                 }
             }
         }
