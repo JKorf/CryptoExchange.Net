@@ -56,14 +56,26 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.False)
                 return false;
 
-            var value = reader.TokenType switch
+            if (reader.TokenType == JsonTokenType.Number)
             {
-                JsonTokenType.String => reader.GetString(),
-                JsonTokenType.Number => reader.GetInt16().ToString(),
-                _ => null
-            };
+                var number = reader.GetInt16();
+                if (number > 1)
+                    return true;
 
-            value = value?.ToLowerInvariant().Trim();
+                return false;
+            }
+
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                if (typeToConvert == typeof(bool))
+                    LibraryHelpers.StaticLogger?.LogWarning("Received null bool value, but property type is not a nullable bool. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
+                return default;
+            }
+
+            if (reader.TokenType != JsonTokenType.String)
+                throw new SerializationException($"Can't convert bool value for token type {reader.TokenType}");
+            
+            var value = reader.GetString()?.ToLowerInvariant().Trim();
             if (string.IsNullOrEmpty(value))
             {
                 if (typeToConvert == typeof(bool))
@@ -73,12 +85,14 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
 
             switch (value)
             {
+                case "enabled":
                 case "true":
                 case "yes":
                 case "y":
                 case "1":
                 case "on":
                     return true;
+                case "disabled":
                 case "false":
                 case "no":
                 case "n":
@@ -88,7 +102,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                     return false;
             }
 
-            throw new SerializationException($"Can't convert bool value {value}");
+            throw new SerializationException($"Can't convert bool value, unknown string value: {value}");
         }
 
     }
