@@ -143,6 +143,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <returns></returns>
         public virtual Error? ValidateRequest(TRequest request, TClient client)
         {
+            if (NeedsAuthentication && !client.Authenticated)
+                return new NoApiCredentialsError();
+
             foreach (var param in RequiredOptionalParameters)
             {
                 if (param.Names!.All(x => _requestProperties.Single(p => p.Name == x).GetValue(request, null) == null))
