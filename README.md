@@ -86,6 +86,43 @@ Make a one time donation in a crypto currency of your choice. If you prefer to d
 ### Sponsor
 Alternatively, sponsor me on Github using [Github Sponsors](https://github.com/sponsors/JKorf). 
 
+## Update notes from version 11.x to 12.x for client implementations
+* Result types:
+  * (Web)CallResult types are replaced by HttpResult, WebSocketResult and QueryResult
+  * Use (Http/WebSocket/Query)Result.Ok(..) and .Fail(..) for creation
+  * Result objects no longer override implicit conversion to bool, use Success property instead
+  * CallResult.SuccessResult has been replaced with CallResult.Ok()
+
+* Parameters & serialization:
+  * ParameterCollection type is replaced by Parameters, most AddXX() methods can be replaced by Add()
+  * Parameter serialization behavior can be controlled in the Add method as third parameter, or in the ParameterSerializationSettings
+  * ArraySerialization has been move into the new Parameters object
+  * RestRequestConfiguration in AuthenticationProvider.ProcessRequest now contains the full RequestDefinition instead of copied fields. This changes for example `request.Authenticated` to `request.RequestDefinition.Authenticated`
+
+WebSocket routing:
+  * MessageRouting has been split into event and query routing; use CreateForEvent for subscriptions and CreateForQuery for queries.
+  * Queries returning a mapped type can specify a second type parameter in CreateForQuery for the result type
+  * MessageRouter.CreateWithoutHandler has been replaced with CreateVoid
+
+Shared APIs:
+  * Option defintions now always require the exchange name as first parameter
+  * Every request/subscription now has a dedicated options type
+  * ExchangeSymbolCache now requires EnvironmentName as parameter for operations
+  * Validation has been unified via `SharedClient.[Request]Options.ValidateRequest(request, this);`
+  * Validation now includes auth check and klines support internally, no need for explicit checks
+  * AsExchangeResult/ExchangeWebResult has been removed, use normal HttpResults instead
+  * ExchangeResult has been replaced by ExchangeCallResult
+  * TradingMode has been removed from the response model, only maintained on models where it makes sense
+  * IListenKey support has been removed, listen keys should be managed internally with TokenManager
+
+Various:
+  * ApiClients now require an exchange name in the constructor
+  * ApiClients now required ILoggerFactory parameter instead of ILogger instance
+  * RestApiClient SendAsync without type parameter removed, use SendAsync<Unit> instead
+  * Address parameter removed from SendAsync RestApiClient, should be specified on the request definition instead
+  * SymbolOrderBook DoResyncAsync now returns CallResult instead of CallResult<bool> which was redundant
+  * PlatformInfo now required support environment names in the constructor
+
 ## Release notes
 * Version 11.2.2 - 08 Jun 2026
     * Fixed timing issue causing websocket connection to possible loop in error state
