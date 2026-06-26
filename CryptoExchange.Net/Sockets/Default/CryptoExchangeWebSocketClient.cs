@@ -213,7 +213,7 @@ namespace CryptoExchange.Net.Sockets.Default
                         return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
 
-                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(60));
+                using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(tcs.Token, _ctsSource.Token, ct);
                 await _socket.ConnectAsync(Uri, linked.Token).ConfigureAwait(false);
             }
