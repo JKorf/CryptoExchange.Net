@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace CryptoExchange.Net.TokenManagement
 {
@@ -62,9 +62,9 @@ namespace CryptoExchange.Net.TokenManagement
         /// </summary>
         public TimeSpan RefreshInterval { get; set; }
         /// <summary>
-        /// How the token is retained after its last lease is released
+        /// How the token is managed
         /// </summary>
-        public TokenRetentionPolicy RetentionPolicy { get; set; }
+        public TokenManagementType ManagementType { get; set; }
 
         /// <summary>
         /// Expired event
@@ -74,14 +74,14 @@ namespace CryptoExchange.Net.TokenManagement
         /// <summary>
         /// ctor
         /// </summary>
-        public TokenInfo(TokenScope scope, string token, TimeSpan refreshInterval, TimeSpan timeValid, TokenRetentionPolicy retentionPolicy)
+        public TokenInfo(TokenScope scope, string token, TimeSpan refreshInterval, TimeSpan timeValid, TokenManagementType managementType)
         {
             Scope = scope;
             ApiKey = scope.ApiKey;
             Token = token;
             RefreshInterval = refreshInterval;
             ValidTime = timeValid;
-            RetentionPolicy = retentionPolicy;
+            ManagementType = managementType;
         }
 
         internal void MarkExpired()

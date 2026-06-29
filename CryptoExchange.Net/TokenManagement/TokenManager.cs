@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Sockets.Default;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,7 +18,8 @@ namespace CryptoExchange.Net.TokenManagement
         private readonly ILogger _logger;
         private readonly TimeSpan _timeValid;
         private readonly TimeSpan _refreshInterval;
-        private readonly TokenRetentionPolicy _retentionPolicy;
+        private readonly TokenManagementType _managementType;
+        private readonly TimeSpan _maintenanceInterval;
 
         /// <summary>
         /// ctor
@@ -31,28 +32,30 @@ namespace CryptoExchange.Net.TokenManagement
             Func<TokenScope, CancellationToken, Task<CallResult<string>>> startToken,
             Func<TokenInfo, CancellationToken, Task<CallResult>>? keepAliveToken = null,
             Func<TokenInfo, CancellationToken, Task<CallResult>>? stopToken = null,
-            TokenRetentionPolicy retentionPolicy = TokenRetentionPolicy.RemoveWhenUnused)
+            TokenManagementType managementType = TokenManagementType.Active,
+            TimeSpan? maintenanceInterval = null)
         {
             _logger = loggerFactory?.CreateLogger(registryKey + "." + nameof(TokenManager)) ?? NullLogger.Instance;
             _refreshInterval = refreshInterval;
             _timeValid = timeValid;
-            _registry = TokenRegistryProvider.GetRegistry(registryKey, _logger);
+            _maintenanceInterval = maintenanceInterval ?? TimeSpan.FromSeconds(10);
+            _registry = TokenRegistryProvider.GetRegistry(registryKey, _logger, _maintenanceInterval);
             _operations = new TokenOperations(startToken, keepAliveToken, stopToken);
-            _retentionPolicy = retentionPolicy;
+            _managementType = managementType;
         }
 
         /// <summary>
         /// Acquire a token for the provided scope
         /// </summary>
         public Task<CallResult<TokenLease>> AcquireAsync(TokenScope scope, CancellationToken ct = default)
-            => _registry.AcquireAsync(_logger, scope, _refreshInterval, _timeValid, _operations, _retentionPolicy, ct);
+            => _registry.AcquireAsync(_logger, scope, _refreshInterval, _timeValid, _operations, _managementType, ct);
 
         /// <summary>
         /// Acquire a token and replace the current token of the subscription with the new one. 
         /// </summary>
         public async Task<CallResult<TokenLease>> AcquireAndReplaceAsync(Subscription subscription, TokenScope scope, CancellationToken ct = default)
         {
-            var acquireResult = await _registry.AcquireAsync(_logger, scope, _refreshInterval, _timeValid, _operations, _retentionPolicy, ct).ConfigureAwait(false);
+            var acquireResult = await _registry.AcquireAsync(_logger, scope, _refreshInterval, _timeValid, _operations, _managementType, ct).ConfigureAwait(false);
             if (!acquireResult.Success)
                 return acquireResult;
 
