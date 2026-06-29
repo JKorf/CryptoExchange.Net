@@ -124,6 +124,9 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.0.1 - 29 Jun 2026
+    * Fixed bug in bool converter
+
 * Version 12.0.0 - 29 Jun 2026
     * Result types:
       * (Web)CallResult types are replaced by HttpResult, WebSocketResult and QueryResult with the same logic
