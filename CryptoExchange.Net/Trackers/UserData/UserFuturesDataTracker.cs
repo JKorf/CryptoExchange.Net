@@ -1,14 +1,15 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Trackers.UserData.Interfaces;
+using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
+using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using System.Linq;
-using CryptoExchange.Net.Trackers.UserData.ItemTrackers;
-using CryptoExchange.Net.Trackers.UserData.Interfaces;
-using CryptoExchange.Net.Trackers.UserData.Objects;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData
 {
@@ -18,10 +19,8 @@ namespace CryptoExchange.Net.Trackers.UserData
     public abstract class UserFuturesDataTracker : UserDataTracker, IUserFuturesDataTracker
     {
         private readonly IFuturesSymbolRestClient _symbolClient;
-        private readonly IListenKeyRestClient? _listenKeyClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TradingMode _tradingMode;
-        private Task? _lkKeepAliveTask;
 
         /// <inheritdoc />
         protected override UserDataItemTracker[] DataTrackers { get; }
@@ -53,7 +52,6 @@ namespace CryptoExchange.Net.Trackers.UserData
         public UserFuturesDataTracker(
             ILogger logger,
             IFuturesSymbolRestClient symbolRestClient,
-            IListenKeyRestClient? listenKeyRestClient,
             IBalanceRestClient balanceRestClient,
             IBalanceSocketClient? balanceSocketClient,
             IFuturesOrderRestClient futuresOrderRestClient,
@@ -67,7 +65,6 @@ namespace CryptoExchange.Net.Trackers.UserData
         {
             // create trackers
             _symbolClient = symbolRestClient;
-            _listenKeyClient = listenKeyRestClient;
             _exchangeParameters = exchangeParameters;
 
             _tradingMode = accountType == SharedAccountType.PerpetualInverseFutures ? TradingMode.PerpetualInverse :
@@ -103,56 +100,16 @@ namespace CryptoExchange.Net.Trackers.UserData
         }
 
         /// <inheritdoc />
-        protected override async Task<CallResult> DoStartAsync()
+        protected override async Task<CallResult> DoStartAsync(CancellationToken ct = default)
         {
-            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(_tradingMode, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-            if (!symbolResult)
+            var symbolResult = await _symbolClient.GetFuturesSymbolsAsync(new GetSymbolsRequest(_tradingMode, exchangeParameters: _exchangeParameters), ct).ConfigureAwait(false);
+            if (!symbolResult.Success)
             {
                 _logger.LogWarning("Failed to start UserFuturesDataTracker; symbols request failed: {Error}", symbolResult.Error);
-                return symbolResult;
+                return CallResult.Fail(symbolResult.Error);
             }
 
-            if (_listenKeyClient != null)
-            {
-                var lkResult = await _listenKeyClient.StartListenKeyAsync(new StartListenKeyRequest(_tradingMode, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-                if (!lkResult)
-                {
-                    _logger.LogWarning("Failed to start UserFuturesDataTracker; listen key request failed: {Error}", lkResult.Error);
-                    return lkResult;
-                }
-
-                _lkKeepAliveTask = KeepAliveListenKeyAsync();
-
-                _listenKey = lkResult.Data;
-            }
-
-            return CallResult.SuccessResult;
-        }
-
-        /// <inheritdoc />
-        protected override async Task DoStopAsync()
-        {
-            if (_lkKeepAliveTask != null)
-                await _lkKeepAliveTask.ConfigureAwait(false);
-        }
-
-        private async Task KeepAliveListenKeyAsync()
-        {
-            var interval = TimeSpan.FromMinutes(30);
-            while (!_cts!.IsCancellationRequested)
-            {
-                try { await Task.Delay(interval, _cts.Token).ConfigureAwait(false); } catch (Exception) 
-                {
-                    break;
-                }
-
-                var result = await _listenKeyClient!.KeepAliveListenKeyAsync(new KeepAliveListenKeyRequest(_listenKey!, _tradingMode)).ConfigureAwait(false);
-                if (!result)
-                    _logger.LogWarning("Listen key keep alive failed: " + result.Error);
-
-                // If failed shorten the delay to allow a couple more retries
-                interval = result ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5);
-            }
+            return CallResult.Ok();
         }
 
         /// <summary>

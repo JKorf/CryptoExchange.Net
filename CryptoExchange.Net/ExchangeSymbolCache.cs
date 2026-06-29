@@ -11,85 +11,92 @@ namespace CryptoExchange.Net
     /// </summary>
     public static class ExchangeSymbolCache
     {
-        private static ConcurrentDictionary<string, ExchangeInfo> _symbolInfos = new ConcurrentDictionary<string, ExchangeInfo>();
+        private static ConcurrentDictionary<string, ExchangeKeyedCache> _symbolInfos = new ConcurrentDictionary<string, ExchangeKeyedCache>();
 
         /// <summary>
         /// Update the cached symbol data for an exchange
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
+        /// <param name="environment">Trading environment</param>
+        /// <param name="key">Optional data set key</param>
         /// <param name="updateData">Symbol data</param>
-        public static void UpdateSymbolInfo(string topicId, SharedSpotSymbol[] updateData)
+        public static void UpdateSymbolInfo(string topicId, string environment, string? key, SharedSpotSymbol[] updateData)
         {
-            if(!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if(!_symbolInfos.TryGetValue(id, out var exchangeInfo))
             {
-                exchangeInfo = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => x.SharedSymbol));                
-                _symbolInfos.TryAdd(topicId, exchangeInfo);
+                exchangeInfo = new ExchangeKeyedCache();                
+                _symbolInfos.TryAdd(id, exchangeInfo);
             }
 
-            if (DateTime.UtcNow - exchangeInfo.UpdateTime < TimeSpan.FromMinutes(60))
+            var keyedCache = exchangeInfo.Get(key);
+            if (keyedCache != null && DateTime.UtcNow - keyedCache.UpdateTime < TimeSpan.FromMinutes(60))
                 return;
 
-            _symbolInfos[topicId] = new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => x.SharedSymbol));
+            exchangeInfo.Set(key, new ExchangeInfo(DateTime.UtcNow, updateData.ToDictionary(x => x.Name, x => x.SharedSymbol)));
         }
 
         /// <summary>
         /// Whether the specific topic has been cached
         /// </summary>
         /// <param name="topicId">Id</param>
-        public static bool HasCached(string topicId)
+        /// <param name="environment">Trading environment</param>
+        /// <param name="key">Optional data set key</param>
+        public static bool HasCached(string topicId, string environment, string? key)
         {
-            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return false;
 
-            return exchangeInfo.Symbols.Count > 0;
+            return exchangeInfo.HasCached(key);
         }
 
         /// <summary>
         /// Whether a specific exchange(topic) support the provided symbol
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
+        /// <param name="environment">Trading environment</param>
+        /// <param name="key">Optional data set key</param>
         /// <param name="symbolName">The symbol name</param>
-        public static bool SupportsSymbol(string topicId, string symbolName)
+        public static bool SupportsSymbol(string topicId, string environment, string? key, string symbolName)
         {
-            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return false;
 
-            if (!exchangeInfo.Symbols.TryGetValue(symbolName, out var symbolInfo))
-                return false;
-
-            return true;
+            return exchangeInfo.SupportsSymbol(key, symbolName);
         }
 
         /// <summary>
         /// Whether a specific exchange(topic) support the provided symbol
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
+        /// <param name="environment">Trading environment</param>
+        /// <param name="key">Optional data set key</param>
         /// <param name="symbol">The symbol info</param>
-        public static bool SupportsSymbol(string topicId, SharedSymbol symbol)
+        public static bool SupportsSymbol(string topicId, string environment, string? key,  SharedSymbol symbol)
         {
-            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return false;
 
-            return exchangeInfo.Symbols.Any(x => 
-                x.Value.TradingMode == symbol.TradingMode 
-                && x.Value.BaseAsset == symbol.BaseAsset 
-                && x.Value.QuoteAsset == symbol.QuoteAsset);
+            return exchangeInfo.SupportsSymbol(key, symbol);
         }
 
         /// <summary>
         /// Get all symbols for a specific base asset
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
+        /// <param name="environment">Trading environment</param>
+        /// <param name="key">Optional data set key</param>
         /// <param name="baseAsset">Base asset name</param>
-        public static SharedSymbol[] GetSymbolsForBaseAsset(string topicId, string baseAsset)
+        public static SharedSymbol[] GetSymbolsForBaseAsset(string topicId, string environment, string? key, string baseAsset)
         {
-            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return [];
 
-            return exchangeInfo.Symbols
-                .Where(x => x.Value.BaseAsset.Equals(baseAsset, StringComparison.InvariantCultureIgnoreCase))
-                .Select(x => x.Value)
-                .ToArray();
+            return exchangeInfo.GetSymbolsForBaseAsset(key, baseAsset);
         }
 
         /// <summary>
@@ -97,22 +104,193 @@ namespace CryptoExchange.Net
         /// </summary>
         /// <param name="topicId">Id for the provided data</param>
         /// <param name="symbolName">Symbol name</param>
-        public static SharedSymbol? ParseSymbol(string topicId, string? symbolName)
+        /// <param name="environment">Trade environment</param>
+        /// <param name="key">Additional data set identification key</param>
+        public static SharedSymbol? ParseSymbol(string topicId, string environment, string? key, string? symbolName)
         {
             if (symbolName == null)
                 return null;
 
-            if (!_symbolInfos.TryGetValue(topicId, out var exchangeInfo))
+            var id = topicId + environment;
+            if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return null;
 
-            if (!exchangeInfo.Symbols.TryGetValue(symbolName, out var symbolInfo))
-                return null;
-
-            return new SharedSymbol(symbolInfo.TradingMode, symbolInfo.BaseAsset, symbolInfo.QuoteAsset, symbolName)
-            {
-                DeliverTime = symbolInfo.DeliverTime
-            };
+            return exchangeInfo.ParseSymbol(key, symbolName);
         }
+
+        class ExchangeKeyedCache
+        {
+            private ExchangeInfo? _noKeyCache;
+            private ConcurrentDictionary<string, ExchangeInfo> _keyedCache = new ConcurrentDictionary<string, ExchangeInfo>();
+
+            public ExchangeInfo? Get(string? key)
+            {
+                if (key == null)
+                    return _noKeyCache;
+
+                if (_keyedCache.TryGetValue(key, out var exchangeInfo))
+                    return exchangeInfo;
+
+                return null;
+            }
+
+            public void Set(string? key, ExchangeInfo exchangeInfo)
+            {
+                if (key == null)
+                    _noKeyCache = exchangeInfo;
+                else
+                    _keyedCache[key] = exchangeInfo;
+            }
+
+            public bool HasCached(string? key)
+            {
+                if (key == null)
+                {
+                    if (_noKeyCache?.Symbols.Count > 0)
+                        return true;
+
+                    foreach (var cache in _keyedCache.Values)
+                    {
+                        if (cache.Symbols.Count > 0)
+                            return true;
+                    }
+
+                    return false;
+                }
+
+                return _keyedCache.TryGetValue(key, out var exchangeInfo) && exchangeInfo.Symbols.Count > 0;
+            }
+
+            public SharedSymbol? ParseSymbol(string? key, string symbolName)
+            {
+                SharedSymbol? symbolInfo = null;
+                if (key == null)
+                {
+                    if (_noKeyCache != null)
+                    {
+                        if (!_noKeyCache.Symbols.TryGetValue(symbolName, out symbolInfo))
+                            return null;
+
+                        return new SharedSymbol(symbolInfo.TradingMode, symbolInfo.BaseAsset, symbolInfo.QuoteAsset, symbolName)
+                        {
+                            DeliverTime = symbolInfo.DeliverTime
+                        };
+                    }
+
+                    foreach(var cache in _keyedCache.Values)
+                    {
+                        if (cache.Symbols.TryGetValue(symbolName, out symbolInfo))
+                        {
+                            return new SharedSymbol(symbolInfo.TradingMode, symbolInfo.BaseAsset, symbolInfo.QuoteAsset, symbolName)
+                            {
+                                DeliverTime = symbolInfo.DeliverTime
+                            };
+                        }
+                    }
+
+                    return null;
+                }
+
+                var hasKeyedSet = _keyedCache.TryGetValue(key, out var exchangeInfo);
+                if (!hasKeyedSet || exchangeInfo == null)
+                    return null;
+
+                if (exchangeInfo.Symbols.TryGetValue(symbolName, out symbolInfo))
+                {
+                    return new SharedSymbol(symbolInfo.TradingMode, symbolInfo.BaseAsset, symbolInfo.QuoteAsset, symbolName)
+                    {
+                        DeliverTime = symbolInfo.DeliverTime
+                    };
+                }
+
+                return null;
+            }
+
+            public bool SupportsSymbol(string? key, string symbolName)
+            {
+                if (key == null)
+                {
+                    if (_noKeyCache?.Symbols.ContainsKey(symbolName) == true)
+                        return true;
+
+                    foreach(var cache in _keyedCache.Values)
+                    {
+                        if (cache.Symbols.ContainsKey(symbolName))
+                            return true;
+                    }
+
+                    return false;
+                }
+
+                return _keyedCache.TryGetValue(key, out var exchangeInfo) && exchangeInfo.Symbols.ContainsKey(symbolName);
+            }
+
+            public bool SupportsSymbol(string? key, SharedSymbol symbol)
+            {
+                if (key == null)
+                {
+                    if (_noKeyCache?.Symbols.Any(x =>
+                        x.Value.TradingMode == symbol.TradingMode
+                        && x.Value.BaseAsset == symbol.BaseAsset
+                        && x.Value.QuoteAsset == symbol.QuoteAsset) == true)
+                    {
+                        return true;
+                    }
+
+                    foreach (var cache in _keyedCache.Values)
+                    {
+                        if (cache.Symbols.Any(x =>
+                            x.Value.TradingMode == symbol.TradingMode
+                            && x.Value.BaseAsset == symbol.BaseAsset
+                            && x.Value.QuoteAsset == symbol.QuoteAsset))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+                    
+                return _keyedCache.TryGetValue(key, out var exchangeInfo) && exchangeInfo.Symbols.Any(x =>
+                    x.Value.TradingMode == symbol.TradingMode
+                    && x.Value.BaseAsset == symbol.BaseAsset
+                    && x.Value.QuoteAsset == symbol.QuoteAsset);
+            }
+
+            public SharedSymbol[] GetSymbolsForBaseAsset(string? key, string baseAsset)
+            {
+                if (key == null)
+                {
+                    if (_noKeyCache != null)
+                    {
+                        return _noKeyCache.Symbols
+                            .Where(x => x.Value.BaseAsset.Equals(baseAsset, StringComparison.InvariantCultureIgnoreCase))
+                            .Select(x => x.Value)
+                            .ToArray();
+                    }
+
+                    var result = new List<SharedSymbol>();
+                    foreach(var cache in _keyedCache.Values)
+                    {
+                        result.AddRange(cache.Symbols
+                            .Where(x => x.Value.BaseAsset.Equals(baseAsset, StringComparison.InvariantCultureIgnoreCase))
+                            .Select(x => x.Value));
+                    }
+
+                    return result.ToArray();
+                }
+
+                var hasKeyedSet = _keyedCache.TryGetValue(key, out var exchangeInfo);
+                if (!hasKeyedSet || exchangeInfo == null)
+                    return [];
+
+                return exchangeInfo.Symbols
+                    .Where(x => x.Value.BaseAsset.Equals(baseAsset, StringComparison.InvariantCultureIgnoreCase))
+                    .Select(x => x.Value)
+                    .ToArray();
+            }
+        }
+
 
         class ExchangeInfo
         {

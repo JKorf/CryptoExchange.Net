@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Interfaces;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace CryptoExchange.Net.Objects
@@ -12,29 +13,17 @@ namespace CryptoExchange.Net.Objects
         private string? _queryString;
 
         /// <summary>
-        /// Http method
+        /// The request definition for the request
         /// </summary>
-        public HttpMethod Method { get; set; }
-        /// <summary>
-        /// Whether the request needs authentication
-        /// </summary>
-        public bool Authenticated { get; set; }
-        /// <summary>
-        /// Base address for the request
-        /// </summary>
-        public string BaseAddress { get; set; }
-        /// <summary>
-        /// The request path
-        /// </summary>
-        public string Path { get; set; }
+        public RequestDefinition RequestDefinition { get; set; }
         /// <summary>
         /// Query parameters
         /// </summary>
-        public IDictionary<string, object>? QueryParameters { get; set; }
+        public Parameters? QueryParameters { get; set; }
         /// <summary>
         /// Body parameters
         /// </summary>
-        public IDictionary<string, object>? BodyParameters { get; set; }
+        public Parameters? BodyParameters { get; set; }
         /// <summary>
         /// Request headers
         /// </summary>
@@ -57,22 +46,16 @@ namespace CryptoExchange.Net.Objects
         /// </summary>
         public RestRequestConfiguration(
             RequestDefinition requestDefinition,
-            string baseAddress,
-            IDictionary<string, object>? queryParams,
-            IDictionary<string, object>? bodyParams,
+            Parameters? queryParams,
+            Parameters? bodyParams,
             IDictionary<string, string>? headers,
-            ArrayParametersSerialization arraySerialization,
             HttpMethodParameterPosition parametersPosition,
             RequestBodyFormat bodyFormat)
         {
-            Method = requestDefinition.Method;
-            Authenticated = requestDefinition.Authenticated;
-            Path = requestDefinition.Path;
-            BaseAddress = baseAddress;
+            RequestDefinition = requestDefinition;
             QueryParameters = queryParams;
             BodyParameters = bodyParams;
             Headers = headers;
-            ArraySerialization = arraySerialization;
             ParameterPosition = parametersPosition;
             BodyFormat = bodyFormat;
         }
@@ -80,15 +63,15 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// Get the parameter collection based on the ParameterPosition
         /// </summary>
-        public IDictionary<string, object> GetPositionParameters()
+        public Parameters GetPositionParameters()
         {
             if (ParameterPosition == HttpMethodParameterPosition.InBody)
             {
-                BodyParameters ??= new Dictionary<string, object>();
+                BodyParameters ??= new Parameters(ParameterSerializationSettings.Default);
                 return BodyParameters;
             }
 
-            QueryParameters ??= new Dictionary<string, object>();
+            QueryParameters ??= new Parameters(ParameterSerializationSettings.Default);
             return QueryParameters;
         }
 

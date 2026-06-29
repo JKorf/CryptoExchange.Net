@@ -26,9 +26,8 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             IWebsocketFactory socketFactory,
             WebSocketParameters parameters,
             SocketApiClient apiClient,
-            JsonSerializerOptions serializerOptions,
-            string tag)
-            : base(logger, socketFactory, parameters, apiClient, tag)
+            JsonSerializerOptions serializerOptions)
+            : base(logger, socketFactory, parameters, apiClient)
         {
             _jsonOptions = serializerOptions;
         }

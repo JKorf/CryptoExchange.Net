@@ -1,4 +1,5 @@
-﻿using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -24,7 +25,7 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddParameter(this Dictionary<string, object> parameters, string key, string value)
+        public static void AddParameter(this IDictionary<string, object> parameters, string key, string value)
         {
             parameters.Add(key, value);
         }
@@ -35,7 +36,7 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddParameter(this Dictionary<string, object> parameters, string key, object value)
+        public static void AddParameter(this IDictionary<string, object> parameters, string key, object value)
         {
             parameters.Add(key, value);
         }
@@ -46,7 +47,7 @@ namespace CryptoExchange.Net
         /// <param name="parameters"></param>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public static void AddOptionalParameter(this Dictionary<string, object> parameters, string key, object? value)
+        public static void AddOptionalParameter(this IDictionary<string, object> parameters, string key, object? value)
         {
             if (value != null)
                 parameters.Add(key, value);
@@ -378,8 +379,6 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IDepositRestClient)client(x)!);
             if (typeof(IKlineRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IKlineRestClient)client(x)!);
-            if (typeof(IListenKeyRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IListenKeyRestClient)client(x)!);
             if (typeof(IOrderBookRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IOrderBookRestClient)client(x)!);
             if (typeof(IRecentTradeRestClient).IsAssignableFrom(typeof(T)))

@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// Tag for identification
         /// </summary>
-        public string Tag { get; set; }
+        public string? Tag { get; set; }
 
         /// <summary>
         /// Additional properties for this connection
@@ -128,12 +128,11 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// New socket connection
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient)
         {
             _logger = logger;
             _pipe = new Pipe();
             ApiClient = apiClient;
-            Tag = tag;
             Properties = new Dictionary<string, object>();
 
             _socket = socketFactory.CreateHighPerfWebsocket(logger, parameters, _pipe.Writer);
@@ -269,25 +268,25 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
                 _logger.LogWarning("[Sckt {SocketId}] {Info}", SocketId, info);
-                return new CallResult(new InvalidOperationError(info));
+                return CallResult.Fail(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
                 _logger.LogWarning("[Sckt {SocketId}] Request failed to send, socket no longer open", SocketId);
-                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+                return CallResult.Fail(new WebError("Failed to send message, socket no longer open"));
             }
 
             try
             {
                 if (!await _socket.SendAsync(data).ConfigureAwait(false))
-                    return new CallResult(new WebError("Failed to send message, connection not open"));
+                    return CallResult.Fail(new WebError("Failed to send message, connection not open"));
 
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
             catch (Exception ex)
             {
-                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
+                return CallResult.Fail(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
         }
 
@@ -301,25 +300,25 @@ namespace CryptoExchange.Net.Sockets.HighPerf
             {
                 var info = $"Message to send exceeds the max server message size ({data.Length} vs {ApiClient.MessageSendSizeLimit.Value} bytes). Split the request into batches to keep below this limit";
                 _logger.LogWarning("[Sckt {SocketId}] {Info}", SocketId, info);
-                return new CallResult(new InvalidOperationError(info));
+                return CallResult.Fail(new InvalidOperationError(info));
             }
 
             if (!_socket.IsOpen)
             {
                 _logger.LogWarning("[Sckt {SocketId}] Request failed to send, socket no longer open", SocketId);
-                return new CallResult(new WebError("Failed to send message, socket no longer open"));
+                return CallResult.Fail(new WebError("Failed to send message, socket no longer open"));
             }
 
             try
             {
                 if (!await _socket.SendAsync(data).ConfigureAwait(false))
-                    return new CallResult(new WebError("Failed to send message, connection not open"));
+                    return CallResult.Fail(new WebError("Failed to send message, connection not open"));
 
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
             catch (Exception ex)
             {
-                return new CallResult(new WebError("Failed to send message: " + ex.Message, exception: ex));
+                return CallResult.Fail(new WebError("Failed to send message: " + ex.Message, exception: ex));
             }
         }
 
@@ -404,8 +403,8 @@ namespace CryptoExchange.Net.Sockets.HighPerf
         /// <summary>
         /// ctor
         /// </summary>
-        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient, string tag)
-            : base(logger, socketFactory, parameters, apiClient, tag)
+        public HighPerfSocketConnection(ILogger logger, IWebsocketFactory socketFactory, WebSocketParameters parameters, SocketApiClient apiClient)
+            : base(logger, socketFactory, parameters, apiClient)
         {
             _typedSubscriptions = new List<HighPerfSubscription<T>>();
         }

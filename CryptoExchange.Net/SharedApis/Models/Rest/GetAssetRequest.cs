@@ -15,7 +15,8 @@
         /// </summary>
         /// <param name="asset">Asset to retrieve info on</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetAssetRequest(string asset, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetAssetRequest(string asset, ExchangeParameters? exchangeParameters = null)
+            : base(null, exchangeParameters)
         {
             Asset = asset;
         }

@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.Testing
     public class RestRequestValidator<TClient> where TClient : BaseRestClient
     {
         private readonly TClient _client;
-        private readonly Func<WebCallResult, bool> _isAuthenticated;
+        private readonly Func<IHttpResult, bool> _isAuthenticated;
         private readonly string _folder;
         private readonly string _baseAddress;
         private readonly string? _nestedPropertyForCompare;
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="baseAddress">The base address that is expected</param>
         /// <param name="isAuthenticated">Func for checking if the request is authenticated</param>
         /// <param name="nestedPropertyForCompare">Property to use for compare</param>
-        public RestRequestValidator(TClient client, string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
+        public RestRequestValidator(TClient client, string folder, string baseAddress, Func<IHttpResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
         {
             _client = client;
             _folder = folder;
@@ -63,7 +63,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public Task ValidateAsync<TResponse>(
-           Func<TClient, Task<WebCallResult<TResponse>>> methodInvoke,
+           Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
            string name,
            string? nestedJsonProperty = null,
            List<string>? ignoreProperties = null,
@@ -87,7 +87,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse, TActualResponse>(
-            Func<TClient, Task<WebCallResult<TResponse>>> methodInvoke,
+            Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
             string name,
             string? nestedJsonProperty = null,
             List<string>? ignoreProperties = null,
@@ -144,8 +144,8 @@ namespace CryptoExchange.Net.Testing
             // Check request/response properties
             if (result.Error != null)
                 throw new Exception(name + " returned error " + result.Error);
-            if (_isAuthenticated(result.AsDataless()) != expectedAuth)
-                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result.AsDataless())}");
+            if (_isAuthenticated(result) != expectedAuth)
+                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result)}");
             if (result.RequestMethod != new HttpMethod(expectedMethod!))
                 throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
@@ -217,7 +217,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync(
-            Func<TClient, Task<WebCallResult>> methodInvoke,
+            Func<TClient, Task<HttpResult>> methodInvoke,
             string name,
             List<string>? ignoreParamValidation = null
             )
@@ -278,7 +278,7 @@ namespace CryptoExchange.Net.Testing
                 throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])
                 throw new Exception(name + $" path not matched. Expected: {expectedPath}, Actual: {result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0]}");
-            
+
             if (expectedUriParams != null)
             {
                 // Validate request parameters

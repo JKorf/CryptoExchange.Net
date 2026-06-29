@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using CryptoExchange.Net.Objects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
@@ -16,17 +17,16 @@ namespace CryptoExchange.Net.SharedApis
         /// How the asset is determined in which the trading fee is paid
         /// </summary>
         SharedFeeAssetType FuturesFeeAssetType { get; }
-
         /// <summary>
-        /// Supported order types
+        /// Supported order types for futures orders
         /// </summary>
         SharedOrderType[] FuturesSupportedOrderTypes { get; }
         /// <summary>
-        /// Supported time in force
+        /// Supported time in force types for futures orders
         /// </summary>
         SharedTimeInForce[] FuturesSupportedTimeInForce { get; }
         /// <summary>
-        /// Quantity types support
+        /// Supported quantity types for futures orders
         /// </summary>
         SharedQuantitySupport FuturesSupportedOrderQuantity { get; }
 
@@ -37,106 +37,126 @@ namespace CryptoExchange.Net.SharedApis
         string GenerateClientOrderId();
 
         /// <summary>
-        /// Futures place order request options
+        /// Futures place order request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
         PlaceFuturesOrderOptions PlaceFuturesOrderOptions { get; }
 
         /// <summary>
-        /// Place a new futures order
+        /// Place a new futures order, see <see cref="PlaceFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
 
         /// <summary>
-        /// Futures get order request options
+        /// Futures get order request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOrderRequest> GetFuturesOrderOptions { get; }
+        GetFuturesOrderOptions GetFuturesOrderOptions { get; }
         /// <summary>
-        /// Get info on a specific futures order
+        /// Get info on a specific futures order, see <see cref="GetFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFuturesOrder>> GetFuturesOrderAsync(GetOrderRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedFuturesOrder>> GetFuturesOrderAsync(GetOrderRequest request, CancellationToken ct = default);
 
         /// <summary>
-        /// Futures get open orders request options
+        /// Futures get open orders request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetOpenOrdersRequest> GetOpenFuturesOrdersOptions { get; }
+        GetOpenFuturesOrdersOptions GetOpenFuturesOrdersOptions { get; }
         /// <summary>
-        /// Get info on a open futures orders
+        /// Get info on a open futures orders, see <see cref="GetOpenFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
 
         /// <summary>
-        /// Spot get closed orders request options
+        /// Spot get closed orders request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetClosedOrdersOptions GetClosedFuturesOrdersOptions { get; }
+        GetFuturesClosedOrdersOptions GetClosedFuturesOrdersOptions { get; }
         /// <summary>
-        /// Get info on closed futures orders
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
-        /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFuturesOrder[]>> GetClosedFuturesOrdersAsync(GetClosedOrdersRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
-
-        /// <summary>
-        /// Futures get order trades request options
-        /// </summary>
-        EndpointOptions<GetOrderTradesRequest> GetFuturesOrderTradesOptions { get; }
-        /// <summary>
-        /// Get trades for a specific futures order
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedUserTrade[]>> GetFuturesOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Futures user trades request options
-        /// </summary>
-        GetUserTradesOptions GetFuturesUserTradesOptions { get; }
-        /// <summary>
-        /// Get futures user trade records
+        /// Get info on closed futures orders, see <see cref="GetClosedFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedUserTrade[]>> GetFuturesUserTradesAsync(GetUserTradesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<HttpResult<SharedFuturesOrder[]>> GetClosedFuturesOrdersAsync(GetClosedOrdersRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Futures cancel order request options
+        /// Futures get order trades request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<CancelOrderRequest> CancelFuturesOrderOptions { get; }
+        GetFuturesOrderTradesOptions GetFuturesOrderTradesOptions { get; }
         /// <summary>
-        /// Cancel a futures order
+        /// Get trades for a specific futures order, see <see cref="GetFuturesOrderTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedId>> CancelFuturesOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedUserTrade[]>> GetFuturesOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
 
         /// <summary>
-        /// Positions request options
+        /// Futures user trades request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetPositionsRequest> GetPositionsOptions { get; }
+        GetFuturesUserTradesOptions GetFuturesUserTradesOptions { get; }
         /// <summary>
-        /// Get open position info
+        /// Get futures user trade records, see <see cref="GetFuturesUserTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="nextPageToken">The pagination request from the previous request result `NextPageRequest` property to continue pagination</param>
+        /// <param name="ct">Cancellation token</param>
+        Task<HttpResult<SharedUserTrade[]>> GetFuturesUserTradesAsync(GetUserTradesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Futures cancel order request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// </summary>
+        CancelFuturesOrderOptions CancelFuturesOrderOptions { get; }
+        /// <summary>
+        /// Cancel a futures order, see <see cref="CancelFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedPosition[]>> GetPositionsAsync(GetPositionsRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedId>> CancelFuturesOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 
         /// <summary>
-        /// Close position order request options
+        /// Positions request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<ClosePositionRequest> ClosePositionOptions { get; }
+        GetPositionsOptions GetPositionsOptions { get; }
         /// <summary>
-        /// Close a currently open position
+        /// Get open position info, see <see cref="GetPositionsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        Task<HttpResult<SharedPosition[]>> GetPositionsAsync(GetPositionsRequest request, CancellationToken ct = default);
+
+        /// <summary>
+        /// Close position order request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
+        /// </summary>
+        ClosePositionOptions ClosePositionOptions { get; }
+        /// <summary>
+        /// Close a currently open position, see <see cref="ClosePositionOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<ExchangeWebResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
     }
 }

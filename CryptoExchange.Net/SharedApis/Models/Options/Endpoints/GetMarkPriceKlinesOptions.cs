@@ -1,0 +1,117 @@
+﻿using CryptoExchange.Net.Objects;
+using System;
+using System.Linq;
+using System.Text;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Options for requesting kline/candlestick data
+    /// </summary>
+    public class GetMarkPriceKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IMarkPriceKlineRestClient>
+    {
+        /// <summary>
+        /// The supported kline intervals
+        /// </summary>
+        public SharedKlineInterval[] SupportIntervals { get; }
+        /// <summary>
+        /// Max number of data points which can be requested
+        /// </summary>
+        public int? MaxTotalDataPoints { get; set; }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IMarkPriceKlineRestClient.GetMarkPriceKlinesAsync))
+        {
+            SupportIntervals = new[]
+            {
+                SharedKlineInterval.OneMinute,
+                SharedKlineInterval.ThreeMinutes,
+                SharedKlineInterval.FiveMinutes,
+                SharedKlineInterval.FifteenMinutes,
+                SharedKlineInterval.ThirtyMinutes,
+                SharedKlineInterval.OneHour,
+                SharedKlineInterval.TwoHours,
+                SharedKlineInterval.FourHours,
+                SharedKlineInterval.SixHours,
+                SharedKlineInterval.EightHours,
+                SharedKlineInterval.TwelveHours,
+                SharedKlineInterval.OneDay,
+                SharedKlineInterval.OneWeek,
+                SharedKlineInterval.OneMonth
+            };
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
+        public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IMarkPriceKlineRestClient.GetMarkPriceKlinesAsync))
+        {
+            SupportIntervals = intervals;
+        }
+
+        /// <summary>
+        /// Check whether a specific interval is supported
+        /// </summary>
+        /// <param name="interval"></param>
+        /// <returns></returns>
+        public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
+
+        /// <inheritdoc />
+        public override Error? ValidateRequest(GetKlinesRequest request, IMarkPriceKlineRestClient client)
+        {
+            if (!IsSupported(request.Interval))
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");
+
+            if (!SupportsAscending && request.Direction == DataDirection.Ascending)
+                return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");
+
+            if (!SupportsDescending && request.Direction == DataDirection.Descending)
+                return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Descending direction is not supported");
+
+            if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxAge} klines are available");
+
+            if (request.Limit > MaxLimit)
+                return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only {MaxLimit} klines can be retrieved per request");
+
+            if (!TimePeriodFilterSupport)
+            {
+                // When going descending we can still allow startTime filter to limit the results
+                var now = DateTime.UtcNow;
+                if ((request.Direction == DataDirection.Ascending && request.StartTime != null)
+                    || (request.EndTime != null && now - request.EndTime > TimeSpan.FromSeconds(5)))
+                {
+                    return ArgumentError.Invalid(nameof(GetDepositsRequest.StartTime), $"Time filter is not supported");
+                }
+            }
+
+            if (MaxTotalDataPoints.HasValue)
+            {
+                if (request.Limit > MaxTotalDataPoints.Value)
+                    return ArgumentError.Invalid(nameof(GetKlinesRequest.Limit), $"Only the most recent {MaxTotalDataPoints} klines are available");
+
+                if (request.StartTime.HasValue == true)
+                {
+                    if (((request.EndTime ?? DateTime.UtcNow) - request.StartTime.Value).TotalSeconds / (int)request.Interval > MaxTotalDataPoints.Value)
+                        return ArgumentError.Invalid(nameof(GetKlinesRequest.StartTime), $"Only the most recent {MaxTotalDataPoints} klines are available, time filter failed");
+                }
+            }
+
+            return base.ValidateRequest(request, client);
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            var sb = new StringBuilder(base.ToString());
+            sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
+            if (MaxTotalDataPoints != null)
+                sb.AppendLine($"Max total data points available: {MaxTotalDataPoints}");
+            return sb.ToString();
+        }
+    }
+}

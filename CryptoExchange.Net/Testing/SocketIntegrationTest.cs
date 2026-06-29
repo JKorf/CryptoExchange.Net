@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="expression">The call expression</param>
         /// <param name="expectUpdate">Whether an update is expected</param>
         /// <param name="authRequest">Whether this is an authenticated request</param>
-        public async Task RunAndCheckUpdate<T>(Expression<Func<TClient, Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
+        public async Task RunAndCheckUpdate<T>(Expression<Func<TClient, Action<DataEvent<T>>, Task<WebSocketResult<UpdateSubscription>>>> expression, bool expectUpdate, bool authRequest)
         {
             if (!ShouldRun())
                 return;
@@ -86,7 +86,7 @@ namespace CryptoExchange.Net.Testing
                 evnt.Set();
             };
 
-            CallResult<UpdateSubscription> result;
+            WebSocketResult<UpdateSubscription> result;
             try
             {
                 result = await expression.Compile().Invoke(client, updateHandler).ConfigureAwait(false);

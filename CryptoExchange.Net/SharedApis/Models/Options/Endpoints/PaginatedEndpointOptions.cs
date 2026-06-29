@@ -7,11 +7,14 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for paginated endpoints
     /// </summary>
-    /// <typeparam name="T"></typeparam>
 #if NET5_0_OR_GREATER
-    public class PaginatedEndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>  : EndpointOptions<T> where T : SharedRequest
+    public class PaginatedEndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions<TRequest, TClient> 
+        where TRequest : SharedRequest
+        where TClient : ISharedClient
 #else
-    public class PaginatedEndpointOptions<T> : EndpointOptions<T> where T : SharedRequest
+    public abstract class PaginatedEndpointOptions<TRequest, TClient> : EndpointOptions<TRequest, TClient>
+        where TRequest : SharedRequest
+        where TClient : ISharedClient
 #endif
     {
         /// <summary>
@@ -42,11 +45,13 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public PaginatedEndpointOptions(
+            string exchange,
             bool supportsAscending,
             bool supportsDescending,
             bool timePeriodSupport,
             int maxLimit,
-            bool needsAuthentication) : base(needsAuthentication)
+            bool needsAuthentication, 
+            string requestName) : base(exchange, needsAuthentication, requestName)
         {
             SupportsAscending = supportsAscending;
             SupportsDescending = supportsDescending;
@@ -55,14 +60,15 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
+            var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Ascending retrieval supported: {SupportsAscending}");
             sb.AppendLine($"Descending retrieval supported: {SupportsDescending}");
-            sb.AppendLine($"Time period filter support: {TimePeriodFilterSupport}");
+            sb.AppendLine($"Time period filter supported: {TimePeriodFilterSupport}");
             sb.AppendLine($"Max limit: {MaxLimit}");
-            sb.AppendLine($"Max age: {MaxAge}");
+            if (MaxAge.HasValue)
+                sb.AppendLine($"Max age: {MaxAge}");
             return sb.ToString();
         }
     }

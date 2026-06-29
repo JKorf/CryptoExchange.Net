@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Testing
     public class SharedRestRequestValidator<TClient> where TClient : BaseRestClient
     {
         private readonly TClient _client;
-        private readonly Func<WebCallResult, bool> _isAuthenticated;
+        private readonly Func<IHttpResult, bool> _isAuthenticated;
         private readonly string _folder;
         private readonly string _baseAddress;
         private readonly string? _nestedPropertyForCompare;
@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="baseAddress">The base address that is expected</param>
         /// <param name="isAuthenticated">Func for checking if the request is authenticated</param>
         /// <param name="nestedPropertyForCompare">Property to use for compare</param>
-        public SharedRestRequestValidator(TClient client, string folder, string baseAddress, Func<WebCallResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
+        public SharedRestRequestValidator(TClient client, string folder, string baseAddress, Func<IHttpResult, bool> isAuthenticated, string? nestedPropertyForCompare = null)
         {
             _client = client;
             _folder = folder;
@@ -52,7 +52,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public Task ValidateAsync<TResponse>(
-           Func<TClient, Task<ExchangeWebResult<TResponse>>> methodInvoke,
+           Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
            string name,
            EndpointOptions endpointOptions,
             params Func<TResponse, bool>[] validation)
@@ -70,7 +70,7 @@ namespace CryptoExchange.Net.Testing
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public async Task ValidateAsync<TResponse, TActualResponse>(
-            Func<TClient, Task<ExchangeWebResult<TResponse>>> methodInvoke,
+            Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
             string name,
             EndpointOptions endpointOptions,
             params Func<TResponse, bool>[] validation) where TActualResponse : TResponse
@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.Testing
             if (result.Error != null)
                 throw new Exception(name + " returned error " + result.Error);
             if (endpointOptions.NeedsAuthentication != expectedAuth)
-                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result.AsDataless())}");
+                throw new Exception(name + $" authentication not matched. Expected: {expectedAuth}, Actual: {_isAuthenticated(result)}");
             if (result.RequestMethod != new HttpMethod(expectedMethod!))
                 throw new Exception(name + $" http method not matched. Expected {expectedMethod}, Actual: {result.RequestMethod}");
             if (expectedPath != result.RequestUrl!.Replace(_baseAddress, "").Split(new char[] { '?' })[0])

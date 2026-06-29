@@ -3,12 +3,12 @@
     /// <summary>
     /// Options for setting leverage
     /// </summary>
-    public class SetLeverageOptions : EndpointOptions<SetLeverageRequest>
+    public class SetLeverageOptions : EndpointOptions<SetLeverageRequest, ILeverageRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public SetLeverageOptions() : base(true)
+        public SetLeverageOptions(string exchange) : base(exchange, true, nameof(ILeverageRestClient.SetLeverageAsync))
         {
         }
     }

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to kline/candlestick updates
     /// </summary>
-    public class SubscribeKlineOptions : EndpointOptions<SubscribeKlineRequest>
+    public class SubscribeKlineOptions : EndpointOptions<SubscribeKlineRequest, IKlineSocketClient>
     {
         /// <summary>
         /// Kline intervals supported for updates
@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeKlineOptions(bool needsAuthentication) : base(needsAuthentication)
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(IKlineSocketClient.SubscribeToKlineUpdatesAsync))
         {
             SupportIntervals = new[]
             {
@@ -41,7 +41,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeKlineOptions(bool needsAuthentication, params SharedKlineInterval[] intervals) : base(needsAuthentication)
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication, params SharedKlineInterval[] intervals) 
+            : base(exchange, needsAuthentication, nameof(IKlineSocketClient.SubscribeToKlineUpdatesAsync))
         {
             SupportIntervals = intervals;
         }
@@ -56,12 +57,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public override Error? ValidateRequest(string exchange, SubscribeKlineRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(SubscribeKlineRequest request, IKlineSocketClient client)
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
     }
 }

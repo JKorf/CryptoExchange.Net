@@ -33,6 +33,6 @@ namespace CryptoExchange.Net.RateLimiting.Interfaces
         /// <summary>
         /// Reset the limit counter for this tracker
         /// </summary>
-        void Reset();
+        void Reset(int? amount);
     }
 }

@@ -140,13 +140,13 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        protected override Task<CallResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey)
+        protected override Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync()
         {
             if (_socketClient == null)
-                return Task.FromResult(new CallResult<UpdateSubscription?>(data: null));
+                return Task.FromResult(new WebSocketResult<UpdateSubscription?>(_exchange!, default!, default));
 
             return ExchangeHelpers.ProcessQueuedAsync<SharedUserTrade[]>(
-                async handler => await _socketClient.SubscribeToUserTradeUpdatesAsync(new SubscribeUserTradeRequest(listenKey, exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
+                async handler => await _socketClient.SubscribeToUserTradeUpdatesAsync(new SubscribeUserTradeRequest(exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }
 

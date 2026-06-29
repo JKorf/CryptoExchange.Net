@@ -110,7 +110,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             var result = await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => {}, false, default);
 
             // act
-            await client.UnsubscribeAsync(result.Data);
+            await client.UnsubscribeAsync(result.Data!);
 
             // assert
             Assert.That(socket.Connected == false);

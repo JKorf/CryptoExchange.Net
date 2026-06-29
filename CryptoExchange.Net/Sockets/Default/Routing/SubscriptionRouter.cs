@@ -39,7 +39,7 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
 
         public override bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
         {
-            result = CallResult.SuccessResult;
+            result = CallResult.Ok();
 
             // Routes without topic filter handle both when the message topic is empty and when it is not, so we always call them
             var handled = false;

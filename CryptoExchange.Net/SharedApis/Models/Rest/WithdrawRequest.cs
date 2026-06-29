@@ -35,7 +35,8 @@
         /// <param name="network">Network to use</param>
         /// <param name="addressTag">Address tag</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public WithdrawRequest(string asset, decimal quantity, string address, string? network = null, string? addressTag = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public WithdrawRequest(string asset, decimal quantity, string address, string? network = null, string? addressTag = null, ExchangeParameters? exchangeParameters = null) 
+            : base(null, exchangeParameters)
         {
             Asset = asset;
             Address = address;

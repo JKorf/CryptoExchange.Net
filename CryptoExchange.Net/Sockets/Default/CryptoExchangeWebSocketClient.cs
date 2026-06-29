@@ -138,11 +138,11 @@ namespace CryptoExchange.Net.Sockets.Default
             _sendBuffer = new ConcurrentQueue<SendItem>();
             _ctsSource = new CancellationTokenSource();
             _receiveBufferSize = websocketParameters.ReceiveBufferSize ?? 65536;
-            _requestDefinition = new RequestDefinition(Uri.AbsolutePath, HttpMethod.Get) { ConnectionId = Id };
+            _baseAddress = $"{Uri.Scheme}://{Uri.Host}";
+            _requestDefinition = new RequestDefinition(_baseAddress, Uri.AbsolutePath, HttpMethod.Get) { ConnectionId = Id };
 
             _closeSem = new SemaphoreSlim(1, 1);
             _socket = CreateSocket();
-            _baseAddress = $"{Uri.Scheme}://{Uri.Host}";
         }
 
         /// <inheritdoc />
@@ -155,7 +155,7 @@ namespace CryptoExchange.Net.Sockets.Default
         public virtual async Task<CallResult> ConnectAsync(CancellationToken ct)
         {
             var connectResult = await ConnectInternalAsync(ct).ConfigureAwait(false);
-            if (!connectResult)
+            if (!connectResult.Success)
                 return connectResult;
             
             await (OnOpen?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
@@ -208,9 +208,9 @@ namespace CryptoExchange.Net.Sockets.Default
             {
                 if (Parameters.RateLimiter != null)
                 {
-                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, _baseAddress, null, 1, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
-                    if (!limitResult)
-                        return new CallResult(new ClientRateLimitError("Connection limit reached"));
+                    var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, Id, RateLimitItemType.Connection, _requestDefinition, null, 1, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                    if (!limitResult.Success)
+                        return CallResult.Fail(new ClientRateLimitError("Connection limit reached"));
                 }
 
                 using CancellationTokenSource tcs = new(TimeSpan.FromSeconds(10));
@@ -235,27 +235,36 @@ namespace CryptoExchange.Net.Sockets.Default
                     if (_socket.HttpStatusCode == HttpStatusCode.TooManyRequests)
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
-                        return new CallResult(new ServerRateLimitError(we.Message, we));
+                        return CallResult.Fail(new ServerRateLimitError(we.Message, we));
+                    }
+
+                    if (_socket.HttpStatusCode == 0)
+                    {
+                        // No HTTP response, so request probably didn't reach the server. Don't count towards rate limit
+                        if (Parameters.RateLimiter != null)
+                        {
+                            await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Connection, _requestDefinition, null, null, 1, default).ConfigureAwait(false);
+                        }
                     }
 
                     if (_socket.HttpStatusCode == HttpStatusCode.Unauthorized)
-                        return new CallResult(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
+                        return CallResult.Fail(new ServerError(new ErrorInfo(ErrorType.Unauthorized, "Server returned status code `401` when `101` was expected")));
 #else
                     // ClientWebSocket.HttpStatusCode is only available in .NET6+ https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket.httpstatuscode?view=net-8.0
                     // Try to read 429 from the message instead
                     if (we.Message.Contains("429"))
                     {
                         await (OnConnectRateLimited?.Invoke() ?? Task.CompletedTask).ConfigureAwait(false);
-                        return new CallResult(new ServerRateLimitError(we.Message, we));
+                        return CallResult.Fail(new ServerRateLimitError(we.Message, we));
                     }
 #endif
                 }
 
-                return new CallResult(new CantConnectError(e));
+                return CallResult.Fail(new CantConnectError(e));
             }
 
             _logger.SocketConnected(Id, Uri);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />
@@ -298,7 +307,7 @@ namespace CryptoExchange.Net.Sockets.Default
                 }
 
                 if (Parameters.RateLimiter != null)
-                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, _baseAddress, null, null, default).ConfigureAwait(false);
+                    await Parameters.RateLimiter.ResetAsync(RateLimitItemType.Request, _requestDefinition, null, null, null, default).ConfigureAwait(false);
 
                 // Delay here to prevent very rapid looping when a connection to the server is accepted and immediately disconnected
                 var initialDelay = GetReconnectDelay();
@@ -326,7 +335,7 @@ namespace CryptoExchange.Net.Sockets.Default
 
                     _reconnectAttempt++;
                     var connected = await ConnectInternalAsync(default).ConfigureAwait(false);
-                    if (!connected)
+                    if (!connected.Success)
                     {
                         // Delay between reconnect attempts
                         var delay = GetReconnectDelay();
@@ -523,8 +532,8 @@ namespace CryptoExchange.Net.Sockets.Default
                         {
                             try
                             {
-                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, _requestDefinition, _baseAddress, null, data.Weight, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
-                                if (!limitResult)
+                                var limitResult = await Parameters.RateLimiter.ProcessAsync(_logger, data.Id, RateLimitItemType.Request, _requestDefinition, null, data.Weight, Parameters.RateLimitingBehavior, null, _ctsSource.Token).ConfigureAwait(false);
+                                if (!limitResult.Success)
                                 {
                                     await (OnRequestRateLimited?.Invoke(data.Id) ?? Task.CompletedTask).ConfigureAwait(false);
                                     continue;

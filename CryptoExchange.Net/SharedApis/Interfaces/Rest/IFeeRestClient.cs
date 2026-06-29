@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Threading;
+using CryptoExchange.Net.Objects;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -9,15 +10,17 @@ namespace CryptoExchange.Net.SharedApis
     public interface IFeeRestClient : ISharedClient
     {
         /// <summary>
-        /// Fee request options
+        /// Fee request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetFeeRequest> GetFeeOptions { get; }
+        GetFeeOptions GetFeeOptions { get; }
 
         /// <summary>
-        /// Get trading fees for a symbol
+        /// Get trading fees for a symbol, see <see cref="GetFeeOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
     }
 }

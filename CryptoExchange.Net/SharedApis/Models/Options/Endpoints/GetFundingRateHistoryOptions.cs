@@ -7,18 +7,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting funding rate history
     /// </summary>
-    public class GetFundingRateHistoryOptions : PaginatedEndpointOptions<GetFundingRateHistoryRequest>
+    public class GetFundingRateHistoryOptions : PaginatedEndpointOptions<GetFundingRateHistoryRequest, IFundingRateRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFundingRateHistoryOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication) 
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication)
+        public GetFundingRateHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IFundingRateRestClient.GetFundingRateHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetFundingRateHistoryRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetFundingRateHistoryRequest request, IFundingRateRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");
@@ -40,15 +40,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
-        }
-
-        /// <inheritdoc />
-        public override string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
-            return sb.ToString();
+            return base.ValidateRequest(request, client);
         }
     }
 }

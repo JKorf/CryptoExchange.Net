@@ -48,7 +48,7 @@
             SharedAccountType toAccount,
             string? fromSymbol = null,
             string? toSymbol = null,
-            ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+            ExchangeParameters? exchangeParameters = null) : base(null, exchangeParameters)
         {
             Asset = asset;
             Quantity = quantity;

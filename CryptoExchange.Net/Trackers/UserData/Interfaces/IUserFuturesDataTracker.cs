@@ -3,6 +3,7 @@ using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.Interfaces
@@ -59,7 +60,7 @@ namespace CryptoExchange.Net.Trackers.UserData.Interfaces
         /// <summary>
         /// Start tracking user data
         /// </summary>
-        Task<CallResult> StartAsync();
+        Task<CallResult> StartAsync(CancellationToken ct = default);
         /// <summary>
         /// Stop tracking data
         /// </summary>

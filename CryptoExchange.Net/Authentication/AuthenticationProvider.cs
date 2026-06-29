@@ -439,13 +439,13 @@ namespace CryptoExchange.Net.Authentication
         /// <param name="serializer"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        protected static string GetSerializedBody(IMessageSerializer serializer, IDictionary<string, object> parameters)
+        protected static string GetSerializedBody(IMessageSerializer serializer, Parameters? parameters)
         {
             if (serializer is not IStringMessageSerializer stringSerializer)
                 throw new InvalidOperationException("Non-string message serializer can't get serialized request body");
 
-            if (parameters?.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
-                return stringSerializer.Serialize(value);
+            if (parameters?.BodyValue != null)
+                return stringSerializer.Serialize(parameters.BodyValue);
             else
                 return stringSerializer.Serialize(parameters);
         }

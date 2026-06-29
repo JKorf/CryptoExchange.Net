@@ -10,33 +10,35 @@ namespace CryptoExchange.Net.SharedApis
     public interface ISpotSymbolRestClient : ISharedClient
     {
         /// <summary>
-        /// Spot symbols request options
+        /// Spot symbols request options.<br />
+        /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
+        /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        EndpointOptions<GetSymbolsRequest> GetSpotSymbolsOptions { get; }
+        GetSpotSymbolsOptions GetSpotSymbolsOptions { get; }
 
         /// <summary>
         /// Get all spot symbols for a specific base asset
         /// </summary>
         /// <param name="baseAsset">Asset, for example `ETH`</param>
-        Task<ExchangeResult<SharedSymbol[]>> GetSpotSymbolsForBaseAssetAsync(string baseAsset);
+        Task<ExchangeCallResult<SharedSymbol[]>> GetSpotSymbolsForBaseAssetAsync(string baseAsset);
 
         /// <summary>
         /// Gets whether the client supports a spot symbol
         /// </summary>
         /// <param name="symbol">The symbol</param>
-        Task<ExchangeResult<bool>> SupportsSpotSymbolAsync(SharedSymbol symbol);
+        Task<ExchangeCallResult<bool>> SupportsSpotSymbolAsync(SharedSymbol symbol);
 
         /// <summary>
         /// Gets whether the client supports a spot symbol
         /// </summary>
         /// <param name="symbolName">The symbol name</param>
-        Task<ExchangeResult<bool>> SupportsSpotSymbolAsync(string symbolName);
+        Task<ExchangeCallResult<bool>> SupportsSpotSymbolAsync(string symbolName);
 
         /// <summary>
-        /// Get info on all available spot symbols on the exchange
+        /// Get info on all available spot symbols on the exchange, see <see cref="GetSpotSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ExchangeWebResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

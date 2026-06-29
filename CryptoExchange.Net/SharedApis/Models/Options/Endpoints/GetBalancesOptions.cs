@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class GetBalancesOptions : EndpointOptions<GetBalancesRequest>
+    public class GetBalancesOptions : EndpointOptions<GetBalancesRequest, IBalanceRestClient>
     {
         /// <summary>
         /// Supported account types
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBalancesOptions(params AccountTypeFilter[] accountTypes) : base(true)
+        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IBalanceRestClient.GetBalancesAsync))
         {
             SupportedAccountTypes = accountTypes;
         }
@@ -24,15 +24,14 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public Error? ValidateRequest(
-            string exchange,
+        public override Error? ValidateRequest(
             GetBalancesRequest request,
-            TradingMode[] supportedApiTypes)
+            IBalanceRestClient client)
         {
             if (request.AccountType != null && !IsValid(request.AccountType.Value))
                 return ArgumentError.Invalid(nameof(request.AccountType), "Invalid AccountType");
 
-            return base.ValidateRequest(exchange, request, null, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
 
         /// <summary>

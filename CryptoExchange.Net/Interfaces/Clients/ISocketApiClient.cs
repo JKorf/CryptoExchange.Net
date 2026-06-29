@@ -84,6 +84,12 @@ namespace CryptoExchange.Net.Interfaces.Clients
         /// Whether or not API credentials have been configured for this client. Does not check the credentials are actually valid.
         /// </summary>
         bool Authenticated { get; }
+
+        /// <summary>
+        /// Configured credentials
+        /// </summary>
+        TApiCredentials? ApiCredentials { get; }
+
         /// <summary>
         /// Set the API credentials for this API client
         /// </summary>

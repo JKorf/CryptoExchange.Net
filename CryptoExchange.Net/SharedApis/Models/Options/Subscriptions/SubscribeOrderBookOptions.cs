@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to order book snapshot updates
     /// </summary>
-    public class SubscribeOrderBookOptions : EndpointOptions<SubscribeOrderBookRequest>
+    public class SubscribeOrderBookOptions : EndpointOptions<SubscribeOrderBookRequest, IOrderBookSocketClient>
     {
         /// <summary>
         /// Order book depths supported for updates
@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeOrderBookOptions(bool needsAuthentication, int[] limits) : base(needsAuthentication)
+        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(IOrderBookSocketClient.SubscribeToOrderBookUpdatesAsync))
         {
             SupportedLimits = limits;
         }
@@ -25,12 +25,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public override Error? ValidateRequest(string exchange, SubscribeOrderBookRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(SubscribeOrderBookRequest request, IOrderBookSocketClient client)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return ArgumentError.Invalid(nameof(SubscribeOrderBookRequest.Limit), "Limit not supported");
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
     }
 }

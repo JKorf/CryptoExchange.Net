@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
+        public LimitCheck Check(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
         {
             if (type != Type)
                 return LimitCheck.NotApplicable;
@@ -55,7 +55,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         }
 
         /// <inheritdoc />
-        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, string? keySuffix)
+        public RateLimitState ApplyWeight(RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, string? keySuffix)
         {
             return RateLimitState.NotApplied;
         }
@@ -67,7 +67,7 @@ namespace CryptoExchange.Net.RateLimiting.Guards
         public void UpdateAfter(DateTime after) => After = after;
 
         /// <inheritdoc />
-        public void Reset(RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, string? keySuffix)
+        public void Reset(RateLimitItemType type, RequestDefinition definition, string? apiKey, string? keySuffix, int? amount)
         {
             After = DateTime.UtcNow;
         }

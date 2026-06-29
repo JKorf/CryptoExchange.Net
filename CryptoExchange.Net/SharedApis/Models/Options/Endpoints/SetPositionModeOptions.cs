@@ -3,12 +3,12 @@
     /// <summary>
     /// Options for setting position mode
     /// </summary>
-    public class SetPositionModeOptions : EndpointOptions<SetPositionModeRequest>
+    public class SetPositionModeOptions : EndpointOptions<SetPositionModeRequest, IPositionModeRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public SetPositionModeOptions() : base(true)
+        public SetPositionModeOptions(string exchange) : base(exchange, true, nameof(IPositionModeRestClient.SetPositionModeOptions))
         {
         }
     }

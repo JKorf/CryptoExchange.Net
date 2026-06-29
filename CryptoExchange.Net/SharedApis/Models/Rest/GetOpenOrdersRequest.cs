@@ -6,10 +6,6 @@
     public record GetOpenOrdersRequest : SharedRequest
     {
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode? TradingMode { get; set; }
-        /// <summary>
         /// Symbol filter
         /// </summary>
         public SharedSymbol? Symbol { get; set; }
@@ -19,9 +15,8 @@
         /// </summary>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetOpenOrdersRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetOpenOrdersRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(tradingMode, exchangeParameters)
         {
-            TradingMode = tradingMode;
         }
 
         /// <summary>
@@ -29,7 +24,7 @@
         /// </summary>
         /// <param name="symbol">Symbol to retrieve open orders for</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetOpenOrdersRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public GetOpenOrdersRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol.TradingMode, exchangeParameters)
         {
             Symbol = symbol;
         }

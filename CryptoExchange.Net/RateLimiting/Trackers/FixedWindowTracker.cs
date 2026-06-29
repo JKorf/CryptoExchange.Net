@@ -29,10 +29,26 @@ namespace CryptoExchange.Net.RateLimiting.Trackers
         }
 
         /// <inheritdoc />
-        public void Reset()
+        public void Reset(int? amount)
         {
-            _entries.Clear();
-            _currentWeight = 0;
+            if (amount == null)
+            {
+                _entries.Clear();
+                _currentWeight = 0;
+            }
+            else
+            {
+                _currentWeight = Math.Max(0, _currentWeight - amount.Value);
+                var removedWeight = 0;
+                while (true)
+                {
+                    if (removedWeight >= amount.Value || _entries.Count == 0)
+                        break;
+
+                    var lastEntry = _entries.Dequeue();
+                    removedWeight += lastEntry.Weight;
+                }
+            }
         }
 
         /// <inheritdoc />

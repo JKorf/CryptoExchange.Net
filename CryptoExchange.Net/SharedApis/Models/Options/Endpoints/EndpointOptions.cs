@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
@@ -10,22 +11,26 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for an exchange endpoint
     /// </summary>
-    public class EndpointOptions
+    public abstract class EndpointOptions
     {
         /// <summary>
-        /// Required exchange-specific parameters
+        /// Required exchange-specific parameters. These can be provided via the `exchangeParameters` property of the request object.
         /// </summary>
         public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
         /// <summary>
-        /// Optional exchange-specific parameters
+        /// Optional exchange-specific parameters. These can be provided via the `exchangeParameters` property of the request object.
         /// </summary>
         public List<ParameterDescription> OptionalExchangeParameters { get; set; } = new List<ParameterDescription>();
+        /// <summary>
+        /// Exchange
+        /// </summary>
+        public string Exchange { get; set; }
         /// <summary>
         /// Endpoint name
         /// </summary>
         public string EndpointName { get; set; }
         /// <summary>
-        /// Information on the specific exchange request
+        /// Exchange specific additional info
         /// </summary>
         public string? RequestNotes { get; set; }
         /// <summary>
@@ -33,15 +38,16 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public bool NeedsAuthentication { get; set; }
         /// <summary>
-        /// Whether the call is supported by the exchange
+        /// Whether the call is supported. If false the exchange API does not support this operation.
         /// </summary>
         public bool Supported { get; set; } = true;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public EndpointOptions(string endpointName, bool needAuthentication)
+        public EndpointOptions(string exchange, string endpointName, bool needAuthentication)
         {
+            Exchange = exchange;
             EndpointName = endpointName;
             NeedsAuthentication = needAuthentication;
         }
@@ -49,62 +55,67 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        /// <param name="exchange">Exchange name</param>
         /// <param name="exchangeParameters">Provided exchange parameters</param>
         /// <param name="tradingMode">Request trading mode</param>
         /// <param name="supportedTradingModes">Supported trading modes</param>
         /// <returns></returns>
-        public virtual Error? ValidateRequest(string exchange, ExchangeParameters? exchangeParameters, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
+        public virtual Error? ValidateRequest(ExchangeParameters? exchangeParameters, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
         {
+            if (!Supported)
+                return ArgumentError.Invalid("Endpoint", $"Endpoint {Exchange} {EndpointName} is not supported by the API");
+
             if (tradingMode != null && !supportedTradingModes.Contains(tradingMode.Value))
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{tradingMode} is not supported, supported types: {string.Join(", ", supportedTradingModes)}");
 
             foreach (var param in RequiredExchangeParameters)
-            {
-                if (!string.IsNullOrEmpty(param.Name))
-                {
-                    if (ExchangeParameters.HasValue(exchangeParameters, exchange, param.Name!, param.ValueType) != true)
-                        return ArgumentError.Invalid(param.Name!, $"Required exchange parameter `{param.Name}` for exchange `{exchange}` is missing or has incorrect type. Expected type is {param.ValueType.Name}. Example: {param.ExampleValue}");
-                }
-                else
-                {
-                    if (param.Names!.All(x => ExchangeParameters.HasValue(exchangeParameters, exchange, x, param.ValueType) != true))
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of exchange parameters `{string.Join(", ", param.Names!)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
-                }
+            {                
+                if (param.Names!.All(x => ExchangeParameters.HasValue(exchangeParameters, Exchange, x, param.ValueType) != true))
+                    return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of exchange parameters `{string.Join(", ", param.Names!)}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
             }
 
             return null;
-        }
-
-        /// <inheritdoc />
-        public virtual string ToString(string exchange)
-        {
-            if (!Supported)
-                return $"{exchange} {EndpointName} NOT SUPPORTED";
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"{exchange} {EndpointName}");
-            if (!string.IsNullOrEmpty(RequestNotes))
-                sb.AppendLine(RequestNotes);
-            sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
-            sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
-            sb.AppendLine($"Optional exchange specific parameters: {string.Join(", ", OptionalExchangeParameters.Select(x => x.ToString()))}");
-            return sb.ToString();
         }
     }
 
     /// <summary>
     /// Options for an exchange endpoint
     /// </summary>
-    /// <typeparam name="T">Type of data</typeparam>
+    /// <typeparam name="TRequest">Type of data</typeparam>
 #if NET5_0_OR_GREATER
-    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T> : EndpointOptions where T : SharedRequest
+    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest> : EndpointOptions 
+    where TRequest : SharedRequest
 #else
-    public class EndpointOptions<T> : EndpointOptions where T : SharedRequest
+    public abstract class EndpointOptions<TRequest> : EndpointOptions
+        where TRequest : SharedRequest
 #endif
     {
         /// <summary>
-        /// Required optional parameters in the request
+        /// ctor
+        /// </summary>
+        public EndpointOptions(string exchange, bool needsAuthentication, string requestName) : base(exchange, requestName, needsAuthentication)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Options for an exchange endpoint
+    /// </summary>
+    /// <typeparam name="TRequest">Type of data</typeparam>
+    /// <typeparam name="TClient">Type of the client</typeparam>
+#if NET5_0_OR_GREATER
+    public abstract class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions <TRequest>
+    where TRequest : SharedRequest
+    where TClient : ISharedClient
+#else
+    public abstract class EndpointOptions<TRequest, TClient> : EndpointOptions<TRequest>
+        where TRequest : SharedRequest
+        where TClient : ISharedClient
+#endif
+    {
+        private static PropertyInfo[] _requestProperties = typeof(TRequest).GetProperties();
+
+        /// <summary>
+        /// Required optional parameters in the request. These can be provided via the `exchangeParameters` property of the request object.
         /// </summary>
         public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
 
@@ -120,33 +131,25 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EndpointOptions(bool needsAuthentication) : base(typeof(T).Name, needsAuthentication)
+        public EndpointOptions(string exchange, bool needsAuthentication, string requestName) : base(exchange, needsAuthentication, requestName)
         {
         }
 
         /// <summary>
         /// Validate a request
         /// </summary>
-        /// <param name="exchange">Exchange name</param>
         /// <param name="request">The request</param>
-        /// <param name="tradingMode">Request trading mode</param>
-        /// <param name="supportedTradingModes">Supported trading modes</param>
+        /// <param name="client">Containing client</param>
         /// <returns></returns>
-        public virtual Error? ValidateRequest(string exchange, T request, TradingMode? tradingMode, TradingMode[] supportedTradingModes)
+        public virtual Error? ValidateRequest(TRequest request, TClient client)
         {
+            if (NeedsAuthentication && !client.Authenticated)
+                return new NoApiCredentialsError();
+
             foreach (var param in RequiredOptionalParameters)
             {
-                if (!string.IsNullOrEmpty(param.Name))
-                {
-                    if (typeof(T).GetProperty(param.Name)!.GetValue(request, null) == null)
-                        return ArgumentError.Invalid(param.Name!, $"Required optional parameter `{param.Name}` for exchange `{exchange}` is missing. Example: {param.ExampleValue}");
-                }
-                else
-                {
-                    if (param.Names!.All(x => typeof(T).GetProperty(param.Name!)!.GetValue(request, null) == null))
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of optional parameters `{string.Join(", ", param.Names!)}` for exchange `{exchange}` should be provided. Example: {param.ExampleValue}");
-                }
-
+                if (param.Names!.All(x => _requestProperties.Single(p => p.Name == x).GetValue(request, null) == null))
+                    return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of optional parameters `{string.Join(", ", param.Names!)}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
             }
 
             if (request is SharedSymbolRequest symbolsRequest)
@@ -162,26 +165,38 @@ namespace CryptoExchange.Net.SharedApis
 
             }
 
-            return ValidateRequest(exchange, request.ExchangeParameters, tradingMode, supportedTradingModes);
+            return ValidateRequest(request.ExchangeParameters, request.TradingMode, client.SupportedTradingModes);
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
             if (!Supported)
-                return $"{exchange} {EndpointName} NOT SUPPORTED";
+                return $"{Exchange} {EndpointName} NOT SUPPORTED";
 
             var sb = new StringBuilder();
-            sb.AppendLine($"{exchange} {typeof(T).Name}");
+            sb.AppendLine($"{Exchange} {EndpointName}");
             sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
             if (!string.IsNullOrEmpty(RequestNotes))
                 sb.AppendLine(RequestNotes);
             if (RequiredOptionalParameters.Any())
-                sb.AppendLine($"Required optional parameters: {string.Join(", ", RequiredOptionalParameters.Select(x => x.ToString()))}");
+            {
+                sb.AppendLine($"Required optional parameters:");
+                foreach(var param in RequiredOptionalParameters)
+                    sb.AppendLine($"    {param}");
+            }
             if (RequiredExchangeParameters.Any())
-                sb.AppendLine($"Required exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            {
+                sb.AppendLine($"Required exchange specific parameters:");
+                foreach (var param in RequiredExchangeParameters)
+                    sb.AppendLine($"    {param}");
+            }
             if (OptionalExchangeParameters.Any())
-                sb.AppendLine($"Optional exchange specific parameters: {string.Join(", ", RequiredExchangeParameters.Select(x => x.ToString()))}");
+            {
+                sb.AppendLine($"Optional exchange specific parameters:");
+                foreach (var param in OptionalExchangeParameters)
+                    sb.AppendLine($"    {param}");
+            }
             return sb.ToString();
         }
     }

@@ -7,18 +7,18 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting position history
     /// </summary>
-    public class GetPositionHistoryOptions : PaginatedEndpointOptions<GetPositionHistoryRequest>
+    public class GetPositionHistoryOptions : PaginatedEndpointOptions<GetPositionHistoryRequest, IPositionHistoryRestClient>
     {
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionHistoryOptions(bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true)
+        public GetPositionHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IPositionHistoryRestClient.GetPositionHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetPositionHistoryRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetPositionHistoryRequest request, IPositionHistoryRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");
@@ -40,15 +40,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
-        }
-
-        /// <inheritdoc />
-        public override string ToString(string exchange)
-        {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Time filter supported: {TimePeriodFilterSupport}");
-            return sb.ToString();
+            return base.ValidateRequest(request, client);
         }
     }
 }

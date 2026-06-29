@@ -29,6 +29,11 @@ namespace CryptoExchange.Net.Interfaces.Clients
         bool Authenticated { get; }
 
         /// <summary>
+        /// Configured credentials
+        /// </summary>
+        TApiCredentials? ApiCredentials { get; }
+
+        /// <summary>
         /// Set the API credentials for this API client
         /// </summary>
         void SetApiCredentials(TApiCredentials credentials);

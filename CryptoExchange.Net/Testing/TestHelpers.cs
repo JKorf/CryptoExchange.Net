@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.Testing.Implementations;
@@ -97,18 +98,6 @@ namespace CryptoExchange.Net.Testing
         /// <summary>
         /// Check a signature matches the expected signature
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="authProvider"></param>
-        /// <param name="method"></param>
-        /// <param name="path"></param>
-        /// <param name="getSignature"></param>
-        /// <param name="expectedSignature"></param>
-        /// <param name="parameters"></param>
-        /// <param name="time"></param>
-        /// <param name="disableOrdering"></param>
-        /// <param name="compareCase"></param>
-        /// <param name="host"></param>
-        /// <exception cref="Exception"></exception>
         public static void CheckSignature(
             RestApiClient client,
             AuthenticationProvider authProvider,
@@ -116,34 +105,22 @@ namespace CryptoExchange.Net.Testing
             string path,
             Func<IDictionary<string, object>?, IDictionary<string, object>?, IDictionary<string, string>?, string> getSignature,
             string expectedSignature,
-            Dictionary<string, object>? parameters = null,
+            Parameters? parameters = null,
             DateTime? time = null,
-            bool disableOrdering = false,
             bool compareCase = true,
             string host = "https://test.test-api.com")
         {
-            parameters ??= new Dictionary<string, object>
-                {
-                    { "test", 123 },
-                    { "test2", "abc" }
-                };
-
-            if (disableOrdering)
-                client.OrderParameters = false;
-
-            var uriParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InUri ? client.CreateParameterDictionary(parameters) : null;
-            var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? client.CreateParameterDictionary(parameters) : null;
+            var uriParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InUri ? parameters : null;
+            var bodyParams = client.ParameterPositions[method] == HttpMethodParameterPosition.InBody ? parameters : null;
 
             var requestDefinition = new RestRequestConfiguration(
-                    new RequestDefinition(path, method)
+                    new RequestDefinition(host, path, method)
                     {
                         Authenticated = true
                     },
-                    host,
-                    uriParams ?? new Dictionary<string, object>(),
-                    bodyParams ?? new Dictionary<string, object>(),
+                    uriParams,
+                    bodyParams,
                     new Dictionary<string, string>(),
-                    client.ArraySerialization,
                     client.ParameterPositions[method],
                     client.RequestBodyFormat
                     );

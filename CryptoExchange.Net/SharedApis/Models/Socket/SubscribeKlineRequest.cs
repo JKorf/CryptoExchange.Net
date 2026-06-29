@@ -18,7 +18,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="symbol">The symbol to subscribe to</param>
         /// <param name="interval">Kline interval</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeKlineRequest(SharedSymbol symbol, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        public SubscribeKlineRequest(SharedSymbol symbol, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null)
+            : base(symbol, exchangeParameters)
         {
             Interval = interval;
         }
@@ -29,7 +30,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="symbols">The symbols to subscribe to</param>
         /// <param name="interval">Kline interval</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public SubscribeKlineRequest(IEnumerable<SharedSymbol> symbols, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) : base(symbols, exchangeParameters)
+        public SubscribeKlineRequest(IEnumerable<SharedSymbol> symbols, SharedKlineInterval interval, ExchangeParameters? exchangeParameters = null) 
+            : base(symbols, exchangeParameters)
         {
             Interval = interval;
         }

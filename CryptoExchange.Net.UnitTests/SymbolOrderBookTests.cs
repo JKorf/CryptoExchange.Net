@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.UnitTests
             }
 
 
-            protected override Task<CallResult<bool>> DoResyncAsync(CancellationToken ct)
+            protected override Task<CallResult> DoResyncAsync(CancellationToken ct)
             {
                 throw new NotImplementedException();
             }

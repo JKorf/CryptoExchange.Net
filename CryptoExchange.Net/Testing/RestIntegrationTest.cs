@@ -66,7 +66,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="ignoreProperties">Properties to ignore when checking for missing fields</param>
         /// <param name="useSingleArrayItem">Whether to use the single array item as compare when checking for missing fields</param>
         public async Task RunAndCheckResult<T>(
-            Expression<Func<TClient, Task<WebCallResult<T>>>> expression,
+            Expression<Func<TClient, Task<HttpResult<T>>>> expression,
             bool authRequest,
             bool checkMissingFields = false,
             string? compareNestedProperty = null,
@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.Testing
             var listener = new EnumValueTraceListener();
             Trace.Listeners.Add(listener);
 
-            WebCallResult<T> result;
+            HttpResult<T> result;
             try
             {
                 result = await expression.Compile().Invoke(client).ConfigureAwait(false);
@@ -144,7 +144,7 @@ namespace CryptoExchange.Net.Testing
             };
 
             var result = await book.StartAsync().ConfigureAwait(false);
-            if (!result)
+            if (!result.Success)
                 throw new Exception($"Book failed to start: " + result.Error);
 
             await Task.Delay(5000).ConfigureAwait(false);

@@ -9,9 +9,14 @@ namespace CryptoExchange.Net.Objects
     public class RequestDefinition
     {
         private string? _stringRep;
+        private string? _fullUrl;
 
         // Basics
 
+        /// <summary>
+        /// Base address of the request
+        /// </summary>
+        public string BaseAddress { get; set; }
         /// <summary>
         /// Path of the request
         /// </summary>
@@ -78,12 +83,30 @@ namespace CryptoExchange.Net.Objects
         public bool? ForcePathEndWithSlash { get; set; }
 
         /// <summary>
+        /// Full url, host + path
+        /// </summary>
+        public string FullUrl
+        {
+            get
+            {
+                if (_fullUrl != null) 
+                    return _fullUrl;
+
+                var result = BaseAddress.AppendPath(Path);
+                if (ForcePathEndWithSlash == true && !result.EndsWith("/"))
+                    result += "/";
+
+                _fullUrl = result;
+                return _fullUrl;
+            }   
+        }
+
+        /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="method"></param>
-        public RequestDefinition(string path, HttpMethod method)
+        public RequestDefinition(string baseAddress, string path, HttpMethod method)
         {
+            BaseAddress = baseAddress;
             Path = path;
             Method = method;
 

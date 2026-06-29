@@ -37,20 +37,20 @@ namespace CryptoExchange.Net.RateLimiting
         }
 
         /// <inheritdoc />
-        public async ValueTask<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
+        public async ValueTask<CallResult> ProcessAsync(ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             bool release = true;
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(_guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(_guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
             }
             catch (TaskCanceledException tce)
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError(tce));
+                return CallResult.Fail(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -67,7 +67,6 @@ namespace CryptoExchange.Net.RateLimiting
             IRateLimitGuard guard,
             RateLimitItemType type,
             RequestDefinition definition, 
-            string host,
             string? apiKey,
              int requestWeight,
             RateLimitingBehaviour rateLimitingBehaviour,
@@ -79,13 +78,13 @@ namespace CryptoExchange.Net.RateLimiting
             _waitingCount++;
             try
             {
-                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                return await CheckGuardsAsync(new IRateLimitGuard[] { guard }, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
             }
             catch (TaskCanceledException tce)
             {
                 // The semaphore has already been released if the task was cancelled
                 release = false;
-                return new CallResult(new CancellationRequestedError(tce));
+                return CallResult.Fail(new CancellationRequestedError(tce));
             }
             finally
             {
@@ -95,12 +94,12 @@ namespace CryptoExchange.Net.RateLimiting
             }
         }
 
-        private async ValueTask<CallResult> CheckGuardsAsync(IEnumerable<IRateLimitGuard> guards, ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string host, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
+        private async ValueTask<CallResult> CheckGuardsAsync(IEnumerable<IRateLimitGuard> guards, ILogger logger, int itemId, RateLimitItemType type, RequestDefinition definition, string? apiKey, int requestWeight, RateLimitingBehaviour rateLimitingBehaviour, string? keySuffix, CancellationToken ct)
         {
             foreach (var guard in guards)
             {
                 // Check if a wait is needed for this guard
-                var result = guard.Check(type, definition, host, apiKey, requestWeight, keySuffix);
+                var result = guard.Check(type, definition, apiKey, requestWeight, keySuffix);
                 if (result.Delay != TimeSpan.Zero && rateLimitingBehaviour == RateLimitingBehaviour.Fail)
                 {
                     // Delay is needed and limit behaviour is to fail the request
@@ -109,8 +108,8 @@ namespace CryptoExchange.Net.RateLimiting
                     else
                         logger.RateLimitRequestFailed(itemId, definition.Path, guard.Name, guard.Description);
                     
-                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
-                    return new CallResult(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
+                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                    return CallResult.Fail(new ClientRateLimitError($"Rate limit check failed on guard {guard.Name}; {guard.Description}"));
                 }
 
                 if (result.Delay != TimeSpan.Zero)
@@ -124,17 +123,17 @@ namespace CryptoExchange.Net.RateLimiting
                     else
                         logger.RateLimitDelayingRequest(itemId, definition.Path, result.Delay, guard.Name, description);
 
-                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, host, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
+                    RateLimitTriggered?.Invoke(new RateLimitEvent(itemId, _name, guard.Description, definition, result.Current, requestWeight, result.Limit, result.Period, result.Delay, rateLimitingBehaviour));
                     await Task.Delay((int)result.Delay.TotalMilliseconds + 1, ct).ConfigureAwait(false);
                     await _semaphore.WaitAsync(ct).ConfigureAwait(false);
-                    return await CheckGuardsAsync(guards, logger, itemId, type, definition, host, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
+                    return await CheckGuardsAsync(guards, logger, itemId, type, definition, apiKey, requestWeight, rateLimitingBehaviour, keySuffix, ct).ConfigureAwait(false);
                 }
             }
 
             // Apply the weight on each guard
             foreach (var guard in guards)
             {
-                var result = guard.ApplyWeight(type, definition, host, apiKey, requestWeight, keySuffix);
+                var result = guard.ApplyWeight(type, definition, apiKey, requestWeight, keySuffix);
                 if (result.IsApplied)
                 {
                     RateLimitUpdated?.Invoke(new RateLimitUpdateEvent(itemId, _name, guard.Description, result.Current, result.Limit, result.Period));
@@ -149,7 +148,7 @@ namespace CryptoExchange.Net.RateLimiting
                 }
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />
@@ -198,16 +197,16 @@ namespace CryptoExchange.Net.RateLimiting
         public async Task ResetAsync(
             RateLimitItemType type,
             RequestDefinition definition,
-            string host,
             string? apiKey,
             string? keySuffix,
+            int? amount,
             CancellationToken ct)
         {
             await _semaphore.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 foreach (var guard in _guards)
-                    guard.Reset(type, definition, host, apiKey, keySuffix);
+                    guard.Reset(type, definition, apiKey, keySuffix, amount);
             }
             finally
             {

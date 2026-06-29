@@ -10,10 +10,6 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedSymbolRequest : SharedRequest
     {
         /// <summary>
-        /// Trading mode
-        /// </summary>
-        public TradingMode TradingMode { get; }
-        /// <summary>
         /// The symbol
         /// </summary>
         public SharedSymbol? Symbol { get; set; }
@@ -25,25 +21,33 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedSymbolRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SharedSymbolRequest(SharedSymbol symbol, ExchangeParameters? exchangeParameters = null) : base(symbol.TradingMode, exchangeParameters)
         {
             Symbol = symbol;
-            TradingMode = symbol.TradingMode;
         }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedSymbolRequest(IEnumerable<SharedSymbol> symbols, ExchangeParameters? exchangeParameters = null) : base(exchangeParameters)
+        public SharedSymbolRequest(IEnumerable<SharedSymbol> symbols, ExchangeParameters? exchangeParameters = null) 
+            : base(symbols.FirstOrDefault()?.TradingMode ?? throw new ArgumentException("Empty symbol list"), exchangeParameters)
         {
-            if (!symbols.Any())
-                throw new ArgumentException("Empty symbol list");
+            Symbols = symbols.ToArray();
 
             if (symbols.GroupBy(x => x.TradingMode).Count() > 1)
                 throw new ArgumentException("All symbols in the symbol list should have the same trading mode");
-
-            Symbols = symbols.ToArray();
-            TradingMode = Symbols.First().TradingMode;
         }
+
+        /// <summary>
+        /// Get the symbol name using the provided formatter
+        /// </summary>
+        public string SymbolName(Func<string, string, TradingMode, DateTime?, string> formatter)
+            => Symbol?.GetSymbol(formatter) ?? throw new ArgumentException("Symbol is not set");
+
+        /// <summary>
+        /// Get the symbol names using the provided formatter
+        /// </summary>
+        public string[] SymbolNames(Func<string, string, TradingMode, DateTime?, string> formatter)
+            => Symbols?.Select(x => x.GetSymbol(formatter)).ToArray() ?? (Symbol != null ? new[] { Symbol.GetSymbol(formatter) } : null) ?? throw new ArgumentException("Symbol is not set");
     }
 }

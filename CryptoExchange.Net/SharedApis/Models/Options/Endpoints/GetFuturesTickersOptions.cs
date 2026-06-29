@@ -3,9 +3,9 @@
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Options for requesting ticker
+    /// Options for requesting tickers
     /// </summary>
-    public class GetTickerOptions : EndpointOptions<GetTickerRequest>
+    public class GetFuturesTickersOptions : EndpointOptions<GetTickersRequest, IFuturesTickerRestClient>
     {
         /// <summary>
         /// Type of ticker calculation
@@ -15,16 +15,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetTickerOptions(SharedTickerType? tickerCalcType = null) : base(false)
+        public GetFuturesTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IFuturesTickerRestClient.GetFuturesTickersAsync))
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
-            sb.AppendLine($"Ticker time calc type: {TickerType}");
+            var sb = new StringBuilder(base.ToString());
+            sb.AppendLine($"Ticker data calculation type: {TickerType}");
             return sb.ToString();
         }
     }

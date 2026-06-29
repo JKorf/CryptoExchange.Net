@@ -17,13 +17,13 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             var processor1 = new TestMessageProcessor(
                 1,
                 MessageRouter.Create(
-                    MessageRoute<string>.CreateWithoutTopicFilter("type1", (_, _, _, _) => null),
-                    MessageRoute<string>.CreateWithTopicFilter("type1", "topic1", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<string>("type1", (_, _, _, _) => null),
+                    MessageRoute.CreateForEvent<string>("type1", "topic1", (_, _, _, _) => null)));
 
             var processor2 = new TestMessageProcessor(
                 2,
                 MessageRouter.Create(
-                    MessageRoute<int>.CreateWithTopicFilter("type2", "topic2", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<int>("type2", "topic2", (_, _, _, _) => null)));
 
             var table = new RoutingTable();
 
@@ -57,12 +57,12 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             var processor1 = new TestMessageProcessor(
                 1,
                 MessageRouter.Create(
-                    MessageRoute<string>.CreateWithoutTopicFilter("type1", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<string>("type1", (_, _, _, _) => null)));
 
             var processor2 = new TestMessageProcessor(
                 2,
                 MessageRouter.Create(
-                    MessageRoute<string>.CreateWithTopicFilter("type1", "topic1", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<string>("type1", "topic1", (_, _, _, _) => null)));
 
             var table = new RoutingTable();
 
@@ -85,12 +85,12 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             var initialProcessor = new TestMessageProcessor(
                 1,
                 MessageRouter.Create(
-                    MessageRoute<string>.CreateWithoutTopicFilter("type1", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<string>("type1", (_, _, _, _) => null)));
 
             var replacementProcessor = new TestMessageProcessor(
                 2,
                 MessageRouter.Create(
-                    MessageRoute<int>.CreateWithoutTopicFilter("type2", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<int>("type2", (_, _, _, _) => null)));
 
             var table = new RoutingTable();
             table.Update(new IMessageProcessor[] { initialProcessor });
@@ -116,7 +116,7 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
             var processor = new TestMessageProcessor(
                 1,
                 MessageRouter.Create(
-                    MessageRoute<string>.CreateWithoutTopicFilter("type1", (_, _, _, _) => null)));
+                    MessageRoute.CreateForEvent<string>("type1", (_, _, _, _) => null)));
 
             var table = new RoutingTable();
             table.Update(new IMessageProcessor[] { processor });

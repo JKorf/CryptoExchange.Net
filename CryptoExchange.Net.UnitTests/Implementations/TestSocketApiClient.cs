@@ -17,13 +17,13 @@ namespace CryptoExchange.Net.UnitTests.Implementations
 {
     internal class TestSocketApiClient : SocketApiClient<TestEnvironment, TestAuthenticationProvider, TestCredentials>
     {
-        public TestSocketApiClient(ILogger logger, TestSocketOptions options)
-            : base(logger, options.Environment.SocketClientAddress, options, options.ExchangeOptions)
+        public TestSocketApiClient(ILoggerFactory? loggerFactory, TestSocketOptions options)
+            : base(loggerFactory, "Test", options.Environment.SocketClientAddress, options, options.ExchangeOptions)
         {
         }
 
-        public TestSocketApiClient(ILogger logger, HttpClient httpClient, string baseAddress, TestSocketOptions options, SocketApiOptions apiOptions)
-            : base(logger, baseAddress, options, apiOptions)
+        public TestSocketApiClient(ILoggerFactory? loggerFactory, HttpClient httpClient, string baseAddress, TestSocketOptions options, SocketApiOptions apiOptions)
+            : base(loggerFactory, "Test", baseAddress, options, apiOptions)
         {
         }
 
@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.UnitTests.Implementations
         protected override TestAuthenticationProvider CreateAuthenticationProvider(TestCredentials credentials) =>
             new TestAuthenticationProvider(credentials);
 
-        public async Task<CallResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, bool subQuery, CancellationToken ct)
+        public async Task<WebSocketResult<UpdateSubscription>> SubscribeToUpdatesAsync<T>(Action<DataEvent<T>> handler, bool subQuery, CancellationToken ct)
         {
             return await base.SubscribeAsync(new TestSubscription<T>(_logger, handler, subQuery, false), ct);
         }

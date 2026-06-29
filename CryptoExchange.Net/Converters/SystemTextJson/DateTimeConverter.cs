@@ -16,17 +16,19 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         private const long _ticksPerSecond = TimeSpan.TicksPerMillisecond * 1000;
         private const decimal _ticksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000m;
         private const decimal _ticksPerNanosecond = TimeSpan.TicksPerMillisecond / 1000m / 1000;
+        private static Type _dateTimeType = typeof(DateTime);
+        private static Type _nullableDateTimeType = typeof(DateTime?);
 
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
         {
-            return typeToConvert == typeof(DateTime) || typeToConvert == typeof(DateTime?);
+            return typeToConvert == _dateTimeType || typeToConvert == _nullableDateTimeType;
         }
 
         /// <inheritdoc />
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            return typeToConvert == typeof(DateTime) ? new DateTimeConverterInner() : new NullableDateTimeConverterInner();
+            return typeToConvert == _dateTimeType ? new DateTimeConverterInner() : new NullableDateTimeConverterInner();
         }
 
         private class NullableDateTimeConverterInner : JsonConverter<DateTime?>
@@ -68,7 +70,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         {
             if (reader.TokenType == JsonTokenType.Null)
             {
-                if (typeToConvert == typeof(DateTime))
+                if (typeToConvert == _dateTimeType)
                     LibraryHelpers.StaticLogger?.LogWarning("DateTime value of null, but property is not nullable. Resolver: {Resolver}", options.TypeInfoResolver?.GetType()?.Name);
                 return default;
             }
@@ -76,7 +78,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType is JsonTokenType.Number)
             {
                 var decValue = reader.GetDecimal();
-                if (decValue == 0 || decValue < 0)
+                if (decValue <= 0)
                     return default;
 
                 return ParseFromDecimal(decValue);
@@ -86,8 +88,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
                 var stringValue = reader.GetString();
                 if (string.IsNullOrWhiteSpace(stringValue)
                     || stringValue!.Equals("-1", StringComparison.Ordinal)
-                    || stringValue!.Equals("0001-01-01T00:00:00Z", StringComparison.OrdinalIgnoreCase)
-                    || decimal.TryParse(stringValue, out var decVal) && decVal == 0)
+                    || stringValue!.Equals("0001-01-01T00:00:00Z", StringComparison.OrdinalIgnoreCase))
                 {
                     return default;
                 }
@@ -124,7 +125,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
         /// <summary>
         /// Parse a string value to datetime
         /// </summary>
-        public static DateTime ParseFromString(string stringValue, string? resolverName)
+        public static DateTime? ParseFromString(string stringValue, string? resolverName)
         {
             if (stringValue!.Length == 12 && stringValue.StartsWith("202", StringComparison.OrdinalIgnoreCase))
             {

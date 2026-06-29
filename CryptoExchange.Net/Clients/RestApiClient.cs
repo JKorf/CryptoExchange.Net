@@ -42,11 +42,6 @@ namespace CryptoExchange.Net.Clients
         protected internal RequestBodyFormat RequestBodyFormat = RequestBodyFormat.Json;
 
         /// <summary>
-        /// How to serialize array parameters when making requests
-        /// </summary>
-        protected internal ArrayParametersSerialization ArraySerialization = ArrayParametersSerialization.Array;
-
-        /// <summary>
         /// What request body should be set when no data is send (only used in combination with postParametersPosition.InBody)
         /// </summary>
         protected internal string RequestBodyEmptyContent = "{}";
@@ -55,16 +50,6 @@ namespace CryptoExchange.Net.Clients
         /// Request headers to be sent with each request
         /// </summary>
         protected Dictionary<string, string> StandardRequestHeaders { get; set; } = [];
-
-        /// <summary>
-        /// Whether parameters need to be ordered
-        /// </summary>
-        protected internal bool OrderParameters { get; set; } = true;
-
-        /// <summary>
-        /// Parameter order comparer
-        /// </summary>
-        protected IComparer<string> ParameterOrderComparer { get; } = new OrderedStringComparer();
 
         /// <summary>
         /// Where to put the parameters for requests with different Http methods
@@ -108,7 +93,7 @@ namespace CryptoExchange.Net.Clients
         /// Get the AuthenticationProvider implementation, or null if no ApiCredentials are set
         /// </summary>
         public virtual AuthenticationProvider? GetAuthenticationProvider() => null;
-        
+
         /// <summary>
         /// Configured environment name
         /// </summary>
@@ -117,17 +102,20 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="logger">Logger</param>
+        /// <param name="loggerFactory">Logger factory</param>
+        /// <param name="exchangeName">The exchange name</param>
         /// <param name="httpClient">HttpClient to use</param>
         /// <param name="baseAddress">Base address for this API client</param>
         /// <param name="options">The base client options</param>
         /// <param name="apiOptions">The Api client options</param>
-        public RestApiClient(ILogger logger,
+        public RestApiClient(ILoggerFactory? loggerFactory,
+            string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions options,
             RestApiOptions apiOptions)
-            : base(logger,
+            : base(loggerFactory,
+                  exchangeName,
                   apiOptions.OutputOriginalData ?? options.OutputOriginalData,
                   baseAddress,
                   options,
@@ -147,30 +135,7 @@ namespace CryptoExchange.Net.Clients
         /// <summary>
         /// Send a request to the base address based on the request definition
         /// </summary>
-        /// <param name="baseAddress">Host and schema</param>
-        /// <param name="definition">Request definition</param>
-        /// <param name="parameters">Request parameters</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="additionalHeaders">Additional headers for this request</param>
-        /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
-        /// <returns></returns>
-        protected virtual async Task<WebCallResult> SendAsync(
-            string baseAddress,
-            RequestDefinition definition,
-            ParameterCollection? parameters,
-            CancellationToken cancellationToken,
-            Dictionary<string, string>? additionalHeaders = null,
-            int? weight = null)
-        { 
-            var result = await SendAsync<object>(baseAddress, definition, parameters, cancellationToken, additionalHeaders, weight).ConfigureAwait(false);
-            return result.AsDataless();
-        }
-
-        /// <summary>
-        /// Send a request to the base address based on the request definition
-        /// </summary>
         /// <typeparam name="T">Response type</typeparam>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="parameters">Request parameters</param>
         /// <param name="cancellationToken">Cancellation token</param>
@@ -179,10 +144,9 @@ namespace CryptoExchange.Net.Clients
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
-        protected virtual Task<WebCallResult<T>> SendAsync<T>(
-            string baseAddress,
+        protected virtual Task<HttpResult<T>> SendAsync<T>(
             RequestDefinition definition,
-            ParameterCollection? parameters,
+            Parameters? parameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
@@ -191,7 +155,6 @@ namespace CryptoExchange.Net.Clients
         {
             var parameterPosition = definition.ParameterPosition ?? ParameterPositions[definition.Method];
             return SendAsync<T>(
-                baseAddress,
                 definition,
                 parameterPosition == HttpMethodParameterPosition.InUri ? parameters : null,
                 parameterPosition == HttpMethodParameterPosition.InBody ? parameters : null,
@@ -206,7 +169,6 @@ namespace CryptoExchange.Net.Clients
         /// Send a request to the base address based on the request definition
         /// </summary>
         /// <typeparam name="T">Response type</typeparam>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="uriParameters">Request query parameters</param>
         /// <param name="bodyParameters">Request body parameters</param>
@@ -216,11 +178,10 @@ namespace CryptoExchange.Net.Clients
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> SendAsync<T>(
-            string baseAddress,
+        protected virtual async Task<HttpResult<T>> SendAsync<T>(
             RequestDefinition definition,
-            ParameterCollection? uriParameters,
-            ParameterCollection? bodyParameters,
+            Parameters? uriParameters,
+            Parameters? bodyParameters,
             CancellationToken cancellationToken,
             Dictionary<string, string>? additionalHeaders = null,
             int? weight = null,
@@ -231,20 +192,20 @@ namespace CryptoExchange.Net.Clients
             if (definition.Authenticated && GetAuthenticationProvider() == null)
             {
                 _logger.RestApiNoApiCredentials(requestId, definition.Path);
-                return new WebCallResult<T>(new NoApiCredentialsError());
+                return HttpResult.Fail<T>(Exchange, new NoApiCredentialsError());
             }
 
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
-                cacheKey = baseAddress + definition + uriParameters?.ToFormData();
+                cacheKey = definition.FullUrl + definition + uriParameters?.ToFormData();
                 _logger.CheckingCache(cacheKey);
                 var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
                 if (cachedValue != null)
                 {
                     _logger.CacheHit(cacheKey);
-                    var original = (WebCallResult<T>)cachedValue;
-                    return original.Cached();
+                    var original = (HttpResult<T>)cachedValue;
+                    return original with { DataSource = ResultDataSource.Cache };
                 }
 
                 _logger.CacheNotHit(cacheKey);
@@ -258,7 +219,6 @@ namespace CryptoExchange.Net.Clients
                 await CheckTimeSync(requestId, definition).ConfigureAwait(false);
 
                 var error = await RateLimitAsync(
-                    baseAddress,
                     requestId,
                     definition,
                     weight ?? definition.Weight,
@@ -266,11 +226,10 @@ namespace CryptoExchange.Net.Clients
                     weightSingleLimiter,
                     rateLimitKeySuffix).ConfigureAwait(false);
                 if (error != null)
-                    return new WebCallResult<T>(error);
+                    return HttpResult.Fail<T>(Exchange, error);
 
                 var request = CreateRequest(
                     requestId,
-                    baseAddress,
                     definition,
                     uriParameters,
                     bodyParameters,
@@ -284,7 +243,7 @@ namespace CryptoExchange.Net.Clients
                 if (result.Error is not CancellationRequestedError)
                 {
                     var originalData = OutputOriginalData ? result.OriginalData : "[Data only available when OutputOriginal = true]";
-                    if (!result)
+                    if (!result.Success)
                     {
                         _logger.RestApiErrorReceived(result.RequestId, result.ResponseStatusCode, (long)Math.Floor(result.ResponseTime!.Value.TotalMilliseconds), result.Error?.ToString(), originalData, result.Error?.Exception);
                     }
@@ -316,7 +275,6 @@ namespace CryptoExchange.Net.Clients
         /// Check rate limits for the request
         /// </summary>
         protected virtual async ValueTask<Error?> RateLimitAsync(
-            string host,
             int requestId,
             RequestDefinition definition,
             int weight,
@@ -338,13 +296,12 @@ namespace CryptoExchange.Net.Clients
                         requestId,
                         RateLimitItemType.Request,
                         definition,
-                        host,
                         GetAuthenticationProvider()?.Key,
-                        requestWeight, 
+                        requestWeight,
                         ClientOptions.RateLimitingBehaviour,
                         rateLimitKeySuffix + ClientOptions.RateLimitGroup,
                         cancellationToken).ConfigureAwait(false);
-                    if (!limitResult)
+                    if (!limitResult.Success)
                         return limitResult.Error!;
                 }
             }
@@ -360,17 +317,16 @@ namespace CryptoExchange.Net.Clients
                     var singleRequestWeight = weightSingleLimiter ?? 1;
                     var limitResult = await definition.RateLimitGate.ProcessSingleAsync(
                         _logger,
-                        requestId, 
+                        requestId,
                         definition.LimitGuard,
                         RateLimitItemType.Request,
                         definition,
-                        host, 
                         GetAuthenticationProvider()?.Key,
                         singleRequestWeight,
                         ClientOptions.RateLimitingBehaviour,
                         rateLimitKeySuffix,
                         cancellationToken).ConfigureAwait(false);
-                    if (!limitResult)
+                    if (!limitResult.Success)
                         return limitResult.Error!;
                 }
             }
@@ -382,7 +338,6 @@ namespace CryptoExchange.Net.Clients
         /// Creates a request object
         /// </summary>
         /// <param name="requestId">Id of the request</param>
-        /// <param name="baseAddress">Host and schema</param>
         /// <param name="definition">Request definition</param>
         /// <param name="uriParameters">The query parameters of the request</param>
         /// <param name="bodyParameters">The body parameters of the request</param>
@@ -390,19 +345,16 @@ namespace CryptoExchange.Net.Clients
         /// <returns></returns>
         protected virtual IRequest CreateRequest(
             int requestId,
-            string baseAddress,
             RequestDefinition definition,
-            ParameterCollection? uriParameters,
-            ParameterCollection? bodyParameters,
+            Parameters? uriParameters,
+            Parameters? bodyParameters,
             Dictionary<string, string>? additionalHeaders)
         {
             var requestConfiguration = new RestRequestConfiguration(
                 definition,
-                baseAddress,
-                uriParameters == null ? null : CreateParameterDictionary(uriParameters),
-                bodyParameters == null ? null : CreateParameterDictionary(bodyParameters),
+                uriParameters,
+                bodyParameters,
                 additionalHeaders,
-                definition.ArraySerialization ?? ArraySerialization,
                 definition.ParameterPosition ?? ParameterPositions[definition.Method],
                 definition.RequestBodyFormat ?? RequestBodyFormat);
 
@@ -414,20 +366,16 @@ namespace CryptoExchange.Net.Clients
             {
                 throw new Exception("Failed to authenticate request, make sure your API credentials are correct", ex);
             }
-            
+
             var queryString = requestConfiguration.GetQueryString(true);
             if (!string.IsNullOrEmpty(queryString) && !queryString.StartsWith("?"))
                 queryString = $"?{queryString}";
 
-            var path = baseAddress.AppendPath(definition.Path);
-            if (definition.ForcePathEndWithSlash == true && !path.EndsWith("/"))
-                path += "/";
-
-            var uri = new Uri(path + queryString);
+            var uri = new Uri(definition.FullUrl + queryString);
             var request = RequestFactory.Create(ClientOptions.HttpVersion, definition.Method, uri, requestId);
             request.Accept = MessageHandler.AcceptHeader;
 
-            if (requestConfiguration.Headers != null) 
+            if (requestConfiguration.Headers != null)
             {
                 foreach (var header in requestConfiguration.Headers)
                     request.AddHeader(header.Key, header.Value);
@@ -436,10 +384,12 @@ namespace CryptoExchange.Net.Clients
             foreach (var header in StandardRequestHeaders)
             {
                 // Only add it if it isn't overwritten
-                requestConfiguration.Headers ??= new Dictionary<string, string>();
-                if (!requestConfiguration.Headers.ContainsKey(header.Key))
+                if (requestConfiguration.Headers == null
+                    || !requestConfiguration.Headers.ContainsKey(header.Key))
+                {
                     request.AddHeader(header.Key, header.Value);
-            }            
+                }
+            }
 
             if (requestConfiguration.ParameterPosition == HttpMethodParameterPosition.InBody)
             {
@@ -451,10 +401,10 @@ namespace CryptoExchange.Net.Clients
                 }
                 else
                 {
-                    if (requestConfiguration.BodyParameters != null && requestConfiguration.BodyParameters.Count != 0)
+                    if (requestConfiguration.BodyParameters != null && !requestConfiguration.BodyParameters.Empty)
                         WriteParamBody(request, requestConfiguration.BodyParameters, contentType);
                     else if (OmitContentTypeHeaderWithoutContent != true)
-                        request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);                    
+                        request.SetContent(RequestBodyEmptyContent, RequestBodyContentEncoding, contentType);
                 }
             }
 
@@ -469,7 +419,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="gate">The ratelimit gate used</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        protected virtual async Task<WebCallResult<T>> GetResponseAsync2<T>(
+        protected virtual async Task<HttpResult<T>> GetResponseAsync2<T>(
             RequestDefinition requestDefinition,
             IRequest request,
             IRateLimitGate? gate,
@@ -535,16 +485,16 @@ namespace CryptoExchange.Net.Clients
                         {
                             _logger.LogError(ex, "Unhandled exception when parsing error response: {Message}", ex.Message);
                             var errorResult = new ServerError(ErrorInfo.Unknown with { Message = ex.Message });
-                            return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, errorResult);
+                            return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, errorResult);
                         }
                     }
 
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, error);
                 }
 
-                if (typeof(T) == typeof(object))
+                if (typeof(T) == Unit.Type)
                     // Success status code and expected empty response, assume it's correct
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, 0, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, null);
+                    return OkHttpRequest<T>(request, response, sw.Elapsed, originalData, default!);
 
                 // Data response received, inspect the message and check if it is an error or not
                 var parsedError = await MessageHandler.CheckForErrorResponse(
@@ -563,7 +513,7 @@ namespace CryptoExchange.Net.Clients
                     }
 
                     // Success status code, but TryParseError determined it was an error response
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, parsedError);
+                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, parsedError);
                 }
 
                 if (MessageHandler.RequiresSeekableStream)
@@ -571,45 +521,45 @@ namespace CryptoExchange.Net.Clients
                     responseStream.Position = 0;
 
                 // Try deserialization into the expected type
-                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);                              
+                var (deserializeResult, deserializeError) = await MessageHandler.TryDeserializeAsync<T>(responseStream, cancellationToken).ConfigureAwait(false);
                 if (deserializeError != null)
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, deserializeError); ;
+                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, deserializeError, deserializeResult);
 
                 try
                 {
                     // Check the deserialized response to see if it's an error or not
                     var responseError = MessageHandler.CheckDeserializedResponse(response.ResponseHeaders, deserializeResult);
                     if (responseError != null)
-                        return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, responseError);
+                        return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, responseError, deserializeResult);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Unhandled exception when checking deserialized response: {Message}", ex.Message);
                     var error = new ServerError(ErrorInfo.Unknown with { Message = ex.Message });
-                    return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, error);
+                    return FailHttpRequest<T>(request, response, sw.Elapsed, originalData, error, deserializeResult);
                 }
 
-                return new WebCallResult<T>(response.StatusCode, response.HttpVersion, response.ResponseHeaders, sw.Elapsed, response.ContentLength, originalData, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, deserializeResult, null);
+                return OkHttpRequest<T>(request, response, sw.Elapsed, originalData, deserializeResult!);
             }
             catch (HttpRequestException requestException)
             {
                 // Request exception, can't reach server for instance
                 var error = new WebError(requestException.Message, requestException);
-                return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                return FailHttpRequest<T>(request, response, sw.Elapsed, null, error);
             }
             catch (OperationCanceledException canceledException)
             {
                 if (cancellationToken != default && canceledException.CancellationToken == cancellationToken)
                 {
                     // Cancellation token canceled by caller
-                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, new CancellationRequestedError(canceledException));
+                    return FailHttpRequest<T>(request, null, sw.Elapsed, null, new CancellationRequestedError(canceledException));
                 }
                 else
                 {
                     // Request timed out
                     var error = new WebError($"Request timed out", exception: canceledException);
                     error.ErrorType = ErrorType.Timeout;
-                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return FailHttpRequest<T>(request, null, sw.Elapsed, null, error);
                 }
             }
             catch (ArgumentException argumentException)
@@ -618,7 +568,7 @@ namespace CryptoExchange.Net.Clients
                 {
                     // Unsupported HTTP version error .net framework
                     var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version {request.HttpVersion}: " + argumentException.Message);
-                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return FailHttpRequest<T>(request, null, sw.Elapsed, null, error);
                 }
 
                 throw;
@@ -629,7 +579,7 @@ namespace CryptoExchange.Net.Clients
                 {
                     // Unsupported HTTP version error dotnet code
                     var error = ArgumentError.Invalid(nameof(RestExchangeOptions.HttpVersion), $"Invalid HTTP version {request.HttpVersion}: " + notSupportedException.Message);
-                    return new WebCallResult<T>(null, null, null, sw.Elapsed, null, null, request.RequestId, request.Uri.ToString(), request.Content, request.Method, request.GetHeaders(), ResultDataSource.Server, default, error);
+                    return FailHttpRequest<T>(request, null, sw.Elapsed, null, error);
                 }
 
                 throw;
@@ -641,16 +591,55 @@ namespace CryptoExchange.Net.Clients
             }
         }
 
+        private HttpResult<T> OkHttpRequest<T>(IRequest request, IResponse response, TimeSpan elapsed, string? originalData, T result)
+        {
+            return HttpResult.Ok(
+                Exchange,
+                response.StatusCode,
+                response.HttpVersion,
+                response.ResponseHeaders,
+                elapsed,
+                response.ContentLength,
+                originalData,
+                request.RequestId,
+                request.Uri.ToString(),
+                request.Content,
+                request.Method,
+                request.GetHeaders(),
+                ResultDataSource.Server,
+                result);
+        }
+
+        private HttpResult<T> FailHttpRequest<T>(IRequest request, IResponse? response, TimeSpan elapsed, string? originalData, Error error, T? result = default)
+        {
+            return HttpResult.Fail<T>(
+                Exchange,
+                response?.StatusCode,
+                response?.HttpVersion,
+                response?.ResponseHeaders,
+                elapsed,
+                response?.ContentLength,
+                originalData,
+                request.RequestId,
+                request.Uri.ToString(),
+                request.Content,
+                request.Method,
+                request.GetHeaders(),
+                ResultDataSource.Server,
+                error,
+                result);
+        }
+
         /// <summary>
         /// Can be used to indicate that a request should be retried. Defaults to false. Make sure to retry a max number of times (based on the the tries parameter) or the request will retry forever.
         /// Note that this is always called; even when the request might be successful
         /// </summary>
-        /// <typeparam name="T">WebCallResult type parameter</typeparam>
+        /// <typeparam name="T">HttpResult type parameter</typeparam>
         /// <param name="gate">The rate limit gate the call used</param>
         /// <param name="callResult">The result of the call</param>
         /// <param name="tries">The current try number</param>
         /// <returns>True if call should retry, false if the call should return</returns>
-        protected virtual async ValueTask<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, WebCallResult<T> callResult, int tries)
+        protected virtual async ValueTask<bool> ShouldRetryRequestAsync<T>(IRateLimitGate? gate, HttpResult<T> callResult, int tries)
         {
             if (tries >= 2)
                 // Only retry once
@@ -681,7 +670,7 @@ namespace CryptoExchange.Net.Clients
         /// <param name="request">The request to set the parameters on</param>
         /// <param name="parameters">The parameters to set</param>
         /// <param name="contentType">The content type of the data</param>
-        protected virtual void WriteParamBody(IRequest request, IDictionary<string, object> parameters, string contentType)
+        protected virtual void WriteParamBody(IRequest request, Parameters parameters, string contentType)
         {
             if (contentType == Constants.JsonContentHeader)
             {
@@ -691,8 +680,13 @@ namespace CryptoExchange.Net.Clients
 
                 // Write the parameters as json in the body
                 string stringData;
-                if (parameters.Count == 1 && parameters.TryGetValue(Constants.BodyPlaceHolderKey, out object? value))
-                    stringData = stringSerializer.Serialize(value);
+                if (parameters.BodyValue != null)
+                {
+                    if (parameters.BodyValue is string bodyString)
+                        stringData = bodyString;
+                    else
+                        stringData = stringSerializer.Serialize(parameters.BodyValue);
+                }
                 else
                     stringData = stringSerializer.Serialize(parameters);
                 request.SetContent(stringData, RequestBodyContentEncoding, contentType);
@@ -706,23 +700,10 @@ namespace CryptoExchange.Net.Clients
         }
 
         /// <summary>
-        /// Create the parameter IDictionary
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        protected internal IDictionary<string, object> CreateParameterDictionary(IDictionary<string, object> parameters)
-        {
-            if (!OrderParameters)
-                return parameters;
-
-            return new SortedDictionary<string, object>(parameters, ParameterOrderComparer);
-        }
-
-        /// <summary>
         /// Retrieve the server time for the purpose of syncing time between client and server to prevent authentication issues
         /// </summary>
         /// <returns>Server time</returns>
-        protected virtual Task<WebCallResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
+        protected virtual Task<HttpResult<DateTime>> GetServerTimestampAsync() => throw new NotImplementedException();
 
         private async ValueTask CheckTimeSync(int requestId, RequestDefinition definition)
         {
@@ -757,7 +738,7 @@ namespace CryptoExchange.Net.Clients
                     return;
 
                 var localTime = DateTime.UtcNow;
-                WebCallResult<DateTime> result;
+                HttpResult<DateTime> result;
                 try
                 {
                     result = await GetServerTimestampAsync().ConfigureAwait(false);
@@ -767,7 +748,7 @@ namespace CryptoExchange.Net.Clients
                     throw new ArgumentException("AutoTimestamp is not available for this API");
                 }
 
-                if (!result)
+                if (!result.Success)
                 {
                     _logger.LogWarning("Failed to determine time offset between client and server, timestamping might fail");
                     return;
@@ -778,7 +759,7 @@ namespace CryptoExchange.Net.Clients
                     // If this was the first request make another one to calculate the offset since the first one can be slower
                     localTime = DateTime.UtcNow;
                     result = await GetServerTimestampAsync().ConfigureAwait(false);
-                    if (!result)
+                    if (!result.Success)
                     {
                         _logger.LogWarning("Failed to determine time offset between client and server, timestamping might fail");
                         return;
@@ -845,12 +826,14 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
+            string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions options,
             RestApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
+                exchangeName,
                 httpClient,
                 baseAddress,
                 options,
@@ -877,12 +860,14 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger,
+            ILoggerFactory? loggerFactory,
+            string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options,
             RestApiOptions apiOptions) : base(
-                logger,
+                loggerFactory,
+                exchangeName,
                 httpClient,
                 baseAddress,
                 options,
@@ -912,13 +897,18 @@ namespace CryptoExchange.Net.Clients
         where TAuthenticationProvider : AuthenticationProvider<TApiCredentials>
         where TEnvironment : TradeEnvironment
     {
-
-        private bool _authProviderInitialized = false;
-        private TAuthenticationProvider? _authenticationProvider;
+        /// <summary>
+        /// Auth provider initialized field
+        /// </summary>
+        protected bool _authProviderInitialized = false;
+        /// <summary>
+        /// Auth provider field
+        /// </summary>
+        protected TAuthenticationProvider? _authenticationProvider;
         /// <summary>
         /// The authentication provider for this API client. (null if no credentials are set)
         /// </summary>
-        public TAuthenticationProvider? AuthenticationProvider
+        public virtual TAuthenticationProvider? AuthenticationProvider
         {
             get
             {
@@ -932,7 +922,7 @@ namespace CryptoExchange.Net.Clients
 
                 return _authenticationProvider;
             }
-            internal set => _authenticationProvider = value;
+            protected internal set => _authenticationProvider = value;
         }
 
         /// <inheritdoc />
@@ -942,12 +932,14 @@ namespace CryptoExchange.Net.Clients
         /// ctor
         /// </summary>
         protected RestApiClient(
-            ILogger logger, 
+            ILoggerFactory? loggerFactory, 
+            string exchangeName,
             HttpClient? httpClient,
             string baseAddress,
             RestExchangeOptions<TEnvironment, TApiCredentials> options, 
             RestApiOptions apiOptions) : base(
-                logger, 
+                loggerFactory, 
+                exchangeName,
                 httpClient,
                 baseAddress,
                 options, 

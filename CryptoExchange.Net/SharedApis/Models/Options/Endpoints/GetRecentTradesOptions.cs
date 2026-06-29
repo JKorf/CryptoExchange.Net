@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting recent trades
     /// </summary>
-    public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest>
+    public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest, IRecentTradeRestClient>
     {
         /// <summary>
         /// The max number of trades that can be requested
@@ -16,15 +16,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetRecentTradesOptions(int limit, bool authenticated) : base(authenticated)
+        public GetRecentTradesOptions(string exchange, int limit, bool authenticated) 
+            : base(exchange, authenticated, nameof(IRecentTradeRestClient.GetRecentTradesAsync))
         {
             MaxLimit = limit;
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(string exchange, GetRecentTradesRequest request, TradingMode? tradingMode, TradingMode[] supportedApiTypes)
+        public override Error? ValidateRequest(GetRecentTradesRequest request, IRecentTradeRestClient client)
         {
-            var baseError = base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            var baseError = base.ValidateRequest(request, client);
             if (baseError != null)
                 return baseError;
 
@@ -35,9 +36,9 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override string ToString(string exchange)
+        public override string ToString()
         {
-            var sb = new StringBuilder(base.ToString(exchange));
+            var sb = new StringBuilder(base.ToString());
             sb.AppendLine($"Max data points: {MaxLimit}");
             return sb.ToString();
         }

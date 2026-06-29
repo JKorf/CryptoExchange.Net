@@ -311,16 +311,16 @@ namespace CryptoExchange.Net
         /// <param name="request">The request parameters</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async IAsyncEnumerable<ExchangeWebResult<T[]>> ExecutePages<T, U>(Func<U, PageRequest?, CancellationToken, Task<ExchangeWebResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
+        public static async IAsyncEnumerable<HttpResult<T[]>> ExecutePages<T, U>(Func<U, PageRequest?, CancellationToken, Task<HttpResult<T[]>>> paginatedFunc, U request, [EnumeratorCancellation]CancellationToken ct = default)
         {
             var result = new List<T>();
-            ExchangeWebResult<T[]> batch;
+            HttpResult<T[]> batch;
             PageRequest? nextPageToken = null;
             while (true)
             {
                 batch = await paginatedFunc(request, nextPageToken, ct).ConfigureAwait(false);
                 yield return batch;
-                if (!batch || ct.IsCancellationRequested)
+                if (!batch.Success || ct.IsCancellationRequested)
                     break;
 
                 result.AddRange(batch.Data);
@@ -399,8 +399,8 @@ namespace CryptoExchange.Net
         /// <param name="asyncHandler">The async update handler</param>
         /// <param name="maxQueuedItems">The max number of updates to be queued up. When happens when the queue is full and a new write is attempted can be specified with <see>fullMode</see></param>
         /// <param name="fullBehavior">What should happen if the queue contains <see>maxQueuedItems</see> pending updates. If no max is set this setting is ignored</param>
-        public static async Task<CallResult<UpdateSubscription>> ProcessQueuedAsync<T>(
-            Func<Action<DataEvent<T>>, Task<CallResult<UpdateSubscription>>> subscribeCall,
+        public static async Task<WebSocketResult<UpdateSubscription>> ProcessQueuedAsync<T>(
+            Func<Action<DataEvent<T>>, Task<WebSocketResult<UpdateSubscription>>> subscribeCall,
             Func<DataEvent<T>, Task> asyncHandler,
             int? maxQueuedItems = null,
             QueueFullBehavior? fullBehavior = null)
@@ -408,7 +408,7 @@ namespace CryptoExchange.Net
             var processor = new ProcessQueue<DataEvent<T>>(asyncHandler, maxQueuedItems, fullBehavior);
             await processor.StartAsync().ConfigureAwait(false);
             var result = await subscribeCall(upd => processor.Write(upd)).ConfigureAwait(false);
-            if (!result)
+            if (!result.Success)
             {
                 await processor.StopAsync().ConfigureAwait(false);
                 return result;
@@ -473,7 +473,7 @@ namespace CryptoExchange.Net
             }, maxQueuedItems, fullBehavior);
             await processor.StartAsync().ConfigureAwait(false);
             var result = await subscribeCall(processor).ConfigureAwait(false);
-            if (!result)
+            if (!result.Success)
             {
                 await processor.StopAsync().ConfigureAwait(false);
                 return result;
@@ -499,7 +499,7 @@ namespace CryptoExchange.Net
                 return null;            
 
             // Try parse, only fails for these reasons:
-            // 1. string is null or empty
+            // 1. string is null or empty (already covered)
             // 2. value is larger or smaller than decimal max/min
             // 3. unparsable format
             if (decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var decValue))
@@ -516,7 +516,7 @@ namespace CryptoExchange.Net
             if (string.Equals("Infinity", value, StringComparison.OrdinalIgnoreCase))
                 return decimal.MaxValue;
             else if(string.Equals("-Infinity", value, StringComparison.OrdinalIgnoreCase))
-                    return decimal.MinValue;
+                return decimal.MinValue;
 
             if (value!.Length > 27 && decimal.TryParse(value.Substring(0, 27), out var overflowValue))
             {

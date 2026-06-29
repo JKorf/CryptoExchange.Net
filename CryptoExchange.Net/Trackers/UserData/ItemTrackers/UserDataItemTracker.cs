@@ -8,7 +8,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
@@ -130,8 +132,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Start the tracker
         /// </summary>
-        /// <param name="listenKey">Optional listen key</param>
-        public abstract Task<CallResult> StartAsync(string? listenKey);
+        public abstract Task<CallResult> StartAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Stop the tracker
@@ -264,52 +265,83 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         }
 
         /// <inheritdoc />
-        public async override Task<CallResult> StartAsync(string? listenKey)
+        public async override Task<CallResult> StartAsync(CancellationToken ct = default)
         {
             _startTime = DateTime.UtcNow;
             _cts = new CancellationTokenSource();
 
-            var start = await SubscribeAsync(listenKey).ConfigureAwait(false);
-            if (!start)
+            var start = await SubscribeAsync(ct).ConfigureAwait(false);
+            if (!start.Success)
                 return start;
 
             Connected = true;
 
             _pollTask = PollAsync();
 
-            await _initialPollDoneEvent.WaitAsync().ConfigureAwait(false);
+            await _initialPollDoneEvent.WaitAsync(ct: ct).ConfigureAwait(false);
             if (_initialPollingError != null)
             {
                 await StopAsync().ConfigureAwait(false);
-                return new CallResult(_initialPollingError);
+                return CallResult.Fail(_initialPollingError);
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<UserDataUpdate<T[]>> StreamUpdatesAsync([EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var updateQueue = Channel.CreateUnbounded<UserDataUpdate<T[]>>();
+            async Task OnUpdateHandler(UserDataUpdate<T[]> update)
+            {
+                await updateQueue.Writer.WriteAsync(update, ct).ConfigureAwait(false);
+            }
+            OnUpdate += OnUpdateHandler;
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    UserDataUpdate<T[]> update;
+                    try
+                    {
+                        update = await updateQueue.Reader.ReadAsync(ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { break; }
+                    yield return update;
+                }
+            }
+            finally
+            {
+                OnUpdate -= OnUpdateHandler;
+            }
         }
 
         /// <summary>
         /// Subscribe the websocket
         /// </summary>
-        public async Task<CallResult> SubscribeAsync(string? listenKey)
+        public async Task<CallResult> SubscribeAsync(CancellationToken ct = default)
         {
-            var subscriptionResult = await DoSubscribeAsync(listenKey).ConfigureAwait(false);
-            if (!subscriptionResult)
+            if (ct.IsCancellationRequested)
+                return CallResult.Fail(new CancellationRequestedError());
+
+            var subscriptionResult = await DoSubscribeAsync().ConfigureAwait(false);
+            if (!subscriptionResult.Success)
             {
                 // Failed
                 // ..
-                return subscriptionResult;
+                return CallResult.Fail(subscriptionResult.Error);
             }
 
             if (subscriptionResult.Data == null)
             {
                 // No subscription available
                 // ..
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
             }
 
             _subscription = subscriptionResult.Data;
             _subscription.SubscriptionStatusChanged += SubscriptionStatusChanged;
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -410,7 +442,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         /// <summary>
         /// Websocket subscription implementation
         /// </summary>
-        protected abstract Task<CallResult<UpdateSubscription?>> DoSubscribeAsync(string? listenKey);
+        protected abstract Task<WebSocketResult<UpdateSubscription?>> DoSubscribeAsync();
 
         /// <summary>
         /// Polling task

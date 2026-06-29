@@ -134,7 +134,7 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
             client.ApiClient1.SetParameterPosition(httpMethod, pos);
             client.ApiClient1.SetNextResponse("{}", System.Net.HttpStatusCode.OK);
 
-            var result = await client.ApiClient1.GetResponseAsync<TestObject>(httpMethod, new ParameterCollection
+            var result = await client.ApiClient1.GetResponseAsync<TestObject>(httpMethod, new Parameters(new ParameterSerializationSettings())
             {
                 { "TestParam1", "Value1" },
                 { "TestParam2", 2 },

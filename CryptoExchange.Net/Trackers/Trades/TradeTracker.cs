@@ -209,11 +209,11 @@ namespace CryptoExchange.Net.Trackers.Trades
                      AddData(update.Data);
                  }).ConfigureAwait(false);
 
-            if (!subResult)
+            if (!subResult.Success)
             {
                 _logger.TradeTrackerStartFailed(SymbolName, subResult.Error!.Message ?? subResult.Error!.ErrorDescription!, subResult.Error.Exception);
                 Status = SyncStatus.Disconnected;
-                return subResult;
+                return CallResult.Fail(subResult.Error);
             }
 
             _updateSubscription = subResult.Data;
@@ -222,7 +222,7 @@ namespace CryptoExchange.Net.Trackers.Trades
             _updateSubscription.ConnectionRestored += HandleConnectionRestored;
 
             var result = await DoStartAsync().ConfigureAwait(false);
-            if (!result)
+            if (!result.Success)
             {
                 _ = subResult.Data.CloseAsync();
                 Status = SyncStatus.Disconnected;
@@ -231,7 +231,7 @@ namespace CryptoExchange.Net.Trackers.Trades
 
             SetSyncStatus();
             _logger.TradeTrackerStarted(SymbolName);
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <inheritdoc />
@@ -252,7 +252,7 @@ namespace CryptoExchange.Net.Trackers.Trades
         protected virtual async Task<CallResult> DoStartAsync()
         {
             if (!_startWithSnapshot)
-                return CallResult.SuccessResult;
+                return CallResult.Ok();
 
             if (_historyRestClient != null)
             {
@@ -261,8 +261,8 @@ namespace CryptoExchange.Net.Trackers.Trades
                 var data = new List<SharedTrade>();
                 await foreach (var result in ExchangeHelpers.ExecutePages(_historyRestClient.GetTradeHistoryAsync, request).ConfigureAwait(false))
                 {
-                    if (!result)
-                        return result;
+                    if (!result.Success)
+                        return CallResult.Fail(result.Error);
 
                     if (Limit != null && data.Count > Limit)
                         break;
@@ -279,15 +279,15 @@ namespace CryptoExchange.Net.Trackers.Trades
                     limit = Math.Min(_recentRestClient.GetRecentTradesOptions.MaxLimit, Limit.Value);
 
                 var snapshot = await _recentRestClient.GetRecentTradesAsync(new GetRecentTradesRequest(Symbol, limit)).ConfigureAwait(false);
-                if (!snapshot)
+                if (!snapshot.Success)
                 {
-                    return snapshot;
+                    return CallResult.Fail(snapshot.Error);
                 }
 
                 SetInitialData(snapshot.Data);
             }
 
-            return CallResult.SuccessResult;
+            return CallResult.Ok();
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace CryptoExchange.Net.Trackers.Trades
                     return;
 
                 var resyncResult = await DoStartAsync().ConfigureAwait(false);
-                success = resyncResult;
+                success = resyncResult.Success;
             }
 
             _logger.TradeTrackerConnectionRestored(SymbolName);

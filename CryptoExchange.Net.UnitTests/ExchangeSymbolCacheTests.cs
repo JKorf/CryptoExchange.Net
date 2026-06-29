@@ -37,8 +37,8 @@ namespace CryptoExchange.Net.UnitTests
             var symbols = CreateTestSymbols();
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
-            var hasCached = ExchangeSymbolCache.HasCached(topicId);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
+            var hasCached = ExchangeSymbolCache.HasCached(topicId, "Env", null);
 
             // assert
             Assert.That(hasCached, Is.True);
@@ -52,14 +52,14 @@ namespace CryptoExchange.Net.UnitTests
             var symbols = CreateTestSymbols();
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // assert
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "BTCUSDT"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "ETHUSDT"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "BTCEUR"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "ETHBTC"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "XRPUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "BTCUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "ETHUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "BTCEUR"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "ETHBTC"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "XRPUSDT"), Is.True);
         }
 
         [Test]
@@ -78,13 +78,13 @@ namespace CryptoExchange.Net.UnitTests
             };
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, initialSymbols);
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, updatedSymbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, initialSymbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, updatedSymbols);
 
             // assert - should still have only the initial symbol since less than 60 minutes passed
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "BTCUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "BTCUSDT"), Is.True);
             // The second update should not have been applied
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "ETHUSDT"), Is.False);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "ETHUSDT"), Is.False);
         }
 
         [Test]
@@ -95,8 +95,8 @@ namespace CryptoExchange.Net.UnitTests
             var symbols = Array.Empty<SharedSpotSymbol>();
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
-            var hasCached = ExchangeSymbolCache.HasCached(topicId);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
+            var hasCached = ExchangeSymbolCache.HasCached(topicId, "Env", null);
 
             // assert
             Assert.That(hasCached, Is.False);
@@ -109,7 +109,7 @@ namespace CryptoExchange.Net.UnitTests
             var nonExistentTopic = "NonExistent_" + Guid.NewGuid();
 
             // act
-            var result = ExchangeSymbolCache.HasCached(nonExistentTopic);
+            var result = ExchangeSymbolCache.HasCached(nonExistentTopic, "Env", null);
 
             // assert
             Assert.That(result, Is.False);
@@ -121,10 +121,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeWithData";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.HasCached(topicId);
+            var result = ExchangeSymbolCache.HasCached(topicId, "Env", null);
 
             // assert
             Assert.That(result, Is.True);
@@ -135,10 +135,10 @@ namespace CryptoExchange.Net.UnitTests
         {
             // arrange
             var topicId = "ExchangeNoData";
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, Array.Empty<SharedSpotSymbol>());
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, Array.Empty<SharedSpotSymbol>());
 
             // act
-            var result = ExchangeSymbolCache.HasCached(topicId);
+            var result = ExchangeSymbolCache.HasCached(topicId, "Env", null);
 
             // assert
             Assert.That(result, Is.False);
@@ -150,10 +150,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeSupports";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "BTCUSDT");
+            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "BTCUSDT");
 
             // assert
             Assert.That(result, Is.True);
@@ -165,10 +165,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeNoSupport";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "LINKUSDT");
+            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, "LINKUSDT");
 
             // assert
             Assert.That(result, Is.False);
@@ -181,7 +181,7 @@ namespace CryptoExchange.Net.UnitTests
             var nonExistentTopic = "NonExistent_" + Guid.NewGuid();
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(nonExistentTopic, "BTCUSDT");
+            var result = ExchangeSymbolCache.SupportsSymbol(nonExistentTopic, "Env", null, "BTCUSDT");
 
             // assert
             Assert.That(result, Is.False);
@@ -193,11 +193,11 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeSharedSymbol";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
             var sharedSymbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(topicId, sharedSymbol);
+            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, sharedSymbol);
 
             // assert
             Assert.That(result, Is.True);
@@ -209,11 +209,11 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeNoSharedSymbol";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
             var sharedSymbol = new SharedSymbol(TradingMode.Spot, "LINK", "USDT");
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(topicId, sharedSymbol);
+            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, sharedSymbol);
 
             // assert
             Assert.That(result, Is.False);
@@ -225,11 +225,11 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeDifferentMode";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
             var sharedSymbol = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDT");
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(topicId, sharedSymbol);
+            var result = ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, sharedSymbol);
 
             // assert
             Assert.That(result, Is.False);
@@ -243,7 +243,7 @@ namespace CryptoExchange.Net.UnitTests
             var sharedSymbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
 
             // act
-            var result = ExchangeSymbolCache.SupportsSymbol(nonExistentTopic, sharedSymbol);
+            var result = ExchangeSymbolCache.SupportsSymbol(nonExistentTopic, "Env", null, sharedSymbol);
 
             // assert
             Assert.That(result, Is.False);
@@ -255,10 +255,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeBaseAsset";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "BTC");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Env", null, "BTC");
 
             // assert
             Assert.That(result, Is.Not.Null);
@@ -273,10 +273,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeCaseInsensitive";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "btc");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Env", null, "btc");
 
             // assert
             Assert.That(result, Is.Not.Null);
@@ -289,10 +289,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeNoBaseAsset";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "LINK");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Env", null, "LINK");
 
             // assert
             Assert.That(result, Is.Not.Null);
@@ -306,7 +306,7 @@ namespace CryptoExchange.Net.UnitTests
             var nonExistentTopic = "NonExistent_" + Guid.NewGuid();
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(nonExistentTopic, "BTC");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(nonExistentTopic, "Env", null, "BTC");
 
             // assert
             Assert.That(result, Is.Not.Null);
@@ -319,10 +319,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeParse";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.ParseSymbol(topicId, "BTCUSDT");
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Env", null, "BTCUSDT");
 
             // assert
             Assert.That(result, Is.Not.Null);
@@ -338,10 +338,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeNoParse";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.ParseSymbol(topicId, "LINKUSDT");
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Env", null, "LINKUSDT");
 
             // assert
             Assert.That(result, Is.Null);
@@ -353,10 +353,10 @@ namespace CryptoExchange.Net.UnitTests
             // arrange
             var topicId = "ExchangeNullSymbol";
             var symbols = CreateTestSymbols();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.ParseSymbol(topicId, null);
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Env", null, null);
 
             // assert
             Assert.That(result, Is.Null);
@@ -369,7 +369,7 @@ namespace CryptoExchange.Net.UnitTests
             var nonExistentTopic = "NonExistent_" + Guid.NewGuid();
 
             // act
-            var result = ExchangeSymbolCache.ParseSymbol(nonExistentTopic, "BTCUSDT");
+            var result = ExchangeSymbolCache.ParseSymbol(nonExistentTopic, "Env", null, "BTCUSDT");
 
             // assert
             Assert.That(result, Is.Null);
@@ -391,14 +391,14 @@ namespace CryptoExchange.Net.UnitTests
             };
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topic1, symbols1);
-            ExchangeSymbolCache.UpdateSymbolInfo(topic2, symbols2);
+            ExchangeSymbolCache.UpdateSymbolInfo(topic1, "Env", null, symbols1);
+            ExchangeSymbolCache.UpdateSymbolInfo(topic2, "Env", null, symbols2);
 
             // assert
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic1, "BTCUSDT"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic1, "ETHUSDT"), Is.False);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic2, "ETHUSDT"), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic2, "BTCUSDT"), Is.False);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic1, "Env", null, "BTCUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic1, "Env", null, "ETHUSDT"), Is.False);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic2, "Env", null, "ETHUSDT"), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topic2, "Env", null, "BTCUSDT"), Is.False);
         }
 
         [Test]
@@ -411,14 +411,14 @@ namespace CryptoExchange.Net.UnitTests
             var allSymbols = spotSymbols.Concat(futuresSymbols).ToArray();
 
             // act
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, allSymbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, allSymbols);
 
             // assert
             var spotSymbol = new SharedSymbol(TradingMode.Spot, "BTC", "USDT");
             var futuresSymbol = new SharedSymbol(TradingMode.PerpetualLinear, "BTC", "USDT");
 
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, spotSymbol), Is.True);
-            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, futuresSymbol), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, spotSymbol), Is.True);
+            Assert.That(ExchangeSymbolCache.SupportsSymbol(topicId, "Env", null, futuresSymbol), Is.True);
         }
 
         [Test]
@@ -429,10 +429,10 @@ namespace CryptoExchange.Net.UnitTests
             var spotSymbols = CreateTestSymbols();
             var futuresSymbols = CreateFuturesSymbols();
             var allSymbols = spotSymbols.Concat(futuresSymbols).ToArray();
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, allSymbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, allSymbols);
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "BTC");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Env", null, "BTC");
 
             // assert
             Assert.That(result.Length, Is.GreaterThanOrEqualTo(2));
@@ -451,15 +451,119 @@ namespace CryptoExchange.Net.UnitTests
                 new SharedSpotSymbol("ETH", "BTC", "ETHBTC", true, TradingMode.Spot),
                 new SharedSpotSymbol("ETH", "EUR", "ETHEUR", true, TradingMode.Spot)
             };
-            ExchangeSymbolCache.UpdateSymbolInfo(topicId, symbols);
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Env", null, symbols);
 
             // act
-            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "ETH");
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Env", null, "ETH");
 
             // assert
             Assert.That(result.Length, Is.EqualTo(3));
             Assert.That(result.All(x => x.BaseAsset == "ETH"), Is.True);
         }
 
+        [Test]
+        public void GetSymbolsForBaseAsset_WithDifferentEnvironments_Should_ReturnNone()
+        {
+            // arrange
+            var topicId = "Topic1";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", null, spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Test", null, "BTC");
+
+            // assert
+            Assert.That(result.Length, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetSymbolsForBaseAsset_WithDifferentKey_Should_ReturnNone()
+        {
+            // arrange
+            var topicId = "Topic2";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", "1", spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Live", "2", "BTC");
+
+            // assert
+            Assert.That(result.Length, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetSymbolsForBaseAsset_WithSetKey_Should_ReturnNone()
+        {
+            // arrange
+            var topicId = "Topic3";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", null, spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Live", "2", "BTC");
+
+            // assert
+            Assert.That(result.Length, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetSymbolsForBaseAsset_WithNotSetKey_Should_ReturnNone()
+        {
+            // arrange
+            var topicId = "Topic4";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", "2", spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.GetSymbolsForBaseAsset(topicId, "Live", null, "BTC");
+
+            // assert
+            Assert.That(result.Length, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ParseSymbol_WithDifferentKey_Should_ReturnNull()
+        {
+            // arrange
+            var topicId = "Topic5";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", "1", spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Live", "2", "BTCUSDT");
+
+            // assert
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void ParseSymbol_WithSetKey_Should_ReturnNull()
+        {
+            // arrange
+            var topicId = "Topic6";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", null, spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Live", "2", "BTCUSDT");
+
+            // assert
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void ParseSymbol_WithNotSetKey_Should_ReturnNull()
+        {
+            // arrange
+            var topicId = "Topic7";
+            var spotSymbols = CreateTestSymbols();
+            ExchangeSymbolCache.UpdateSymbolInfo(topicId, "Live", "1", spotSymbols);
+
+            // act
+            var result = ExchangeSymbolCache.ParseSymbol(topicId, "Live", null, "BTCUSDT");
+
+            // assert
+            Assert.That(result, Is.Not.Null);
+        }
     }
 }

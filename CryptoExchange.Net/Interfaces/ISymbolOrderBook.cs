@@ -107,7 +107,7 @@ namespace CryptoExchange.Net.Interfaces
         /// </summary>
         /// <param name="ct">A cancellation token to stop the order book when canceled</param>
         /// <returns></returns>
-        Task<CallResult<bool>> StartAsync(CancellationToken? ct = null);
+        Task<CallResult> StartAsync(CancellationToken? ct = null);
 
         /// <summary>
         /// Stop syncing the order book

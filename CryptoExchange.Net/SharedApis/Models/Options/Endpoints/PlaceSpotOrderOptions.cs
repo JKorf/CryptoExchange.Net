@@ -7,42 +7,37 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot order
     /// </summary>
-    public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest>
+    public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest, ISpotOrderRestClient>
     {
 
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotOrderOptions() : base(true)
+        public PlaceSpotOrderOptions(string exchange) : base(exchange, true, nameof(ISpotOrderRestClient.PlaceSpotOrderAsync))
         {
         }
 
         /// <summary>
         /// Validate a request
         /// </summary>
-        public Error? ValidateRequest(
-            string exchange,
+        public override Error? ValidateRequest(
             PlaceSpotOrderRequest request,
-            TradingMode? tradingMode,
-            TradingMode[] supportedApiTypes,
-            SharedOrderType[] supportedOrderTypes,
-            SharedTimeInForce[] supportedTimeInForce,
-            SharedQuantitySupport quantitySupport)
+            ISpotOrderRestClient client)
         {
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 
-            if (!supportedOrderTypes.Contains(request.OrderType))
+            if (!client.SpotSupportedOrderTypes.Contains(request.OrderType))
                 return ArgumentError.Invalid(nameof(PlaceSpotOrderRequest.OrderType), "Order type not supported");
 
-            if (request.TimeInForce != null && !supportedTimeInForce.Contains(request.TimeInForce.Value))
+            if (request.TimeInForce != null && !client.SpotSupportedTimeInForce.Contains(request.TimeInForce.Value))
                 return ArgumentError.Invalid(nameof(PlaceSpotOrderRequest.TimeInForce), "Order time in force not supported");
 
-            var quantityError = quantitySupport.Validate(request.Side, request.OrderType, request.Quantity);
+            var quantityError = client.SpotSupportedOrderQuantity.Validate(request.Side, request.OrderType, request.Quantity);
             if (quantityError != null)
                 return quantityError;
 
-            return base.ValidateRequest(exchange, request, tradingMode, supportedApiTypes);
+            return base.ValidateRequest(request, client);
         }
     }
 }

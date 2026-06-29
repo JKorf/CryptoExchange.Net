@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _attemptingToAuthenticate = LoggerMessage.Define<int>(
                 LogLevel.Debug,
                 new EventId(3006, "AttemptingToAuthenticate"),
-                "[Sckt {SocketId}] Attempting to authenticate");
+                "[Sckt {SocketId}] attempting to authenticate");
 
             _authenticationFailed = LoggerMessage.Define<int>(
                 LogLevel.Warning,
@@ -76,12 +76,12 @@ namespace CryptoExchange.Net.Logging.Extensions
             _failedToDetermineConnectionUrl = LoggerMessage.Define<string?>(
                 LogLevel.Warning,
                 new EventId(3009, "FailedToDetermineConnectionUrl"),
-                "Failed to determine connection url: {ErrorMessage}");
+                "failed to determine connection url: {ErrorMessage}");
 
             _connectionAddressSetTo = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 new EventId(3010, "ConnectionAddressSetTo"),
-                "Connection address set to {ConnectionAddress}");
+                "connection address set to {ConnectionAddress}");
 
             _socketCreatedForAddress = LoggerMessage.Define<int, string>(
                 LogLevel.Debug,
@@ -91,37 +91,37 @@ namespace CryptoExchange.Net.Logging.Extensions
             _unsubscribingAll = LoggerMessage.Define<int>(
                 LogLevel.Information,
                 new EventId(3013, "UnsubscribingAll"),
-                "Unsubscribing all {SubscriptionCount} subscriptions");
+                "unsubscribing all {SubscriptionCount} subscriptions");
 
             _disposingSocketClient = LoggerMessage.Define(
                 LogLevel.Debug,
                 new EventId(3015, "DisposingSocketClient"),
-                "Disposing socket client, closing all subscriptions");
+                "disposing socket client, closing all subscriptions");
 
             _unsubscribingSubscription = LoggerMessage.Define<int, int>(
                 LogLevel.Information,
                 new EventId(3016, "UnsubscribingSubscription"),
-                "[Sckt {SocketId}] Unsubscribing subscription {SubscriptionId}");
+                "[Sckt {SocketId}] unsubscribing subscription {SubscriptionId}");
 
             _reconnectingAllConnections = LoggerMessage.Define<int>(
                 LogLevel.Information,
                 new EventId(3017, "ReconnectingAll"),
-                "Reconnecting all {ConnectionCount} connections");
+                "reconnecting all {ConnectionCount} connections");
 
             _addingRetryAfterGuard = LoggerMessage.Define<DateTime>(
                 LogLevel.Warning,
                 new EventId(3018, "AddRetryAfterGuard"),
-                "Adding RetryAfterGuard ({RetryAfter}) because the connection attempt was rate limited");
+                "adding RetryAfterGuard ({RetryAfter}) because the connection attempt was rate limited");
 
             _timeoutWaitingForReconnectingSocket = LoggerMessage.Define(
                 LogLevel.Debug,
                 new EventId(3019, "TimeoutWaitingForReconnectingSocket"),
-                "Timeout while waiting for existing socket reconnection, failing request");
+                "timeout while waiting for existing socket reconnection, failing request");
 
             _waitedForReconnectingSocket = LoggerMessage.Define<long>(
                 LogLevel.Trace,
                 new EventId(3020, "WaitedForReconnectingSocket"),
-                "Waited for reconnecting socket for {Timespan}ms");
+                "waited for reconnecting socket for {Timespan}ms");
         }
 
         public static void FailedToAddSubscriptionRetryOnDifferentConnection(this ILogger logger, int socketId)

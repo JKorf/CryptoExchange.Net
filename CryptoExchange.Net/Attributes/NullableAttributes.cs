@@ -1,7 +1,7 @@
-﻿#if NETSTANDARD2_0
-namespace System.Diagnostics.CodeAnalysis
+﻿namespace System.Diagnostics.CodeAnalysis
 {
     using System;
+#if NETSTANDARD2_0
 
     /// <summary>
     ///     Specifies that <see langword="null"/> is allowed as an input even if the
@@ -206,5 +206,26 @@ namespace System.Diagnostics.CodeAnalysis
             ReturnValue = returnValue;
         }
     }
-}
 #endif
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
+    [ExcludeFromCodeCoverage]
+    internal sealed class MemberNotNullWhenAttribute : Attribute
+    {
+        public MemberNotNullWhenAttribute(bool returnValue, string member)
+        {
+            ReturnValue = returnValue;
+            Members = [member];
+        }
+
+        public MemberNotNullWhenAttribute(bool returnValue, params string[] members)
+        {
+            ReturnValue = returnValue;
+            Members = members;
+        }
+
+        public bool ReturnValue { get; }
+        public string[] Members { get; }
+    }
+#endif
+}

@@ -152,6 +152,14 @@ namespace CryptoExchange.Net.Objects
         /// <summary>
         /// ctor
         /// </summary>
+        public ServerError(ErrorType type, string message, Exception? exception = null)
+            : base(null, new ErrorInfo(type, message), exception)
+        {
+        }
+
+        /// <summary>
+        /// ctor
+        /// </summary>
         public ServerError(ErrorInfo errorInfo, Exception? exception = null)
              : base(null, errorInfo, exception) { }
 
