@@ -124,6 +124,70 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.0.0 - 29 Jun 2026
+    * Result types:
+      * (Web)CallResult types are replaced by HttpResult, WebSocketResult and QueryResult with the same logic
+      * Updated result types to record type
+      * Result creation can be done with (Http/WebSocket/Query)Result.Ok(..) and .Fail(..)
+      * Removed implicit result type conversion to bool, `if (result)` no longer works, instead use `if (result.Success)`
+      * Replaced CallResult.SuccessResult with CallResult.Ok()
+      * Fixed result object nullability hinting, for example Data might be null if Success isn't checked for true
+    * Parameters & serialization:
+      * Added support for `enabled` and `disabled` strings to bool converter
+      * Removed ParameterCollection type, has been replaced by Parameters type
+      * Removed ArraySerialization, OrderParameters and ParameterOrderComparer properties from RestApiClient, moved to ParameterSerializationsSettings
+      * Updated RestRequestConfiguration in AuthenticationProvider.ProcessRequest to contain the full RequestDefinition instead of copied fields	
+    * Clients:
+      * Updated Api client constructor logging parameter from ILogger to ILoggerFactory? 
+      * Added Api client constructor exchange name parameter
+      * Added ToString overrides on base API types
+      * Added Exchange property on BaseApiClient
+      * Added ApiCredentials property on IRestApiClient and ISocketApiClient interfaces
+      * Updated ILogger source from client name to topic specific client name
+      * Removed logging from client creation
+      * Fixed BaseRestClient SetApiCredentials not marked as virtual
+    * Rest:
+      * Added BaseAddress to RequestDefinition object
+      * Updated RestApiClient AuthenticationProvider logic from private to protected and virtual
+      * Removed RestApiClient.SendAsync baseAddress parameter removed
+      * Removed RestApiClient.SendAsync without type parameter
+    * WebSocket:
+      * Updated MessageRouting definition into CreateForEvent for subscriptions and CreateForQuery for queries
+      * Improved Query type safety with CeateForQuery which allows second parameter for specifying the result type
+      * Renamed MessageRouter.CreateWithoutHandler to CreateVoid
+      * Updated SocketApiClient.GetSocketConnection to check connection uri instead of Tag for finding compatible connections
+      * Removed unused UnhandledMessageExpected property SocketApiClient
+      * Fixed issue in SocketApiClient.GetSocketConnection causing requests to always wait the full max 10 seconds when there was a reconnecting socket
+    	
+    * Shared APIs:
+      * Updated Option definitions to always require the exchange name as first parameter
+      * Added missing dedicated option types
+      * Added Discover method on ISharedClient interface, returning info on supported capabilities and operations
+      * Added SharedRequest GetParamValue helper method accepting multiple parameter names
+      * Added ResetStaticExchangeParameters method on ExchangeParameters
+      * Added Status property to SharedWithdrawal model
+      * Added TradingModes property to SharedBalance model
+      * Updated ExchangeSymbolCache to support multiple environments and additional key separation
+      * Updated Shared ExchangeParameters parameter names to be case insensitive
+      * Updated code comments
+      * Replaced ExchangeResult with ExchangeCallResult type
+      * Removed AsExchangeResult/ExchangeWebResult
+      * Removed TradingMode from the response model, only maintained on models where it makes sense
+      * Removed IListenKey support, listen keys now rely on internal management with TokenManager
+    * Rate limiting:
+      * Fixed websocket connection attempts counting towards rate limit even when server could not be reached
+      * Removed host from rate limit methods, now part of the already provided RequestDefinition
+      * Added amount parameter to RateLimit Reset method to allow partially resetting the limit
+    * Added TokenManager implementation for automatic listenkey/token management
+    * Added UserClientProvider base class
+    * Added async streaming on UserDataTracker items with StreamUpdatesAsync
+    * Added cancellation token support to UserDataTracker starting
+    * Added Unit type for non-result types
+    * Added ServerError constructor taking ErrorType and message to make it easier to create
+    * Added SupportedEnvironments property to PlatformInfo
+    * Updated SymbolOrderBook DoResyncAsync to return CallResult instead of CallResult<bool> which was redundant
+    * Various small performance improvements
+
 * Version 11.2.2 - 08 Jun 2026
     * Fixed timing issue causing websocket connection to possible loop in error state
 
