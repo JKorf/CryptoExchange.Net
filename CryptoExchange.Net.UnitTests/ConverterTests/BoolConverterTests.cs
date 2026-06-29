@@ -25,6 +25,17 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
             Assert.That(output!.Value == expected);
         }
 
+        [TestCase(1, true)]
+        [TestCase(2, true)]
+        [TestCase(0, false)]
+        [TestCase(-1, false)]
+        public void TestBoolConverterInts(int value, bool? expected)
+        {
+            var val = value == null ? "null" : $"{value}";
+            var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new TestSerializerContext()));
+            Assert.That(output!.Value == expected);
+        }
+
         [TestCase("1", true)]
         [TestCase("true", true)]
         [TestCase("yes", true)]

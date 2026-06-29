@@ -59,7 +59,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson
             if (reader.TokenType == JsonTokenType.Number)
             {
                 var number = reader.GetInt16();
-                if (number > 1)
+                if (number >= 1)
                     return true;
 
                 return false;
