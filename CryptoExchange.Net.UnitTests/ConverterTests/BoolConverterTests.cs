@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.UnitTests.ConverterTests
         [TestCase(-1, false)]
         public void TestBoolConverterInts(int value, bool? expected)
         {
-            var val = value == null ? "null" : $"{value}";
+            var val = $"{value}";
             var output = JsonSerializer.Deserialize<STJBoolObject>($"{{ \"Value\": {val} }}", SerializerOptions.WithConverters(new TestSerializerContext()));
             Assert.That(output!.Value == expected);
         }

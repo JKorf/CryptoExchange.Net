@@ -156,8 +156,9 @@ namespace CryptoExchange.Net.UnitTests.SocketRoutingTests
                 MessageRouter = messageRouter;
             }
 
+#pragma warning disable CS0067 // The event is never used, but it's required by the interface
             public event Action? OnMessageRouterUpdated;
-
+#pragma warning restore CS0067
             public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection socketConnection, DateTime receiveTime, string? originalData, object result)
             {
                 return true;
