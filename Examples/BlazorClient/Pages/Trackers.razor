@@ -24,6 +24,7 @@
 @using Kraken.Net.Interfaces
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
+@using Lighter.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
 @using Upbit.Net.Interfaces;
@@ -50,6 +51,7 @@
 @inject IHyperLiquidTrackerFactory hyperLiquidFactory
 @inject IKrakenTrackerFactory krakenFactory
 @inject IKucoinTrackerFactory kucoinFactory
+@inject ILighterTrackerFactory lighterFactory
 @inject IMexcTrackerFactory mexcFactory
 @inject IOKXTrackerFactory okxFactory
 @inject IToobitTrackerFactory toobitFactory
@@ -103,6 +105,7 @@
                 { hyperLiquidFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { krakenFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { kucoinFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { lighterFactory.CreateTradeTracker(futuresSymbol, period: TimeSpan.FromMinutes(5)) },
                 { mexcFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { okxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { toobitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },

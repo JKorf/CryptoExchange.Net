@@ -18,6 +18,7 @@
 @inject IHyperLiquidRestClient hyperLiquidClient
 @inject IKrakenRestClient krakenClient
 @inject IKucoinRestClient kucoinClient
+@inject ILighterRestClient lighterClient
 @inject IMexcRestClient mexcClient
 @inject IOKXRestClient okxClient
 @inject IToobitRestClient toobitClient
@@ -40,7 +41,7 @@
         var asterTask = asterClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var binanceTask = binanceClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var bingXTask = bingXClient.SpotApi.ExchangeData.GetTickersAsync("BTC-USDT");
-        var bitfinexTask = bitfinexClient.SpotApi.ExchangeData.GetTickerAsync("tBTCUSD");
+        var bitfinexTask = bitfinexClient.ExchangeApi.ExchangeData.GetTickerAsync("tBTCUSD");
         var bitgetTask = bitgetClient.SpotApiV2.ExchangeData.GetTickersAsync("BTCUSDT");
         var bitmartTask = bitmartClient.SpotApi.ExchangeData.GetTickerAsync("BTC_USDT");
         var bitmexTask = bitmexClient.ExchangeApi.ExchangeData.GetSymbolsAsync("XBT_USDT");
@@ -56,6 +57,7 @@
         var hyperLiquidTask = hyperLiquidClient.FuturesApi.ExchangeData.GetExchangeInfoAndTickersAsync();
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var lighterTask = lighterClient.ExchangeApi.ExchangeData.GetSymbolDetailsAsync("BTC");
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");
         var toobitTask = toobitClient.SpotApi.ExchangeData.GetTickersAsync("BTCUSDT");
@@ -130,6 +132,9 @@
 
         if (kucoinTask.Result.Success)
             _prices.Add("Kucoin", kucoinTask.Result.Data.LastPrice ?? 0);
+
+        if (lighterTask.Result.Success)
+            _prices.Add("Lighter", lighterTask.Result.Data.PerpSymbols[0].LastPrice);
 
         if (mexcTask.Result.Success)
             _prices.Add("Mexc", mexcTask.Result.Data.LastPrice);

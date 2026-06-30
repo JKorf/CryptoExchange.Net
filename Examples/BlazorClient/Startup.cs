@@ -52,6 +52,7 @@ namespace BlazorClient
             services.AddHTX();
             services.AddKraken();
             services.AddKucoin();
+            services.AddLighter();
             services.AddMexc();
             services.AddOKX();
             services.AddToobit();
