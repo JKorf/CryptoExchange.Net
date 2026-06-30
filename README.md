@@ -20,6 +20,8 @@ This library and the entire CryptoExchange.Net ecosystem provide first-class sup
 
 For single-exchange code, see also the AI files in each exchange's repository (Binance.Net, Bybit.Net, OKX.Net, ...) — they cover exchange-specific patterns.
 
+See [cryptoexchange-skills-hub](https://github.com/JKorf/cryptoexchange-skills-hub) for installable skills.
+
 **Quick prompt to verify your assistant is using these:**
 > "Show me how to fetch BTC/USDT spot tickers from Binance and OKX concurrently in C# using the SharedApis pattern."
 
