@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 {
     internal class SystemTextJsonComparer
     {
-        internal static void CompareData(
+        internal static List<Exception> CompareData(
             string method,
             object? resultData,
             string json,
@@ -27,6 +27,7 @@ namespace CryptoExchange.Net.Testing.Comparers
             List<string>? ignoreProperties = null,
             bool userSingleArrayItem = false)
         {
+            var outputExceptions = new List<Exception>();
             var jsonObject = JsonDocument.Parse(json).RootElement;
             if (nestedJsonProperty != null)
             {
@@ -47,10 +48,10 @@ namespace CryptoExchange.Net.Testing.Comparers
             if (resultData == null)
             {
                 if (jsonObject.ValueKind == JsonValueKind.Null)
-                    return;
+                    return outputExceptions;
 
                 if (jsonObject.ValueKind == JsonValueKind.Object && jsonObject.GetPropertyCount() == 0)
-                    return;
+                    return outputExceptions;
 
                 throw new Exception("ResultData null");
             }
@@ -62,13 +63,13 @@ namespace CryptoExchange.Net.Testing.Comparers
                 foreach (var dictProp in jObj.EnumerateObject())
                 {
                     if (!dict.Contains(dictProp.Name))
-                        throw new Exception($"{method}: Dictionary has no value for {dictProp.Name} while input json `{dictProp.Name}` has value {dictProp.Value}");
+                        outputExceptions.Add(new Exception($"{method}: Dictionary has no value for {dictProp.Name} while input json `{dictProp.Name}` has value {dictProp.Value}"));
 
                     if (dictProp.Value.ValueKind == JsonValueKind.Object)
                     {
                         // TODO Some additional checking for objects
                         foreach (var prop in dictProp.Value.EnumerateObject())
-                            CheckObject(method, prop, dict[dictProp.Name]!, ignoreProperties!);
+                            CheckObject(method, prop, dict[dictProp.Name]!, ignoreProperties!, outputExceptions);
                     }
                     else
                     {
@@ -78,7 +79,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                                 continue;
 
                             // Property value not correct
-                            throw new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {dictProp.Value}");
+                            outputExceptions.Add(new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {dictProp.Value}"));
                         }
                     }
                 }
@@ -100,7 +101,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             {
                                 if (ignoreProperties?.Contains(subProp.Name) == true)
                                     continue;
-                                CheckObject(method, subProp, enumerator.Current, ignoreProperties!);
+                                CheckObject(method, subProp, enumerator.Current, ignoreProperties!, outputExceptions);
                             }
                         }
                         else if (jObj.ValueKind == JsonValueKind.Array)
@@ -122,7 +123,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             {
                                 var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                                 if (arrayProp != null)
-                                    CheckPropertyValue(method, item.Value, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                                    CheckPropertyValue(method, item.Value, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!, outputExceptions);
                                 i++;
                             }
                         }
@@ -130,7 +131,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                         {
                             var value = enumerator.Current;
                             if (value == default && jObj.ValueKind != JsonValueKind.Null)
-                                throw new Exception($"{method}: Array has no value while input json array has value {jObj}");
+                                outputExceptions.Add(new Exception($"{method}: Array has no value while input json array has value {jObj}"));
                         }
                     }
                 }
@@ -142,7 +143,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                     {
                         var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                         if (arrayProp != null)
-                            CheckPropertyValue(method, item, arrayProp.GetValue(resultData), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                            CheckPropertyValue(method, item, arrayProp.GetValue(resultData), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!, outputExceptions);
                         i++;
                     }
                 }
@@ -156,7 +157,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                         if (ignoreProperties?.Contains(item.Name) == true)
                             continue;
 
-                        CheckObject(method, item, resultData, ignoreProperties);
+                        CheckObject(method, item, resultData, ignoreProperties, outputExceptions);
                     //}
                 }
             }
@@ -166,9 +167,10 @@ namespace CryptoExchange.Net.Testing.Comparers
             }
 
             Debug.WriteLine($"Successfully validated {method}");
+            return outputExceptions;
         }
 
-        private static void CheckObject(string method, JsonProperty prop, object obj, List<string>? ignoreProperties)
+        private static void CheckObject(string method, JsonProperty prop, object obj, List<string>? ignoreProperties, List<Exception> outputExceptions)
         {
             var publicProperties = obj.GetType().GetProperties(
                 System.Reflection.BindingFlags.Public 
@@ -191,8 +193,11 @@ namespace CryptoExchange.Net.Testing.Comparers
             property ??= resultProperties.SingleOrDefault(p => p.p.Name == prop.Name).p;
 
             if (property is null)
+            {
                 // Property not found
-                throw new MissingPropertyException(method, obj.GetType().Name, prop.Name, prop.Value.ValueKind == JsonValueKind.Null ? "[null]" : prop.Value.ToString());
+                outputExceptions.Add(new MissingPropertyException(method, obj.GetType().Name, prop.Name, prop.Value.ValueKind == JsonValueKind.Null ? "[null]" : prop.Value.ToString()));
+                return;
+            }
 
             var getMethod = property.GetGetMethod();
             if (getMethod is null)
@@ -200,10 +205,18 @@ namespace CryptoExchange.Net.Testing.Comparers
                 return;
 
             var propertyValue = property.GetValue(obj);
-            CheckPropertyValue(method, prop.Value, propertyValue, property.PropertyType, property.Name, prop.Name, ignoreProperties);
+            CheckPropertyValue(method, prop.Value, propertyValue, property.PropertyType, property.Name, prop.Name, ignoreProperties, outputExceptions);
         }
 
-        private static void CheckPropertyValue(string method, JsonElement propValue, object? propertyValue, Type propertyType, string? propertyName = null, string? propName = null, List<string>? ignoreProperties = null)
+        private static void CheckPropertyValue(
+            string method,
+            JsonElement propValue, 
+            object? propertyValue, 
+            Type propertyType, 
+            string? propertyName, 
+            string? propName, 
+            List<string>? ignoreProperties, 
+            List<Exception> outputExceptions)
         {
             if (propertyValue == default && propValue.ValueKind != JsonValueKind.Null && !string.IsNullOrEmpty(propValue.ToString()))
             {
@@ -212,7 +225,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                 // Property value not correct
                 if (propValue.ToString() != "0")
-                    throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}");
+                    outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}"));
             }
 
             if ((propertyValue == default && (propValue.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(propValue.ToString()))) || propValue.ToString() == "0")
@@ -224,17 +237,17 @@ namespace CryptoExchange.Net.Testing.Comparers
                 foreach (var dictProp in propValue.EnumerateObject())
                 {
                     if (!dict.Contains(dictProp.Name))
-                        throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}");
+                        outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}"));
 
                     if (dictProp.Value.ValueKind == JsonValueKind.Object)
                     {
-                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name]!.GetType(), null, null, ignoreProperties);
+                        CheckPropertyValue(method, dictProp.Value, dict[dictProp.Name]!, dict[dictProp.Name]!.GetType(), null, null, ignoreProperties, outputExceptions);
                     }
                     else
                     {
                         if (dict[dictProp.Name] == default && dictProp.Value.ValueKind != JsonValueKind.Null)
                             // Property value not correct
-                            throw new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {propValue} for");
+                            outputExceptions.Add(new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {propValue} for"));
                     }
                 }
             }
@@ -264,7 +277,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             if (ignoreProperties?.Contains(subProp.Name) == true)
                                 continue;
 
-                            CheckObject(method, subProp, enumerator.Current, ignoreProperties);
+                            CheckObject(method, subProp, enumerator.Current, ignoreProperties, outputExceptions);
                         }
                     }
                     else if (jToken.ValueKind == JsonValueKind.Array)
@@ -282,7 +295,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                         {
                             var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties, outputExceptions);
 
                             i++;
                         }
@@ -291,9 +304,9 @@ namespace CryptoExchange.Net.Testing.Comparers
                     {
                         var value = enumerator.Current;
                         if (value == default && jToken.ValueKind != JsonValueKind.Null)
-                            throw new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jToken}");
+                            outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jToken}"));
 
-                        CheckValues(method, propertyName!, propertyType, jToken, value!);
+                        CheckValues(method, propertyName!, propertyType, jToken, value!, outputExceptions);
                     }
                 }
             }
@@ -308,7 +321,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             if (ignoreProperties?.Contains(item.Name) == true)
                                 continue;
 
-                            CheckObject(method, item, propertyValue, ignoreProperties);
+                            CheckObject(method, item, propertyValue, ignoreProperties, outputExceptions);
                         //}
                     }
                 }
@@ -329,7 +342,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                                 {
                                     if (ignoreProperties?.Contains(subProp.Name) == true)
                                         continue;
-                                    CheckObject(method, subProp, enumerator.Current, ignoreProperties!);
+                                    CheckObject(method, subProp, enumerator.Current, ignoreProperties!, outputExceptions);
                                 }
                             }
                             else if (jObj.ValueKind == JsonValueKind.Array)
@@ -347,7 +360,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                                 {
                                     var arrayProp = resultProps.SingleOrDefault(p => p.Item2!.Index == i).p;
                                     if (arrayProp != null)
-                                        CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                                        CheckPropertyValue(method, item, arrayProp.GetValue(resultObj), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!, outputExceptions);
                                     i++;
                                 }
                             }
@@ -355,7 +368,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                             {
                                 var value = enumerator.Current;
                                 if (value == default && jObj.ValueKind != JsonValueKind.Null)
-                                    throw new Exception($"{method}: Array has no value while input json array has value {jObj}");
+                                    outputExceptions.Add(new Exception($"{method}: Array has no value while input json array has value {jObj}"));
                             }
                         }
                     }
@@ -367,19 +380,19 @@ namespace CryptoExchange.Net.Testing.Comparers
                         {
                             var arrayProp = resultProps.Where(p => p.Item2 != null).FirstOrDefault(p => p.Item2!.Index == i).p;
                             if (arrayProp != null)
-                                CheckPropertyValue(method, item, arrayProp.GetValue(propertyValue), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!);
+                                CheckPropertyValue(method, item, arrayProp.GetValue(propertyValue), arrayProp.PropertyType, arrayProp.Name, "Array index " + i, ignoreProperties!, outputExceptions);
                             i++;
                         }
                     }
                 }
                 else
                 {
-                    CheckValues(method, propertyName!, propertyType, propValue, propertyValue);
+                    CheckValues(method, propertyName!, propertyType, propValue, propertyValue, outputExceptions);
                 }
             }
         }
 
-        private static void CheckValues(string method, string property, Type propertyType, JsonElement jsonValue, object objectValue)
+        private static void CheckValues(string method, string property, Type propertyType, JsonElement jsonValue, object objectValue, List<Exception> outputExceptions)
         {
             if (jsonValue.ValueKind == JsonValueKind.String)
             {
@@ -387,19 +400,19 @@ namespace CryptoExchange.Net.Testing.Comparers
                 if (objectValue is decimal dec)
                 {
                     if (ExchangeHelpers.ParseDecimal(stringValue!) != dec)
-                        throw new Exception($"{method}: {property} not equal: {stringValue} vs {dec}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {stringValue} vs {dec}")   );
                 }
                 else if (objectValue is DateTime time)
                 {
                     if (!string.IsNullOrEmpty(stringValue) && time != DateTimeConverter.ParseFromString(stringValue!, null))
-                        throw new Exception($"{method}: {property} not equal: {stringValue} vs {time}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {stringValue} vs {time}"));
                 }
                 else if (objectValue is bool bl)
                 {
                     if (bl && (stringValue != "1" && stringValue != "true" && stringValue != "True" && stringValue != "yes" && stringValue != "YES" && stringValue != "enabled"))
-                        throw new Exception($"{method}: {property} not equal: {stringValue} vs {bl}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {stringValue} vs {bl}"));
                     if (!bl && (stringValue != "0" && stringValue != "-1" && stringValue != "false" && stringValue != "False" && stringValue != "no" && stringValue != "NO" && stringValue != "disabled"))
-                        throw new Exception($"{method}: {property} not equal: {stringValue} vs {bl}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {stringValue} vs {bl}")    );
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
@@ -407,7 +420,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 }
                 else if (!stringValue!.Equals(Convert.ToString(objectValue, CultureInfo.InvariantCulture), StringComparison.InvariantCultureIgnoreCase))
                 {
-                    throw new Exception($"{method}: {property} not equal: {stringValue} vs {objectValue}");
+                    outputExceptions.Add(new Exception($"{method}: {property} not equal: {stringValue} vs {objectValue}"));
                 }
             }
             else if (jsonValue.ValueKind == JsonValueKind.Number)
@@ -416,7 +429,7 @@ namespace CryptoExchange.Net.Testing.Comparers
                 if (objectValue is DateTime time)
                 {
                     if (time != DateTimeConverter.ParseFromDecimal(value))
-                        throw new Exception($"{method}: {property} not equal: {DateTimeConverter.ParseFromDouble((double)value!)} vs {time}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {DateTimeConverter.ParseFromDouble((double)value!)} vs {time}"));
                 }
                 else if (propertyType.IsEnum || Nullable.GetUnderlyingType(propertyType)?.IsEnum == true)
                 {
@@ -425,27 +438,27 @@ namespace CryptoExchange.Net.Testing.Comparers
                 else if(objectValue is decimal dec)
                 {
                     if (dec != value)
-                        throw new Exception($"{method}: {property} not equal: {dec} vs {value}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {dec} vs {value}"));
                 }
                 else if (objectValue is double dbl)
                 {
                     if ((decimal)dbl != value)
-                        throw new Exception($"{method}: {property} not equal: {dbl} vs {value}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {dbl} vs {value}"));
                 }
                 else if(objectValue is string objStr)
                 {
                     if (objStr != value.ToString())
-                        throw new Exception($"{method}: {property} not equal: {value} vs {objStr}");
+                        outputExceptions.Add(new Exception($"{method}: {property} not equal: {value} vs {objStr}"));
                 }
                 else if (value != Convert.ToInt64(objectValue, CultureInfo.InvariantCulture))
                 {
-                    throw new Exception($"{method}: {property} not equal: {value} vs {Convert.ToInt64(objectValue)}");
+                    outputExceptions.Add(new Exception($"{method}: {property} not equal: {value} vs {Convert.ToInt64(objectValue)}"));
                 }
             }
             else if (jsonValue.ValueKind == JsonValueKind.True || jsonValue.ValueKind == JsonValueKind.False)
             {
                 if (jsonValue.GetBoolean() != (bool)objectValue)
-                    throw new Exception($"{method}: {property} not equal: {jsonValue.GetBoolean()} vs {(bool)objectValue}");
+                    outputExceptions.Add(new Exception($"{method}: {property} not equal: {jsonValue.GetBoolean()} vs {(bool)objectValue}"));
             }
         }
     }

@@ -155,7 +155,7 @@ namespace CryptoExchange.Net.Testing
                 else if (line.StartsWith("< "))
                 {
                     // Expect a message from server to client
-                    foreach(var item in replaceValues)
+                    foreach (var item in replaceValues)
                         line = line.Replace(item.Key, item.Value);
 
                     socket.InvokeMessage(line.Substring(2));
@@ -175,7 +175,11 @@ namespace CryptoExchange.Net.Testing
                         result = responseMapper(task.Result.Data!);
 
                     if (!skipResponseValidation)
-                        SystemTextJsonComparer.CompareData(name, result, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                    {
+                        var issues = SystemTextJsonComparer.CompareData(name, result, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                        if (issues.Count > 0)
+                            throw new AggregateException(issues);
+                    }
                 }
             }
 

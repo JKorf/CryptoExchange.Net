@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Clients;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Testing.Comparers;
+using CryptoExchange.Net.Testing.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -184,7 +185,9 @@ namespace CryptoExchange.Net.Testing
             {
                 // Check response data
                 object responseData = (TActualResponse)result.Data!;
-                SystemTextJsonComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                var issues = SystemTextJsonComparer.CompareData(name, responseData, response, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useSingleArrayItem);
+                if (issues.Count > 0)
+                    throw new AggregateException(issues);
             }
 
             Trace.Listeners.Remove(listener);

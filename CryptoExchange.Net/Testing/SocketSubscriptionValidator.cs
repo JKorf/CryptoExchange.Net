@@ -326,7 +326,11 @@ namespace CryptoExchange.Net.Testing
                         throw new Exception($"{name} Update send to client did not trigger in update handler");
 
                     if (skipUpdateValidation != true)
-                        SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
+                    {
+                        var issues = SystemTextJsonComparer.CompareData(name, update, compareData, nestedJsonProperty ?? _nestedPropertyForCompare, ignoreProperties, useFirstUpdateItem ?? false);
+                        if (issues.Count > 0)
+                            throw new AggregateException(issues);
+                    }
                 }
             }
 

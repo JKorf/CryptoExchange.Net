@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -86,7 +87,7 @@ namespace CryptoExchange.Net.Testing
         /// <param name="compareNestedProperty">Nested property to use for comparing when checking for missing fields</param>
         /// <param name="ignoreProperties">Properties to ignore when checking for missing fields</param>
         /// <param name="useSingleArrayItem">Whether to use the single array item as compare when checking for missing fields</param>
-        /// <param name="warningExceptionsHolder">List for outputting warnings</param>
+        /// <param name="warnings">List for outputting warnings</param>
         public async Task RunAndCheckResult<T>(
             Expression<Func<TClient, Task<HttpResult<T>>>> expression,
             bool authRequest,
@@ -94,7 +95,7 @@ namespace CryptoExchange.Net.Testing
             string? compareNestedProperty = null,
             List<string>? ignoreProperties = null,
             bool? useSingleArrayItem = null,
-            List<Exception>? warningExceptionsHolder = null)
+            List<Exception>? warnings = null)
         {
             if (!ShouldRun())
                 return;
@@ -135,13 +136,20 @@ namespace CryptoExchange.Net.Testing
                 if (originalData == null)
                     throw new Exception($"Original data needs to be enabled in the client options to check for missing fields");
 
+                var errors = new List<Exception>();
                 try 
                 {
-                    SystemTextJsonComparer.CompareData(expressionBody.Method.Name, data, originalData, compareNestedProperty, ignoreProperties, useSingleArrayItem ?? false);
-                }
-                catch (MissingPropertyException mpe)
-                {
-                    warningExceptionsHolder?.Add(mpe);
+                    var issues = SystemTextJsonComparer.CompareData(expressionBody.Method.Name, data, originalData, compareNestedProperty, ignoreProperties, useSingleArrayItem ?? false);
+                    foreach(var issue in issues)
+                    {
+                        if (issue is MissingPropertyException)
+                            warnings?.Add(issue);
+                        else
+                            errors.Add(issue);
+                    }
+
+                    if (errors.Count > 0)
+                        throw new AggregateException(errors);
                 }
                 catch (Exception ex)
                 {
