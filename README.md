@@ -127,6 +127,9 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.0.2 - 01 Jul 2026
+    * Updated test validation to output a list of issues instead of throwing on the first
+
 * Version 12.0.1 - 29 Jun 2026
     * Fixed bug in bool converter
 
