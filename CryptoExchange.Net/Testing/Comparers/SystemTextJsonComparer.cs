@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CryptoExchange.Net.Converters;
 using CryptoExchange.Net.Converters.SystemTextJson;
+using CryptoExchange.Net.Testing.Exceptions;
 
 #pragma warning disable IL2026
 #pragma warning disable IL2070
@@ -191,7 +192,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
             if (property is null)
                 // Property not found
-                throw new Exception($"{method}: Missing property `{prop.Name}` on `{obj.GetType().Name}`");
+                throw new MissingPropertyException(method, obj.GetType().Name, prop.Name, prop.Value.ValueKind == JsonValueKind.Null ? "[null]" : prop.Value.ToString());
 
             var getMethod = property.GetGetMethod();
             if (getMethod is null)

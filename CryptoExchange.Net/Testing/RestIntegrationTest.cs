@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Testing.Comparers;
+using CryptoExchange.Net.Testing.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,26 @@ namespace CryptoExchange.Net.Testing
         }
 
         /// <summary>
+        /// Execute a REST endpoint call and check for any errors or warnings. Also checks for missing fields in the response mapping
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="warningExceptionsHolder">List for outputting warnings</param>
+        /// <param name="expression">The call expression</param>
+        /// <param name="authRequest">Whether this is an authenticated request</param>
+        /// <param name="compareNestedProperty">Nested property to use for comparing when checking for missing fields</param>
+        /// <param name="ignoreProperties">Properties to ignore when checking for missing fields</param>
+        /// <param name="useSingleArrayItem">Whether to use the single array item as compare when checking for missing fields</param>
+        /// <returns></returns>
+        public Task RunAndCheckResult<T>(
+            List<Exception> warningExceptionsHolder,
+            Expression<Func<TClient, Task<HttpResult<T>>>> expression,
+            bool authRequest,
+            string? compareNestedProperty = null,
+            List<string>? ignoreProperties = null,
+            bool? useSingleArrayItem = null)
+            => RunAndCheckResult(expression, authRequest, true, compareNestedProperty, ignoreProperties, useSingleArrayItem, warningExceptionsHolder);
+
+        /// <summary>
         /// Execute a REST endpoint call and check for any errors or warnings.
         /// </summary>
         /// <typeparam name="T">Type of response</typeparam>
@@ -65,13 +86,15 @@ namespace CryptoExchange.Net.Testing
         /// <param name="compareNestedProperty">Nested property to use for comparing when checking for missing fields</param>
         /// <param name="ignoreProperties">Properties to ignore when checking for missing fields</param>
         /// <param name="useSingleArrayItem">Whether to use the single array item as compare when checking for missing fields</param>
+        /// <param name="warningExceptionsHolder">List for outputting warnings</param>
         public async Task RunAndCheckResult<T>(
             Expression<Func<TClient, Task<HttpResult<T>>>> expression,
             bool authRequest,
             bool checkMissingFields = false,
             string? compareNestedProperty = null,
             List<string>? ignoreProperties = null,
-            bool? useSingleArrayItem = null)
+            bool? useSingleArrayItem = null,
+            List<Exception>? warningExceptionsHolder = null)
         {
             if (!ShouldRun())
                 return;
@@ -112,8 +135,13 @@ namespace CryptoExchange.Net.Testing
                 if (originalData == null)
                     throw new Exception($"Original data needs to be enabled in the client options to check for missing fields");
 
-                try {
+                try 
+                {
                     SystemTextJsonComparer.CompareData(expressionBody.Method.Name, data, originalData, compareNestedProperty, ignoreProperties, useSingleArrayItem ?? false);
+                }
+                catch (MissingPropertyException mpe)
+                {
+                    warningExceptionsHolder?.Add(mpe);
                 }
                 catch (Exception ex)
                 {
