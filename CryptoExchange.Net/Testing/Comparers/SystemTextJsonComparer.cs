@@ -63,7 +63,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 foreach (var dictProp in jObj.EnumerateObject())
                 {
                     if (!dict.Contains(dictProp.Name))
+                    {
                         outputExceptions.Add(new Exception($"{method}: Dictionary has no value for {dictProp.Name} while input json `{dictProp.Name}` has value {dictProp.Value}"));
+                        continue;
+                    }
 
                     if (dictProp.Value.ValueKind == JsonValueKind.Object)
                     {
@@ -80,6 +83,7 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                             // Property value not correct
                             outputExceptions.Add(new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {dictProp.Value}"));
+                            continue;
                         }
                     }
                 }
@@ -131,7 +135,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                         {
                             var value = enumerator.Current;
                             if (value == default && jObj.ValueKind != JsonValueKind.Null)
+                            {
                                 outputExceptions.Add(new Exception($"{method}: Array has no value while input json array has value {jObj}"));
+                                continue;
+                            }
                         }
                     }
                 }
@@ -167,7 +174,7 @@ namespace CryptoExchange.Net.Testing.Comparers
             }
 
             Debug.WriteLine($"Successfully validated {method}");
-            return outputExceptions;
+            return outputExceptions.Distinct().ToList();
         }
 
         private static void CheckObject(string method, JsonProperty prop, object obj, List<string>? ignoreProperties, List<Exception> outputExceptions)
@@ -225,7 +232,10 @@ namespace CryptoExchange.Net.Testing.Comparers
 
                 // Property value not correct
                 if (propValue.ToString() != "0")
+                {
                     outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}"));
+                    return;
+                }
             }
 
             if ((propertyValue == default && (propValue.ValueKind == JsonValueKind.Null || string.IsNullOrEmpty(propValue.ToString()))) || propValue.ToString() == "0")
@@ -237,7 +247,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                 foreach (var dictProp in propValue.EnumerateObject())
                 {
                     if (!dict.Contains(dictProp.Name))
+                    {
                         outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {propValue}"));
+                        continue;
+                    }
 
                     if (dictProp.Value.ValueKind == JsonValueKind.Object)
                     {
@@ -246,8 +259,11 @@ namespace CryptoExchange.Net.Testing.Comparers
                     else
                     {
                         if (dict[dictProp.Name] == default && dictProp.Value.ValueKind != JsonValueKind.Null)
+                        {
                             // Property value not correct
                             outputExceptions.Add(new Exception($"{method}: Dictionary entry `{dictProp.Name}` has no value while input json has value {propValue} for"));
+                            continue;
+                        }
                     }
                 }
             }
@@ -304,7 +320,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                     {
                         var value = enumerator.Current;
                         if (value == default && jToken.ValueKind != JsonValueKind.Null)
+                        {
                             outputExceptions.Add(new Exception($"{method}: Property `{propertyName}` has no value while input json `{propName}` has value {jToken}"));
+                            return;
+                        }
 
                         CheckValues(method, propertyName!, propertyType, jToken, value!, outputExceptions);
                     }
@@ -368,7 +387,10 @@ namespace CryptoExchange.Net.Testing.Comparers
                             {
                                 var value = enumerator.Current;
                                 if (value == default && jObj.ValueKind != JsonValueKind.Null)
+                                {
                                     outputExceptions.Add(new Exception($"{method}: Array has no value while input json array has value {jObj}"));
+                                    continue;
+                                }
                             }
                         }
                     }
