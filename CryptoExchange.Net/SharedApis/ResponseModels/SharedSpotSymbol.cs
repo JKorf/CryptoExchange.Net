@@ -58,6 +58,8 @@
         /// </summary>
         public bool Trading { get; set; }
 
+        public SymbolType SymbolType { get; set; }
+
         /// <summary>
         /// ctor
         /// </summary>
