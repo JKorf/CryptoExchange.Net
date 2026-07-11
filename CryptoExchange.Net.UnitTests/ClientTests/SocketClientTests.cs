@@ -139,6 +139,27 @@ namespace CryptoExchange.Net.UnitTests.ClientTests
         }
 
         [TestCase()]
+        public async Task BatchedSubscription_Should_NotExceedIndividualCombineTarget()
+        {
+            // arrange
+            var client = new TestSocketClient(options =>
+            {
+                options.SocketSubscriptionsCombineTarget = 10;
+                options.SocketIndividualSubscriptionCombineTarget = 10;
+            });
+            TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+
+            // act
+            await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, false, default, individualSubscriptionCount: 6);
+            TestHelpers.ConfigureSocketClient(client, "wss://localhost");
+            await client.ApiClient1.SubscribeToUpdatesAsync<TestObject>(x => { }, false, default, individualSubscriptionCount: 6);
+
+            // assert
+            Assert.That(client.ApiClient1._socketConnections.Count == 2);
+            Assert.That(client.ApiClient1._socketConnections.Values.All(connection => connection.Subscriptions.Sum(subscription => subscription.IndividualSubscriptionCount) <= 10));
+        }
+
+        [TestCase()]
         public async Task ErrorResponse_ShouldNot_ConfirmSubscription()
         {
             // arrange

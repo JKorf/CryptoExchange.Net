@@ -703,7 +703,9 @@ namespace CryptoExchange.Net.Clients
             if (connection != null)
             {
                 bool lessThanBatchSubCombineTarget = connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget;
-                bool lessThanIndividualSubCombineTarget = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount) < ClientOptions.SocketIndividualSubscriptionCombineTarget;
+                var currentIndividualSubscriptionCount = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
+                // Include the incoming batch so batched subscriptions cannot overshoot the configured socket target.
+                bool lessThanIndividualSubCombineTarget = currentIndividualSubscriptionCount + individualSubscriptionCount <= ClientOptions.SocketIndividualSubscriptionCombineTarget;
 
                 if ((lessThanBatchSubCombineTarget && lessThanIndividualSubCombineTarget)
                     || maxConnectionsReached) 
@@ -713,8 +715,7 @@ namespace CryptoExchange.Net.Clients
                     if (MaxIndividualSubscriptionsPerConnection == null)
                         return CallResult.Ok(connection);
                                         
-                    var currentCount = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
-                    if (currentCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection)
+                    if (currentIndividualSubscriptionCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection)
                         return CallResult.Ok(connection);
                 }
             }
