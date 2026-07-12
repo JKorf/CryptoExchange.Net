@@ -22,6 +22,10 @@
         /// </summary>
         public string Name { get; set; }
         /// <summary>
+        /// The display name of the symbol
+        /// </summary>
+        public string? DisplayName { get; set; }
+        /// <summary>
         /// Minimal quantity of an order in the base asset
         /// </summary>
         public decimal? MinTradeQuantity { get; set; }
@@ -58,7 +62,10 @@
         /// </summary>
         public bool Trading { get; set; }
 
-        public SymbolType SymbolType { get; set; }
+        public SharedAssetType BaseAssetType { get; set; }
+        public SharedAssetSubType? BaseAssetSubType { get; set; }
+        public SharedAssetType QuoteAssetType { get; set; }
+        public SharedAssetSubType? QuoteAssetSubType { get; set; }
 
         /// <summary>
         /// ctor

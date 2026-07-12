@@ -105,6 +105,22 @@ namespace CryptoExchange.Net
             return _defaultClientReferences.TryGetValue(key, out var id) ? id : throw new KeyNotFoundException($"{exchange} not found in configuration");
         }
 
+        private static readonly HashSet<string> _stableCoins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD", "FRAX",
+            "USDD", "LUSD", "USDJ", "SUSD", "MIM", "EURS", "EURC", "EURI", "EURT", "AGEUR",
+            "XSGD", "GYEN", "ZUSD", "BUSD", "USTC", "USDX", "USDK", "CUSD", "CEUR", "CREAL",
+            "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD", "AEUR"
+        };
+
+        public static bool IsStableCoin(string asset)
+        {
+            if (string.IsNullOrEmpty(asset))
+                return false;
+
+            return _stableCoins.Contains(asset);
+        }
+
         /// <summary>
         /// Create a new HttpMessageHandler instance
         /// </summary>  
