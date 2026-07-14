@@ -10,6 +10,11 @@ namespace CryptoExchange.Net.SharedApis
     public interface ISpotSymbolRestClient : ISharedClient
     {
         /// <summary>
+        /// Get the spot symbol catalog. Only available if <see cref="GetSpotSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
+        /// </summary>
+        SharedSymbolCatalog? SymbolCatalog { get; }
+
+        /// <summary>
         /// Spot symbols request options.<br />
         /// Use <see cref="EndpointOptions.RequiredExchangeParameters"/> and <see cref="EndpointOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.

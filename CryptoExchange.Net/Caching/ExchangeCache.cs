@@ -28,7 +28,23 @@ namespace CryptoExchange.Net.Caching
             });
         }
 
-        public async Task<T?> GetAsync<T>(string key)
+        public T? Get<T>(string key, bool ignoreExpireTime = false)
+        {
+            if (_cache.TryGetValue(key, out var value))
+            {
+                if (value.ExpireTime > DateTime.UtcNow || ignoreExpireTime)
+                {
+                    if (value is CacheItem<T> typedValue)
+                        return typedValue.Value;
+
+                    throw new InvalidCastException($"{key} value can't be cast to {typeof(T)}");
+                }
+            }
+
+            return default;
+        }
+
+        public async Task<T?> GetOrRetrieveAsync<T>(string key)
         {
             if (_cache.TryGetValue(key, out var value))
             {

@@ -64,10 +64,21 @@ namespace CryptoExchange.Net.SharedApis
         /// Whether the symbol is currently available for trading
         /// </summary>
         public bool Trading { get; set; }
-
+        /// <summary>
+        /// Base asset type
+        /// </summary>
         public SharedAssetType BaseAssetType { get; set; }
+        /// <summary>
+        /// Base asset sub type
+        /// </summary>
         public SharedAssetSubType? BaseAssetSubType { get; set; }
+        /// <summary>
+        /// Quote asset type
+        /// </summary>
         public SharedAssetType QuoteAssetType { get; set; }
+        /// <summary>
+        /// Quote asset sub type
+        /// </summary>
         public SharedAssetSubType? QuoteAssetSubType { get; set; }
 
         /// <summary>

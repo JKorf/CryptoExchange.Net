@@ -20,23 +20,39 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetSymbolsRequest request, IFuturesSymbolRestClient client)
         {
-            //if (request.SymbolType != null && request.SymbolSubType != null)
-            //{
-            //    if (request.SymbolType == SymbolAssetType.Crypto
-            //        && (request.SymbolSubType == SymbolAssetSubType.Commodity
-            //        || (request.SymbolSubType == SymbolAssetSubType.Stock)))
-            //    {
-            //        return ArgumentError.Invalid(nameof(GetSymbolsRequest.SymbolType), $"Invalid combination of symbol type filters: {request.SymbolType} and {request.SymbolSubType}");
-            //    }
+            if (request.BaseAssetType != null && request.BaseAssetSubType != null)
+            {
+                var error = ValidateSymbolType(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
+                if (error != null)
+                    return error;
+            }
 
-            //    if (request.SymbolType == SymbolAssetType.Rwa && request.SymbolSubType == SymbolAssetSubType.StableCoin)
-            //        return ArgumentError.Invalid(nameof(GetSymbolsRequest.SymbolType), $"Invalid combination of symbol type filters: {request.SymbolType} and {request.SymbolSubType}");
-
-            //    if (request.SymbolType == SymbolAssetType.Fiat && request.SymbolSubType != null)
-            //        return ArgumentError.Invalid(nameof(GetSymbolsRequest.SymbolType), $"Invalid combination of symbol type filters: {request.SymbolType} and {request.SymbolSubType}");
-            //}
+            if (request.QuoteAssetType != null && request.QuoteAssetSubType != null)
+            {
+                var error = ValidateSymbolType(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
+                if (error != null)
+                    return error;
+            }
 
             return base.ValidateRequest(request, client);
+        }
+
+        private Error? ValidateSymbolType(SharedAssetType type, SharedAssetSubType subType)
+        {
+            if (type == SharedAssetType.Crypto
+                    && (subType == SharedAssetSubType.Commodity
+                    || (subType == SharedAssetSubType.Stock)))
+            {
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+            }
+
+            if (type == SharedAssetType.Rwa && subType == SharedAssetSubType.StableCoin)
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+
+            if (type == SharedAssetType.Fiat)
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+
+            return null;
         }
     }
 }
