@@ -127,6 +127,9 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.1.1 - 11 Jul 2026
+    * Added timestamp deserialization support for yyyy-MM-dd HH:mm:ss.ffffff+00:00:00
+
 * Version 12.1.0 - 09 Jul 2026
     * Added ExchangeParameters parameter to KlineTracker, TradeTracker and ITrackerFactory methods
     * Updated some testing logic

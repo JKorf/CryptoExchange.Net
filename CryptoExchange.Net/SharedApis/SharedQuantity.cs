@@ -1,4 +1,5 @@
 ﻿using CryptoExchange.Net.Converters.SystemTextJson;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace CryptoExchange.Net.SharedApis
@@ -35,6 +36,33 @@ namespace CryptoExchange.Net.SharedApis
             QuantityInQuoteAsset = quoteAssetQuantity;
             QuantityInContracts = contractQuantity;
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            var sb = new StringBuilder("[");
+            if (QuantityInBaseAsset != null)            
+                sb.Append($"{QuantityInBaseAsset} base");
+            
+            if (QuantityInQuoteAsset != null)
+            {
+                if (sb.Length > 1)
+                    sb.Append(", ");
+
+                sb.Append($"{QuantityInQuoteAsset} quote");
+            }
+
+            if (QuantityInContracts != null)
+            {
+                if (sb.Length > 1)
+                    sb.Append(", ");
+
+                sb.Append($"{QuantityInContracts} contracts");
+            }
+
+            sb.Append("]");
+            return sb.ToString();
+        }
     }
 
     /// <summary>
@@ -52,6 +80,9 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SharedQuantity() : base(null, null, null) { }
+
+        /// <inheritdoc />
+        public override string ToString() => base.ToString();
 
         /// <summary>
         /// Specify quantity in base asset
@@ -123,5 +154,8 @@ namespace CryptoExchange.Net.SharedApis
             : base(baseAssetQuantity, quoteAssetQuantity, contractQuantity)
         {
         }
+
+        /// <inheritdoc />
+        public override string ToString() => base.ToString();
     }
 }

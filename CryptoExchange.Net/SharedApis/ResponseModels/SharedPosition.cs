@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Position info
     /// </summary>
+    [DebuggerDisplay("{Symbol,nq} {PositionSide}: {PositionSize} {AverageOpenPrice}")]
     public record SharedPosition : SharedSymbolModel
     {
         /// <summary>

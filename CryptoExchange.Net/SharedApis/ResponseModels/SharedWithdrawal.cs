@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A withdrawal record
     /// </summary>
+    [DebuggerDisplay("[{Timestamp}] {Quantity} {Asset,nq}")]
     public record SharedWithdrawal
     {
         /// <summary>

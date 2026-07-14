@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Kline info
     /// </summary>
+    [DebuggerDisplay("[{OpenTime}] O: {OpenPrice} H: {HighPrice} L: {LowPrice} C: {ClosePrice} V: {Volume}")]
     public record SharedKline : SharedSymbolModel
     {
         /// <summary>

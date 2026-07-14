@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Futures ticker info
     /// </summary>
+    [DebuggerDisplay("{Symbol,nq} High: {HighPrice}, Low: {LowPrice}, Last: {LastPrice}, Change: {ChangePercentage}%")]
     public record SharedFuturesTicker: SharedSymbolModel
     {
         /// <summary>

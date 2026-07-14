@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Drawing;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Futures symbol info
     /// </summary>
+    [DebuggerDisplay("{DebugView,nq}")]
     public record SharedFuturesSymbol : SharedSpotSymbol
     {
+        private string DebugView => $"{TradingMode} {Name}{(DeliveryTime != null ? $" Delivery: {DeliveryTime:yyyy-MM-dd}": "")}";
+
         /// <summary>
         /// The size of a single contract
         /// </summary>

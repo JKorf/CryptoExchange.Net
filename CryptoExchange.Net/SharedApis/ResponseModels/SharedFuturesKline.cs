@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Mark/index price kline
     /// </summary>
+    [DebuggerDisplay("[{OpenTime}] O: {OpenPrice} H: {HighPrice} L: {LowPrice} C: {ClosePrice}")]
     public record SharedFuturesKline : SharedSymbolModel
     {
         /// <summary>

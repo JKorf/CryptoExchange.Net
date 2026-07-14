@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Balance info
     /// </summary>
+    [DebuggerDisplay("{Available} {Asset, nq}")]
     public record SharedBalance
     {
         /// <summary>

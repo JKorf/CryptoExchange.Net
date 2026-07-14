@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Trading fee info
     /// </summary>
+    [DebuggerDisplay("{MakerFee} / {TakerFee}")]
     public record SharedFee
     {
         /// <summary>

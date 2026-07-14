@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Symbol info
     /// </summary>
+    [DebuggerDisplay("{TradingMode} {Name,nq}")]
     public record SharedSpotSymbol
     {
         /// <summary>

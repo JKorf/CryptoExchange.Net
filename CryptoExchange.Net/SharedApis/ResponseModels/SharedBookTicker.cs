@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Book ticker
     /// </summary>
+    [DebuggerDisplay("{Symbol,nq} - {BestBidPrice} / {BestAskPrice}")]
     public record SharedBookTicker : SharedSymbolModel
     {
         /// <summary>

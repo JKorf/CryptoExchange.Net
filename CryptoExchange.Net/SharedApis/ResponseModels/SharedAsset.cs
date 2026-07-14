@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Asset info
     /// </summary>
+    [DebuggerDisplay("{Name,nq} - {Networks.Length} network(s)")]
     public record SharedAsset
     {
         /// <summary>
@@ -32,6 +34,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Asset network info
     /// </summary>
+    [DebuggerDisplay("{Name,nq}")]
     public record SharedAssetNetwork
     {
         /// <summary>

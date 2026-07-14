@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Futures order info
     /// </summary>
+    [DebuggerDisplay("{DebugView,nq}")]
     public record SharedFuturesOrder : SharedSymbolModel
     {
+        private string DebugView => 
+            $"[{CreateTime}] {OrderId} {(PositionSide != null ? $"{PositionSide} " : "")}{Symbol}  - " +
+            $"{OrderType} {Side} {OrderQuantity}{(OrderPrice != null ? " @ " + OrderPrice : "")}, " +
+            $"{Status}{(QuantityFilled != null && Status != SharedOrderStatus.Canceled ? $" {QuantityFilled}" : "")}{(AveragePrice != null ? " @ " + AveragePrice : "")}";
+
         /// <summary>
         /// Id of the order
         /// </summary>

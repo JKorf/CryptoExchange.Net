@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// A user trade
     /// </summary>
+    [DebuggerDisplay("[{Timestamp}] {Id,nq} {Symbol,nq} {Side.ToString(),nq} {Quantity} @ {Price}")]
     public record SharedUserTrade : SharedSymbolModel
     {
         /// <summary>

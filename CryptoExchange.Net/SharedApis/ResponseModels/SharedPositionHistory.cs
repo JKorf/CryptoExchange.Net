@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Position history
     /// </summary>
+    [DebuggerDisplay("[{Timestamp}] {Symbol,nq} {PositionSide}: {RealizedPnl}")]
     public record SharedPositionHistory : SharedSymbolModel
     {
         /// <summary>

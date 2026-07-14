@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Deposit info
     /// </summary>
+    [DebuggerDisplay("[{Timestamp}] {Quantity} {Asset,nq}")]
     public record SharedDeposit
     {
         /// <summary>

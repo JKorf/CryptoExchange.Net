@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Ticker info
     /// </summary>
+    [DebuggerDisplay("{Symbol,nq} High: {HighPrice}, Low: {LowPrice}, Last: {LastPrice}, Change: {ChangePercentage}%")]
     public record SharedSpotTicker: SharedSymbolModel
     {
         /// <summary>

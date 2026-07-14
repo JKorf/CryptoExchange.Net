@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Funding rate
     /// </summary>
+    [DebuggerDisplay("[{Timestamp}] {FundingRate}")]
     public record SharedFundingRate
     {
         /// <summary>

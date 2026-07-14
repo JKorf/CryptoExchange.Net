@@ -1,8 +1,11 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System.Diagnostics;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Deposit address info
     /// </summary>
+    [DebuggerDisplay("{Asset,nq} - {Address,nq}")]
     public record SharedDepositAddress
     {
         /// <summary>
