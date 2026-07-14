@@ -1,5 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -175,6 +176,22 @@ namespace CryptoExchange.Net.SharedApis
                 result.Add(positionSocketClient.SubscribePositionOptions);
 
             return result.ToArray();
+        }
+
+        public static T[] ApplySymbolFilter<T>(T[] symbols, GetSymbolsRequest request) where T : SharedSpotSymbol
+        {
+            IEnumerable<T> resultData = symbols;
+            if (request.TradingMode != null)
+                resultData = resultData.Where(x => x.TradingMode == request.TradingMode);
+            if (request.BaseAssetType != null)
+                resultData = resultData.Where(x => x.BaseAssetType == request.BaseAssetType);
+            if (request.QuoteAssetType != null)
+                resultData = resultData.Where(x => x.QuoteAssetType == request.QuoteAssetType);
+            if (request.BaseAssetSubType != null)
+                resultData = resultData.Where(x => x.BaseAssetSubType == request.BaseAssetSubType);
+            if (request.QuoteAssetSubType != null)
+                resultData = resultData.Where(x => x.QuoteAssetSubType == request.QuoteAssetSubType);
+            return resultData.ToArray();
         }
     }
 }
