@@ -13,11 +13,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Assets supported
         /// </summary>
-        public Dictionary<string, SharedAssetInfo> Assets { get; set; } = new Dictionary<string, SharedAssetInfo>();
+        public IReadOnlyDictionary<string, SharedAssetInfo> Assets { get; set; } = new Dictionary<string, SharedAssetInfo>();
         /// <summary>
         /// Symbols supported
         /// </summary>
-        public Dictionary<string, SharedSymbolInfo> Symbols { get; set; } = new Dictionary<string, SharedSymbolInfo>();
+        public IReadOnlyDictionary<string, SharedSymbolInfo> Symbols { get; set; } = new Dictionary<string, SharedSymbolInfo>();
     }
 
     /// <summary>

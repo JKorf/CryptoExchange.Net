@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.Caching
 {
     public class ExchangeCache
     {
-        private Dictionary<string, CacheItem> _cache = new Dictionary<string, CacheItem>();
-        private Dictionary<string, CacheItemDefinition> _valueDefinitions = new Dictionary<string, CacheItemDefinition>();
+        private readonly ConcurrentDictionary<string, CacheItem> _cache = new ConcurrentDictionary<string, CacheItem>();
+        private readonly ConcurrentDictionary<string, CacheItemDefinition> _valueDefinitions = new ConcurrentDictionary<string, CacheItemDefinition>();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _retrievalLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public ExchangeCache(params CacheItemDefinition[] cacheItemDefinitions)
         {
@@ -18,54 +19,62 @@ namespace CryptoExchange.Net.Caching
             }
         }
 
-        public void Define<T>(string key, TimeSpan ttl, Func<Task<T>> valueFactory)
-        {
-            _valueDefinitions ??= new Dictionary<string, CacheItemDefinition>();
-            _valueDefinitions.Add(key, new CacheItemDefinition<T>
-            {
-                Ttl = ttl,
-                ValueFactory = valueFactory
-            });
-        }
-
         public T? Get<T>(string key, bool ignoreExpireTime = false)
         {
-            if (_cache.TryGetValue(key, out var value))
-            {
-                if (value.ExpireTime > DateTime.UtcNow || ignoreExpireTime)
-                {
-                    if (value is CacheItem<T> typedValue)
-                        return typedValue.Value;
-
-                    throw new InvalidCastException($"{key} value can't be cast to {typeof(T)}");
-                }
-            }
-
-            return default;
+            return TryGetValue<T>(key, ignoreExpireTime, out var value) ? value : default;
         }
 
         public async Task<T?> GetOrRetrieveAsync<T>(string key)
         {
-            if (_cache.TryGetValue(key, out var value))
-            {
-                if (value.ExpireTime > DateTime.UtcNow)
-                {
-                    if (value is CacheItem<T> typedValue)
-                        return typedValue.Value;
+            if (TryGetValue<T>(key, false, out var cachedValue))
+                return cachedValue;
 
-                    throw new InvalidCastException($"{key} value can't be cast to {typeof(T)}");
+            var retrievalLock = _retrievalLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await retrievalLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                // Another caller might've already retrieved the value
+                if (TryGetValue<T>(key, false, out cachedValue))
+                    return cachedValue;
+
+                _cache.TryRemove(key, out _);
+
+                var definition = _valueDefinitions[key];
+                if (definition is not CacheItemDefinition<T> typedDefinition)
+                    throw new InvalidCastException($"{key} definition can't be cast to {typeof(CacheItemDefinition<T>)}");
+
+                var factoryValue = await typedDefinition.ValueFactory().ConfigureAwait(false);
+                var entryTime = DateTime.UtcNow;
+                _cache[key] = new CacheItem<T>
+                {
+                    EntryTime = entryTime,
+                    ExpireTime = entryTime + definition.Ttl,
+                    Value = factoryValue
+                };
+                return factoryValue;
+            }
+            finally
+            {
+                retrievalLock.Release();
+            }
+        }
+
+        private bool TryGetValue<T>(string key, bool ignoreExpireTime, out T? result)
+        {
+            if (_cache.TryGetValue(key, out var value)
+                && (value.ExpireTime > DateTime.UtcNow || ignoreExpireTime))
+            {
+                if (value is CacheItem<T> typedValue)
+                {
+                    result = typedValue.Value;
+                    return true;
                 }
 
-                _cache.Remove(key);
+                throw new InvalidCastException($"{key} value can't be cast to {typeof(T)}");
             }
 
-            var definition = _valueDefinitions[key];
-            if (definition is not CacheItemDefinition<T> typedDefinition)
-                throw new InvalidCastException($"{key} definition can't be cast to {typeof(CacheItemDefinition<T>)}");
-
-            var factValue = await typedDefinition.ValueFactory().ConfigureAwait(false);
-            _cache.Add(key, new CacheItem<T> { EntryTime = DateTime.UtcNow, ExpireTime = DateTime.UtcNow + definition.Ttl, Value = factValue });
-            return factValue;
+            result = default;
+            return false;
         }
     }
 
