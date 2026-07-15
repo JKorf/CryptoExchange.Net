@@ -9,7 +9,7 @@ namespace CryptoExchange.Net.SharedApis
         Unspecified,
         Crypto,
         Fiat,
-        Rwa
+        TradFi
     }
 
     public enum SharedAssetSubType
@@ -17,8 +17,9 @@ namespace CryptoExchange.Net.SharedApis
         // Crypto sub types
         StableCoin,
 
-        // Rwa sub types
-        Stock,
-        Commodity,
+        // TradFi sub types
+        Stock, // Stock, ETF
+        Commodity, // Oil, Gas, Metals 
+        Index
     }
 }

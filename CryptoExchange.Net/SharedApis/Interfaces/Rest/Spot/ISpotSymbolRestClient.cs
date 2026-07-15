@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get the spot symbol catalog. Only available if <see cref="GetSpotSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
         /// </summary>
-        SharedSymbolCatalog? SymbolCatalog { get; }
+        SharedSymbolCatalog? SpotSymbolCatalog { get; }
 
         /// <summary>
         /// Spot symbols request options.<br />

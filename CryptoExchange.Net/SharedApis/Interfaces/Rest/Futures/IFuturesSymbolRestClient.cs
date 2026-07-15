@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get the futures symbol catalog. Only available if <see cref="GetFuturesSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
         /// </summary>
-        SharedSymbolCatalog? SymbolCatalog { get; }
+        SharedSymbolCatalog? FuturesSymbolCatalog { get; }
 
         /// <summary>
         /// Futures symbol request options.<br />

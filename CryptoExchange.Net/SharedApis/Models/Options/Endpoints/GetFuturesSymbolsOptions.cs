@@ -46,7 +46,7 @@ namespace CryptoExchange.Net.SharedApis
                 return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
             }
 
-            if (type == SharedAssetType.Rwa && subType == SharedAssetSubType.StableCoin)
+            if (type == SharedAssetType.TradFi && subType == SharedAssetSubType.StableCoin)
                 return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
 
             if (type == SharedAssetType.Fiat)
