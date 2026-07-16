@@ -4,6 +4,8 @@ using CryptoExchange.Net.Objects.Options;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO.Pipelines;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 
@@ -107,18 +109,59 @@ namespace CryptoExchange.Net
 
         private static readonly HashSet<string> _stableCoins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD", "FRAX",
-            "USDD", "LUSD", "USDJ", "SUSD", "MIM", "EURS", "EURC", "EURI", "EURT", "AGEUR",
-            "XSGD", "GYEN", "ZUSD", "BUSD", "USTC", "USDX", "USDK", "CUSD", "CEUR", "CREAL",
-            "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD", "AEUR"
+            // USD
+            "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD",
+            "USDD", "LUSD", "USDJ", "SUSD", "ZUSD", "BUSD", "USTC", "USDX", "USDK",
+            "CUSD", "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD",  
+            // EUR
+            "EURS", "EURC", "EURI", "EURT", "AGEUR", "CEUR", "AEUR",
+            // Other
+            "CNYT",  // CNY
+            "CREAL", // BRL
+            "XSGD",  // SGD
+            "GYEN",  // JPY
         };
 
-        public static bool IsStableCoin(string asset)
+        private static readonly HashSet<string> _commodities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Metals
+            "XAU", "XAUT", "XAG", "XPT", "XPD", "XPL", "COPPER", "PAXG", "XNI", "XCU", "XAL", 
+             // Energy
+            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL"
+        };
+
+        private static readonly HashSet<string> _cryptoCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Top 50 cryptos, will need to update periodically
+            "BTC", "ETH", "BNB", "XRP", "SOL", "TRX", "HYPE", "DOGE", "RAIN", "ZEC",
+            "LEO", "WBT", "XLM", "LINK", "XMR", "ADA", "CC", "BCH", "GRAM", "LTC",
+            "SUI", "HBAR", "AVAX", "NEAR", "CRO", "SHIB", "UNI", "TAO", "WLFI", "ONDO",
+            "OKB", "ASTER", "DEXE", "HTX", "M", "SKY", "MNT", "AAVE", "DOT", "WLD",
+            "MORPHO", "ICP", "BGB", "PEPE", "ETC", "QNT", "STABLE", "KCS", "POL", "ADI"
+        };
+
+        public static bool IsStableCoin(string asset, params string[] additionalStableCoins)
         {
             if (string.IsNullOrEmpty(asset))
                 return false;
 
-            return _stableCoins.Contains(asset);
+            return _stableCoins.Contains(asset) || (additionalStableCoins != null && additionalStableCoins.Contains(asset, StringComparer.OrdinalIgnoreCase));
+        }
+
+        public static bool IsCommodity(string asset, params string[] additionalCommodities)
+        {
+            if (string.IsNullOrEmpty(asset))
+                return false;
+
+            return _commodities.Contains(asset) || (additionalCommodities != null && additionalCommodities.Contains(asset, StringComparer.OrdinalIgnoreCase));
+        }
+
+        public static bool IsCryptoCurrency(string asset)
+        {
+            if (string.IsNullOrEmpty(asset))
+                return false;
+
+            return _cryptoCurrencies.Contains(asset);
         }
 
         /// <summary>
