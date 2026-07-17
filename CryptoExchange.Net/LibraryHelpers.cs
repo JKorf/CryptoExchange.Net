@@ -112,22 +112,28 @@ namespace CryptoExchange.Net
             // USD
             "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD",
             "USDD", "LUSD", "USDJ", "SUSD", "ZUSD", "BUSD", "USTC", "USDX", "USDK",
-            "CUSD", "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD",  
+            "CUSD", "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD", "OUSD", "USDH",
+            "APXUSD", "USDQ", "USDPT", "FIDD", "AUSD",
             // EUR
-            "EURS", "EURC", "EURI", "EURT", "AGEUR", "CEUR", "AEUR",
+            "EURS", "EURC", "EURI", "EURT", "AGEUR", "CEUR", "AEUR", "EURQ", "EUROP",
             // Other
             "CNYT",  // CNY
-            "CREAL", // BRL
+            "CREAL", "BRL1", // BRL
             "XSGD",  // SGD
             "GYEN",  // JPY
+            "KGST",  // KGS
+            "QCAD",  // CAD
+            "TGBP",  // GBP
+            "AUDX",  // AUD
+            "MXNB",  // MXN
         };
 
         private static readonly HashSet<string> _commodities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             // Metals
-            "XAU", "XAUT", "XAG", "XPT", "XPD", "XPL", "COPPER", "PAXG", "XNI", "XCU", "XAL", 
+            "XAU", "XAUT", "XAG", "XPT", "XPD", "COPPER", "PAXG", "XNI", "XCU", "XAL", "GOLD", "SILVER",
              // Energy
-            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL"
+            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL"
         };
 
         private static readonly HashSet<string> _cryptoCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -138,6 +144,15 @@ namespace CryptoExchange.Net
             "SUI", "HBAR", "AVAX", "NEAR", "CRO", "SHIB", "UNI", "TAO", "WLFI", "ONDO",
             "OKB", "ASTER", "DEXE", "HTX", "M", "SKY", "MNT", "AAVE", "DOT", "WLD",
             "MORPHO", "ICP", "BGB", "PEPE", "ETC", "QNT", "STABLE", "KCS", "POL", "ADI"
+        };
+
+        private static readonly HashSet<string> _stocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Top 20 stocks, will need to update periodically
+            "NVDA", "TSLA", "AAPL", "MSFT", "AMZN",
+            "GOOGL", "META", "AMD", "AVGO", "PLTR",
+            "COIN", "MSTR", "NFLX", "MU", "INTC",
+            "TSM", "BABA", "ORCL", "JPM", "BA"
         };
 
         public static bool IsStableCoin(string asset, params string[] additionalStableCoins)
@@ -162,6 +177,14 @@ namespace CryptoExchange.Net
                 return false;
 
             return _cryptoCurrencies.Contains(asset);
+        }
+
+        public static bool IsStock(string asset)
+        {
+            if (string.IsNullOrEmpty(asset))
+                return false;
+
+            return _stocks.Contains(asset);
         }
 
         /// <summary>

@@ -18,8 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         StableCoin,
 
         // TradFi sub types
-        Stock, // Stock, ETF
+        Equity, // Stock, ETF, Index
         Commodity, // Oil, Gas, Metals 
-        Index
     }
 }

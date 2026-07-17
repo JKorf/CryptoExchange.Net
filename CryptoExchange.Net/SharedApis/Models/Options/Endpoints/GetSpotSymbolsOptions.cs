@@ -42,7 +42,7 @@ namespace CryptoExchange.Net.SharedApis
         {
             if (type == SharedAssetType.Crypto
                     && (subType == SharedAssetSubType.Commodity
-                    || (subType == SharedAssetSubType.Stock)))
+                    || (subType == SharedAssetSubType.Equity)))
             {
                 return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
             }
