@@ -679,46 +679,26 @@ namespace CryptoExchange.Net.Clients
                                                 && (s.Authenticated == authenticated || !authenticated)
                                                 && s.Connected).ToList();
 
-            SocketConnection? connection;
-            if (!dedicatedRequestConnection)
-            {
-                connection = socketQuery
-                    .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
-                    .OrderBy(s => s.UserSubscriptionCount)
-                    .FirstOrDefault();
-            }
-            else
+            bool maxConnectionsReached = _socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections);
+            SocketConnection? connection = null;
+            if (dedicatedRequestConnection)
             {
                 connection = socketQuery.Where(s => s.DedicatedRequestConnection.IsDedicatedRequestConnection).FirstOrDefault();
                 if (connection != null && !connection.DedicatedRequestConnection.Authenticated)
                     // Mark dedicated request connection as authenticated if the request is authenticated
                     connection.DedicatedRequestConnection.Authenticated = authenticated;
-
-                if (connection == null)
-                    // Fall back to an existing connection if there is no dedicated request connection available
-                    connection = socketQuery.OrderBy(s => s.UserSubscriptionCount).FirstOrDefault();
             }
 
-            bool maxConnectionsReached = _socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections);
+            if (connection == null)
+                // Use an eligible non-dedicated connection for subscriptions, or as fallback when no dedicated request connection is available
+                connection = socketQuery
+                    .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
+                    .Where(s => IsConnectionEligible(s, individualSubscriptionCount, maxConnectionsReached))
+                    .OrderBy(s => s.UserSubscriptionCount)
+                    .FirstOrDefault();
+
             if (connection != null)
-            {
-                bool lessThanBatchSubCombineTarget = connection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget;
-                var currentIndividualSubscriptionCount = connection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
-                // Include the incoming batch so batched subscriptions cannot overshoot the configured socket target.
-                bool lessThanIndividualSubCombineTarget = currentIndividualSubscriptionCount + individualSubscriptionCount <= ClientOptions.SocketIndividualSubscriptionCombineTarget;
-
-                if ((lessThanBatchSubCombineTarget && lessThanIndividualSubCombineTarget)
-                    || maxConnectionsReached) 
-                {
-                    // Use existing socket if it has less than target connections OR it has the least connections and we can't make new
-                    // If there is a max subscriptions per connection limit also only use existing if the new subscription doesn't go over the limit
-                    if (MaxIndividualSubscriptionsPerConnection == null)
-                        return CallResult.Ok(connection);
-                                        
-                    if (currentIndividualSubscriptionCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection)
-                        return CallResult.Ok(connection);
-                }
-            }
+                return CallResult.Ok(connection);
 
             if (maxConnectionsReached)
                 return CallResult.Fail<SocketConnection>(new InvalidOperationError("Max amount of socket connections reached"));
@@ -783,6 +763,21 @@ namespace CryptoExchange.Net.Clients
                 socketConnection.QueryPeriodic(ptg.Identifier, ptg.Interval, (con) => ptg.QueryDelegate(con).Request);
 
             return CallResult.Ok(socketConnection);
+        }
+
+        private bool IsConnectionEligible(SocketConnection socketConnection, int individualSubscriptionCount, bool maxConnectionsReached)
+        {
+            var currentIndividualSubscriptionCount = socketConnection.Subscriptions.Sum(x => x.IndividualSubscriptionCount);
+            bool lessThanBatchSubCombineTarget = socketConnection.UserSubscriptionCount < ClientOptions.SocketSubscriptionsCombineTarget;
+            // Include the incoming batch so batched subscriptions cannot overshoot the configured socket target.
+            bool lessThanIndividualSubCombineTarget = currentIndividualSubscriptionCount + individualSubscriptionCount <= ClientOptions.SocketIndividualSubscriptionCombineTarget;
+
+            if ((!lessThanBatchSubCombineTarget || !lessThanIndividualSubCombineTarget)
+                && !maxConnectionsReached)
+                return false;
+
+            return MaxIndividualSubscriptionsPerConnection == null
+                || currentIndividualSubscriptionCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection;
         }
 
         /// <summary>
