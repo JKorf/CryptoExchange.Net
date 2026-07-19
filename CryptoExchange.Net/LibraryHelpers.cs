@@ -133,7 +133,7 @@ namespace CryptoExchange.Net
             // Metals
             "XAU", "XAUT", "XAG", "XPT", "XPD", "COPPER", "PAXG", "XNI", "XCU", "XAL", "GOLD", "SILVER",
              // Energy
-            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL"
+            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL", "BRENTOIL"
         };
 
         private static readonly HashSet<string> _cryptoCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -148,14 +148,31 @@ namespace CryptoExchange.Net
 
         private static readonly HashSet<string> _stocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            // Top 20 stocks, will need to update periodically
-            "NVDA", "TSLA", "AAPL", "MSFT", "AMZN",
-            "GOOGL", "META", "AMD", "AVGO", "PLTR",
-            "COIN", "MSTR", "NFLX", "MU", "INTC",
-            "TSM", "BABA", "ORCL", "JPM", "BA"
+            // Top stocks, will need to update periodically
+            "AAAU", "AADR", "AAPL", "ACWI", "ACWX", "AGG", "AMD", "AMLP", "AMZN", "ARKF",
+            "ARKG", "ARKK", "ARKQ", "ARKW", "AVGO", "BA", "BABA", "BND", "BNDX", "BOTZ",
+            "CIBR", "COIN", "DIA", "DIVB", "DVY", "EEM", "EFA", "EFAV", "ESGU", "EWG",
+            "EWJ", "EWT", "EWU", "EWW", "EWY", "EWZ", "FDN", "FEZ", "GLDM", "GOOGL",
+            "HDV", "HOOD", "HYG", "IAU", "IBB", "ICLN", "IEFA", "IEMG", "IGSB", "IJH",
+            "IJR", "INTC", "ITOT", "IUSB", "IUSG", "IUSV", "IWM", "IWO", "IWR", "IYR",
+            "JETS", "JPM", "LIT", "MCHI", "META", "MGK", "MSTR", "MTUM", "MU", "NET",
+            "NFLX", "NOBL", "NVDA", "OIH", "ORCL", "PAVE", "PBW", "PLTR", "QQQ", "QQQM",
+            "SCHB", "SCHD", "SCHF", "SCHG", "SCHH", "SCHV", "SCHX", "SKHY", "SPCX", "SPCXD",
+            "SPLG", "SPY", "SPYG", "SPYV", "SQQQ", "TSLA", "TSM", "TQQQ", "USMV", "VBR",
+            "VCIT", "VCSH", "VEA", "VEU", "VGIT", "VGK", "VGT", "VHT", "VIG", "VNQ",
+            "VOO", "VOT", "VTI", "VTV", "VUG", "VXUS", "XBI", "XLC", "XLE", "XLF",
+            "XLI", "XLK", "XLP", "XLU", "XLV", "XLY", "CSCO", "UBER", "MRVL", "RKLB",
+            "COHR", "SOXL", "HD", "DIS", "CBRS", "V", "BRKB", "FLNC", "LLY", "COST",
+            "ARM", "BMNR", "NBIS", "ASML", "AAOI", "GLW", "SHLD", "BE", "QNTX", "IBM", 
+            "AMAT", "NOK", "ASTS", "BBX", "SLX", "SKHYNIX", "SAMSUNG", "HYUNDAI", "NVO",
+            "IREN", "ONDS", "CRM" , "VRT", "ZEST", "BTW", "HPE", "AXTI", "BX", "CRWD",
+            "CRDO", "NOW", "ZM", "DKNG", "RIVN", "URNM", "EBAY", "ADBE", "UVXY", "RDW",
+            "CIEN","PANW", "WIN", "PAYP", "HIMS", "CRWV", "QCOM", "LITE", "DRAM", "ANTHROPIC",
+            "OPENAI", "USAR", "BILL", "SNDK", "NASDAQ100", "SPX500", "BSB", "CRCL", "STRC",
+            "MSFT", "WDC"
         };
 
-        public static bool IsStableCoin(string asset, params string[] additionalStableCoins)
+        public static bool IsStableCoin(string asset, params HashSet<string> additionalStableCoins)
         {
             if (string.IsNullOrEmpty(asset))
                 return false;
@@ -163,7 +180,7 @@ namespace CryptoExchange.Net
             return _stableCoins.Contains(asset) || (additionalStableCoins != null && additionalStableCoins.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
-        public static bool IsCommodity(string asset, params string[] additionalCommodities)
+        public static bool IsCommodity(string asset, params HashSet<string> additionalCommodities)
         {
             if (string.IsNullOrEmpty(asset))
                 return false;
@@ -171,20 +188,20 @@ namespace CryptoExchange.Net
             return _commodities.Contains(asset) || (additionalCommodities != null && additionalCommodities.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
-        public static bool IsCryptoCurrency(string asset)
+        //public static bool IsCryptoCurrency(string asset)
+        //{
+        //    if (string.IsNullOrEmpty(asset))
+        //        return false;
+
+        //    return _cryptoCurrencies.Contains(asset);
+        //}
+
+        public static bool IsEquity(string asset, params HashSet<string> additionalStocks)
         {
             if (string.IsNullOrEmpty(asset))
                 return false;
 
-            return _cryptoCurrencies.Contains(asset);
-        }
-
-        public static bool IsStock(string asset)
-        {
-            if (string.IsNullOrEmpty(asset))
-                return false;
-
-            return _stocks.Contains(asset);
+            return _stocks.Contains(asset) || (additionalStocks != null && additionalStocks.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
