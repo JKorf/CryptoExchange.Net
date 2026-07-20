@@ -16,6 +16,61 @@ namespace CryptoExchange.Net
     /// </summary>
     public static class LibraryHelpers
     {
+        private static readonly HashSet<string> _stableCoins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // USD
+            "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD",
+            "USDD", "LUSD", "USDJ", "SUSD", "ZUSD", "BUSD", "USTC", "USDX", "USDK",
+            "CUSD", "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD", "OUSD", "USDH",
+            "APXUSD", "USDQ", "USDPT", "FIDD", "AUSD",
+            // EUR
+            "EURS", "EURC", "EURI", "EURT", "AGEUR", "CEUR", "AEUR", "EURQ", "EUROP",
+            // Other
+            "CNYT",  // CNY
+            "CREAL", "BRL1", // BRL
+            "XSGD",  // SGD
+            "GYEN",  // JPY
+            "KGST",  // KGS
+            "QCAD",  // CAD
+            "TGBP",  // GBP
+            "AUDX",  // AUD
+            "MXNB",  // MXN
+        };
+
+        private static readonly HashSet<string> _commodities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Metals
+            "XAU", "XAUT", "XAG", "XPT", "XPD", "COPPER", "PAXG", "XNI", "XCU", "XAL", "GOLD", "SILVER",
+             // Energy
+            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL", "BRENTOIL"
+        };
+
+        private static readonly HashSet<string> _stocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Top stocks, will need to update periodically
+            "AAAU", "AADR", "AAPL", "ACWI", "ACWX", "AGG", "AMD", "AMLP", "AMZN", "ARKF",
+            "ARKG", "ARKK", "ARKQ", "ARKW", "AVGO", "BA", "BABA", "BND", "BNDX", "BOTZ",
+            "CIBR", "COIN", "DIA", "DIVB", "DVY", "EEM", "EFA", "EFAV", "ESGU", "EWG",
+            "EWJ", "EWT", "EWU", "EWW", "EWY", "EWZ", "FDN", "FEZ", "GLDM", "GOOGL",
+            "HDV", "HOOD", "HYG", "IAU", "IBB", "ICLN", "IEFA", "IEMG", "IGSB", "IJH",
+            "IJR", "INTC", "ITOT", "IUSB", "IUSG", "IUSV", "IWM", "IWO", "IWR", "IYR",
+            "JETS", "JPM", "LIT", "MCHI", "META", "MGK", "MSTR", "MTUM", "MU", "NET",
+            "NFLX", "NOBL", "NVDA", "OIH", "ORCL", "PAVE", "PBW", "PLTR", "QQQ", "QQQM",
+            "SCHB", "SCHD", "SCHF", "SCHG", "SCHH", "SCHV", "SCHX", "SKHY", "SPCX", "SPCXD",
+            "SPLG", "SPY", "SPYG", "SPYV", "SQQQ", "TSLA", "TSM", "TQQQ", "USMV", "VBR",
+            "VCIT", "VCSH", "VEA", "VEU", "VGIT", "VGK", "VGT", "VHT", "VIG", "VNQ",
+            "VOO", "VOT", "VTI", "VTV", "VUG", "VXUS", "XBI", "XLC", "XLE", "XLF",
+            "XLI", "XLK", "XLP", "XLU", "XLV", "XLY", "CSCO", "UBER", "MRVL", "RKLB",
+            "COHR", "SOXL", "HD", "DIS", "CBRS", "V", "BRKB", "FLNC", "LLY", "COST",
+            "ARM", "BMNR", "NBIS", "ASML", "AAOI", "GLW", "SHLD", "BE", "QNTX", "IBM",
+            "AMAT", "NOK", "ASTS", "BBX", "SLX", "SKHYNIX", "SAMSUNG", "HYUNDAI", "NVO",
+            "IREN", "ONDS", "CRM" , "VRT", "ZEST", "BTW", "HPE", "AXTI", "BX", "CRWD",
+            "CRDO", "NOW", "ZM", "DKNG", "RIVN", "URNM", "EBAY", "ADBE", "UVXY", "RDW",
+            "CIEN","PANW", "WIN", "PAYP", "HIMS", "CRWV", "QCOM", "LITE", "DRAM", "ANTHROPIC",
+            "OPENAI", "USAR", "BILL", "SNDK", "NASDAQ100", "SPX500", "BSB", "CRCL", "STRC",
+            "MSFT", "WDC"
+        };
+
         private static ILogger? _staticLogger;
         /// <summary>
         /// Static logger
@@ -107,61 +162,11 @@ namespace CryptoExchange.Net
             return _defaultClientReferences.TryGetValue(key, out var id) ? id : throw new KeyNotFoundException($"{exchange} not found in configuration");
         }
 
-        private static readonly HashSet<string> _stableCoins = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            // USD
-            "USDT", "USDC", "DAI", "FDUSD", "USDE", "TUSD", "USDP", "PYUSD", "GUSD",
-            "USDD", "LUSD", "USDJ", "SUSD", "ZUSD", "BUSD", "USTC", "USDX", "USDK",
-            "CUSD", "USD1", "USD0", "XUSD", "BFUSD", "USDS", "RLUSD", "OUSD", "USDH",
-            "APXUSD", "USDQ", "USDPT", "FIDD", "AUSD",
-            // EUR
-            "EURS", "EURC", "EURI", "EURT", "AGEUR", "CEUR", "AEUR", "EURQ", "EUROP",
-            // Other
-            "CNYT",  // CNY
-            "CREAL", "BRL1", // BRL
-            "XSGD",  // SGD
-            "GYEN",  // JPY
-            "KGST",  // KGS
-            "QCAD",  // CAD
-            "TGBP",  // GBP
-            "AUDX",  // AUD
-            "MXNB",  // MXN
-        };
-
-        private static readonly HashSet<string> _commodities = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Metals
-            "XAU", "XAUT", "XAG", "XPT", "XPD", "COPPER", "PAXG", "XNI", "XCU", "XAL", "GOLD", "SILVER",
-             // Energy
-            "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL", "BRENTOIL"
-        };
-
-        private static readonly HashSet<string> _stocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Top stocks, will need to update periodically
-            "AAAU", "AADR", "AAPL", "ACWI", "ACWX", "AGG", "AMD", "AMLP", "AMZN", "ARKF",
-            "ARKG", "ARKK", "ARKQ", "ARKW", "AVGO", "BA", "BABA", "BND", "BNDX", "BOTZ",
-            "CIBR", "COIN", "DIA", "DIVB", "DVY", "EEM", "EFA", "EFAV", "ESGU", "EWG",
-            "EWJ", "EWT", "EWU", "EWW", "EWY", "EWZ", "FDN", "FEZ", "GLDM", "GOOGL",
-            "HDV", "HOOD", "HYG", "IAU", "IBB", "ICLN", "IEFA", "IEMG", "IGSB", "IJH",
-            "IJR", "INTC", "ITOT", "IUSB", "IUSG", "IUSV", "IWM", "IWO", "IWR", "IYR",
-            "JETS", "JPM", "LIT", "MCHI", "META", "MGK", "MSTR", "MTUM", "MU", "NET",
-            "NFLX", "NOBL", "NVDA", "OIH", "ORCL", "PAVE", "PBW", "PLTR", "QQQ", "QQQM",
-            "SCHB", "SCHD", "SCHF", "SCHG", "SCHH", "SCHV", "SCHX", "SKHY", "SPCX", "SPCXD",
-            "SPLG", "SPY", "SPYG", "SPYV", "SQQQ", "TSLA", "TSM", "TQQQ", "USMV", "VBR",
-            "VCIT", "VCSH", "VEA", "VEU", "VGIT", "VGK", "VGT", "VHT", "VIG", "VNQ",
-            "VOO", "VOT", "VTI", "VTV", "VUG", "VXUS", "XBI", "XLC", "XLE", "XLF",
-            "XLI", "XLK", "XLP", "XLU", "XLV", "XLY", "CSCO", "UBER", "MRVL", "RKLB",
-            "COHR", "SOXL", "HD", "DIS", "CBRS", "V", "BRKB", "FLNC", "LLY", "COST",
-            "ARM", "BMNR", "NBIS", "ASML", "AAOI", "GLW", "SHLD", "BE", "QNTX", "IBM", 
-            "AMAT", "NOK", "ASTS", "BBX", "SLX", "SKHYNIX", "SAMSUNG", "HYUNDAI", "NVO",
-            "IREN", "ONDS", "CRM" , "VRT", "ZEST", "BTW", "HPE", "AXTI", "BX", "CRWD",
-            "CRDO", "NOW", "ZM", "DKNG", "RIVN", "URNM", "EBAY", "ADBE", "UVXY", "RDW",
-            "CIEN","PANW", "WIN", "PAYP", "HIMS", "CRWV", "QCOM", "LITE", "DRAM", "ANTHROPIC",
-            "OPENAI", "USAR", "BILL", "SNDK", "NASDAQ100", "SPX500", "BSB", "CRCL", "STRC",
-            "MSFT", "WDC"
-        };
-
+        /// <summary>
+        /// Check whether an asset is a known stablecoin. Note that this is not definitive, only large known stocks are checked
+        /// </summary>
+        /// <param name="asset">Asset name</param>
+        /// <param name="additionalStableCoins">Additional stablecoin names for the specific exchange</param>
         public static bool IsStableCoin(string asset, params HashSet<string> additionalStableCoins)
         {
             if (string.IsNullOrEmpty(asset))
@@ -170,6 +175,11 @@ namespace CryptoExchange.Net
             return _stableCoins.Contains(asset) || (additionalStableCoins != null && additionalStableCoins.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Check whether an asset is a known commodity. Note that this is not definitive, only large known stocks are checked
+        /// </summary>
+        /// <param name="asset">Asset name</param>
+        /// <param name="additionalCommodities">Additional commodity names for the specific exchange</param>
         public static bool IsCommodity(string asset, params HashSet<string> additionalCommodities)
         {
             if (string.IsNullOrEmpty(asset))
@@ -178,9 +188,20 @@ namespace CryptoExchange.Net
             return _commodities.Contains(asset) || (additionalCommodities != null && additionalCommodities.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Check whether an asset is a known stock. Note that this is not definitive, only large known stocks are checked
+        /// </summary>
+        /// <param name="asset">Asset name</param>
+        /// <param name="additionalStocks">Additional stock names for the specific exchange</param>
         public static bool IsEquity(string asset, params HashSet<string> additionalStocks)
             => IsEquity(asset, [], additionalStocks);
 
+        /// <summary>
+        /// Check whether an asset is a known stock.
+        /// </summary>
+        /// <param name="asset">Asset name</param>
+        /// <param name="potentialSuffixes">Suffixes to check, for example when `X` is a potential suffix both `TSLA` and `TSLAX` will be checked</param>
+        /// <param name="additionalStocks">Additional stock names for the specific exchange</param>
         public static bool IsEquity(string asset, string[] potentialSuffixes, params HashSet<string> additionalStocks)
         {
             if (string.IsNullOrEmpty(asset))
