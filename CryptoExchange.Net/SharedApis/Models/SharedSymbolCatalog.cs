@@ -11,13 +11,17 @@ namespace CryptoExchange.Net.SharedApis
     public class SharedSymbolCatalog
     {
         /// <summary>
+        /// Exchange name
+        /// </summary>
+        public string Exchange { get; set; } = string.Empty;
+        /// <summary>
         /// Assets supported
         /// </summary>
         public IReadOnlyDictionary<string, SharedAssetInfo> Assets { get; set; } = new Dictionary<string, SharedAssetInfo>();
         /// <summary>
         /// Symbols supported
         /// </summary>
-        public IReadOnlyDictionary<string, SharedSymbolInfo> Symbols { get; set; } = new Dictionary<string, SharedSymbolInfo>();
+        public IReadOnlyDictionary<string, SharedSpotSymbol> Symbols { get; set; } = new Dictionary<string, SharedSpotSymbol>();
     }
 
     /// <summary>
@@ -49,36 +53,6 @@ namespace CryptoExchange.Net.SharedApis
             Name = name;
             Type = type;
             SubType = subType;
-        }
-    }
-
-    /// <summary>
-    /// Symbol info
-    /// </summary>
-    [DebuggerDisplay("{Name,nq} BaseAsset: {BaseAsset}, QuoteAsset: {QuoteAsset}")]
-    public class SharedSymbolInfo
-    {
-        /// <summary>
-        /// Symbol name
-        /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// Base asset info
-        /// </summary>
-        public SharedAssetInfo BaseAsset { get; set; }
-        /// <summary>
-        /// Quote asset info
-        /// </summary>
-        public SharedAssetInfo QuoteAsset { get; set; }
-
-        /// <summary>
-        /// ctor
-        /// </summary>
-        public SharedSymbolInfo(string name, SharedAssetInfo baseAsset, SharedAssetInfo quoteAsset)
-        {
-            Name = name;
-            BaseAsset = baseAsset;
-            QuoteAsset = quoteAsset;
         }
     }
 }

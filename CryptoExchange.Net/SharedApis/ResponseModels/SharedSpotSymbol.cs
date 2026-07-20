@@ -1,13 +1,17 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Data;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Symbol info
     /// </summary>
-    [DebuggerDisplay("{TradingMode} {Name,nq}")]
+    [DebuggerDisplay("{DebugView,nq}")]
     public record SharedSpotSymbol
     {
+        private string DebugView => $"{TradingMode} {(DisplayName ?? Name)} - {BaseAssetType} {BaseAssetSubType}";
+
         /// <summary>
         /// The trading mode of the symbol
         /// </summary>

@@ -23,14 +23,14 @@ namespace CryptoExchange.Net.SharedApis
         {
             if (request.BaseAssetType != null && request.BaseAssetSubType != null)
             {
-                var error = ValidateSymbolType(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
+                var error = ValidateAssetTypeCombination(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
                 if (error != null)
                     return error;
             }
 
             if (request.QuoteAssetType != null && request.QuoteAssetSubType != null)
             {
-                var error = ValidateSymbolType(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
+                var error = ValidateAssetTypeCombination(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
                 if (error != null)
                     return error;
             }
@@ -38,20 +38,20 @@ namespace CryptoExchange.Net.SharedApis
             return base.ValidateRequest(request, client);
         }
 
-        private Error? ValidateSymbolType(SharedAssetType type, SharedAssetSubType subType)
+        private Error? ValidateAssetTypeCombination(SharedAssetType type, SharedAssetSubType subType)
         {
             if (type == SharedAssetType.Crypto
                     && (subType == SharedAssetSubType.Commodity
                     || (subType == SharedAssetSubType.Equity)))
             {
-                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
             }
 
             if (type == SharedAssetType.TradFi && subType == SharedAssetSubType.StableCoin)
-                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
 
             if (type == SharedAssetType.Fiat)
-                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of symbol type filters: {type} and {subType}");
+                return ArgumentError.Invalid(nameof(GetSymbolsRequest.BaseAssetSubType), $"Invalid combination of asset type filters: {type} and {subType}");
 
             return null;
         }

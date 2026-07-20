@@ -121,16 +121,17 @@ namespace CryptoExchange.Net
         /// <summary>
         /// Get a symbol catalog for a specific exchange(topic) and environment. Only available if <see cref="UpdateSymbolInfo(string, string, string?, SharedSpotSymbol[])"/> has been called previously.
         /// </summary>
+        /// <param name="exchange">Exchange name</param>
         /// <param name="topicId">Id for the provided data</param>
         /// <param name="environmentName">Trade environment</param>
         /// <param name="key">Additional data set identification key</param>
-        public static SharedSymbolCatalog? GetSymbolCatalog(string topicId, string environmentName, string? key)
+        public static SharedSymbolCatalog? GetSymbolCatalog(string exchange, string topicId, string environmentName, string? key)
         {
             var id = topicId + environmentName;
             if (!_symbolInfos.TryGetValue(id, out var exchangeInfo))
                 return null;
 
-            return exchangeInfo.GetSymbolCatalog(key);
+            return exchangeInfo.GetSymbolCatalog(exchange, key);
         }
 
         class ExchangeKeyedCache
@@ -305,7 +306,7 @@ namespace CryptoExchange.Net
                     .ToArray();
             }
 
-            internal SharedSymbolCatalog? GetSymbolCatalog(string? key)
+            internal SharedSymbolCatalog? GetSymbolCatalog(string exchange, string? key)
             {
                 IEnumerable<SharedSpotSymbol> cachedSymbols;
                 if (key == null)
@@ -324,7 +325,7 @@ namespace CryptoExchange.Net
                 }
 
                 var assets = new Dictionary<string, SharedAssetInfo>();
-                var symbols = new Dictionary<string, SharedSymbolInfo>();
+                var symbols = new Dictionary<string, SharedSpotSymbol>();
                 foreach (var symbol in cachedSymbols)
                 {
                     if (!assets.TryGetValue(symbol.BaseAsset, out var baseAssetInfo))
@@ -339,11 +340,12 @@ namespace CryptoExchange.Net
                         assets.Add(symbol.QuoteAsset, quoteAssetInfo);
                     }
 
-                    symbols.Add(symbol.Name, new SharedSymbolInfo(symbol.Name, baseAssetInfo, quoteAssetInfo));
+                    symbols.Add(symbol.Name, symbol);
                 }
 
                 return new SharedSymbolCatalog
                 {
+                    Exchange = exchange,
                     Assets = assets,
                     Symbols = symbols
                 };
