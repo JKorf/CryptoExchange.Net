@@ -136,16 +136,6 @@ namespace CryptoExchange.Net
             "BZ", "NATGAS", "NGAS", "CL", "XTI", "UKOIL", "USOIL", "BRENTOIL"
         };
 
-        private static readonly HashSet<string> _cryptoCurrencies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            // Top 50 cryptos, will need to update periodically
-            "BTC", "ETH", "BNB", "XRP", "SOL", "TRX", "HYPE", "DOGE", "RAIN", "ZEC",
-            "LEO", "WBT", "XLM", "LINK", "XMR", "ADA", "CC", "BCH", "GRAM", "LTC",
-            "SUI", "HBAR", "AVAX", "NEAR", "CRO", "SHIB", "UNI", "TAO", "WLFI", "ONDO",
-            "OKB", "ASTER", "DEXE", "HTX", "M", "SKY", "MNT", "AAVE", "DOT", "WLD",
-            "MORPHO", "ICP", "BGB", "PEPE", "ETC", "QNT", "STABLE", "KCS", "POL", "ADI"
-        };
-
         private static readonly HashSet<string> _stocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             // Top stocks, will need to update periodically
@@ -188,20 +178,28 @@ namespace CryptoExchange.Net
             return _commodities.Contains(asset) || (additionalCommodities != null && additionalCommodities.Contains(asset, StringComparer.OrdinalIgnoreCase));
         }
 
-        //public static bool IsCryptoCurrency(string asset)
-        //{
-        //    if (string.IsNullOrEmpty(asset))
-        //        return false;
-
-        //    return _cryptoCurrencies.Contains(asset);
-        //}
-
         public static bool IsEquity(string asset, params HashSet<string> additionalStocks)
+            => IsEquity(asset, [], additionalStocks);
+
+        public static bool IsEquity(string asset, string[] potentialSuffixes, params HashSet<string> additionalStocks)
         {
             if (string.IsNullOrEmpty(asset))
                 return false;
 
-            return _stocks.Contains(asset) || (additionalStocks != null && additionalStocks.Contains(asset, StringComparer.OrdinalIgnoreCase));
+            if (_stocks.Contains(asset) || (additionalStocks != null && additionalStocks.Contains(asset, StringComparer.OrdinalIgnoreCase)))
+                return true;
+
+            foreach (var suffix in potentialSuffixes) 
+            {
+                if (!asset.EndsWith(suffix))
+                    continue;
+
+                var suffixAsset = asset.Substring(0, asset.Length - suffix.Length);
+                if (_stocks.Contains(suffixAsset) || (additionalStocks != null && additionalStocks.Contains(suffixAsset, StringComparer.OrdinalIgnoreCase)))
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
