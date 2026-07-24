@@ -88,7 +88,7 @@ namespace CryptoExchange.Net.Converters.SystemTextJson.MessageHandlers
                     stream.Seek(0, SeekOrigin.Begin);
                     var written = new StreamReader(stream).ReadBlock(dataSnippet, 0, _errorResponseSnippetLimit);
                     var data = new string(dataSnippet, 0, written);
-                    errorMsg += $": {data}";
+                    errorMsg += $": {(string.IsNullOrEmpty(data) ? "(empty)" : data)}";
                     if (data.Length == _errorResponseSnippetLimit)
                         errorMsg += " (truncated)";
                 }
