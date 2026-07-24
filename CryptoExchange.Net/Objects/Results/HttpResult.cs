@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.SharedApis;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
@@ -12,8 +13,11 @@ namespace CryptoExchange.Net.Objects;
 /// <summary>
 /// HTTP call result
 /// </summary>
+[DebuggerDisplay("{DebugView,nq}")]
 public record HttpResult : IHttpResult
 {
+    private string DebugView => $"[Req {RequestId}] " + (Success ? "Success" : $"Error: {Error}");
+
     /// <summary>
     /// Create a new success HTTP result
     /// </summary>
@@ -251,8 +255,32 @@ public record HttpResult : IHttpResult
 
 
 /// <inheritdoc />
+[DebuggerDisplay("{DebugView,nq}")]
 public record HttpResult<T> : HttpResult, IHttpResult<T>
 {
+    private string DebugView
+    {
+        get
+        {
+            var result = new StringBuilder($"[Req {RequestId}] " + (Success ? "Success" : $"Error: {Error}"));
+            if (Data != null)
+            {
+                result.Append(", ");
+                var typeName = typeof(T).Name;
+                if (Data is Array ar)
+                {
+                    result.Append($"{ar.Length} {typeName.Substring(0, typeName.Length - 2)}");
+                }
+                else
+                {
+                    result.Append(typeName);
+                }
+            }
+
+            return result.ToString();
+        }
+    } 
+
     /// <summary>
     /// ctor
     /// </summary>

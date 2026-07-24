@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -8,8 +9,11 @@ namespace CryptoExchange.Net.Objects;
 /// <summary>
 /// Call result
 /// </summary>
+[DebuggerDisplay("{DebugView,nq}")]
 public record CallResult : ICallResult
 {
+    private string DebugView => Success ? "Success" : $"Error: {Error}";
+
     private static CallResult _successResult = new CallResult();
 
     /// <inheritdoc />

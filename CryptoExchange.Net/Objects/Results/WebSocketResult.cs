@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -8,8 +9,11 @@ namespace CryptoExchange.Net.Objects;
 /// <summary>
 /// WebSocket call result
 /// </summary>
+[DebuggerDisplay("{DebugView,nq}")]
 public record WebSocketResult : IWebSocketResult
 {
+    private string DebugView => $"[Sckt {ConnectionId}] " + (RequestId == null ? "" : $"[Req {RequestId}] ") + (Success ? "Success" : $"Error: {Error}");
+
     /// <summary>
     /// ctor
     /// </summary>
