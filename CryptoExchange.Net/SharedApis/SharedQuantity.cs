@@ -160,6 +160,22 @@ namespace CryptoExchange.Net.SharedApis
         {
         }
 
+        /// <summary>
+        /// Get the quantity in quote asset. Will use the set `QuantityInQuoteAsset` property if it has a value, or `QuantityInBaseAsset` * `price` if not. Null otherwise.
+        /// </summary>
+        /// <param name="price">The price to use for the QuantityInBaseAsset to quote asset quantity calculation</param>
+        /// <returns>Quantity in quote asset if it's available or can be calculated, null otherwise</returns>
+        public decimal? GetQuantityInQuoteAsset(decimal? price)
+        {
+            if (QuantityInQuoteAsset != null)
+                return QuantityInQuoteAsset;
+
+            if (QuantityInBaseAsset != null && price != null)
+                return QuantityInBaseAsset * price;
+
+            return null;
+        }
+
         /// <inheritdoc />
         public override string ToString() => base.ToString();
     }

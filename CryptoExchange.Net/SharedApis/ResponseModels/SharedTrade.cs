@@ -12,7 +12,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Quantity of the trade
         /// </summary>
-        public decimal Quantity { get; set; }
+        [Obsolete("Use `Quantities` instead")]
+        public decimal Quantity => Quantities.QuantityInBaseAsset ?? Quantities.QuantityInContracts ?? 0;
+        /// <summary>
+        /// The quantities of the trade
+        /// </summary>
+        public SharedOrderQuantity Quantities { get; set; }
         /// <summary>
         /// Price of the trade
         /// </summary>
@@ -29,9 +34,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedTrade(SharedSymbol? sharedSymbol, string symbol, decimal quantity, decimal price, DateTime timestamp) : base(sharedSymbol, symbol)
+        public SharedTrade(SharedSymbol? sharedSymbol, string symbol, SharedOrderQuantity quantities, decimal price, DateTime timestamp) : base(sharedSymbol, symbol)
         {
-            Quantity = quantity;
+            Quantities = quantities;
             Price = price;
             Timestamp = timestamp;
         }

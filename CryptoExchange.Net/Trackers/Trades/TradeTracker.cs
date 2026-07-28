@@ -138,6 +138,11 @@ namespace CryptoExchange.Net.Trackers.Trades
             }
         }
 
+        /// <summary>
+        /// The type of quantity the trades and stats are denoted in
+        /// </summary>
+        public TradeQuantityType QuantityType { get; }
+
         /// <inheritdoc />
         public event Func<SharedTrade, Task>? OnAdded;
         /// <inheritdoc />
@@ -156,12 +161,14 @@ namespace CryptoExchange.Net.Trackers.Trades
             SharedSymbol symbol,
             int? limit = null,
             TimeSpan? period = null,
+            TradeQuantityType tradeQuantityType = TradeQuantityType.BaseAsset,
             ExchangeParameters? exchangeParameters = null)
         {
             _logger = logger ?? new NullLogger<TradeTracker>();
             _recentRestClient = recentRestClient;
             _historyRestClient = historyRestClient;
             _socketClient = socketClient;
+            QuantityType = tradeQuantityType;
             _exchangeParameters = exchangeParameters;
             Exchange = socketClient.Exchange;
             Symbol = symbol;
@@ -170,22 +177,41 @@ namespace CryptoExchange.Net.Trackers.Trades
             Period = period;
         }
 
-        private static TradesStats GetStats(IEnumerable<SharedTrade> trades)
+        private TradesStats GetStats(IEnumerable<SharedTrade> trades)
         {
             if (!trades.Any())
                 return new TradesStats();
 
-            return new TradesStats
+
+            var stats = new TradesStats
             {
                 TradeCount = trades.Count(),
                 FirstTradeTime = trades.First().Timestamp,
                 LastTradeTime = trades.Last().Timestamp,
-                AveragePrice = Math.Round(trades.Select(d => d.Price).DefaultIfEmpty().Average(), 8),
-                VolumeWeightedAveragePrice = trades.Any() ? Math.Round(trades.Select(d => d.Price * d.Quantity).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantity).DefaultIfEmpty().Sum(), 8) : null,
-                Volume = Math.Round(trades.Sum(d => d.Quantity), 8),
-                QuoteVolume = Math.Round(trades.Sum(d => d.Quantity * d.Price), 8),
-                BuySellRatio = Math.Round(trades.Where(x => x.Side == SharedOrderSide.Buy).Sum(x => x.Quantity) / trades.Sum(x => x.Quantity), 8)
+                AveragePrice = Math.Round(trades.Select(d => d.Price).DefaultIfEmpty().Average(), 8),                
+                QuoteVolume = Math.Round(trades.Sum(d => d.Quantities.GetQuantityInQuoteAsset(d.Price) ?? 0), 8),
             };
+
+            if (QuantityType == TradeQuantityType.BaseAsset)
+            {
+                stats.VolumeWeightedAveragePrice =
+                    trades.Any()
+                        ? Math.Round(trades.Select(d => d.Quantities.GetQuantityInQuoteAsset(d.Price) ?? 0).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantities.QuantityInBaseAsset!.Value).DefaultIfEmpty().Sum(), 8)
+                        : null;
+                stats.Volume = Math.Round(trades.Sum(d => d.Quantities.QuantityInBaseAsset!.Value), 8);
+                stats.BuySellRatio = Math.Round(trades.Where(x => x.Side == SharedOrderSide.Buy).Sum(x => x.Quantities.QuantityInBaseAsset!.Value) / trades.Sum(x => x.Quantities.QuantityInBaseAsset!.Value), 8);
+            }
+            else
+            {
+                stats.VolumeWeightedAveragePrice =
+                    trades.Any()
+                        ? Math.Round(trades.Select(d => d.Quantities.GetQuantityInQuoteAsset(d.Price) ?? 0).DefaultIfEmpty().Sum() / trades.Select(d => d.Quantities.QuantityInContracts!.Value).DefaultIfEmpty().Sum(), 8)
+                        : null;
+                stats.Volume = Math.Round(trades.Sum(d => d.Quantities.QuantityInContracts!.Value), 8);
+                stats.BuySellRatio = Math.Round(trades.Where(x => x.Side == SharedOrderSide.Buy).Sum(x => x.Quantities.QuantityInContracts!.Value) / trades.Sum(x => x.Quantities.QuantityInContracts!.Value), 8);
+            }
+
+            return stats;
         }
 
         /// <inheritdoc />
@@ -497,5 +523,20 @@ namespace CryptoExchange.Net.Trackers.Trades
             if (Period == null && Limit == null)
                 Status = SyncStatus.Synced;
         }
+    }
+
+    /// <summary>
+    /// The quantities to use for trade tracking
+    /// </summary>
+    public enum TradeQuantityType
+    {
+        /// <summary>
+        /// Base asset
+        /// </summary>
+        BaseAsset,
+        /// <summary>
+        /// Contracts
+        /// </summary>
+        Contracts
     }
 }

@@ -284,8 +284,10 @@ namespace CryptoExchange.Net.Trackers.Klines
                 LastOpenTime = klines.Last().OpenTime,
                 HighPrice = klines.Select(d => d.LowPrice).Max(),
                 LowPrice = klines.Select(d => d.HighPrice).Min(),
+#pragma warning disable CS0618 // Type or member is obsolete | Temporary to maintain previous behavior
                 Volume = klines.Select(d => d.Volume).Sum(),
                 AverageVolume = Math.Round(klines.OrderByDescending(d => d.OpenTime).Skip(1).Select(d => d.Volume).DefaultIfEmpty().Average(), 8)
+#pragma warning restore
             };
         }
 
