@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Kline info
     /// </summary>
-    [DebuggerDisplay("[{OpenTime}] O: {OpenPrice} H: {HighPrice} L: {LowPrice} C: {ClosePrice} V: {Volume}")]
+    [DebuggerDisplay("[{OpenTime}] O: {OpenPrice} H: {HighPrice} L: {LowPrice} C: {ClosePrice} V: {Volumes}")]
     public record SharedKline : SharedSymbolModel
     {
         /// <summary>
@@ -29,15 +29,40 @@ namespace CryptoExchange.Net.SharedApis
         /// Open price
         /// </summary>
         public decimal OpenPrice { get; set; }
+
+        private decimal? _volume;
         /// <summary>
         /// Volume in the base asset
         /// </summary>
-        public decimal Volume { get; set; }
+        [Obsolete("Use `Volumes` instead")]
+        public decimal Volume
+        {
+            get
+            {
+                if (_volume.HasValue)
+                    return _volume.Value;
+
+                return Volumes.QuantityInBaseAsset ?? Volumes.QuantityInContracts ?? 0;
+            }
+            set => _volume = value;
+        }
+        /// <summary>
+        /// The volume in the last 24h
+        /// </summary>
+        public SharedOrderQuantity Volumes { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedKline(SharedSymbol? sharedSymbol, string symbol, DateTime openTime, decimal closePrice, decimal highPrice, decimal lowPrice, decimal openPrice, decimal volume)
+        public SharedKline(
+            SharedSymbol? sharedSymbol,
+            string symbol,
+            DateTime openTime, 
+            decimal closePrice, 
+            decimal highPrice,
+            decimal lowPrice,
+            decimal openPrice,
+            SharedOrderQuantity volumes)
             : base(sharedSymbol, symbol)
         {
             OpenTime = openTime;
@@ -45,7 +70,7 @@ namespace CryptoExchange.Net.SharedApis
             HighPrice = highPrice;
             LowPrice = lowPrice;
             OpenPrice = openPrice;
-            Volume = volume;
+            Volumes = volumes;
         }
     }
 }

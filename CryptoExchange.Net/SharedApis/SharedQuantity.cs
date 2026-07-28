@@ -143,6 +143,11 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedOrderQuantity : SharedQuantityReference
     {
         /// <summary>
+        /// The average price based on the base and quote asset quantities
+        /// </summary>
+        public decimal? AveragePrice => QuantityInBaseAsset == 0 ? null : QuantityInQuoteAsset / QuantityInBaseAsset;
+
+        /// <summary>
         /// ctor
         /// </summary>
         public SharedOrderQuantity(): base(null, null,null) { }
