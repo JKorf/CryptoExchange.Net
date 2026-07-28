@@ -2,11 +2,13 @@
 
 > Base C#/.NET library for cryptocurrency exchange API client implementations. Provides a standardized abstraction (REST, WebSocket, authentication, rate limiting, error handling, order book management, shared cross-exchange interfaces) that 28+ exchange-specific libraries are built on top of.
 
-CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `HttpResult<T>` REST result pattern, same `WebSocketResult<UpdateSubscription>` websocket subscription pattern, same DI registration, same shared interfaces across all exchanges. Current version: 12.3.0. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
+CryptoExchange.Net itself is not used directly — install one of the exchange-specific libraries (Binance.Net, Bybit.Net, OKX.Net, Kraken.Net, Coinbase.Net, etc.) or `CryptoClients.Net` to access all exchanges via a single bundle. The base library is what makes the entire ecosystem feel consistent: same `HttpResult<T>` REST result pattern, same `WebSocketResult<UpdateSubscription>` websocket subscription pattern, same DI registration, same shared interfaces across all exchanges. Current version: 12.4.0. Targets netstandard2.0, netstandard2.1, net8.0, net9.0, net10.0. Native AOT supported.
 
 The standout feature for cross-exchange code is `CryptoExchange.Net.SharedApis` — a set of interfaces (`ISpotTickerRestClient`, `ISpotOrderRestClient`, `IBalanceRestClient`, etc.) implemented by every exchange library. Same call signature works against any exchange.
 
 Version 12.2.0 adds typed asset metadata to shared symbol discovery. `SharedSpotSymbol` and `SharedFuturesSymbol` expose `DisplayName` plus base/quote `SharedAssetType` and `SharedAssetSubType` values. `GetSymbolsRequest` can filter on those four type fields. After symbol discovery, `ISpotSymbolRestClient.SpotSymbolCatalog` and `IFuturesSymbolRestClient.FuturesSymbolCatalog` provide asset and symbol dictionaries; each catalog is available only after the corresponding `Get*SymbolsAsync` call. `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` are best-effort helpers for exchange-library implementations.
+
+Version 12.4.0 represents market-data quantities with `SharedOrderQuantity`: use `Volumes` on `SharedSpotTicker`, `SharedFuturesTicker`, and `SharedKline`, and `Quantities` on `SharedTrade`. The old scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete. Exchange-library implementations must pass `SharedOrderQuantity` to these model constructors.
 
 ## Documentation
 
@@ -24,7 +26,7 @@ Version 12.2.0 adds typed asset metadata to shared symbol discovery. `SharedSpot
 
 ## Reference
 
-- [Ecosystem libraries list](https://github.com/JKorf/CryptoExchange.Net#cryptoexchangenet-ecosystem): Aster, Binance, BingX, Bitfinex, Bitget, BitMart, BitMEX, Bitstamp, BloFin, Bybit, Coinbase, CoinEx, CoinW, CoinGecko, Crypto.com, DeepCoin, Gate.io, HTX, HyperLiquid, Kraken, Kucoin, Mexc, OKX, Polymarket, Toobit, Upbit, Weex, WhiteBit, XT
+- [Ecosystem libraries list](https://github.com/JKorf/CryptoExchange.Net#cryptoexchangenet-ecosystem): Aster, Binance, BingX, Bitfinex, Bitget, BitMart, BitMEX, Bitstamp, BloFin, Bybit, Coinbase, CoinEx, CoinW, CoinGecko, Crypto.com, DeepCoin, Gate.io, HTX, HyperLiquid, Kraken, Kucoin, Mexc, OKX, Pionex, Polymarket, Toobit, Upbit, Weex, WhiteBit, XT
 - [CryptoClients.Net](https://github.com/JKorf/CryptoClients.Net): Single bundle package for all exchange libraries
 - [CryptoManager.Net](https://github.com/JKorf/CryptoManager.Net): Full demo application using CryptoClients.Net
 - [NuGet Package](https://www.nuget.org/packages/CryptoExchange.Net): Latest stable release on NuGet

@@ -38,6 +38,10 @@ After calling `GetSpotSymbolsAsync`, `ISpotSymbolRestClient.SpotSymbolCatalog` m
 
 When implementing an exchange library, use `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` only as best-effort classifiers and supply exchange-specific additions where needed.
 
+## Shared market-data quantities
+
+In 12.4.0, use `SharedOrderQuantity`-valued `Volumes` on shared spot/futures tickers and klines, and `Quantities` on shared trades. The scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
+
 ## Result pattern
 
 REST methods return `HttpResult<T>` and websocket subscription methods return `WebSocketResult<UpdateSubscription>`. Always check `.Success`. `.Exchange` property identifies which exchange responded — useful for logging.

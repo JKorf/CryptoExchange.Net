@@ -85,6 +85,10 @@ After calling `GetSpotSymbolsAsync` or `GetFuturesSymbolsAsync`, use the client'
 
 For exchange-library implementations, `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` provide best-effort classification of known assets and accept exchange-specific additions. These helpers are heuristics, not an exhaustive source of truth.
 
+## Shared Market-Data Quantities
+
+Since CryptoExchange.Net 12.4.0, shared market-data models use `SharedOrderQuantity` so base-asset, quote-asset, and contract quantities remain explicit. Read `SharedSpotTicker.Volumes`, `SharedFuturesTicker.Volumes`, and `SharedKline.Volumes`; read `SharedTrade.Quantities`. The former scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
+
 ## Available Shared Interfaces
 
 **REST:**

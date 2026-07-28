@@ -128,6 +128,12 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.4.0 - 28 Jul 2026
+    * Added AveragePrice property to SharedQuantity model
+    * Added DebuggerDisplay attributes to Result objects
+    * Updated SharedFuturesTicker, SharedSpotTicker, SharedTrade and SharedKline to use SharedOrderQuantity for volumes/quantities
+    * Updated REST json deserialization error for empty response
+
 * Version 12.3.0 - 23 Jul 2026
     * Added calculation of AveragePrice on Shared order models if data is available and AveragePrice is not set
     * Extracted ConnectionCanBeUsedFor method in SocketApiClient for easier custom logic implementation

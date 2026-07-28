@@ -30,6 +30,10 @@ CryptoExchange.Net 12.2.0 classifies the base and quote sides of `SharedSpotSymb
 
 `ISpotSymbolRestClient.SpotSymbolCatalog` is populated by `GetSpotSymbolsAsync`; `IFuturesSymbolRestClient.FuturesSymbolCatalog` is populated by `GetFuturesSymbolsAsync`. Do not assume a catalog is available before that request. For exchange-library implementations, `LibraryHelpers.IsStableCoin`, `IsCommodity`, and `IsEquity` offer best-effort classification and can be extended with exchange-specific values.
 
+## Shared market-data quantities
+
+CryptoExchange.Net 12.4.0 uses `SharedOrderQuantity` for market-data quantities. Prefer `Volumes` on `SharedSpotTicker`, `SharedFuturesTicker`, and `SharedKline`, and `Quantities` on `SharedTrade`; the scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
+
 ## Single-exchange code uses the exchange's own client
 
 For Binance-only code, use `BinanceRestClient` directly (see Binance.Net repo `AGENTS.md`). SharedApis is for portability — use it when you need that.
