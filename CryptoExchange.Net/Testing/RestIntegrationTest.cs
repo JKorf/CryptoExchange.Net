@@ -142,10 +142,15 @@ namespace CryptoExchange.Net.Testing
                     var issues = SystemTextJsonComparer.CompareData(expressionBody.Method.Name, data, originalData, compareNestedProperty, ignoreProperties, useSingleArrayItem ?? false);
                     foreach(var issue in issues)
                     {
-                        if (issue is MissingPropertyException && !warnings?.Any(x => x.Message == issue.Message) == true)
-                            warnings?.Add(issue);
+                        if (issue is MissingPropertyException)
+                        {
+                            if (!warnings?.Any(x => x.Message == issue.Message) == true)
+                                warnings?.Add(issue);
+                        }
                         else
+                        {
                             errors.Add(issue);
+                        }
                     }
 
                     if (errors.Count > 0)
