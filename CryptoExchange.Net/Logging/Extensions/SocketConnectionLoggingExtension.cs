@@ -180,7 +180,7 @@ namespace CryptoExchange.Net.Logging.Extensions
             _receivedMessageNotMatchedToAnyListener = LoggerMessage.Define<int, string, string, string>(
                 LogLevel.Warning,
                 new EventId(2029, "ReceivedMessageNotMatchedToAnyListener"),
-                "[Sckt {SocketId}] received message not matched to any listener. TypeIdentifier: {TypeIdentifier}, ListenId: {ListenId}, current listeners: [{ListenIds}]");
+                "[Sckt {SocketId}] received message not matched to any listener. TypeIdentifier: {TypeIdentifier}, TopicFilter: {ListenId}, registered TopicFilters for type: [{TopicFilters}]");
 
             _failedToParse = LoggerMessage.Define<int, string>(
                 LogLevel.Warning,
@@ -326,9 +326,9 @@ namespace CryptoExchange.Net.Logging.Extensions
             _sendingData(logger, socketId, requestId, data, null);
         }
 
-        public static void ReceivedMessageNotMatchedToAnyListener(this ILogger logger, int socketId, string typeIdentifier, string listenId, string listenIds)
+        public static void ReceivedMessageNotMatchedToAnyListener(this ILogger logger, int socketId, string typeIdentifier, string topicFilter, string topicFilters)
         {
-            _receivedMessageNotMatchedToAnyListener(logger, socketId, typeIdentifier, listenId, listenIds, null);
+            _receivedMessageNotMatchedToAnyListener(logger, socketId, typeIdentifier, topicFilter, topicFilters, null);
         }
 
         public static void SendingByteData(this ILogger logger, int socketId, int requestId, int length)
