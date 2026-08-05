@@ -607,7 +607,7 @@ namespace CryptoExchange.Net.Sockets.Default
                         SocketId,
                         typeIdentifier,
                         topicFilter!,
-                        string.Join(",", _listeners.Select(x => string.Join(",", x.MessageRouter.Routes.Where(x => x.TypeIdentifier == typeIdentifier).Select(x => x.TopicFilter != null ? string.Join(",", x.TopicFilter) : "[null]")))));
+                        string.Join(",", _listeners.SelectMany(x => x.MessageRouter.Routes.Where(x => x.TypeIdentifier == typeIdentifier).Select(x => x.TopicFilter ?? "[null]"))));
                 }
             }
         }
