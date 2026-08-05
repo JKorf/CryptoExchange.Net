@@ -91,28 +91,25 @@ namespace CryptoExchange.Net.UnitTests
             var evnt = new AsyncResetEvent(false, true);
 
             var waiters = new List<Task<bool>>();
-            for(var i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 waiters.Add(evnt.WaitAsync());
             }
 
-            List<bool>? results = null;
-            var resultsWaiter = Task.Run(async () =>
-            {
-                await Task.WhenAll(waiters);
-                results = waiters.Select(w => w.Result).ToList();
-            });
+            var remaining = waiters.ToList();
 
-            for(var i = 1; i <= 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 evnt.Set();
-                await Task.Delay(1); // Wait for the continuation.
-                Assert.That(10 - i == waiters.Count(w => w.Status != TaskStatus.RanToCompletion));
+
+                var completed = await Task.WhenAny(remaining);
+                Assert.That(await completed, Is.True);
+
+                remaining.Remove(completed);
+                Assert.That(remaining.Count(w => w.IsCompleted), Is.Zero);
             }
 
-            await resultsWaiter;
-
-            Assert.That(10 == results?.Count(r => r));
+            Assert.That(remaining, Is.Empty);
         }
 
         [Test]
