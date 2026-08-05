@@ -12,7 +12,8 @@ namespace CryptoExchange.Net.Objects.Sockets
     /// </summary>
     public class UpdateSubscription
     {
-        private readonly SocketConnection _connection;
+        private readonly SocketConnection? _connection;
+        private readonly ManualUpdateSubscription? _manualSubscription;
         internal readonly Subscription _subscription;
 
 #if NET9_0_OR_GREATER
@@ -102,7 +103,7 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The id of the socket
         /// </summary>
-        public int SocketId => _connection.SocketId;
+        public int SocketId => _connection?.SocketId ?? _manualSubscription!.SocketId;
 
         /// <summary>
         /// The id of the subscription
@@ -112,12 +113,12 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <summary>
         /// The last timestamp anything was received from the server
         /// </summary>
-        public DateTime? LastReceiveTime => _connection.LastReceiveTime;
+        public DateTime? LastReceiveTime => _connection?.LastReceiveTime ?? _manualSubscription!.LastReceiveTime;
 
         /// <summary>
         /// The current websocket status
         /// </summary>
-        public SocketStatus SocketStatus => _connection.Status;
+        public SocketStatus SocketStatus => _connection?.Status ?? _manualSubscription!.SocketStatus;
 
         /// <summary>
         /// The current subscription status
@@ -143,6 +144,18 @@ namespace CryptoExchange.Net.Objects.Sockets
             _subscription.StatusChanged += (x) => SubscriptionStatusChanged?.Invoke(x);
         }
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="manualSubscription">The manual subscription for controlling events and data</param>
+        /// <param name="subscription">The subscription</param>
+        internal UpdateSubscription(ManualUpdateSubscription manualSubscription, Subscription subscription)
+        {
+            _manualSubscription = manualSubscription;
+            _subscription = subscription;
+            _subscription.StatusChanged += (x) => SubscriptionStatusChanged?.Invoke(x);
+        }
+
         private void UnsubscribeConnectionEvents()
         {
             lock (_eventLock)
@@ -150,22 +163,26 @@ namespace CryptoExchange.Net.Objects.Sockets
                 if (!_connectionEventsSubscribed)
                     return;
 
-                _connection.ConnectionClosed -= HandleConnectionClosedEvent;
-                _connection.ConnectionLost -= HandleConnectionLostEvent;
-                _connection.ConnectionRestored -= HandleConnectionRestoredEvent;
-                _connection.ResubscribingFailed -= HandleResubscribeFailedEvent;
-                _connection.ActivityPaused -= HandlePausedEvent;
-                _connection.ActivityUnpaused -= HandleUnpausedEvent;
+                if (_connection != null)
+                {
+                    _connection.ConnectionClosed -= HandleConnectionClosedEvent;
+                    _connection.ConnectionLost -= HandleConnectionLostEvent;
+                    _connection.ConnectionRestored -= HandleConnectionRestoredEvent;
+                    _connection.ResubscribingFailed -= HandleResubscribeFailedEvent;
+                    _connection.ActivityPaused -= HandlePausedEvent;
+                    _connection.ActivityUnpaused -= HandleUnpausedEvent;
+                }
+
                 _connectionEventsSubscribed = false;
             }
         }
 
-        private void HandleConnectionClosedEvent()
+        internal void HandleConnectionClosedEvent()
         {
             UnsubscribeConnectionEvents();
 
             // If we're not the subscription closing this connection don't bother emitting
-            if (!_subscription.IsClosingConnection)
+            if (_connection != null && !_subscription.IsClosingConnection)
                 return;
 
             List<Action> handlers;
@@ -176,7 +193,7 @@ namespace CryptoExchange.Net.Objects.Sockets
                 callback();
         }
 
-        private void HandleConnectionLostEvent()
+        internal void HandleConnectionLostEvent()
         {
             if (!_subscription.Active)
             {
@@ -192,7 +209,7 @@ namespace CryptoExchange.Net.Objects.Sockets
                 callback();
         }
 
-        private void HandleConnectionRestoredEvent(TimeSpan period)
+        internal void HandleConnectionRestoredEvent(TimeSpan period)
         {
             if (!_subscription.Active)
             {
@@ -208,7 +225,7 @@ namespace CryptoExchange.Net.Objects.Sockets
                 callback(period);
         }
 
-        private void HandleResubscribeFailedEvent(Error error)
+        internal void HandleResubscribeFailedEvent(Error error)
         {
             if (!_subscription.Active)
             {
@@ -224,7 +241,7 @@ namespace CryptoExchange.Net.Objects.Sockets
                 callback(error);
         }
 
-        private void HandlePausedEvent()
+        internal void HandlePausedEvent()
         {
             if (!_subscription.Active)
             {
@@ -240,7 +257,7 @@ namespace CryptoExchange.Net.Objects.Sockets
                 callback();
         }
 
-        private void HandleUnpausedEvent()
+        internal void HandleUnpausedEvent()
         {
             if (!_subscription.Active)
             {
@@ -262,7 +279,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public Task CloseAsync()
         {
-            return _connection.CloseAsync(_subscription);
+            if (_connection != null)
+                return _connection.CloseAsync(_subscription);
+
+            return _manualSubscription!.CloseAsync();
         }
 
         /// <summary>
@@ -271,7 +291,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         public Task ReconnectAsync()
         {
-            return _connection.TriggerReconnectAsync();
+            if (_connection != null)
+                return _connection.TriggerReconnectAsync();
+
+            return _manualSubscription!.ReconnectAsync();
         }
 
         /// <summary>
@@ -280,7 +303,13 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         internal async Task UnsubscribeAsync()
         {
-            await _connection.UnsubscribeAsync(_subscription).ConfigureAwait(false);
+            if (_connection != null)
+            {
+                await _connection.UnsubscribeAsync(_subscription).ConfigureAwait(false);
+                return;
+            }
+
+            await _manualSubscription!.CloseAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -289,7 +318,10 @@ namespace CryptoExchange.Net.Objects.Sockets
         /// <returns></returns>
         internal async Task<CallResult> ResubscribeAsync()
         {
-            return await _connection.ResubscribeAsync(_subscription).ConfigureAwait(false);
+            if (_connection != null)
+                return await _connection.ResubscribeAsync(_subscription).ConfigureAwait(false);
+
+            return await _manualSubscription!.ResubscribeAsync().ConfigureAwait(false);
         }
     }
 }
