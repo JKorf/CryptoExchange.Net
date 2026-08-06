@@ -18,9 +18,11 @@
 @inject IHyperLiquidRestClient hyperLiquidClient
 @inject IKrakenRestClient krakenClient
 @inject IKucoinRestClient kucoinClient
+@inject ILBankRestClient lbankClient
 @inject ILighterRestClient lighterClient
 @inject IMexcRestClient mexcClient
 @inject IOKXRestClient okxClient
+@inject IPionexRestClient pionexClient
 @inject IToobitRestClient toobitClient
 @inject IUpbitRestClient upbitClient
 @inject IWeexRestClient weexClient
@@ -57,16 +59,18 @@
         var hyperLiquidTask = hyperLiquidClient.FuturesApi.ExchangeData.GetExchangeInfoAndTickersAsync();
         var krakenTask = krakenClient.SpotApi.ExchangeData.GetTickerAsync("XBTUSD");
         var kucoinTask = kucoinClient.SpotApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var lBankTask = lbankClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
         var lighterTask = lighterClient.ExchangeApi.ExchangeData.GetSymbolDetailsAsync("BTC");
         var mexcTask = mexcClient.SpotApi.ExchangeData.GetTickerAsync("BTCUSDT");
         var okxTask = okxClient.UnifiedApi.ExchangeData.GetTickerAsync("BTC-USDT");
+        var pionexTask = pionexClient.SpotApi.ExchangeData.GetTickersAsync("BTC_USDT");
         var toobitTask = toobitClient.SpotApi.ExchangeData.GetTickersAsync("BTCUSDT");
         var upbitTask = upbitClient.SpotApi.ExchangeData.GetTickerAsync("USDT-BTC");
         var weexTask = weexClient.SpotApi.ExchangeData.GetTickersAsync(["BTCUSDT"]);
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
         var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
-        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bitmexTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, mexcTask, okxTask);
+        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bitmexTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, lBankTask, mexcTask, okxTask, pionexTask);
 
         if (asterTask.Result.Success)
             _prices.Add("Aster", asterTask.Result.Data.LastPrice);
@@ -133,6 +137,9 @@
         if (kucoinTask.Result.Success)
             _prices.Add("Kucoin", kucoinTask.Result.Data.LastPrice ?? 0);
 
+        if (lBankTask.Result.Success)
+            _prices.Add("LBank", lBankTask.Result.Data.Single().Ticker.LastPrice);
+
         if (lighterTask.Result.Success)
             _prices.Add("Lighter", lighterTask.Result.Data.PerpSymbols[0].LastPrice);
 
@@ -141,6 +148,9 @@
 
         if (okxTask.Result.Success)
             _prices.Add("OKX", okxTask.Result.Data.LastPrice ?? 0);
+
+        if (pionexTask.Result.Success)
+            _prices.Add("Pionex", pionexTask.Result.Data.Single().ClosePrice);
 
         if (toobitTask.Result.Success)
             _prices.Add("Toobit", toobitTask.Result.Data.Single().LastPrice ?? 0);

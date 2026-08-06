@@ -24,9 +24,11 @@
 @using Kucoin.Net
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
+@using LBank.Net.Interfaces
 @using Lighter.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Pionex.Net.Interfaces;
 @using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
 @using Weex.Net.Interfaces
@@ -51,9 +53,11 @@
 @inject IHyperLiquidOrderBookFactory hyperLiquidFactory
 @inject IKrakenOrderBookFactory krakenFactory
 @inject IKucoinOrderBookFactory kucoinFactory
+@inject ILBankOrderBookFactory lBankFactory
 @inject ILighterOrderBookFactory lighterFactory
 @inject IMexcOrderBookFactory mexcFactory
 @inject IOKXOrderBookFactory okxFactory
+@inject IPionexOrderBookFactory pionexFactory
 @inject IToobitOrderBookFactory toobitFactory
 @inject IUpbitOrderBookFactory upbitFactory
 @inject IWeexOrderBookFactory weexFactory
@@ -112,9 +116,11 @@
                 { "HyperLiquid", hyperLiquidFactory.Create("UETH/USDC") },
                 { "Kraken", krakenFactory.CreateSpot("ETH/BTC") },
                 { "Kucoin", kucoinFactory.CreateSpot("ETH-BTC") },
+                { "LBank", lBankFactory.CreateSpot("eth_usdt") },
                 { "Lighter", lighterFactory.Create("ETH/USDC") },
                 { "Mexc", mexcFactory.CreateSpot("ETHBTC") },
                 { "OKX", okxFactory.Create("ETH-BTC") },
+                { "Pionex", pionexFactory.CreateSpot("ETH_USDT") },
                 { "Toobit", toobitFactory.CreateSpot("ETHUSDT") },
                 { "Upbit", upbitFactory.CreateSpot("BTC-ETH") },
                 { "Weex", weexFactory.CreateSpot("ETHUSDT") },

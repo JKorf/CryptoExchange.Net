@@ -24,9 +24,11 @@
 @using Kraken.Net.Interfaces
 @using Kucoin.Net.Clients
 @using Kucoin.Net.Interfaces
+@using LBank.Net.Interfaces
 @using Lighter.Net.Interfaces
 @using Mexc.Net.Interfaces
 @using OKX.Net.Interfaces;
+@using Pionex.Net.Interfaces;
 @using Upbit.Net.Interfaces;
 @using Toobit.Net.Interfaces;
 @using Weex.Net.Interfaces
@@ -51,9 +53,11 @@
 @inject IHyperLiquidTrackerFactory hyperLiquidFactory
 @inject IKrakenTrackerFactory krakenFactory
 @inject IKucoinTrackerFactory kucoinFactory
+@inject ILBankTrackerFactory lBankFactory
 @inject ILighterTrackerFactory lighterFactory
 @inject IMexcTrackerFactory mexcFactory
 @inject IOKXTrackerFactory okxFactory
+@inject IPionexTrackerFactory pionexFactory
 @inject IToobitTrackerFactory toobitFactory
 @inject IUpbitTrackerFactory upbitFactory
 @inject IWeexTrackerFactory weexFactory
@@ -105,9 +109,11 @@
                 { hyperLiquidFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { krakenFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { kucoinFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { lBankFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { lighterFactory.CreateTradeTracker(futuresSymbol, period: TimeSpan.FromMinutes(5)) },
                 { mexcFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { okxFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
+                { pionexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { toobitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { upbitFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },
                 { weexFactory.CreateTradeTracker(symbol, period: TimeSpan.FromMinutes(5)) },

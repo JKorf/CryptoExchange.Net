@@ -52,9 +52,11 @@ namespace BlazorClient
             services.AddHTX();
             services.AddKraken();
             services.AddKucoin();
+            services.AddLBank();
             services.AddLighter();
             services.AddMexc();
             services.AddOKX();
+            services.AddPionex();
             services.AddToobit();
             services.AddUpbit();
             services.AddWeex();
