@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
 using CryptoExchange.Net.Trackers.UserData.Objects;
@@ -19,6 +19,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         private readonly IFuturesOrderSocketClient? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
+        private readonly bool _timeFilterSupportedClosedOrders;
         private readonly Dictionary<string, int> _openOrderNotReturnedTimes = new();
         private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
 
@@ -46,6 +47,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _exchangeParameters = exchangeParameters;
 
             _requiresSymbolParameterOpenOrders = restClient.GetOpenFuturesOrdersOptions.RequiredOptionalParameters.Any(x => x.Names.Contains("Symbol"));
+            _timeFilterSupportedClosedOrders = restClient.GetClosedFuturesOrdersOptions.TimePeriodFilterSupport;
         }
 
         internal void ClearDataForSymbol(SharedSymbol symbol)
@@ -290,54 +292,66 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var updatedPollTime = DateTime.UtcNow;
             foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
+                var symbolError = false;
                 DateTime? fromTimeOrders = GetClosedOrdersRequestStartTime(symbol);
-
-                var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
-                if (!closedOrdersResult.Success)
+                if (_timeFilterSupportedClosedOrders)
                 {
-                    anyError = true;
+                    // Can filter by start time, so we can just request data from that point
 
-                    _initialPollingError ??= closedOrdersResult.Error;
-                    if (!_firstPollDone)
-                        break;
+                    var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                    if (!closedOrdersResult.Success)
+                    {
+                        symbolError = true;
+
+                        _initialPollingError ??= closedOrdersResult.Error;
+                        if (!_firstPollDone)
+                            return symbolError;
+                    }
+                    else
+                    {
+                        await ProcessOrders(symbol, openOrders, closedOrdersResult.Data).ConfigureAwait(false);
+                    }
                 }
                 else
                 {
-                    // Filter orders to only include where close time is after the start time
-                    var relevantOrders = closedOrdersResult.Data.Where(x =>
-                        (x.UpdateTime != null && x.UpdateTime >= _startTime) // Updated after the tracker start time
-                        || (x.CreateTime != null && x.CreateTime >= _startTime) // Created after the tracker start time
-                        || (x.CreateTime == null && x.UpdateTime == null) // Unknown time
-                        || (Values.Any(e => e.OrderId == x.OrderId && x.Status == SharedOrderStatus.Open)) // Or we're currently tracking this open order
-                    ).ToArray();
+                    // Can't filter by start time, so we'll have to request data until we reach an order with a create time before the start time
 
-                    // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
-                    var openOrdersNotReturned = Values.Where(x =>
-                        // Orders for the same symbol
-                        x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset
-                        // With no filled value
-                        && x.QuantityFilled?.IsZero == true
-                        // Not returned in open orders
-                        && !openOrders.Any(r => r.OrderId == x.OrderId)
-                        // Not returned in closed orders
-                        && !relevantOrders.Any(r => r.OrderId == x.OrderId)
-                        // Open order has not been returned in the open list at least 2 times
-                        && (_openOrderNotReturnedTimes.TryGetValue(x.OrderId, out var notReturnedTimes) ? notReturnedTimes >= 2 : false)
-                        ).ToList();
-
-                    var additionalUpdates = new List<SharedFuturesOrder>();
-                    foreach (var order in openOrdersNotReturned)
+                    List<SharedFuturesOrder> closedOrders = new List<SharedFuturesOrder>();
+                    DateTime lastMinReturn = DateTime.MaxValue;
+                    PageRequest? nextPageRequest = null;
+                    while (lastMinReturn > fromTimeOrders)
                     {
-                        additionalUpdates.Add(order with
+                        var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, direction: DataDirection.Descending, exchangeParameters: _exchangeParameters), nextPageRequest).ConfigureAwait(false);
+                        if (!closedOrdersResult.Success)
                         {
-                            Status = SharedOrderStatus.Canceled
-                        });
+                            symbolError = true;
+
+                            _initialPollingError ??= closedOrdersResult.Error;
+                            break;
+                        }
+
+                        if (closedOrdersResult.Data.Length == 0)
+                            // If there is no data we can stop requesting more data
+                            break;
+
+                        nextPageRequest = closedOrdersResult.NextPageRequest;
+                        lastMinReturn = closedOrdersResult.Data!.Min(x => x.CreateTime ?? DateTime.MinValue);
+                        closedOrders.AddRange(closedOrdersResult.Data);
+
+                        if (nextPageRequest == null)
+                            break;
                     }
 
-                    relevantOrders = relevantOrders.Concat(additionalUpdates).ToArray();
-                    if (relevantOrders.Length > 0)
-                        await HandleUpdateAsync(UpdateSource.Poll, relevantOrders).ConfigureAwait(false);
+                    if (symbolError && !_firstPollDone)
+                        return symbolError;
+
+                    if (!symbolError)
+                        await ProcessOrders(symbol, openOrders, closedOrders.ToArray()).ConfigureAwait(false);
                 }
+
+                anyError = anyError || symbolError;
+                if (!_firstPollDone && anyError)
+                    return anyError;
             }
 
             if (!anyError)
@@ -347,6 +361,44 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             }
 
             return anyError;
+        }
+
+        private async Task ProcessOrders(SharedSymbol symbol, List<SharedFuturesOrder> openOrders, SharedFuturesOrder[] closedOrdersResult)
+        {
+            // Filter orders to only include where close time is after the start time
+            var relevantOrders = closedOrdersResult!.Where(x =>
+                (x.UpdateTime != null && x.UpdateTime >= _startTime) // Updated after the tracker start time
+                || (x.CreateTime != null && x.CreateTime >= _startTime) // Created after the tracker start time
+                || (x.CreateTime == null && x.UpdateTime == null) // Unknown time
+                || (Values.Any(e => e.OrderId == x.OrderId && x.Status == SharedOrderStatus.Open)) // Or we're currently tracking this open order
+            ).ToArray();
+
+            // Check for orders which are no longer returned in either open/closed and assume they're canceled without fill
+            var openOrdersNotReturned = Values.Where(x =>
+                // Orders for the same symbol
+                x.SharedSymbol!.BaseAsset == symbol.BaseAsset && x.SharedSymbol.QuoteAsset == symbol.QuoteAsset
+                // With no filled value
+                && x.QuantityFilled?.IsZero == true
+                // Not returned in open orders
+                && !openOrders.Any(r => r.OrderId == x.OrderId)
+                // Not returned in closed orders
+                && !relevantOrders.Any(r => r.OrderId == x.OrderId)
+                // Open order has not been returned in the open list at least 2 times
+                && (_openOrderNotReturnedTimes.TryGetValue(x.OrderId, out var notReturnedTimes) ? notReturnedTimes >= 2 : false)
+                ).ToList();
+
+            var additionalUpdates = new List<SharedFuturesOrder>();
+            foreach (var order in openOrdersNotReturned)
+            {
+                additionalUpdates.Add(order with
+                {
+                    Status = SharedOrderStatus.Canceled
+                });
+            }
+
+            relevantOrders = relevantOrders.Concat(additionalUpdates).ToArray();
+            if (relevantOrders.Length > 0)
+                await HandleUpdateAsync(UpdateSource.Poll, relevantOrders).ConfigureAwait(false);
         }
 
         private DateTime? GetClosedOrdersRequestStartTime(SharedSymbol symbol)
