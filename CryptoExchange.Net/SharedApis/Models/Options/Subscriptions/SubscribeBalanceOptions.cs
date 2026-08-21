@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SubscribeBalanceOptions : EndpointOptions<SubscribeBalancesRequest, IBalanceSocketClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to balance updates";
+
         /// <summary>
         /// ctor
         /// </summary>

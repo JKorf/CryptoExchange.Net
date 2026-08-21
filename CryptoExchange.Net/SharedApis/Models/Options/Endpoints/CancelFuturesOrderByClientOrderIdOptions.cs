@@ -5,6 +5,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class CancelFuturesOrderByClientOrderIdOptions : EndpointOptions<CancelOrderRequest, IFuturesOrderClientIdRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Cancel a futures order by its client order id";
+
         /// <summary>
         /// ctor
         /// </summary>

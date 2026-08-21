@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +10,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetFuturesSymbolsOptions : EndpointOptions<GetSymbolsRequest, IFuturesSymbolRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve supported futures symbols and their trading rules";
+
         /// <summary>
         /// ctor
         /// </summary>

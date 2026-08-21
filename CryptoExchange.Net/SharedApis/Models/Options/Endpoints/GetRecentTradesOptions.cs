@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
@@ -8,6 +8,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest, IRecentTradeRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve recent public trades for a symbol";
+
         /// <summary>
         /// The max number of trades that can be requested
         /// </summary>
@@ -39,7 +42,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Max data points: {MaxLimit}");
+            sb.AppendLine($"  Max data points:                {MaxLimit}");
             return sb.ToString();
         }
     }

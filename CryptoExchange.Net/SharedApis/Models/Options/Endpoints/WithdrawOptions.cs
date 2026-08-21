@@ -1,10 +1,13 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for requesting a withdrawal
     /// </summary>
     public class WithdrawOptions : EndpointOptions<WithdrawRequest, IWithdrawRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Withdraw an asset";
+
         /// <summary>
         /// ctor
         /// </summary>

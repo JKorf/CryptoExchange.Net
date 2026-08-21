@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SubscribeOrderBookOptions : EndpointOptions<SubscribeOrderBookRequest, IOrderBookSocketClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to order book updates for a symbol";
+
         /// <summary>
         /// Order book depths supported for updates
         /// </summary>

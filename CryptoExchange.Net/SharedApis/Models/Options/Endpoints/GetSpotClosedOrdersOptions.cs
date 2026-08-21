@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetSpotClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, ISpotOrderRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve closed spot orders";
+
         /// <summary>
         /// ctor
         /// </summary>
@@ -20,6 +23,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetClosedOrdersRequest request, ISpotOrderRestClient client)
         {
+            if (request.Symbol!.TradingMode != TradingMode.Spot)
+                return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
+
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetClosedOrdersRequest.Direction), $"Ascending direction is not supported");
 

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetFuturesUserTradesOptions : PaginatedEndpointOptions<GetUserTradesRequest, IFuturesOrderRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve futures user trade history";
+
         /// <summary>
         /// ctor
         /// </summary>

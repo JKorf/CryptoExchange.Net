@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SubscribeKlineOptions : EndpointOptions<SubscribeKlineRequest, IKlineSocketClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to candlestick updates for a symbol";
+
         /// <summary>
         /// Kline intervals supported for updates
         /// </summary>

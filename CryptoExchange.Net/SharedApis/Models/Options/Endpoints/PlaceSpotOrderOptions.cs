@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest, ISpotOrderRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Place a new spot order";
+
 
         /// <summary>
         /// ctor
@@ -24,6 +27,9 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotOrderRequest request,
             ISpotOrderRestClient client)
         {
+            if (request.Symbol!.TradingMode != TradingMode.Spot)
+                return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
+
             if (request.OrderType == SharedOrderType.Other)
                 throw new ArgumentException("OrderType can't be `Other`", nameof(request.OrderType));
 

@@ -40,8 +40,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Create a string representation for this client
         /// </summary>
-        /// <returns></returns>
         public override string ToString()
+            => ToString(false);
+
+        /// <summary>
+        /// Create a string representation for this client
+        /// </summary>
+        public string ToString(bool detailed)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"Exchange: {Exchange}");
@@ -50,9 +55,19 @@ namespace CryptoExchange.Net.SharedApis
             sb.AppendLine($"Supported trading modes: {string.Join(", ", SupportedTradingModes)}");
             sb.AppendLine($"Centralization type: {CentralizationType}");
             sb.AppendLine($"Features:");
-            foreach (var feature in Features.Where(x => x.Supported))
+            foreach (var feature in Features)
             {
-                sb.AppendLine($"  {feature.EndpointName}");
+                if (detailed)
+                {
+                    var stringRep = feature.ToString();
+                    foreach(var line in stringRep!.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                        sb.AppendLine($"  {line}");
+                }
+                else
+                {
+                    sb.AppendLine($"  {feature.EndpointName}");
+                }
+                sb.AppendLine();
             }
 
             return sb.ToString();

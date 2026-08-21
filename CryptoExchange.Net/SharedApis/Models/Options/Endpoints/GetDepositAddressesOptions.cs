@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetDepositAddressesOptions : EndpointOptions<GetDepositAddressesRequest, IDepositRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve deposit addresses for an asset";
+
         /// <summary>
         /// ctor
         /// </summary>

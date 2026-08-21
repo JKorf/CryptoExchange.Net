@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// Options for paginated endpoints
     /// </summary>
 #if NET5_0_OR_GREATER
-    public class PaginatedEndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions<TRequest, TClient> 
+    public abstract class PaginatedEndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest, TClient> : EndpointOptions<TRequest, TClient>
         where TRequest : SharedRequest
         where TClient : ISharedClient
 #else
@@ -63,12 +63,12 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Ascending retrieval supported: {SupportsAscending}");
-            sb.AppendLine($"Descending retrieval supported: {SupportsDescending}");
-            sb.AppendLine($"Time period filter supported: {TimePeriodFilterSupport}");
-            sb.AppendLine($"Max limit: {MaxLimit}");
+            sb.AppendLine($"  Ascending retrieval supported:  {SupportsAscending}");
+            sb.AppendLine($"  Descending retrieval supported: {SupportsDescending}");
+            sb.AppendLine($"  Time period filter supported:   {TimePeriodFilterSupport}");
+            sb.AppendLine($"  Max limit:                      {MaxLimit}");
             if (MaxAge.HasValue)
-                sb.AppendLine($"Max age: {MaxAge}");
+                sb.AppendLine($"  Max age:                        {MaxAge}");
             return sb.ToString();
         }
     }

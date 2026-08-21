@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
@@ -8,6 +8,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetBalancesOptions : EndpointOptions<GetBalancesRequest, IBalanceRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve account balances";
+
         /// <summary>
         /// Supported account types
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 using System.Text;
@@ -10,6 +10,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetOrderBookOptions : EndpointOptions<GetOrderBookRequest, IOrderBookRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve the current order book for a symbol";
+
         /// <summary>
         /// Supported order book depths
         /// </summary>
@@ -65,7 +68,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Supported limit values: [{(SupportedLimits != null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
+            sb.AppendLine($"  Supported limit values:         [{(SupportedLimits != null ? string.Join(", ", SupportedLimits) : $"{MinLimit}..{MaxLimit}")}]");
             return sb.ToString();
         }
     }

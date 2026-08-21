@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetLeverageOptions : EndpointOptions<GetLeverageRequest, ILeverageRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve the current leverage for a futures symbol";
+
         /// <summary>
         /// ctor
         /// </summary>

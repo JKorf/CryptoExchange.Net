@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SubscribeTradeOptions : EndpointOptions<SubscribeTradeRequest, ITradeSocketClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to public trade updates for a symbol";
+
         /// <summary>
         /// ctor
         /// </summary>

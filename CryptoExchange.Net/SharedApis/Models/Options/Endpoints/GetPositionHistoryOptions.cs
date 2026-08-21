@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetPositionHistoryOptions : PaginatedEndpointOptions<GetPositionHistoryRequest, IPositionHistoryRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve historical futures positions";
+
         /// <summary>
         /// ctor
         /// </summary>

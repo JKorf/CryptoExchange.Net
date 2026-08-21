@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +10,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetSpotSymbolsOptions : EndpointOptions<GetSymbolsRequest, ISpotSymbolRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve supported spot symbols and their trading rules";
+
         /// <summary>
         /// ctor
         /// </summary>

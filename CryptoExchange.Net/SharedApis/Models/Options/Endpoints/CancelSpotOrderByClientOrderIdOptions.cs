@@ -1,4 +1,5 @@
-﻿using System;
+using CryptoExchange.Net.Objects;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,11 +10,23 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class CancelSpotOrderByClientOrderIdOptions : EndpointOptions<CancelOrderRequest, ISpotOrderClientIdRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Cancel a spot order by its client order id";
+
         /// <summary>
         /// ctor
         /// </summary>
         public CancelSpotOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISpotOrderClientIdRestClient.CancelSpotOrderByClientOrderIdAsync))
         {
+        }
+
+        /// <inheritdoc />
+        public override Error? ValidateRequest(CancelOrderRequest request, ISpotOrderClientIdRestClient client)
+        {
+            if (request.Symbol!.TradingMode != TradingMode.Spot)
+                return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
+
+            return base.ValidateRequest(request, client);
         }
     }
 }

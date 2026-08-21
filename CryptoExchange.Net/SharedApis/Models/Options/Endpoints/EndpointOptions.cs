@@ -41,6 +41,10 @@ namespace CryptoExchange.Net.SharedApis
         /// Whether the call is supported. If false the exchange API does not support this operation.
         /// </summary>
         public bool Supported { get; set; } = true;
+        /// <summary>
+        /// Description of the endpoint
+        /// </summary>
+        public abstract string Description { get; }
 
         /// <summary>
         /// ctor
@@ -87,7 +91,7 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     /// <typeparam name="TRequest">Type of data</typeparam>
 #if NET5_0_OR_GREATER
-    public class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest> : EndpointOptions 
+    public abstract class EndpointOptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TRequest> : EndpointOptions 
     where TRequest : SharedRequest
 #else
     public abstract class EndpointOptions<TRequest> : EndpointOptions
@@ -181,32 +185,40 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string ToString()
         {
-            if (!Supported)
-                return $"{Exchange} {EndpointName} NOT SUPPORTED";
-
             var sb = new StringBuilder();
-            sb.AppendLine($"{Exchange} {EndpointName}");
-            sb.AppendLine($"Needs authentication: {NeedsAuthentication}");
-            if (!string.IsNullOrEmpty(RequestNotes))
+            sb.AppendLine($"{EndpointName}");
+            if (!Supported)
+            {
+                sb.AppendLine(" NOT SUPPORTED");
+                return sb.ToString();
+            }
+
+            sb.AppendLine($"{Description}");
+            if (!string.IsNullOrEmpty(RequestNotes)) 
+            {
+                sb.Append("  Notes:                          ");
                 sb.AppendLine(RequestNotes);
+            }
             if (RequiredOptionalParameters.Any())
             {
-                sb.AppendLine($"Required optional parameters:");
+                sb.AppendLine($"  Required optional parameters:");
                 foreach(var param in RequiredOptionalParameters)
                     sb.AppendLine($"    {param}");
             }
             if (RequiredExchangeParameters.Any())
             {
-                sb.AppendLine($"Required exchange specific parameters:");
+                sb.AppendLine($"  Required exchange specific parameters:");
                 foreach (var param in RequiredExchangeParameters)
                     sb.AppendLine($"    {param}");
             }
             if (OptionalExchangeParameters.Any())
             {
-                sb.AppendLine($"Optional exchange specific parameters:");
+                sb.AppendLine($"  Optional exchange specific parameters:");
                 foreach (var param in OptionalExchangeParameters)
                     sb.AppendLine($"    {param}");
             }
+            sb.Append("  Needs authentication:           ");
+            sb.AppendLine($"{NeedsAuthentication}");
             return sb.ToString();
         }
     }

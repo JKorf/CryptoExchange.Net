@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest, IFuturesOrderRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Place a new futures order";
+
         /// <summary>
         /// Whether or not the API supports setting take profit / stop loss with the order
         /// </summary>

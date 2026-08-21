@@ -1,10 +1,13 @@
-﻿namespace CryptoExchange.Net.SharedApis
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Options for subscribing to ticker updates
     /// </summary>
     public class SubscribeTickerOptions : EndpointOptions<SubscribeTickerRequest, ITickerSocketClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Subscribe to price ticker updates for a symbol";
+
         /// <summary>
         /// Type of ticker calculation
         /// </summary>

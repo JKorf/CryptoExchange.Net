@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetWithdrawalsOptions : PaginatedEndpointOptions<GetWithdrawalsRequest, IWithdrawalRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve withdrawal history";
+
         /// <summary>
         /// ctor
         /// </summary>

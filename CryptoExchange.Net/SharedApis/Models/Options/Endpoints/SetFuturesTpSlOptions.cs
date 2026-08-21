@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SetFuturesTpSlOptions : EndpointOptions<SetTpSlRequest, IFuturesTpSlRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Set take profit or stop loss values for a futures position";
+
         /// <summary>
         /// ctor
         /// </summary>

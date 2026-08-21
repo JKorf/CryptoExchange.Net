@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest, ITradeHistoryRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve public trade history for a symbol";
+
         /// <summary>
         /// ctor
         /// </summary>

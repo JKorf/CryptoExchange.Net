@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetFuturesOrderByClientOrderIdOptions : EndpointOptions<GetOrderRequest, IFuturesOrderClientIdRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve a futures order by its client order id";
+
         /// <summary>
         /// ctor
         /// </summary>

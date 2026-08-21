@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -7,6 +7,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetSpotTickerOptions : EndpointOptions<GetTickerRequest, ISpotTickerRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve price ticker information for a spot symbol";
+
         /// <summary>
         /// Type of ticker calculation
         /// </summary>
@@ -24,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Ticker data calculation type: {TickerType}");
+            sb.AppendLine($"  Ticker data calculation type:   {TickerType}");
             return sb.ToString();
         }
     }

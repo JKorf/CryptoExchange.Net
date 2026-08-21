@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetAssetOptions : EndpointOptions<GetAssetRequest, IAssetsRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve basic info for a single asset and networks it supports for withdrawals/deposits";
+
         /// <summary>
         /// ctor
         /// </summary>

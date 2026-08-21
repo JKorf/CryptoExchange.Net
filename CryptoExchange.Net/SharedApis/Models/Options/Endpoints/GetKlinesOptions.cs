@@ -1,4 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System;
 using System.Linq;
 using System.Text;
@@ -10,6 +10,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IKlineRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Retrieve candlestick data for a symbol";
+
         /// <summary>
         /// The supported kline intervals
         /// </summary>
@@ -108,9 +111,9 @@ namespace CryptoExchange.Net.SharedApis
         public override string ToString()
         {
             var sb = new StringBuilder(base.ToString());
-            sb.AppendLine($"Supported SharedKlineInterval values: {string.Join(", ", SupportIntervals)}");
+            sb.AppendLine($"  Supported intervals:            {string.Join(", ", SupportIntervals)}");
             if (MaxTotalDataPoints != null)
-                sb.AppendLine($"Max total data points available: {MaxTotalDataPoints}");
+                sb.AppendLine($"  Max total data points available: {MaxTotalDataPoints}");
             return sb.ToString();
         }
     }

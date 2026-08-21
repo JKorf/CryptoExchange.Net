@@ -1,5 +1,6 @@
-﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects;
 using System.Linq;
+using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -8,6 +9,9 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class TransferOptions : EndpointOptions<TransferRequest, ITransferRestClient>
     {
+        /// <inheritdoc />
+        public override string Description => "Transfer funds between account types";
+
         /// <summary>
         /// Supported account types
         /// </summary>
@@ -35,6 +39,14 @@ namespace CryptoExchange.Net.SharedApis
                 return ArgumentError.Invalid(nameof(request.FromAccountType), "Invalid ToAccountType");
 
             return base.ValidateRequest(request, client);
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            var sb = new StringBuilder(base.ToString());
+            sb.AppendLine($"  Supported accounts:             {string.Join(", ", SupportedAccountTypes)}");
+            return sb.ToString();
         }
     }
 }

@@ -72,9 +72,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 changed = true;
             }
 
-            if (existingItem.PositionSize != updateItem.PositionSize)
+            if (existingItem.PositionSizes != updateItem.PositionSizes)
             {
-                existingItem.PositionSize = updateItem.PositionSize;
+                existingItem.PositionSizes = updateItem.PositionSizes;
                 changed = true;
             }
 
@@ -132,7 +132,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (toRemove != null)
                 @event = @event.Except(toRemove).ToArray();
 
-            _symbolTracker.UpdateTrackedSymbols(@event.Where(x => x.PositionSize > 0).OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
+            _symbolTracker.UpdateTrackedSymbols(@event.Where(x => !x.PositionSizes.IsZero).OfType<SharedSymbolModel>().Select(x => x.SharedSymbol!));
             
 
             // Update local store
@@ -141,13 +141,13 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (WebsocketPositionUpdatesAreFullSnapshots)
             {
                 // Reset any tracking position to zero/null values when it's no longer in the snapshot as it means there is no open position any more
-                var notInSnapshot = _store.Where(x => !updatedItems.Contains(x.Key) && x.Value.PositionSize != 0).ToList();
+                var notInSnapshot = _store.Where(x => !updatedItems.Contains(x.Key) && !x.Value.PositionSizes.IsZero).ToList();
                 foreach (var position in notInSnapshot)
                 {
                     position.Value.UpdateTime = DateTime.UtcNow;
                     position.Value.AverageOpenPrice = null;
                     position.Value.LiquidationPrice = null;
-                    position.Value.PositionSize = 0;
+                    position.Value.PositionSizes = new();
                     position.Value.StopLossPrice = null;
                     position.Value.TakeProfitPrice = null;
                     position.Value.UnrealizedPnl = null;
