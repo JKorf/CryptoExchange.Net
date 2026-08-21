@@ -16,7 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Current size of the position
         /// </summary>
-        public decimal PositionSize { get; set; }
+        [Obsolete("Use `PositionSizes` instead")]
+        public decimal PositionSize => PositionSizes.QuantityInContracts ?? PositionSizes.QuantityInBaseAsset ?? 0;
+        /// <summary>
+        /// Current size of the position
+        /// </summary>
+        public SharedOrderQuantity PositionSizes { get; set; }
         /// <summary>
         /// Side of the position
         /// </summary>
@@ -57,10 +62,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedPosition(SharedSymbol? sharedSymbol, string symbol, decimal positionSize, DateTime? updateTime)
+        public SharedPosition(SharedSymbol? sharedSymbol, string symbol, SharedOrderQuantity positionSize, DateTime? updateTime)
             : base(sharedSymbol, symbol)
         {
-            PositionSize = positionSize;
+            PositionSizes = positionSize;
             UpdateTime = updateTime;
         }
     }

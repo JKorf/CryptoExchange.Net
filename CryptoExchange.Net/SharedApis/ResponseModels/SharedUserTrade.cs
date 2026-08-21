@@ -16,7 +16,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Traded quantity
         /// </summary>
-        public decimal Quantity { get; set; }
+        [Obsolete("Use `Quantities` instead")]
+        public decimal Quantity => Quantities.QuantityInBaseAsset ?? Quantities.QuantityInQuoteAsset ?? 0;
+        /// <summary>
+        /// Traded quantity
+        /// </summary>
+        public SharedOrderQuantity Quantities { get; set; }
+
         /// <summary>
         /// Trade price
         /// </summary>
@@ -53,14 +59,14 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedUserTrade(SharedSymbol? sharedSymbol, string symbol, string orderId, string id, SharedOrderSide? side, decimal quantity, decimal price, DateTime timestamp)
+        public SharedUserTrade(SharedSymbol? sharedSymbol, string symbol, string orderId, string id, SharedOrderSide? side, SharedOrderQuantity quantity, decimal price, DateTime timestamp)
             : base(sharedSymbol, symbol)
         {
             Symbol = symbol;
             OrderId = orderId;
             Id = id;
             Side = side;
-            Quantity = quantity;
+            Quantities = quantity.WithCalculatedQuantities(price, null);
             Price = price;
             Timestamp = timestamp;
         }

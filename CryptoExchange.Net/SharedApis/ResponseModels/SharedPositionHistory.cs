@@ -24,7 +24,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Position size
         /// </summary>
-        public decimal Quantity { get; set; }
+        [Obsolete("Use `Quantities` instead")]
+        public decimal Quantity => Quantities.QuantityInContracts ?? Quantities .QuantityInBaseAsset ?? 0;
+        /// <summary>
+        /// Position size
+        /// </summary>
+        public SharedOrderQuantity Quantities { get; set; }
         /// <summary>
         /// Realized profit/loss
         /// </summary>
@@ -55,7 +60,7 @@ namespace CryptoExchange.Net.SharedApis
             SharedPositionSide side,
             decimal openPrice,
             decimal closePrice,
-            decimal quantity,
+            SharedOrderQuantity quantity,
             decimal realizedPnl,
             DateTime timestamp)
             : base(sharedSymbol, symbol)
@@ -63,7 +68,7 @@ namespace CryptoExchange.Net.SharedApis
             PositionSide = side;
             AverageOpenPrice = openPrice;
             AverageClosePrice = closePrice;
-            Quantity = quantity;
+            Quantities = quantity;
             RealizedPnl = realizedPnl;
             Timestamp = timestamp;
         }

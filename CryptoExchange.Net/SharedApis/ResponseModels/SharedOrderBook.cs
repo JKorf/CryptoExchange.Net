@@ -8,6 +8,10 @@ namespace CryptoExchange.Net.SharedApis
     public record SharedOrderBook
     {
         /// <summary>
+        /// The quantity notation the order book is in, either BaseAsset or Contract
+        /// </summary>
+        public SharedQuantityType QuantityType { get; set; }
+        /// <summary>
         /// Asks list
         /// </summary>
         public ISymbolOrderBookEntry[] Asks { get; set; }
@@ -19,8 +23,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedOrderBook(ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
+        public SharedOrderBook(SharedQuantityType quantityType, ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
         {
+            QuantityType = quantityType;
             Asks = asks;
             Bids = bids;
         }

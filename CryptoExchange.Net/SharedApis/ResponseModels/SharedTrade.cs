@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedTrade(SharedSymbol? sharedSymbol, string symbol, SharedOrderQuantity quantities, decimal price, DateTime timestamp) : base(sharedSymbol, symbol)
         {
-            Quantities = quantities;
+            Quantities = quantities.WithCalculatedQuantities(price, null);
             Price = price;
             Timestamp = timestamp;
         }

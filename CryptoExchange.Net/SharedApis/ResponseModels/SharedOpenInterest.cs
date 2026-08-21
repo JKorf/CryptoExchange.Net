@@ -1,4 +1,6 @@
-﻿namespace CryptoExchange.Net.SharedApis
+﻿using System;
+
+namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
     /// Open interest
@@ -8,14 +10,19 @@
         /// <summary>
         /// Current open interest
         /// </summary>
-        public decimal OpenInterest { get; set; }
+        [Obsolete("Use `OpenInterests` instead")]
+        public decimal OpenInterest => OpenInterests.QuantityInBaseAsset ?? OpenInterests.QuantityInContracts ?? 0;
+        /// <summary>
+        /// Current open interest
+        /// </summary>
+        public SharedOrderQuantity OpenInterests { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedOpenInterest(decimal openInterest)
+        public SharedOpenInterest(SharedOrderQuantity openInterest)
         {
-            OpenInterest = openInterest;
+            OpenInterests = openInterest;
         }
     }
 }

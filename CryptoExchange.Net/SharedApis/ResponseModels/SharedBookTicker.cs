@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -15,26 +16,44 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Quantity of the best ask
         /// </summary>
-        public decimal BestAskQuantity { get; set; }
+        [Obsolete("Use `BestAskQuantities` instead")]
+        public decimal BestAskQuantity => BestAskQuantities.QuantityInBaseAsset ?? BestAskQuantities.QuantityInContracts ?? 0;
+        /// <summary>
+        /// Quantities of the best ask
+        /// </summary>
+        public SharedOrderQuantity BestAskQuantities { get; set; }
+
         /// <summary>
         /// Price of the best bid
         /// </summary>
         public decimal BestBidPrice { get; set; }
+
         /// <summary>
         /// Quantity of the best bid
         /// </summary>
-        public decimal BestBidQuantity { get; set; }
+        [Obsolete("Use `BestBidQuantities` instead")]
+        public decimal BestBidQuantity => BestBidQuantities.QuantityInBaseAsset ?? BestBidQuantities.QuantityInContracts ?? 0;
+        /// <summary>
+        /// Quantities of the best bid
+        /// </summary>
+        public SharedOrderQuantity BestBidQuantities { get; set; }
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedBookTicker(SharedSymbol? sharedSymbol, string symbol, decimal bestAskPrice, decimal bestAskQuantity, decimal bestBidPrice, decimal bestBidQuantity)
+        public SharedBookTicker(
+            SharedSymbol? sharedSymbol,
+            string symbol,
+            decimal bestAskPrice,
+            SharedOrderQuantity bestAskQuantity,
+            decimal bestBidPrice,
+            SharedOrderQuantity bestBidQuantity)
             : base(sharedSymbol, symbol)
         {
             BestAskPrice = bestAskPrice;
-            BestAskQuantity = bestAskQuantity;
+            BestAskQuantities = bestAskQuantity.WithCalculatedQuantities(bestAskPrice, null);
             BestBidPrice = bestBidPrice;
-            BestBidQuantity = bestBidQuantity;
+            BestBidQuantities = bestBidQuantity.WithCalculatedQuantities(bestBidPrice, null);
         }
     }
 }
