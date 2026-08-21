@@ -44,7 +44,6 @@ namespace CryptoExchange.Net.SharedApis
         PlaceSpotOrderOptions PlaceSpotOrderOptions { get; }
         /// <summary>
         /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>

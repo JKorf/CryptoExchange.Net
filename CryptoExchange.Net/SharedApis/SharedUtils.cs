@@ -169,13 +169,23 @@ namespace CryptoExchange.Net.SharedApis
 
             if (client is ISpotOrderSocketClient spotOrderSocketClient)
                 result.Add(spotOrderSocketClient.SubscribeSpotOrderOptions);
+            if (client is ISpotOrderManagementSocketClient spotOrderManagementSocketClient)
+            {
+                result.Add(spotOrderManagementSocketClient.PlaceSpotOrderOptions);
+                result.Add(spotOrderManagementSocketClient.CancelSpotOrderOptions);
+            }
 
             if (client is IFuturesOrderSocketClient futuresOrderSocketClient)
                 result.Add(futuresOrderSocketClient.SubscribeFuturesOrderOptions);
             if (client is IPositionSocketClient positionSocketClient)
                 result.Add(positionSocketClient.SubscribePositionOptions);
+            if (client is IFuturesOrderManagementSocketClient futuresOrderManagementSocketClient)
+            {
+                result.Add(futuresOrderManagementSocketClient.PlaceFuturesOrderOptions);
+                result.Add(futuresOrderManagementSocketClient.CancelFuturesOrderOptions);
+            }
 
-            return result.ToArray();
+            return result.Where(x => x.Supported).ToArray();
         }
 
         /// <summary>

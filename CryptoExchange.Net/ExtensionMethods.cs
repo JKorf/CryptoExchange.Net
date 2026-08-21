@@ -461,11 +461,15 @@ namespace CryptoExchange.Net
 
             if (typeof(ISpotOrderSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderSocketClient)client(x)!);
+            if (typeof(ISpotOrderManagementSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ISpotOrderManagementSocketClient)client(x)!);
 
             if (typeof(IFuturesOrderSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFuturesOrderSocketClient)client(x)!);
             if (typeof(IPositionSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IPositionSocketClient)client(x)!);
+            if (typeof(IFuturesOrderManagementSocketClient).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IFuturesOrderManagementSocketClient)client(x)!);
 
             return services;
         }
