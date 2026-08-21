@@ -84,6 +84,22 @@ namespace CryptoExchange.Net.SharedApis
         /// Quote asset sub type
         /// </summary>
         public SharedAssetSubType? QuoteAssetSubType { get; set; }
+        /// <summary>
+        /// The upper price limit percentage for the symbol. For example, if the last price was 200 and this value is 10, the upper price limit would be 220.
+        /// </summary>
+        public decimal? UpperPriceLimitPercentage { get; set; }
+        /// <summary>
+        /// The lower price limit percentage for the symbol. For example, if the last price was 200 and this value is -10, the lower price limit would be 180.
+        /// </summary>
+        public decimal? LowerPriceLimitPercentage { get; set; }
+        /// <summary>
+        /// The base maker fee percentage for the symbol. Note that user trade fees may be different based on the user's tier and other factors.
+        /// </summary>
+        public decimal? MakerFeePercentage { get; set; }
+        /// <summary>
+        /// The base taker fee percentage for the symbol. Note that user trade fees may be different based on the user's tier and other factors.
+        /// </summary>
+        public decimal? TakerFeePercentage { get; set; }
 
         /// <summary>
         /// ctor
