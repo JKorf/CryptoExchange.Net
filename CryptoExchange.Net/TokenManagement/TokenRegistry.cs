@@ -194,7 +194,9 @@ namespace CryptoExchange.Net.TokenManagement
 
         private void StopKeepAliveLoop()
         {
-            _logger.LogDebug("Stopping keep alive loop");
+            if (_keepAliveCts != null)
+                _logger.LogDebug("Stopping keep alive loop");
+
             _keepAliveCts?.Cancel();
             _keepAliveCts?.Dispose();
             _keepAliveCts = null;
