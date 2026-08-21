@@ -34,6 +34,10 @@ CryptoExchange.Net 12.2.0 classifies the base and quote sides of `SharedSpotSymb
 
 CryptoExchange.Net 12.4.0 uses `SharedOrderQuantity` for market-data quantities. Prefer `Volumes` on `SharedSpotTicker`, `SharedFuturesTicker`, and `SharedKline`, and `Quantities` on `SharedTrade`; the scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
 
+## WebSocket order commands
+
+CryptoExchange.Net 12.5.0 adds optional `ISpotOrderManagementSocketClient` and `IFuturesOrderManagementSocketClient` interfaces for placing and canceling orders over WebSocket. These command methods return `QueryResult<SharedId>` rather than a subscription result. Check exchange support before relying on either interface.
+
 ## Single-exchange code uses the exchange's own client
 
 For Binance-only code, use `BinanceRestClient` directly (see Binance.Net repo `AGENTS.md`). SharedApis is for portability — use it when you need that.
@@ -45,7 +49,7 @@ REST methods return `HttpResult<T>` and websocket subscription methods return `W
 ## Available shared interfaces
 
 REST: tickers, symbols, orderbook, klines, trades, orders (spot/futures, trigger, TP-SL), balances, positions, fees, deposits/withdrawals, transfers.
-WebSocket: tickers, book tickers, orderbook, trades, klines, user data.
+WebSocket: tickers, book tickers, orderbook, trades, klines, user data, and optional spot/futures order management.
 
 Each exchange library implements a subset. Check exchange docs for support matrix.
 

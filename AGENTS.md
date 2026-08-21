@@ -89,6 +89,10 @@ For exchange-library implementations, `LibraryHelpers.IsStableCoin`, `IsCommodit
 
 Since CryptoExchange.Net 12.4.0, shared market-data models use `SharedOrderQuantity` so base-asset, quote-asset, and contract quantities remain explicit. Read `SharedSpotTicker.Volumes`, `SharedFuturesTicker.Volumes`, and `SharedKline.Volumes`; read `SharedTrade.Quantities`. The former scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
 
+## WebSocket Order Management
+
+Since CryptoExchange.Net 12.5.0, exchanges can implement `ISpotOrderManagementSocketClient` and `IFuturesOrderManagementSocketClient` to place and cancel orders over WebSocket. These are command interfaces, not subscription interfaces: `Place*OrderAsync` and `Cancel*OrderAsync` return `QueryResult<SharedId>`. Check exchange support before using them.
+
 ## Available Shared Interfaces
 
 **REST:**
@@ -102,6 +106,7 @@ Since CryptoExchange.Net 12.4.0, shared market-data models use `SharedOrderQuant
 - `ITickerSocketClient`, `IBookTickerSocketClient`
 - `IOrderBookSocketClient`, `ITradeSocketClient`, `IKlineSocketClient`
 - `IUserTradeSocketClient`, `ISpotOrderSocketClient`, `IFuturesOrderSocketClient`, `IPositionSocketClient`, `IBalanceSocketClient`
+- Order commands: `ISpotOrderManagementSocketClient`, `IFuturesOrderManagementSocketClient`
 
 Each exchange documents which interfaces it implements (some exchanges don't support every operation).
 

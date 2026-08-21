@@ -42,6 +42,10 @@ When implementing an exchange library, use `LibraryHelpers.IsStableCoin`, `IsCom
 
 In 12.4.0, use `SharedOrderQuantity`-valued `Volumes` on shared spot/futures tickers and klines, and `Quantities` on shared trades. The scalar `Volume`, `QuoteVolume`, and `Quantity` members are obsolete.
 
+## WebSocket order commands
+
+In 12.5.0, `ISpotOrderManagementSocketClient` and `IFuturesOrderManagementSocketClient` optionally provide place/cancel order commands over WebSocket. Their methods return `QueryResult<SharedId>`, not `WebSocketResult<UpdateSubscription>`. Check whether the exchange implements the interface.
+
 ## Result pattern
 
 REST methods return `HttpResult<T>` and websocket subscription methods return `WebSocketResult<UpdateSubscription>`. Always check `.Success`. `.Exchange` property identifies which exchange responded — useful for logging.
@@ -49,7 +53,7 @@ REST methods return `HttpResult<T>` and websocket subscription methods return `W
 ## Available shared interfaces
 
 - REST tickers/symbols/orderbook/klines/trades, orders (spot/futures, regular/trigger/TP-SL), balances, positions, fees, deposits/withdrawals, transfers
-- WebSocket tickers, book tickers, order book, trades, klines, user data
+- WebSocket tickers, book tickers, order book, trades, klines, user data, and optional spot/futures order management
 
 Each exchange documents which it implements. Not every exchange supports every operation.
 

@@ -127,6 +127,29 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.5.0 - 21 Aug 2026
+    * Shared APIs
+      * Added ISpotOrderManagementSocketClient for placing/canceling Spot orders via Shared websocket implementation
+      * Added IFuturesOrderManagementSocketClient for placing/canceling Futures orders via Shared websocket implementation
+      * Added UpperFundingCap, LowerFundingCap to SharedFuturesSymbol model
+      * Added UpperPriceLimitPerecentage, LowerPriceLimitPercentage, MakerFeePercentage and TakerFeePercentage to SharedSpotSymbol model
+      * Added WithCalculatedQuantities(price, contractSize) to SharedQuantity to retrieve a copy with derived quantities
+      * Added Description property to Shared EndpointOptions classes
+      * Added additional check for symbol type to Shared Spot endpoints
+      * Added QuantityType property to SharedOrderBook
+      * Added auto calculated quote quantity where for SharedOrderQuantity where it makes sense
+      * Updated SharedId value to be nullable
+      * Updated quantity/volumes to SharedOrderQuantity model for SharedBookTicker, SharedOpenInterest, SharedPosition, SharedPositionHistory and SharedUserTrade
+      * Updated Shared client info string representation
+    * Added IQueryResult interface to QueryResult, moved OriginalData to the base class
+    * Added UsePublicConnectionForAuth property to SocketApiClient
+    * Added support for order polling where Shared order implementation doesn't support time filtering to UserDataTracker implementations
+    * Added ManualUpdateSubscription and UpdateSubscription additional constructor to allow producing websocket events without actual connection
+    * Updated logging unhandled websocket message
+    * Split UserClientProvider into base class with RestClient and derived class also containing SocketClient
+    * Removed unnecessary log from token manager
+    * Fixed incorrect check test output
+
 * Version 12.4.0 - 28 Jul 2026
     * Added AveragePrice property to SharedQuantity model
     * Added DebuggerDisplay attributes to Result objects
