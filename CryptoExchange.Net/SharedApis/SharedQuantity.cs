@@ -176,6 +176,42 @@ namespace CryptoExchange.Net.SharedApis
             return null;
         }
 
+        /// <summary>
+        /// Get a copy of this quantities record with calculated quantities for data not returned by the API based on the provided price and contract size
+        /// </summary>
+        /// <param name="price">The relevant price</param>
+        /// <param name="contractSize">The contract size of the symbol</param>
+        /// <returns>A copy of this SharedOrderQuantity with calculated quantities</returns>
+        public SharedOrderQuantity WithCalculatedQuantities(decimal? price, decimal? contractSize)
+        {
+            var copy = this with {};
+            if (copy.QuantityInBaseAsset == null)
+            {
+                if (copy.QuantityInQuoteAsset != null && price > 0)
+                    copy.QuantityInBaseAsset = copy.QuantityInQuoteAsset / price;
+                else if (copy.QuantityInContracts != null && contractSize != null)
+                    copy.QuantityInBaseAsset = copy.QuantityInContracts * contractSize;
+            }
+            
+            if (copy.QuantityInContracts == null)
+            {
+                if (copy.QuantityInBaseAsset != null && contractSize > 0)
+                    copy.QuantityInContracts = copy.QuantityInBaseAsset / contractSize;
+                else if (copy.QuantityInQuoteAsset != null && price > 0 && contractSize > 0)
+                    copy.QuantityInContracts = copy.QuantityInQuoteAsset / price / contractSize;
+            }
+
+            if (copy.QuantityInQuoteAsset == null)
+            {
+                if (copy.QuantityInBaseAsset != null && price != null)
+                    copy.QuantityInQuoteAsset = copy.QuantityInBaseAsset * price;
+                else if (copy.QuantityInContracts != null && price != null && contractSize != null)
+                    copy.QuantityInQuoteAsset = copy.QuantityInContracts * contractSize * price;
+            }
+
+            return copy;
+        }
+
         /// <inheritdoc />
         public override string ToString() => base.ToString();
     }
