@@ -187,7 +187,7 @@ public record WebSocketResult<T> : WebSocketResult, IWebSocketResult<T>
 }
 
 /// <inheritdoc />
-public record QueryResult : WebSocketResult
+public record QueryResult : WebSocketResult, IQueryResult
 {
     /// <summary>
     /// ctor
@@ -212,6 +212,8 @@ public record QueryResult : WebSocketResult
             Url = result.Url,
             RequestId = result.RequestId,
             ResponseTime = result.ResponseTime,
+            OriginalData = result.OriginalData,
+            RequestBody = result.RequestBody
         };
 
     /// <summary>
@@ -292,6 +294,9 @@ public record QueryResult : WebSocketResult
 
     /// <inheritdoc />
     public string? RequestBody { get; init; }
+
+    /// <inheritdoc />
+    public string? OriginalData { get; init; }
 }
 
 /// <inheritdoc />
@@ -318,7 +323,4 @@ public record QueryResult<T> : QueryResult, IQueryResult<T>
     public new bool Success => Error == null;
     /// <inheritdoc />
     public T? Data { get; set; }
-
-    /// <inheritdoc />
-    public string? OriginalData { get; init; }
 }
