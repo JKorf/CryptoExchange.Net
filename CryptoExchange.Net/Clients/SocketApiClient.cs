@@ -97,6 +97,11 @@ namespace CryptoExchange.Net.Clients
         /// </summary>
         protected bool AllowTopicsOnTheSameConnection { get; set; } = true;
 
+        /// <summary>
+        /// Whether to allow usage of a current public WebSocket connection for an authenticated request
+        /// </summary>
+        protected bool UsePublicConnectionForAuth { get; set; } = false;
+
         /// <inheritdoc />
         public double IncomingKbps
         {
@@ -688,7 +693,7 @@ namespace CryptoExchange.Net.Clients
                 _logger.WaitedForReconnectingSocket((long)(DateTime.UtcNow - delayStart).TotalMilliseconds);
 
             socketQuery = socketQuery.Where(s => (s.Status == SocketStatus.None || s.Status == SocketStatus.Connected)                                                     
-                                                && (s.Authenticated == authenticated || !authenticated)
+                                                && (s.Authenticated == authenticated || !authenticated || UsePublicConnectionForAuth)
                                                 && s.Connected).ToList();
 
             bool maxConnectionsReached = _socketConnections.Count >= (ApiOptions.MaxSocketConnections ?? ClientOptions.MaxSocketConnections);
@@ -702,12 +707,14 @@ namespace CryptoExchange.Net.Clients
             }
 
             if (connection == null)
+            {
                 // Use an eligible non-dedicated connection for subscriptions, or as fallback when no dedicated request connection is available
                 connection = socketQuery
                     .Where(s => !s.DedicatedRequestConnection.IsDedicatedRequestConnection)
                     .Where(s => IsConnectionEligible(s, individualSubscriptionCount, maxConnectionsReached))
                     .OrderBy(s => s.UserSubscriptionCount)
                     .FirstOrDefault();
+            }
 
             if (connection != null)
                 return CallResult.Ok(connection);
@@ -786,7 +793,9 @@ namespace CryptoExchange.Net.Clients
 
             if ((!lessThanBatchSubCombineTarget || !lessThanIndividualSubCombineTarget)
                 && !maxConnectionsReached)
+            {
                 return false;
+            }
 
             return MaxIndividualSubscriptionsPerConnection == null
                 || currentIndividualSubscriptionCount + individualSubscriptionCount <= MaxIndividualSubscriptionsPerConnection;
