@@ -28,6 +28,14 @@ namespace CryptoExchange.Net.SharedApis
         /// Max long leverage setting
         /// </summary>
         public decimal? MaxLongLeverage { get; set; }
+        /// <summary>
+        /// Upper funding rate cap
+        /// </summary>
+        public decimal? UpperFundingCap { get; set; }
+        /// <summary>
+        /// Lower funding rate cap, negative value
+        /// </summary>
+        public decimal? LowerFundingCap { get; set; }
 
         /// <summary>
         /// ctor
