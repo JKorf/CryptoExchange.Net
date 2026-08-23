@@ -289,6 +289,7 @@ namespace CryptoExchange.Net.OrderBook
             if (!startResult.Success)
             {
                 Status = OrderBookStatus.Disconnected;
+                _queueEvent.Set();
                 return CallResult.Fail(startResult.Error!);
             }
 
