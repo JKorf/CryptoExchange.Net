@@ -198,7 +198,7 @@ namespace CryptoExchange.Net.Clients
             string? cacheKey = null;
             if (ShouldCache(definition))
             {
-                cacheKey = definition.FullUrl + definition + uriParameters?.ToFormData();
+                cacheKey = GetCacheKey(definition, uriParameters);
                 _logger.CheckingCache(cacheKey);
                 var cachedValue = _cache.Get(cacheKey, ClientOptions.CachingMaxAge);
                 if (cachedValue != null)
@@ -800,6 +800,13 @@ namespace CryptoExchange.Net.Clients
             && definition.Method == HttpMethod.Get
             && !definition.PreventCaching;
 
+        /// <summary>
+        /// Produce a unique cache key for the request based on the request definition and parameters.
+        /// </summary>
+        protected virtual string GetCacheKey(RequestDefinition definition, Parameters? parameters)
+        {
+            return definition.FullUrl + definition + parameters?.ToFormData();
+        }
 
         /// <inheritdoc />
         public virtual void SetOptions(UpdateOptions options)
@@ -888,6 +895,12 @@ namespace CryptoExchange.Net.Clients
             base.SetOptions(options);
 
             ApiCredentials = (TApiCredentials?)options.ApiCredentials?.Copy() ?? ApiCredentials;
+        }
+
+        /// <inheritdoc />
+        protected override string GetCacheKey(RequestDefinition definition, Parameters? parameters)
+        {
+            return definition.FullUrl + definition + parameters?.ToFormData() + GetAuthenticationProvider()?.Key;
         }
     }
 
