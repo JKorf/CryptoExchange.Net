@@ -57,6 +57,7 @@ namespace BlazorClient
             services.AddMexc();
             services.AddOKX();
             services.AddPionex();
+            services.AddTapbit();
             services.AddToobit();
             services.AddUpbit();
             services.AddWeex();

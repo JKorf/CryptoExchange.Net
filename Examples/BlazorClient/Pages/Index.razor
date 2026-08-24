@@ -23,6 +23,7 @@
 @inject IMexcRestClient mexcClient
 @inject IOKXRestClient okxClient
 @inject IPionexRestClient pionexClient
+@inject ITapbitRestClient tapbitClient
 @inject IToobitRestClient toobitClient
 @inject IUpbitRestClient upbitClient
 @inject IWeexRestClient weexClient
@@ -70,7 +71,8 @@
         var whitebitTask = whitebitClient.V4Api.ExchangeData.GetTickersAsync();
         var xtTask = xtClient.SpotApi.ExchangeData.GetTickersAsync("btc_usdt");
 
-        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bitmexTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, htxTask, krakenTask, kucoinTask, lBankTask, mexcTask, okxTask, pionexTask);
+        await Task.WhenAll(asterTask, binanceTask, bingXTask, bitfinexTask, bitgetTask, bitmartTask, bloFinTask, bitmexTask, bybitTask, coinexTask, coinWTask, deepCoinTask, gateioTask, 
+                           htxTask, krakenTask, kucoinTask, lBankTask, mexcTask, okxTask, pionexTask, toobitTask, upbitTask, weexTask, whitebitTask, xtTask);
 
         if (asterTask.Result.Success)
             _prices.Add("Aster", asterTask.Result.Data.LastPrice);
