@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceSpotTriggerOrderOptions : EndpointOptions<PlaceSpotTriggerOrderRequest, ISpotOrderRestClient>
+    public class PlaceSpotTriggerOrderOptions : EndpointOptions<PlaceSpotTriggerOrderRequest, IPlaceSpotTriggerOrderRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Place a new spot trigger order";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(ISpotTriggerOrderRestClient.PlaceSpotTriggerOrderAsync))
+        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceSpotTriggerOrderRestClient.PlaceSpotTriggerOrderAsync))
         {
             HoldsFunds = holdsFunds;
         }
@@ -28,14 +28,15 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             PlaceSpotTriggerOrderRequest request,
-            ISpotOrderRestClient client)
+            IPlaceSpotTriggerOrderRestClient client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
 
-            var quantityError = client.SpotSupportedOrderQuantity.Validate(request.OrderSide, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
-            if (quantityError != null)
-                return quantityError;
+#warning TODO
+            //var quantityError = client.SpotSupportedOrderQuantity.Validate(request.OrderSide, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
+            //if (quantityError != null)
+            //    return quantityError;
 
             return base.ValidateRequest(request, client);
         }

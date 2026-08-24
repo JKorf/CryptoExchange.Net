@@ -1,6 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.SpotUserTrades;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,7 +16,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class SpotUserTradeTracker : UserDataItemTracker<SharedUserTrade>
     {
-        private readonly ISpotOrderRestClient _restClient;
+        private readonly IGetSpotUserTradeHistoryRestClient _restClient;
         private readonly IUserTradeSocketClient? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
@@ -74,7 +75,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var updatedPollTime = DateTime.UtcNow;
             foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
-                var tradesResult = await _restClient.GetSpotUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                var tradesResult = await _restClient.GetSpotUserTradeHistoryAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
                 {
                     anyError = true;

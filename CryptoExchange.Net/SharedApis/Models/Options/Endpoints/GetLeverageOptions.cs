@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting asset info
     /// </summary>
-    public class GetLeverageOptions : EndpointOptions<GetLeverageRequest, ILeverageRestClient>
+    public class GetLeverageOptions : EndpointOptions<GetLeverageRequest, IGetLeverageRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current leverage for a futures symbol";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetLeverageOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ILeverageRestClient.GetLeverageAsync))
+        public GetLeverageOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetLeverageRestClient.GetLeverageAsync))
         {
         }
     }

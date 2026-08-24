@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting closed orders
     /// </summary>
-    public class GetFuturesClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IFuturesOrderRestClient>
+    public class GetFuturesClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IGetClosedFuturesOrdersRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve closed futures orders";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetFuturesClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IFuturesOrderRestClient.GetClosedFuturesOrdersAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedFuturesOrdersRestClient.GetClosedFuturesOrdersAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetClosedOrdersRequest request, IFuturesOrderRestClient client)
+        public override Error? ValidateRequest(GetClosedOrdersRequest request, IGetClosedFuturesOrdersRestClient client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetClosedOrdersRequest.Direction), $"Ascending direction is not supported");

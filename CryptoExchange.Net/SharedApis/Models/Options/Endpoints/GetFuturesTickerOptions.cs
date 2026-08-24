@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting ticker
     /// </summary>
-    public class GetFuturesTickerOptions : EndpointOptions<GetTickerRequest, IFuturesTickerRestClient>
+    public class GetFuturesTickerOptions : EndpointOptions<GetTickerRequest, IGetFuturesTickerRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for a futures symbol";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IFuturesTickerRestClient.GetFuturesTickerAsync))
+        public GetFuturesTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetFuturesTickerRestClient.GetFuturesTickerAsync))
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

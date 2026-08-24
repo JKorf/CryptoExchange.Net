@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting symbol info
     /// </summary>
-    public class GetSpotSymbolsOptions : EndpointOptions<GetSymbolsRequest, ISpotSymbolRestClient>
+    public class GetSpotSymbolsOptions : EndpointOptions<GetSymbolsRequest, IGetSpotSymbolsRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve supported spot symbols and their trading rules";
@@ -16,13 +16,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISpotSymbolRestClient.GetSpotSymbolsAsync))
+        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbolsRestClient.GetSpotSymbolsAsync))
         {
         }
 
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetSymbolsRequest request, ISpotSymbolRestClient client)
+        public override Error? ValidateRequest(GetSymbolsRequest request, IGetSpotSymbolsRestClient client)
         {
             if (request.BaseAssetType != null && request.BaseAssetSubType != null)
             {

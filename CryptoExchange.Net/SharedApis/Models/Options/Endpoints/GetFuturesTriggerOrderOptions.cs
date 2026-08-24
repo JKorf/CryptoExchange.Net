@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting futures trigger order
     /// </summary>
-    public class GetFuturesTriggerOrderOptions : EndpointOptions<GetOrderRequest, IFuturesTriggerOrderRestClient>
+    public class GetFuturesTriggerOrderOptions : EndpointOptions<GetOrderRequest, IGetFuturesTriggerOrderRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a futures trigger order";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IFuturesTriggerOrderRestClient.GetFuturesTriggerOrderAsync))
+        public GetFuturesTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesTriggerOrderRestClient.GetFuturesTriggerOrderAsync))
         {
         }
     }

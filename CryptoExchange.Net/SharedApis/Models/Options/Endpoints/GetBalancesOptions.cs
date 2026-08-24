@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class GetBalancesOptions : EndpointOptions<GetBalancesRequest, IBalanceRestClient>
+    public class GetBalancesOptions : EndpointOptions<GetBalancesRequest, IGetBalancesRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve account balances";
@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IBalanceRestClient.GetBalancesAsync))
+        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IGetBalancesRestClient.GetBalancesAsync))
         {
             SupportedAccountTypes = accountTypes;
         }
@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             GetBalancesRequest request,
-            IBalanceRestClient client)
+            IGetBalancesRestClient client)
         {
             if (request.AccountType != null && !IsValid(request.AccountType.Value))
                 return ArgumentError.Invalid(nameof(request.AccountType), "Invalid AccountType");

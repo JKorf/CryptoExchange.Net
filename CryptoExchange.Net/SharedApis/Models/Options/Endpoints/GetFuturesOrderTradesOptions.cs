@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a trades for an order
     /// </summary>
-    public class GetFuturesOrderTradesOptions : EndpointOptions<GetOrderTradesRequest, IFuturesOrderRestClient>
+    public class GetFuturesOrderTradesOptions : EndpointOptions<GetOrderTradesRequest, IGetFuturesOrderTradesRestClient>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve trades for a futures order";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesOrderTradesOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IFuturesOrderRestClient.GetFuturesOrderTradesAsync))
+        public GetFuturesOrderTradesOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesOrderTradesRestClient.GetFuturesOrderTradesAsync))
         {
         }
     }
