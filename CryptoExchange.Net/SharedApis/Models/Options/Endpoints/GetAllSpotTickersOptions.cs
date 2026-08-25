@@ -1,4 +1,3 @@
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.Spot.Tickers;
 using System.Text;
 
 namespace CryptoExchange.Net.SharedApis

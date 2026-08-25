@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.SpotUserTrades
+namespace CryptoExchange.Net.SharedApis
 {
     public interface IGetSpotUserTradeHistoryRestClient : ISharedClient
     {

@@ -1,5 +1,4 @@
 using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.SpotUserTrades;
 using System;
 using System.Text;
 

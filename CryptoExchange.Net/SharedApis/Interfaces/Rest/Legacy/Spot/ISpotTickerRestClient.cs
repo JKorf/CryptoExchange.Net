@@ -1,5 +1,4 @@
 ﻿using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.Spot.Tickers;
 using System.Threading;
 using System.Threading.Tasks;
 

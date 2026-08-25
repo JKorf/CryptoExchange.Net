@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.Spot.Tickers
+namespace CryptoExchange.Net.SharedApis
 {
     public interface IGetAllSpotTickersRestClient : ISharedClient
     {
@@ -20,6 +20,6 @@ namespace CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.Spot.Tickers
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
     }
 }

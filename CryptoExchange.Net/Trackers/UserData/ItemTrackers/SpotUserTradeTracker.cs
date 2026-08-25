@@ -1,7 +1,6 @@
 ﻿using CryptoExchange.Net.Objects;
 using CryptoExchange.Net.Objects.Sockets;
 using CryptoExchange.Net.SharedApis;
-using CryptoExchange.Net.SharedApis.Interfaces.Rest.V2.SpotUserTrades;
 using CryptoExchange.Net.Trackers.UserData.Objects;
 using Microsoft.Extensions.Logging;
 using System;
