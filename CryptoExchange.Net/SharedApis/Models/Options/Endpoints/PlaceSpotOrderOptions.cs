@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot order
     /// </summary>
-    public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest, IPlaceSpotOrderRestClient>
+    public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest, IPlaceSpotOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Place a new spot order";
@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotOrderOptions(string exchange) : base(exchange, true, nameof(IPlaceSpotOrderRestClient.PlaceSpotOrderAsync))
+        public PlaceSpotOrderOptions(string exchange) : base(exchange, true, nameof(IPlaceSpotOrderEndpoint.PlaceSpotOrderAsync))
         {
         }
 
@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             PlaceSpotOrderRequest request,
-            IPlaceSpotOrderRestClient client)
+            IPlaceSpotOrderEndpoint client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");

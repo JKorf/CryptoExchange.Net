@@ -38,12 +38,15 @@ namespace CryptoExchange.Net.Trackers.UserData
             IBalanceRestClient balanceRestClient,
             IBalanceSocketClient? balanceSocketClient,
             ISpotOrderRestClient spotOrderRestClient,
+            IGetSpotUserTradeHistoryEndpoint getSpotUserTradeHistoryRestClient,
             ISpotOrderSocketClient? spotOrderSocketClient,
             IUserTradeSocketClient? userTradeSocketClient,
             string? userIdentifier,
             SpotUserDataTrackerConfig config,
             ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
         {
+#warning TODO specific interfaces
+
             // create trackers
             _symbolClient = symbolRestClient;
             _exchangeParameters = exchangeParameters;
@@ -60,7 +63,7 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, spotOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, getSpotUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

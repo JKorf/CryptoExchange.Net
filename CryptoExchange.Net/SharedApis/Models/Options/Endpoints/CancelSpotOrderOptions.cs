@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a spot order
     /// </summary>
-    public class CancelSpotOrderOptions : EndpointOptions<CancelOrderRequest, ICancelSpotOrderRestClient>
+    public class CancelSpotOrderOptions : EndpointOptions<CancelOrderRequest, ICancelSpotOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a spot order";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelSpotOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotOrderRestClient.CancelSpotOrderAsync))
+        public CancelSpotOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotOrderEndpoint.CancelSpotOrderAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotOrderRestClient client)
+        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotOrderEndpoint client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");

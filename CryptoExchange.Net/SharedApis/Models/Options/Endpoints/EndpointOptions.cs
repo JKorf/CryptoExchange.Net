@@ -123,10 +123,27 @@ namespace CryptoExchange.Net.SharedApis
     {
         private static PropertyInfo[] _requestProperties = typeof(TRequest).GetProperties();
 
+        private List<ParameterDescription> _requiredRequestParameters = new();
+
         /// <summary>
-        /// Required optional parameters in the request. These can be provided via the `exchangeParameters` property of the request object.
+        /// Request properties that are optional in the shared contract,
+        /// but required by this exchange implementation.
         /// </summary>
-        public List<ParameterDescription> RequiredOptionalParameters { get; set; } = new List<ParameterDescription>();
+        public List<ParameterDescription> RequiredRequestParameters
+        {
+            get => _requiredRequestParameters;
+            set => _requiredRequestParameters = value;
+        }
+
+        /// <summary>
+        /// Use RequiredRequestParameters instead.
+        /// </summary>
+        [Obsolete("Use RequiredRequestParameters instead")]
+        public List<ParameterDescription> RequiredOptionalParameters
+        {
+            get => _requiredRequestParameters;
+            set => _requiredRequestParameters = value;
+        }
 
         /// <summary>
         /// Whether this accepts multiple symbols (Only applicable to request requiring symbol parameters)
@@ -155,7 +172,7 @@ namespace CryptoExchange.Net.SharedApis
             if (NeedsAuthentication && !client.Authenticated)
                 return new NoApiCredentialsError();
 
-            foreach (var param in RequiredOptionalParameters)
+            foreach (var param in RequiredRequestParameters)
             {
                 if (param.Names!.All(x => _requestProperties.Single(p => p.Name == x).GetValue(request, null) == null))
                 {
@@ -199,10 +216,10 @@ namespace CryptoExchange.Net.SharedApis
                 sb.Append("  Notes:                          ");
                 sb.AppendLine(RequestNotes);
             }
-            if (RequiredOptionalParameters.Any())
+            if (RequiredRequestParameters.Any())
             {
-                sb.AppendLine($"  Required optional parameters:");
-                foreach(var param in RequiredOptionalParameters)
+                sb.AppendLine($"  Required request parameters:");
+                foreach(var param in RequiredRequestParameters)
                     sb.AppendLine($"    {param}");
             }
             if (RequiredExchangeParameters.Any())

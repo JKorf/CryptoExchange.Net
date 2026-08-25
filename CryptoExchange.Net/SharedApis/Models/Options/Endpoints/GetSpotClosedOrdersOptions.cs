@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetSpotClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IGetClosedSpotOrdersRestClient>
+    public class GetSpotClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IGetClosedSpotOrdersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve closed spot orders";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetSpotClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedSpotOrdersRestClient.GetClosedSpotOrdersAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedSpotOrdersEndpoint.GetClosedSpotOrdersAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetClosedOrdersRequest request, IGetClosedSpotOrdersRestClient client)
+        public override Error? ValidateRequest(GetClosedOrdersRequest request, IGetClosedSpotOrdersEndpoint client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");

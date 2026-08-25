@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a withdrawal
     /// </summary>
-    public class WithdrawOptions : EndpointOptions<WithdrawRequest, IWithdrawRestClient>
+    public class WithdrawOptions : EndpointOptions<WithdrawRequest, IWithdrawEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Withdraw an asset";
@@ -11,7 +11,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public WithdrawOptions(string exchange) : base(exchange, true, nameof(IWithdrawRestClient.WithdrawAsync))
+        public WithdrawOptions(string exchange) : base(exchange, true, nameof(IWithdrawEndpoint.WithdrawAsync))
         {
         }
     }

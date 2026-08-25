@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting ticker
     /// </summary>
-    public class GetSpotTickerOptions : EndpointOptions<GetTickerRequest, IGetSpotTickerRestClient>
+    public class GetSpotTickerOptions : EndpointOptions<GetTickerRequest, IGetSpotTickerEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for a spot symbol";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetSpotTickerRestClient.GetSpotTickerAsync))
+        public GetSpotTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetSpotTickerEndpoint.GetSpotTickerAsync))
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

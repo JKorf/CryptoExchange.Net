@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting withdrawals
     /// </summary>
-    public class GetWithdrawalHistoryOptions : PaginatedEndpointOptions<GetWithdrawalsRequest, IGetWithdrawalHistoryRestClient>
+    public class GetWithdrawalHistoryOptions : PaginatedEndpointOptions<GetWithdrawalsRequest, IGetWithdrawalHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve withdrawal history";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetWithdrawalHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetWithdrawalHistoryRestClient.GetWithdrawalHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetWithdrawalHistoryEndpoint.GetWithdrawalHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetWithdrawalsRequest request, IGetWithdrawalHistoryRestClient client)
+        public override Error? ValidateRequest(GetWithdrawalsRequest request, IGetWithdrawalHistoryEndpoint client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");

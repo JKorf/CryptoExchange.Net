@@ -4,6 +4,7 @@ using CryptoExchange.Net.SharedApis;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -387,14 +388,14 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (ITradeHistoryRestClient)client(x)!);
             if (typeof(IWithdrawalRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IWithdrawalRestClient)client(x)!);
-            if (typeof(IWithdrawRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IWithdrawRestClient)client(x)!);
+            if (typeof(IWithdrawEndpoint).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IWithdrawEndpoint)client(x)!);
             if (typeof(IFeeRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFeeRestClient)client(x)!);
             if (typeof(IBookTickerRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IBookTickerRestClient)client(x)!);
-            if (typeof(ITransferRestClient).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (ITransferRestClient)client(x)!);
+            if (typeof(ITransferEndpoint).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITransferEndpoint)client(x)!);
 
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
@@ -470,6 +471,43 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (IPositionSocketClient)client(x)!);
             if (typeof(IFuturesOrderManagementSocketClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFuturesOrderManagementSocketClient)client(x)!);
+
+            return services;
+        }
+
+        /// <summary>
+        /// Register a strict Shared API aggregate and all endpoint capabilities
+        /// inherited by that aggregate.
+        /// </summary>
+        public static IServiceCollection RegisterSharedApi<
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] 
+#endif
+            TSharedApi
+            >(
+            this IServiceCollection services,
+            Func<IServiceProvider, TSharedApi> factory)
+            where TSharedApi : class, ISharedClient
+        {
+            // Register the exchange-specific aggregate itself.
+            services.AddTransient(
+                typeof(TSharedApi),
+                serviceProvider => factory(serviceProvider));
+
+            var endpointInterfaces = typeof(TSharedApi)
+                .GetInterfaces()
+                .Where(x =>
+                    x != typeof(ISharedApiEndpoint)
+                    && typeof(ISharedApiEndpoint).IsAssignableFrom(x))
+                .Distinct()
+                .ToArray();
+
+            foreach (var endpointInterface in endpointInterfaces)
+            {
+                services.AddTransient(
+                    endpointInterface,
+                    serviceProvider => factory(serviceProvider));
+            }
 
             return services;
         }

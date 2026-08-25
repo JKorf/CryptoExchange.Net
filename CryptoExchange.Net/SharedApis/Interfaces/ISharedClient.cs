@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -21,6 +22,11 @@ namespace CryptoExchange.Net.SharedApis
         /// Whether or not API credentials have been configured for this client. Does not check the credentials are actually valid.
         /// </summary>
         bool Authenticated { get; }
+
+        /// <summary>
+        /// Options for the endpoints exposed by this shared API.
+        /// </summary>
+        IReadOnlyCollection<EndpointOptions> EndpointOptions { get; }
 
         /// <summary>
         /// Get info on the client and supported features

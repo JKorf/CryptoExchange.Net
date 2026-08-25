@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting kline/candlestick data
     /// </summary>
-    public class GetIndexPriceKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IGetIndexPriceKlinesRestClient>
+    public class GetIndexPriceKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IGetIndexPriceKlinesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve index price candlestick data";
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetIndexPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetIndexPriceKlinesRestClient.GetIndexPriceKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetIndexPriceKlinesEndpoint.GetIndexPriceKlinesAsync))
         {
             SupportIntervals = new[]
             {
@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetKlinesRequest request, IGetIndexPriceKlinesRestClient client)
+        public override Error? ValidateRequest(GetKlinesRequest request, IGetIndexPriceKlinesEndpoint client)
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");

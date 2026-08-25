@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting trading fee info
     /// </summary>
-    public class GetFeeOptions : EndpointOptions<GetFeeRequest, IGetFeesRestClient>
+    public class GetFeeOptions : EndpointOptions<GetFeeRequest, IGetFeesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve trading fee information";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFeeOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFeesRestClient.GetFeesAsync))
+        public GetFeeOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFeesEndpoint.GetFeesAsync))
         {
         }
     }

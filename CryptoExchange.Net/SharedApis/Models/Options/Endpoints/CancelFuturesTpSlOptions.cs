@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a TP/SL
     /// </summary>
-    public class CancelFuturesTpSlOptions : EndpointOptions<CancelTpSlRequest, ICancelFuturesTpSlRestClient>
+    public class CancelFuturesTpSlOptions : EndpointOptions<CancelTpSlRequest, ICancelFuturesTpSlEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a take profit or stop loss order for a futures position";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelFuturesTpSlRestClient.CancelFuturesTpSlAsync))
+        public CancelFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelFuturesTpSlEndpoint.CancelFuturesTpSlAsync))
         {
         }
     }

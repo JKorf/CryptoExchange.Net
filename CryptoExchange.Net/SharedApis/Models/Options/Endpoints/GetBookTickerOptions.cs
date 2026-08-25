@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting book ticker
     /// </summary>
-    public class GetBookTickerOptions : EndpointOptions<GetBookTickerRequest, IGetBookTickerRestClient>
+    public class GetBookTickerOptions : EndpointOptions<GetBookTickerRequest, IGetBookTickerEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the best bid and ask price for a symbol";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBookTickerOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetBookTickerRestClient.GetBookTickerAsync))
+        public GetBookTickerOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetBookTickerEndpoint.GetBookTickerAsync))
         {
         }
     }

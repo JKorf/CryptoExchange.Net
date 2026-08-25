@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for closing position
     /// </summary>
-    public class ClosePositionOptions : EndpointOptions<ClosePositionRequest, IClosePositionRestClient>
+    public class ClosePositionOptions : EndpointOptions<ClosePositionRequest, IClosePositionEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Close an open futures position";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public ClosePositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IClosePositionRestClient.ClosePositionAsync))
+        public ClosePositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IClosePositionEndpoint.ClosePositionAsync))
         {
         }
     }

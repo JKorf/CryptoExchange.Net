@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
@@ -69,16 +70,7 @@ namespace CryptoExchange.Net.SharedApis
             if (val == null)
                 return false;
 
-            try
-            {
-                Type t = Nullable.GetUnderlyingType(type) ?? type;
-                Convert.ChangeType(val, t);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return TryConvertValue(val, type, out _);
         }
 
         /// <summary>
@@ -99,16 +91,7 @@ namespace CryptoExchange.Net.SharedApis
             if (val == null)
                 return false;
 
-            try
-            {
-                Type t = Nullable.GetUnderlyingType(type) ?? type;
-                Convert.ChangeType(val, t);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return TryConvertValue(val, type, out _);
         }
 
         /// <summary>
@@ -124,18 +107,14 @@ namespace CryptoExchange.Net.SharedApis
             if (val == null)
                 return default;
 
-            if (val is T typeVal)
-                return typeVal;
+            if (!TryConvertValue(val, typeof(T), out var convertedValue))
+            {
+                throw new ArgumentException(
+                    $"Incorrect type for parameter, expected {typeof(T).Name}",
+                    name);
+            }
 
-            try
-            {
-                Type t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-                return (T)Convert.ChangeType(val, t);
-            }
-            catch
-            {
-                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, name);
-            }
+            return (T)convertedValue!;
         }
 
         /// <summary>
@@ -158,16 +137,52 @@ namespace CryptoExchange.Net.SharedApis
             if (val == null)
                 return default;
 
+            if (!TryConvertValue(val, typeof(T), out var convertedValue))
+            {
+                throw new ArgumentException(
+                    $"Incorrect type for parameter, expected {typeof(T).Name}",
+                    name);
+            }
+
+            return (T)convertedValue!;
+        }
+
+        private static bool TryConvertValue(
+            object value,
+            Type expectedType,
+            out object? convertedValue)
+        {
+            var targetType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
+
+            if (targetType.IsInstanceOfType(value))
+            {
+                convertedValue = value;
+                return true;
+            }
+
+            if (targetType.IsEnum)
+            {
+                convertedValue = null;
+                return false;
+            }
+
             try
             {
-                var type = typeof(T);
-                Type t = Nullable.GetUnderlyingType(type) ?? type;
-                var result = Convert.ChangeType(val, t);
-                return (T)result;
+                convertedValue = Convert.ChangeType(
+                    value,
+                    targetType,
+                    CultureInfo.InvariantCulture);
+
+                return true;
             }
-            catch
+            catch (Exception ex) when (
+                ex is FormatException ||
+                ex is InvalidCastException ||
+                ex is OverflowException ||
+                ex is ArgumentException)
             {
-                throw new ArgumentException("Incorrect type for parameter, expected " + typeof(T).Name, name);
+                convertedValue = null;
+                return false;
             }
         }
 
