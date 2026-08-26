@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a futures order by client order id
     /// </summary>
-    public class CancelFuturesOrderByClientOrderIdOptions : EndpointOptions<CancelOrderRequest, ICancelFuturesOrderByClientOrderIdEndpoint>
+    public class CancelFuturesOrderByClientOrderIdOptions : CapabilityOptions<CancelOrderRequest, ICancelFuturesOrderByClientOrderIdEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a futures order by its client order id";

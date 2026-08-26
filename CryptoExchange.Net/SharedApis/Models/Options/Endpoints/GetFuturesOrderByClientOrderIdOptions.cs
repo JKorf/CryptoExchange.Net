@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a spot order by client order id
     /// </summary>
-    public class GetFuturesOrderByClientOrderIdOptions : EndpointOptions<GetOrderRequest, IGetFuturesOrderByClientOrderIdEndpoint>
+    public class GetFuturesOrderByClientOrderIdOptions : CapabilityOptions<GetOrderRequest, IGetFuturesOrderByClientOrderIdEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a futures order by its client order id";

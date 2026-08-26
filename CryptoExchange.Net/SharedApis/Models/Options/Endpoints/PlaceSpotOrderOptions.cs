@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot order
     /// </summary>
-    public class PlaceSpotOrderOptions : EndpointOptions<PlaceSpotOrderRequest, IPlaceSpotOrderEndpoint>
+    public class PlaceSpotOrderOptions : CapabilityOptions<PlaceSpotOrderRequest, IPlaceSpotOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Place a new spot order";

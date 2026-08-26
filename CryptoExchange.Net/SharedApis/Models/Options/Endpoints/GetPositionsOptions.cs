@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting open positions
     /// </summary>
-    public class GetPositionsOptions : EndpointOptions<GetPositionsRequest, IGetPositionsEndpoint>
+    public class GetPositionsOptions : CapabilityOptions<GetPositionsRequest, IGetPositionsEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open futures positions";

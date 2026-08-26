@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public abstract class UserFuturesDataTracker : UserDataTracker, IUserFuturesDataTracker
     {
-        private readonly IFuturesSymbolRestClient _symbolClient;
+        private readonly IGetFuturesSymbolsEndpoint _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TradingMode _tradingMode;
 
@@ -51,13 +51,21 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserFuturesDataTracker(
             ILogger logger,
-            IFuturesSymbolRestClient symbolRestClient,
-            IBalanceRestClient balanceRestClient,
-            IBalanceSocketClient? balanceSocketClient,
-            IFuturesOrderRestClient futuresOrderRestClient,
-            IFuturesOrderSocketClient? futuresOrderSocketClient,
-            IUserTradeSocketClient? userTradeSocketClient,
-            IPositionSocketClient? positionSocketClient,
+            IGetFuturesSymbolsEndpoint symbolRestClient,
+
+            IGetBalancesEndpoint balanceRestClient,
+            ISubscribeBalancesOperation? balanceSocketClient,
+
+            IGetOpenFuturesOrdersEndpoint openOrderRestClient,
+            IGetClosedFuturesOrdersEndpoint closedOrderRestClient,
+            ISubscribeFuturesOrdersOperation? subscribeFuturesOrdersOperation,
+
+            IGetFuturesUserTradeHistoryEndpoint getFuturesUserTradeHistoryRestClient,
+            ISubscribeUserTradesOperation? userTradeSocketClient,
+
+            IGetPositionsEndpoint positionRestClient,
+            ISubscribePositionsOperation? positionSocketClient,
+
             string? userIdentifier,
             FuturesUserDataTrackerConfig config,
             SharedAccountType? accountType = null,
@@ -78,17 +86,17 @@ namespace CryptoExchange.Net.Trackers.UserData
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new FuturesOrderTracker(logger, SymbolTracker, futuresOrderRestClient, futuresOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new FuturesOrderTracker(logger, SymbolTracker, openOrderRestClient, closedOrderRestClient, subscribeFuturesOrdersOperation, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 
-            var positionTracker = new PositionTracker(logger, SymbolTracker, futuresOrderRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
+            var positionTracker = new PositionTracker(logger, SymbolTracker, positionRestClient, positionSocketClient, config.PositionConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, WebsocketPositionUpdatesAreFullSnapshots, exchangeParameters);
             Positions = positionTracker;
             trackers.Add(positionTracker);
 
             if (config.TrackTrades)
             {
-                var tradeTracker = new FuturesUserTradeTracker(logger, SymbolTracker, futuresOrderRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+                var tradeTracker = new FuturesUserTradeTracker(logger, SymbolTracker, getFuturesUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
 

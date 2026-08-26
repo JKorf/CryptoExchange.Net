@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceFuturesTriggerOrderOptions : EndpointOptions<PlaceFuturesTriggerOrderRequest, IPlaceFuturesTriggerOrderEndpoint>
+    public class PlaceFuturesTriggerOrderOptions : CapabilityOptions<PlaceFuturesTriggerOrderRequest, IPlaceFuturesTriggerOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Place a new futures trigger order";

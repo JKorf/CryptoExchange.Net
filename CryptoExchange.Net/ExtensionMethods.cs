@@ -476,37 +476,41 @@ namespace CryptoExchange.Net
         }
 
         /// <summary>
-        /// Register a strict Shared API aggregate and all endpoint capabilities
-        /// inherited by that aggregate.
+        /// Registers a strict Shared API aggregate and all capability interfaces implemented by it.
         /// </summary>
         public static IServiceCollection RegisterSharedApi<
 #if NET5_0_OR_GREATER
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] 
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
 #endif
-            TSharedApi
-            >(
+        TSharedApi>(
             this IServiceCollection services,
             Func<IServiceProvider, TSharedApi> factory)
-            where TSharedApi : class, ISharedClient
+            where TSharedApi : class, ISharedApi
         {
-            // Register the exchange-specific aggregate itself.
-            services.AddTransient(
-                typeof(TSharedApi),
-                serviceProvider => factory(serviceProvider));
+            services.AddTransient<TSharedApi>(factory);
 
-            var endpointInterfaces = typeof(TSharedApi)
+            var markerInterfaces = new[]
+            {
+                typeof(ISharedApiCapability),
+                typeof(ISharedApiEndpoint),
+                typeof(ISharedSocketOperation),
+                typeof(ISharedSubscription)
+            };
+
+            var capabilityInterfaces = typeof(TSharedApi)
                 .GetInterfaces()
                 .Where(x =>
-                    x != typeof(ISharedApiEndpoint)
-                    && typeof(ISharedApiEndpoint).IsAssignableFrom(x))
+                    typeof(ISharedApiCapability).IsAssignableFrom(x)
+                    && !markerInterfaces.Contains(x))
                 .Distinct()
                 .ToArray();
 
-            foreach (var endpointInterface in endpointInterfaces)
+            foreach (var capabilityInterface in capabilityInterfaces)
             {
                 services.AddTransient(
-                    endpointInterface,
-                    serviceProvider => factory(serviceProvider));
+                    capabilityInterface,
+                    serviceProvider =>
+                        serviceProvider.GetRequiredService<TSharedApi>());
             }
 
             return services;

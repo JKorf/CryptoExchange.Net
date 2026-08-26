@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting deposits
     /// </summary>
-    public class GetDepositHistoryOptions : PaginatedEndpointOptions<GetDepositsRequest, IGetDepositHistoryEndpoint>
+    public class GetDepositHistoryOptions : PaginatedCapabilityOptions<GetDepositsRequest, IGetDepositHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve deposit history";

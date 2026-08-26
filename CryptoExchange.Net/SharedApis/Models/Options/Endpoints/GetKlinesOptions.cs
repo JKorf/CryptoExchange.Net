@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting kline/candlestick data
     /// </summary>
-    public class GetKlinesOptions : PaginatedEndpointOptions<GetKlinesRequest, IGetKlinesEndpoint>
+    public class GetKlinesOptions : PaginatedCapabilityOptions<GetKlinesRequest, IGetKlinesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve candlestick data for a symbol";

@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting tickers
     /// </summary>
-    public class GetAllSpotTickersOptions : EndpointOptions<GetTickersRequest, IGetAllSpotTickersEndpoint>
+    public class GetAllSpotTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllSpotTickersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all spot symbols";

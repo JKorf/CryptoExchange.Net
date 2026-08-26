@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetFuturesUserTradeHistoryOptions : PaginatedEndpointOptions<GetUserTradesRequest, IGetFuturesUserTradeHistoryEndpoint>
+    public class GetFuturesUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetFuturesUserTradeHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve futures user trade history";

@@ -15,8 +15,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class FuturesOrderTracker : UserDataItemTracker<SharedFuturesOrder>
     {
-        private readonly IFuturesOrderRestClient _restClient;
-        private readonly IFuturesOrderSocketClient? _socketClient;
+        private readonly IGetOpenFuturesOrdersEndpoint _openOrdersClient;
+        private readonly IGetClosedFuturesOrdersEndpoint _closedOrdersClient;
+        private readonly ISubscribeFuturesOrdersOperation? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
         private readonly bool _timeFilterSupportedClosedOrders;
@@ -31,23 +32,25 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public FuturesOrderTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IFuturesOrderRestClient restClient,
-            IFuturesOrderSocketClient? socketClient,
+            IGetOpenFuturesOrdersEndpoint openRestClient,
+            IGetClosedFuturesOrdersEndpoint closedRestClient,
+            ISubscribeFuturesOrdersOperation? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
             ExchangeParameters? exchangeParameters = null
-            ) : base(logger, symbolTracker, UserDataType.Orders, restClient.Exchange, config)
+            ) : base(logger, symbolTracker, UserDataType.Orders, openRestClient.Exchange, config)
         {
             if (_socketClient == null)
                 config = config with { PollIntervalConnected = config.PollIntervalDisconnected };
 
-            _restClient = restClient;
+            _openOrdersClient = openRestClient;
+            _closedOrdersClient = closedRestClient;
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
 
-            _requiresSymbolParameterOpenOrders = restClient.GetOpenFuturesOrdersOptions.RequiredOptionalParameters.Any(x => x.Names.Contains("Symbol"));
-            _timeFilterSupportedClosedOrders = restClient.GetClosedFuturesOrdersOptions.TimePeriodFilterSupport;
+            _requiresSymbolParameterOpenOrders = openRestClient.GetOpenFuturesOrdersOptions.RequiredRequestParameters.Any(x => x.Names.Contains("Symbol"));
+            _timeFilterSupportedClosedOrders = closedRestClient.GetClosedFuturesOrdersOptions.TimePeriodFilterSupport;
         }
 
         internal void ClearDataForSymbol(SharedSymbol symbol)
@@ -235,7 +238,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
 
             if (!_requiresSymbolParameterOpenOrders)
             {
-                var openOrdersResult = await _restClient.GetOpenFuturesOrdersAsync(new GetOpenOrdersRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                var openOrdersResult = await _openOrdersClient.GetOpenFuturesOrdersAsync(new GetOpenOrdersRequest(exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!openOrdersResult.Success)
                 {
                     anyError = true;
@@ -254,7 +257,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             {
                 foreach (var symbol in _symbolTracker.GetTrackedSymbols())
                 {
-                    var openOrdersResult = await _restClient.GetOpenFuturesOrdersAsync(new GetOpenOrdersRequest(symbol, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                    var openOrdersResult = await _openOrdersClient.GetOpenFuturesOrdersAsync(new GetOpenOrdersRequest(symbol, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                     if (!openOrdersResult.Success)
                     {
                         anyError = true;
@@ -298,7 +301,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 {
                     // Can filter by start time, so we can just request data from that point
 
-                    var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                    var closedOrdersResult = await _closedOrdersClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, startTime: fromTimeOrders, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                     if (!closedOrdersResult.Success)
                     {
                         symbolError = true;
@@ -321,7 +324,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                     PageRequest? nextPageRequest = null;
                     while (lastMinReturn > fromTimeOrders)
                     {
-                        var closedOrdersResult = await _restClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, direction: DataDirection.Descending, exchangeParameters: _exchangeParameters), nextPageRequest).ConfigureAwait(false);
+                        var closedOrdersResult = await _closedOrdersClient.GetClosedFuturesOrdersAsync(new GetClosedOrdersRequest(symbol, direction: DataDirection.Descending, exchangeParameters: _exchangeParameters), nextPageRequest).ConfigureAwait(false);
                         if (!closedOrdersResult.Success)
                         {
                             symbolError = true;

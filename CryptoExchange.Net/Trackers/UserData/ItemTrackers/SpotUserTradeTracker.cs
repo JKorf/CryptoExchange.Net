@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     public class SpotUserTradeTracker : UserDataItemTracker<SharedUserTrade>
     {
         private readonly IGetSpotUserTradeHistoryEndpoint _restClient;
-        private readonly IUserTradeSocketClient? _socketClient;
+        private readonly ISubscribeUserTradesOperation? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
 
@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
             IGetSpotUserTradeHistoryEndpoint restClient,
-            IUserTradeSocketClient? socketClient,
+            ISubscribeUserTradesOperation? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,

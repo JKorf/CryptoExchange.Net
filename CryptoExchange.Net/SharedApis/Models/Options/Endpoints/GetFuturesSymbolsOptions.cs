@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting symbol info
     /// </summary>
-    public class GetFuturesSymbolsOptions : EndpointOptions<GetSymbolsRequest, IGetFuturesSymbolsEndpoint>
+    public class GetFuturesSymbolsOptions : CapabilityOptions<GetSymbolsRequest, IGetFuturesSymbolsEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve supported futures symbols and their trading rules";

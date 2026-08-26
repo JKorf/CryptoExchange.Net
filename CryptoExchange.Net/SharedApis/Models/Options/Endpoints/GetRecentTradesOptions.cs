@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting recent trades
     /// </summary>
-    public class GetRecentTradesOptions : EndpointOptions<GetRecentTradesRequest, IGetRecentTradesEndpoint>
+    public class GetRecentTradesOptions : CapabilityOptions<GetRecentTradesRequest, IGetRecentTradesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve recent public trades for a symbol";

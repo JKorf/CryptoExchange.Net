@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a trades for an order
     /// </summary>
-    public class GetFuturesOrderTradesOptions : EndpointOptions<GetOrderTradesRequest, IGetFuturesOrderTradesEndpoint>
+    public class GetFuturesOrderTradesOptions : CapabilityOptions<GetOrderTradesRequest, IGetFuturesOrderTradesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve trades for a futures order";

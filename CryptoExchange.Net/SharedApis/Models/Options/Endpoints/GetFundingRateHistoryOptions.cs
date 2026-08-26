@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting funding rate history
     /// </summary>
-    public class GetFundingRateHistoryOptions : PaginatedEndpointOptions<GetFundingRateHistoryRequest, IGetFundingRateHistoryEndpoint>
+    public class GetFundingRateHistoryOptions : PaginatedCapabilityOptions<GetFundingRateHistoryRequest, IGetFundingRateHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve historical funding rates for a futures symbol";

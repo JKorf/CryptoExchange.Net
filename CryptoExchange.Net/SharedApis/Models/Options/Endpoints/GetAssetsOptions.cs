@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting assets info
     /// </summary>
-    public class GetAssetsOptions : EndpointOptions<GetAssetsRequest, IGetAllAssetsEndpoint>
+    public class GetAssetsOptions : CapabilityOptions<GetAssetsRequest, IGetAllAssetsEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve basic info for all assets and the networks they support for withdrawals/deposits";

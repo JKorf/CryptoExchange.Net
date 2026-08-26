@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a spot order
     /// </summary>
-    public class CancelSpotOrderOptions : EndpointOptions<CancelOrderRequest, ICancelSpotOrderEndpoint>
+    public class CancelSpotOrderOptions : CapabilityOptions<CancelOrderRequest, ICancelSpotOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a spot order";

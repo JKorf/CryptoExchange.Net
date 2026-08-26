@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting tickers
     /// </summary>
-    public class GetAllFuturesTickersOptions : EndpointOptions<GetTickersRequest, IGetAllFuturesTickersEndpoint>
+    public class GetAllFuturesTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllFuturesTickersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all futures symbols";

@@ -8,13 +8,13 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Shared API base client
     /// </summary>
-    public abstract class SharedApiBase : ISharedClient
+    public abstract class SharedApiBase : ISharedApi
     {
         private readonly Func<string, string, TradingMode, DateTime?, string> _symbolFormatter;
         private readonly Func<bool> _authDelegate;
 
-        private IReadOnlyCollection<EndpointOptions> _endpointOptions = Array.Empty<EndpointOptions>();
-        IReadOnlyCollection<EndpointOptions> ISharedClient.EndpointOptions => _endpointOptions;
+        private IReadOnlyCollection<CapabilityOptions> _capabilities = Array.Empty<CapabilityOptions>();
+        IReadOnlyCollection<CapabilityOptions> ISharedApi.Capabilities => _capabilities;
 
         /// <inheritdoc />
         public string Exchange { get; }
@@ -41,9 +41,9 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        protected void SetEndpointOptions(params EndpointOptions[] endpointOptions)
+        protected void SetCapabilities(params CapabilityOptions[] capabilities)
         {
-            _endpointOptions = Array.AsReadOnly(endpointOptions);
+            _capabilities = Array.AsReadOnly(capabilities);
         }
 
         /// <inheritdoc />

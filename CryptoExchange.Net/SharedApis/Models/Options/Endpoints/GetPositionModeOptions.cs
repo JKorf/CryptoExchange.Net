@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting current position mode
     /// </summary>
-    public class GetPositionModeOptions : EndpointOptions<GetPositionModeRequest, IGetPositionModeEndpoint>
+    public class GetPositionModeOptions : CapabilityOptions<GetPositionModeRequest, IGetPositionModeEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current futures position mode";

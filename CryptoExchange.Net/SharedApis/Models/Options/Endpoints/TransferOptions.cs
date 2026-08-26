@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class TransferOptions : EndpointOptions<TransferRequest, ITransferEndpoint>
+    public class TransferOptions : CapabilityOptions<TransferRequest, ITransferEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Transfer funds between account types";

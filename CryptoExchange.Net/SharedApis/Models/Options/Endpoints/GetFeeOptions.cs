@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting trading fee info
     /// </summary>
-    public class GetFeeOptions : EndpointOptions<GetFeeRequest, IGetFeesEndpoint>
+    public class GetFeeOptions : CapabilityOptions<GetFeeRequest, IGetFeesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve trading fee information";

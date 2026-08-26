@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting trades for a spot order
     /// </summary>
-    public class GetSpotOrderTradesOptions : EndpointOptions<GetOrderTradesRequest, IGetSpotOrderTradesEndpoint>
+    public class GetSpotOrderTradesOptions : CapabilityOptions<GetOrderTradesRequest, IGetSpotOrderTradesEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve trades for a spot order";

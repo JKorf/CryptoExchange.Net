@@ -7,45 +7,8 @@ namespace CryptoExchange.Net.SharedApis
     /// Futures ticker info
     /// </summary>
     [DebuggerDisplay("{Symbol,nq} High: {HighPrice}, Low: {LowPrice}, Last: {LastPrice}, Change: {ChangePercentage}%")]
-    public record SharedFuturesTicker: SharedSymbolModel
+    public record SharedFuturesTicker: SharedTicker
     {
-        /// <summary>
-        /// Last trade price
-        /// </summary>
-        public decimal? LastPrice { get; set; }
-        /// <summary>
-        /// High price in the last 24h
-        /// </summary>
-        public decimal? HighPrice { get; set; }
-        /// <summary>
-        /// Low price in the last 24h
-        /// </summary>
-        public decimal? LowPrice { get; set; }
-        /// <summary>
-        /// The volume in the last 24h
-        /// </summary>
-        public SharedOrderQuantity Volumes { get; set; }
-
-        private decimal? _volume;
-        /// <summary>
-        /// The volume in the last 24h
-        /// </summary>
-        [Obsolete("Use `Volumes` instead")]
-        public decimal Volume
-        {
-            get
-            {
-                if (_volume.HasValue)
-                    return _volume.Value;
-
-                return Volumes.QuantityInBaseAsset ?? Volumes.QuantityInContracts ?? 0;
-            }
-            set => _volume = value;
-        }
-        /// <summary>
-        /// Change percentage in the last 24h
-        /// </summary>
-        public decimal? ChangePercentage { get; set; }
         /// <summary>
         /// Current mark price
         /// </summary>
@@ -74,13 +37,8 @@ namespace CryptoExchange.Net.SharedApis
             decimal? lowPrice, 
             SharedOrderQuantity volumes, 
             decimal? changePercentage)
-            :base(sharedSymbol, symbol)
+            :base(sharedSymbol, symbol, lastPrice, highPrice, lowPrice, volumes, changePercentage)
         {
-            LastPrice = lastPrice;
-            HighPrice = highPrice;
-            LowPrice = lowPrice;
-            Volumes = volumes;
-            ChangePercentage = changePercentage;
         }
     }
 }

@@ -1,4 +1,11 @@
-﻿using System;
+﻿using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Clients;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
+using CryptoExchange.Net.SharedApis;
+using CryptoExchange.Net.Testing.Implementations;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,12 +16,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Authentication;
-using CryptoExchange.Net.Clients;
-using CryptoExchange.Net.Interfaces;
-using CryptoExchange.Net.Objects;
-using CryptoExchange.Net.Objects.Sockets;
-using CryptoExchange.Net.Testing.Implementations;
 
 #pragma warning disable IL2026
 #pragma warning disable IL2070
@@ -164,6 +165,7 @@ namespace CryptoExchange.Net.Testing
             var clientInterfaces = assembly!.GetTypes()
                 .Where(t => t.Name.StartsWith("I" + clientType.Name)
                         && !t.Name.EndsWith("Shared")
+                        && !t.Name.EndsWith("SharedApi")
                         && (excludeInterfaces?.Contains(t.Name) != true));
 
             foreach (var clientInterface in clientInterfaces)
@@ -184,6 +186,34 @@ namespace CryptoExchange.Net.Testing
                     Debug.WriteLine($"{clientInterface.Name} {methods} methods validated");
                 }
             }
+        }
+
+        /// <summary>
+        /// Validates that the shared API implementation has all the capabilities it declares and that it doesn't implement any capabilities it doesn't declare
+        /// </summary>
+        public static (Type[] missingOptions, Type[] missingInterfaces) ValidateSharedApi<T>(T sharedApi)
+            where T : ISharedApi
+        {
+            var implementedCapabilities = sharedApi
+                .GetType()
+                .GetInterfaces()
+                .Where(x =>
+                    x != typeof(T)
+                    && x != typeof(ISharedApiCapability)
+                    && x != typeof(ISharedApiEndpoint)
+                    && x != typeof(ISharedSocketOperation)
+                    && x != typeof(ISharedSubscription)
+                    && typeof(ISharedApiCapability).IsAssignableFrom(x))
+                .ToArray();
+
+            var declaredCapabilities = sharedApi.Capabilities
+                .Select(x => x.CapabilityType)
+                .ToArray();
+
+            var missingOptions = implementedCapabilities.Except(declaredCapabilities);
+            var missingInterfaces = declaredCapabilities.Except(implementedCapabilities);
+
+            return (missingOptions.ToArray(), missingInterfaces.ToArray());
         }
     }
 }

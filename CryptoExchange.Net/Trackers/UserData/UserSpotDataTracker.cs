@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public class UserSpotDataTracker : UserDataTracker, IUserSpotDataTracker
     {
-        private readonly ISpotSymbolRestClient _symbolClient;
+        private readonly IGetSpotSymbolsEndpoint _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
 
         /// <inheritdoc />
@@ -34,19 +34,22 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserSpotDataTracker(
             ILogger logger,
-            ISpotSymbolRestClient symbolRestClient,
-            IBalanceRestClient balanceRestClient,
-            IBalanceSocketClient? balanceSocketClient,
-            ISpotOrderRestClient spotOrderRestClient,
+            IGetSpotSymbolsEndpoint symbolRestClient,
+
+            IGetBalancesEndpoint balanceRestClient,
+            ISubscribeBalancesOperation? balanceSocketClient,
+
+            IGetOpenSpotOrdersEndpoint openOrderRestClient,
+            IGetClosedSpotOrdersEndpoint closedOrderRestClient,
+            ISubscribeSpotOrdersOperation? subscribeSpotOrdersOperation,
+
             IGetSpotUserTradeHistoryEndpoint getSpotUserTradeHistoryRestClient,
-            ISpotOrderSocketClient? spotOrderSocketClient,
-            IUserTradeSocketClient? userTradeSocketClient,
+            ISubscribeUserTradesOperation? userTradeSocketClient,
+
             string? userIdentifier,
             SpotUserDataTrackerConfig config,
             ExchangeParameters? exchangeParameters = null) : base(logger, symbolRestClient.Exchange, config, userIdentifier)
         {
-#warning TODO specific interfaces
-
             // create trackers
             _symbolClient = symbolRestClient;
             _exchangeParameters = exchangeParameters;
@@ -57,7 +60,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             Balances = balanceTracker;
             trackers.Add(balanceTracker);
 
-            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, spotOrderRestClient, spotOrderSocketClient, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
+            var orderTracker = new SpotOrderTracker(logger, SymbolTracker, openOrderRestClient, closedOrderRestClient, subscribeSpotOrdersOperation, config.OrdersConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
             Orders = orderTracker;
             trackers.Add(orderTracker);
 

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting withdrawals
     /// </summary>
-    public class GetWithdrawalHistoryOptions : PaginatedEndpointOptions<GetWithdrawalsRequest, IGetWithdrawalHistoryEndpoint>
+    public class GetWithdrawalHistoryOptions : PaginatedCapabilityOptions<GetWithdrawalsRequest, IGetWithdrawalHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve withdrawal history";

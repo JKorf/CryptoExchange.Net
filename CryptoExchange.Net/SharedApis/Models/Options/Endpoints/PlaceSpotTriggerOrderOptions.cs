@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceSpotTriggerOrderOptions : EndpointOptions<PlaceSpotTriggerOrderRequest, IPlaceSpotTriggerOrderEndpoint>
+    public class PlaceSpotTriggerOrderOptions : CapabilityOptions<PlaceSpotTriggerOrderRequest, IPlaceSpotTriggerOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Place a new spot trigger order";
@@ -32,11 +32,6 @@ namespace CryptoExchange.Net.SharedApis
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
-
-#warning TODO
-            //var quantityError = client.SpotSupportedOrderQuantity.Validate(request.OrderSide, request.OrderPrice == null ? SharedOrderType.Market : SharedOrderType.Limit, request.Quantity);
-            //if (quantityError != null)
-            //    return quantityError;
 
             return base.ValidateRequest(request, client);
         }

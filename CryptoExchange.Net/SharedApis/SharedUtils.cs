@@ -12,7 +12,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Get client information including supported features
         /// </summary>
-        public static SharedClientInfo GetClientInfo(PlatformInfo platformInfo, ISharedClient client)
+        public static SharedClientInfo GetClientInfo(PlatformInfo platformInfo, ISharedApi client)
         {
             return new SharedClientInfo
             {
@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
                 SupportedEnvironments = platformInfo.SupportedEnvironments,
                 SupportedTradingModes = client.SupportedTradingModes,
                 CentralizationType = platformInfo.CentralizationType,
-                Features = client.EndpointOptions.Where(x => x.Supported).ToArray()
+                Capabilities = client.Capabilities.Where(x => x.Supported).ToArray()
             };
         }
 

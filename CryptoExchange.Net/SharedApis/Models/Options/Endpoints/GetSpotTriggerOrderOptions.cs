@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting spot trigger order
     /// </summary>
-    public class GetSpotTriggerOrderOptions : EndpointOptions<GetOrderRequest, IGetSpotTriggerOrderEndpoint>
+    public class GetSpotTriggerOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotTriggerOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a spot trigger order";

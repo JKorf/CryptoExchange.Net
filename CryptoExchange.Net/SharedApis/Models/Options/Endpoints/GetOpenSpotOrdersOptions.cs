@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a spot order by id endpoint
     /// </summary>
-    public class GetOpenSpotOrdersOptions : EndpointOptions<GetOpenOrdersRequest, IGetOpenSpotOrdersEndpoint>
+    public class GetOpenSpotOrdersOptions : CapabilityOptions<GetOpenOrdersRequest, IGetOpenSpotOrdersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open spot orders";

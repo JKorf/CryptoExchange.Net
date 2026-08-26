@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting closed orders
     /// </summary>
-    public class GetFuturesClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IGetClosedFuturesOrdersEndpoint>
+    public class GetFuturesClosedOrdersOptions : PaginatedCapabilityOptions<GetClosedOrdersRequest, IGetClosedFuturesOrdersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve closed futures orders";

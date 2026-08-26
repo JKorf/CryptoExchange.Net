@@ -54,7 +54,7 @@ namespace CryptoExchange.Net.Testing
         public Task ValidateAsync<TResponse>(
            Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
            string name,
-           EndpointOptions endpointOptions,
+           CapabilityOptions endpointOptions,
             params Func<TResponse, bool>[] validation)
             => ValidateAsync<TResponse, TResponse>(methodInvoke, name, endpointOptions, validation);
 
@@ -72,7 +72,7 @@ namespace CryptoExchange.Net.Testing
         public async Task ValidateAsync<TResponse, TActualResponse>(
             Func<TClient, Task<HttpResult<TResponse>>> methodInvoke,
             string name,
-            EndpointOptions endpointOptions,
+            CapabilityOptions endpointOptions,
             params Func<TResponse, bool>[] validation) where TActualResponse : TResponse
         {
             var listener = new EnumValueTraceListener();

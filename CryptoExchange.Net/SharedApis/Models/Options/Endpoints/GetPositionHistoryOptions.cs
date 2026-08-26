@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting position history
     /// </summary>
-    public class GetPositionHistoryOptions : PaginatedEndpointOptions<GetPositionHistoryRequest, IGetPositionHistoryEndpoint>
+    public class GetPositionHistoryOptions : PaginatedCapabilityOptions<GetPositionHistoryRequest, IGetPositionHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve historical futures positions";

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting trade history
     /// </summary>
-    public class GetTradeHistoryOptions : PaginatedEndpointOptions<GetTradeHistoryRequest, IGetTradeHistoryEndpoint>
+    public class GetTradeHistoryOptions : PaginatedCapabilityOptions<GetTradeHistoryRequest, IGetTradeHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve public trade history for a symbol";

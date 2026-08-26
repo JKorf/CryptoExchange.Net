@@ -12,6 +12,8 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public class SharedClientInfo
     {
+        private CapabilityOptions[] _capabilities = [];
+
         /// <summary>
         /// Exchange name
         /// </summary>
@@ -33,9 +35,26 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public CentralizationType CentralizationType { get; set; }
         /// <summary>
-        /// Endpoint/subscription info
+        /// Use Capabilities instead
         /// </summary>
-        public EndpointOptions[] Features { get; init; } = [];
+        [Obsolete("Use Capabilities instead")]
+        public EndpointOptions[] Features
+        {
+            get => _capabilities
+                .OfType<EndpointOptions>()
+                .ToArray();
+
+            init => _capabilities = value;
+        }
+
+        /// <summary>
+        /// Client capabilities
+        /// </summary>
+        public CapabilityOptions[] Capabilities
+        {
+            get => _capabilities;
+            init => _capabilities = value;
+        }
 
         /// <summary>
         /// Create a string representation for this client
@@ -54,18 +73,18 @@ namespace CryptoExchange.Net.SharedApis
             sb.AppendLine($"Supported environments: {string.Join(", ", SupportedEnvironments)}");
             sb.AppendLine($"Supported trading modes: {string.Join(", ", SupportedTradingModes)}");
             sb.AppendLine($"Centralization type: {CentralizationType}");
-            sb.AppendLine($"Features:");
-            foreach (var feature in Features)
+            sb.AppendLine($"Capabilities:");
+            foreach (var capability in Capabilities)
             {
                 if (detailed)
                 {
-                    var stringRep = feature.ToString();
+                    var stringRep = capability.ToString();
                     foreach(var line in stringRep!.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                         sb.AppendLine($"  {line}");
                 }
                 else
                 {
-                    sb.AppendLine($"  {feature.EndpointName}");
+                    sb.AppendLine($"  {capability.OperationName}");
                 }
                 sb.AppendLine();
             }

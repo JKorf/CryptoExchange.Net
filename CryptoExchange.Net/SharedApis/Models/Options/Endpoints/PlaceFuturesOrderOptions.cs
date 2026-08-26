@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new futures order
     /// </summary>
-    public class PlaceFuturesOrderOptions : EndpointOptions<PlaceFuturesOrderRequest, IPlaceFuturesOrderEndpoint>
+    public class PlaceFuturesOrderOptions : CapabilityOptions<PlaceFuturesOrderRequest, IPlaceFuturesOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Place a new futures order";

@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting symbol info
     /// </summary>
-    public class GetSpotSymbolsOptions : EndpointOptions<GetSymbolsRequest, IGetSpotSymbolsEndpoint>
+    public class GetSpotSymbolsOptions : CapabilityOptions<GetSymbolsRequest, IGetSpotSymbolsEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve supported spot symbols and their trading rules";

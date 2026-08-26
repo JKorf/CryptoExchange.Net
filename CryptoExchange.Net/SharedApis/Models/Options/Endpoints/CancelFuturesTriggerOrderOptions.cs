@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling spot trigger order
     /// </summary>
-    public class CancelFuturesTriggerOrderOptions : EndpointOptions<CancelOrderRequest, ICancelFuturesTriggerOrderEndpoint>
+    public class CancelFuturesTriggerOrderOptions : CapabilityOptions<CancelOrderRequest, ICancelFuturesTriggerOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a futures trigger order";

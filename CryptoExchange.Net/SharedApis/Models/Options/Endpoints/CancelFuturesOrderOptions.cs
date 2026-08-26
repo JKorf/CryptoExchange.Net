@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a futures order
     /// </summary>
-    public class CancelFuturesOrderOptions : EndpointOptions<CancelOrderRequest, ICancelFuturesOrderEndpoint>
+    public class CancelFuturesOrderOptions : CapabilityOptions<CancelOrderRequest, ICancelFuturesOrderEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a futures order";

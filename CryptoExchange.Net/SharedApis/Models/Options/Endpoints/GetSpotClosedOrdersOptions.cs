@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetSpotClosedOrdersOptions : PaginatedEndpointOptions<GetClosedOrdersRequest, IGetClosedSpotOrdersEndpoint>
+    public class GetSpotClosedOrdersOptions : PaginatedCapabilityOptions<GetClosedOrdersRequest, IGetClosedSpotOrdersEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve closed spot orders";

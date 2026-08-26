@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetSpotUserTradeHistoryOptions : PaginatedEndpointOptions<GetUserTradesRequest, IGetSpotUserTradeHistoryEndpoint>
+    public class GetSpotUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetSpotUserTradeHistoryEndpoint>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve spot user trade history";

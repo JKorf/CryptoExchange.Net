@@ -15,8 +15,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class FuturesUserTradeTracker : UserDataItemTracker<SharedUserTrade>
     {
-        private readonly IFuturesOrderRestClient _restClient;
-        private readonly IUserTradeSocketClient? _socketClient;
+        private readonly IGetFuturesUserTradeHistoryEndpoint _restClient;
+        private readonly ISubscribeUserTradesOperation? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TimeSpan _pollOverlapPeriod = TimeSpan.FromSeconds(3);
 
@@ -28,8 +28,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public FuturesUserTradeTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IFuturesOrderRestClient restClient,
-            IUserTradeSocketClient? socketClient,
+            IGetFuturesUserTradeHistoryEndpoint restClient,
+            ISubscribeUserTradesOperation? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,
