@@ -12,6 +12,10 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public SharedQuantityType QuantityType { get; set; }
         /// <summary>
+        /// The sequence number this snapshot or update is at
+        /// </summary>
+        public long? SequenceNumber { get; set; }
+        /// <summary>
         /// Asks list
         /// </summary>
         public ISymbolOrderBookEntry[] Asks { get; set; }
@@ -23,9 +27,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedOrderBook(SharedQuantityType quantityType, ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
+        public SharedOrderBook(SharedQuantityType quantityType, long? sequenceNumber, ISymbolOrderBookEntry[] asks, ISymbolOrderBookEntry[] bids)
         {
             QuantityType = quantityType;
+            SequenceNumber = sequenceNumber;
             Asks = asks;
             Bids = bids;
         }

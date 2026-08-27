@@ -16,7 +16,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetFuturesUserTradeHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryEndpoint.GetFuturesUserTradesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryEndpoint.GetFuturesUserTradeHistoryAsync))
         {
         }
 

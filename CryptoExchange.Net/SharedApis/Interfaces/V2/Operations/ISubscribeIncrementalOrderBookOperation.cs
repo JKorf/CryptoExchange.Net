@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to user spot order updates
+    /// Client for subscribing to incremental order book updates for a symbol
     /// </summary>
-    public interface ISubscribeSpotOrdersOperation : ISharedSubscription
+    public interface ISubscribeIncrementalOrderBookOperation : ISharedSubscription
     {
         /// <summary>
-        /// Spot orders subscription options
+        /// Order book subscription options
         /// </summary>
-        SubscribeSpotOrderOptions SubscribeSpotOrderOptions { get; }
+        SubscribeOrderBookOptions SubscribeOrderBookOptions { get; }
 
         /// <summary>
-        /// Subscribe to user spot order updates
+        /// Subscribe to incremental order book updates for a symbol
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="handler">Update handler</param>
         /// <param name="ct">Cancellation token, can be used to stop the updates</param>
         /// <returns></returns>
-        Task<WebSocketResult<UpdateSubscription>> SubscribeToSpotOrderUpdatesAsync(SubscribeSpotOrderRequest request, Action<DataEvent<SharedSpotOrderUpdate[]>> handler, CancellationToken ct = default);
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToOrderBookUpdatesAsync(SubscribeOrderBookRequest request, Action<DataEvent<SharedOrderBook>> handler, CancellationToken ct = default);
     }
 }

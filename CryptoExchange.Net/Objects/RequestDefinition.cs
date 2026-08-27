@@ -102,6 +102,11 @@ namespace CryptoExchange.Net.Objects
         }
 
         /// <summary>
+        /// Whether concurrent identical requests should be prevented from sharing the same request/response
+        /// </summary>
+        public bool PreventRequestCoalescing { get; set; }
+
+        /// <summary>
         /// ctor
         /// </summary>
         public RequestDefinition(string baseAddress, string path, HttpMethod method)

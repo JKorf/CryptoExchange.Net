@@ -75,7 +75,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             var updatedPollTime = DateTime.UtcNow;
             foreach (var symbol in _symbolTracker.GetTrackedSymbols())
             {
-                var tradesResult = await _restClient.GetFuturesUserTradesAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
+                var tradesResult = await _restClient.GetFuturesUserTradeHistoryAsync(new GetUserTradesRequest(symbol, startTime: fromTimeTrades, exchangeParameters: _exchangeParameters)).ConfigureAwait(false);
                 if (!tradesResult.Success)
                 {
                     anyError = true;

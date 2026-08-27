@@ -98,6 +98,10 @@ namespace CryptoExchange.Net.Clients
         /// Configured environment name
         /// </summary>
         public abstract string EnvironmentName { get; }
+        /// <summary>
+        /// Request coalescer
+        /// </summary>
+        protected RequestCoalescer RequestCoalescer { get; }
 
         /// <summary>
         /// ctor
@@ -123,6 +127,7 @@ namespace CryptoExchange.Net.Clients
         {
             TimeOffsetManager.RegisterRestApi(ClientName);
 
+            RequestCoalescer = new RequestCoalescer(_logger);
             RequestFactory.Configure(options, httpClient);
         }
 
@@ -177,9 +182,63 @@ namespace CryptoExchange.Net.Clients
         /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
         /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
         /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
-        /// <returns></returns>
-        protected virtual async Task<HttpResult<T>> SendAsync<T>(
+        protected virtual Task<HttpResult<T>> SendAsync<T>(
             RequestDefinition definition,
+            Parameters? uriParameters,
+            Parameters? bodyParameters,
+            CancellationToken cancellationToken,
+            Dictionary<string, string>? additionalHeaders = null,
+            int? weight = null,
+            int? weightSingleLimiter = null,
+            string? rateLimitKeySuffix = null)
+        {
+            if (!ShouldCoalesce(definition, additionalHeaders))
+            {
+                return SendCoreAsync<T>(
+                    definition,
+                    uriParameters,
+                    bodyParameters,
+                    cancellationToken,
+                    additionalHeaders,
+                    weight,
+                    weightSingleLimiter,
+                    rateLimitKeySuffix);
+            }
+
+            var key = GetRequestCoalescingKey<T>(
+                definition,
+                uriParameters);
+
+            return RequestCoalescer.ExecuteAsync(
+                key,
+                requestCancellationToken => SendCoreAsync<T>(
+                    definition,
+                    uriParameters,
+                    bodyParameters,
+                    requestCancellationToken,
+                    additionalHeaders,
+                    weight,
+                    weightSingleLimiter,
+                    rateLimitKeySuffix),
+                () => HttpResult.Fail<T>(
+                    Exchange,
+                    new CancellationRequestedError()),
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Send a request to the base address based on the request definition
+        /// </summary>
+        /// <typeparam name="T">Response type</typeparam>
+        /// <param name="definition">Request definition</param>
+        /// <param name="uriParameters">Request query parameters</param>
+        /// <param name="bodyParameters">Request body parameters</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="additionalHeaders">Additional headers for this request</param>
+        /// <param name="weight">Override the request weight for this request definition, for example when the weight depends on the parameters</param>
+        /// <param name="weightSingleLimiter">Specify the weight to apply to the individual rate limit guard for this request</param>
+        /// <param name="rateLimitKeySuffix">An additional optional suffix for the key selector. Can be used to make rate limiting work based on parameters.</param>
+        protected virtual async Task<HttpResult<T>> SendCoreAsync<T>(RequestDefinition definition,
             Parameters? uriParameters,
             Parameters? bodyParameters,
             CancellationToken cancellationToken,
@@ -688,7 +747,10 @@ namespace CryptoExchange.Net.Clients
                         stringData = stringSerializer.Serialize(parameters.BodyValue);
                 }
                 else
+                {
                     stringData = stringSerializer.Serialize(parameters);
+                }
+
                 request.SetContent(stringData, RequestBodyContentEncoding, contentType);
             }
             else if (contentType == Constants.FormContentHeader)
@@ -806,6 +868,34 @@ namespace CryptoExchange.Net.Clients
         protected virtual string GetCacheKey(RequestDefinition definition, Parameters? parameters)
         {
             return definition.FullUrl + definition + parameters?.ToFormData();
+        }
+
+        /// <summary>
+        /// Whether a request can be coalesced or not
+        /// </summary>
+        protected virtual bool ShouldCoalesce(
+            RequestDefinition definition,
+            Dictionary<string, string>? additionalHeaders)
+        {
+            return ClientOptions.RequestCoalescingEnabled                       // Enabled in client options
+                && !definition.PreventRequestCoalescing                         // Enabled in request definition
+                && definition.Method == HttpMethod.Get                          // Is a GET request
+                && !definition.Authenticated                                    // Not an authenticated request
+                && (additionalHeaders == null || additionalHeaders.Count == 0); // No additional headers that might change the response
+        }
+
+        /// <summary>
+        /// Get a unique key for coalescing requests based on the request definition, parameters, and the type of the expected response.
+        /// </summary>
+        protected virtual RequestCoalescingKey GetRequestCoalescingKey<T>(
+            RequestDefinition definition,
+            Parameters? uriParameters)
+        {
+            return new RequestCoalescingKey(
+                definition.Method.Method,
+                definition.FullUrl,
+                uriParameters?.ToFormData(),
+                typeof(T));
         }
 
         /// <inheritdoc />

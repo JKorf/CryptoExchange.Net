@@ -83,18 +83,6 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 changed = true;
             }
 
-            if (updateItem.Fee != null && updateItem.Fee != existingItem.Fee)
-            {
-                existingItem.Fee = updateItem.Fee;
-                changed = true;
-            }
-
-            if (updateItem.FeeAsset != null && updateItem.FeeAsset != existingItem.FeeAsset)
-            {
-                existingItem.FeeAsset = updateItem.FeeAsset;
-                changed = true;
-            }
-
             if (updateItem.OrderQuantity != null && updateItem.OrderQuantity != existingItem.OrderQuantity)
             {
                 existingItem.OrderQuantity = updateItem.OrderQuantity;
@@ -196,16 +184,6 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
                 }
             }
 
-            if (existingItem.Fee != null && updateItem.Fee != null)
-            {
-                // Higher fee means later processing
-                if (existingItem.Fee < updateItem.Fee)
-                    return true;
-
-                if (existingItem.Fee > updateItem.Fee)
-                    return false;
-            }
-
             return null;
         }
 
@@ -214,7 +192,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         {
             await base.HandleUpdateAsync(source, @event).ConfigureAwait(false);
 
-            var trades = @event.Where(x => x.LastTrade != null).Select(x => x.LastTrade!).ToArray();
+            var trades = @event.OfType<SharedFuturesOrderUpdate>().Where(x => x.LastTrade != null).Select(x => x.LastTrade!).ToArray();
             if (trades.Length != 0 && OnTradeUpdate != null)
                 await OnTradeUpdate.Invoke(source, trades).ConfigureAwait(false);
         }
@@ -225,7 +203,7 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             if (_socketClient == null)
                 return Task.FromResult(new WebSocketResult<UpdateSubscription?>(_exchange, default!, default));
 
-            return ExchangeHelpers.ProcessQueuedAsync<SharedFuturesOrder[]>(
+            return ExchangeHelpers.ProcessQueuedAsync<SharedFuturesOrderUpdate[]>(
                 async handler => await _socketClient.SubscribeToFuturesOrderUpdatesAsync(new SubscribeFuturesOrderRequest(exchangeParameters: _exchangeParameters), handler, ct: _cts!.Token).ConfigureAwait(false),
                 x => HandleUpdateAsync(UpdateSource.Push, x.Data))!;
         }

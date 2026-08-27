@@ -65,10 +65,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Asset the fee is in
         /// </summary>
+        [Obsolete("FeeAsset on order level is deprecated and will be removed in a futures version, use FeeAsset on trade level instead")]
         public string? FeeAsset { get; set; }
         /// <summary>
         /// Fee paid for the order
         /// </summary>
+        [Obsolete("Fee on order level is deprecated and will be removed in a futures version, use Fee on trade level instead")]
         public decimal? Fee { get; set; }
         /// <summary>
         /// Timestamp the order was created
@@ -79,8 +81,9 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public DateTime? UpdateTime { get; set; }
         /// <summary>
-        /// Last trade info, only available for websocket order updates if the API provides this data in the update
+        /// Only available for order updates, contains the info on the executed trade
         /// </summary>
+        [Obsolete("Use SharedSpotOrderUpdate.LastTrade instead, LastTrade is never filled on non websocket updates")]
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>

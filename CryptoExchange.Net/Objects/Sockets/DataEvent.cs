@@ -165,7 +165,10 @@ namespace CryptoExchange.Net.Objects.Sockets
             {
                 StreamId = StreamId,
                 UpdateType = UpdateType,
-                Symbol = Symbol                
+                Symbol = Symbol,
+                DataTime = DataTime,
+                DataTimeLocal = DataTimeLocal,
+                SequenceNumber = SequenceNumber
             };
         }
 
