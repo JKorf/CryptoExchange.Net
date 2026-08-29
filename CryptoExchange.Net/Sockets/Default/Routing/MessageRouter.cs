@@ -25,6 +25,9 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             Routes = routes;
         }
 
+        private RouteCollection? GetRoutes(string typeIdentifier)
+            => (_routingTable ?? throw new NullReferenceException("Routing table not build before handling")).GetRoutes(typeIdentifier);
+
         /// <summary>
         /// Build the route mapping
         /// </summary>
@@ -46,11 +49,19 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
         /// </summary>
         public bool Handle(string typeIdentifier, string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result)
         {
-            var routeCollection = (_routingTable ?? throw new NullReferenceException("Routing table not build before handling")).GetRoutes(typeIdentifier);
+            var routeCollection = GetRoutes(typeIdentifier);
             if (routeCollection == null)
                 throw new InvalidOperationException($"No routes for {typeIdentifier} message type");
 
             return routeCollection.Handle(topicFilter, connection, receiveTime, originalData, data, out result);
+        }
+
+        /// <summary>
+        /// Whether the router has a matching route for the specified message type and topic
+        /// </summary>
+        public bool CanHandle(string typeIdentifier, string? topicFilter)
+        {
+            return GetRoutes(typeIdentifier)?.CanHandle(topicFilter) == true;
         }
 
         /// <summary>
