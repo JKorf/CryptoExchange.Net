@@ -17,13 +17,13 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="CapabilityOptions.RequiredRequestParameters"/>, <see cref="CapabilityOptions.RequiredExchangeParameters"/> and <see cref="CapabilityOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetAssetsOptions GetAssetsOptions { get; }
+        GetAllAssetsOptions GetAllAssetsOptions { get; }
 
         /// <summary>
-        /// Get info on all assets the exchange supports, see <see cref="GetAssetsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get info on all assets the exchange supports, see <see cref="GetAllAssetsOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedAsset[]>> GetAssetsAsync(GetAssetsRequest request, CancellationToken ct = default);
+        Task<HttpResult<SharedAsset[]>> GetAllAssetsAsync(GetAssetsRequest request, CancellationToken ct = default);
     }
 }

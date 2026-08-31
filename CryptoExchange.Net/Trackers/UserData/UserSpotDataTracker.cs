@@ -43,7 +43,7 @@ namespace CryptoExchange.Net.Trackers.UserData
             IGetClosedSpotOrdersEndpoint closedOrderRestClient,
             ISubscribeSpotOrdersOperation? subscribeSpotOrdersOperation,
 
-            IGetSpotUserTradeHistoryEndpoint getSpotUserTradeHistoryRestClient,
+            IGetSpotUserTradeHistoryEndpoint? getSpotUserTradeHistoryRestClient,
             ISubscribeUserTradesOperation? userTradeSocketClient,
 
             string? userIdentifier,
@@ -66,6 +66,9 @@ namespace CryptoExchange.Net.Trackers.UserData
 
             if (config.TrackTrades)
             {
+                if (getSpotUserTradeHistoryRestClient == null)
+                    throw new ArgumentException("Trade tracking is enabled, but no user trade API client is available");
+
                 var tradeTracker = new SpotUserTradeTracker(logger, SymbolTracker, getSpotUserTradeHistoryRestClient, userTradeSocketClient, config.UserTradesConfig, config.TrackedSymbols, config.OnlyTrackProvidedSymbols, exchangeParameters);
                 Trades = tradeTracker;
                 trackers.Add(tradeTracker);
