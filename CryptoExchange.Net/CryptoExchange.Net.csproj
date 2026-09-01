@@ -60,7 +60,4 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="System.Threading.Channels" Version="10.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SharedApis\Interfaces\V2\Spot\Orders\" />
-  </ItemGroup>
 </Project>
