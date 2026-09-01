@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public class UserSpotDataTracker : UserDataTracker, IUserSpotDataTracker
     {
-        private readonly IGetSpotSymbolsEndpoint _symbolClient;
+        private readonly IGetSpotSymbolsRest _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
 
         /// <inheritdoc />
@@ -34,17 +34,17 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserSpotDataTracker(
             ILogger logger,
-            IGetSpotSymbolsEndpoint symbolRestClient,
+            IGetSpotSymbolsRest symbolRestClient,
 
-            IGetBalancesEndpoint balanceRestClient,
-            ISubscribeBalancesOperation? balanceSocketClient,
+            IGetBalancesRest balanceRestClient,
+            ISubscribeBalancesSocket? balanceSocketClient,
 
-            IGetOpenSpotOrdersEndpoint openOrderRestClient,
-            IGetClosedSpotOrdersEndpoint closedOrderRestClient,
-            ISubscribeSpotOrdersOperation? subscribeSpotOrdersOperation,
+            IGetOpenSpotOrdersRest openOrderRestClient,
+            IGetClosedSpotOrdersRest closedOrderRestClient,
+            ISubscribeSpotOrdersSocket? subscribeSpotOrdersOperation,
 
-            IGetSpotUserTradeHistoryEndpoint? getSpotUserTradeHistoryRestClient,
-            ISubscribeUserTradesOperation? userTradeSocketClient,
+            IGetSpotUserTradeHistoryRest? getSpotUserTradeHistoryRestClient,
+            ISubscribeUserTradesSocket? userTradeSocketClient,
 
             string? userIdentifier,
             SpotUserDataTrackerConfig config,

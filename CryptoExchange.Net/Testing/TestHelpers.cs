@@ -200,8 +200,8 @@ namespace CryptoExchange.Net.Testing
                 .Where(x =>
                     x != typeof(T)
                     && x != typeof(ISharedApiCapability)
-                    && x != typeof(ISharedApiEndpoint)
-                    && x != typeof(ISharedSocketOperation)
+                    && x != typeof(ISharedRest)
+                    && x != typeof(ISharedSocket)
                     && x != typeof(ISharedSubscription)
                     && typeof(ISharedApiCapability).IsAssignableFrom(x))
                 .ToArray();

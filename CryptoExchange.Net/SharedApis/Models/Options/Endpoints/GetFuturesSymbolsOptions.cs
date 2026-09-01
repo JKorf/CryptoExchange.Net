@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting symbol info
     /// </summary>
-    public class GetFuturesSymbolsOptions : CapabilityOptions<GetSymbolsRequest, IGetFuturesSymbolsEndpoint>
+    public class GetFuturesSymbolsOptions : CapabilityOptions<GetSymbolsRequest, IGetFuturesSymbolsRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve supported futures symbols and their trading rules";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesSymbolsEndpoint.GetFuturesSymbolsAsync))
+        public GetFuturesSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesSymbolsRest.GetFuturesSymbolsAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetSymbolsRequest request, IGetFuturesSymbolsEndpoint client)
+        public override Error? ValidateRequest(GetSymbolsRequest request, IGetFuturesSymbolsRest client)
         {
             if (request.BaseAssetType != null && request.BaseAssetSubType != null)
             {

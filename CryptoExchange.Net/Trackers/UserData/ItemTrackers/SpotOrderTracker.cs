@@ -15,9 +15,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class SpotOrderTracker : UserDataItemTracker<SharedSpotOrder>
     {
-        private readonly IGetOpenSpotOrdersEndpoint _openOrderClient;
-        private readonly IGetClosedSpotOrdersEndpoint _closedOrderClient;
-        private readonly ISubscribeSpotOrdersOperation? _socketClient;
+        private readonly IGetOpenSpotOrdersRest _openOrderClient;
+        private readonly IGetClosedSpotOrdersRest _closedOrderClient;
+        private readonly ISubscribeSpotOrdersSocket? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
         private readonly bool _timeFilterSupportedClosedOrders;
@@ -32,9 +32,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public SpotOrderTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IGetOpenSpotOrdersEndpoint openOrderClient,
-            IGetClosedSpotOrdersEndpoint closedOrderClient,
-            ISubscribeSpotOrdersOperation? socketClient,
+            IGetOpenSpotOrdersRest openOrderClient,
+            IGetClosedSpotOrdersRest closedOrderClient,
+            ISubscribeSpotOrdersSocket? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,

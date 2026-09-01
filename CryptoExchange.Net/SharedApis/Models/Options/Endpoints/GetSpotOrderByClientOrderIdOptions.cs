@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a spot order by client order id endpoint
     /// </summary>
-    public class GetSpotOrderByClientOrderIdOptions : CapabilityOptions<GetOrderRequest, IGetSpotOrderByClientOrderIdEndpoint>
+    public class GetSpotOrderByClientOrderIdOptions : CapabilityOptions<GetOrderRequest, IGetSpotOrderByClientOrderIdRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a spot order by its client order id";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotOrderByClientOrderIdEndpoint.GetSpotOrderByClientOrderIdAsync))
+        public GetSpotOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotOrderByClientOrderIdRest.GetSpotOrderByClientOrderIdAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotOrderByClientOrderIdEndpoint client)
+        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotOrderByClientOrderIdRest client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");

@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.Trackers.UserData
     /// </summary>
     public abstract class UserFuturesDataTracker : UserDataTracker, IUserFuturesDataTracker
     {
-        private readonly IGetFuturesSymbolsEndpoint _symbolClient;
+        private readonly IGetFuturesSymbolsRest _symbolClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly TradingMode _tradingMode;
 
@@ -51,20 +51,20 @@ namespace CryptoExchange.Net.Trackers.UserData
         /// </summary>
         public UserFuturesDataTracker(
             ILogger logger,
-            IGetFuturesSymbolsEndpoint symbolRestClient,
+            IGetFuturesSymbolsRest symbolRestClient,
 
-            IGetBalancesEndpoint balanceRestClient,
-            ISubscribeBalancesOperation? balanceSocketClient,
+            IGetBalancesRest balanceRestClient,
+            ISubscribeBalancesSocket? balanceSocketClient,
 
-            IGetOpenFuturesOrdersEndpoint openOrderRestClient,
-            IGetClosedFuturesOrdersEndpoint closedOrderRestClient,
-            ISubscribeFuturesOrdersOperation? subscribeFuturesOrdersOperation,
+            IGetOpenFuturesOrdersRest openOrderRestClient,
+            IGetClosedFuturesOrdersRest closedOrderRestClient,
+            ISubscribeFuturesOrdersSocket? subscribeFuturesOrdersOperation,
 
-            IGetFuturesUserTradeHistoryEndpoint getFuturesUserTradeHistoryRestClient,
-            ISubscribeUserTradesOperation? userTradeSocketClient,
+            IGetFuturesUserTradeHistoryRest getFuturesUserTradeHistoryRestClient,
+            ISubscribeUserTradesSocket? userTradeSocketClient,
 
-            IGetPositionsEndpoint positionRestClient,
-            ISubscribePositionsOperation? positionSocketClient,
+            IGetPositionsRest positionRestClient,
+            ISubscribePositionsSocket? positionSocketClient,
 
             string? userIdentifier,
             FuturesUserDataTrackerConfig config,

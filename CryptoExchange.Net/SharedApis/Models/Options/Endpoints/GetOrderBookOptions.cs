@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting order book
     /// </summary>
-    public class GetOrderBookOptions : CapabilityOptions<GetOrderBookRequest, IGetOrderBookEndpoint>
+    public class GetOrderBookOptions : CapabilityOptions<GetOrderBookRequest, IGetOrderBookRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current order book for a symbol";
@@ -31,7 +31,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetOrderBookOptions(string exchange, int minLimit, int maxLimit, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetOrderBookEndpoint.GetOrderBookAsync))
+            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync))
         {
             MinLimit = minLimit;
             MaxLimit = maxLimit;
@@ -41,13 +41,13 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetOrderBookOptions(string exchange, int[] supportedLimits, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetOrderBookEndpoint.GetOrderBookAsync))
+            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync))
         {
             SupportedLimits = supportedLimits;
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderBookRequest request, IGetOrderBookEndpoint client)
+        public override Error? ValidateRequest(GetOrderBookRequest request, IGetOrderBookRest client)
         {
             if (request.Limit == null)
                 return base.ValidateRequest(request, client);

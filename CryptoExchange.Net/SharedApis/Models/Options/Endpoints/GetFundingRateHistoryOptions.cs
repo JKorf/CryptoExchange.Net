@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting funding rate history
     /// </summary>
-    public class GetFundingRateHistoryOptions : PaginatedCapabilityOptions<GetFundingRateHistoryRequest, IGetFundingRateHistoryEndpoint>
+    public class GetFundingRateHistoryOptions : PaginatedCapabilityOptions<GetFundingRateHistoryRequest, IGetFundingRateHistoryRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve historical funding rates for a futures symbol";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetFundingRateHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetFundingRateHistoryEndpoint.GetFundingRateHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetFundingRateHistoryRest.GetFundingRateHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetFundingRateHistoryRequest request, IGetFundingRateHistoryEndpoint client)
+        public override Error? ValidateRequest(GetFundingRateHistoryRequest request, IGetFundingRateHistoryRest client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetWithdrawalsRequest.Direction), $"Ascending direction is not supported");

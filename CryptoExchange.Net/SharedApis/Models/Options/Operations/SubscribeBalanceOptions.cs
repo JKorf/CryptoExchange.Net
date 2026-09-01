@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to balance updates
     /// </summary>
-    public class SubscribeBalanceOptions : CapabilityOptions<SubscribeBalancesRequest, ISubscribeBalancesOperation>
+    public class SubscribeBalanceOptions : CapabilityOptions<SubscribeBalancesRequest, ISubscribeBalancesSocket>
     {
         /// <inheritdoc />
         public override string Description => "Subscribe to balance updates";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeBalanceOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBalancesOperation.SubscribeToBalanceUpdatesAsync))
+        public SubscribeBalanceOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBalancesSocket.SubscribeToBalanceUpdatesAsync))
         {
         }
     }

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new futures order
     /// </summary>
-    public class PlaceFuturesOrderSocketOptions : CapabilityOptions<PlaceFuturesOrderRequest, IPlaceFuturesOrderOperation>
+    public class PlaceFuturesOrderSocketOptions : CapabilityOptions<PlaceFuturesOrderRequest, IPlaceFuturesOrderSocket>
     {
         /// <inheritdoc />
         public override string Description => "Place a new futures order over a socket connection";
@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderSocketOptions(string exchange, bool supportsTpSl) : base(exchange, true, nameof(IPlaceFuturesOrderOperation.PlaceFuturesOrderAsync))
+        public PlaceFuturesOrderSocketOptions(string exchange, bool supportsTpSl) : base(exchange, true, nameof(IPlaceFuturesOrderSocket.PlaceFuturesOrderAsync))
         {
             SupportsTpSl = supportsTpSl;
         }
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             PlaceFuturesOrderRequest request,
-            IPlaceFuturesOrderOperation client
+            IPlaceFuturesOrderSocket client
             )
         {
             if (!SupportsTpSl && (request.StopLossPrice != null || request.TakeProfitPrice != null))

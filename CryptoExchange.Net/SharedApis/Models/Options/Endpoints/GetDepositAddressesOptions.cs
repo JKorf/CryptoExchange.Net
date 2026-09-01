@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting deposit address
     /// </summary>
-    public class GetDepositAddressesOptions : CapabilityOptions<GetDepositAddressesRequest, IGetDepositAddressesEndpoint>
+    public class GetDepositAddressesOptions : CapabilityOptions<GetDepositAddressesRequest, IGetDepositAddressesRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve deposit addresses for an asset";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetDepositAddressesOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetDepositAddressesEndpoint.GetDepositAddressesAsync))
+        public GetDepositAddressesOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetDepositAddressesRest.GetDepositAddressesAsync))
         {
         }
     }

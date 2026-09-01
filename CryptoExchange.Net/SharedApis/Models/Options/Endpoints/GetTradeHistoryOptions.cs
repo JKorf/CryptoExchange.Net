@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting trade history
     /// </summary>
-    public class GetTradeHistoryOptions : PaginatedCapabilityOptions<GetTradeHistoryRequest, IGetTradeHistoryEndpoint>
+    public class GetTradeHistoryOptions : PaginatedCapabilityOptions<GetTradeHistoryRequest, IGetTradeHistoryRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve public trade history for a symbol";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetTradeHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetTradeHistoryEndpoint.GetTradeHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetTradeHistoryRest.GetTradeHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetTradeHistoryRequest request, IGetTradeHistoryEndpoint client)
+        public override Error? ValidateRequest(GetTradeHistoryRequest request, IGetTradeHistoryRest client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetTradeHistoryRequest.Direction), $"Ascending direction is not supported");

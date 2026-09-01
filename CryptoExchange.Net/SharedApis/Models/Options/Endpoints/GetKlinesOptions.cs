@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting kline/candlestick data
     /// </summary>
-    public class GetKlinesOptions : PaginatedCapabilityOptions<GetKlinesRequest, IGetKlinesEndpoint>
+    public class GetKlinesOptions : PaginatedCapabilityOptions<GetKlinesRequest, IGetKlinesRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve candlestick data for a symbol";
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesEndpoint.GetKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync))
         {
             SupportIntervals = new[]
             {
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesEndpoint.GetKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync))
         {
             SupportIntervals = intervals;
         }
@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetKlinesRequest request, IGetKlinesEndpoint client)
+        public override Error? ValidateRequest(GetKlinesRequest request, IGetKlinesRest client)
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");

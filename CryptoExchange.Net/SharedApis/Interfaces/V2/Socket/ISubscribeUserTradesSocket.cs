@@ -1,0 +1,28 @@
+﻿using CryptoExchange.Net.Objects;
+using CryptoExchange.Net.Objects.Sockets;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace CryptoExchange.Net.SharedApis
+{
+    /// <summary>
+    /// Client for subscribing to user trade updates
+    /// </summary>
+    public interface ISubscribeUserTradesSocket : ISharedSubscription
+    {
+        /// <summary>
+        /// User trade subscription options
+        /// </summary>
+        SubscribeUserTradeOptions SubscribeUserTradeOptions { get; }
+
+        /// <summary>
+        /// Subscribe to user trade updates
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="handler">Update handler</param>
+        /// <param name="ct">Cancellation token, can be used to stop the updates</param>
+        /// <returns></returns>
+        Task<WebSocketResult<UpdateSubscription>> SubscribeToUserTradeUpdatesAsync(SubscribeUserTradeRequest request, Action<DataEvent<SharedUserTrade[]>> handler, CancellationToken ct = default);
+    }
+}

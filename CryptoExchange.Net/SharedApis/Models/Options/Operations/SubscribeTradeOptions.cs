@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to trade updates
     /// </summary>
-    public class SubscribeTradeOptions : CapabilityOptions<SubscribeTradeRequest, ISubscribeTradesOperation>
+    public class SubscribeTradeOptions : CapabilityOptions<SubscribeTradeRequest, ISubscribeTradesSocket>
     {
         /// <inheritdoc />
         public override string Description => "Subscribe to public trade updates for a symbol";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeTradeOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeTradesOperation.SubscribeToTradeUpdatesAsync))
+        public SubscribeTradeOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeTradesSocket.SubscribeToTradeUpdatesAsync))
         {
         }
     }

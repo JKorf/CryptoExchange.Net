@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting kline/candlestick data
     /// </summary>
-    public class GetMarkPriceKlinesOptions : PaginatedCapabilityOptions<GetKlinesRequest, IGetMarkPriceKlinesEndpoint>
+    public class GetMarkPriceKlinesOptions : PaginatedCapabilityOptions<GetKlinesRequest, IGetMarkPriceKlinesRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve mark price candlestick data";
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesEndpoint.GetMarkPriceKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync))
         {
             SupportIntervals = new[]
             {
@@ -51,7 +51,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesEndpoint.GetMarkPriceKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync))
         {
             SupportIntervals = intervals;
         }
@@ -64,7 +64,7 @@ namespace CryptoExchange.Net.SharedApis
         public bool IsSupported(SharedKlineInterval interval) => SupportIntervals.Contains(interval);
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetKlinesRequest request, IGetMarkPriceKlinesEndpoint client)
+        public override Error? ValidateRequest(GetKlinesRequest request, IGetMarkPriceKlinesRest client)
         {
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");

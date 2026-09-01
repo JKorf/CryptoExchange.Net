@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting recent trades
     /// </summary>
-    public class GetRecentTradesOptions : CapabilityOptions<GetRecentTradesRequest, IGetRecentTradesEndpoint>
+    public class GetRecentTradesOptions : CapabilityOptions<GetRecentTradesRequest, IGetRecentTradesRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve recent public trades for a symbol";
@@ -20,13 +20,13 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetRecentTradesOptions(string exchange, int limit, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetRecentTradesEndpoint.GetRecentTradesAsync))
+            : base(exchange, authenticated, nameof(IGetRecentTradesRest.GetRecentTradesAsync))
         {
             MaxLimit = limit;
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetRecentTradesRequest request, IGetRecentTradesEndpoint client)
+        public override Error? ValidateRequest(GetRecentTradesRequest request, IGetRecentTradesRest client)
         {
             var baseError = base.ValidateRequest(request, client);
             if (baseError != null)

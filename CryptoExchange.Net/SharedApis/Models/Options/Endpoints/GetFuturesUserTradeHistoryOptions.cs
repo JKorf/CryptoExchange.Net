@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetFuturesUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetFuturesUserTradeHistoryEndpoint>
+    public class GetFuturesUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetFuturesUserTradeHistoryRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve futures user trade history";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetFuturesUserTradeHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryEndpoint.GetFuturesUserTradeHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryRest.GetFuturesUserTradeHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetUserTradesRequest request, IGetFuturesUserTradeHistoryEndpoint client)
+        public override Error? ValidateRequest(GetUserTradesRequest request, IGetFuturesUserTradeHistoryRest client)
         {
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetUserTradesRequest.Direction), $"Ascending direction is not supported");

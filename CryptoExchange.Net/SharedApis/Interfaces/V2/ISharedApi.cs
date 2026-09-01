@@ -24,6 +24,11 @@ namespace CryptoExchange.Net.SharedApis
         bool Authenticated { get; }
 
         /// <summary>
+        /// The underlying transport type used by this client
+        /// </summary>
+        SharedTransport Transport { get; }
+
+        /// <summary>
         /// Capabilities and operations exposed by this API
         /// </summary>
         IReadOnlyCollection<CapabilityOptions> Capabilities { get; }

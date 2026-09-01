@@ -388,14 +388,14 @@ namespace CryptoExchange.Net
                 services.AddTransient(x => (ITradeHistoryRestClient)client(x)!);
             if (typeof(IWithdrawalRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IWithdrawalRestClient)client(x)!);
-            if (typeof(IWithdrawEndpoint).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (IWithdrawEndpoint)client(x)!);
+            if (typeof(IWithdrawRest).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (IWithdrawRest)client(x)!);
             if (typeof(IFeeRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IFeeRestClient)client(x)!);
             if (typeof(IBookTickerRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (IBookTickerRestClient)client(x)!);
-            if (typeof(ITransferEndpoint).IsAssignableFrom(typeof(T)))
-                services.AddTransient(x => (ITransferEndpoint)client(x)!);
+            if (typeof(ITransferRest).IsAssignableFrom(typeof(T)))
+                services.AddTransient(x => (ITransferRest)client(x)!);
 
             if (typeof(ISpotOrderRestClient).IsAssignableFrom(typeof(T)))
                 services.AddTransient(x => (ISpotOrderRestClient)client(x)!);
@@ -492,8 +492,8 @@ namespace CryptoExchange.Net
             var markerInterfaces = new[]
             {
                 typeof(ISharedApiCapability),
-                typeof(ISharedApiEndpoint),
-                typeof(ISharedSocketOperation),
+                typeof(ISharedRest),
+                typeof(ISharedSocket),
                 typeof(ISharedSubscription)
             };
 

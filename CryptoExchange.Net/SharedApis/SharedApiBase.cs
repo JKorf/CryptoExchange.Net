@@ -20,6 +20,9 @@ namespace CryptoExchange.Net.SharedApis
         public string Exchange { get; }
 
         /// <inheritdoc />
+        public SharedTransport Transport { get; }
+
+        /// <inheritdoc />
         public TradingMode[] SupportedTradingModes { get; }
 
         /// <inheritdoc />
@@ -29,11 +32,13 @@ namespace CryptoExchange.Net.SharedApis
         /// Shared API base client
         /// </summary>
         public SharedApiBase(
+            SharedTransport transport,
             string exchange,
             TradingMode[] supportedTradingModes,
             Func<bool> authenticated,
             Func<string, string, TradingMode, DateTime?, string> formatSymbol)
         {
+            Transport = transport;
             Exchange = exchange;
             SupportedTradingModes = supportedTradingModes;
             _authDelegate = authenticated;

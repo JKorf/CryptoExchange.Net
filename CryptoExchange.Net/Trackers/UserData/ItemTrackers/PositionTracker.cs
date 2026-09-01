@@ -15,8 +15,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class PositionTracker : UserDataItemTracker<SharedPosition>
     {
-        private readonly IGetPositionsEndpoint _restClient;
-        private readonly ISubscribePositionsOperation? _socketClient;
+        private readonly IGetPositionsRest _restClient;
+        private readonly ISubscribePositionsSocket? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
 
         /// <summary>
@@ -30,8 +30,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public PositionTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IGetPositionsEndpoint restClient,
-            ISubscribePositionsOperation? socketClient,
+            IGetPositionsRest restClient,
+            ISubscribePositionsSocket? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,

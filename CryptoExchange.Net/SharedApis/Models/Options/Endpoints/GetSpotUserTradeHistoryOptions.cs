@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting user trades
     /// </summary>
-    public class GetSpotUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetSpotUserTradeHistoryEndpoint>
+    public class GetSpotUserTradeHistoryOptions : PaginatedCapabilityOptions<GetUserTradesRequest, IGetSpotUserTradeHistoryRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve spot user trade history";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetSpotUserTradeHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetSpotUserTradeHistoryEndpoint.GetSpotUserTradeHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetSpotUserTradeHistoryRest.GetSpotUserTradeHistoryAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetUserTradesRequest request, IGetSpotUserTradeHistoryEndpoint client)
+        public override Error? ValidateRequest(GetUserTradesRequest request, IGetSpotUserTradeHistoryRest client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");

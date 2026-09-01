@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a spot order by id endpoint
     /// </summary>
-    public class GetOpenSpotOrdersOptions : CapabilityOptions<GetOpenOrdersRequest, IGetOpenSpotOrdersEndpoint>
+    public class GetOpenSpotOrdersOptions : CapabilityOptions<GetOpenOrdersRequest, IGetOpenSpotOrdersRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open spot orders";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOpenSpotOrdersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenSpotOrdersEndpoint.GetOpenSpotOrdersAsync))
+        public GetOpenSpotOrdersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenSpotOrdersRest.GetOpenSpotOrdersAsync))
         {
         }
     }

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting open interest
     /// </summary>
-    public class GetOpenInterestOptions : CapabilityOptions<GetOpenInterestRequest, IGetOpenInterestEndpoint>
+    public class GetOpenInterestOptions : CapabilityOptions<GetOpenInterestRequest, IGetOpenInterestRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open interest for a futures symbol";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOpenInterestOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenInterestEndpoint.GetOpenInterestAsync))
+        public GetOpenInterestOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenInterestRest.GetOpenInterestAsync))
         {
         }
     }

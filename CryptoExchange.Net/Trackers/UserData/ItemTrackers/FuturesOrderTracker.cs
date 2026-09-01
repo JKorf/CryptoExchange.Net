@@ -15,9 +15,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
     /// </summary>
     public class FuturesOrderTracker : UserDataItemTracker<SharedFuturesOrder>
     {
-        private readonly IGetOpenFuturesOrdersEndpoint _openOrdersClient;
-        private readonly IGetClosedFuturesOrdersEndpoint _closedOrdersClient;
-        private readonly ISubscribeFuturesOrdersOperation? _socketClient;
+        private readonly IGetOpenFuturesOrdersRest _openOrdersClient;
+        private readonly IGetClosedFuturesOrdersRest _closedOrdersClient;
+        private readonly ISubscribeFuturesOrdersSocket? _socketClient;
         private readonly ExchangeParameters? _exchangeParameters;
         private readonly bool _requiresSymbolParameterOpenOrders;
         private readonly bool _timeFilterSupportedClosedOrders;
@@ -32,9 +32,9 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
         public FuturesOrderTracker(
             ILogger logger,
             UserDataSymbolTracker symbolTracker,
-            IGetOpenFuturesOrdersEndpoint openRestClient,
-            IGetClosedFuturesOrdersEndpoint closedRestClient,
-            ISubscribeFuturesOrdersOperation? socketClient,
+            IGetOpenFuturesOrdersRest openRestClient,
+            IGetClosedFuturesOrdersRest closedRestClient,
+            ISubscribeFuturesOrdersSocket? socketClient,
             TrackerItemConfig config,
             IEnumerable<SharedSymbol> symbols,
             bool onlyTrackProvidedSymbols,

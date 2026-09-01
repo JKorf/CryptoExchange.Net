@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceFuturesTriggerOrderOptions : CapabilityOptions<PlaceFuturesTriggerOrderRequest, IPlaceFuturesTriggerOrderEndpoint>
+    public class PlaceFuturesTriggerOrderOptions : CapabilityOptions<PlaceFuturesTriggerOrderRequest, IPlaceFuturesTriggerOrderRest>
     {
         /// <inheritdoc />
         public override string Description => "Place a new futures trigger order";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceFuturesTriggerOrderEndpoint.PlaceFuturesTriggerOrderAsync))
+        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceFuturesTriggerOrderRest.PlaceFuturesTriggerOrderAsync))
         {
             HoldsFunds = holdsFunds;
         }

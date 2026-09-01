@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a futures order
     /// </summary>
-    public class CancelFuturesOrderSocketOptions : CapabilityOptions<CancelOrderRequest, ICancelFuturesOrderOperation>
+    public class CancelFuturesOrderSocketOptions : CapabilityOptions<CancelOrderRequest, ICancelFuturesOrderSocket>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a futures order over a socket connection";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelFuturesOrderSocketOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelFuturesOrderOperation.CancelFuturesOrderAsync))
+        public CancelFuturesOrderSocketOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelFuturesOrderSocket.CancelFuturesOrderAsync))
         {
         }
     }

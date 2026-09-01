@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to book ticker updates
     /// </summary>
-    public class SubscribeBookTickerOptions : CapabilityOptions<SubscribeBookTickerRequest, ISubscribeBookTickerOperation>
+    public class SubscribeBookTickerOptions : CapabilityOptions<SubscribeBookTickerRequest, ISubscribeBookTickerSocket>
     {
         /// <inheritdoc />
         public override string Description => "Subscribe to best bid and ask price updates";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeBookTickerOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBookTickerOperation.SubscribeToBookTickerUpdatesAsync))
+        public SubscribeBookTickerOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBookTickerSocket.SubscribeToBookTickerUpdatesAsync))
         {
         }
     }

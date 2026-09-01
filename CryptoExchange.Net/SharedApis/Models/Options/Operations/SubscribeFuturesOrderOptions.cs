@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to order updates
     /// </summary>
-    public class SubscribeFuturesOrderOptions : CapabilityOptions<SubscribeFuturesOrderRequest, ISubscribeFuturesOrdersOperation>
+    public class SubscribeFuturesOrderOptions : CapabilityOptions<SubscribeFuturesOrderRequest, ISubscribeFuturesOrdersSocket>
     {
         /// <inheritdoc />
         public override string Description => "Subscribe to futures order updates";
@@ -15,7 +15,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeFuturesOrderOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeFuturesOrdersOperation.SubscribeToFuturesOrderUpdatesAsync))
+        public SubscribeFuturesOrderOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeFuturesOrdersSocket.SubscribeToFuturesOrderUpdatesAsync))
         {
         }
     }

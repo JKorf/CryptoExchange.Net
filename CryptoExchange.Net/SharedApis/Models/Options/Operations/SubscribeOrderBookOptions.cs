@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for subscribing to order book snapshot updates
     /// </summary>
-    public class SubscribeOrderBookOptions : CapabilityOptions<SubscribeOrderBookRequest, ISubscribeOrderBookOperation>
+    public class SubscribeOrderBookOptions : CapabilityOptions<SubscribeOrderBookRequest, ISubscribeOrderBookSocket>
     {
         /// <inheritdoc />
         public override string Description => "Subscribe to order book updates for a symbol";
@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(ISubscribeOrderBookOperation.SubscribeToOrderBookUpdatesAsync))
+        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(ISubscribeOrderBookSocket.SubscribeToOrderBookUpdatesAsync))
         {
             SupportedLimits = limits;
         }
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Validate a request
         /// </summary>
-        public override Error? ValidateRequest(SubscribeOrderBookRequest request, ISubscribeOrderBookOperation client)
+        public override Error? ValidateRequest(SubscribeOrderBookRequest request, ISubscribeOrderBookSocket client)
         {
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return ArgumentError.Invalid(nameof(SubscribeOrderBookRequest.Limit), "Limit not supported");

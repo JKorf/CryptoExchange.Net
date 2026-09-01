@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting tickers
     /// </summary>
-    public class GetAllSpotTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllSpotTickersEndpoint>
+    public class GetAllSpotTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllSpotTickersRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all spot symbols";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetAllSpotTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllSpotTickersEndpoint.GetAllSpotTickersAsync))
+        public GetAllSpotTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllSpotTickersRest.GetAllSpotTickersAsync))
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

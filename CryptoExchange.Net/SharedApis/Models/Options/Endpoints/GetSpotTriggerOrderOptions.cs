@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting spot trigger order
     /// </summary>
-    public class GetSpotTriggerOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotTriggerOrderEndpoint>
+    public class GetSpotTriggerOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotTriggerOrderRest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a spot trigger order";
@@ -16,12 +16,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrderEndpoint.GetSpotTriggerOrderAsync))
+        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrderRest.GetSpotTriggerOrderAsync))
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotTriggerOrderEndpoint client)
+        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotTriggerOrderRest client)
         {
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
