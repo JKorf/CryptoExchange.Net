@@ -128,6 +128,12 @@ Various:
   * PlatformInfo now required support environment names in the constructor
 
 ## Release notes
+* Version 12.5.1 - 01 Sep 2026
+    * Fixed KlineTracker reporting incorrect High/Low price on GetStats result
+    * Fixed caching issue for auth requests
+    * Fixed failed ISymbolOrderBook start potentially leaving a pending background task
+    * Fixed subscription query completion potentially reporting success too early for topic-filtered routes
+
 * Version 12.5.0 - 21 Aug 2026
     * Shared APIs
       * Added ISpotOrderManagementSocketClient for placing/canceling Spot orders via Shared websocket implementation

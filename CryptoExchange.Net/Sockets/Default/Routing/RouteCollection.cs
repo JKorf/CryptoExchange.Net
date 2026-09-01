@@ -60,6 +60,15 @@ namespace CryptoExchange.Net.Sockets.Default.Routing
             return matchingTopicRoutes;
         }
 
+        public bool CanHandle(string? topicFilter)
+        {
+            if (_routesWithoutTopicFilter.Count > 0)
+                return true;
+
+            return topicFilter != null
+                && GetRoutesWithMatchingTopicFilter(topicFilter) != null;
+        }
+
         public abstract bool Handle(string? topicFilter, SocketConnection connection, DateTime receiveTime, string? originalData, object data, out CallResult? result);
     }
 }
