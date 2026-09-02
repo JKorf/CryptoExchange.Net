@@ -83,7 +83,8 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Only available for order updates, contains the info on the executed trade
         /// </summary>
-        [Obsolete("Use SharedSpotOrderUpdate.LastTrade instead, LastTrade is never filled on non websocket updates")]
+        // When V1 Shared API's is deprecated, this property should be marked obsolete as this model will only be used for non-websocket updates
+        //[Obsolete("Use SharedSpotOrderUpdate.LastTrade instead, LastTrade is never filled on non websocket updates")]
         public SharedUserTrade? LastTrade { get; set; }
 
         /// <summary>
