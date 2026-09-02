@@ -210,8 +210,15 @@ namespace CryptoExchange.Net.Testing
                 .Select(x => x.CapabilityType)
                 .ToArray();
 
-            var missingOptions = implementedCapabilities.Except(declaredCapabilities);
-            var missingInterfaces = declaredCapabilities.Except(implementedCapabilities);
+            var missingOptions = implementedCapabilities
+                .Where(implemented =>
+                    !declaredCapabilities.Any(declared =>
+                        declared.IsAssignableFrom(implemented)));
+
+            var missingInterfaces = declaredCapabilities
+                .Where(declared =>
+                    !implementedCapabilities.Any(implemented =>
+                        declared.IsAssignableFrom(implemented)));
 
             return (missingOptions.ToArray(), missingInterfaces.ToArray());
         }
