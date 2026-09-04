@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for canceling a take profit and/or stop loss for an open position on an exchange.
+    /// Operation for canceling a take profit and/or stop loss for an open position on an exchange.
     /// </summary>
     public interface ICancelFuturesTpSl : ISharedApiCapability
     {
@@ -28,16 +28,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for canceling a take profit and/or stop loss for an open position on an exchange.
+    /// Operation for canceling a take profit and/or stop loss for an open position on an exchange via the REST API.
     /// </summary>
     public interface ICancelFuturesTpSlRest : ICancelFuturesTpSl, ISharedRest
     {
-        /// <summary>
-        /// Cancel an active take profit and/or stop loss for an open position, see <see cref="CancelFuturesTpSlOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<bool>> CancelFuturesTpSlAsync(CancelTpSlRequest request, CancellationToken ct = default);
     }
 }

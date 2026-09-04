@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving closed futures orders on an exchange.
+    /// Operation for retrieving closed futures orders on an exchange.
     /// </summary>
     public interface IGetClosedFuturesOrders : ISharedApiCapability
     {
@@ -29,17 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving closed futures orders on an exchange.
+    /// Operation for retrieving closed futures orders on an exchange via the REST API.
     /// </summary>
     public interface IGetClosedFuturesOrdersRest : IGetClosedFuturesOrders, ISharedRest
     {
-        /// <summary>
-        /// Get info on closed futures orders, see <see cref="GetClosedFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesOrder[]>> GetClosedFuturesOrdersAsync(GetClosedOrdersRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

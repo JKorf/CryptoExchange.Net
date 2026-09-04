@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for transferring funds between account types on an exchange.
+    /// Operation for transferring funds between account types on an exchange.
     /// </summary>
     public interface ITransfer : ISharedApiCapability
     {
@@ -28,15 +28,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for transferring funds between account types on an exchange.
+    /// Operation for transferring funds between account types on an exchange via the REST API.
     /// </summary>
     public interface ITransferRest : ITransfer, ISharedRest
-    {        
-        /// <summary>
-        /// Transfer funds between account types, see <see cref="TransferOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+    {
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
     }
 }

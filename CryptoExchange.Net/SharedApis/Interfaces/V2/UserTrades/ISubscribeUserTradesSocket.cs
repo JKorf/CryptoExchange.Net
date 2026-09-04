@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to user trade updates
+    /// Operation for subscribing to user trade updates
     /// </summary>
     public interface ISubscribeUserTradesSocket : ISharedSubscription
     {

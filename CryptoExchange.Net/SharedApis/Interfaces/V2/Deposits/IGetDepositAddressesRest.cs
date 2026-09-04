@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving user deposit addresses on an exchange.
+    /// Operation for retrieving user deposit addresses for an exchange.
     /// </summary>
     public interface IGetDepositAddresses : ISharedApiCapability
     {
@@ -29,16 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving user deposit addresses on an exchange.
+    /// Operation for retrieving user deposit addresses for an exchange via the REST API.
     /// </summary>
     public interface IGetDepositAddressesRest : IGetDepositAddresses, ISharedRest
     {
-        /// <summary>
-        /// Get deposit addresses for an asset, see <see cref="GetDepositAddressesOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
     }
 }

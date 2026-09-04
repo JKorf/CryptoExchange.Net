@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving a futures ticker from an exchange.
+    /// Operation for retrieving a single futures ticker from an exchange.
     /// </summary>
     public interface IGetFuturesTicker : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving a futures ticker from an exchange.
+    /// Operation for retrieving a single futures ticker from an exchange via the REST API.
     /// </summary>
     public interface IGetFuturesTickerRest : IGetFuturesTicker, ISharedRest
     {
-        /// <summary>
-        /// Get ticker info for a specific futures symbol, see <see cref="GetFuturesTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesTicker>> GetFuturesTickerAsync(GetTickerRequest request, CancellationToken ct = default);
     }
 }

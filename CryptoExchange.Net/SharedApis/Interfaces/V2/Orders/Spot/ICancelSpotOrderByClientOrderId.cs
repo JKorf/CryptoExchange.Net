@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for canceling a spot order by client order id on an exchange.
+    /// Operation for canceling a spot order by client order id on an exchange.
     /// </summary>
     public interface ICancelSpotOrderByClientOrderId: ISharedApiCapability
     {
@@ -27,28 +27,20 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for canceling a spot order by client order id on an exchange.
+    /// Operation for canceling a spot order by client order id on an exchange via the REST API.
     /// </summary>
     public interface ICancelSpotOrderByClientOrderIdRest : ICancelSpotOrderByClientOrderId, ISharedRest
     {
-        /// <summary>
-        /// Cancel a spot order using client order id, see <see cref="CancelSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> CancelSpotOrderByClientOrderIdAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Request definition for canceling a spot order by client order id on an exchange.
+    /// Operation for canceling a spot order by client order id on an exchange via the WebSocket API.
     /// </summary>
     public interface ICancelSpotOrderByClientOrderIdSocket : ICancelSpotOrderByClientOrderId, ISharedSocket
     {
-        /// <summary>
-        /// Cancel a spot order using client order id, see <see cref="CancelSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<QueryResult<SharedId>> CancelSpotOrderByClientOrderIdAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 }

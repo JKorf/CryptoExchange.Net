@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for canceling a futures order by client order id on an exchange.
+    /// Operation for canceling an open futures order by its client order id on an exchange.
     /// </summary>
     public interface ICancelFuturesOrderByClientOrderId : ISharedApiCapability
     {
@@ -27,28 +27,20 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for canceling a futures order by client order id on an exchange.
+    /// Operation for canceling an open futures order by its client order id on an exchange via the REST API.
     /// </summary>
     public interface ICancelFuturesOrderByClientOrderIdRest : ICancelFuturesOrderByClientOrderId, ISharedRest
     {
-        /// <summary>
-        /// Cancel a futures order using client order id, see <see cref="CancelFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> CancelFuturesOrderByClientOrderIdAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Endpoint definition for canceling a futures order by client order id on an exchange.
+    /// Operation for canceling an open futures order by its client order id on an exchange via the WebSocket API.
     /// </summary>
     public interface ICancelFuturesOrderByClientOrderIdSocket : ICancelFuturesOrderByClientOrderId, ISharedSocket
     {
-        /// <summary>
-        /// Cancel a futures order using client order id, see <see cref="CancelFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<QueryResult<SharedId>> CancelFuturesOrderByClientOrderIdAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 }

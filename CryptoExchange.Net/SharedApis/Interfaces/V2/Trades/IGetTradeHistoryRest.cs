@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving trade history from an exchange.
+    /// Operation for retrieving trade history from an exchange.
     /// </summary>
     public interface IGetTradeHistory : ISharedApiCapability
     {
@@ -31,19 +31,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving trade history from an exchange.
+    /// Operation for retrieving trade history from an exchange via the REST API.
     /// </summary>
-    public interface IGetTradeHistoryRest : ISharedRest
+    public interface IGetTradeHistoryRest : IGetTradeHistory, ISharedRest
     {
-
-        /// <summary>
-        /// Get public trade history, see <see cref="GetTradeHistoryOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedTrade[]>> GetTradeHistoryAsync(GetTradeHistoryRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

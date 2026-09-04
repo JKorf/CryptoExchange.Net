@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving user asset balances on an exchange.
+    /// Operation for retrieving user asset balances from an exchange.
     /// </summary>
     public interface IGetBalances : ISharedApiCapability
     {
@@ -29,16 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving user asset balances on an exchange.
+    /// Operation for retrieving user asset balances from an exchange via the REST API.
     /// </summary>
     public interface IGetBalancesRest : IGetBalances, ISharedRest
     {
-        /// <summary>
-        /// Get balances for the user, see <see cref="GetBalancesOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
     }
 }

@@ -32,11 +32,7 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public interface IGetFuturesOrderByClientOrderIdRest : IGetFuturesOrderByClientOrderId, ISharedRest
     {
-        /// <summary>
-        /// Get info on a specific futures order using a client order id, see <see cref="GetFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesOrder>> GetFuturesOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
     }
 }

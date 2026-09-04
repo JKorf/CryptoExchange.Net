@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to book ticker updates for a symbol
+    /// Operation for subscribing to book ticker updates for a symbol
     /// </summary>
     public interface ISubscribeBookTickerSocket : ISharedSubscription
     {

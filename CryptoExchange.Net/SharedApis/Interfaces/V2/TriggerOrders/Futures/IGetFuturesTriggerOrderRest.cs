@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for getting a specific futures trigger order from the exchange.
+    /// Operation for getting a specific futures trigger order from the exchange.
     /// </summary>
     public interface IGetFuturesTriggerOrder : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for getting a specific futures trigger order from the exchange.
+    /// Operation for getting a specific futures trigger order from the exchange via the REST API.
     /// </summary>
     public interface IGetFuturesTriggerOrderRest : IGetFuturesTriggerOrder, ISharedRest
-    {        
-        /// <summary>
-        /// Get info on a specific trigger order, see <see cref="GetFuturesTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+    {
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesTriggerOrder>> GetFuturesTriggerOrderAsync(GetOrderRequest request, CancellationToken ct = default);
     }
 }

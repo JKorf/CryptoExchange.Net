@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// A shared/common client interface
+    /// Shared API
     /// </summary>
     public interface ISharedApi
     {

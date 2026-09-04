@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for closing a position on an exchange.
+    /// Operation for closing an open position on an exchange.
     /// </summary>
     public interface IClosePosition : ISharedApiCapability
     {
@@ -28,16 +28,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for closing a position on an exchange.
+    /// Operation for closing an open position on an exchange via the REST API.
     /// </summary>
     public interface IClosePositionRest : IClosePosition, ISharedRest
     {
-        /// <summary>
-        /// Close a currently open position, see <see cref="ClosePositionOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
     }
 }

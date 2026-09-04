@@ -7,7 +7,7 @@ using CryptoExchange.Net.Objects;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to kline/candlestick updates for a symbol
+    /// Operation for subscribing to kline/candlestick updates for a symbol
     /// </summary>
     public interface ISubscribeKlinesSocket : ISharedSubscription
     {

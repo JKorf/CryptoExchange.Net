@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for setting leverage on an exchange.
+    /// Operation for setting leverage on an exchange.
     /// </summary>
     public interface ISetLeverage : ISharedApiCapability
     {
@@ -32,15 +32,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for setting leverage on an exchange.
+    /// Operation for setting leverage on an exchange via the REST API.
     /// </summary>
     public interface ISetLeverageRest : ISetLeverage, ISharedRest
     {
-        /// <summary>
-        /// Set the leverage for a symbol, see <see cref="SetLeverageOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedLeverage>> SetLeverageAsync(SetLeverageRequest request, CancellationToken ct = default);
     }
 }

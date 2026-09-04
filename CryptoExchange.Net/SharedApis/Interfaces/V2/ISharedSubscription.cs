@@ -5,7 +5,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Identifies a fine-grained Shared API subscription capability.
+    /// Shared WebSocket API subscription capabitlity
     /// </summary>
     public interface ISharedSubscription : ISharedSocket
     {

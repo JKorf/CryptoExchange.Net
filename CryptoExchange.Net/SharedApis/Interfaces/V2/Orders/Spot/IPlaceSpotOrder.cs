@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace CryptoExchange.Net.SharedApis
 {
+    /// <summary>
+    /// Operation for placing a spot order on an exchange.
+    /// </summary>
     public interface IPlaceSpotOrder : ISharedApiCapability
     {
         /// <summary>
@@ -42,35 +45,32 @@ namespace CryptoExchange.Net.SharedApis
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
         PlaceSpotOrderOptions PlaceSpotOrderOptions { get; }
-
+        
+        /// <summary>
+        /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
         Task<ICallResult<SharedId>> PlaceSpotOrderAsync(
             PlaceSpotOrderRequest request,
             CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Request definition for placing a spot order on an exchange.
+    /// Operation for placing a spot order on an exchange via the REST API.
     /// </summary>
     public interface IPlaceSpotOrderRest : IPlaceSpotOrder, ISharedRest
     {
-        /// <summary>
-        /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Client for placing and managing spot orders
+    /// Operation for placing a spot order on an exchange via the WebSocket API.
     /// </summary>
     public interface IPlaceSpotOrderSocket : IPlaceSpotOrder, ISharedSocket
     {
-        /// <summary>
-        /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<QueryResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
     }
 }

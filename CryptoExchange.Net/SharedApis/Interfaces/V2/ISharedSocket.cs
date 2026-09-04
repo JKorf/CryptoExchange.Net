@@ -5,7 +5,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Interface for a shared socket operation
+    /// Shared WebSocket API capabitlity
     /// </summary>
     public interface ISharedSocket : ISharedApiCapability
     {

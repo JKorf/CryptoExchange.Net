@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving user trading fees on an exchange.
+    /// Operation for retrieving user trading fees from an exchange.
     /// </summary>
     public interface IGetFees : ISharedApiCapability
     {
@@ -28,15 +28,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving user trading fees on an exchange.
+    /// Operation for retrieving user trading fees from an exchange via the REST API.
     /// </summary>
     public interface IGetFeesRest : IGetFees, ISharedRest
     {
-        /// <summary>
-        /// Get trading fees for a symbol, see <see cref="GetFeeOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
     }
 }

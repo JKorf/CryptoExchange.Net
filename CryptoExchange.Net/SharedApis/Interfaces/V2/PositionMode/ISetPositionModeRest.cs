@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for setting the user position mode on an exchange.
+    /// Operation for setting the user position mode on an exchange.
     /// </summary>
     public interface ISetPositionMode : ISharedApiCapability
     {
@@ -32,15 +32,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for setting the user position mode on an exchange.
+    /// Operation for setting the user position mode on an exchange via the REST API.
     /// </summary>
     public interface ISetPositionModeRest : ISetPositionMode, ISharedRest
     {
-        /// <summary>
-        /// Set the position mode to a new value, see <see cref="SetPositionModeOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
     }
 }

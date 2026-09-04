@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving open futures orders on an exchange.
+    /// Operation for retrieving open futures orders from an exchange.
     /// </summary>
     public interface IGetOpenFuturesOrders : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving open futures orders on an exchange.
+    /// Operation for retrieving open futures orders from an exchange via the REST API.
     /// </summary>
     public interface IGetOpenFuturesOrdersRest : IGetOpenFuturesOrders, ISharedRest
     {
-        /// <summary>
-        /// Get info on a open futures orders, see <see cref="GetOpenFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
     }
 }

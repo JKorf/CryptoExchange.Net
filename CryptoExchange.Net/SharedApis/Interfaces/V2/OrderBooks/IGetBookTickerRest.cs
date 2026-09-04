@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving the best bid/ask prices for a symbol on an exchange.
+    /// Operation for retrieving the best bid/ask prices for a symbol on an exchange.
     /// </summary>
     public interface IGetBookTicker : ISharedApiCapability
     {
@@ -29,16 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving the best bid/ask prices for a symbol on an exchange.
+    /// Operation for retrieving the best bid/ask prices for a symbol on an exchange via the REST API.
     /// </summary>
     public interface IGetBookTickerRest : IGetBookTicker, ISharedRest
     {
-        /// <summary>
-        /// Get the best ask/bid info for a symbol, see <see cref="GetBookTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedBookTicker>> GetBookTickerAsync(GetBookTickerRequest request, CancellationToken ct = default);
     }
 }

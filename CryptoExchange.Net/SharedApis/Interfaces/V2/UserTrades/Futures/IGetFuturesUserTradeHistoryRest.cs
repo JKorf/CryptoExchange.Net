@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving futures user trade history from an exchange. 
+    /// Operation for retrieving futures user trade history from an exchange. 
     /// </summary>
     public interface IGetFuturesUserTradeHistory : ISharedApiCapability
     {
@@ -29,17 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving futures user trade history from an exchange. 
+    /// Operation for retrieving futures user trade history from an exchange via the REST API.
     /// </summary>
     public interface IGetFuturesUserTradeHistoryRest : IGetFuturesUserTradeHistory, ISharedRest
     {
-        /// <summary>
-        /// Get futures user trade records, see <see cref="GetFuturesUserTradeHistoryOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedUserTrade[]>> GetFuturesUserTradeHistoryAsync(GetUserTradesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

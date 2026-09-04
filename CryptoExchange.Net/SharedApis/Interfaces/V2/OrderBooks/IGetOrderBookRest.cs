@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving an order book snapshot for a symbol on an exchange.
+    /// Operation for retrieving an order book snapshot for a symbol on an exchange.
     /// </summary>
     public interface IGetOrderBook : ISharedApiCapability
     {
@@ -29,16 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving an order book snapshot for a symbol on an exchange.
+    /// Operation for retrieving an order book snapshot for a symbol on an exchange via the REST API.
     /// </summary>
     public interface IGetOrderBookRest : IGetOrderBook, ISharedRest
     {
-        /// <summary>
-        /// Get the order book for a symbol, see <see cref="GetOrderBookOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, CancellationToken ct = default);
     }
 }

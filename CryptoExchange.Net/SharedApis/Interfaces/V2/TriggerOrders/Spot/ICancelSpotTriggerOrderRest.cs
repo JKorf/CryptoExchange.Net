@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for canceling a spot trigger order on an exchange
+    /// Operation for canceling a spot trigger order on an exchange.
     /// </summary>
     public interface ICancelSpotTriggerOrder : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for canceling a spot trigger order on an exchange
+    /// Operation for canceling a spot trigger order on an exchange via the REST API.
     /// </summary>
     public interface ICancelSpotTriggerOrderRest : ICancelSpotTriggerOrder, ISharedRest
     {
-        /// <summary>
-        /// Cancel a trigger order, see <see cref="CancelSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> CancelSpotTriggerOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 }

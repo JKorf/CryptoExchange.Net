@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to incremental order book updates for a symbol
+    /// Operation for subscribing to incremental order book updates for a symbol
     /// </summary>
     public interface ISubscribeIncrementalOrderBookSocket : ISharedSubscription
     {

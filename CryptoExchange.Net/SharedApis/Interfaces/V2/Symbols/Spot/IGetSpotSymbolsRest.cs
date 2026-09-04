@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving spot symbols from an exchange.
+    /// Operation for getting supported spot symbols from an exchange.
     /// </summary>
     public interface IGetSpotSymbols: ISharedApiCapability
     {
@@ -51,16 +51,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving spot symbols from an exchange.
+    /// Operation for getting supported futures symbols from an exchange via the REST API.
     /// </summary>
     public interface IGetSpotSymbolsRest : IGetSpotSymbols, ISharedRest
     {
-
-        /// <summary>
-        /// Get info on all available spot symbols on the exchange, see <see cref="GetSpotSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

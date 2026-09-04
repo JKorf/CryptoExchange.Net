@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for canceling a futures order on an exchange.
+    /// Operation for canceling an open futures order on an exchange.
     /// </summary>
     public interface ICancelFuturesOrder : ISharedApiCapability
     {
@@ -27,29 +27,21 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for canceling a futures order on an exchange.
+    /// Operation for canceling an open futures order on an exchange via the REST API.
     /// </summary>
     public interface ICancelFuturesOrderRest : ICancelFuturesOrder, ISharedRest
     {
-        /// <summary>
-        /// Cancel a futures order, see <see cref="CancelFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> CancelFuturesOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 
     }
 
     /// <summary>
-    /// Endpoint definition for canceling a futures order on an exchange.
+    /// Operation for canceling an open futures order on an exchange via the WebSocket API.
     /// </summary>
     public interface ICancelFuturesOrderSocket : ICancelFuturesOrder, ISharedSocket
     {
-        /// <summary>
-        /// Cancel a futures order, see <see cref="CancelFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<QueryResult<SharedId>> CancelFuturesOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
 
     }

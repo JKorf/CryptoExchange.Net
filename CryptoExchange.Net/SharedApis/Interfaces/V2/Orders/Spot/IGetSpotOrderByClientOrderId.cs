@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving a spot order by client order id from an exchange.
+    /// Operation for retrieving a spot order by client order id from an exchange.
     /// </summary>
     public interface IGetSpotOrderByClientOrderId : ISharedApiCapability
     {
@@ -29,15 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving a spot order by client order id from an exchange.
+    /// Operation for retrieving a spot order by client order id from an exchange via the REST API.
     /// </summary>
     public interface IGetSpotOrderByClientOrderIdRest : IGetSpotOrderByClientOrderId, ISharedRest
     {
-        /// <summary>
-        /// Get info on a specific spot order using a client order id, see <see cref="GetSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedSpotOrder>> GetSpotOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
 
     }

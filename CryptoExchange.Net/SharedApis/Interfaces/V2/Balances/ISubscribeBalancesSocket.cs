@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to user balance updates
+    /// Operation for subscribing to user balance updates
     /// </summary>
     public interface ISubscribeBalancesSocket : ISharedSubscription
     {

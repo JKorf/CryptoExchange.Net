@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving leverage information for a symbol on an exchange.
+    /// Operation for retrieving leverage information for a symbol on an exchange.
     /// </summary>
     public interface IGetLeverage : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving leverage information for a symbol on an exchange.
+    /// Operation for retrieving leverage information for a symbol on an exchange via the REST API.
     /// </summary>
     public interface IGetLeverageRest : IGetLeverage, ISharedRest
     {
-        /// <summary>
-        /// Get the current leverage setting for a symbol, see <see cref="GetLeverageOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedLeverage>> GetLeverageAsync(GetLeverageRequest request, CancellationToken ct = default);
     }
 }

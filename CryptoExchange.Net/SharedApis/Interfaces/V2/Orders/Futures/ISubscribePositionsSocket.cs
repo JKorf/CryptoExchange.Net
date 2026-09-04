@@ -7,7 +7,7 @@ using CryptoExchange.Net.Objects;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to position updates
+    /// Operation for subscribing to position updates
     /// </summary>
     public interface ISubscribePositionsSocket : ISharedSubscription
     {

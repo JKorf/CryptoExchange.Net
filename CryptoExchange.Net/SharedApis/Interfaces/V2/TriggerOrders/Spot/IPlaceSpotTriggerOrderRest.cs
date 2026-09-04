@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for placing a spot trigger order on an exchange.
+    /// Operation for placing a spot trigger order on an exchange.
     /// </summary>
     public interface IPlaceSpotTriggerOrder : ISharedApiCapability
     {
@@ -30,16 +30,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for placing a spot trigger order on an exchange.
+    /// Operation for placing a spot trigger order on an exchange via the REST API.
     /// </summary>
     public interface IPlaceSpotTriggerOrderRest : IPlaceSpotTriggerOrder, ISharedRest
     {
-        /// <summary>
-        /// Place a new trigger order, see <see cref="PlaceSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> PlaceSpotTriggerOrderAsync(PlaceSpotTriggerOrderRequest request, CancellationToken ct = default);
 
     }

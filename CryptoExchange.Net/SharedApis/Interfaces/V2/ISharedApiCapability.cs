@@ -5,7 +5,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Interface for a shared API capability
+    /// Shared API capability
     /// </summary>
     public interface ISharedApiCapability : ISharedApi
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Client for subscribing to user spot order updates
+    /// Operation for subscribing to user spot order updates
     /// </summary>
     public interface ISubscribeSpotOrdersSocket : ISharedSubscription
     {

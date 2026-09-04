@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for getting futures symbols from an exchange
+    /// Operation for getting supported futures symbols from an exchange.
     /// </summary>
     public interface IGetFuturesSymbols : ISharedApiCapability
     {
@@ -51,15 +51,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for getting futures symbols from an exchange
+    /// Operation for getting supported futures symbols from an exchange via the REST API.
     /// </summary>
     public interface IGetFuturesSymbolsRest : IGetFuturesSymbols, ISharedRest
     {
-        /// <summary>
-        /// Get info on all futures symbols supported on the exchange, see <see cref="GetFuturesSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

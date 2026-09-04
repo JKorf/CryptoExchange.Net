@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for withdrawing a specific asset from an exchange.
+    /// Operation for withdrawing a specific asset from an exchange.
     /// </summary>
     public interface IWithdraw : ISharedApiCapability
     {
@@ -29,17 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for withdrawing a specific asset from an exchange.
+    /// Operation for withdrawing a specific asset from an exchange via the REST API.
     /// </summary>
     public interface IWithdrawRest : IWithdraw, ISharedRest
     {
-
-        /// <summary>
-        /// Request a withdrawal, see <see cref="WithdrawOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
     }
 }

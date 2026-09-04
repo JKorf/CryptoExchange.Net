@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving recent trades for a symbol on an exchange.
+    /// Operation for retrieving the most recent trades for a symbol on an exchange.
     /// </summary>
     public interface IGetRecentTrades : ISharedApiCapability
     {
@@ -29,17 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving recent trades for a symbol on an exchange.
+    /// Operation for retrieving the most recent trades for a symbol on an exchange via the REST API.
     /// </summary>
     public interface IGetRecentTradesRest : IGetRecentTrades, ISharedRest
     {
-
-        /// <summary>
-        /// Get the most recent public trades, see <see cref="GetRecentTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         new Task<HttpResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
     }
 }

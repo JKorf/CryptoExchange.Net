@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving an asset on an exchange.
+    /// Operation for retrieving asset info from an exchange.
     /// </summary>
     public interface IGetAsset : ISharedApiCapability
     {
@@ -28,15 +28,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving an asset on an exchange.
+    /// Operation for retrieving asset info from an exchange via the REST API.
     /// </summary>
     public interface IGetAssetRest : IGetAsset, ISharedRest
     {
-        /// <summary>
-        /// Get info on a specific asset, see <see cref="GetAssetOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
     }
 }

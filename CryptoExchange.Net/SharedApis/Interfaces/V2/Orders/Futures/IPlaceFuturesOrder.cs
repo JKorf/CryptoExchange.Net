@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for placing a futures order on an exchange.
+    /// Operation for placing a futures order on an exchange.
     /// </summary>
     public interface IPlaceFuturesOrder : ISharedApiCapability
     {
@@ -55,28 +55,20 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for placing a futures order on an exchange.
+    /// Operation for placing a futures order on an exchange via the REST API.
     /// </summary>
     public interface IPlaceFuturesOrderRest : IPlaceFuturesOrder, ISharedRest
     {
-        /// <summary>
-        /// Place a new futures order, see <see cref="PlaceFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Endpoint definition for placing a futures order on an exchange.
+    /// Operation for placing a futures order on an exchange via the WebSocket API.
     /// </summary>
     public interface IPlaceFuturesOrderSocket : IPlaceFuturesOrder, ISharedSocket
     {
-        /// <summary>
-        /// Place a new futures order, see <see cref="PlaceFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<QueryResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
     }
 }

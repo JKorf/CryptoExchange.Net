@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for getting trades for a specific spot order on an exchange.
+    /// Operation for getting trades for a specific spot order on an exchange.
     /// </summary>
     public interface IGetSpotOrderTrades : ISharedApiCapability
     {
@@ -29,16 +29,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for getting trades for a specific spot order on an exchange.
+    /// Operation for getting trades for a specific spot order on an exchange via the REST API.
     /// </summary>
     public interface IGetSpotOrderTradesRest : IGetSpotOrderTrades, ISharedRest
     {
-        /// <summary>
-        /// Get trades for a specific spot order, see <see cref="GetSpotOrderTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedUserTrade[]>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
 
     }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Endpoint definition for retrieving open interest data from an exchange
+    /// Operation for retrieving open interest data from an exchange.
     /// </summary>
     public interface IGetOpenInterest : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Endpoint definition for retrieving open interest data from an exchange
+    /// Operation for retrieving open interest data from an exchange via the REST API.
     /// </summary>
     public interface IGetOpenInterestRest : IGetOpenInterest, ISharedRest
     {
-        /// <summary>
-        /// Get the open interest for a symbol, see <see cref="GetOpenInterestOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, CancellationToken ct = default);
     }
 }

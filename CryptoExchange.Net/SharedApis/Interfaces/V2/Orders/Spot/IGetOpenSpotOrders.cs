@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request definition for retrieving open spot order from an exchange.
+    /// Operation for retrieving open spot orders from an exchange.
     /// </summary>
     public interface IGetOpenSpotOrders : ISharedApiCapability
     {
@@ -27,15 +27,11 @@ namespace CryptoExchange.Net.SharedApis
     }
 
     /// <summary>
-    /// Request definition for retrieving open spot order from an exchange.
+    /// Operation for retrieving open spot orders from an exchange via the REST API.
     /// </summary>
     public interface IGetOpenSpotOrdersRest : IGetOpenSpotOrders, ISharedRest
     {
-        /// <summary>
-        /// Get info on a open spot orders, see <see cref="GetOpenSpotOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
-        /// </summary>
-        /// <param name="request">Request info</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <inheritdoc />
         new Task<HttpResult<SharedSpotOrder[]>> GetOpenSpotOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
     }
 }
