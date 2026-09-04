@@ -47,4 +47,30 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotOrderRequest request,
             CancellationToken ct = default);
     }
+
+    /// <summary>
+    /// Request definition for placing a spot order on an exchange.
+    /// </summary>
+    public interface IPlaceSpotOrderRest : IPlaceSpotOrder, ISharedRest
+    {
+        /// <summary>
+        /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Client for placing and managing spot orders
+    /// </summary>
+    public interface IPlaceSpotOrderSocket : IPlaceSpotOrder, ISharedSocket
+    {
+        /// <summary>
+        /// Place a new spot order, see <see cref="PlaceSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<QueryResult<SharedId>> PlaceSpotOrderAsync(PlaceSpotOrderRequest request, CancellationToken ct = default);
+    }
 }

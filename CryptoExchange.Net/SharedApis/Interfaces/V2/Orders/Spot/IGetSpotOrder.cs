@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving a spot order from an exchange.
     /// </summary>
-    public interface IGetSpotOrderRest : ISharedRest
+    public interface IGetSpotOrder : ISharedApiCapability
     {
         /// <summary>
         /// Spot get order request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedSpotOrder>> GetSpotOrderAsync(GetOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedSpotOrder>> GetSpotOrderAsync(GetOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving a spot order from an exchange.
+    /// </summary>
+    public interface IGetSpotOrderRest : IGetSpotOrder, ISharedRest
+    {
+        /// <summary>
+        /// Get info on a specific spot order, see <see cref="GetSpotOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedSpotOrder>> GetSpotOrderAsync(GetOrderRequest request, CancellationToken ct = default);
     }
 }

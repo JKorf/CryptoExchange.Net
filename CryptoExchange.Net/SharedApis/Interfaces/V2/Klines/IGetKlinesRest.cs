@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for getting kline/candlestick data from an exchange.
     /// </summary>
-    public interface IGetKlinesRest : ISharedRest
+    public interface IGetKlines : ISharedApiCapability
     {
         /// <summary>
         /// Kline request options.<br />
@@ -27,6 +27,22 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedKline[]>> GetKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<ICallResult<SharedKline[]>> GetKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for getting kline/candlestick data from an exchange.
+    /// </summary>
+    public interface IGetKlinesRest : IGetKlines, ISharedRest
+    {
+        /// <summary>
+        /// Get kline/candlestick data, see <see cref="GetKlinesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedKline[]>> GetKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

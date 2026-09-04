@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for placing a futures order on an exchange.
     /// </summary>
-    public interface IPlaceFuturesOrderRest : ISharedRest
+    public interface IPlaceFuturesOrder : ISharedApiCapability
     {
         /// <summary>
         /// How the trading fee is deducted
@@ -51,6 +51,32 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for placing a futures order on an exchange.
+    /// </summary>
+    public interface IPlaceFuturesOrderRest : IPlaceFuturesOrder, ISharedRest
+    {
+        /// <summary>
+        /// Place a new futures order, see <see cref="PlaceFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for placing a futures order on an exchange.
+    /// </summary>
+    public interface IPlaceFuturesOrderSocket : IPlaceFuturesOrder, ISharedSocket
+    {
+        /// <summary>
+        /// Place a new futures order, see <see cref="PlaceFuturesOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<QueryResult<SharedId>> PlaceFuturesOrderAsync(PlaceFuturesOrderRequest request, CancellationToken ct = default);
     }
 }

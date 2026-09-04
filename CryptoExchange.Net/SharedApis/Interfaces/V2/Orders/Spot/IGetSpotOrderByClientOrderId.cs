@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving a spot order by client order id from an exchange.
     /// </summary>
-    public interface IGetSpotOrderByClientOrderIdRest : ISharedRest
+    public interface IGetSpotOrderByClientOrderId : ISharedApiCapability
     {
         /// <summary>
         /// Spot get order by client order id request options.<br />
@@ -24,7 +24,21 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedSpotOrder>> GetSpotOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedSpotOrder>> GetSpotOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
+
+    }
+
+    /// <summary>
+    /// Request definition for retrieving a spot order by client order id from an exchange.
+    /// </summary>
+    public interface IGetSpotOrderByClientOrderIdRest : IGetSpotOrderByClientOrderId, ISharedRest
+    {
+        /// <summary>
+        /// Get info on a specific spot order using a client order id, see <see cref="GetSpotOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedSpotOrder>> GetSpotOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
 
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for getting trades for a specific futures order on an exchange.
     /// </summary>
-    public interface IGetFuturesOrderTradesRest : ISharedRest
+    public interface IGetFuturesOrderTrades : ISharedApiCapability
     {
         /// <summary>
         /// Futures get order trades request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedUserTrade[]>> GetFuturesOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedUserTrade[]>> GetFuturesOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for getting trades for a specific futures order on an exchange.
+    /// </summary>
+    public interface IGetFuturesOrderTradesRest : IGetFuturesOrderTrades, ISharedRest
+    {
+        /// <summary>
+        /// Get trades for a specific futures order, see <see cref="GetFuturesOrderTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedUserTrade[]>> GetFuturesOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
     }
 }

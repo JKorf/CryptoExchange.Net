@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving an asset on an exchange.
     /// </summary>
-    public interface IGetAssetRest : ISharedRest
+    public interface IGetAsset : ISharedApiCapability
     {
         /// <summary>
         /// Asset request options.<br />
@@ -24,6 +24,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving an asset on an exchange.
+    /// </summary>
+    public interface IGetAssetRest : IGetAsset, ISharedRest
+    {
+        /// <summary>
+        /// Get info on a specific asset, see <see cref="GetAssetOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedAsset>> GetAssetAsync(GetAssetRequest request, CancellationToken ct = default);
     }
 }

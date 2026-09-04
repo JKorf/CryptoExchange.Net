@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving user trading fees on an exchange.
     /// </summary>
-    public interface IGetFeesRest : ISharedRest
+    public interface IGetFees : ISharedApiCapability
     {
         /// <summary>
         /// Fee request options.<br />
@@ -24,6 +24,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving user trading fees on an exchange.
+    /// </summary>
+    public interface IGetFeesRest : IGetFees, ISharedRest
+    {
+        /// <summary>
+        /// Get trading fees for a symbol, see <see cref="GetFeeOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFee>> GetFeesAsync(GetFeeRequest request, CancellationToken ct = default);
     }
 }

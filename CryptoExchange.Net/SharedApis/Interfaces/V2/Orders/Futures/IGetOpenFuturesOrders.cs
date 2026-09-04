@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving open futures orders on an exchange.
     /// </summary>
-    public interface IGetOpenFuturesOrdersRest : ISharedRest
+    public interface IGetOpenFuturesOrders : ISharedApiCapability
     {
         /// <summary>
         /// Futures get open orders request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving open futures orders on an exchange.
+    /// </summary>
+    public interface IGetOpenFuturesOrdersRest : IGetOpenFuturesOrders, ISharedRest
+    {
+        /// <summary>
+        /// Get info on a open futures orders, see <see cref="GetOpenFuturesOrdersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesOrder[]>> GetOpenFuturesOrdersAsync(GetOpenOrdersRequest request, CancellationToken ct = default);
     }
 }

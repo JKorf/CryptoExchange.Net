@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving recent trades for a symbol on an exchange.
     /// </summary>
-    public interface IGetRecentTradesRest : ISharedRest
+    public interface IGetRecentTrades : ISharedApiCapability
     {
         /// <summary>
         /// Recent trades request options.<br />
@@ -25,6 +25,21 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving recent trades for a symbol on an exchange.
+    /// </summary>
+    public interface IGetRecentTradesRest : IGetRecentTrades, ISharedRest
+    {
+
+        /// <summary>
+        /// Get the most recent public trades, see <see cref="GetRecentTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedTrade[]>> GetRecentTradesAsync(GetRecentTradesRequest request, CancellationToken ct = default);
     }
 }

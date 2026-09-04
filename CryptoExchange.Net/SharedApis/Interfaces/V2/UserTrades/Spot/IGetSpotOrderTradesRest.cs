@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for getting trades for a specific spot order on an exchange.
     /// </summary>
-    public interface IGetSpotOrderTradesRest : ISharedRest
+    public interface IGetSpotOrderTrades : ISharedApiCapability
     {
         /// <summary>
         /// Spot get order trades request options.<br />
@@ -24,7 +24,22 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedUserTrade[]>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedUserTrade[]>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
+
+    }
+
+    /// <summary>
+    /// Request definition for getting trades for a specific spot order on an exchange.
+    /// </summary>
+    public interface IGetSpotOrderTradesRest : IGetSpotOrderTrades, ISharedRest
+    {
+        /// <summary>
+        /// Get trades for a specific spot order, see <see cref="GetSpotOrderTradesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the `NextPageRequest` property of the result will contain the pagination request to be used for the next request to continue pagination.
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedUserTrade[]>> GetSpotOrderTradesAsync(GetOrderTradesRequest request, CancellationToken ct = default);
 
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving open interest data from an exchange
     /// </summary>
-    public interface IGetOpenInterestRest : ISharedRest
+    public interface IGetOpenInterest : ISharedApiCapability
     {
         /// <summary>
         /// Open interest request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving open interest data from an exchange
+    /// </summary>
+    public interface IGetOpenInterestRest : IGetOpenInterest, ISharedRest
+    {
+        /// <summary>
+        /// Get the open interest for a symbol, see <see cref="GetOpenInterestOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedOpenInterest>> GetOpenInterestAsync(GetOpenInterestRequest request, CancellationToken ct = default);
     }
 }

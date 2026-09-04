@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving open positions from an exchange.
     /// </summary>
-    public interface IGetPositionsRest : ISharedRest
+    public interface IGetPositions : ISharedApiCapability
     {
         /// <summary>
         /// Positions request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedPosition[]>> GetPositionsAsync(GetPositionsRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedPosition[]>> GetPositionsAsync(GetPositionsRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving open positions from an exchange.
+    /// </summary>
+    public interface IGetPositionsRest : IGetPositions, ISharedRest
+    {
+        /// <summary>
+        /// Get open position info, see <see cref="GetPositionsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedPosition[]>> GetPositionsAsync(GetPositionsRequest request, CancellationToken ct = default);
     }
 }

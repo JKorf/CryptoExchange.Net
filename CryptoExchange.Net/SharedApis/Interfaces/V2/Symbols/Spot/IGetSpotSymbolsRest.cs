@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving spot symbols from an exchange.
     /// </summary>
-    public interface IGetSpotSymbolsRest : ISharedRest
+    public interface IGetSpotSymbols: ISharedApiCapability
     {
         /// <summary>
         /// Get the spot symbol catalog. Only available if <see cref="GetSpotSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
@@ -47,6 +47,20 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving spot symbols from an exchange.
+    /// </summary>
+    public interface IGetSpotSymbolsRest : IGetSpotSymbols, ISharedRest
+    {
+
+        /// <summary>
+        /// Get info on all available spot symbols on the exchange, see <see cref="GetSpotSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedSpotSymbol[]>> GetSpotSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving user asset balances on an exchange.
     /// </summary>
-    public interface IGetBalancesRest : ISharedRest
+    public interface IGetBalances : ISharedApiCapability
     {
         /// <summary>
         /// Balances request options.<br />
@@ -25,6 +25,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving user asset balances on an exchange.
+    /// </summary>
+    public interface IGetBalancesRest : IGetBalances, ISharedRest
+    {
+        /// <summary>
+        /// Get balances for the user, see <see cref="GetBalancesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedBalance[]>> GetBalancesAsync(GetBalancesRequest request, CancellationToken ct = default);
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving all spot tickers from an exchange.
     /// </summary>
-    public interface IGetAllSpotTickersRest : ISharedRest
+    public interface IGetAllSpotTickers : ISharedApiCapability
     {
         /// <summary>
         /// Spot tickers request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
+        Task<ICallResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
+    }
+
+    /// <summary>
+    /// Request definition for retrieving all spot tickers from an exchange.
+    /// </summary>
+    public interface IGetAllSpotTickersRest : IGetAllSpotTickers, ISharedRest
+    {
+        /// <summary>
+        /// Get tickers for all spot symbols, see <see cref="GetAllSpotTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

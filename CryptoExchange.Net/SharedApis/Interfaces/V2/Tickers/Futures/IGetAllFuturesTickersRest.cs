@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving all futures tickers from an exchange.
     /// </summary>
-    public interface IGetAllFuturesTickersRest : ISharedRest
+    public interface IGetAllFuturesTickers : ISharedApiCapability
     {
         /// <summary>
         /// Futures get tickers request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesTicker[]>> GetAllFuturesTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesTicker[]>> GetAllFuturesTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving all futures tickers from an exchange.
+    /// </summary>
+    public interface IGetAllFuturesTickersRest : IGetAllFuturesTickers
+    {
+        /// <summary>
+        /// Get ticker info for all futures symbols, see <see cref="GetAllFuturesTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesTicker[]>> GetAllFuturesTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

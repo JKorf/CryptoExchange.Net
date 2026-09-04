@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for transferring funds between account types on an exchange.
     /// </summary>
-    public interface ITransferRest : ISharedRest
+    public interface ITransfer : ISharedApiCapability
     {
         /// <summary>
         /// Transfer request options.<br />
@@ -24,6 +24,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for transferring funds between account types on an exchange.
+    /// </summary>
+    public interface ITransferRest : ITransfer, ISharedRest
+    {        
+        /// <summary>
+        /// Transfer funds between account types, see <see cref="TransferOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedId>> TransferAsync(TransferRequest request, CancellationToken ct = default);
     }
 }

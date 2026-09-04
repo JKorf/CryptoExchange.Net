@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving user deposit addresses on an exchange.
     /// </summary>
-    public interface IGetDepositAddressesRest : ISharedRest
+    public interface IGetDepositAddresses : ISharedApiCapability
     {
         /// <summary>
         /// Deposit addresses request options.<br />
@@ -25,6 +25,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving user deposit addresses on an exchange.
+    /// </summary>
+    public interface IGetDepositAddressesRest : IGetDepositAddresses, ISharedRest
+    {
+        /// <summary>
+        /// Get deposit addresses for an asset, see <see cref="GetDepositAddressesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedDepositAddress[]>> GetDepositAddressesAsync(GetDepositAddressesRequest request, CancellationToken ct = default);
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for getting futures symbols from an exchange
     /// </summary>
-    public interface IGetFuturesSymbolsRest : ISharedRest
+    public interface IGetFuturesSymbols : ISharedApiCapability
     {
         /// <summary>
         /// Get the futures symbol catalog. Only available if <see cref="GetFuturesSymbolsAsync(GetSymbolsRequest, CancellationToken)"/> has been called previously.
@@ -47,6 +47,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for getting futures symbols from an exchange
+    /// </summary>
+    public interface IGetFuturesSymbolsRest : IGetFuturesSymbols, ISharedRest
+    {
+        /// <summary>
+        /// Get info on all futures symbols supported on the exchange, see <see cref="GetFuturesSymbolsOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesSymbol[]>> GetFuturesSymbolsAsync(GetSymbolsRequest request, CancellationToken ct = default);
     }
 }

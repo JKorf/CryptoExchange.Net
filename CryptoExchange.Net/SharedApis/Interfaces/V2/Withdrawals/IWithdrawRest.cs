@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for withdrawing a specific asset from an exchange.
     /// </summary>
-    public interface IWithdrawRest : ISharedRest
+    public interface IWithdraw : ISharedApiCapability
     {
         /// <summary>
         /// Withdraw request options.<br />
@@ -25,6 +25,21 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for withdrawing a specific asset from an exchange.
+    /// </summary>
+    public interface IWithdrawRest : IWithdraw, ISharedRest
+    {
+
+        /// <summary>
+        /// Request a withdrawal, see <see cref="WithdrawOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedId>> WithdrawAsync(WithdrawRequest request, CancellationToken ct = default);
     }
 }

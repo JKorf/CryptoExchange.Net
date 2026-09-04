@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving mark price kline/candlestick data from an exchange.
     /// </summary>
-    public interface IGetMarkPriceKlinesRest : ISharedRest
+    public interface IGetMarkPriceKlines : ISharedApiCapability
     {
         /// <summary>
         /// Mark price klines request options.<br />
@@ -25,6 +25,21 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesKline[]>> GetMarkPriceKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesKline[]>> GetMarkPriceKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving mark price kline/candlestick data from an exchange.
+    /// </summary>
+    public interface IGetMarkPriceKlinesRest : IGetMarkPriceKlines, ISharedRest
+    {
+        /// <summary>
+        /// Get mark price kline/candlestick data, see <see cref="GetMarkPriceKlinesOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// The result is paginated, if there are more results to be retrieved, the <see cref="HttpResult{T}.NextPageRequest"/> property of the result will contain the pagination request to be used for the next request to continue pagination.
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="nextPageToken">The pagination request from the previous request result <see cref="HttpResult{T}.NextPageRequest"/> property to continue pagination</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesKline[]>> GetMarkPriceKlinesAsync(GetKlinesRequest request, PageRequest? nextPageToken = null, CancellationToken ct = default);
     }
 }

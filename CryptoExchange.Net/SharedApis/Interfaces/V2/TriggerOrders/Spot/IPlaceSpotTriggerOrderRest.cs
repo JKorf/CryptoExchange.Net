@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for placing a spot trigger order on an exchange.
     /// </summary>
-    public interface IPlaceSpotTriggerOrderRest : ISharedRest
+    public interface IPlaceSpotTriggerOrder : ISharedApiCapability
     {
         /// <summary>
         /// Place spot trigger order options.<br />
@@ -25,7 +25,22 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedId>> PlaceSpotTriggerOrderAsync(PlaceSpotTriggerOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> PlaceSpotTriggerOrderAsync(PlaceSpotTriggerOrderRequest request, CancellationToken ct = default);
+
+    }
+
+    /// <summary>
+    /// Request definition for placing a spot trigger order on an exchange.
+    /// </summary>
+    public interface IPlaceSpotTriggerOrderRest : IPlaceSpotTriggerOrder, ISharedRest
+    {
+        /// <summary>
+        /// Place a new trigger order, see <see cref="PlaceSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedId>> PlaceSpotTriggerOrderAsync(PlaceSpotTriggerOrderRequest request, CancellationToken ct = default);
 
     }
 }

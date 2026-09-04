@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for setting the user position mode on an exchange.
     /// </summary>
-    public interface ISetPositionModeRest : ISharedRest
+    public interface ISetPositionMode : ISharedApiCapability
     {
         /// <summary>
         /// How the exchange handles setting the position mode
@@ -28,6 +28,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for setting the user position mode on an exchange.
+    /// </summary>
+    public interface ISetPositionModeRest : ISetPositionMode, ISharedRest
+    {
+        /// <summary>
+        /// Set the position mode to a new value, see <see cref="SetPositionModeOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedPositionModeResult>> SetPositionModeAsync(SetPositionModeRequest request, CancellationToken ct = default);
     }
 }

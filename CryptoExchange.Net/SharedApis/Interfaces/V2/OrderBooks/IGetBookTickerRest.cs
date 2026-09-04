@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving the best bid/ask prices for a symbol on an exchange.
     /// </summary>
-    public interface IGetBookTickerRest : ISharedRest
+    public interface IGetBookTicker : ISharedApiCapability
     {
         /// <summary>
         /// Book ticker request options.<br />
@@ -25,6 +25,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedBookTicker>> GetBookTickerAsync(GetBookTickerRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedBookTicker>> GetBookTickerAsync(GetBookTickerRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving the best bid/ask prices for a symbol on an exchange.
+    /// </summary>
+    public interface IGetBookTickerRest : IGetBookTicker, ISharedRest
+    {
+        /// <summary>
+        /// Get the best ask/bid info for a symbol, see <see cref="GetBookTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedBookTicker>> GetBookTickerAsync(GetBookTickerRequest request, CancellationToken ct = default);
     }
 }

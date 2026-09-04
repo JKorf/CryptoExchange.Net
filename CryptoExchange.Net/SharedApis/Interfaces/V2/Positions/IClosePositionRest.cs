@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for closing a position on an exchange.
     /// </summary>
-    public interface IClosePositionRest : ISharedRest
+    public interface IClosePosition : ISharedApiCapability
     {
         /// <summary>
         /// Close position order request options.<br />
@@ -24,6 +24,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for closing a position on an exchange.
+    /// </summary>
+    public interface IClosePositionRest : IClosePosition, ISharedRest
+    {
+        /// <summary>
+        /// Close a currently open position, see <see cref="ClosePositionOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedId>> ClosePositionAsync(ClosePositionRequest request, CancellationToken ct = default);
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Endpoint definition for retrieving a futures order by client order id on an exchange.
     /// </summary>
-    public interface IGetFuturesOrderByClientOrderIdRest : ISharedRest
+    public interface IGetFuturesOrderByClientOrderId : ISharedApiCapability
     {
         /// <summary>
         /// Futures get order by client order id request options.<br />
@@ -24,6 +24,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesOrder>> GetFuturesOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesOrder>> GetFuturesOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Endpoint definition for retrieving a futures order by client order id on an exchange.
+    /// </summary>
+    public interface IGetFuturesOrderByClientOrderIdRest : IGetFuturesOrderByClientOrderId, ISharedRest
+    {
+        /// <summary>
+        /// Get info on a specific futures order using a client order id, see <see cref="GetFuturesOrderByClientOrderIdOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesOrder>> GetFuturesOrderByClientOrderIdAsync(GetOrderRequest request, CancellationToken ct = default);
     }
 }

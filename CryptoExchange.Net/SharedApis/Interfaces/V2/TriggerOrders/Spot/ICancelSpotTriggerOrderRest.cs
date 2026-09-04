@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for canceling a spot trigger order on an exchange
     /// </summary>
-    public interface ICancelSpotTriggerOrderRest : ISharedRest
+    public interface ICancelSpotTriggerOrder : ISharedApiCapability
     {
         /// <summary>
         /// Cancel trigger order request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedId>> CancelSpotTriggerOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> CancelSpotTriggerOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for canceling a spot trigger order on an exchange
+    /// </summary>
+    public interface ICancelSpotTriggerOrderRest : ICancelSpotTriggerOrder, ISharedRest
+    {
+        /// <summary>
+        /// Cancel a trigger order, see <see cref="CancelSpotTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedId>> CancelSpotTriggerOrderAsync(CancelOrderRequest request, CancellationToken ct = default);
     }
 }

@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for setting take profit and/or stop loss for an open position on an exchange.
     /// </summary>
-    public interface ISetFuturesTpSlRest : ISharedRest
+    public interface ISetFuturesTpSl : ISharedApiCapability
     {
         /// <summary>
         /// Set take profit and/or stop loss options.<br />
@@ -24,6 +24,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedId>> SetFuturesTpSlAsync(SetTpSlRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedId>> SetFuturesTpSlAsync(SetTpSlRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for setting take profit and/or stop loss for an open position on an exchange.
+    /// </summary>
+    public interface ISetFuturesTpSlRest : ISetFuturesTpSl, ISharedRest
+    {
+        /// <summary>
+        /// Set a take profit and/or stop loss for an open position, see <see cref="SetFuturesTpSlOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedId>> SetFuturesTpSlAsync(SetTpSlRequest request, CancellationToken ct = default);
     }
 }

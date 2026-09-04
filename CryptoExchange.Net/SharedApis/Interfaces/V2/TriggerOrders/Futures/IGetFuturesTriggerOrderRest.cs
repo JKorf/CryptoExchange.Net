@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for getting a specific futures trigger order from the exchange.
     /// </summary>
-    public interface IGetFuturesTriggerOrderRest : ISharedRest
+    public interface IGetFuturesTriggerOrder : ISharedApiCapability
     {
         /// <summary>
         /// Get trigger order request options.<br />
@@ -23,6 +23,19 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<HttpResult<SharedFuturesTriggerOrder>> GetFuturesTriggerOrderAsync(GetOrderRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedFuturesTriggerOrder>> GetFuturesTriggerOrderAsync(GetOrderRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for getting a specific futures trigger order from the exchange.
+    /// </summary>
+    public interface IGetFuturesTriggerOrderRest : IGetFuturesTriggerOrder, ISharedRest
+    {        
+        /// <summary>
+        /// Get info on a specific trigger order, see <see cref="GetFuturesTriggerOrderOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        new Task<HttpResult<SharedFuturesTriggerOrder>> GetFuturesTriggerOrderAsync(GetOrderRequest request, CancellationToken ct = default);
     }
 }

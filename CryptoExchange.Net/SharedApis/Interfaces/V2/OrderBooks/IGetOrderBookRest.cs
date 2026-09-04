@@ -10,7 +10,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Request definition for retrieving an order book snapshot for a symbol on an exchange.
     /// </summary>
-    public interface IGetOrderBookRest : ISharedRest
+    public interface IGetOrderBook : ISharedApiCapability
     {
         /// <summary>
         /// Order book request options.<br />
@@ -25,6 +25,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        Task<HttpResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, CancellationToken ct = default);
+    }
+
+    /// <summary>
+    /// Request definition for retrieving an order book snapshot for a symbol on an exchange.
+    /// </summary>
+    public interface IGetOrderBookRest : IGetOrderBook, ISharedRest
+    {
+        /// <summary>
+        /// Get the order book for a symbol, see <see cref="GetOrderBookOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// </summary>
+        /// <param name="request">Request info</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        new Task<HttpResult<SharedOrderBook>> GetOrderBookAsync(GetOrderBookRequest request, CancellationToken ct = default);
     }
 }
