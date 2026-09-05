@@ -8,6 +8,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to price ticker updates for all symbols";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribeAllTickersRequest>.Optional(x => x.TradingMode, "Filter ticker updates by trading mode", TradingMode.Spot),
+        };
+
         /// <summary>
         /// Type of ticker calculation
         /// </summary>
@@ -16,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(ISubscribeAllTickersSocket.SubscribeToAllTickersUpdatesAsync))
+        public SubscribeTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(ISubscribeAllTickersSocket.SubscribeToAllTickersUpdatesAsync), _defaultParameterRules)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

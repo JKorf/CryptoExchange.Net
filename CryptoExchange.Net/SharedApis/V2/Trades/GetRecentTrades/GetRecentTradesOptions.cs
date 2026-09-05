@@ -11,6 +11,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve recent public trades for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetRecentTradesRequest>.Required(x => x.Symbol, "The symbol to retrieve recent trades for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetRecentTradesRequest>.Optional(x => x.Limit, "Limit the result set to a maximum number of items", 100),
+        };
+
         /// <summary>
         /// The max number of trades that can be requested
         /// </summary>
@@ -20,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetRecentTradesOptions(string exchange, int limit, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetRecentTradesRest.GetRecentTradesAsync))
+            : base(exchange, authenticated, nameof(IGetRecentTradesRest.GetRecentTradesAsync), _defaultParameterRules)
         {
             MaxLimit = limit;
         }

@@ -12,6 +12,23 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Place a new futures order";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<PlaceFuturesOrderRequest>.Required(x => x.Symbol, "The symbol to place the order on", new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT")),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Required(x => x.Side, "The order side", SharedOrderSide.Buy),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Required(x => x.OrderType, "The order type", SharedOrderType.Limit),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.TimeInForce, "The order time in force", SharedTimeInForce.GoodTillCanceled),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.Quantity, "The order quantity", SharedQuantity.Base(0.1m)),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.Price, "The order price", 1m),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.ClientOrderId, "The client order id", "123"),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.PositionSide, "The position side of the order", SharedPositionSide.Long),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.MarginMode, "The margin mode of the order", SharedMarginMode.Cross),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.ReduceOnly, "Whether the order should only reduce a position", false),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.Leverage, "The leverage for the position", 10m),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.TakeProfitPrice, "The take profit price", 1.1m),
+            RequestParameterRule<PlaceFuturesOrderRequest>.Optional(x => x.StopLossPrice, "The stop loss price", 0.9m),
+        };
+
         /// <summary>
         /// Whether or not the API supports setting take profit / stop loss with the order
         /// </summary>
@@ -20,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesOrderOptions(string exchange, bool supportsTpSl) : base(exchange, true, nameof(IPlaceFuturesOrder.PlaceFuturesOrderAsync))
+        public PlaceFuturesOrderOptions(string exchange, bool supportsTpSl) : base(exchange, true, nameof(IPlaceFuturesOrder.PlaceFuturesOrderAsync), _defaultParameterRules)
         {
             SupportsTpSl = supportsTpSl;
         }

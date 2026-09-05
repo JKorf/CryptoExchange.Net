@@ -13,6 +13,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve the current order book for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetOrderBookRequest>.Required(x => x.Symbol, "The symbol to retrieve the order book for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetOrderBookRequest>.Optional(x => x.Limit, "The maximum order book depth to retrieve", 100),
+        };
+
         /// <summary>
         /// Supported order book depths
         /// </summary>
@@ -31,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetOrderBookOptions(string exchange, int minLimit, int maxLimit, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync))
+            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync), _defaultParameterRules)
         {
             MinLimit = minLimit;
             MaxLimit = maxLimit;
@@ -41,7 +47,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetOrderBookOptions(string exchange, int[] supportedLimits, bool authenticated) 
-            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync))
+            : base(exchange, authenticated, nameof(IGetOrderBookRest.GetOrderBookAsync), _defaultParameterRules)
         {
             SupportedLimits = supportedLimits;
         }

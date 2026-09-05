@@ -12,11 +12,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve withdrawal history";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetWithdrawalsRequest>.Optional(x => x.Asset, "Filter the result set by asset", "ETH"),
+            RequestParameterRule<GetWithdrawalsRequest>.Optional(x => x.StartTime, "Filter the result set by start time", DateTime.UtcNow.AddDays(-1)),
+            RequestParameterRule<GetWithdrawalsRequest>.Optional(x => x.EndTime, "Filter the result set by end time", DateTime.UtcNow.AddHours(-1)),
+            RequestParameterRule<GetWithdrawalsRequest>.Optional(x => x.Limit, "Limit the result set to a maximum number of items", 100),
+            RequestParameterRule<GetWithdrawalsRequest>.Optional(x => x.Direction, "The direction in which to retrieve the results", DataDirection.Descending),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
         public GetWithdrawalHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetWithdrawalHistoryRest.GetWithdrawalHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetWithdrawalHistoryRest.GetWithdrawalHistoryAsync), _defaultParameterRules)
         {
         }
 

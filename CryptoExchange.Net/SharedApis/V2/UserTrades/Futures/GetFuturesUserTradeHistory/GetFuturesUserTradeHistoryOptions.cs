@@ -12,11 +12,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve futures user trade history";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetUserTradesRequest>.Required(x => x.Symbol, "The symbol to retrieve user trades for", new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT")),
+            RequestParameterRule<GetUserTradesRequest>.Optional(x => x.StartTime, "Filter the result set by start time", DateTime.UtcNow.AddDays(-1)),
+            RequestParameterRule<GetUserTradesRequest>.Optional(x => x.EndTime, "Filter the result set by end time", DateTime.UtcNow.AddHours(-1)),
+            RequestParameterRule<GetUserTradesRequest>.Optional(x => x.Limit, "Limit the result set to a maximum number of items", 100),
+            RequestParameterRule<GetUserTradesRequest>.Optional(x => x.Direction, "The direction in which to retrieve the results", DataDirection.Descending),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
         public GetFuturesUserTradeHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryRest.GetFuturesUserTradeHistoryAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetFuturesUserTradeHistoryRest.GetFuturesUserTradeHistoryAsync), _defaultParameterRules)
         {
         }
 

@@ -10,6 +10,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all futures symbols";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetTickersRequest>.Optional(x => x.TradingMode, "Filter the tickers by trading mode", TradingMode.PerpetualLinear),
+        };
+
         /// <summary>
         /// Type of ticker calculation
         /// </summary>
@@ -18,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetAllFuturesTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllFuturesTickersRest.GetAllFuturesTickersAsync))
+        public GetAllFuturesTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllFuturesTickersRest.GetAllFuturesTickersAsync), _defaultParameterRules)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

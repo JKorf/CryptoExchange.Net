@@ -12,10 +12,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve the best bid and ask price for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetBookTickerRequest>.Required(x => x.Symbol, "The symbol to retrieve the book ticker for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBookTickerOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetBookTickerRest.GetBookTickerAsync))
+        public GetBookTickerOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetBookTickerRest.GetBookTickerAsync), _defaultParameterRules)
         {
         }
     }

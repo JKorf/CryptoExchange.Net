@@ -12,6 +12,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to order book updates for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribeOrderBookRequest>.Optional(x => x.Symbol, "The symbol to subscribe to", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<SubscribeOrderBookRequest>.Optional(x => x.Symbols, "The symbols to subscribe to", new[] { new SharedSymbol(TradingMode.Spot, "ETH", "USDT") }),
+            RequestParameterRule<SubscribeOrderBookRequest>.Optional(x => x.Limit, "The order book depth", 100),
+        };
+
         /// <summary>
         /// Order book depths supported for updates
         /// </summary>
@@ -20,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(ISubscribeOrderBookSocket.SubscribeToOrderBookUpdatesAsync))
+        public SubscribeOrderBookOptions(string exchange, bool needsAuthentication, int[] limits) : base(exchange, needsAuthentication, nameof(ISubscribeOrderBookSocket.SubscribeToOrderBookUpdatesAsync), _defaultParameterRules)
         {
             SupportedLimits = limits;
         }

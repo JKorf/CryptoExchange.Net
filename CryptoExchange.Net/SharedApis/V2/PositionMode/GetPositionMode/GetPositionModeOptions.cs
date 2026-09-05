@@ -8,10 +8,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve the current futures position mode";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetPositionModeRequest>.Optional(x => x.TradingMode, "The trading mode to retrieve the position mode for", TradingMode.PerpetualLinear),
+            RequestParameterRule<GetPositionModeRequest>.Optional(x => x.Symbol, "The symbol to retrieve the position mode for", new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT")),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionModeOptions(string exchange) : base(exchange, true, nameof(IGetPositionModeRest.GetPositionModeAsync))
+        public GetPositionModeOptions(string exchange) : base(exchange, true, nameof(IGetPositionModeRest.GetPositionModeAsync), _defaultParameterRules)
         {
         }
     }

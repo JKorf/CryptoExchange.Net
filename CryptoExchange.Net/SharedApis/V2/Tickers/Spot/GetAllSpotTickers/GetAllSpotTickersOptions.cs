@@ -10,6 +10,11 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all spot symbols";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetTickersRequest>.Optional(x => x.TradingMode, "Filter the tickers by trading mode", TradingMode.Spot),
+        };
+
         /// <summary>
         /// Type of ticker calculation
         /// </summary>
@@ -18,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetAllSpotTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllSpotTickersRest.GetAllSpotTickersAsync))
+        public GetAllSpotTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllSpotTickersRest.GetAllSpotTickersAsync), _defaultParameterRules)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

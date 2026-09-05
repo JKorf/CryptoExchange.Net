@@ -12,10 +12,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to futures position updates";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribePositionRequest>.Optional(x => x.TradingMode, "Filter position updates by trading mode", TradingMode.PerpetualLinear),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribePositionOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribePositionsSocket.SubscribeToPositionUpdatesAsync))
+        public SubscribePositionOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribePositionsSocket.SubscribeToPositionUpdatesAsync), _defaultParameterRules)
         {
         }
     }

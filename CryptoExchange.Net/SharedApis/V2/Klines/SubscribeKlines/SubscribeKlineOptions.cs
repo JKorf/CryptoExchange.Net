@@ -12,6 +12,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to candlestick updates for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribeKlineRequest>.Optional(x => x.Symbol, "The symbol to subscribe to", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<SubscribeKlineRequest>.Optional(x => x.Symbols, "The symbols to subscribe to", new[] { new SharedSymbol(TradingMode.Spot, "ETH", "USDT") }),
+            RequestParameterRule<SubscribeKlineRequest>.Required(x => x.Interval, "The kline interval", SharedKlineInterval.OneMinute),
+        };
+
         /// <summary>
         /// Kline intervals supported for updates
         /// </summary>
@@ -20,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync))
+        public SubscribeKlineOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync), _defaultParameterRules)
         {
             SupportIntervals = new[]
             {
@@ -45,7 +52,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SubscribeKlineOptions(string exchange, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync))
+            : base(exchange, needsAuthentication, nameof(ISubscribeKlinesSocket.SubscribeToKlineUpdatesAsync), _defaultParameterRules)
         {
             SupportIntervals = intervals;
         }

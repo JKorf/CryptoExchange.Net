@@ -12,10 +12,13 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to spot order updates";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = [];
+
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeSpotOrderOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeSpotOrdersSocket.SubscribeToSpotOrderUpdatesAsync))
+        public SubscribeSpotOrderOptions(string exchange, bool needsAuthentication)
+            : base(exchange, needsAuthentication, nameof(ISubscribeSpotOrdersSocket.SubscribeToSpotOrderUpdatesAsync), _defaultParameterRules)
         {
         }
     }

@@ -12,11 +12,19 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Edit an existing spot order";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<EditSpotOrderRequest>.Required(x => x.Symbol, "The symbol of the order to edit", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<EditSpotOrderRequest>.Required(x => x.OrderId, "The order id of the order to edit", "123"),
+            RequestParameterRule<EditSpotOrderRequest>.Optional(x => x.Quantity, "The new order quantity", SharedQuantity.Base(1)),
+            RequestParameterRule<EditSpotOrderRequest>.Optional(x => x.Price, "The new order price", 0.1m),
+        };
 
         /// <summary>
         /// ctor
         /// </summary>
-        public EditSpotOrderOptions(string exchange) : base(exchange, true, nameof(IEditSpotOrder.EditSpotOrderAsync))
+        public EditSpotOrderOptions(string exchange)
+            : base(exchange, true, nameof(IEditSpotOrder.EditSpotOrderAsync), _defaultParameterRules)
         {
         }
 

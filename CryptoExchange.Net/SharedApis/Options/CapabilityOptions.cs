@@ -13,26 +13,44 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public abstract class CapabilityOptions
     {
-        private List<ParameterDescription> _requiredRequestParameters = new();
+        /// <summary>
+        /// Request parameter rules for the capability. The rules differ per exchange API and can be used to
+        /// dynamically discover and adjust the request parameters for a capability.
+        /// </summary>
+        public RequestParameterDescription[] RequestParameterRules { get; private set; } = [];
+        /// <summary>
+        /// Exchange parameter rules for the capability. These are parameters specific to the exchange API and
+        /// must be provided in the request via the ExchangeParameters property of the request object.
+        /// </summary>
+        public ExchangeParameterDescription[] ExchangeParameterRules { get; set; } = [];
+
+        private readonly RequestParameterDescription[] _defaultParameterRules;
+
 
         /// <summary>
-        /// Request properties that are optional in the shared contract,
-        /// but required by this exchange implementation.
+        /// Deprectaed, use RequestParameterRules instead.
         /// </summary>
-        public List<ParameterDescription> RequiredRequestParameters
+        public List<ParameterDescription> RequiredOptionalParameters
         {
-            get => _requiredRequestParameters;
-            set => _requiredRequestParameters = value;
+            get => RequestParameterRules.Where(x => x.DefaultSupport == RequestParameterSupport.Optional
+                                                    && x.Support == RequestParameterSupport.Required)
+                                        .Cast<ParameterDescription>()
+                                        .ToList();
         }
 
         /// <summary>
-        /// Use RequiredRequestParameters instead.
+        /// Deprectaed, use ExchangeParameterRules instead.
         /// </summary>
-        [Obsolete("Use RequiredRequestParameters instead")]
-        public List<ParameterDescription> RequiredOptionalParameters
+        public List<ParameterDescription> RequiredExchangeParameters
         {
-            get => _requiredRequestParameters;
-            set => _requiredRequestParameters = value;
+            get => ExchangeParameterRules.Where(x => x.Requirement == ExchangeParameterRequirement.Required).Cast<ParameterDescription>().ToList();
+        }
+        /// <summary>
+        /// Deprectaed, use ExchangeParameterRules instead.
+        /// </summary>
+        public List<ParameterDescription> OptionalExchangeParameters
+        {
+            get => ExchangeParameterRules.Where(x => x.Requirement == ExchangeParameterRequirement.Optional).Cast<ParameterDescription>().ToList();
         }
 
         /// <summary>
@@ -43,15 +61,6 @@ namespace CryptoExchange.Net.SharedApis
         /// The max number of symbols which can be passed in a call (Only applicable to request requiring symbol parameters)
         /// </summary>
         public int? MaxSymbolCount { get; set; }
-
-        /// <summary>
-        /// Required exchange-specific parameters. These can be provided via the `exchangeParameters` property of the request object.
-        /// </summary>
-        public List<ParameterDescription> RequiredExchangeParameters { get; set; } = new List<ParameterDescription>();
-        /// <summary>
-        /// Optional exchange-specific parameters. These can be provided via the `exchangeParameters` property of the request object.
-        /// </summary>
-        public List<ParameterDescription> OptionalExchangeParameters { get; set; } = new List<ParameterDescription>();
         /// <summary>
         /// Exchange
         /// </summary>
@@ -84,11 +93,59 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CapabilityOptions(string exchange, string operationName, bool needAuthentication)
+        public CapabilityOptions(
+            string exchange,
+            string operationName,
+            bool needAuthentication,
+            IEnumerable<RequestParameterDescription> defaultParameterRules)
         {
             Exchange = exchange;
             OperationName = operationName;
             NeedsAuthentication = needAuthentication;
+
+            _defaultParameterRules = defaultParameterRules
+                .Select(x => x.WithSupport(x.DefaultSupport))
+                .ToArray();
+
+            RequestParameterRules = CombineParameters(
+                _defaultParameterRules,
+                Array.Empty<RequestParameterRuleOverride>());
+        }
+
+        /// <summary>
+        /// Set request parameter overrides for this instance
+        /// </summary>
+        /// <param name="overrides">The parameter overrides</param>
+        protected void SetRequestParameters(IEnumerable<RequestParameterRuleOverride> overrides)
+        {
+            RequestParameterRules = CombineParameters(_defaultParameterRules, overrides);
+        }
+
+        private RequestParameterDescription[] CombineParameters(
+            RequestParameterDescription[] defaultParameters,
+            IEnumerable<RequestParameterRuleOverride> overrideParameters
+            )
+        {
+            var result = defaultParameters
+                .Select(x => x.WithSupport(x.DefaultSupport))
+                .ToList();
+
+            foreach (var item in overrideParameters)
+            {
+                var index = result.FindIndex(
+                    x => x.Name == item.ParameterName);
+
+                if (index == -1)
+                {
+                    throw new ArgumentException(
+                        $"No default request parameter rule exists for " +
+                        $"`{item.ParameterName}`");
+                }
+
+                result[index] = result[index].WithOverride(item);
+            }
+
+            return result.ToArray();
         }
 
         /// <summary>
@@ -108,12 +165,13 @@ namespace CryptoExchange.Net.SharedApis
 
             foreach (var param in RequiredExchangeParameters)
             {
-                if (param.Names!.All(x => ExchangeParameters.HasValue(exchangeParameters, Exchange, x, param.ValueType) != true))
+                if (ExchangeParameters.HasValue(exchangeParameters, Exchange, param.Name, param.ValueType) != true
+                    && param.Aliases.Any(x => ExchangeParameters.HasValue(exchangeParameters, Exchange, x, param.ValueType) != true))
                 {
-                    if (param.Names.Length == 1)
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"Exchange parameter `{param.Names[0]}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
+                    if (param.Aliases.Length == 0)
+                        return ArgumentError.Invalid(param.Name, $"Exchange parameter `{param.Name}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
                     else
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of exchange parameters `{string.Join(", ", param.Names!)}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
+                        return ArgumentError.Invalid(string.Join("/", [param.Name, .. param.Aliases]), $"One of exchange parameters `{string.Join(", ", [param.Name, .. param.Aliases])}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
                 }
             }
 
@@ -137,22 +195,16 @@ namespace CryptoExchange.Net.SharedApis
                 sb.Append("  Notes:                          ");
                 sb.AppendLine(RequestNotes);
             }
-            if (RequiredRequestParameters.Any())
+            if (RequestParameterRules.Any())
             {
-                sb.AppendLine($"  Required request parameters:");
-                foreach (var param in RequiredRequestParameters)
+                sb.AppendLine($"  Request parameters:");
+                foreach (var param in RequestParameterRules)
                     sb.AppendLine($"    {param}");
             }
-            if (RequiredExchangeParameters.Any())
+            if (ExchangeParameterRules.Any())
             {
-                sb.AppendLine($"  Required exchange specific parameters:");
-                foreach (var param in RequiredExchangeParameters)
-                    sb.AppendLine($"    {param}");
-            }
-            if (OptionalExchangeParameters.Any())
-            {
-                sb.AppendLine($"  Optional exchange specific parameters:");
-                foreach (var param in OptionalExchangeParameters)
+                sb.AppendLine($"  Exchange specific parameters:");
+                foreach (var param in ExchangeParameterRules)
                     sb.AppendLine($"    {param}");
             }
             sb.Append("  Needs authentication:           ");
@@ -179,10 +231,17 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Type CapabilityType => typeof(TCapability);
 
+        /// <inheritdoc />
+        public virtual RequestParameterRuleOverride[] ParameterRuleOverwrites
+        {
+            set => SetRequestParameters(value);
+        }
+
         /// <summary>
         /// ctor
         /// </summary>
-        public CapabilityOptions(string exchange, bool needsAuthentication, string requestName) : base(exchange, requestName, needsAuthentication)
+        public CapabilityOptions(string exchange, bool needsAuthentication, string requestName, IEnumerable<RequestParameterDescription> defaultParameterRules)
+            : base(exchange, requestName, needsAuthentication, defaultParameterRules)
         {
         }
 
@@ -197,14 +256,28 @@ namespace CryptoExchange.Net.SharedApis
             if (NeedsAuthentication && !client.Authenticated)
                 return new NoApiCredentialsError();
 
-            foreach (var param in RequiredRequestParameters)
+            foreach (var param in RequestParameterRules)
             {
-                if (param.Names!.All(x => _requestProperties.Single(p => p.Name == x).GetValue(request, null) == null))
+                var property = _requestProperties.Single(x => x.Name == param.Name);
+                var value = property.GetValue(request);
+
+                if (param.Support == RequestParameterSupport.Required)
                 {
-                    if (param.Names.Length == 1)
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"Optional parameter `{param.Names[0]}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
-                    else
-                        return ArgumentError.Invalid(string.Join("/", param.Names!), $"One of optional parameters `{string.Join(", ", param.Names!)}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
+                    if (value == null)
+                    {
+                        return ArgumentError.Invalid(
+                            param.Name,
+                            $"Request parameter `{param.Name}` for exchange `{Exchange}` is required and should be provided. Example: {param.ExampleValue}");
+                    }
+                }
+                else if (param.Support == RequestParameterSupport.NotSupported)
+                {
+                    if (value != null)
+                    {
+                        return ArgumentError.Invalid(
+                            param.Name,
+                            $"Request parameter `{param.Name}` is not supported by exchange `{Exchange}`");
+                    }
                 }
             }
 

@@ -1,16 +1,16 @@
 ﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request to retrieve the current mark prices for all symbols
+    /// Request to retrieve the current index prices for all symbols
     /// </summary>
-    public record GetMarkPricesRequest : SharedRequest
+    public record GetAllIndexPricesRequest : SharedRequest
     {
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="tradingMode">Trading mode</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetMarkPricesRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(tradingMode, exchangeParameters)
+        public GetAllIndexPricesRequest(TradingMode? tradingMode = null, ExchangeParameters? exchangeParameters = null) : base(tradingMode, exchangeParameters)
         {
         }
     }

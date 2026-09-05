@@ -13,10 +13,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Cancel all spot orders";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = [];
+
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelAllSpotOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllSpotOrders.CancelAllSpotOrdersAsync))
+        public CancelAllSpotOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllSpotOrders.CancelAllSpotOrdersAsync), _defaultParameterRules)
         {
         }
     }

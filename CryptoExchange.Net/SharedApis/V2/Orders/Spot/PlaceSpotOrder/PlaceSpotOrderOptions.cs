@@ -1,5 +1,6 @@
 using CryptoExchange.Net.Objects;
 using System;
+using System.Collections;
 using System.Linq;
 
 namespace CryptoExchange.Net.SharedApis
@@ -12,11 +13,23 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Place a new spot order";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<PlaceSpotOrderRequest>.Required(x => x.Symbol, "Symbol", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<PlaceSpotOrderRequest>.Required(x => x.OrderType, "Order type", SharedOrderType.Limit),
+            RequestParameterRule<PlaceSpotOrderRequest>.Required(x => x.Side, "Order side", SharedOrderSide.Buy),
+            RequestParameterRule<PlaceSpotOrderRequest>.Optional(x => x.TimeInForce, "Time in force", SharedTimeInForce.GoodTillCanceled),
+            RequestParameterRule<PlaceSpotOrderRequest>.Optional(x => x.Quantity, "Order quantity", SharedQuantity.Base(0.1m)),
+            RequestParameterRule<PlaceSpotOrderRequest>.Optional(x => x.Price, "Order price", 1m),
+            RequestParameterRule<PlaceSpotOrderRequest>.Optional(x => x.ClientOrderId, "Client order id", "123")
+        };
+
 
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotOrderOptions(string exchange) : base(exchange, true, nameof(IPlaceSpotOrder.PlaceSpotOrderAsync))
+        public PlaceSpotOrderOptions(string exchange)
+            : base(exchange, true, nameof(IPlaceSpotOrder.PlaceSpotOrderAsync), _defaultParameterRules)
         {
         }
 
@@ -27,6 +40,10 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotOrderRequest request,
             IPlaceSpotOrder client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
 
@@ -43,7 +60,7 @@ namespace CryptoExchange.Net.SharedApis
             if (quantityError != null)
                 return quantityError;
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

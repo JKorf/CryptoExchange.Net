@@ -12,10 +12,15 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Subscribe to balance updates";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<SubscribeBalancesRequest>.Optional(x => x.TradingMode, "Filter balance updates by trading mode", TradingMode.Spot),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeBalanceOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBalancesSocket.SubscribeToBalanceUpdatesAsync))
+        public SubscribeBalanceOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeBalancesSocket.SubscribeToBalanceUpdatesAsync), _defaultParameterRules)
         {
         }
     }

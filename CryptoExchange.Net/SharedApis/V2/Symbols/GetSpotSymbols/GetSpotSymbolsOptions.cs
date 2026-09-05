@@ -13,10 +13,19 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve supported spot symbols and their trading rules";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.TradingMode, "Filter the symbols by trading mode", TradingMode.Spot),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.BaseAssetType, "Filter by base asset type", SharedAssetType.Crypto),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.BaseAssetSubType, "Filter by base asset subtype", SharedAssetSubType.StableCoin),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.QuoteAssetType, "Filter by quote asset type", SharedAssetType.Crypto),
+            RequestParameterRule<GetSymbolsRequest>.Optional(x => x.QuoteAssetSubType, "Filter by quote asset subtype", SharedAssetSubType.StableCoin),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbolsRest.GetSpotSymbolsAsync))
+        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbolsRest.GetSpotSymbolsAsync), _defaultParameterRules)
         {
         }
 

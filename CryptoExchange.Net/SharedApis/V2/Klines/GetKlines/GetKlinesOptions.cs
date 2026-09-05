@@ -13,6 +13,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve candlestick data for a symbol";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetKlinesRequest>.Required(x => x.Symbol, "The symbol to retrieve klines for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetKlinesRequest>.Required(x => x.Interval, "The kline interval", SharedKlineInterval.OneMinute),
+            RequestParameterRule<GetKlinesRequest>.Optional(x => x.StartTime, "Filter the result set by start time", DateTime.UtcNow.AddDays(-1)),
+            RequestParameterRule<GetKlinesRequest>.Optional(x => x.EndTime, "Filter the result set by end time", DateTime.UtcNow.AddHours(-1)),
+            RequestParameterRule<GetKlinesRequest>.Optional(x => x.Limit, "Limit the result set to a maximum number of items", 100),
+            RequestParameterRule<GetKlinesRequest>.Optional(x => x.Direction, "The direction in which to retrieve the results", DataDirection.Descending),
+        };
+
         /// <summary>
         /// The supported kline intervals
         /// </summary>
@@ -26,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync), _defaultParameterRules)
         {
             SupportIntervals = new[]
             {
@@ -51,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetKlinesRest.GetKlinesAsync), _defaultParameterRules)
         {
             SupportIntervals = intervals;
         }

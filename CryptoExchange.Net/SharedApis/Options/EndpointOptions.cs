@@ -30,8 +30,9 @@ namespace CryptoExchange.Net.SharedApis
         protected EndpointOptions(
             string exchange,
             string operationName,
-            bool needsAuthentication)
-            : base(exchange, operationName, needsAuthentication)
+            bool needsAuthentication,
+            IEnumerable<RequestParameterDescription> defaultParameterRules)
+            : base(exchange, operationName, needsAuthentication, defaultParameterRules)
         {
         }
     }

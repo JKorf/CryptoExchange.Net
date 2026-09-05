@@ -49,7 +49,8 @@ namespace CryptoExchange.Net.Trackers.UserData.ItemTrackers
             _socketClient = socketClient;
             _exchangeParameters = exchangeParameters;
 
-            _requiresSymbolParameterOpenOrders = openOrderClient.GetOpenSpotOrdersOptions.RequiredRequestParameters.Any(x => x.Names.Contains("Symbol"));
+            _requiresSymbolParameterOpenOrders = openOrderClient.GetOpenSpotOrdersOptions.RequestParameterRules
+                .Any(x => x.Name == nameof(GetOpenOrdersRequest.Symbol) && x.Support == RequestParameterSupport.Required);
             _timeFilterSupportedClosedOrders = closedOrderClient.GetClosedSpotOrdersOptions.TimePeriodFilterSupport;
         }
 

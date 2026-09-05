@@ -13,10 +13,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Cancel a spot trigger order";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<CancelOrderRequest>.Required(x => x.Symbol, "The symbol of the order to cancel", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<CancelOrderRequest>.Required(x => x.OrderId, "The id of the order to cancel", "123"),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrderRest.CancelSpotTriggerOrderAsync))
+        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrderRest.CancelSpotTriggerOrderAsync), _defaultParameterRules)
         {
         }
 

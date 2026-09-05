@@ -12,10 +12,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve basic info for all assets and the networks they support for withdrawals/deposits";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = [];
+
         /// <summary>
         /// ctor
         /// </summary>
-        public GetAllAssetsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetAllAssetsRest.GetAllAssetsAsync))
+        public GetAllAssetsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetAllAssetsRest.GetAllAssetsAsync), _defaultParameterRules)
         {
         }
     }

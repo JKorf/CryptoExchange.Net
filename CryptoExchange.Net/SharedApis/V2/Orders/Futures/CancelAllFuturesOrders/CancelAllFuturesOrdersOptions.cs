@@ -13,10 +13,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Cancel all Futures orders";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = [];
+
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelAllFuturesOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllFuturesOrders.CancelAllFuturesOrdersAsync))
+        public CancelAllFuturesOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllFuturesOrders.CancelAllFuturesOrdersAsync), _defaultParameterRules)
         {
         }
     }

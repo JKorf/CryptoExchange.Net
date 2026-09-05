@@ -12,10 +12,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve open futures positions";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetPositionsRequest>.Optional(x => x.TradingMode, "Filter the result set by trading mode", TradingMode.PerpetualLinear),
+            RequestParameterRule<GetPositionsRequest>.Optional(x => x.Symbol, "Filter the result set by symbol", new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT")),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetPositionsRest.GetPositionsAsync))
+        public GetPositionsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetPositionsRest.GetPositionsAsync), _defaultParameterRules)
         {
         }
     }

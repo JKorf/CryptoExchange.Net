@@ -12,6 +12,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Transfer funds between account types";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<TransferRequest>.Required(x => x.Asset, "The asset to transfer", "ETH"),
+            RequestParameterRule<TransferRequest>.Required(x => x.Quantity, "The quantity to transfer", 1m),
+            RequestParameterRule<TransferRequest>.Optional(x => x.FromSymbol, "The symbol of the source account", "ETH-USDT"),
+            RequestParameterRule<TransferRequest>.Optional(x => x.ToSymbol, "The symbol of the destination account", "ETH-USDT"),
+            RequestParameterRule<TransferRequest>.Required(x => x.FromAccountType, "The source account type", SharedAccountType.Spot),
+            RequestParameterRule<TransferRequest>.Required(x => x.ToAccountType, "The destination account type", SharedAccountType.Funding),
+        };
+
         /// <summary>
         /// Supported account types
         /// </summary>
@@ -20,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true, nameof(ITransferRest.TransferAsync))
+        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true, nameof(ITransferRest.TransferAsync), _defaultParameterRules)
         {
             SupportedAccountTypes = accountTypes;
         }

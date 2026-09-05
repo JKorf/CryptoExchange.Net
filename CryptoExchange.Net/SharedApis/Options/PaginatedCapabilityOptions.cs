@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -49,7 +51,8 @@ namespace CryptoExchange.Net.SharedApis
             bool timePeriodSupport,
             int maxLimit,
             bool needsAuthentication, 
-            string requestName) : base(exchange, needsAuthentication, requestName)
+            string requestName,
+            IEnumerable<RequestParameterDescription> defaultParameterRules) : base(exchange, needsAuthentication, requestName, defaultParameterRules)
         {
             SupportsAscending = supportsAscending;
             SupportsDescending = supportsDescending;

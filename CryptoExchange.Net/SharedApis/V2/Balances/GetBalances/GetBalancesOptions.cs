@@ -11,6 +11,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve account balances";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetBalancesRequest>.Optional(x => x.TradingMode, "Filter the balances by trading mode", TradingMode.Spot),
+            RequestParameterRule<GetBalancesRequest>.Optional(x => x.AccountType, "The account type to retrieve balances for", SharedAccountType.Spot),
+        };
+
         /// <summary>
         /// Supported account types
         /// </summary>
@@ -19,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IGetBalancesRest.GetBalancesAsync))
+        public GetBalancesOptions(string exchange, params AccountTypeFilter[] accountTypes) : base(exchange, true, nameof(IGetBalancesRest.GetBalancesAsync), _defaultParameterRules)
         {
             SupportedAccountTypes = accountTypes;
         }

@@ -12,11 +12,20 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override string Description => "Retrieve closed spot orders";
 
+        private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
+        {
+            RequestParameterRule<GetClosedOrdersRequest>.Required(x => x.Symbol, "The symbol to retrieve closed spot orders for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetClosedOrdersRequest>.Optional(x => x.StartTime, "Filter the result set by start time", DateTime.UtcNow.AddDays(-1)),
+            RequestParameterRule<GetClosedOrdersRequest>.Optional(x => x.EndTime, "Filter the result set by end time", DateTime.UtcNow.AddHours(-1)),
+            RequestParameterRule<GetClosedOrdersRequest>.Optional(x => x.Limit, "Limit the result set to a maximum number of items", 100),
+            RequestParameterRule<GetClosedOrdersRequest>.Optional(x => x.Direction, "The direction in which to retrieve the results", DataDirection.Descending),
+        };
+
         /// <summary>
         /// ctor
         /// </summary>
         public GetSpotClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedSpotOrdersRest.GetClosedSpotOrdersAsync))
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedSpotOrdersRest.GetClosedSpotOrdersAsync), _defaultParameterRules)
         {
         }
 
