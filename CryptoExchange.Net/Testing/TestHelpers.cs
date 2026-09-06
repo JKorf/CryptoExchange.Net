@@ -194,7 +194,7 @@ namespace CryptoExchange.Net.Testing
         public static (Type[] missingOptions, Type[] missingInterfaces) ValidateSharedApi<T>(T sharedApi)
             where T : ISharedApi
         {
-            var implementedCapabilities = sharedApi
+            var allCapabilities = sharedApi
                 .GetType()
                 .GetInterfaces()
                 .Where(x =>
@@ -204,6 +204,12 @@ namespace CryptoExchange.Net.Testing
                     && x != typeof(ISharedSocket)
                     && x != typeof(ISharedSubscription)
                     && typeof(ISharedApiCapability).IsAssignableFrom(x))
+                .ToArray();
+
+            var implementedCapabilities = allCapabilities
+                .Where(candidate => !allCapabilities.Any(other =>
+                    candidate != other &&
+                    candidate.IsAssignableFrom(other)))
                 .ToArray();
 
             var declaredCapabilities = sharedApi.Capabilities
@@ -221,6 +227,31 @@ namespace CryptoExchange.Net.Testing
                         declared.IsAssignableFrom(implemented)));
 
             return (missingOptions.ToArray(), missingInterfaces.ToArray());
+        }
+
+        /// <summary>
+        /// Validates that the shared API implementation doesn't have any unsupported capabilities declared
+        /// </summary>
+        public static CapabilityOptions[] ValidateUnsupportedCapabilities<T>(T sharedApi)
+            where T : ISharedApi
+        {
+            var implementedCapabilities = sharedApi
+                .GetType()
+                .GetInterfaces()
+                .Where(x =>
+                    x != typeof(T)
+                    && x != typeof(ISharedApiCapability)
+                    && x != typeof(ISharedRest)
+                    && x != typeof(ISharedSocket)
+                    && x != typeof(ISharedSubscription)
+                    && typeof(ISharedApiCapability).IsAssignableFrom(x))
+                .ToArray();
+
+            var declaredCapabilities = sharedApi.Capabilities
+                .Where(x => !x.Supported)
+                .ToArray();
+
+            return declaredCapabilities;
         }
     }
 }
