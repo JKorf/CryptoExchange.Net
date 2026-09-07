@@ -3,16 +3,16 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Options for requesting ticker
+    /// Options for requesting tickers
     /// </summary>
-    public class GetSpotTickerOptions : CapabilityOptions<GetTickerRequest, IGetSpotTickerRest>
+    public class GetAllTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllTickersRest>
     {
         /// <inheritdoc />
-        public override string Description => "Retrieve price ticker information for a spot symbol";
+        public override string Description => "Retrieve price ticker information for all symbols";
 
         private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
         {
-            RequestParameterRule<GetTickerRequest>.Required(x => x.Symbol, "The symbol to retrieve ticker information for", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<GetTickersRequest>.Optional(x => x.TradingMode, "Filter the tickers by trading mode", TradingMode.Spot),
         };
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotTickerOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetSpotTickerRest.GetSpotTickerAsync), _defaultParameterRules)
+        public GetAllTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllTickersRest.GetAllTickersAsync), _defaultParameterRules)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }

@@ -8,30 +8,30 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Operation for retrieving all spot tickers from an exchange.
+    /// Operation for retrieving all tickers from an exchange.
     /// </summary>
-    public interface IGetAllSpotTickers : ISharedApiCapability
+    public interface IGetAllTickers : ISharedApiCapability
     {
         /// <summary>
-        /// Spot tickers request options.<br />
+        /// Tickers request options.<br />
         /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetAllSpotTickersOptions GetAllSpotTickersOptions { get; }
+        GetAllTickersOptions GetAllTickersOptions { get; }
         /// <summary>
-        /// Get tickers for all spot symbols, see <see cref="GetAllSpotTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get tickers for all symbols, see <see cref="GetAllTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
+        Task<ICallResult<SharedTicker[]>> GetAllTickersAsync(GetTickersRequest request, CancellationToken ct = default); 
     }
 
     /// <summary>
-    /// Operation for retrieving all spot tickers from an exchange via the REST API.
+    /// Operation for retrieving all tickers from an exchange via the REST API.
     /// </summary>
-    public interface IGetAllSpotTickersRest : IGetAllSpotTickers, ISharedRest
+    public interface IGetAllTickersRest : IGetAllTickers, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedSpotTicker[]>> GetAllSpotTickersAsync(GetTickersRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedTicker[]>> GetAllTickersAsync(GetTickersRequest request, CancellationToken ct = default);
     }
 }

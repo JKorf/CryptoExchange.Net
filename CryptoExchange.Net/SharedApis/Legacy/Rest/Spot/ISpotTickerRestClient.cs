@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="CapabilityOptions.RequiredExchangeParameters"/> and <see cref="CapabilityOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetSpotTickerOptions GetSpotTickerOptions { get; }
+        GetTickerOptions GetSpotTickerOptions { get; }
         /// <summary>
         /// Get ticker for a specific spot symbol, see <see cref="GetSpotTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="CapabilityOptions.RequiredExchangeParameters"/> and <see cref="CapabilityOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetAllSpotTickersOptions GetSpotTickersOptions { get; }
+        GetAllTickersOptions GetSpotTickersOptions { get; }
         /// <summary>
         /// Get tickers for all spot symbols, see <see cref="GetSpotTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>

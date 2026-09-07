@@ -53,6 +53,10 @@
         /// Trigger price type
         /// </summary>
         public SharedTriggerPriceType? TriggerPriceType { get; set; }
+        /// <summary>
+        /// Reduce only flag
+        /// </summary>
+        public bool? ReduceOnly { get; set; }
 
         /// <summary>
         /// ctor

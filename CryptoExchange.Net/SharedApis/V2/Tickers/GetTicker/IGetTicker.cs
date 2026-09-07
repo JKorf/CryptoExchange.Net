@@ -8,30 +8,30 @@ using System.Threading.Tasks;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Operation for retrieving a single spot ticker from an exchange.
+    /// Operation for retrieving a single ticker from an exchange.
     /// </summary>
-    public interface IGetSpotTicker : ISharedApiCapability
+    public interface IGetTicker : ISharedApiCapability
     {
         /// <summary>
-        /// Spot ticker request options.<br />
+        /// Ticker request options.<br />
         /// Use <see cref="CapabilityOptions.RequestParameterRules"/> and <see cref="CapabilityOptions.ExchangeParameterRules"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetSpotTickerOptions GetSpotTickerOptions { get; }
+        GetTickerOptions GetTickerOptions { get; }
         /// <summary>
-        /// Get ticker for a specific spot symbol, see <see cref="GetSpotTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
+        /// Get ticker for a specific symbol, see <see cref="GetTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
-        Task<ICallResult<SharedSpotTicker>> GetSpotTickerAsync(GetTickerRequest request, CancellationToken ct = default);
+        Task<ICallResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
-    /// Operation for retrieving a single spot ticker from an exchange via the REST API
+    /// Operation for retrieving a single ticker from an exchange via the REST API
     /// </summary>
-    public interface IGetSpotTickerRest : IGetSpotTicker, ISharedRest
+    public interface IGetTickerRest : IGetTicker, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedSpotTicker>> GetSpotTickerAsync(GetTickerRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedTicker>> GetTickerAsync(GetTickerRequest request, CancellationToken ct = default);
     }
 }

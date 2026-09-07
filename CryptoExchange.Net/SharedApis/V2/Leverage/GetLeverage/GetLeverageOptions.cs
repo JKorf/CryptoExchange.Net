@@ -5,7 +5,7 @@ using System.Text;
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Options for requesting asset info
+    /// Options for requesting leverage info
     /// </summary>
     public class GetLeverageOptions : CapabilityOptions<GetLeverageRequest, IGetLeverageRest>
     {

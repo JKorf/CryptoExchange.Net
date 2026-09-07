@@ -3,10 +3,14 @@
 namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request to retrieve funding rate history data
+    /// Request to retrieve user funding fee payment history
     /// </summary>
-    public record GetFundingRateHistoryRequest : SharedSymbolRequest
+    public record GetUserFundingHistoryRequest : SharedRequest
     {
+        /// <summary>
+        /// Filter be symbol
+        /// </summary>
+        public SharedSymbol? Symbol { get; set; }
         /// <summary>
         /// Filter by start time
         /// </summary>
@@ -27,14 +31,22 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        /// <param name="symbol">Symbol to request funding rate history for</param>
+        /// <param name="symbol">Symbol to request funding history</param>
         /// <param name="startTime">Filter by start time</param>
         /// <param name="endTime">Filter by end time</param>
         /// <param name="limit">Max number of results</param>
         /// <param name="direction">Data direction</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public GetFundingRateHistoryRequest(SharedSymbol symbol, DateTime? startTime = null, DateTime? endTime = null, int? limit = null, DataDirection? direction = null, ExchangeParameters? exchangeParameters = null) : base(symbol, exchangeParameters)
+        public GetUserFundingHistoryRequest(
+            SharedSymbol? symbol = null,
+            DateTime? startTime = null,
+            DateTime? endTime = null, 
+            int? limit = null,
+            DataDirection? direction = null,
+            ExchangeParameters? exchangeParameters = null) 
+            : base(null, exchangeParameters)
         {
+            Symbol = symbol;
             StartTime = startTime;
             EndTime = endTime;
             Limit = limit;

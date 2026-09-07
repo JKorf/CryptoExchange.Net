@@ -14,7 +14,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="CapabilityOptions.RequiredExchangeParameters"/> and <see cref="CapabilityOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetFuturesTickerOptions GetFuturesTickerOptions { get; }
+        GetTickerOptions GetFuturesTickerOptions { get; }
         /// <summary>
         /// Get ticker info for a specific futures symbol, see <see cref="GetFuturesTickerOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
@@ -27,7 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Use <see cref="CapabilityOptions.RequiredExchangeParameters"/> and <see cref="CapabilityOptions.OptionalExchangeParameters"/> to check for required and optional parameters for the request. <br />
         /// Exchange specific parameters can be added to the request via the `ExchangeParameters` property of the request object.
         /// </summary>
-        GetAllFuturesTickersOptions GetFuturesTickersOptions { get; }
+        GetAllTickersOptions GetFuturesTickersOptions { get; }
         /// <summary>
         /// Get ticker info for all futures symbols, see <see cref="GetFuturesTickersOptions"/> for request options and exchange specific required/optional parameters. <br />
         /// </summary>
