@@ -8,11 +8,11 @@ namespace CryptoExchange.Net.SharedApis
     public class GetAllTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllTickersRest>
     {
         /// <inheritdoc />
-        public override string Description => "Retrieve price ticker information for all symbols";
+        public override string Description => "Retrieve price ticker information for all symbols in a trading mode";
 
         private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
         {
-            RequestParameterRule<GetTickersRequest>.Optional(x => x.TradingMode, "Filter the tickers by trading mode", TradingMode.Spot),
+            RequestParameterRule<GetTickersRequest>.Optional(x => x.TradingMode, "The trading mode to retrieve tickers for", TradingMode.Spot),
         };
 
         /// <summary>

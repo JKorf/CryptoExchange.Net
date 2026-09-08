@@ -32,6 +32,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetLedgerRequest request, IGetLedgerRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetLedgerRequest.Direction), $"Ascending direction is not supported");
 
@@ -52,7 +56,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

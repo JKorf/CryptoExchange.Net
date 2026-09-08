@@ -32,6 +32,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetTradeHistoryRequest request, IGetTradeHistoryRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!SupportsAscending && request.Direction == DataDirection.Ascending)
                 return ArgumentError.Invalid(nameof(GetTradeHistoryRequest.Direction), $"Ascending direction is not supported");
 
@@ -41,7 +45,7 @@ namespace CryptoExchange.Net.SharedApis
             if (MaxAge.HasValue && request.StartTime < DateTime.UtcNow.Add(-MaxAge.Value))
                 return ArgumentError.Invalid(nameof(GetTradeHistoryRequest.StartTime), $"Only the most recent {MaxAge} period data is available");
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

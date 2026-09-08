@@ -76,6 +76,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetKlinesRequest request, IGetKlinesRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(GetKlinesRequest.Interval), $"Interval {request.Interval} not supported");
 
@@ -114,7 +118,7 @@ namespace CryptoExchange.Net.SharedApis
                 }
             }
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
 
         /// <inheritdoc />

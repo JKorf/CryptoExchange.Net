@@ -42,10 +42,14 @@ namespace CryptoExchange.Net.SharedApis
             PlaceSpotTriggerOrderRequest request,
             IPlaceSpotTriggerOrderRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.Symbol!.TradingMode != TradingMode.Spot)
                 return ArgumentError.Invalid("TradingMode", $"TradingMode.{request.Symbol!.TradingMode} is not supported, should be Spot");
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

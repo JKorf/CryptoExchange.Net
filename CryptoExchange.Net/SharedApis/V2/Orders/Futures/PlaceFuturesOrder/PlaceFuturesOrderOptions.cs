@@ -50,6 +50,10 @@ namespace CryptoExchange.Net.SharedApis
             IPlaceFuturesOrder client
             )
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!SupportsTpSl && (request.StopLossPrice != null || request.TakeProfitPrice != null))
                 return ArgumentError.Invalid(nameof(PlaceFuturesOrderRequest.StopLossPrice) + " / " + nameof(PlaceFuturesOrderRequest.TakeProfitPrice), "Tp/Sl parameters not supported");
 
@@ -66,7 +70,7 @@ namespace CryptoExchange.Net.SharedApis
             if (quantityError != null)
                 return quantityError;
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
 
     }

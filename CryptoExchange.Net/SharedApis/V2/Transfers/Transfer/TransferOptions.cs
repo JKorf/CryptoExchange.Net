@@ -42,13 +42,17 @@ namespace CryptoExchange.Net.SharedApis
             TransferRequest request,
             ITransferRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!SupportedAccountTypes.Contains(request.FromAccountType))
                 return ArgumentError.Invalid(nameof(request.FromAccountType), "Invalid FromAccountType");
 
             if (!SupportedAccountTypes.Contains(request.ToAccountType))
                 return ArgumentError.Invalid(nameof(request.FromAccountType), "Invalid ToAccountType");
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
 
         /// <inheritdoc />

@@ -33,21 +33,25 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetSymbolsRequest request, IGetSpotSymbolsRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.BaseAssetType != null && request.BaseAssetSubType != null)
             {
-                var error = ValidateAssetTypeCombination(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
+                error = ValidateAssetTypeCombination(request.BaseAssetType.Value, request.BaseAssetSubType.Value);
                 if (error != null)
                     return error;
             }
 
             if (request.QuoteAssetType != null && request.QuoteAssetSubType != null)
             {
-                var error = ValidateAssetTypeCombination(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
+                error = ValidateAssetTypeCombination(request.QuoteAssetType.Value, request.QuoteAssetSubType.Value);
                 if (error != null)
                     return error;
             }
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
 
         private Error? ValidateAssetTypeCombination(SharedAssetType type, SharedAssetSubType subType)

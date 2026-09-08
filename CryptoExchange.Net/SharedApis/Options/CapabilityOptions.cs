@@ -1,5 +1,7 @@
 ﻿using CryptoExchange.Net.Objects;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -227,6 +229,7 @@ namespace CryptoExchange.Net.SharedApis
             where TCapability : ISharedApiCapability
     {
         private static PropertyInfo[] _requestProperties = typeof(TRequest).GetProperties();
+        private static readonly ConcurrentDictionary<(string Exchange, string Operation, string Parameter), byte> _loggedUnsupportedParameters = new();
 
         /// <inheritdoc />
         public override Type CapabilityType => typeof(TCapability);
@@ -274,9 +277,19 @@ namespace CryptoExchange.Net.SharedApis
                 {
                     if (value != null)
                     {
-                        return ArgumentError.Invalid(
-                            param.Name,
-                            $"Request parameter `{param.Name}` is not supported by exchange `{Exchange}`");
+                        // For backwards compatibility don't return an error for provided unsupported parameters, only log a warning.
+                        // In a future release this will be changed to return an error.
+                        //return ArgumentError.Invalid(
+                        //    param.Name,
+                        //    $"Request parameter `{param.Name}` is not supported by exchange `{Exchange}`");
+
+                        var warningKey = (Exchange, OperationName, param.Name);
+                        if (_loggedUnsupportedParameters.TryAdd(warningKey, 0))
+                        {
+                            LibraryHelpers.StaticLogger?.LogWarning("The parameter {ParamName} has a supplied value for {Exchange}.{CapabilityName}, but is not supported. " +
+                                "In a future major release this will return an error. To check supported/required parameters use the option RequestParameterRules.",
+                                param.Name, Exchange, OperationName);                            
+                        }
                     }
                 }
             }

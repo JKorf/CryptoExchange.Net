@@ -37,10 +37,14 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(SubscribeOrderBookRequest request, ISubscribeOrderBookSocket client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.Limit != null && !SupportedLimits.Contains(request.Limit.Value))
                 return ArgumentError.Invalid(nameof(SubscribeOrderBookRequest.Limit), "Limit not supported");
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

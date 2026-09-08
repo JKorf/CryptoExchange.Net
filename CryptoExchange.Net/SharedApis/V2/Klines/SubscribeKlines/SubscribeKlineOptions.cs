@@ -69,10 +69,14 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(SubscribeKlineRequest request, ISubscribeKlinesSocket client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (!IsSupported(request.Interval))
                 return ArgumentError.Invalid(nameof(SubscribeKlineRequest.Interval), "Interval not supported");
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
     }
 }

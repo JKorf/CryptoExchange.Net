@@ -37,10 +37,14 @@ namespace CryptoExchange.Net.SharedApis
             GetBalancesRequest request,
             IGetBalancesRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.AccountType != null && !IsValid(request.AccountType.Value))
                 return ArgumentError.Invalid(nameof(request.AccountType), "Invalid AccountType");
 
-            return base.ValidateRequest(request, client);
+            return error;
         }
 
         /// <summary>

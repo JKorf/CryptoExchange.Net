@@ -25,6 +25,7 @@ namespace CryptoExchange.Net.SharedApis
             RequestParameterRule<PlaceFuturesTriggerOrderRequest>.Optional(x => x.MarginMode, "The margin mode of the order", SharedMarginMode.Cross),
             RequestParameterRule<PlaceFuturesTriggerOrderRequest>.Optional(x => x.Leverage, "The leverage for the position", 10m),
             RequestParameterRule<PlaceFuturesTriggerOrderRequest>.Optional(x => x.TriggerPriceType, "The price type used to trigger the order", SharedTriggerPriceType.LastPrice),
+            RequestParameterRule<PlaceFuturesTriggerOrderRequest>.Optional(x => x.ReduceOnly, "Whether the order is reduce only", true),
         };
 
         /// <summary>
@@ -38,6 +39,19 @@ namespace CryptoExchange.Net.SharedApis
         public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceFuturesTriggerOrderRest.PlaceFuturesTriggerOrderAsync), _defaultParameterRules)
         {
             HoldsFunds = holdsFunds;
+        }
+
+        /// <inheritdoc />
+        public override Error? ValidateRequest(PlaceFuturesTriggerOrderRequest request, IPlaceFuturesTriggerOrderRest client)
+        {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
+            if (request.ReduceOnly == true && request.OrderDirection != SharedTriggerOrderDirection.Exit)
+                return ArgumentError.Invalid(nameof(request.ReduceOnly), "ReduceOnly can only be enabled for an exit trigger order");
+
+            return null;
         }
     }
 }

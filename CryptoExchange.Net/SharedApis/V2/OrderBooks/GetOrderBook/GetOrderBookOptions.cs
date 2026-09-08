@@ -55,6 +55,10 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Error? ValidateRequest(GetOrderBookRequest request, IGetOrderBookRest client)
         {
+            var error = base.ValidateRequest(request, client);
+            if (error != null)
+                return error;
+
             if (request.Limit == null)
                 return base.ValidateRequest(request, client);
 
@@ -67,7 +71,7 @@ namespace CryptoExchange.Net.SharedApis
             if (SupportedLimits != null && !SupportedLimits.Contains(request.Limit.Value))
                 return ArgumentError.Invalid(nameof(GetOrderBookRequest.Limit), $"Limit should be one of " + string.Join(", ", SupportedLimits));
 
-            return base.ValidateRequest(request, client);
+            return null;
         }
 
         /// <inheritdoc />
