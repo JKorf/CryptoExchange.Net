@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="request">Request info</param>
         /// <param name="ct">Cancellation token</param>
         Task<ICallResult<SharedId>> EditFuturesOrderAsync(
-            EditFuturesOrderRequest request,
+            EditOrderRequest request,
             CancellationToken ct = default);
     }
 
@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis
     public interface IEditFuturesOrderRest : IEditFuturesOrder, ISharedRest
     {
         /// <inheritdoc />
-        new Task<HttpResult<SharedId>> EditFuturesOrderAsync(EditFuturesOrderRequest request, CancellationToken ct = default);
+        new Task<HttpResult<SharedId>> EditFuturesOrderAsync(EditOrderRequest request, CancellationToken ct = default);
     }
 
     /// <summary>
@@ -44,6 +44,6 @@ namespace CryptoExchange.Net.SharedApis
     public interface IEditFuturesOrderSocket : IEditFuturesOrder, ISharedSocket
     {
         /// <inheritdoc />
-        new Task<QueryResult<SharedId>> EditFuturesOrderAsync(EditFuturesOrderRequest request, CancellationToken ct = default);
+        new Task<QueryResult<SharedId>> EditFuturesOrderAsync(EditOrderRequest request, CancellationToken ct = default);
     }
 }

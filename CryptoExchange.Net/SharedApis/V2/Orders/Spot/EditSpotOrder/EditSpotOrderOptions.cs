@@ -7,17 +7,17 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for editing an open spot order
     /// </summary>
-    public class EditSpotOrderOptions : CapabilityOptions<EditSpotOrderRequest, IEditSpotOrder>
+    public class EditSpotOrderOptions : CapabilityOptions<EditOrderRequest, IEditSpotOrder>
     {
         /// <inheritdoc />
         public override string Description => "Edit an existing spot order";
 
         private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
         {
-            RequestParameterRule<EditSpotOrderRequest>.Required(x => x.Symbol, "The symbol of the order to edit", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
-            RequestParameterRule<EditSpotOrderRequest>.Required(x => x.OrderId, "The order id of the order to edit", "123"),
-            RequestParameterRule<EditSpotOrderRequest>.Optional(x => x.Quantity, "The new order quantity", SharedQuantity.Base(1)),
-            RequestParameterRule<EditSpotOrderRequest>.Optional(x => x.Price, "The new order price", 0.1m),
+            RequestParameterRule<EditOrderRequest>.Required(x => x.Symbol, "The symbol of the order to edit", new SharedSymbol(TradingMode.Spot, "ETH", "USDT")),
+            RequestParameterRule<EditOrderRequest>.Required(x => x.OrderId, "The order id of the order to edit", "123"),
+            RequestParameterRule<EditOrderRequest>.Optional(x => x.Quantity, "The new order quantity", SharedQuantity.Base(1)),
+            RequestParameterRule<EditOrderRequest>.Optional(x => x.Price, "The new order price", 0.1m),
         };
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace CryptoExchange.Net.SharedApis
         /// Validate a request
         /// </summary>
         public override Error? ValidateRequest(
-            EditSpotOrderRequest request,
+            EditOrderRequest request,
             IEditSpotOrder client)
         {
             var error = base.ValidateRequest(request, client);

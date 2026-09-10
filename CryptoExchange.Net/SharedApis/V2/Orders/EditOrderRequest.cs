@@ -1,9 +1,9 @@
 ﻿namespace CryptoExchange.Net.SharedApis
 {
     /// <summary>
-    /// Request to place a new Futures order
+    /// Request to edit an order
     /// </summary>
-    public record EditFuturesOrderRequest : SharedSymbolRequest
+    public record EditOrderRequest : SharedSymbolRequest
     {
         /// <summary>
         /// Order id
@@ -26,7 +26,7 @@
         /// <param name="quantity">New quantity of the order</param>
         /// <param name="price">New price of the order</param>
         /// <param name="exchangeParameters">Exchange specific parameters</param>
-        public EditFuturesOrderRequest(
+        public EditOrderRequest(
             SharedSymbol symbol,
             string orderId,
             SharedQuantity? quantity = null,

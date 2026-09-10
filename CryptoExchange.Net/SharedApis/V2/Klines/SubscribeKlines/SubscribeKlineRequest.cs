@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CryptoExchange.Net.SharedApis
 {
@@ -41,6 +42,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         /// <param name="interval">Kline interval</param>
         /// <param name="symbols">The symbols to subscribe to</param>
+        [Obsolete("Use SubscribeKlineRequest(IEnumerable<SharedSymbol> symbols, ExchangeParameters? exchangeParameters = null) instead")]
         public SubscribeKlineRequest(SharedKlineInterval interval, params SharedSymbol[] symbols) : base(symbols, null)
         {
             Interval = interval;
