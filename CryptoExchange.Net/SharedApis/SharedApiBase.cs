@@ -48,6 +48,9 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         protected void SetCapabilities(params CapabilityOptions[] capabilities)
         {
+            foreach (var capability in capabilities)
+                capability.InitializeSupportedTradingModes(SupportedTradingModes);
+
             _capabilities = Array.AsReadOnly(capabilities);
         }
 

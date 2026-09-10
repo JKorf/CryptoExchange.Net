@@ -8,6 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// References for a capability available through REST.
     /// </summary>
     public sealed class SharedRestCapability<TCapability, TRest>
+        : SharedCapabilityReference<TCapability>
         where TCapability : ISharedApiCapability
         where TRest : TCapability, ISharedRest
     {

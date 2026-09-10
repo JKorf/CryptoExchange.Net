@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public PlaceMultipleSpotOrdersOptions(string exchange)
-            : base(exchange, true, nameof(IPlaceMultipleSpotOrders.PlaceMultipleSpotOrdersAsync), _defaultParameterRules)
+            : base(exchange, true, nameof(IPlaceMultipleSpotOrders.PlaceMultipleSpotOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

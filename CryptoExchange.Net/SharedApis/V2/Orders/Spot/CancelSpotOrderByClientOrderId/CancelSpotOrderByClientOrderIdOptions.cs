@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public CancelSpotOrderByClientOrderIdOptions(string exchange, bool authenticated)
-            : base(exchange, authenticated, nameof(ICancelSpotOrderByClientOrderIdRest.CancelSpotOrderByClientOrderIdAsync), _defaultParameterRules)
+            : base(exchange, authenticated, nameof(ICancelSpotOrderByClientOrderIdRest.CancelSpotOrderByClientOrderIdAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

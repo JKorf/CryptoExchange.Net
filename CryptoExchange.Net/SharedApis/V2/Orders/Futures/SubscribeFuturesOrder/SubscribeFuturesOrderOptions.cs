@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SubscribeFuturesOrderOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeFuturesOrdersSocket.SubscribeToFuturesOrderUpdatesAsync), _defaultParameterRules)
+        public SubscribeFuturesOrderOptions(string exchange, bool needsAuthentication) : base(exchange, needsAuthentication, nameof(ISubscribeFuturesOrdersSocket.SubscribeToFuturesOrderUpdatesAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

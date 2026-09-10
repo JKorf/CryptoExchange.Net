@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelAllSpotOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllSpotOrders.CancelAllSpotOrdersAsync), _defaultParameterRules)
+        public CancelAllSpotOrdersOptions(string exchange) : base(exchange, true, nameof(ICancelAllSpotOrders.CancelAllSpotOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
     }

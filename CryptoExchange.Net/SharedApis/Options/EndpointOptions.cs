@@ -31,8 +31,9 @@ namespace CryptoExchange.Net.SharedApis
             string exchange,
             string operationName,
             bool needsAuthentication,
-            IEnumerable<RequestParameterDescription> defaultParameterRules)
-            : base(exchange, operationName, needsAuthentication, defaultParameterRules)
+            IEnumerable<RequestParameterDescription> defaultParameterRules,
+            IEnumerable<TradingMode>? applicableTradingModes = null)
+            : base(exchange, operationName, needsAuthentication, defaultParameterRules, applicableTradingModes)
         {
         }
     }

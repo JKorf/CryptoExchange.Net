@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EditFuturesOrderOptions(string exchange) : base(exchange, true, nameof(IEditFuturesOrder.EditFuturesOrderAsync), _defaultParameterRules)
+        public EditFuturesOrderOptions(string exchange) : base(exchange, true, nameof(IEditFuturesOrder.EditFuturesOrderAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

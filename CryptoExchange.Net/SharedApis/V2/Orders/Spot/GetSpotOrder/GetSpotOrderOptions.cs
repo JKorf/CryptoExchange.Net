@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetSpotOrderOptions(string exchange, bool authenticated)
-            : base(exchange, authenticated, nameof(IGetSpotOrder.GetSpotOrderAsync), _defaultParameterRules)
+            : base(exchange, authenticated, nameof(IGetSpotOrder.GetSpotOrderAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

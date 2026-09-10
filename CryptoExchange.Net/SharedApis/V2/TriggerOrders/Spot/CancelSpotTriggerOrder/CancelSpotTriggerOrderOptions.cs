@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrder.CancelSpotTriggerOrderAsync), _defaultParameterRules)
+        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrder.CancelSpotTriggerOrderAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

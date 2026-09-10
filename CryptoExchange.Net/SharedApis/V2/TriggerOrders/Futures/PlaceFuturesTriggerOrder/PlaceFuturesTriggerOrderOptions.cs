@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceFuturesTriggerOrder.PlaceFuturesTriggerOrderAsync), _defaultParameterRules)
+        public PlaceFuturesTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceFuturesTriggerOrder.PlaceFuturesTriggerOrderAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
             HoldsFunds = holdsFunds;
         }

@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbols.GetSpotSymbolsAsync), _defaultParameterRules)
+        public GetSpotSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotSymbols.GetSpotSymbolsAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

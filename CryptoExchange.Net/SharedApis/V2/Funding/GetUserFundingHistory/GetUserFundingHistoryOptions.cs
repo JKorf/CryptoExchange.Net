@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetUserFundingHistoryOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetUserFundingHistoryRest.GetUserFundingHistoryAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetUserFundingHistoryRest.GetUserFundingHistoryAsync), _defaultParameterRules, SharedTradingModeSets.Perpetual)
         {
         }
 

@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SetLeverageOptions(string exchange) : base(exchange, true, nameof(ISetLeverageRest.SetLeverageAsync), _defaultParameterRules)
+        public SetLeverageOptions(string exchange) : base(exchange, true, nameof(ISetLeverageRest.SetLeverageAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

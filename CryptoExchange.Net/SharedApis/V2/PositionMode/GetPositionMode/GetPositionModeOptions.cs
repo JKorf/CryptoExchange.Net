@@ -17,7 +17,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionModeOptions(string exchange) : base(exchange, true, nameof(IGetPositionMode.GetPositionModeAsync), _defaultParameterRules)
+        public GetPositionModeOptions(string exchange) : base(exchange, true, nameof(IGetPositionMode.GetPositionModeAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

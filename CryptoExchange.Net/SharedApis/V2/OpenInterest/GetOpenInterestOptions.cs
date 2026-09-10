@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOpenInterestOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenInterestRest.GetOpenInterestAsync), _defaultParameterRules)
+        public GetOpenInterestOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenInterestRest.GetOpenInterestAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

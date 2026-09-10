@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public EditSpotOrderOptions(string exchange)
-            : base(exchange, true, nameof(IEditSpotOrder.EditSpotOrderAsync), _defaultParameterRules)
+            : base(exchange, true, nameof(IEditSpotOrder.EditSpotOrderAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

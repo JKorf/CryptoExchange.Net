@@ -91,6 +91,66 @@ namespace CryptoExchange.Net.UnitTests
                 string.Join(Environment.NewLine, failures));
         }
 
+        [Test]
+        public void RequiredExchangeParameter_ShouldAcceptNameOrAnyAlias()
+        {
+            const string exchange = "TestExchange";
+            var options = new GetTickerOptions(exchange)
+            {
+                ExchangeParameterRules =
+                [
+                    ExchangeParameterRule.Required(
+                        "Parameter",
+                        "Test parameter",
+                        1,
+                        "Alias1",
+                        "Alias2")
+                ]
+            };
+
+            var missingResult = options.ValidateRequest(null, null, [TradingMode.Spot]);
+            var nameResult = options.ValidateRequest(
+                new ExchangeParameters(new ExchangeParameter(exchange, "Parameter", 1)),
+                null,
+                [TradingMode.Spot]);
+            var firstAliasResult = options.ValidateRequest(
+                new ExchangeParameters(new ExchangeParameter(exchange, "Alias1", 1)),
+                null,
+                [TradingMode.Spot]);
+            var secondAliasResult = options.ValidateRequest(
+                new ExchangeParameters(new ExchangeParameter(exchange, "Alias2", 1)),
+                null,
+                [TradingMode.Spot]);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(missingResult, Is.Not.Null);
+                Assert.That(nameResult, Is.Null);
+                Assert.That(firstAliasResult, Is.Null);
+                Assert.That(secondAliasResult, Is.Null);
+            });
+        }
+
+        [Test]
+        public void RequiredExchangeParameterWithoutAliases_ShouldBeRequired()
+        {
+            const string exchange = "TestExchange";
+            var options = new GetTickerOptions(exchange)
+            {
+                ExchangeParameterRules =
+                [
+                    ExchangeParameterRule.Required(
+                        "Parameter",
+                        "Test parameter",
+                        1)
+                ]
+            };
+
+            var result = options.ValidateRequest(null, null, [TradingMode.Spot]);
+
+            Assert.That(result, Is.Not.Null);
+        }
+
         private static Type? GetGenericOptionsType(Type optionsType)
         {
             for (var type = optionsType; type != null; type = type.BaseType)

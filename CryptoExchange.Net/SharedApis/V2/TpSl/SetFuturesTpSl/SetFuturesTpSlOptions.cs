@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SetFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISetFuturesTpSl.SetFuturesTpSlAsync), _defaultParameterRules)
+        public SetFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISetFuturesTpSl.SetFuturesTpSlAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

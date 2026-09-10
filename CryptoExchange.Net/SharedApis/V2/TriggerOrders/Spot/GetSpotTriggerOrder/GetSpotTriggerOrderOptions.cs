@@ -22,12 +22,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrder.GetSpotTriggerOrderAsync), _defaultParameterRules)
+        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrder.GetSpotTriggerOrderAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotTriggerOrderRest client)
+        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotTriggerOrder client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

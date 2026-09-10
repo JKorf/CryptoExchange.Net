@@ -53,7 +53,7 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderBookRequest request, IGetOrderBookRest client)
+        public override Error? ValidateRequest(GetOrderBookRequest request, IGetOrderBook client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

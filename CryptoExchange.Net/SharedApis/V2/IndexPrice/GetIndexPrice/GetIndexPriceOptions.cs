@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetIndexPriceOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetIndexPriceRest.GetIndexPriceAsync), _defaultParameterRules)
+        public GetIndexPriceOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetIndexPriceRest.GetIndexPriceAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

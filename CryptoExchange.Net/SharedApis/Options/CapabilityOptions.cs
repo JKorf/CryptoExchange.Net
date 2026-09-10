@@ -27,6 +27,7 @@ namespace CryptoExchange.Net.SharedApis
         public ExchangeParameterDescription[] ExchangeParameterRules { get; set; } = [];
 
         private readonly RequestParameterDescription[] _defaultParameterRules;
+        private readonly TradingMode[]? _applicableTradingModes;
 
 
         /// <summary>
@@ -84,6 +85,26 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public bool Supported { get; set; } = true;
         /// <summary>
+        /// Trading modes supported by this capability on the containing Shared API.
+        /// </summary>
+        public TradingMode[] SupportedTradingModes { get; private set; } = [];
+        /// <summary>
+        /// Implementation-specific overrides for the default request parameter rules.
+        /// </summary>
+        public RequestParameterRuleOverride[] ParameterRuleOverrides
+        {
+            init
+            {
+                RequestParameterRules = CombineParameters(_defaultParameterRules, value);
+            }
+        }
+        /// <summary>
+        /// Optional implementation-specific restriction of the trading modes supported by this capability.
+        /// The final supported modes are the intersection of this value, the modes applicable to the capability,
+        /// and the modes supported by the containing Shared API.
+        /// </summary>
+        public TradingMode[]? SupportedTradingModeOverrides { private get; init; }
+        /// <summary>
         /// Description of the endpoint
         /// </summary>
         public abstract string Description { get; }
@@ -99,7 +120,8 @@ namespace CryptoExchange.Net.SharedApis
             string exchange,
             string operationName,
             bool needAuthentication,
-            IEnumerable<RequestParameterDescription> defaultParameterRules)
+            IEnumerable<RequestParameterDescription> defaultParameterRules,
+            IEnumerable<TradingMode>? applicableTradingModes = null)
         {
             Exchange = exchange;
             OperationName = operationName;
@@ -112,15 +134,19 @@ namespace CryptoExchange.Net.SharedApis
             RequestParameterRules = CombineParameters(
                 _defaultParameterRules,
                 Array.Empty<RequestParameterRuleOverride>());
+
+            _applicableTradingModes = applicableTradingModes?.Distinct().ToArray();
         }
 
-        /// <summary>
-        /// Set request parameter overrides for this instance
-        /// </summary>
-        /// <param name="overrides">The parameter overrides</param>
-        protected void SetRequestParameters(IEnumerable<RequestParameterRuleOverride> overrides)
+        internal void InitializeSupportedTradingModes(TradingMode[] apiSupportedTradingModes)
         {
-            RequestParameterRules = CombineParameters(_defaultParameterRules, overrides);
+            IEnumerable<TradingMode> supportedModes = apiSupportedTradingModes;
+            if (_applicableTradingModes != null)
+                supportedModes = supportedModes.Intersect(_applicableTradingModes);
+            if (SupportedTradingModeOverrides != null)
+                supportedModes = supportedModes.Intersect(SupportedTradingModeOverrides);
+
+            SupportedTradingModes = supportedModes.Distinct().ToArray();
         }
 
         private RequestParameterDescription[] CombineParameters(
@@ -167,8 +193,9 @@ namespace CryptoExchange.Net.SharedApis
 
             foreach (var param in RequiredExchangeParameters)
             {
-                if (ExchangeParameters.HasValue(exchangeParameters, Exchange, param.Name, param.ValueType) != true
-                    && param.Aliases.Any(x => ExchangeParameters.HasValue(exchangeParameters, Exchange, x, param.ValueType) != true))
+                var hasValue = ExchangeParameters.HasValue(exchangeParameters, Exchange, param.Name, param.ValueType)
+                    || param.Aliases.Any(x => ExchangeParameters.HasValue(exchangeParameters, Exchange, x, param.ValueType));
+                if (!hasValue)
                 {
                     if (param.Aliases.Length == 0)
                         return ArgumentError.Invalid(param.Name, $"Exchange parameter `{param.Name}` for exchange `{Exchange}` should be provided. Example: {param.ExampleValue}");
@@ -234,17 +261,16 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Type CapabilityType => typeof(TCapability);
 
-        /// <inheritdoc />
-        public virtual RequestParameterRuleOverride[] ParameterRuleOverrides
-        {
-            set => SetRequestParameters(value);
-        }
-
         /// <summary>
         /// ctor
         /// </summary>
-        public CapabilityOptions(string exchange, bool needsAuthentication, string requestName, IEnumerable<RequestParameterDescription> defaultParameterRules)
-            : base(exchange, requestName, needsAuthentication, defaultParameterRules)
+        public CapabilityOptions(
+            string exchange,
+            bool needsAuthentication,
+            string requestName,
+            IEnumerable<RequestParameterDescription> defaultParameterRules,
+            IEnumerable<TradingMode>? applicableTradingModes = null)
+            : base(exchange, requestName, needsAuthentication, defaultParameterRules, applicableTradingModes)
         {
         }
 
@@ -307,7 +333,10 @@ namespace CryptoExchange.Net.SharedApis
 
             }
 
-            return ValidateRequest(request.ExchangeParameters, request.TradingMode, client.SupportedTradingModes);
+            return ValidateRequest(
+                request.ExchangeParameters,
+                request.TradingMode,
+                SupportedTradingModes);
         }
     }
 }

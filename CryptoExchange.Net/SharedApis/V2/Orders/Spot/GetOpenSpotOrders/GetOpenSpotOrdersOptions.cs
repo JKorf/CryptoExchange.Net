@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetOpenSpotOrdersOptions(string exchange, bool authenticated)
-            : base(exchange, authenticated, nameof(IGetOpenSpotOrders.GetOpenSpotOrdersAsync), _defaultParameterRules)
+            : base(exchange, authenticated, nameof(IGetOpenSpotOrders.GetOpenSpotOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
     }

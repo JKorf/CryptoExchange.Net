@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetIndexPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetIndexPriceKlinesRest.GetIndexPriceKlinesAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetIndexPriceKlinesRest.GetIndexPriceKlinesAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
             SupportIntervals = new[]
             {
@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetIndexPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IIndexPriceKlineRestClient.GetIndexPriceKlinesAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IIndexPriceKlineRestClient.GetIndexPriceKlinesAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
             SupportIntervals = intervals;
         }

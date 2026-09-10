@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetOpenFuturesOrdersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenFuturesOrders.GetOpenFuturesOrdersAsync), _defaultParameterRules)
+        public GetOpenFuturesOrdersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetOpenFuturesOrders.GetOpenFuturesOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

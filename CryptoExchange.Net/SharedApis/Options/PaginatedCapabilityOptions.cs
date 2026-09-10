@@ -52,7 +52,8 @@ namespace CryptoExchange.Net.SharedApis
             int maxLimit,
             bool needsAuthentication, 
             string requestName,
-            IEnumerable<RequestParameterDescription> defaultParameterRules) : base(exchange, needsAuthentication, requestName, defaultParameterRules)
+            IEnumerable<RequestParameterDescription> defaultParameterRules,
+            IEnumerable<TradingMode>? applicableTradingModes = null) : base(exchange, needsAuthentication, requestName, defaultParameterRules, applicableTradingModes)
         {
             SupportsAscending = supportsAscending;
             SupportsDescending = supportsDescending;

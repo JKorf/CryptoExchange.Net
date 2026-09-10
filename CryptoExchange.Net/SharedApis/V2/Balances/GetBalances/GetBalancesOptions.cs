@@ -35,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             GetBalancesRequest request,
-            IGetBalancesRest client)
+            IGetBalances client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

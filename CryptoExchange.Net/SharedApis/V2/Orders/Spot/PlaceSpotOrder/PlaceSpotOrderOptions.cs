@@ -29,7 +29,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public PlaceSpotOrderOptions(string exchange)
-            : base(exchange, true, nameof(IPlaceSpotOrder.PlaceSpotOrderAsync), _defaultParameterRules)
+            : base(exchange, true, nameof(IPlaceSpotOrder.PlaceSpotOrderAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
 

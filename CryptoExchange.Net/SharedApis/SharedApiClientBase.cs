@@ -11,6 +11,11 @@ namespace CryptoExchange.Net.SharedApis
     public interface ISharedApiClientBase
     {
         /// <summary>
+        /// Shared API's available on this client
+        /// </summary>
+        IReadOnlyList<ISharedApi> SharedApis { get; }
+
+        /// <summary>
         /// Get all capabilities matching the provided capability type.
         /// Example:
         /// <code>client.GetCapability&lt;IPlaceSpotOrder&gt;()</code>
@@ -18,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="T">The capability type</typeparam>
         /// <param name="tradingMode">Filter by supported trading mode</param>
         /// <param name="transport">Filter by transport method</param>
-        IReadOnlyList<T> GetCapabilities<T>(TradingMode? tradingMode = null, SharedTransport? transport = null)
+        IReadOnlyList<SharedCapabilityResolution<T>> GetCapabilities<T>(TradingMode? tradingMode = null, SharedTransport? transport = null)
             where T : ISharedApiCapability;
 
         /// <summary>
@@ -30,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="T">The capability type</typeparam>
         /// <param name="transport">The transport method</param>
         /// <returns>The requested capability type or null if not found</returns>
-        T? GetCapability<T>(SharedTransport? transport = null)
+        SharedCapabilityResolution<T>? GetCapability<T>(SharedTransport? transport = null)
             where T : ISharedApiCapability;
 
         /// <summary>
@@ -42,7 +47,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="tradingMode">The trading mode</param>
         /// <param name="transport">The transport method</param>
         /// <returns>The requested capability type or null if not found</returns>
-        T? GetCapability<T>(TradingMode tradingMode, SharedTransport? transport = null)
+        SharedCapabilityResolution<T>? GetCapability<T>(TradingMode tradingMode, SharedTransport? transport = null)
             where T : ISharedApiCapability;
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <typeparam name="T">The capability type</typeparam>
         /// <param name="capability">The capability reference</param>
         /// <returns>The requested capability type or null if not found</returns>
-        T? GetCapability<T>(SharedCapabilityReference<T> capability)
+        SharedCapabilityResolution<T>? GetCapability<T>(SharedCapabilityReference<T> capability)
             where T : ISharedApiCapability;
 
         /// <summary>
@@ -67,7 +72,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <param name="capability">The capability reference</param>
         /// <param name="tradingMode">The trading mode</param>
         /// <returns>The requested capability type or null if not found</returns>
-        T? GetCapability<T>(SharedCapabilityReference<T> capability, TradingMode tradingMode)
+        SharedCapabilityResolution<T>? GetCapability<T>(SharedCapabilityReference<T> capability, TradingMode tradingMode)
             where T : ISharedApiCapability;
     }
 
@@ -76,79 +81,125 @@ namespace CryptoExchange.Net.SharedApis
     /// </summary>
     public abstract class SharedApiClientBase : ISharedApiClientBase
     {
-        private readonly ISharedApiCapability[] _sharedApis;
+        private readonly ISharedApi[] _sharedApis;
         private readonly SharedTransport[] _preferredTransports;
+
+        /// <inheritdoc />
+        public IReadOnlyList<ISharedApi> SharedApis => _sharedApis;
 
         /// <summary>
         /// ctor
         /// </summary>
-        public SharedApiClientBase(SharedTransport[] transportPref, params ISharedApiCapability[] allCapabilities)
+        public SharedApiClientBase(
+            IEnumerable<SharedTransport> transportPreference,
+            params ISharedApi[] sharedApis)
         {
-            _preferredTransports = transportPref;
-            _sharedApis = allCapabilities.ToArray();
+            _preferredTransports = transportPreference.Distinct().ToArray();
+            _sharedApis = sharedApis.Distinct().ToArray();
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<T> GetCapabilities<T>(TradingMode? tradingMode = null, SharedTransport? transport = null)
-            where T : ISharedApiCapability
-        {
-            return _sharedApis
-                .OfType<T>()
-                .Where(x =>
-                    (tradingMode == null || x.SupportedTradingModes.Contains(tradingMode.Value))
-                    && (transport == null || x.Transport == transport)
-                    )
-                .ToArray();
-        }
-
-        /// <inheritdoc />
-        public T? GetCapability<T>(SharedTransport? transport = null)
+        public SharedCapabilityResolution<T>? GetCapability<T>(SharedTransport? transport = null)
             where T : ISharedApiCapability
         {
             return GetCapabilityCore<T>(null, transport);
         }
 
         /// <inheritdoc />
-        public T? GetCapability<T>(TradingMode tradingMode, SharedTransport? transport = null)
+        public SharedCapabilityResolution<T>? GetCapability<T>(TradingMode tradingMode, SharedTransport? transport = null)
             where T : ISharedApiCapability
         {
             return GetCapabilityCore<T>(tradingMode, transport);
         }
 
         /// <inheritdoc />
-        public T? GetCapability<T>(SharedCapabilityReference<T> capability)
+        public SharedCapabilityResolution<T>? GetCapability<T>(SharedCapabilityReference<T> capability)
             where T : ISharedApiCapability
         {
             return GetCapabilityCore<T>(null, null);
         }
 
         /// <inheritdoc />
-        public T? GetCapability<T>(SharedCapabilityReference<T> capability, TradingMode tradingMode)
+        public SharedCapabilityResolution<T>? GetCapability<T>(SharedCapabilityReference<T> capability, TradingMode tradingMode)
             where T : ISharedApiCapability
         {
             return GetCapabilityCore<T>(tradingMode, null);
         }
 
-        private T? GetCapabilityCore<T>(TradingMode? tradingMode, SharedTransport? selectedTransport = null)
-                where T : ISharedApiCapability
+        /// <inheritdoc />
+        public IReadOnlyList<SharedCapabilityResolution<T>> GetCapabilities<T>(
+            TradingMode? tradingMode = null,
+            SharedTransport? transport = null)
+            where T : ISharedApiCapability
         {
-            var implementations = _sharedApis
-                .OfType<T>()
-                .Where(x => tradingMode == null
-                    || x.SupportedTradingModes.Contains(tradingMode.Value))
-                .ToArray();
+            var result = new List<SharedCapabilityResolution<T>>();
 
-            foreach (var transport in selectedTransport != null ? new[] { selectedTransport! } : _preferredTransports)
+            foreach (var sharedApi in _sharedApis)
             {
-                var matching = implementations
-                    .Where(x => x.Transport == transport)
-                    .ToArray();
+                if (sharedApi is not T capability)
+                    continue;
 
-                if (matching.Length > 0)
-                    return matching[0];
+                if (transport != null && sharedApi.Transport != transport)
+                    continue;
+
+                var options = GetMatchingOptions<T>(sharedApi, tradingMode);
+                if (options == null)
+                    continue;
+
+                result.Add(new SharedCapabilityResolution<T>(
+                    capability,
+                    options));
             }
 
-            return default;
+            // Preserve Shared API registration order within each transport.
+            return result
+                .OrderBy(x => GetTransportPriority(x.Capability.Transport))
+                .ToArray();
+        }
+
+        private SharedCapabilityResolution<T>? GetCapabilityCore<T>(
+            TradingMode? tradingMode,
+            SharedTransport? selectedTransport = null)
+            where T : ISharedApiCapability
+        {
+            return GetCapabilities<T>(tradingMode, selectedTransport)
+                .FirstOrDefault();
+        }
+
+        private static CapabilityOptions? GetMatchingOptions<T>(
+            ISharedApi sharedApi,
+            TradingMode? tradingMode)
+            where T : ISharedApiCapability
+        {
+            var requestedType = typeof(T);
+
+            return sharedApi.Capabilities
+                .Where(options =>
+                    options.Supported
+                    && IsCapabilityTypeMatch(
+                        requestedType,
+                        options.CapabilityType)
+                    && (tradingMode == null
+                        || options.SupportedTradingModes.Contains(
+                            tradingMode.Value)))
+                // Prefer options declared for the exact requested interface.
+                .OrderByDescending(options =>
+                    options.CapabilityType == requestedType)
+                .FirstOrDefault();
+        }
+
+        private static bool IsCapabilityTypeMatch(
+            Type requestedType,
+            Type optionsCapabilityType)
+        {
+            return optionsCapabilityType.IsAssignableFrom(requestedType)
+                || requestedType.IsAssignableFrom(optionsCapabilityType);
+        }
+
+        private int GetTransportPriority(SharedTransport transport)
+        {
+            var index = Array.IndexOf(_preferredTransports, transport);
+            return index == -1 ? int.MaxValue : index;
         }
     }
 }

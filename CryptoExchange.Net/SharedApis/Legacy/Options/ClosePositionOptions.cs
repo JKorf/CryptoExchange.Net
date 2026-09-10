@@ -23,12 +23,6 @@ namespace CryptoExchange.Net.SharedApis
         /// <inheritdoc />
         public override Type CapabilityType => typeof(IFuturesOrderRestClient);
 
-        /// <inheritdoc />
-        public virtual RequestParameterRuleOverride[] ParameterRuleOverrides
-        {
-            set => SetRequestParameters(value);
-        }
-
         private static readonly RequestParameterDescription[] _defaultParameterRules = new[]
         {
             RequestParameterRule<ClosePositionRequest>.Required(x => x.Symbol, "The symbol of the position to close", new SharedSymbol(TradingMode.PerpetualLinear, "ETH", "USDT")),
@@ -41,7 +35,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public ClosePositionOptions(string exchange, bool authenticated) : base(exchange, nameof(IFuturesOrderRestClient.ClosePositionAsync), true, _defaultParameterRules)
+        public ClosePositionOptions(string exchange, bool authenticated) : base(exchange, nameof(IFuturesOrderRestClient.ClosePositionAsync), true, _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
 

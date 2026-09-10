@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public SubscribeSpotOrderOptions(string exchange, bool needsAuthentication)
-            : base(exchange, needsAuthentication, nameof(ISubscribeSpotOrdersSocket.SubscribeToSpotOrderUpdatesAsync), _defaultParameterRules)
+            : base(exchange, needsAuthentication, nameof(ISubscribeSpotOrdersSocket.SubscribeToSpotOrderUpdatesAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
     }

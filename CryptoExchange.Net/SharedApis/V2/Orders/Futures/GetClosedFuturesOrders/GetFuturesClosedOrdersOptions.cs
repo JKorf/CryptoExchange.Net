@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetFuturesClosedOrdersOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedFuturesOrdersRest.GetClosedFuturesOrdersAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, true, nameof(IGetClosedFuturesOrdersRest.GetClosedFuturesOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
 

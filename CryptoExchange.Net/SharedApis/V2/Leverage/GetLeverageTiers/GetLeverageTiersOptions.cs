@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetLeverageTiersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetLeverageTiersRest.GetLeverageTiersAsync), _defaultParameterRules)
+        public GetLeverageTiersOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetLeverageTiersRest.GetLeverageTiersAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

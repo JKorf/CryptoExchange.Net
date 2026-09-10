@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CloseFullPositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICloseFullPosition.CloseFullPositionAsync), _defaultParameterRules)
+        public CloseFullPositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICloseFullPosition.CloseFullPositionAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

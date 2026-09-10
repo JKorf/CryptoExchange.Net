@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public CancelAllSpotSymbolOrdersOptions(string exchange, bool authenticated)
-            : base(exchange, authenticated, nameof(ICancelAllSpotSymbolOrders.CancelAllSpotSymbolOrdersAsync), _defaultParameterRules)
+            : base(exchange, authenticated, nameof(ICancelAllSpotSymbolOrders.CancelAllSpotSymbolOrdersAsync), _defaultParameterRules, SharedTradingModeSets.Spot)
         {
         }
     }

@@ -25,7 +25,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesSymbols.GetFuturesSymbolsAsync), _defaultParameterRules)
+        public GetFuturesSymbolsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesSymbols.GetFuturesSymbolsAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
 

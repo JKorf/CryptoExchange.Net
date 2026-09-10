@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetFuturesOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesOrderByClientOrderId.GetFuturesOrderByClientOrderIdAsync), _defaultParameterRules)
+        public GetFuturesOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetFuturesOrderByClientOrderId.GetFuturesOrderByClientOrderIdAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }

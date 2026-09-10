@@ -36,7 +36,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication)
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
             SupportIntervals = new[]
             {
@@ -61,7 +61,7 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetMarkPriceKlinesOptions(string exchange, bool supportsAscending, bool supportsDescending, bool timeFilterSupported, int maxLimit, bool needsAuthentication, params SharedKlineInterval[] intervals) 
-            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync), _defaultParameterRules)
+            : base(exchange, supportsAscending, supportsDescending, timeFilterSupported, maxLimit, needsAuthentication, nameof(IGetMarkPriceKlinesRest.GetMarkPriceKlinesAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
             SupportIntervals = intervals;
         }

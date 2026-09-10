@@ -20,7 +20,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetMarkPriceOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetMarkPriceRest.GetMarkPriceAsync), _defaultParameterRules)
+        public GetMarkPriceOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetMarkPriceRest.GetMarkPriceAsync), _defaultParameterRules, SharedTradingModeSets.Futures)
         {
         }
     }
