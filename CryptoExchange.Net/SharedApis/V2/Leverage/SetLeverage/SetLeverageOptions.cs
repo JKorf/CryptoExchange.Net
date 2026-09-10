@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for setting leverage
     /// </summary>
-    public class SetLeverageOptions : CapabilityOptions<SetLeverageRequest, ISetLeverageRest>
+    public class SetLeverageOptions : CapabilityOptions<SetLeverageRequest, ISetLeverage>
     {
         /// <inheritdoc />
         public override string Description => "Set the leverage for a futures symbol";

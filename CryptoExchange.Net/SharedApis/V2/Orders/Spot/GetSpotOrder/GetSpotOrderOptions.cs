@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for getting a spot order by id endpoint
     /// </summary>
-    public class GetSpotOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotOrderRest>
+    public class GetSpotOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotOrder>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a spot order";
@@ -23,12 +23,12 @@ namespace CryptoExchange.Net.SharedApis
         /// ctor
         /// </summary>
         public GetSpotOrderOptions(string exchange, bool authenticated)
-            : base(exchange, authenticated, nameof(IGetSpotOrderRest.GetSpotOrderAsync), _defaultParameterRules)
+            : base(exchange, authenticated, nameof(IGetSpotOrder.GetSpotOrderAsync), _defaultParameterRules)
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotOrderRest client)
+        public override Error? ValidateRequest(GetOrderRequest request, IGetSpotOrder client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

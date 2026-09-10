@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting spot trigger order
     /// </summary>
-    public class GetSpotTriggerOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotTriggerOrderRest>
+    public class GetSpotTriggerOrderOptions : CapabilityOptions<GetOrderRequest, IGetSpotTriggerOrder>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve a spot trigger order";
@@ -22,7 +22,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrderRest.GetSpotTriggerOrderAsync), _defaultParameterRules)
+        public GetSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetSpotTriggerOrder.GetSpotTriggerOrderAsync), _defaultParameterRules)
         {
         }
 

@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting spot trigger order
     /// </summary>
-    public class CancelSpotTriggerOrderOptions : CapabilityOptions<CancelOrderRequest, ICancelSpotTriggerOrderRest>
+    public class CancelSpotTriggerOrderOptions : CapabilityOptions<CancelOrderRequest, ICancelSpotTriggerOrder>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a spot trigger order";
@@ -22,12 +22,12 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrderRest.CancelSpotTriggerOrderAsync), _defaultParameterRules)
+        public CancelSpotTriggerOrderOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICancelSpotTriggerOrder.CancelSpotTriggerOrderAsync), _defaultParameterRules)
         {
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotTriggerOrderRest client)
+        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotTriggerOrder client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting open positions
     /// </summary>
-    public class GetPositionsOptions : CapabilityOptions<GetPositionsRequest, IGetPositionsRest>
+    public class GetPositionsOptions : CapabilityOptions<GetPositionsRequest, IGetPositions>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open futures positions";
@@ -21,7 +21,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetPositionsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetPositionsRest.GetPositionsAsync), _defaultParameterRules)
+        public GetPositionsOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IGetPositions.GetPositionsAsync), _defaultParameterRules)
         {
         }
     }

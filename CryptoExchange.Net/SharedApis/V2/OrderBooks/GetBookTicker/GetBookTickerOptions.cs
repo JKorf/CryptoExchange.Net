@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting book ticker
     /// </summary>
-    public class GetBookTickerOptions : CapabilityOptions<GetBookTickerRequest, IGetBookTickerRest>
+    public class GetBookTickerOptions : CapabilityOptions<GetBookTickerRequest, IGetBookTicker>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the best bid and ask price for a symbol";

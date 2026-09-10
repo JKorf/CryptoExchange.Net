@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for setting a TP/SL
     /// </summary>
-    public class SetFuturesTpSlOptions : CapabilityOptions<SetTpSlRequest, ISetFuturesTpSlRest>
+    public class SetFuturesTpSlOptions : CapabilityOptions<SetTpSlRequest, ISetFuturesTpSl>
     {
         /// <inheritdoc />
         public override string Description => "Set take profit or stop loss values for a futures position";
@@ -26,7 +26,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SetFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISetFuturesTpSlRest.SetFuturesTpSlAsync), _defaultParameterRules)
+        public SetFuturesTpSlOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ISetFuturesTpSl.SetFuturesTpSlAsync), _defaultParameterRules)
         {
         }
     }

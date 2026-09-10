@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for setting position mode
     /// </summary>
-    public class SetPositionModeOptions : CapabilityOptions<SetPositionModeRequest, ISetPositionModeRest>
+    public class SetPositionModeOptions : CapabilityOptions<SetPositionModeRequest, ISetPositionMode>
     {
         /// <inheritdoc />
         public override string Description => "Set the futures position mode";
@@ -18,7 +18,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public SetPositionModeOptions(string exchange) : base(exchange, true, nameof(ISetPositionModeRest.SetPositionModeAsync), _defaultParameterRules)
+        public SetPositionModeOptions(string exchange) : base(exchange, true, nameof(ISetPositionMode.SetPositionModeAsync), _defaultParameterRules)
         {
         }
     }

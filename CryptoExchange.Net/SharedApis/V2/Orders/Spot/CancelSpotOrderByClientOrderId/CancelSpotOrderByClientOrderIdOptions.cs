@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for canceling a spot order
     /// </summary>
-    public class CancelSpotOrderByClientOrderIdOptions : CapabilityOptions<CancelOrderRequest, ICancelSpotOrderByClientOrderIdRest>
+    public class CancelSpotOrderByClientOrderIdOptions : CapabilityOptions<CancelOrderRequest, ICancelSpotOrderByClientOrderId>
     {
         /// <inheritdoc />
         public override string Description => "Cancel a spot order by its client order id";
@@ -28,7 +28,7 @@ namespace CryptoExchange.Net.SharedApis
         }
 
         /// <inheritdoc />
-        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotOrderByClientOrderIdRest client)
+        public override Error? ValidateRequest(CancelOrderRequest request, ICancelSpotOrderByClientOrderId client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

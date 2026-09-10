@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting leverage info
     /// </summary>
-    public class GetLeverageOptions : CapabilityOptions<GetLeverageRequest, IGetLeverageRest>
+    public class GetLeverageOptions : CapabilityOptions<GetLeverageRequest, IGetLeverage>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current leverage for a futures symbol";

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting open interest
     /// </summary>
-    public class GetOpenInterestOptions : CapabilityOptions<GetOpenInterestRequest, IGetOpenInterestRest>
+    public class GetOpenInterestOptions : CapabilityOptions<GetOpenInterestRequest, IGetOpenInterest>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve open interest for a futures symbol";

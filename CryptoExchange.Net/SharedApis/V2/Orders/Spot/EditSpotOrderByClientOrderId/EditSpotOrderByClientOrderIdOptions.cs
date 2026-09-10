@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for editing a spot order by client order id
     /// </summary>
-    public class EditSpotOrderByClientOrderIdOptions : CapabilityOptions<EditOrderRequest, IEditSpotOrderByClientOrderIdRest>
+    public class EditSpotOrderByClientOrderIdOptions : CapabilityOptions<EditOrderRequest, IEditSpotOrderByClientOrderId>
     {
         /// <inheritdoc />
         public override string Description => "Edit a spot order by its client order id";
@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EditSpotOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IEditSpotOrderByClientOrderIdRest.EditSpotOrderByClientOrderIdAsync), _defaultParameterRules)
+        public EditSpotOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IEditSpotOrderByClientOrderId.EditSpotOrderByClientOrderIdAsync), _defaultParameterRules)
         {
         }
     }

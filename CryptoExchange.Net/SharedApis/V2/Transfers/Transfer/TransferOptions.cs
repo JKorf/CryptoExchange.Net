@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class TransferOptions : CapabilityOptions<TransferRequest, ITransferRest>
+    public class TransferOptions : CapabilityOptions<TransferRequest, ITransfer>
     {
         /// <inheritdoc />
         public override string Description => "Transfer funds between account types";
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true, nameof(ITransferRest.TransferAsync), _defaultParameterRules)
+        public TransferOptions(string exchange, SharedAccountType[] accountTypes) : base(exchange, true, nameof(ITransfer.TransferAsync), _defaultParameterRules)
         {
             SupportedAccountTypes = accountTypes;
         }
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             TransferRequest request,
-            ITransferRest client)
+            ITransfer client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

@@ -3,7 +3,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for editing a futures order by client order id
     /// </summary>
-    public class EditFuturesOrderByClientOrderIdOptions : CapabilityOptions<EditOrderRequest, IEditFuturesOrderByClientOrderIdRest>
+    public class EditFuturesOrderByClientOrderIdOptions : CapabilityOptions<EditOrderRequest, IEditFuturesOrderByClientOrderId>
     {
         /// <inheritdoc />
         public override string Description => "Edit a futures order by its client order id";
@@ -19,7 +19,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public EditFuturesOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IEditFuturesOrderByClientOrderIdRest.EditFuturesOrderByClientOrderIdAsync), _defaultParameterRules)
+        public EditFuturesOrderByClientOrderIdOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(IEditFuturesOrderByClientOrderId.EditFuturesOrderByClientOrderIdAsync), _defaultParameterRules)
         {
         }
     }

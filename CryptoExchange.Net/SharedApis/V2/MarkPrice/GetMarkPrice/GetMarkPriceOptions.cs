@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting the mark price
     /// </summary>
-    public class GetMarkPriceOptions : CapabilityOptions<GetMarkPriceRequest, IGetMarkPriceRest>
+    public class GetMarkPriceOptions : CapabilityOptions<GetMarkPriceRequest, IGetMarkPrice>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the mark price for a futures symbol";

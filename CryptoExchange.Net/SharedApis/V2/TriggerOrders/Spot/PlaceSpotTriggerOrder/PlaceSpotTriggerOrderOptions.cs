@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for placing a new spot trigger order
     /// </summary>
-    public class PlaceSpotTriggerOrderOptions : CapabilityOptions<PlaceSpotTriggerOrderRequest, IPlaceSpotTriggerOrderRest>
+    public class PlaceSpotTriggerOrderOptions : CapabilityOptions<PlaceSpotTriggerOrderRequest, IPlaceSpotTriggerOrder>
     {
         /// <inheritdoc />
         public override string Description => "Place a new spot trigger order";
@@ -30,7 +30,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceSpotTriggerOrderRest.PlaceSpotTriggerOrderAsync), _defaultParameterRules)
+        public PlaceSpotTriggerOrderOptions(string exchange, bool holdsFunds) : base(exchange, true, nameof(IPlaceSpotTriggerOrder.PlaceSpotTriggerOrderAsync), _defaultParameterRules)
         {
             HoldsFunds = holdsFunds;
         }
@@ -40,7 +40,7 @@ namespace CryptoExchange.Net.SharedApis
         /// </summary>
         public override Error? ValidateRequest(
             PlaceSpotTriggerOrderRequest request,
-            IPlaceSpotTriggerOrderRest client)
+            IPlaceSpotTriggerOrder client)
         {
             var error = base.ValidateRequest(request, client);
             if (error != null)

@@ -8,7 +8,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting order book
     /// </summary>
-    public class GetOrderBookOptions : CapabilityOptions<GetOrderBookRequest, IGetOrderBookRest>
+    public class GetOrderBookOptions : CapabilityOptions<GetOrderBookRequest, IGetOrderBook>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current order book for a symbol";

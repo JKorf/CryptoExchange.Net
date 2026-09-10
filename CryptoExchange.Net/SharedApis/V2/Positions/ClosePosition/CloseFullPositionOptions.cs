@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for fully closing a position
     /// </summary>
-    public class CloseFullPositionOptions : CapabilityOptions<CloseFullPositionRequest, ICloseFullPositionRest>
+    public class CloseFullPositionOptions : CapabilityOptions<CloseFullPositionRequest, ICloseFullPosition>
     {
         /// <inheritdoc />
         public override string Description => "Fully close an open futures position";
@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public CloseFullPositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICloseFullPositionRest.CloseFullPositionAsync), _defaultParameterRules)
+        public CloseFullPositionOptions(string exchange, bool authenticated) : base(exchange, authenticated, nameof(ICloseFullPosition.CloseFullPositionAsync), _defaultParameterRules)
         {
         }
     }

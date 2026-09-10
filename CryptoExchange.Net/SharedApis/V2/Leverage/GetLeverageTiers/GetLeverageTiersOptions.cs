@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting leverage tier info
     /// </summary>
-    public class GetLeverageTiersOptions : CapabilityOptions<GetLeverageTiersRequest, IGetLeverageTiersRest>
+    public class GetLeverageTiersOptions : CapabilityOptions<GetLeverageTiersRequest, IGetLeverageTiers>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the current leverage tier information for a futures symbol";

@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting the index price
     /// </summary>
-    public class GetAllIndexPricesOptions : CapabilityOptions<GetAllIndexPricesRequest, IGetAllIndexPricesRest>
+    public class GetAllIndexPricesOptions : CapabilityOptions<GetAllIndexPricesRequest, IGetAllIndexPrices>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve the index prices for all futures symbols";

@@ -6,7 +6,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting a transfer
     /// </summary>
-    public class GetBalancesOptions : CapabilityOptions<GetBalancesRequest, IGetBalancesRest>
+    public class GetBalancesOptions : CapabilityOptions<GetBalancesRequest, IGetBalances>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve account balances";

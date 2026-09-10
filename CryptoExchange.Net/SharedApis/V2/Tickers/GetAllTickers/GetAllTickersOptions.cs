@@ -5,7 +5,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Options for requesting tickers
     /// </summary>
-    public class GetAllTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllTickersRest>
+    public class GetAllTickersOptions : CapabilityOptions<GetTickersRequest, IGetAllTickers>
     {
         /// <inheritdoc />
         public override string Description => "Retrieve price ticker information for all symbols in a trading mode";
@@ -23,7 +23,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// ctor
         /// </summary>
-        public GetAllTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllTickersRest.GetAllTickersAsync), _defaultParameterRules)
+        public GetAllTickersOptions(string exchange, SharedTickerType? tickerCalcType = null) : base(exchange, false, nameof(IGetAllTickers.GetAllTickersAsync), _defaultParameterRules)
         {
             TickerType = tickerCalcType ?? SharedTickerType.Day24H;
         }
