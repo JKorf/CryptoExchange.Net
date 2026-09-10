@@ -235,7 +235,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Type CapabilityType => typeof(TCapability);
 
         /// <inheritdoc />
-        public virtual RequestParameterRuleOverride[] ParameterRuleOverwrites
+        public virtual RequestParameterRuleOverride[] ParameterRuleOverrides
         {
             set => SetRequestParameters(value);
         }

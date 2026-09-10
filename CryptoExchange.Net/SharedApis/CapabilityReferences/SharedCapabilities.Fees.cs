@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CryptoExchange.Net.SharedApis
 {
-    public partial class SharedCapabilities
+    public static partial class SharedCapabilities
     {
         /// <summary>
         /// Fee capabilities.

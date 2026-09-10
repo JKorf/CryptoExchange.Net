@@ -7,7 +7,7 @@ namespace CryptoExchange.Net.SharedApis
     /// <summary>
     /// Catalog of Shared API capability references.
     /// </summary>
-    public partial class SharedCapabilities
+    public static partial class SharedCapabilities
     {
         /// <summary>
         /// Asset capabilities.

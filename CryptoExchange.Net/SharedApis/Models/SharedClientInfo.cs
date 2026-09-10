@@ -37,7 +37,7 @@ namespace CryptoExchange.Net.SharedApis
         /// <summary>
         /// Use Capabilities instead
         /// </summary>
-        [Obsolete("Use Capabilities instead")]
+#pragma warning disable CS0618 // Type or member is obsolete
         public EndpointOptions[] Features
         {
             get => _capabilities
@@ -46,6 +46,7 @@ namespace CryptoExchange.Net.SharedApis
 
             init => _capabilities = value;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// Client capabilities

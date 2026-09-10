@@ -24,7 +24,7 @@ namespace CryptoExchange.Net.SharedApis
         public override Type CapabilityType => typeof(IFuturesOrderRestClient);
 
         /// <inheritdoc />
-        public virtual RequestParameterRuleOverride[] ParameterRuleOverwrites
+        public virtual RequestParameterRuleOverride[] ParameterRuleOverrides
         {
             set => SetRequestParameters(value);
         }
